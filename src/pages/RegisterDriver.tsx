@@ -35,8 +35,21 @@ const RegisterDriver = () => {
   };
 
   const handleNext = () => {
-    // Handle form submission and navigation
-    navigate("/home");
+    if (activeTab === "vehicle") {
+      setActiveTab("bank");
+    } else if (activeTab === "bank") {
+      setActiveTab("id");
+    } else if (activeTab === "id") {
+      // Final submission
+      navigate("/home");
+    }
+  };
+
+  const getButtonText = () => {
+    if (activeTab === "id") {
+      return "เสร็จสิ้น";
+    }
+    return "ถัดไป";
   };
 
   return (
@@ -231,7 +244,7 @@ const RegisterDriver = () => {
           onClick={handleNext}
           className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-full"
         >
-          ถัดไป
+          {getButtonText()}
           <span className="ml-2">→</span>
         </Button>
       </div>
