@@ -40,8 +40,8 @@ const RegisterDriver = () => {
     } else if (activeTab === "bank") {
       setActiveTab("id");
     } else if (activeTab === "id") {
-      // Final submission
-      navigate("/home");
+      // Go to create bidding post page
+      navigate("/create-bidding-post");
     }
   };
 
