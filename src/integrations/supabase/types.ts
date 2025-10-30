@@ -14,7 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      job_applications: {
+        Row: {
+          applied_at: string
+          driver_id: string
+          id: string
+          job_id: string
+          status: string
+        }
+        Insert: {
+          applied_at?: string
+          driver_id: string
+          id?: string
+          job_id: string
+          status?: string
+        }
+        Update: {
+          applied_at?: string
+          driver_id?: string
+          id?: string
+          job_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          created_at: string
+          destination_location: string
+          district: string | null
+          employer_name: string
+          equipment_list: string | null
+          id: string
+          job_type: string
+          order_code: string
+          origin_location: string
+          price: number
+          province: string | null
+          safety_equipment: string | null
+          start_date: string
+          start_time: string
+          status: string
+          transport_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          destination_location: string
+          district?: string | null
+          employer_name: string
+          equipment_list?: string | null
+          id?: string
+          job_type: string
+          order_code: string
+          origin_location: string
+          price: number
+          province?: string | null
+          safety_equipment?: string | null
+          start_date: string
+          start_time: string
+          status?: string
+          transport_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          destination_location?: string
+          district?: string | null
+          employer_name?: string
+          equipment_list?: string | null
+          id?: string
+          job_type?: string
+          order_code?: string
+          origin_location?: string
+          price?: number
+          province?: string | null
+          safety_equipment?: string | null
+          start_date?: string
+          start_time?: string
+          status?: string
+          transport_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string
+          id: string
+          phone_number: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name: string
+          id: string
+          phone_number: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
