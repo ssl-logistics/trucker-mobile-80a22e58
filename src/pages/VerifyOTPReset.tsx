@@ -29,25 +29,75 @@ const VerifyOTPReset = () => {
 
   useEffect(() => {
     if (otp.length === 6) {
-      // Simulate OTP verification
-      setTimeout(() => {
-        toast({
-          title: "ยืนยัน OTP สำเร็จ",
-          description: "กรุณาสร้างรหัสผ่านใหม่"
-        });
-        navigate("/create-new-password", { state: { phone } });
-      }, 500);
+      // Verify OTP with backend
+      const verifyOTP = async () => {
+        try {
+          const { supabase } = await import("@/integrations/supabase/client");
+          const { data, error } = await supabase.functions.invoke("verify-otp", {
+            body: { phone, otp }
+          });
+
+          if (error || !data?.success) {
+            toast({
+              title: "รหัส OTP ไม่ถูกต้อง",
+              description: "กรุณาตรวจสอบและลองใหม่อีกครั้ง",
+              variant: "destructive"
+            });
+            setOtp("");
+            return;
+          }
+
+          toast({
+            title: "ยืนยัน OTP สำเร็จ",
+            description: "กรุณาสร้างรหัสผ่านใหม่"
+          });
+          navigate("/create-new-password", { state: { phone } });
+        } catch (error) {
+          console.error("Error verifying OTP:", error);
+          toast({
+            title: "เกิดข้อผิดพลาด",
+            description: "กรุณาลองใหม่อีกครั้ง",
+            variant: "destructive"
+          });
+          setOtp("");
+        }
+      };
+      
+      verifyOTP();
     }
   }, [otp, navigate, toast, phone]);
 
-  const handleResendOTP = () => {
-    setOtp("");
-    setTimer(60);
-    setCanResend(false);
-    toast({
-      title: "ส่งรหัสยืนยันใหม่แล้ว",
-      description: "กรุณาตรวจสอบ SMS"
-    });
+  const handleResendOTP = async () => {
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.functions.invoke("send-otp", {
+        body: { phone }
+      });
+
+      if (error) {
+        toast({
+          title: "เกิดข้อผิดพลาด",
+          description: "ไม่สามารถส่งรหัสยืนยันได้",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setOtp("");
+      setTimer(60);
+      setCanResend(false);
+      toast({
+        title: "ส่งรหัสยืนยันใหม่แล้ว",
+        description: "กรุณาตรวจสอบ SMS"
+      });
+    } catch (error) {
+      console.error("Error resending OTP:", error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleBack = () => {

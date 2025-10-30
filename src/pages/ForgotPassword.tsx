@@ -36,22 +36,31 @@ const ForgotPassword = () => {
     try {
       setServerError("");
       
-      // TODO: Check phone number in database
-      // For now, simulate check
-      const phoneExists = true; // Replace with actual database check
+      // TODO: Check phone number in database first
+      // For now, assume phone exists and send OTP
       
-      if (phoneExists) {
-        toast({
-          title: "ส่งรหัสยืนยันแล้ว",
-          description: "กรุณาตรวจสอบ SMS"
-        });
-        navigate("/verify-otp-reset", { 
-          state: { phone: data.phone, from: "forgot-password" }
-        });
-      } else {
-        setServerError(`หมายเลข ${data.phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')} ยังไม่ถูกลงทะเบียนในระบบ`);
+      // Send OTP via Twilio
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: otpData, error: otpError } = await supabase.functions.invoke("send-otp", {
+        body: { phone: data.phone }
+      });
+
+      if (otpError) {
+        console.error("Error sending OTP:", otpError);
+        setServerError("ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่อีกครั้ง");
+        return;
       }
+
+      toast({
+        title: "ส่งรหัสยืนยันแล้ว",
+        description: "กรุณาตรวจสอบ SMS"
+      });
+      
+      navigate("/verify-otp-reset", { 
+        state: { phone: data.phone, from: "forgot-password" }
+      });
     } catch (error) {
+      console.error("Error:", error);
       setServerError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
