@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import loginBackground from "@/assets/login-background.png";
 
 const loginSchema = z.object({
   email: z.string().min(1, { message: "กรุณากรอกชื่อผู้ใช้" }).email({ message: "รูปแบบอีเมลไม่ถูกต้อง" }),
@@ -63,31 +64,12 @@ const SignIn = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section with Truck Image */}
-      <div className="relative h-[45vh] bg-gradient-to-br from-primary/20 via-background to-secondary/20 rounded-b-[3rem] overflow-hidden">
-        <div className="absolute top-8 right-8 flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-full"></div>
-          <div className="text-2xl font-bold text-foreground">The</div>
-        </div>
-        <div className="absolute top-12 right-8 text-xl font-bold text-foreground">Truckers</div>
-        
-        {/* Truck Image */}
-        <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center">
-          <div className="relative w-full max-w-md">
-            <div className="absolute top-0 right-12 w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-full"></div>
-            </div>
-            <div className="w-full h-48 bg-gradient-to-r from-primary/80 to-accent/80 rounded-t-3xl flex items-center justify-center overflow-hidden">
-              <div className="text-8xl">🚛</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Decorative Grid Pattern */}
-        <div className="absolute top-8 left-8 grid grid-cols-3 gap-2 opacity-20">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="w-12 h-12 border-2 border-foreground/30 rounded-lg"></div>
-          ))}
-        </div>
+      <div className="relative h-[45vh] rounded-b-[3rem] overflow-hidden">
+        <img 
+          src={loginBackground} 
+          alt="The Truckers" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
       </div>
 
       {/* Login Form */}
