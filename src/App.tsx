@@ -9,7 +9,10 @@ import VerifyOTP from "./pages/VerifyOTP";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyOTPReset from "./pages/VerifyOTPReset";
 import CreateNewPassword from "./pages/CreateNewPassword";
+import Home from "./pages/Home";
+import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +29,8 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-otp-reset" element={<VerifyOTPReset />} />
           <Route path="/create-new-password" element={<CreateNewPassword />} />
+          <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

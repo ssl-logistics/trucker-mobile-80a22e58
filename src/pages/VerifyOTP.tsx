@@ -108,12 +108,32 @@ const VerifyOTP = () => {
             return;
           }
 
+          // Step 3: Create profile
+          if (authData.user) {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .insert({
+                id: authData.user.id,
+                full_name: `${registrationData.firstName} ${registrationData.lastName}`,
+                phone_number: registrationData.phone,
+              });
+
+            if (profileError) {
+              console.error("Error creating profile:", profileError);
+            }
+          }
+
           setHasVerified(true);
           toast({
             title: "ยืนยันตัวตนสำเร็จ",
             description: "ลงทะเบียนเสร็จสมบูรณ์"
           });
-          setShowSuccess(true);
+          
+          // Navigate to home after successful registration
+          setTimeout(() => {
+            navigate('/home');
+          }, 1500);
+          
           setIsCreatingAccount(false);
         } catch (error) {
           console.error("Error verifying OTP:", error);
