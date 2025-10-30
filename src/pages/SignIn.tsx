@@ -107,7 +107,7 @@ const SignIn = () => {
                 จดจำฉันในระบบ
               </Label>
             </div>
-            <button type="button" onClick={() => console.log("Forgot password")} className="text-sm text-secondary hover:underline">
+            <button type="button" onClick={() => navigate("/forgot-password")} className="text-sm text-secondary hover:underline">
               ลืมรหัสผ่านใช่หรือไป?
             </button>
           </div>
