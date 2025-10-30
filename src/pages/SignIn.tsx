@@ -72,7 +72,7 @@ const SignIn = () => {
 
       {/* Login Form */}
       <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white/0">
-        <h1 className="text-2xl font-bold text-center mb-8 text-foreground">เข้าสู่ระบบหรือสมัครสมาชิก</h1>
+        <h1 className="text-2xl font-bold text-center mb-8 mt-5 text-foreground">เข้าสู่ระบบหรือสมัครสมาชิก</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-md mx-auto">
           {/* Email Field */}
