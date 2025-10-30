@@ -7,6 +7,7 @@ import GeneralInfoStep from "@/components/register/GeneralInfoStep";
 import VehiclePhotosStep from "@/components/register/VehiclePhotosStep";
 import VehicleInfoStep from "@/components/register/VehicleInfoStep";
 import ReviewStep from "@/components/register/ReviewStep";
+import OTPVerificationStep from "@/components/register/OTPVerificationStep";
 
 export interface RegistrationData {
   // General Info
@@ -95,7 +96,8 @@ const Register = () => {
     { component: ReviewStep, title: "ตรวจสอบข้อมูล" }
   ];
 
-  const CurrentStepComponent = steps[currentStep].component;
+  const allSteps = [...steps, { title: "ยืนยันตัวตน" }];
+  const CurrentStepComponent = currentStep < steps.length ? steps[currentStep].component : null;
 
   const handleNext = (data: Partial<RegistrationData>) => {
     setRegistrationData(prev => ({ ...prev, ...data }));
@@ -113,9 +115,16 @@ const Register = () => {
   };
 
   const handleSubmit = async () => {
-    // TODO: Implement actual registration logic
-    console.log("Registration data:", registrationData);
-    navigate("/verify-otp", { state: { phone: registrationData.phone } });
+    // TODO: Implement actual registration logic - send OTP
+    console.log("Sending OTP to:", registrationData.phone);
+    // Move to OTP verification step
+    setCurrentStep(steps.length);
+  };
+
+  const handleOTPVerified = () => {
+    // TODO: Complete registration
+    console.log("Registration completed:", registrationData);
+    navigate("/");
   };
 
   return (
@@ -125,13 +134,13 @@ const Register = () => {
         <button onClick={handleBack} className="mr-4">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-semibold">{steps[currentStep].title}</h1>
+        <h1 className="text-lg font-semibold">{allSteps[currentStep].title}</h1>
       </div>
 
       {/* Progress Indicator */}
       {currentStep > 0 && (
         <div className="flex gap-2 px-6 py-4">
-          {steps.slice(1).map((_, index) => (
+          {allSteps.slice(1).map((_, index) => (
             <div
               key={index}
               className={`flex-1 h-1 rounded-full ${
@@ -144,12 +153,20 @@ const Register = () => {
 
       {/* Content */}
       <div className="p-6">
-        <CurrentStepComponent
-          data={registrationData}
-          onNext={handleNext}
-          onBack={handleBack}
-          onSubmit={handleSubmit}
-        />
+        {currentStep === steps.length ? (
+          <OTPVerificationStep
+            phoneNumber={registrationData.phone}
+            onVerified={handleOTPVerified}
+            onBack={handleBack}
+          />
+        ) : CurrentStepComponent ? (
+          <CurrentStepComponent
+            data={registrationData}
+            onNext={handleNext}
+            onBack={handleBack}
+            onSubmit={handleSubmit}
+          />
+        ) : null}
       </div>
     </div>
   );
