@@ -35,6 +35,11 @@ interface VehicleInfoStepProps {
 
 const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const [containerTypes, setContainerTypes] = useState<string[]>(data.containerTypes || []);
+  const [registrationPhoto, setRegistrationPhoto] = useState<File | null>(null);
+  const [insurancePhoto, setInsurancePhoto] = useState<File | null>(null);
+  const [licensePhoto, setLicensePhoto] = useState<File | null>(null);
+  const [idCardPhoto, setIdCardPhoto] = useState<File | null>(null);
+  const [compulsoryInsurancePhoto, setCompulsoryInsurancePhoto] = useState<File | null>(null);
   
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<VehicleInfoFormData>({
     resolver: zodResolver(vehicleInfoSchema),
@@ -63,10 +68,29 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         height: formData.height,
       },
       containerTypes,
+      registrationPhoto,
+      insurancePhoto,
+      licensePhoto,
+      idCardPhoto,
+      compulsoryInsurancePhoto,
     });
   };
 
-  const PhotoUploadBox = ({ label, id }: { label: string; id: string }) => (
+  const handleFileChange = (file: File | null, setter: (file: File | null) => void) => {
+    setter(file);
+  };
+
+  const PhotoUploadBox = ({ 
+    label, 
+    id, 
+    file, 
+    onChange 
+  }: { 
+    label: string; 
+    id: string;
+    file: File | null;
+    onChange: (file: File | null) => void;
+  }) => (
     <div className="space-y-2">
       <Label>
         {label} <span className="text-destructive">*</span>
@@ -75,10 +99,28 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         htmlFor={id}
         className="flex flex-col items-center justify-center border-2 border-dashed border-input rounded-lg h-32 cursor-pointer hover:border-primary transition-colors"
       >
-        <Camera className="w-8 h-8 mb-2 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปหรือเลือกรูป</p>
+        {file ? (
+          <div className="text-center">
+            <p className="text-sm text-primary font-medium mb-1">✓ เลือกไฟล์แล้ว</p>
+            <p className="text-xs text-muted-foreground">{file.name}</p>
+          </div>
+        ) : (
+          <>
+            <Camera className="w-8 h-8 mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปหรือเลือกรูป</p>
+          </>
+        )}
       </label>
-      <input id={id} type="file" accept="image/*" className="hidden" />
+      <input 
+        id={id} 
+        type="file" 
+        accept="image/*" 
+        className="hidden"
+        onChange={(e) => {
+          const selectedFile = e.target.files?.[0] || null;
+          onChange(selectedFile);
+        }}
+      />
     </div>
   );
 
@@ -225,17 +267,42 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           </div>
         </div>
 
-        <PhotoUploadBox label="รูปรายการจดทะเบียนรถ" id="registration-doc" />
+        <PhotoUploadBox 
+          label="รูปรายการจดทะเบียนรถ" 
+          id="registration-doc"
+          file={registrationPhoto}
+          onChange={(file) => handleFileChange(file, setRegistrationPhoto)}
+        />
 
         <div className="space-y-2">
           <Label>มูลค่าประกันสินค้า (บาท) <span className="text-destructive">*</span></Label>
           <Input {...register("insuranceValue")} />
         </div>
 
-        <PhotoUploadBox label="แนบเอกสารประกัน" id="insurance-doc" />
-        <PhotoUploadBox label="ใบอนุญาติขับขี่" id="license-doc" />
-        <PhotoUploadBox label="บัตรประชาชนผู้ขับ" id="id-card-doc" />
-        <PhotoUploadBox label="สำเนา พรบ." id="compulsory-insurance-doc" />
+        <PhotoUploadBox 
+          label="แนบเอกสารประกัน" 
+          id="insurance-doc"
+          file={insurancePhoto}
+          onChange={(file) => handleFileChange(file, setInsurancePhoto)}
+        />
+        <PhotoUploadBox 
+          label="ใบอนุญาติขับขี่" 
+          id="license-doc"
+          file={licensePhoto}
+          onChange={(file) => handleFileChange(file, setLicensePhoto)}
+        />
+        <PhotoUploadBox 
+          label="บัตรประชาชนผู้ขับ" 
+          id="id-card-doc"
+          file={idCardPhoto}
+          onChange={(file) => handleFileChange(file, setIdCardPhoto)}
+        />
+        <PhotoUploadBox 
+          label="สำเนา พรบ." 
+          id="compulsory-insurance-doc"
+          file={compulsoryInsurancePhoto}
+          onChange={(file) => handleFileChange(file, setCompulsoryInsurancePhoto)}
+        />
       </div>
 
       <div className="flex gap-3 pt-4">
