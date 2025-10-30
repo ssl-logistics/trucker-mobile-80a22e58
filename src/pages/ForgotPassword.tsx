@@ -39,34 +39,29 @@ const ForgotPassword = () => {
       // TODO: Check phone number in database first
       // For now, assume phone exists and send OTP
       
-      // Send OTP via Twilio
+      // Send OTP via ThailBulkSMS
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: otpData, error: otpError } = await supabase.functions.invoke("send-otp", {
         body: { phone: data.phone }
       });
 
-      if (otpError) {
+      if (otpError || !otpData?.success) {
         console.error("Error sending OTP:", otpError);
         setServerError("ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่อีกครั้ง");
         return;
       }
 
-      // Show test OTP in console if in test mode
-      if (otpData?.testOTP) {
-        console.log(`🔐 TEST MODE - OTP สำหรับ ${data.phone}: ${otpData.testOTP}`);
-        toast({
-          title: "โหมดทดสอบ",
-          description: `รหัส OTP: ${otpData.testOTP}`
-        });
-      } else {
-        toast({
-          title: "ส่งรหัสยืนยันแล้ว",
-          description: "กรุณาตรวจสอบ SMS"
-        });
-      }
+      toast({
+        title: "ส่งรหัสยืนยันแล้ว",
+        description: "กรุณาตรวจสอบ SMS"
+      });
       
       navigate("/verify-otp-reset", { 
-        state: { phone: data.phone, from: "forgot-password" }
+        state: { 
+          phone: data.phone, 
+          token: otpData.token,
+          from: "forgot-password" 
+        }
       });
     } catch (error) {
       console.error("Error:", error);

@@ -117,7 +117,7 @@ const Register = () => {
       // TODO: Implement actual registration logic (save to database)
       console.log("Registration data:", registrationData);
       
-      // Send OTP via Twilio
+      // Send OTP via ThailBulkSMS
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: otpData, error: otpError } = await supabase.functions.invoke("send-otp", {
         body: { phone: registrationData.phone }
@@ -129,13 +129,19 @@ const Register = () => {
         return;
       }
 
-      // Show test OTP in console if in test mode
-      if (otpData?.testOTP) {
-        console.log(`🔐 TEST MODE - OTP สำหรับ ${registrationData.phone}: ${otpData.testOTP}`);
-        alert(`โหมดทดสอบ - รหัส OTP: ${otpData.testOTP}`);
+      if (!otpData?.success) {
+        console.error("Failed to send OTP:", otpData);
+        alert("ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่อีกครั้ง");
+        return;
       }
 
-      navigate("/verify-otp", { state: { phone: registrationData.phone } });
+      console.log("OTP sent successfully, token:", otpData.token);
+      navigate("/verify-otp", { 
+        state: { 
+          phone: registrationData.phone,
+          token: otpData.token
+        } 
+      });
     } catch (error) {
       console.error("Error:", error);
       alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");

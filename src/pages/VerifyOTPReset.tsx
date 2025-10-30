@@ -14,6 +14,8 @@ const VerifyOTPReset = () => {
   const [canResend, setCanResend] = useState(false);
 
   const phone = location.state?.phone || "";
+  const token = location.state?.token || "";
+  const [verifyToken, setVerifyToken] = useState(token);
   const maskedPhone = phone.replace(/(\d{3})(\d{3})(\d{4})/, "XXX-XXX-$3");
 
   useEffect(() => {
@@ -34,13 +36,13 @@ const VerifyOTPReset = () => {
         try {
           const { supabase } = await import("@/integrations/supabase/client");
           const { data, error } = await supabase.functions.invoke("verify-otp", {
-            body: { phone, otp }
+            body: { phone, otp, token: verifyToken }
           });
 
           if (error || !data?.success) {
             toast({
               title: "รหัส OTP ไม่ถูกต้อง",
-              description: "กรุณาตรวจสอบและลองใหม่อีกครั้ง",
+              description: data?.error || "กรุณาตรวจสอบและลองใหม่อีกครั้ง",
               variant: "destructive"
             });
             setOtp("");
@@ -65,7 +67,7 @@ const VerifyOTPReset = () => {
       
       verifyOTP();
     }
-  }, [otp, navigate, toast, phone]);
+  }, [otp, navigate, toast, phone, verifyToken]);
 
   const handleResendOTP = async () => {
     try {
@@ -74,7 +76,7 @@ const VerifyOTPReset = () => {
         body: { phone }
       });
 
-      if (error) {
+      if (error || !otpData?.success) {
         toast({
           title: "เกิดข้อผิดพลาด",
           description: "ไม่สามารถส่งรหัสยืนยันได้",
@@ -87,19 +89,16 @@ const VerifyOTPReset = () => {
       setTimer(60);
       setCanResend(false);
       
-      // Show test OTP in console if in test mode
-      if (otpData?.testOTP) {
-        console.log(`🔐 TEST MODE - OTP สำหรับ ${phone}: ${otpData.testOTP}`);
-        toast({
-          title: "โหมดทดสอบ",
-          description: `รหัส OTP: ${otpData.testOTP}`
-        });
-      } else {
-        toast({
-          title: "ส่งรหัสยืนยันใหม่แล้ว",
-          description: "กรุณาตรวจสอบ SMS"
-        });
+      // Update verify token
+      if (otpData?.token) {
+        setVerifyToken(otpData.token);
+        console.log("New token:", otpData.token);
       }
+      
+      toast({
+        title: "ส่งรหัสยืนยันใหม่แล้ว",
+        description: "กรุณาตรวจสอบ SMS"
+      });
     } catch (error) {
       console.error("Error resending OTP:", error);
       toast({
