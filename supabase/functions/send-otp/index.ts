@@ -87,29 +87,16 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (!twilioResponse.ok) {
-      const errorText = await twilioResponse.text();
-      console.error("Twilio error:", errorText);
+      const error = await twilioResponse.text();
+      console.error("Twilio API error:", error);
       
-      // Parse error to check if it's a trial account limitation
-      try {
-        const errorData = JSON.parse(errorText);
-        const isTrialError = errorData.code === 21608 || errorData.code === 21659;
-        
-        if (isTrialError) {
-          console.log(`⚠️ Twilio Trial Account Limitation (Code: ${errorData.code})`);
-          console.log(`📱 To send real SMS: Verify this number at https://console.twilio.com/us1/develop/phone-numbers/manage/verified or upgrade your Twilio account`);
-        }
-      } catch (e) {
-        // Error parsing, continue with fallback
-      }
-      
-      // Fallback to test mode on any Twilio error
-      console.log(`✅ TEST MODE ACTIVE - OTP: ${otp}`);
+      // Fallback to test mode on error
+      console.log(`⚠️ Twilio error. Falling back to TEST MODE. OTP: ${otp}`);
       
       return new Response(
         JSON.stringify({ 
           success: true,
-          message: "OTP generated (test mode)",
+          message: "OTP generated (Twilio error - using test mode)",
           testOTP: otp
         }),
         {
