@@ -102,27 +102,15 @@ const TermsStep = ({ onNext }: TermsStepProps) => {
         <div className="h-20" />
       </div>
 
-      <div className="flex flex-col gap-3 pt-4 border-t">
+      <div className="pt-4 border-t">
         <Button
           onClick={handleAccept}
           disabled={!canAccept}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium disabled:bg-muted disabled:text-muted-foreground"
         >
-          ตกลง
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full rounded-xl h-12 text-base font-medium border-2"
-        >
-          ยอมรับ
+          {canAccept ? "ยอมรับ" : "เลื่อนลงจนสุดเพื่อดำเนินการต่อ"}
         </Button>
       </div>
-
-      {!canAccept && (
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          กรุณาเลื่อนอ่านจนสุดเพื่อยอมรับนโยบาย
-        </p>
-      )}
     </div>
   );
 };
