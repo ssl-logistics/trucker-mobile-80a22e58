@@ -115,11 +115,7 @@ const Register = () => {
   const handleSubmit = async () => {
     // TODO: Implement actual registration logic
     console.log("Registration data:", registrationData);
-    navigate("/verify-otp", { 
-      state: { 
-        phoneNumber: registrationData.phone 
-      } 
-    });
+    navigate("/home");
   };
 
   return (
