@@ -2,8 +2,8 @@ const Login = () => {
   const handleLineLogin = () => {
     // TODO: Implement LINE Login
     console.log("LINE Login clicked");
-    // For now, redirect to terms page
-    window.location.href = "/terms";
+    // For now, redirect to sign in page
+    window.location.href = "/signin";
   };
 
   return (
