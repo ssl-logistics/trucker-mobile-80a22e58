@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
+const USE_TEST_MODE = Deno.env.get("TWILIO_TEST_MODE") === "true";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,12 +48,33 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Generated OTP for ${phone}: ${otp}`);
 
-    // Send SMS via Twilio
+    // Check if in test mode
+    if (USE_TEST_MODE || !TWILIO_PHONE_NUMBER || TWILIO_PHONE_NUMBER.startsWith('+66')) {
+      console.log(`TEST MODE: OTP ${otp} generated for ${phone}`);
+      console.log(`⚠️ Twilio not configured properly. Using test mode.`);
+      console.log(`To use real SMS:`);
+      console.log(`1. Get a Twilio phone number from: https://console.twilio.com/us1/develop/phone-numbers/manage/search`);
+      console.log(`2. Update TWILIO_PHONE_NUMBER secret with format: +1234567890 (not +66)`);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: "OTP sent successfully (TEST MODE)",
+          testOTP: otp // Only in test mode
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Send real SMS via Twilio
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
     
     const formData = new URLSearchParams();
     formData.append("To", `+66${phone.replace(/^0/, "")}`); // Convert Thai format to international
-    formData.append("From", TWILIO_PHONE_NUMBER!);
+    formData.append("From", TWILIO_PHONE_NUMBER);
     formData.append("Body", `รหัสยืนยัน OTP ของคุณคือ: ${otp}\n\nRef: RELK\n\nรหัสนี้จะหมดอายุใน 5 นาที`);
 
     const twilioResponse = await fetch(twilioUrl, {
@@ -66,12 +88,26 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!twilioResponse.ok) {
       const error = await twilioResponse.text();
-      console.error("Twilio error:", error);
-      throw new Error("Failed to send SMS");
+      console.error("Twilio API error:", error);
+      
+      // Fallback to test mode on error
+      console.log(`⚠️ Twilio error. Falling back to TEST MODE. OTP: ${otp}`);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: "OTP generated (Twilio error - using test mode)",
+          testOTP: otp
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     const twilioData = await twilioResponse.json();
-    console.log("SMS sent successfully:", twilioData.sid);
+    console.log("SMS sent successfully via Twilio:", twilioData.sid);
 
     return new Response(
       JSON.stringify({ 

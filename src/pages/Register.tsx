@@ -129,6 +129,12 @@ const Register = () => {
         return;
       }
 
+      // Show test OTP in console if in test mode
+      if (otpData?.testOTP) {
+        console.log(`🔐 TEST MODE - OTP สำหรับ ${registrationData.phone}: ${otpData.testOTP}`);
+        alert(`โหมดทดสอบ - รหัส OTP: ${otpData.testOTP}`);
+      }
+
       navigate("/verify-otp", { state: { phone: registrationData.phone } });
     } catch (error) {
       console.error("Error:", error);

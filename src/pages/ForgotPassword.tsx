@@ -51,10 +51,19 @@ const ForgotPassword = () => {
         return;
       }
 
-      toast({
-        title: "ส่งรหัสยืนยันแล้ว",
-        description: "กรุณาตรวจสอบ SMS"
-      });
+      // Show test OTP in console if in test mode
+      if (otpData?.testOTP) {
+        console.log(`🔐 TEST MODE - OTP สำหรับ ${data.phone}: ${otpData.testOTP}`);
+        toast({
+          title: "โหมดทดสอบ",
+          description: `รหัส OTP: ${otpData.testOTP}`
+        });
+      } else {
+        toast({
+          title: "ส่งรหัสยืนยันแล้ว",
+          description: "กรุณาตรวจสอบ SMS"
+        });
+      }
       
       navigate("/verify-otp-reset", { 
         state: { phone: data.phone, from: "forgot-password" }

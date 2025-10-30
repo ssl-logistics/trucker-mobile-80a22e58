@@ -86,7 +86,7 @@ const VerifyOTP = () => {
   const handleResendOTP = async () => {
     try {
       const { supabase } = await import("@/integrations/supabase/client");
-      const { error } = await supabase.functions.invoke("send-otp", {
+      const { data: otpData, error } = await supabase.functions.invoke("send-otp", {
         body: { phone: phoneNumber }
       });
 
@@ -102,10 +102,20 @@ const VerifyOTP = () => {
       setOtp("");
       setTimer(60);
       setCanResend(false);
-      toast({
-        title: "ส่งรหัสยืนยันใหม่แล้ว",
-        description: "กรุณาตรวจสอบ SMS"
-      });
+      
+      // Show test OTP in console if in test mode
+      if (otpData?.testOTP) {
+        console.log(`🔐 TEST MODE - OTP สำหรับ ${phoneNumber}: ${otpData.testOTP}`);
+        toast({
+          title: "โหมดทดสอบ",
+          description: `รหัส OTP: ${otpData.testOTP}`
+        });
+      } else {
+        toast({
+          title: "ส่งรหัสยืนยันใหม่แล้ว",
+          description: "กรุณาตรวจสอบ SMS"
+        });
+      }
     } catch (error) {
       console.error("Error resending OTP:", error);
       toast({
