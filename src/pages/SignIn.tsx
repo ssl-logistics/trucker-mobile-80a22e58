@@ -66,7 +66,7 @@ const SignIn = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section with Truck Image */}
-      <div className="relative h-[55vh]">
+      <div className="relative h-[40vh]">
         <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full " />
       </div>
 
