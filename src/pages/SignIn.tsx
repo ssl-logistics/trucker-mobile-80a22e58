@@ -71,7 +71,7 @@ const SignIn = () => {
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[3rem] -mt-32 px-6 pt-16 pb-6 bg-white/0">
+      <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white/0">
         <h1 className="text-2xl font-bold text-center mb-8 text-foreground">เข้าสู่ระบบหรือสมัครสมาชิก</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-md mx-auto">
