@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Store tokens from ThailBulkSMS (shared with send-otp)
+// Optional same-instance cache (frontend passes token as well)
 const tokenStore = new Map<string, { token: string; expires: number }>();
 
 const handler = async (req: Request): Promise<Response> => {
@@ -41,116 +41,69 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Get token from store or use provided token
+    const msisdn = String(phone).trim();
+
+    // Resolve token: prefer provided from client; else fallback to cache if available
     let verifyToken = token;
     if (!verifyToken) {
-      const storedData = tokenStore.get(phone);
-      if (!storedData) {
+      const cached = tokenStore.get(msisdn);
+      if (!cached || Date.now() > cached.expires) {
         return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: "Token not found or expired. Please request a new OTP." 
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          }
+          JSON.stringify({ success: false, error: "Token not found or expired. Please request a new OTP." }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
-
-      // Check if token expired
-      if (Date.now() > storedData.expires) {
-        tokenStore.delete(phone);
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: "Token has expired. Please request a new OTP." 
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          }
-        );
-      }
-
-      verifyToken = storedData.token;
+      verifyToken = cached.token;
     }
 
-    console.log(`Verifying OTP for phone: ${phone}, token: ${verifyToken}, otp: ${otp}`);
+    console.log(`Verifying OTP for ${msisdn} with token ${verifyToken}`);
 
-    // Verify OTP with ThailBulkSMS
-    const thaibulksmsUrl = "https://otp-api.thaibulksms.com/v2/otp/verify";
-    
+    // Verify OTP with ThaiBulkSMS (correct domain per official docs/PDF)
+    const url = "https://otp.thaibulksms.com/v2/otp/verify";
+
     const formData = new URLSearchParams();
     formData.append("key", THAIBULKSMS_API_KEY);
     formData.append("secret", THAIBULKSMS_API_SECRET);
     formData.append("token", verifyToken);
-    formData.append("pin", otp);
+    formData.append("pin", String(otp));
 
-    const thaibulksmsResponse = await fetch(thaibulksmsUrl, {
+    const res = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
 
-    if (!thaibulksmsResponse.ok) {
-      const errorText = await thaibulksmsResponse.text();
-      console.error("ThailBulkSMS verify API error:", errorText);
-      
+    const text = await res.text();
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error("Non-JSON response from ThaiBulkSMS verify:", text);
       return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: "Failed to verify OTP",
-          details: errorText
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
+        JSON.stringify({ success: false, error: "Failed to verify OTP", details: text }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const responseData = await thaibulksmsResponse.json();
-    console.log("ThailBulkSMS verify response:", responseData);
+    console.log("ThaiBulkSMS verify response:", data);
 
-    if (responseData.status === "success") {
-      // OTP is valid - remove token from store
-      tokenStore.delete(phone);
-
-      console.log(`OTP verified successfully for ${phone}`);
-
+    if (res.ok && data?.status === "success") {
+      tokenStore.delete(msisdn);
       return new Response(
-        JSON.stringify({ 
-          success: true,
-          message: "OTP verified successfully" 
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: responseData.message || "Invalid OTP"
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
+        JSON.stringify({ success: true, message: "OTP verified successfully" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    return new Response(
+      JSON.stringify({ success: false, error: data?.message || "Invalid OTP", details: data }),
+      { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    );
   } catch (error: any) {
     console.error("Error in verify-otp function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ error: error.message || "Unexpected error" }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

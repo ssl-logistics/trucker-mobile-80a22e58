@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Store tokens from ThailBulkSMS for verification
+// Store token temporarily for same-instance reuse (frontend already passes token back to verify)
 const tokenStore = new Map<string, { token: string; expires: number }>();
 
 const handler = async (req: Request): Promise<Response> => {
@@ -41,92 +41,62 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Normalize phone number (remove leading 0 if exists)
-    const normalizedPhone = phone.startsWith('0') ? phone.substring(1) : phone;
-    
-    console.log(`Requesting OTP for phone: ${phone} (normalized: ${normalizedPhone})`);
+    // ThaiBulkSMS OTP accepts formats like 0812345678, 668..., +668...
+    // Keep the user's 10-digit local format as-is to avoid losing leading zero
+    const msisdn = String(phone).trim();
+    console.log(`Requesting OTP for phone: ${msisdn}`);
 
-    // Request OTP from ThailBulkSMS
-    const thaibulksmsUrl = "https://otp-api.thaibulksms.com/v2/otp/request";
-    
+    // Request OTP from ThaiBulkSMS (correct domain per official docs/PDF)
+    const url = "https://otp.thaibulksms.com/v2/otp/request";
+
     const formData = new URLSearchParams();
     formData.append("key", THAIBULKSMS_API_KEY);
     formData.append("secret", THAIBULKSMS_API_SECRET);
-    formData.append("msisdn", normalizedPhone);
+    formData.append("msisdn", msisdn);
 
-    const thaibulksmsResponse = await fetch(thaibulksmsUrl, {
+    const res = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
 
-    if (!thaibulksmsResponse.ok) {
-      const errorText = await thaibulksmsResponse.text();
-      console.error("ThailBulkSMS API error:", errorText);
-      
+    const text = await res.text();
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error("Non-JSON response from ThaiBulkSMS:", text);
       return new Response(
-        JSON.stringify({ 
-          error: "Failed to send OTP",
-          details: errorText
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
+        JSON.stringify({ error: "Failed to send OTP", details: text }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const responseData = await thaibulksmsResponse.json();
-    console.log("ThailBulkSMS response:", responseData);
+    console.log("ThaiBulkSMS request response:", data);
 
-    if (responseData.status === "success" && responseData.token) {
-      // Store token with 5 minute expiration
-      tokenStore.set(phone, {
-        token: responseData.token,
-        expires: Date.now() + 5 * 60 * 1000,
-      });
-
-      console.log(`OTP sent successfully for ${phone}, token: ${responseData.token}`);
-
+    if (!res.ok || data?.status !== "success" || !data?.token) {
       return new Response(
-        JSON.stringify({ 
-          success: true,
-          message: "OTP sent successfully",
-          token: responseData.token
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    } else {
-      console.error("ThailBulkSMS returned error:", responseData);
-      return new Response(
-        JSON.stringify({ 
-          error: "Failed to send OTP",
-          details: responseData
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
+        JSON.stringify({ error: "Failed to send OTP", details: data }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    // Cache token (5 minutes) for same-instance verification fallback
+    tokenStore.set(msisdn, { token: data.token, expires: Date.now() + 5 * 60 * 1000 });
+
+    return new Response(
+      JSON.stringify({ success: true, token: data.token, refno: data.refno }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    );
   } catch (error: any) {
     console.error("Error in send-otp function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ error: error.message || "Unexpected error" }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
 
 serve(handler);
 
-// Export token store for verify function
 export { tokenStore };
