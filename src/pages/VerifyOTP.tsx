@@ -28,6 +28,7 @@ const VerifyOTP = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [verifyToken, setVerifyToken] = useState(token);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [hasVerified, setHasVerified] = useState(false);
 
   // Mask phone number (XXX-XXX-5678)
   const maskedPhone = phoneNumber
@@ -48,7 +49,7 @@ const VerifyOTP = () => {
 
   // Auto verify when OTP is complete
   useEffect(() => {
-    if (otp.length === 6 && !isCreatingAccount) {
+    if (otp.length === 6 && !isCreatingAccount && !hasVerified) {
       // Verify OTP with backend
       const verifyOTP = async () => {
         try {
@@ -107,6 +108,7 @@ const VerifyOTP = () => {
             return;
           }
 
+          setHasVerified(true);
           toast({
             title: "ยืนยันตัวตนสำเร็จ",
             description: "ลงทะเบียนเสร็จสมบูรณ์"
@@ -127,7 +129,7 @@ const VerifyOTP = () => {
       
       verifyOTP();
     }
-  }, [otp, phoneNumber, verifyToken, registrationData, toast, isCreatingAccount]);
+  }, [otp, phoneNumber, verifyToken, registrationData, toast, isCreatingAccount, hasVerified]);
 
   const handleResendOTP = async () => {
     try {
@@ -148,6 +150,7 @@ const VerifyOTP = () => {
       setOtp("");
       setTimer(60);
       setCanResend(false);
+      setHasVerified(false);
       
       // Update verify token
       if (otpData?.token) {
