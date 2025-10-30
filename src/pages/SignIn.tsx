@@ -45,7 +45,7 @@ const SignIn = () => {
       setServerError("");
       // TODO: Implement actual login logic
       console.log("Login data:", data);
-      
+
       // Simulate login validation
       if (data.email === "test@example.com" && data.password === "password123") {
         toast({
@@ -65,18 +65,12 @@ const SignIn = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section with Truck Image */}
       <div className="relative h-[45vh] rounded-b-[3rem] overflow-hidden">
-        <img 
-          src={loginBackground} 
-          alt="The Truckers" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full" />
       </div>
 
       {/* Login Form */}
       <div className="flex-1 bg-white rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6">
-        <h1 className="text-2xl font-bold text-center mb-8 text-foreground">
-          เข้าสู่ระบบหรือสมัครสมาชิก
-        </h1>
+        <h1 className="text-2xl font-bold text-center mb-8 text-foreground">เข้าสู่ระบบหรือสมัครสมาชิก</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-md mx-auto">
           {/* Email Field */}
@@ -91,9 +85,7 @@ const SignIn = () => {
               {...register("email")}
               className={errors.email ? "border-destructive" : ""}
             />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
 
           {/* Password Field */}
@@ -117,12 +109,8 @@ const SignIn = () => {
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
-            )}
-            {serverError && (
-              <p className="text-sm text-destructive">{serverError}</p>
-            )}
+            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+            {serverError && <p className="text-sm text-destructive">{serverError}</p>}
           </div>
 
           {/* Remember Me & Forgot Password */}
@@ -133,10 +121,7 @@ const SignIn = () => {
                 checked={rememberValue}
                 onCheckedChange={(checked) => setValue("remember", checked as boolean)}
               />
-              <Label
-                htmlFor="remember"
-                className="text-sm font-normal cursor-pointer text-foreground"
-              >
+              <Label htmlFor="remember" className="text-sm font-normal cursor-pointer text-foreground">
                 จดจำฉันในระบบ
               </Label>
             </div>
