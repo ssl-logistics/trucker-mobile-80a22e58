@@ -139,7 +139,8 @@ const Register = () => {
       navigate("/verify-otp", { 
         state: { 
           phone: registrationData.phone,
-          token: otpData.token
+          token: otpData.token,
+          registrationData: registrationData
         } 
       });
     } catch (error) {

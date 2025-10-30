@@ -47,20 +47,29 @@ const SignIn = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setServerError("");
-      // TODO: Implement actual login logic
-      console.log("Login data:", data);
+      const { supabase } = await import("@/integrations/supabase/client");
 
-      // Simulate login validation
-      if (data.email === "test@example.com" && data.password === "password123") {
-        toast({
-          title: "เข้าสู่ระบบสำเร็จ",
-          description: "ยินดีต้อนรับกลับมา"
-        });
-        navigate("/home");
-      } else {
-        setServerError("รหัสผ่านของคุณไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
+      });
+
+      if (authError) {
+        if (authError.message.includes("Invalid login credentials")) {
+          setServerError("อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+        } else {
+          setServerError(authError.message);
+        }
+        return;
       }
+
+      toast({
+        title: "เข้าสู่ระบบสำเร็จ",
+        description: "ยินดีต้อนรับกลับมา"
+      });
+      navigate("/home");
     } catch (error) {
+      console.error("Login error:", error);
       setServerError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };

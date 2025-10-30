@@ -20,12 +20,14 @@ const VerifyOTP = () => {
   const { toast } = useToast();
   const phoneNumber = location.state?.phone || "";
   const token = location.state?.token || "";
+  const registrationData = location.state?.registrationData;
   
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [verifyToken, setVerifyToken] = useState(token);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
   // Mask phone number (XXX-XXX-5678)
   const maskedPhone = phoneNumber
@@ -46,11 +48,14 @@ const VerifyOTP = () => {
 
   // Auto verify when OTP is complete
   useEffect(() => {
-    if (otp.length === 6) {
+    if (otp.length === 6 && !isCreatingAccount) {
       // Verify OTP with backend
       const verifyOTP = async () => {
         try {
+          setIsCreatingAccount(true);
           const { supabase } = await import("@/integrations/supabase/client");
+          
+          // Step 1: Verify OTP
           const { data, error } = await supabase.functions.invoke("verify-otp", {
             body: { phone: phoneNumber, otp, token: verifyToken }
           });
@@ -62,6 +67,43 @@ const VerifyOTP = () => {
               variant: "destructive"
             });
             setOtp("");
+            setIsCreatingAccount(false);
+            return;
+          }
+
+          // Step 2: Create user account after OTP verification
+          if (!registrationData) {
+            toast({
+              title: "เกิดข้อผิดพลาด",
+              description: "ไม่พบข้อมูลการลงทะเบียน",
+              variant: "destructive"
+            });
+            setIsCreatingAccount(false);
+            return;
+          }
+
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: registrationData.email,
+            password: registrationData.password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/`,
+              data: {
+                firstName: registrationData.firstName,
+                lastName: registrationData.lastName,
+                phone: registrationData.phone,
+                username: registrationData.username
+              }
+            }
+          });
+
+          if (authError) {
+            toast({
+              title: "ไม่สามารถสร้างบัญชีได้",
+              description: authError.message,
+              variant: "destructive"
+            });
+            setOtp("");
+            setIsCreatingAccount(false);
             return;
           }
 
@@ -70,6 +112,7 @@ const VerifyOTP = () => {
             description: "ลงทะเบียนเสร็จสมบูรณ์"
           });
           setShowSuccess(true);
+          setIsCreatingAccount(false);
         } catch (error) {
           console.error("Error verifying OTP:", error);
           toast({
@@ -78,12 +121,13 @@ const VerifyOTP = () => {
             variant: "destructive"
           });
           setOtp("");
+          setIsCreatingAccount(false);
         }
       };
       
       verifyOTP();
     }
-  }, [otp, phoneNumber, verifyToken, toast]);
+  }, [otp, phoneNumber, verifyToken, registrationData, toast, isCreatingAccount]);
 
   const handleResendOTP = async () => {
     try {
@@ -130,8 +174,8 @@ const VerifyOTP = () => {
   };
 
   const handleSuccess = () => {
-    // TODO: Navigate to home or dashboard
-    navigate("/");
+    // Navigate to sign in page to allow user to login
+    navigate("/signin");
   };
 
   const formatTime = (seconds: number) => {
