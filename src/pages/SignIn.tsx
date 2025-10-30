@@ -58,7 +58,7 @@ const SignIn = () => {
         });
         navigate("/home");
       } else {
-        setServerError("รหัสผ่านของคุณไม่ถูกต้อง กรุณาใส่ใหม่อีกครั้ง");
+        setServerError("รหัสผ่านของคุณไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
       }
     } catch (error) {
       setServerError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
