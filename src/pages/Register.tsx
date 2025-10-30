@@ -113,9 +113,27 @@ const Register = () => {
   };
 
   const handleSubmit = async () => {
-    // TODO: Implement actual registration logic
-    console.log("Registration data:", registrationData);
-    navigate("/verify-otp", { state: { phone: registrationData.phone } });
+    try {
+      // TODO: Implement actual registration logic (save to database)
+      console.log("Registration data:", registrationData);
+      
+      // Send OTP via Twilio
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: otpData, error: otpError } = await supabase.functions.invoke("send-otp", {
+        body: { phone: registrationData.phone }
+      });
+
+      if (otpError) {
+        console.error("Error sending OTP:", otpError);
+        alert("ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่อีกครั้ง");
+        return;
+      }
+
+      navigate("/verify-otp", { state: { phone: registrationData.phone } });
+    } catch (error) {
+      console.error("Error:", error);
+      alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    }
   };
 
   return (

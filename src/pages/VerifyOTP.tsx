@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, RotateCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   InputOTP,
   InputOTPGroup,
@@ -16,10 +17,11 @@ import { Button } from "@/components/ui/button";
 const VerifyOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const phoneNumber = location.state?.phone || "";
   
   const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -43,19 +45,75 @@ const VerifyOTP = () => {
   // Auto verify when OTP is complete
   useEffect(() => {
     if (otp.length === 6) {
-      // Simulate OTP verification
-      setTimeout(() => {
-        setShowSuccess(true);
-      }, 500);
-    }
-  }, [otp]);
+      // Verify OTP with backend
+      const verifyOTP = async () => {
+        try {
+          const { supabase } = await import("@/integrations/supabase/client");
+          const { data, error } = await supabase.functions.invoke("verify-otp", {
+            body: { phone: phoneNumber, otp }
+          });
 
-  const handleResendOTP = () => {
-    // TODO: Implement actual OTP resend logic
-    console.log("Resending OTP to:", phoneNumber);
-    setTimer(30);
-    setCanResend(false);
-    setOtp("");
+          if (error || !data?.success) {
+            toast({
+              title: "รหัส OTP ไม่ถูกต้อง",
+              description: "กรุณาตรวจสอบและลองใหม่อีกครั้ง",
+              variant: "destructive"
+            });
+            setOtp("");
+            return;
+          }
+
+          toast({
+            title: "ยืนยันตัวตนสำเร็จ",
+            description: "ลงทะเบียนเสร็จสมบูรณ์"
+          });
+          setShowSuccess(true);
+        } catch (error) {
+          console.error("Error verifying OTP:", error);
+          toast({
+            title: "เกิดข้อผิดพลาด",
+            description: "กรุณาลองใหม่อีกครั้ง",
+            variant: "destructive"
+          });
+          setOtp("");
+        }
+      };
+      
+      verifyOTP();
+    }
+  }, [otp, phoneNumber, toast]);
+
+  const handleResendOTP = async () => {
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.functions.invoke("send-otp", {
+        body: { phone: phoneNumber }
+      });
+
+      if (error) {
+        toast({
+          title: "เกิดข้อผิดพลาด",
+          description: "ไม่สามารถส่งรหัสยืนยันได้",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setOtp("");
+      setTimer(60);
+      setCanResend(false);
+      toast({
+        title: "ส่งรหัสยืนยันใหม่แล้ว",
+        description: "กรุณาตรวจสอบ SMS"
+      });
+    } catch (error) {
+      console.error("Error resending OTP:", error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleBack = () => {
