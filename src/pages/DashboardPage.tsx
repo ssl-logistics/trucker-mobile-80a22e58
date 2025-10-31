@@ -73,8 +73,13 @@ export default function DashboardPage() {
             onClick={() => navigate(item.path)}
           >
             <div 
-              className="p-6 relative bg-cover bg-center bg-no-repeat min-h-[200px]"
-              style={{ backgroundImage: `url(${item.imageSrc})` }}
+              className="p-6 relative min-h-[200px]"
+              style={{ 
+                backgroundImage: `url(${item.imageSrc})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
             >
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1">
