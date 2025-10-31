@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,6 +44,20 @@ const SignIn = () => {
     }
   });
   const rememberValue = watch("remember");
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedPassword = localStorage.getItem("rememberedPassword");
+    const savedRemember = localStorage.getItem("rememberedUser");
+    
+    if (savedRemember === "true" && savedEmail && savedPassword) {
+      setValue("email", savedEmail);
+      setValue("password", savedPassword);
+      setValue("remember", true);
+    }
+  }, [setValue]);
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       setServerError("");
@@ -60,7 +74,22 @@ const SignIn = () => {
         } else {
           setServerError(authError.message);
         }
+        // Clear saved credentials on login failure
+        localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberedPassword");
+        localStorage.removeItem("rememberedUser");
         return;
+      }
+
+      // Save or clear credentials based on remember checkbox
+      if (data.remember) {
+        localStorage.setItem("rememberedEmail", data.email);
+        localStorage.setItem("rememberedPassword", data.password);
+        localStorage.setItem("rememberedUser", "true");
+      } else {
+        localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberedPassword");
+        localStorage.removeItem("rememberedUser");
       }
 
       toast({
