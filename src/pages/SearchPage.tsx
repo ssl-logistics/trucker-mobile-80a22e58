@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Filter, X } from 'lucide-react';
+import { ArrowLeft, Filter } from 'lucide-react';
+import { JobCard } from '@/components/home/JobCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,9 +29,29 @@ export default function SearchPage() {
   const [district, setDistrict] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [showResults, setShowResults] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const recentSearches = ['กรุงเทพ', 'สมุทรปราการ'];
   const popularSearches = ['กรุงเทพมหานคร', 'คลังสินค้า', 'ขนส่ง', 'ชิปปิ้ง'];
+
+  // Mock data for demonstration
+  const mockJobs = [
+    {
+      id: '1',
+      order_code: 'รหัสออเดอร์ ORO0001',
+      job_type: 'domestic',
+      employer_name: 'ไอเดียฟิล จำกัดมหาชน',
+      transport_type: 'ขนส่งทางมอเตอร์เวย์ ขนส่งเที่ยวเดียว (ทน่ข้า)',
+      origin_location: 'ที่เรือกรุงเทพ',
+      destination_location: 'คลังสินค้าที่เรือแหลมฉบัง',
+      price: 5000,
+      start_date: '2024-02-29',
+      start_time: '10:00',
+      equipment_list: 'อุปกรณ์ติดรถ : น้ำมัน, รถมืด, กล้องหน้า',
+      safety_equipment: '-',
+    },
+  ];
 
   const domesticTypes = ['ขนส่งเที่ยวเดียว', 'ขนส่งหลายที่'];
   const internationalTypes = ['ขนส่งขาเข้า', 'ขนส่งขาออก'];
@@ -69,12 +90,37 @@ export default function SearchPage() {
     setDistrict(''); // Reset district when province changes
   };
 
+  const handleSearch = (query?: string) => {
+    const searchTerm = query || searchQuery;
+    if (searchTerm.trim()) {
+      // Filter mock jobs based on search query
+      const filtered = mockJobs.filter(job => 
+        job.employer_name.includes(searchTerm) ||
+        job.origin_location.includes(searchTerm) ||
+        job.destination_location.includes(searchTerm) ||
+        job.transport_type.includes(searchTerm)
+      );
+      setSearchResults(filtered);
+      setShowResults(true);
+      setFilterOpen(false);
+    }
+  };
+
+  const handleSearchTermClick = (term: string) => {
+    setSearchQuery(term);
+    handleSearch(term);
+  };
+
+  const handleAcceptJob = (job: any) => {
+    console.log('Accept job:', job);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-blue-50 px-4 py-4 border-b">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)}>
+          <button onClick={() => navigate('/home')} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold flex-1 text-center">ค้นหา</h1>
@@ -88,6 +134,7 @@ export default function SearchPage() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="ค้นหา"
             className="flex-1 border-primary"
           />
@@ -100,36 +147,60 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* Search Suggestions */}
-      <div className="px-4 py-6 space-y-6">
-        <div>
-          <h3 className="text-sm font-semibold mb-3">คำค้นหาล่าสุด</h3>
-          <div className="flex flex-wrap gap-2">
-            {recentSearches.map((term) => (
-              <button
-                key={term}
-                className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm"
-              >
-                {term}
-              </button>
-            ))}
+      {/* Search Results or Suggestions */}
+      {showResults ? (
+        <div className="px-4 py-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">ผลการค้นหา</h3>
+            <span className="text-sm text-muted-foreground">
+              {searchResults.length} รายการ
+            </span>
           </div>
+          {searchResults.length > 0 ? (
+            <div className="space-y-3">
+              {searchResults.map((job) => (
+                <JobCard key={job.id} job={job} onAccept={handleAcceptJob} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              ไม่พบผลการค้นหา
+            </div>
+          )}
         </div>
+      ) : (
+        <div className="px-4 py-6 space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold mb-3">คำค้นหาล่าสุด</h3>
+            <div className="flex flex-wrap gap-2">
+              {recentSearches.map((term) => (
+                <button
+                  key={term}
+                  onClick={() => handleSearchTermClick(term)}
+                  className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm"
+                >
+                  {term}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        <div>
-          <h3 className="text-sm font-semibold mb-3">คำค้นหายอดนิยม</h3>
-          <div className="flex flex-wrap gap-2">
-            {popularSearches.map((term) => (
-              <button
-                key={term}
-                className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm"
-              >
-                {term}
-              </button>
-            ))}
+          <div>
+            <h3 className="text-sm font-semibold mb-3">คำค้นหายอดนิยม</h3>
+            <div className="flex flex-wrap gap-2">
+              {popularSearches.map((term) => (
+                <button
+                  key={term}
+                  onClick={() => handleSearchTermClick(term)}
+                  className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm"
+                >
+                  {term}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Filter Sheet */}
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
@@ -260,7 +331,7 @@ export default function SearchPage() {
             >
               ล้างค่า
             </Button>
-            <Button onClick={() => setFilterOpen(false)} className="flex-1">
+            <Button onClick={() => handleSearch()} className="flex-1">
               ค้นหา
             </Button>
           </div>
