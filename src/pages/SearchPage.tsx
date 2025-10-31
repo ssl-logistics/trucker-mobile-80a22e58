@@ -42,6 +42,19 @@ export default function SearchPage() {
     loadJobs();
   }, []);
 
+  // Real-time search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery.trim() || domesticType || internationalType || province || district || minPrice || maxPrice) {
+        handleSearch();
+      } else {
+        setShowResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, domesticType, internationalType, province, district, minPrice, maxPrice]);
+
   const loadJobs = async () => {
     const { data, error } = await supabase
       .from('jobs')
