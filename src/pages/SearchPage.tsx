@@ -111,12 +111,7 @@ export default function SearchPage() {
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
         <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
           <SheetHeader>
-            <div className="flex items-center justify-between">
-              <SheetTitle>ตัวกรอง</SheetTitle>
-              <button onClick={() => setFilterOpen(false)}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            <SheetTitle>ตัวกรอง</SheetTitle>
             <SheetDescription className="sr-only">
               กรองผลการค้นหา
             </SheetDescription>
