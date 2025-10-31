@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, Truck, Users, Package } from 'lucide-react';
+import { Home, LayoutGrid, MessageCircle, Settings, Bell, TrendingUp, Truck, Users, Package } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import financeBg from '@/assets/finance-bg.png';
 import shippingBg from '@/assets/shipping-bg.png';
 import customerBg from '@/assets/customer-bg.png';
@@ -53,14 +54,29 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 sticky top-0 z-10 shadow-md">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/home')} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-bold">แผงควบคุม</h1>
+      <header className="bg-white px-4 py-3 sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10">
+              <AvatarImage src="" />
+              <AvatarFallback className="bg-blue-500 text-white">👤</AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="text-sm text-orange-500">👋 สวัสดีครับคุณ</div>
+              <div className="text-sm font-semibold text-gray-800">ทรงธรรม์ กดี สวัสดีอยู่</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <Bell className="w-6 h-6 text-red-500" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <Settings className="w-6 h-6 text-gray-600" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -96,6 +112,37 @@ export default function DashboardPage() {
           </Card>
         ))}
       </div>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-slate-800 text-white shadow-lg z-20">
+        <div className="flex items-center justify-around py-3">
+          <button 
+            onClick={() => navigate('/home')}
+            className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <Home className="w-6 h-6" />
+            <span className="text-xs">หน้าแรก</span>
+          </button>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="flex flex-col items-center gap-1 px-4 py-1 bg-teal-500 rounded-lg"
+          >
+            <LayoutGrid className="w-6 h-6" />
+            <span className="text-xs">แผงควบคุม</span>
+          </button>
+          <button 
+            onClick={() => navigate('/search')}
+            className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <MessageCircle className="w-6 h-6" />
+            <span className="text-xs">แชท</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-white/10 rounded-lg transition-colors">
+            <Settings className="w-6 h-6" />
+            <span className="text-xs">ตั้งค่า</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }
