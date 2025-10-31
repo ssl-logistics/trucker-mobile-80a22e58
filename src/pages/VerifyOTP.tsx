@@ -124,17 +124,10 @@ const VerifyOTP = () => {
           }
 
           setHasVerified(true);
-          toast({
-            title: "ยืนยันตัวตนสำเร็จ",
-            description: "ลงทะเบียนเสร็จสมบูรณ์"
-          });
-          
-          // Navigate to home after successful registration
-          setTimeout(() => {
-            navigate('/home');
-          }, 1500);
-          
           setIsCreatingAccount(false);
+          
+          // Show success dialog instead of navigating immediately
+          setShowSuccess(true);
         } catch (error) {
           console.error("Error verifying OTP:", error);
           toast({
@@ -196,9 +189,36 @@ const VerifyOTP = () => {
     navigate(-1);
   };
 
-  const handleSuccess = () => {
-    // Navigate to sign in page to allow user to login
-    navigate("/signin");
+  const handleSuccess = async () => {
+    try {
+      // Auto-login with the credentials used during registration
+      if (!registrationData) {
+        navigate("/");
+        return;
+      }
+
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.auth.signInWithPassword({
+        email: registrationData.email,
+        password: registrationData.password,
+      });
+
+      if (error) {
+        console.error("Auto-login error:", error);
+        toast({
+          title: "กรุณาเข้าสู่ระบบ",
+          description: "ลงทะเบียนสำเร็จแล้ว กรุณาเข้าสู่ระบบด้วยข้อมูลของคุณ",
+        });
+        navigate("/");
+        return;
+      }
+
+      // Successfully logged in, navigate to home
+      navigate("/home");
+    } catch (error) {
+      console.error("Error during auto-login:", error);
+      navigate("/");
+    }
   };
 
   const formatTime = (seconds: number) => {
