@@ -8,23 +8,84 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 export default function CustomerPage() {
   const navigate = useNavigate();
   const [timePeriod, setTimePeriod] = useState('month');
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Mock data
-  const pieData = [
-    { name: 'ธนพันธ์ ศรีธัต', value: 25, color: '#1e40af' },
-    { name: 'อรษมุ วิชัย', value: 20, color: '#7c3aed' },
-    { name: 'พีชัยชัย สุนกี', value: 15, color: '#06b6d4' },
-    { name: 'ขนมริป สุนเสอง', value: 10, color: '#f59e0b' },
-    { name: 'ปริกเก่า วงศ์ชัย', value: 30, color: '#10b981' },
+  const thaiMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ];
 
-  const customerDetails = [
-    { name: 'ปริกเก่า วงศ์ชัย', jobs: 30, amount: 30000, avatar: '👤' },
-    { name: 'ธนพันธ์ ศรีธัต', jobs: 25, amount: 20000, avatar: '👤' },
-    { name: 'อรษมุ วิชัย', jobs: 20, amount: 15000, avatar: '👤' },
-    { name: 'พีชัยชัย สุนกี', jobs: 15, amount: 5000, avatar: '👤' },
-    { name: 'ขนมริป สุนเสอง', jobs: 10, amount: 3000, avatar: '👤' },
-  ];
+  const getDisplayDate = () => {
+    const day = selectedDate.getDate();
+    const month = thaiMonths[selectedDate.getMonth()];
+    const year = selectedDate.getFullYear() + 543;
+
+    if (timePeriod === 'day') {
+      return `${day} ${month} ${year}`;
+    } else if (timePeriod === 'month') {
+      return `${month} ${year}`;
+    } else {
+      return `พ.ศ. ${year}`;
+    }
+  };
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    
+    if (timePeriod === 'day') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
+    } else if (timePeriod === 'month') {
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    } else {
+      newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
+    }
+    
+    setSelectedDate(newDate);
+  };
+
+  // Dynamic data based on filters
+  const getFilteredData = () => {
+    // Base multiplier based on time period
+    let timeMultiplier = 1;
+    if (timePeriod === 'day') {
+      timeMultiplier = 0.1; // Daily data is smaller
+    } else if (timePeriod === 'month') {
+      timeMultiplier = 1;
+    } else {
+      timeMultiplier = 12; // Yearly data is larger
+    }
+
+    // Date-based variation
+    const dateHash = selectedDate.getTime() % 100;
+    const dateVariation = 1 + (dateHash / 100);
+
+    const finalMultiplier = timeMultiplier * dateVariation;
+
+    const baseCustomers = [
+      { name: 'ปริกเก่า วงศ์ชัย', baseJobs: 30, baseAmount: 30000, avatar: '👤', color: '#10b981' },
+      { name: 'ธนพันธ์ ศรีธัต', baseJobs: 25, baseAmount: 20000, avatar: '👤', color: '#1e40af' },
+      { name: 'อรษมุ วิชัย', baseJobs: 20, baseAmount: 15000, avatar: '👤', color: '#7c3aed' },
+      { name: 'พีชัยชัย สุนกี', baseJobs: 15, baseAmount: 5000, avatar: '👤', color: '#06b6d4' },
+      { name: 'ขนมริป สุนเสอง', baseJobs: 10, baseAmount: 3000, avatar: '👤', color: '#f59e0b' },
+    ];
+
+    const pieData = baseCustomers.map(c => ({
+      name: c.name,
+      value: Math.round(c.baseJobs * finalMultiplier),
+      color: c.color
+    }));
+
+    const customerDetails = baseCustomers.map(c => ({
+      name: c.name,
+      jobs: Math.round(c.baseJobs * finalMultiplier),
+      amount: Math.round(c.baseAmount * finalMultiplier),
+      avatar: c.avatar
+    }));
+
+    return { pieData, customerDetails };
+  };
+
+  const { pieData, customerDetails } = getFilteredData();
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -50,11 +111,17 @@ export default function CustomerPage() {
 
         {/* Date Navigation */}
         <div className="flex items-center justify-center gap-4 py-2">
-          <button className="p-2 hover:bg-accent rounded-full transition-colors">
+          <button 
+            onClick={() => navigateDate('prev')}
+            className="p-2 hover:bg-accent rounded-full transition-colors"
+          >
             <span className="text-2xl">{'<'}</span>
           </button>
-          <span className="text-xl font-bold text-primary">พ.ศ.2567</span>
-          <button className="p-2 hover:bg-accent rounded-full transition-colors">
+          <span className="text-xl font-bold text-primary">{getDisplayDate()}</span>
+          <button 
+            onClick={() => navigateDate('next')}
+            className="p-2 hover:bg-accent rounded-full transition-colors"
+          >
             <span className="text-2xl">{'>'}</span>
           </button>
         </div>

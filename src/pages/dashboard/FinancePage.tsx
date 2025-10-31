@@ -8,34 +8,117 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export default function FinancePage() {
   const navigate = useNavigate();
   const [timePeriod, setTimePeriod] = useState('month');
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Mock data
-  const chartData = [
-    { month: 'ม.ค.', income: 45000, expense: 20000 },
-    { month: 'ก.พ.', income: 52000, expense: 25000 },
-    { month: 'มี.ค.', income: 48000, expense: 22000 },
-    { month: 'เม.ย.', income: 61000, expense: 28000 },
-    { month: 'พ.ค.', income: 55000, expense: 24000 },
-    { month: 'มิ.ย.', income: 67000, expense: 30000 },
-    { month: 'ก.ค.', income: 59000, expense: 26000 },
-    { month: 'ส.ค.', income: 71000, expense: 32000 },
-    { month: 'ก.ย.', income: 64000, expense: 29000 },
-    { month: 'ต.ค.', income: 58000, expense: 27000 },
-    { month: 'พ.ย.', income: 70000, expense: 31000 },
-    { month: 'ธ.ค.', income: 75000, expense: 33000 },
+  const thaiMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ];
 
-  const pendingPayments = [
-    { id: 1, company: 'ช่องตรวม', amount: 13000 },
-    { id: 2, company: 'ไอเดียพลัส จำกัดมหาชน', amount: 5000 },
-    { id: 3, company: 'ไทยพีเอ็ม มารเก็ตเดอร์ จำกัด', amount: 3000 },
-    { id: 4, company: 'สเซริเดกในไอเอ จำกัด', amount: 5000 },
+  const thaiMonthsShort = [
+    'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
   ];
 
-  const totalIncome = 70000;
-  const totalExpense = 10000;
-  const profit = totalIncome - totalExpense;
-  const profitPercentage = 2;
+  const getDisplayDate = () => {
+    const day = selectedDate.getDate();
+    const month = thaiMonths[selectedDate.getMonth()];
+    const year = selectedDate.getFullYear() + 543;
+
+    if (timePeriod === 'day') {
+      return `${day} ${month} ${year}`;
+    } else if (timePeriod === 'month') {
+      return `${month} ${year}`;
+    } else {
+      return `พ.ศ. ${year}`;
+    }
+  };
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    
+    if (timePeriod === 'day') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
+    } else if (timePeriod === 'month') {
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    } else {
+      newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
+    }
+    
+    setSelectedDate(newDate);
+  };
+
+  // Dynamic data based on filters
+  const getFilteredData = () => {
+    // Date-based variation
+    const dateHash = selectedDate.getTime() % 100;
+    const dateVariation = 1 + (dateHash / 100);
+
+    let chartData: any[] = [];
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    if (timePeriod === 'day') {
+      // Generate hourly data for a day
+      const hours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
+      chartData = hours.map((hour, i) => ({
+        month: hour,
+        income: Math.round((3000 + i * 500) * dateVariation),
+        expense: Math.round((1000 + i * 200) * dateVariation)
+      }));
+      totalIncome = Math.round(18000 * dateVariation);
+      totalExpense = Math.round(8000 * dateVariation);
+    } else if (timePeriod === 'month') {
+      // Generate data for days in current month
+      const daysInMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate();
+      const step = Math.ceil(daysInMonth / 10);
+      for (let i = 1; i <= daysInMonth; i += step) {
+        chartData.push({
+          month: `${i}`,
+          income: Math.round((50000 + Math.random() * 20000) * dateVariation),
+          expense: Math.round((20000 + Math.random() * 10000) * dateVariation)
+        });
+      }
+      totalIncome = Math.round(550000 * dateVariation);
+      totalExpense = Math.round(250000 * dateVariation);
+    } else {
+      // Generate data for all months in year
+      chartData = thaiMonthsShort.map((month, i) => ({
+        month,
+        income: Math.round((45000 + i * 2500) * dateVariation),
+        expense: Math.round((20000 + i * 1000) * dateVariation)
+      }));
+      totalIncome = Math.round(700000 * dateVariation);
+      totalExpense = Math.round(300000 * dateVariation);
+    }
+
+    const profit = totalIncome - totalExpense;
+    const profitPercentage = Math.round(2 * dateVariation);
+
+    const basePendingPayments = [
+      { id: 1, company: 'ช่องตรวม', baseAmount: 13000 },
+      { id: 2, company: 'ไอเดียพลัส จำกัดมหาชน', baseAmount: 5000 },
+      { id: 3, company: 'ไทยพีเอ็ม มารเก็ตเดอร์ จำกัด', baseAmount: 3000 },
+      { id: 4, company: 'สเซริเดกในไอเอ จำกัด', baseAmount: 5000 },
+    ];
+
+    const pendingPayments = basePendingPayments.map(p => ({
+      id: p.id,
+      company: p.company,
+      amount: Math.round(p.baseAmount * dateVariation)
+    }));
+
+    return {
+      chartData,
+      totalIncome,
+      totalExpense,
+      profit,
+      profitPercentage,
+      pendingPayments
+    };
+  };
+
+  const { chartData, totalIncome, totalExpense, profit, profitPercentage, pendingPayments } = getFilteredData();
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -61,11 +144,17 @@ export default function FinancePage() {
 
         {/* Date Navigation */}
         <div className="flex items-center justify-center gap-4 py-2">
-          <button className="p-2 hover:bg-accent rounded-full transition-colors">
+          <button 
+            onClick={() => navigateDate('prev')}
+            className="p-2 hover:bg-accent rounded-full transition-colors"
+          >
             <span className="text-2xl">{'<'}</span>
           </button>
-          <span className="text-xl font-bold text-primary">พ.ศ.2567</span>
-          <button className="p-2 hover:bg-accent rounded-full transition-colors">
+          <span className="text-xl font-bold text-primary">{getDisplayDate()}</span>
+          <button 
+            onClick={() => navigateDate('next')}
+            className="p-2 hover:bg-accent rounded-full transition-colors"
+          >
             <span className="text-2xl">{'>'}</span>
           </button>
         </div>
