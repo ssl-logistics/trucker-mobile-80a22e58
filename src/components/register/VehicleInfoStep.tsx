@@ -186,16 +186,12 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
         <div className="space-y-2">
           <Label>สีรถยนต์ <span className="text-destructive">*</span></Label>
-          <Select onValueChange={(value) => setValue("vehicleColor", value)}>
-            <SelectTrigger className={errors.vehicleColor ? "border-destructive" : ""}>
-              <SelectValue placeholder="เลือกสี" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="white">ขาว</SelectItem>
-              <SelectItem value="blue">น้ำเงิน</SelectItem>
-              <SelectItem value="red">แดง</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input 
+            {...register("vehicleColor")} 
+            placeholder="ระบุสีรถยนต์ (เช่น ขาว, น้ำเงิน)"
+            className={errors.vehicleColor ? "border-destructive" : ""} 
+          />
+          {errors.vehicleColor && <p className="text-sm text-destructive">{errors.vehicleColor.message}</p>}
         </div>
 
         <div className="space-y-2">
