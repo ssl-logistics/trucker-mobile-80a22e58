@@ -13,7 +13,7 @@ export function AppHeader({ userName, onSignOut, showQuickMenu = false }: AppHea
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
+    <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl">

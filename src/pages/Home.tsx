@@ -112,22 +112,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
-      <AppHeader 
-        userName={profile?.full_name}
-        onSignOut={handleSignOut}
-        showQuickMenu={true}
-      />
+      {/* Header and Search Bar - Sticky Together */}
+      <div className="sticky top-0 z-50">
+        <AppHeader 
+          userName={profile?.full_name}
+          onSignOut={handleSignOut}
+          showQuickMenu={true}
+        />
 
-      {/* Search Bar */}
-      <div className="px-4 -mt-4 relative z-[60]">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-          <Input
-            placeholder="ค้นหา"
-            className="pl-10 bg-white shadow-sm border-0"
-            onClick={() => navigate('/search')}
-            readOnly
-          />
+        {/* Search Bar */}
+        <div className="px-4 -mt-4 pb-4 bg-gradient-to-b from-blue-500 to-transparent">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            <Input
+              placeholder="ค้นหา"
+              className="pl-10 bg-white shadow-sm border-0"
+              onClick={() => navigate('/search')}
+              readOnly
+            />
+          </div>
         </div>
       </div>
 
