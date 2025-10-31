@@ -1,0 +1,67 @@
+import { Bell, Power } from 'lucide-react';
+
+interface AppHeaderProps {
+  userName?: string;
+  onSignOut?: () => void;
+  showQuickMenu?: boolean;
+}
+
+export function AppHeader({ userName, onSignOut, showQuickMenu = false }: AppHeaderProps) {
+  const getDayName = () => {
+    const days = ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'];
+    return days[new Date().getDay()];
+  };
+
+  return (
+    <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl">
+            👤
+          </div>
+          <div>
+            <div className="text-sm opacity-90">👋 {getDayName()}</div>
+            <div className="font-semibold">
+              {userName || 'คุณผู้ใช้งาน'}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="relative p-2 hover:bg-white/10 rounded-full transition-colors">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          {onSignOut && (
+            <button
+              onClick={onSignOut}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
+              <Power className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {showQuickMenu && (
+        <div className="grid grid-cols-4 gap-3 mt-6">
+          {[
+            { icon: '🚛', label: 'งานปัจจุบัน', color: 'bg-blue-400' },
+            { icon: '💰', label: 'เสนอราคา', color: 'bg-teal-400' },
+            { icon: '💼', label: 'รายได้', color: 'bg-yellow-400' },
+            { icon: '📋', label: 'ประวัติงาน', color: 'bg-purple-400' },
+          ].map((item) => (
+            <button
+              key={item.label}
+              className="flex flex-col items-center gap-2 text-white"
+            >
+              <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-md text-2xl`}>
+                {item.icon}
+              </div>
+              <span className="text-xs">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </header>
+  );
+}

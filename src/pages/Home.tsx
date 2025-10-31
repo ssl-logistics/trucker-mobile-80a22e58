@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Power, Home as HomeIcon, LayoutGrid, MessageCircle, Settings, Search, Truck, HandCoins, Wallet, History } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+import { AppHeader } from '@/components/layout/AppHeader';
+import { BottomNavigation } from '@/components/layout/BottomNavigation';
 
 interface Job {
   id: string;
@@ -34,7 +36,6 @@ export default function Home() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('home');
 
   useEffect(() => {
     loadJobs();
@@ -108,61 +109,14 @@ export default function Home() {
     navigate('/');
   };
 
-  const getDayName = () => {
-    const days = ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'];
-    return days[new Date().getDay()];
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl">
-              👤
-            </div>
-            <div>
-              <div className="text-sm opacity-90">👋 {getDayName()}</div>
-              <div className="font-semibold">
-                {profile?.full_name || 'คุณผู้ใช้งาน'}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="relative p-2 hover:bg-white/10 rounded-full transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors"
-            >
-              <Power className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Menu */}
-        <div className="grid grid-cols-4 gap-3 mt-6">
-          {[
-            { icon: Truck, label: 'งานปัจจุบัน', color: 'bg-blue-400' },
-            { icon: HandCoins, label: 'เสนอราคา', color: 'bg-teal-400' },
-            { icon: Wallet, label: 'รายได้', color: 'bg-yellow-400' },
-            { icon: History, label: 'ประวัติงาน', color: 'bg-purple-400' },
-          ].map((item) => (
-            <button
-              key={item.label}
-              className="flex flex-col items-center gap-2 text-white"
-            >
-              <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-md`}>
-                <item.icon className="w-7 h-7" />
-              </div>
-              <span className="text-xs">{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </header>
+      <AppHeader 
+        userName={profile?.full_name}
+        onSignOut={handleSignOut}
+        showQuickMenu={true}
+      />
 
       {/* Search Bar */}
       <div className="px-4 -mt-4 relative z-10">
@@ -191,33 +145,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 to-slate-800 text-white px-6 py-3 shadow-lg">
-        <div className="flex justify-around items-center max-w-lg mx-auto">
-          {[
-            { icon: HomeIcon, label: 'หน้าแรก', id: 'home' },
-            { icon: LayoutGrid, label: 'แผงควบคุม', id: 'dashboard' },
-            { icon: MessageCircle, label: 'แชท', id: 'chat' },
-            { icon: Settings, label: 'ตั้งค่า', id: 'settings' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                if (item.id === 'dashboard') {
-                  navigate('/dashboard');
-                }
-              }}
-              className={`flex flex-col items-center gap-1 transition-colors ${
-                activeTab === item.id ? 'text-primary' : 'text-white/70'
-              }`}
-            >
-              <item.icon className="w-6 h-6" />
-              <span className="text-xs">{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      <BottomNavigation />
 
       <ConfirmJobDialog
         open={confirmDialogOpen}
