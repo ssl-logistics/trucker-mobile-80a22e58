@@ -119,7 +119,7 @@ export default function Home() {
       />
 
       {/* Search Bar */}
-      <div className="px-4 -mt-4 relative z-40">
+      <div className="px-4 -mt-4 relative z-[60]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
           <Input
