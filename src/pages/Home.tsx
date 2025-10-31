@@ -202,7 +202,12 @@ export default function Home() {
           ].map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                setActiveTab(item.id);
+                if (item.id === 'dashboard') {
+                  navigate('/dashboard');
+                }
+              }}
               className={`flex flex-col items-center gap-1 transition-colors ${
                 activeTab === item.id ? 'text-primary' : 'text-white/70'
               }`}
