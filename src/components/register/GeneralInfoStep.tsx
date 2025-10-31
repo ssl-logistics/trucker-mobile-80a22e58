@@ -112,7 +112,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
                 id="camera-capture"
                 type="file"
                 accept="image/*"
-                capture="environment"
+                capture
                 className="hidden"
                 onChange={handleProfilePhotoChange}
               />
