@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter } from 'lucide-react';
 import { JobCard } from '@/components/home/JobCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import {
   Sheet,
   SheetContent,
@@ -31,27 +33,32 @@ export default function SearchPage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [allJobs, setAllJobs] = useState<any[]>([]);
 
   const recentSearches = ['กรุงเทพ', 'สมุทรปราการ'];
   const popularSearches = ['กรุงเทพมหานคร', 'คลังสินค้า', 'ขนส่ง', 'ชิปปิ้ง'];
 
-  // Mock data for demonstration
-  const mockJobs = [
-    {
-      id: '1',
-      order_code: 'รหัสออเดอร์ ORO0001',
-      job_type: 'domestic',
-      employer_name: 'ไอเดียฟิล จำกัดมหาชน',
-      transport_type: 'ขนส่งทางมอเตอร์เวย์ ขนส่งเที่ยวเดียว (ทน่ข้า)',
-      origin_location: 'ที่เรือกรุงเทพ',
-      destination_location: 'คลังสินค้าที่เรือแหลมฉบัง',
-      price: 5000,
-      start_date: '2024-02-29',
-      start_time: '10:00',
-      equipment_list: 'อุปกรณ์ติดรถ : น้ำมัน, รถมืด, กล้องหน้า',
-      safety_equipment: '-',
-    },
-  ];
+  useEffect(() => {
+    loadJobs();
+  }, []);
+
+  const loadJobs = async () => {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'available')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        variant: 'destructive',
+      });
+    } else {
+      setAllJobs(data || []);
+    }
+  };
 
   const domesticTypes = ['ขนส่งเที่ยวเดียว', 'ขนส่งหลายที่'];
   const internationalTypes = ['ขนส่งขาเข้า', 'ขนส่งขาออก'];
@@ -92,18 +99,55 @@ export default function SearchPage() {
 
   const handleSearch = (query?: string) => {
     const searchTerm = query || searchQuery;
+    
+    let filtered = [...allJobs];
+
+    // Filter by search query
     if (searchTerm.trim()) {
-      // Filter mock jobs based on search query
-      const filtered = mockJobs.filter(job => 
-        job.employer_name.includes(searchTerm) ||
-        job.origin_location.includes(searchTerm) ||
-        job.destination_location.includes(searchTerm) ||
-        job.transport_type.includes(searchTerm)
+      filtered = filtered.filter(job => 
+        job.employer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.origin_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.destination_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.transport_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.order_code?.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setSearchResults(filtered);
-      setShowResults(true);
-      setFilterOpen(false);
     }
+
+    // Filter by domestic type
+    if (domesticType) {
+      filtered = filtered.filter(job => 
+        job.transport_type?.includes(domesticType)
+      );
+    }
+
+    // Filter by international type
+    if (internationalType) {
+      filtered = filtered.filter(job => 
+        job.transport_type?.includes(internationalType)
+      );
+    }
+
+    // Filter by province
+    if (province) {
+      filtered = filtered.filter(job => job.province === province);
+    }
+
+    // Filter by district
+    if (district) {
+      filtered = filtered.filter(job => job.district === district);
+    }
+
+    // Filter by price range
+    if (minPrice) {
+      filtered = filtered.filter(job => job.price >= parseFloat(minPrice));
+    }
+    if (maxPrice) {
+      filtered = filtered.filter(job => job.price <= parseFloat(maxPrice));
+    }
+
+    setSearchResults(filtered);
+    setShowResults(true);
+    setFilterOpen(false);
   };
 
   const handleSearchTermClick = (term: string) => {
