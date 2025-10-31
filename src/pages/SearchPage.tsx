@@ -102,15 +102,27 @@ export default function SearchPage() {
     
     let filtered = [...allJobs];
 
-    // Filter by search query
+    // Filter by search query (bi-directional matching)
     if (searchTerm.trim()) {
-      filtered = filtered.filter(job => 
-        job.employer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.origin_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.destination_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.transport_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.order_code?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(job => {
+        const fields = [
+          job.employer_name,
+          job.origin_location,
+          job.destination_location,
+          job.transport_type,
+          job.order_code,
+          job.province,
+          job.district
+        ];
+        
+        return fields.some(field => {
+          if (!field) return false;
+          const lowerField = field.toLowerCase();
+          // Check both directions: search term in field OR field in search term
+          return lowerField.includes(lowerSearchTerm) || lowerSearchTerm.includes(lowerField);
+        });
+      });
     }
 
     // Filter by domestic type
