@@ -2,13 +2,21 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Camera } from "lucide-react";
+import { Camera, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RegistrationData } from "@/pages/Register";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 const vehicleInfoSchema = z.object({
   plateNumber: z.string().min(1, "กรุณากรอกหมายเลขทะเบียน"),
@@ -40,6 +48,8 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const [licensePhoto, setLicensePhoto] = useState<File | null>(null);
   const [idCardPhoto, setIdCardPhoto] = useState<File | null>(null);
   const [compulsoryInsurancePhoto, setCompulsoryInsurancePhoto] = useState<File | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentPhotoId, setCurrentPhotoId] = useState<string | null>(null);
   
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<VehicleInfoFormData>({
     resolver: zodResolver(vehicleInfoSchema),
@@ -78,6 +88,12 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
   const handleFileChange = (file: File | null, setter: (file: File | null) => void) => {
     setter(file);
+    setDrawerOpen(false);
+  };
+
+  const openPhotoDrawer = (id: string) => {
+    setCurrentPhotoId(id);
+    setDrawerOpen(true);
   };
 
   const PhotoUploadBox = ({ 
@@ -95,9 +111,10 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
       <Label>
         {label} <span className="text-destructive">*</span>
       </Label>
-      <label 
-        htmlFor={id}
-        className="flex flex-col items-center justify-center border-2 border-dashed border-input rounded-lg h-32 cursor-pointer hover:border-primary transition-colors"
+      <button 
+        type="button"
+        onClick={() => openPhotoDrawer(id)}
+        className="flex flex-col items-center justify-center border-2 border-dashed border-input rounded-lg h-32 cursor-pointer hover:border-primary transition-colors w-full"
       >
         {file ? (
           <div className="text-center">
@@ -110,9 +127,21 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
             <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปหรือเลือกรูป</p>
           </>
         )}
-      </label>
+      </button>
+      {/* Hidden inputs for camera and gallery */}
       <input 
-        id={id} 
+        id={`${id}-camera`}
+        type="file" 
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          const selectedFile = e.target.files?.[0] || null;
+          onChange(selectedFile);
+        }}
+      />
+      <input 
+        id={`${id}-gallery`}
         type="file" 
         accept="image/*" 
         className="hidden"
@@ -125,7 +154,8 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
           <Label>
@@ -317,7 +347,49 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           ต่อไป →
         </Button>
       </div>
-    </form>
+      </form>
+
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">เพิ่มรูปภาพ</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (currentPhotoId) {
+                  document.getElementById(`${currentPhotoId}-camera`)?.click();
+                }
+              }}
+              className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Camera className="w-6 h-6" />
+              <span className="text-base">ถ่ายภาพ</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (currentPhotoId) {
+                  document.getElementById(`${currentPhotoId}-gallery`)?.click();
+                }
+              }}
+              className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Image className="w-6 h-6" />
+              <span className="text-base">เลือกรูปจากแกลลอรี่</span>
+            </button>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full rounded-xl h-12">
+                ยกเลิก
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
 
