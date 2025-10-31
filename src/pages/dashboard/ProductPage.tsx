@@ -62,7 +62,7 @@ export default function ProductPage() {
     const finalMultiplier = timeMultiplier * dateVariation;
 
     const baseProducts = [
-      { name: 'เครื่องบุ่งห้ม', baseJobs: 30, baseAmount: 30000, color: '#10b981' },
+      { name: 'เครื่องนุ่งห่ม', baseJobs: 30, baseAmount: 30000, color: '#10b981' },
       { name: 'ไม้แปรรูป', baseJobs: 25, baseAmount: 20000, color: '#1e40af' },
       { name: 'อาหารแปรรูป', baseJobs: 20, baseAmount: 15000, color: '#7c3aed' },
       { name: 'อาหารสด', baseJobs: 15, baseAmount: 5000, color: '#06b6d4' },
