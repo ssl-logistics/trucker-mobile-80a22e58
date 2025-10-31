@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Camera, Eye, EyeOff } from "lucide-react";
+import { Camera, Eye, EyeOff, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { RegistrationData } from "@/pages/Register";
 
 const generalInfoSchema = z.object({
@@ -37,6 +38,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profilePreview, setProfilePreview] = useState<string>("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>(data.workAreas || []);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<GeneralInfoFormData>({
     resolver: zodResolver(generalInfoSchema),
@@ -59,6 +61,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePreview(reader.result as string);
+        setIsDrawerOpen(false);
       };
       reader.readAsDataURL(file);
     }
@@ -76,27 +79,61 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
       {/* Profile Photo */}
       <div className="text-center">
         <h3 className="font-semibold text-foreground mb-4">รูปภาพผู้ขับขี่</h3>
-        <div className="relative inline-block">
-          <Avatar className="w-24 h-24 mx-auto">
-            {profilePreview ? (
-              <AvatarImage src={profilePreview} />
-            ) : (
-              <AvatarFallback className="bg-primary/10">
-                <Camera className="w-8 h-8 text-primary" />
-              </AvatarFallback>
-            )}
-          </Avatar>
-          <label htmlFor="profile-photo" className="absolute bottom-0 right-0 bg-primary rounded-full p-2 cursor-pointer">
-            <Camera className="w-4 h-4 text-primary-foreground" />
-          </label>
-          <input
-            id="profile-photo"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleProfilePhotoChange}
-          />
-        </div>
+        <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+          <DrawerTrigger asChild>
+            <div className="relative inline-block cursor-pointer">
+              <Avatar className="w-24 h-24 mx-auto">
+                {profilePreview ? (
+                  <AvatarImage src={profilePreview} />
+                ) : (
+                  <AvatarFallback className="bg-primary/10">
+                    <Camera className="w-8 h-8 text-primary" />
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="absolute bottom-0 right-0 bg-primary rounded-full p-2">
+                <Camera className="w-4 h-4 text-primary-foreground" />
+              </div>
+            </div>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle className="text-center">เลือกรูปภาพ</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4 space-y-3 pb-8">
+              <label htmlFor="camera-capture" className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
+                <Camera className="w-6 h-6 text-primary" />
+                <div className="text-left flex-1">
+                  <p className="font-medium">ถ่ายภาพ</p>
+                  <p className="text-sm text-muted-foreground">เปิดกล้องเพื่อถ่ายภาพ</p>
+                </div>
+              </label>
+              <input
+                id="camera-capture"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleProfilePhotoChange}
+              />
+              
+              <label htmlFor="gallery-select" className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
+                <Image className="w-6 h-6 text-primary" />
+                <div className="text-left flex-1">
+                  <p className="font-medium">เลือกจากแกลลอรี่</p>
+                  <p className="text-sm text-muted-foreground">เลือกรูปภาพที่มีอยู่ในเครื่อง</p>
+                </div>
+              </label>
+              <input
+                id="gallery-select"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfilePhotoChange}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
         <p className="text-sm text-muted-foreground mt-2">กดเพื่อถ่ายรูปหรือเลือกรูปใบหน้า</p>
       </div>
 
