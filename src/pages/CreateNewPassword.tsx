@@ -63,11 +63,24 @@ const CreateNewPassword = () => {
 
   const onSubmit = async (data: PasswordFormData) => {
     try {
-      // TODO: Implement actual password reset logic
-      console.log("Reset password for:", phone, data.password);
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      const { data: resetData, error } = await supabase.functions.invoke("reset-password", {
+        body: { phone, password: data.password }
+      });
+
+      if (error || !resetData?.success) {
+        toast({
+          title: "เกิดข้อผิดพลาด",
+          description: resetData?.error || "ไม่สามารถตั้งรหัสผ่านใหม่ได้",
+          variant: "destructive"
+        });
+        return;
+      }
       
       setShowSuccess(true);
     } catch (error) {
+      console.error("Error resetting password:", error);
       toast({
         title: "เกิดข้อผิดพลาด",
         description: "กรุณาลองใหม่อีกครั้ง",
