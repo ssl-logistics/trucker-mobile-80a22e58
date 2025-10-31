@@ -108,7 +108,7 @@ const Register = () => {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     } else {
-      navigate("/signin");
+      navigate("/");
     }
   };
 
