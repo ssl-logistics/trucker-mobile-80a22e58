@@ -66,7 +66,7 @@ export default function DashboardPage() {
             <div
               style={{
                 backgroundImage: `url(${item.imageSrc})`,
-                backgroundSize: "fill",
+                backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
               }}
