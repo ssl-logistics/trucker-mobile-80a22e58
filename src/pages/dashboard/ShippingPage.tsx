@@ -9,6 +9,40 @@ export default function ShippingPage() {
   const navigate = useNavigate();
   const [timePeriod, setTimePeriod] = useState('month');
   const [vehicleType, setVehicleType] = useState('all');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const thaiMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+  ];
+
+  const getDisplayDate = () => {
+    const day = selectedDate.getDate();
+    const month = thaiMonths[selectedDate.getMonth()];
+    const year = selectedDate.getFullYear() + 543;
+
+    if (timePeriod === 'day') {
+      return `${day} ${month} ${year}`;
+    } else if (timePeriod === 'month') {
+      return `${month} ${year}`;
+    } else {
+      return `พ.ศ. ${year}`;
+    }
+  };
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    
+    if (timePeriod === 'day') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
+    } else if (timePeriod === 'month') {
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    } else {
+      newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
+    }
+    
+    setSelectedDate(newDate);
+  };
 
   // Mock data
   const jobStats = [
@@ -51,11 +85,17 @@ export default function ShippingPage() {
 
         {/* Date Navigation */}
         <div className="flex items-center justify-center gap-4 py-2">
-          <button className="p-2 hover:bg-accent rounded-full transition-colors">
+          <button 
+            onClick={() => navigateDate('prev')}
+            className="p-2 hover:bg-accent rounded-full transition-colors"
+          >
             <span className="text-2xl">{'<'}</span>
           </button>
-          <span className="text-xl font-bold text-primary">พ.ศ.2567</span>
-          <button className="p-2 hover:bg-accent rounded-full transition-colors">
+          <span className="text-xl font-bold text-primary">{getDisplayDate()}</span>
+          <button 
+            onClick={() => navigateDate('next')}
+            className="p-2 hover:bg-accent rounded-full transition-colors"
+          >
             <span className="text-2xl">{'>'}</span>
           </button>
         </div>
