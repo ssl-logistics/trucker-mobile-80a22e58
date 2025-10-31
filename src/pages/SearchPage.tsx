@@ -22,27 +22,51 @@ export default function SearchPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
-  const [transportType, setTransportType] = useState('');
+  const [domesticType, setDomesticType] = useState('');
+  const [internationalType, setInternationalType] = useState('');
   const [province, setProvince] = useState('');
   const [district, setDistrict] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
-  const recentSearches = ['ศุรุงเทพ', 'สมุทรปราการ'];
-  const popularSearches = ['ศุรุงเทพมหานคร', 'คลังสินค้า', 'ค้าง', 'ชีพ'];
+  const recentSearches = ['กรุงเทพ', 'สมุทรปราการ'];
+  const popularSearches = ['กรุงเทพมหานคร', 'คลังสินค้า', 'ขนส่ง', 'ชิปปิ้ง'];
 
-  const transportTypes = [
-    'ส่งเที่ยวเดียว',
-    'ส่งหลายที่',
-    'ส่งข่างประเทศ',
+  const domesticTypes = ['ขนส่งเที่ยวเดียว', 'ขนส่งหลายที่'];
+  const internationalTypes = ['ขนส่งขาเข้า', 'ขนส่งขาออก'];
+
+  const provinces = [
+    'กรุงเทพมหานคร',
+    'นนทบุรี',
+    'ปทุมธานี',
+    'สมุทรปราการ',
+    'สมุทรสาคร',
+    'นครปฐม',
   ];
 
+  const districtsByProvince: Record<string, string[]> = {
+    'กรุงเทพมหานคร': ['บางรัก', 'ปทุมวัน', 'บางกอกใหญ่', 'บางกอกน้อย', 'ห้วยขวาง'],
+    'นนทบุรี': ['เมืองนนทบุรี', 'บางกรวย', 'บางใหญ่', 'บางบัวทอง', 'ไทรน้อย'],
+    'ปทุมธานี': ['เมืองปทุมธานี', 'คลองหลวง', 'ธัญบุรี', 'ลำลูกกา', 'หนองเสือ'],
+    'สมุทรปราการ': ['เมืองสมุทรปราการ', 'บางบ่อ', 'บางพลี', 'พระประแดง', 'พระสมุทรเจดีย์'],
+    'สมุทรสาคร': ['เมืองสมุทรสาคร', 'กระทุ่มแบน', 'บ้านแพ้ว'],
+    'นครปฐม': ['เมืองนครปฐม', 'กำแพงแสน', 'นครชัยศรี', 'ดอนตูม', 'บางเลน'],
+  };
+
+  const availableDistricts = province ? districtsByProvince[province] || [] : [];
+
   const handleClearFilter = () => {
-    setTransportType('');
+    setDomesticType('');
+    setInternationalType('');
     setProvince('');
     setDistrict('');
     setMinPrice('');
     setMaxPrice('');
+  };
+
+  const handleProvinceChange = (value: string) => {
+    setProvince(value);
+    setDistrict(''); // Reset district when province changes
   };
 
   return (
@@ -117,21 +141,45 @@ export default function SearchPage() {
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6 space-y-6">
-            {/* Transport Type */}
+          <div className="mt-6 space-y-6 overflow-y-auto max-h-[calc(85vh-200px)] pb-20">
+            {/* Domestic Transport */}
             <div>
               <label className="text-sm font-medium mb-2 block">
-                ประเภทการขนส่ง
+                ขนส่งภายในประเทศ
               </label>
               <div className="flex flex-wrap gap-2">
-                {transportTypes.map((type) => (
+                {domesticTypes.map((type) => (
                   <button
                     key={type}
                     onClick={() =>
-                      setTransportType(transportType === type ? '' : type)
+                      setDomesticType(domesticType === type ? '' : type)
                     }
                     className={`px-4 py-2 rounded-full text-sm border transition-colors ${
-                      transportType === type
+                      domesticType === type
+                        ? 'bg-blue-50 border-blue-500 text-blue-700'
+                        : 'border-gray-300'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* International Transport */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                ขนส่งภายนอกประเทศ
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {internationalTypes.map((type) => (
+                  <button
+                    key={type}
+                    onClick={() =>
+                      setInternationalType(internationalType === type ? '' : type)
+                    }
+                    className={`px-4 py-2 rounded-full text-sm border transition-colors ${
+                      internationalType === type
                         ? 'bg-blue-50 border-blue-500 text-blue-700'
                         : 'border-gray-300'
                     }`}
@@ -145,14 +193,16 @@ export default function SearchPage() {
             {/* Province */}
             <div>
               <label className="text-sm font-medium mb-2 block">จังหวัด</label>
-              <Select value={province} onValueChange={setProvince}>
+              <Select value={province} onValueChange={handleProvinceChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="จังหวัด" />
+                  <SelectValue placeholder="เลือกจังหวัด" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="กรุงเทพมหานคร">กรุงเทพมหานคร</SelectItem>
-                  <SelectItem value="นนทบุรี">นนทบุรี</SelectItem>
-                  <SelectItem value="สมุทรปราการ">สมุทรปราการ</SelectItem>
+                <SelectContent className="bg-background z-50">
+                  {provinces.map((prov) => (
+                    <SelectItem key={prov} value={prov}>
+                      {prov}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -160,14 +210,20 @@ export default function SearchPage() {
             {/* District */}
             <div>
               <label className="text-sm font-medium mb-2 block">อำเภอ</label>
-              <Select value={district} onValueChange={setDistrict}>
+              <Select 
+                value={district} 
+                onValueChange={setDistrict}
+                disabled={!province}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="อำเภอ" />
+                  <SelectValue placeholder={province ? "เลือกอำเภอ" : "กรุณาเลือกจังหวัดก่อน"} />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="บางรัก">บางรัก</SelectItem>
-                  <SelectItem value="ปทุมวัน">ปทุมวัน</SelectItem>
-                  <SelectItem value="บางกอกใหญ่">บางกอกใหญ่</SelectItem>
+                <SelectContent className="bg-background z-50">
+                  {availableDistricts.map((dist) => (
+                    <SelectItem key={dist} value={dist}>
+                      {dist}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
