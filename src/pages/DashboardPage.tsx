@@ -1,6 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, Truck, Users, Package } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import financeBg from '@/assets/finance-bg.png';
+import shippingBg from '@/assets/shipping-bg.png';
+import customerBg from '@/assets/customer-bg.png';
+import productBg from '@/assets/product-bg.png';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -14,7 +18,7 @@ export default function DashboardPage() {
       color: 'from-blue-500 to-blue-600',
       bgColor: 'bg-blue-50',
       path: '/dashboard/finance',
-      image: '💰'
+      imageSrc: financeBg
     },
     {
       id: 'shipping',
@@ -24,7 +28,7 @@ export default function DashboardPage() {
       color: 'from-teal-500 to-teal-600',
       bgColor: 'bg-teal-50',
       path: '/dashboard/shipping',
-      image: '🚚'
+      imageSrc: shippingBg
     },
     {
       id: 'customer',
@@ -34,7 +38,7 @@ export default function DashboardPage() {
       color: 'from-purple-500 to-purple-600',
       bgColor: 'bg-purple-50',
       path: '/dashboard/customer',
-      image: '👥'
+      imageSrc: customerBg
     },
     {
       id: 'product',
@@ -44,7 +48,7 @@ export default function DashboardPage() {
       color: 'from-orange-500 to-orange-600',
       bgColor: 'bg-orange-50',
       path: '/dashboard/product',
-      image: '📦'
+      imageSrc: productBg
     }
   ];
 
@@ -79,7 +83,9 @@ export default function DashboardPage() {
                     ดู{item.title.split(' ')[0]}
                   </button>
                 </div>
-                <div className="text-6xl ml-4">{item.image}</div>
+                <div className="ml-4 w-32 h-32 flex-shrink-0">
+                  <img src={item.imageSrc} alt={item.title} className="w-full h-full object-contain" />
+                </div>
               </div>
             </div>
           </Card>
