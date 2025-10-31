@@ -72,8 +72,11 @@ export default function DashboardPage() {
             className="overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => navigate(item.path)}
           >
-            <div className={`${item.bgColor} p-6 relative`}>
-              <div className="flex items-start justify-between">
+            <div 
+              className="p-6 relative bg-cover bg-center bg-no-repeat min-h-[200px]"
+              style={{ backgroundImage: `url(${item.imageSrc})` }}
+            >
+              <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h3>
                   <p className="text-sm text-gray-600 mb-4">{item.description}</p>
@@ -82,9 +85,6 @@ export default function DashboardPage() {
                   >
                     ดู{item.title.split(' ')[0]}
                   </button>
-                </div>
-                <div className="ml-4 w-32 h-32 flex-shrink-0">
-                  <img src={item.imageSrc} alt={item.title} className="w-full h-full object-contain" />
                 </div>
               </div>
             </div>
