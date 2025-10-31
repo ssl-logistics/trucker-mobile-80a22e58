@@ -44,22 +44,59 @@ export default function ShippingPage() {
     setSelectedDate(newDate);
   };
 
-  // Mock data
-  const jobStats = [
-    { label: 'งานทั้งหมด', value: 300, change: 2, icon: '📦' },
-    { label: 'สำเร็จ', value: 299, change: 2, icon: '✅' },
-    { label: 'กำลังจัดส่ง', value: 1, change: 2, icon: '🚚' },
-    { label: 'ยกเลิก', value: 2, change: 2, icon: '❌' },
-  ];
+  // Dynamic data based on filters
+  const getFilteredData = () => {
+    // Base multiplier based on time period
+    let timeMultiplier = 1;
+    if (timePeriod === 'day') {
+      timeMultiplier = 0.1; // Daily data is smaller
+    } else if (timePeriod === 'month') {
+      timeMultiplier = 1;
+    } else {
+      timeMultiplier = 12; // Yearly data is larger
+    }
 
-  const regionStats = [
-    { region: 'ภาคเหนือ', value: 300, change: 2 },
-    { region: 'ภาคกลาง', value: 300, change: 2 },
-    { region: 'ภาคอีสาน', value: 300, change: 2 },
-    { region: 'ภาคตะวันออก', value: 300, change: 2 },
-    { region: 'ภาคตะวันตก', value: 300, change: 2 },
-    { region: 'ภาคใต้', value: 300, change: 2 },
-  ];
+    // Vehicle type multiplier
+    const vehicleMultipliers: { [key: string]: number } = {
+      'all': 1,
+      'หัวลาก': 0.4,
+      '12ล้อ': 0.25,
+      '10ล้อ': 0.15,
+      '6ล้อ': 0.12,
+      '4ล้อ': 0.08,
+    };
+    const vehicleMultiplier = vehicleMultipliers[vehicleType] || 1;
+
+    // Date-based variation (simulate different data for different dates)
+    const dateHash = selectedDate.getTime() % 100;
+    const dateVariation = 1 + (dateHash / 100);
+
+    const finalMultiplier = timeMultiplier * vehicleMultiplier * dateVariation;
+
+    const baseTotal = Math.round(300 * finalMultiplier);
+    const baseSuccess = Math.round(baseTotal * 0.997);
+    const baseInProgress = Math.round(baseTotal * 0.003);
+    const baseCancelled = Math.round(baseTotal * 0.007);
+
+    return {
+      jobStats: [
+        { label: 'งานทั้งหมด', value: baseTotal, change: Math.round(2 * dateVariation), icon: '📦' },
+        { label: 'สำเร็จ', value: baseSuccess, change: Math.round(2 * dateVariation), icon: '✅' },
+        { label: 'กำลังจัดส่ง', value: baseInProgress, change: Math.round(1 * dateVariation), icon: '🚚' },
+        { label: 'ยกเลิก', value: baseCancelled, change: Math.round(1 * dateVariation), icon: '❌' },
+      ],
+      regionStats: [
+        { region: 'ภาคเหนือ', value: Math.round(baseTotal * 0.18), change: Math.round(2 * dateVariation) },
+        { region: 'ภาคกลาง', value: Math.round(baseTotal * 0.25), change: Math.round(3 * dateVariation) },
+        { region: 'ภาคอีสาน', value: Math.round(baseTotal * 0.15), change: Math.round(1 * dateVariation) },
+        { region: 'ภาคตะวันออก', value: Math.round(baseTotal * 0.20), change: Math.round(2 * dateVariation) },
+        { region: 'ภาคตะวันตก', value: Math.round(baseTotal * 0.10), change: Math.round(1 * dateVariation) },
+        { region: 'ภาคใต้', value: Math.round(baseTotal * 0.12), change: Math.round(2 * dateVariation) },
+      ]
+    };
+  };
+
+  const { jobStats, regionStats } = getFilteredData();
 
   return (
     <div className="min-h-screen bg-background pb-20">
