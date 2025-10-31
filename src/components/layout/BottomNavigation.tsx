@@ -8,7 +8,7 @@ export function BottomNavigation() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 to-slate-800 text-white px-6 py-3 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-slate-900 to-slate-800 text-white px-6 py-3 shadow-lg">
       <div className="flex justify-around items-center max-w-lg mx-auto">
         {[
           { icon: Home, label: 'หน้าแรก', path: '/home' },
