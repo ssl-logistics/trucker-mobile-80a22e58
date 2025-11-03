@@ -114,35 +114,33 @@ const Register = () => {
 
   const handleSubmit = async () => {
     try {
-      // TODO: Implement actual registration logic (save to database)
+      // Create user account directly (OTP temporarily disabled)
       console.log("Registration data:", registrationData);
       
-      // Send OTP via ThailBulkSMS
       const { supabase } = await import("@/integrations/supabase/client");
-      const { data: otpData, error: otpError } = await supabase.functions.invoke("send-otp", {
-        body: { phone: registrationData.phone }
+      
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: registrationData.email,
+        password: registrationData.password,
+        phone: registrationData.phone,
+        options: {
+          data: {
+            phone: registrationData.phone,
+            username: registrationData.username,
+            full_name: `${registrationData.firstName} ${registrationData.lastName}`
+          }
+        }
       });
 
-      if (otpError) {
-        console.error("Error sending OTP:", otpError);
-        alert("ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่อีกครั้ง");
+      if (authError) {
+        console.error("Error creating user:", authError);
+        alert("ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่อีกครั้ง");
         return;
       }
 
-      if (!otpData?.success) {
-        console.error("Failed to send OTP:", otpData);
-        alert("ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่อีกครั้ง");
-        return;
-      }
-
-      console.log("OTP sent successfully, token:", otpData.token);
-      navigate("/verify-otp", { 
-        state: { 
-          phone: registrationData.phone,
-          token: otpData.token,
-          registrationData: registrationData
-        } 
-      });
+      alert("สมัครสมาชิกสำเร็จ!");
+      navigate("/");
     } catch (error) {
       console.error("Error:", error);
       alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");

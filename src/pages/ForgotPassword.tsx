@@ -35,35 +35,15 @@ const ForgotPassword = () => {
     try {
       setServerError("");
 
-      // TODO: Check phone number in database first
-      // For now, assume phone exists and send OTP
-
-      // Send OTP via ThailBulkSMS
-      const {
-        supabase
-      } = await import("@/integrations/supabase/client");
-      const {
-        data: otpData,
-        error: otpError
-      } = await supabase.functions.invoke("send-otp", {
-        body: {
-          phone: data.phone
-        }
-      });
-      if (otpError || !otpData?.success) {
-        console.error("Error sending OTP:", otpError);
-        setServerError("ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่อีกครั้ง");
-        return;
-      }
+      // Skip OTP verification temporarily - go directly to password reset
       toast({
-        title: "ส่งรหัสยืนยันแล้ว",
-        description: "กรุณาตรวจสอบ SMS"
+        title: "ยืนยันเบอร์โทรศัพท์",
+        description: "กรุณาสร้างรหัสผ่านใหม่"
       });
-      navigate("/verify-otp-reset", {
+      
+      navigate("/create-new-password", {
         state: {
-          phone: data.phone,
-          token: otpData.token,
-          from: "forgot-password"
+          phone: data.phone
         }
       });
     } catch (error) {
