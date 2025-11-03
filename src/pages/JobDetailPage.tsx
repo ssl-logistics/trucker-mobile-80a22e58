@@ -204,8 +204,6 @@ export default function JobDetailPage() {
                   >
                     {jobApplication?.sop_completed_at 
                       ? 'เสร็จสมบูรณ์' 
-                      : jobApplication?.checked_in_at 
-                      ? 'อัปโหลด SOP' 
                       : 'อัปเดตสถานะ'}
                   </Button>
                 </div>

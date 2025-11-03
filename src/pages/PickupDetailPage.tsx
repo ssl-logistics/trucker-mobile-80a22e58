@@ -85,7 +85,7 @@ export default function PickupDetailPage() {
       description: 'คุณได้เช็คอินที่จุดรับสินค้าเรียบร้อยแล้ว',
     });
     setShowConfirmDialog(false);
-    navigate(`/job/${job.id}/sop`);
+    navigate(`/job/${job.id}`);
   };
 
   const formatDate = (date: string) => {
