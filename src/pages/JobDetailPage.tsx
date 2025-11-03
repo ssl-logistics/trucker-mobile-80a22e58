@@ -215,10 +215,10 @@ export default function JobDetailPage() {
           </Card>
 
           {/* Delivery Point */}
-          <Card className="p-4 border-2 border-gray-200">
+          <Card className={`p-4 border-2 ${!jobApplication?.sop_completed_at ? 'border-gray-200 opacity-50' : 'border-teal-200'}`}>
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center">
-                <Circle className="w-6 h-6 text-gray-400" />
+                <Circle className={`w-6 h-6 ${!jobApplication?.sop_completed_at ? 'text-gray-400' : jobApplication?.delivery_sop_completed_at ? 'text-teal-600 fill-teal-600' : 'text-teal-600'}`} />
               </div>
               
               <div className="flex-1">
