@@ -156,29 +156,31 @@ export default function DeliveryDetailPage() {
 
         {/* Check-in Status - Show only after check-in */}
         {jobApplication?.delivery_checked_in_at && (
-          <div className="bg-white rounded-lg border-2 border-red-500 p-4 space-y-3">
+          <div className="bg-white rounded-xl border-[3px] border-red-500 shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <span className="text-green-600 text-lg">✓</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-                <span className="font-semibold">เช็คอินสำเร็จ</span>
+                <span className="font-semibold text-lg">เช็คอินสำเร็จ</span>
               </div>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-gray-600 font-medium">
                 {formatDate(job.start_date)} | 12.00
               </span>
             </div>
 
-            <div className="border-t pt-3">
-              <h3 className="font-semibold mb-3">ข้อมูลการชำระเงิน</h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <div className="text-muted-foreground">วิธีการชำระเงิน</div>
-                  <div>เก็บเงินปลายทาง</div>
+            <div className="border-t-2 border-gray-100 pt-4">
+              <h3 className="font-semibold text-base mb-3 text-gray-800">ข้อมูลการชำระเงิน</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-1">
+                  <div className="text-gray-500 text-xs">วิธีการชำระเงิน</div>
+                  <div className="font-medium text-gray-900">เก็บเงินปลายทาง</div>
                 </div>
-                <div>
-                  <div className="text-muted-foreground">จำนวนเงิน (บาท)</div>
-                  <div>1,000</div>
+                <div className="space-y-1">
+                  <div className="text-gray-500 text-xs">จำนวนเงิน (บาท)</div>
+                  <div className="font-medium text-gray-900">1,000</div>
                 </div>
               </div>
             </div>
