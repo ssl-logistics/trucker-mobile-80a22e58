@@ -23,11 +23,16 @@ interface JobDetail {
   start_time: string;
 }
 
+interface JobApplication {
+  delivery_checked_in_at: string | null;
+}
+
 export default function DeliveryDetailPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
   const [job, setJob] = useState<JobDetail | null>(null);
+  const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
@@ -55,6 +60,19 @@ export default function DeliveryDetailPage() {
     } else {
       setJob(data);
     }
+
+    // Load job application status
+    const { data: appData } = await supabase
+      .from('job_applications')
+      .select('delivery_checked_in_at')
+      .eq('job_id', jobId)
+      .eq('driver_id', user.id)
+      .single();
+
+    if (appData) {
+      setJobApplication(appData);
+    }
+
     setLoading(false);
   };
 
@@ -85,7 +103,9 @@ export default function DeliveryDetailPage() {
       description: 'คุณได้เช็คอินที่จุดส่งสินค้าเรียบร้อยแล้ว',
     });
     setShowConfirmDialog(false);
-    navigate(`/job/${job.id}`);
+    
+    // Reload to show updated state
+    loadJobDetail();
   };
 
   const formatDate = (date: string) => {
@@ -133,6 +153,37 @@ export default function DeliveryDetailPage() {
             <span className="text-xs">แจ้งปัญหา</span>
           </button>
         </div>
+
+        {/* Check-in Status - Show only after check-in */}
+        {jobApplication?.delivery_checked_in_at && (
+          <div className="bg-white rounded-lg border-2 border-red-500 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                  <span className="text-green-600 text-lg">✓</span>
+                </div>
+                <span className="font-semibold">เช็คอินสำเร็จ</span>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {formatDate(job.start_date)} | 12.00
+              </span>
+            </div>
+
+            <div className="border-t pt-3">
+              <h3 className="font-semibold mb-3">ข้อมูลการชำระเงิน</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <div className="text-muted-foreground">วิธีการชำระเงิน</div>
+                  <div>เก็บเงินปลายทาง</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">จำนวนเงิน (บาท)</div>
+                  <div>1,000</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Contact Name */}
         <div>
@@ -191,16 +242,30 @@ export default function DeliveryDetailPage() {
         </div>
       </div>
 
-      {/* Check-in Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-        <Button 
-          className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
-          onClick={() => setShowConfirmDialog(true)}
-        >
-          <MapPin className="w-5 h-5 mr-2" />
-          เช็คอิน
-        </Button>
-      </div>
+      {/* Check-in Button - Hide after check-in */}
+      {!jobApplication?.delivery_checked_in_at && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+          <Button 
+            className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
+            onClick={() => setShowConfirmDialog(true)}
+          >
+            <MapPin className="w-5 h-5 mr-2" />
+            เช็คอิน
+          </Button>
+        </div>
+      )}
+
+      {/* Confirm Button - Show after check-in */}
+      {jobApplication?.delivery_checked_in_at && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+          <Button 
+            className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
+            onClick={() => navigate(`/job/${job.id}`)}
+          >
+            ชำระเงิน
+          </Button>
+        </div>
+      )}
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
