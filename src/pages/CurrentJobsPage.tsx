@@ -64,6 +64,7 @@ export default function CurrentJobsPage() {
         )
       `)
       .eq('driver_id', user.id)
+      .is('payment_completed_at', null)
       .order('applied_at', { ascending: false });
 
     if (error) {
