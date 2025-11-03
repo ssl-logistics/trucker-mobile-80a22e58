@@ -18,7 +18,7 @@ export interface RegistrationData {
   username: string;
   password: string;
   confirmPassword: string;
-  workAreas: string[];
+  location: string;
   priceRangeMin: string;
   priceRangeMax: string;
   
@@ -66,7 +66,7 @@ const Register = () => {
     username: "",
     password: "",
     confirmPassword: "",
-    workAreas: [],
+    location: "",
     priceRangeMin: "",
     priceRangeMax: "",
     hasTrailer: false,
@@ -175,7 +175,7 @@ const Register = () => {
       // Save work preferences
       await supabase.from('driver_work_preferences').insert({
         driver_id: userId,
-        work_areas: registrationData.workAreas,
+        work_areas: registrationData.location ? [registrationData.location] : [],
         price_range_min: registrationData.priceRangeMin ? parseFloat(registrationData.priceRangeMin) : null,
         price_range_max: registrationData.priceRangeMax ? parseFloat(registrationData.priceRangeMax) : null
       });

@@ -6,7 +6,7 @@ import { Camera, Eye, EyeOff, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { RegistrationData } from "@/pages/Register";
@@ -40,7 +40,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [profilePreview, setProfilePreview] = useState<string>(
     data.profilePhoto ? URL.createObjectURL(data.profilePhoto) : ""
   );
-  const [selectedAreas, setSelectedAreas] = useState<string[]>(data.workAreas || []);
+  const [selectedLocation, setSelectedLocation] = useState<string>(data.location || "");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<GeneralInfoFormData>({
@@ -70,7 +70,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const onSubmit = (formData: GeneralInfoFormData) => {
     onNext({
       ...formData,
-      workAreas: selectedAreas,
+      location: selectedLocation,
       profilePhoto: profilePhotoFile || undefined,
     });
   };
@@ -269,19 +269,12 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
       <div className="space-y-4">
         <h3 className="font-semibold text-foreground">พื้นที่วิ่งงาน</h3>
         
-        <div className="space-y-2">
-          <Label>อำเภอ หรือ จังหวัด ที่ถนัดหรือวิ่งงานเป็นประจำ</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="อำเภอ/จังหวัด" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="bangkok">กรุงเทพมหานคร</SelectItem>
-              <SelectItem value="nonthaburi">นนทบุรี</SelectItem>
-              <SelectItem value="samutprakan">สมุทรปราการ</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <LocationAutocomplete
+          value={selectedLocation}
+          onChange={setSelectedLocation}
+          label="อำเภอ หรือ จังหวัด ที่ถนัดหรือวิ่งงานเป็นประจำ"
+          placeholder="ค้นหาอำเภอ/จังหวัด"
+        />
 
         <div className="space-y-2">
           <Label>เรทราคาวิ่งงาน (฿)</Label>

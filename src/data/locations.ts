@@ -114,4 +114,42 @@ export const locations: Location[] = [
   { district: "เมืองภูเก็ต", province: "ภูเก็ต", displayText: "เมืองภูเก็ต, ภูเก็ต" },
   { district: "กะทู้", province: "ภูเก็ต", displayText: "กะทู้, ภูเก็ต" },
   { district: "ถลาง", province: "ภูเก็ต", displayText: "ถลาง, ภูเก็ต" },
+  
+  // สุราษฎร์ธานี
+  { district: "เมืองสุราษฎร์ธานี", province: "สุราษฎร์ธานี", displayText: "เมืองสุราษฎร์ธานี, สุราษฎร์ธานี" },
+  { district: "กาญจนดิษฐ์", province: "สุราษฎร์ธานี", displayText: "กาญจนดิษฐ์, สุราษฎร์ธานี" },
+  { district: "ดอนสัก", province: "สุราษฎร์ธานี", displayText: "ดอนสัก, สุราษฎร์ธานี" },
+  
+  // กระบี่
+  { district: "เมืองกระบี่", province: "กระบี่", displayText: "เมืองกระบี่, กระบี่" },
+  { district: "อ่าวลึก", province: "กระบี่", displayText: "อ่าวลึก, กระบี่" },
+  
+  // นครศรีธรรมราช
+  { district: "เมืองนครศรีธรรมราช", province: "นครศรีธรรมราช", displayText: "เมืองนครศรีธรรมราช, นครศรีธรรมราช" },
+  { district: "ปากพนัง", province: "นครศรีธรรมราช", displayText: "ปากพนัง, นครศรีธรรมราช" },
+  { district: "ชะอวด", province: "นครศรีธรรมราช", displayText: "ชะอวด, นครศรีธรรมราช" },
+  
+  // ตรัง
+  { district: "เมืองตรัง", province: "ตรัง", displayText: "เมืองตรัง, ตรัง" },
+  { district: "กันตัง", province: "ตรัง", displayText: "กันตัง, ตรัง" },
+  
+  // พัทลุง
+  { district: "เมืองพัทลุง", province: "พัทลุง", displayText: "เมืองพัทลุง, พัทลุง" },
+  { district: "ควนขนุน", province: "พัทลุง", displayText: "ควนขนุน, พัทลุง" },
+  
+  // สตูล
+  { district: "เมืองสตูล", province: "สตูล", displayText: "เมืองสตูล, สตูล" },
+  { district: "ละงู", province: "สตูล", displayText: "ละงู, สตูล" },
+  
+  // ยะลา
+  { district: "เมืองยะลา", province: "ยะลา", displayText: "เมืองยะลา, ยะลา" },
+  { district: "เบตง", province: "ยะลา", displayText: "เบตง, ยะลา" },
+  
+  // ปัตตานี
+  { district: "เมืองปัตตานี", province: "ปัตตานี", displayText: "เมืองปัตตานี, ปัตตานี" },
+  { district: "หนองจิก", province: "ปัตตานี", displayText: "หนองจิก, ปัตตานี" },
+  
+  // นราธิวาส
+  { district: "เมืองนราธิวาส", province: "นราธิวาส", displayText: "เมืองนราธิวาส, นราธิวาส" },
+  { district: "สุไหงโก-ลก", province: "นราธิวาส", displayText: "สุไหงโก-ลก, นราธิวาส" },
 ];

@@ -89,11 +89,11 @@ const ReviewStep = ({ data, onBack, onSubmit, onEditStep }: ReviewStepProps) => 
                   <span className="text-muted-foreground">อำเภอ หรือ จังหวัด ที่ถนัดหรือวิ่งงานเป็นประจำ</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {data.workAreas?.map((area, index) => (
-                    <span key={index} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs">
-                      {area}
+                  {data.location && (
+                    <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs">
+                      {data.location}
                     </span>
-                  ))}
+                  )}
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">เรทราคาวิ่งงาน (฿)</span>
