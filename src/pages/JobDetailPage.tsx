@@ -25,6 +25,8 @@ interface JobDetail {
 interface JobApplication {
   checked_in_at: string | null;
   sop_completed_at: string | null;
+  delivery_checked_in_at: string | null;
+  delivery_sop_completed_at: string | null;
   status: string;
 }
 
@@ -66,7 +68,7 @@ export default function JobDetailPage() {
     // Load job application status
     const { data: appData } = await supabase
       .from('job_applications')
-      .select('checked_in_at, sop_completed_at, status')
+      .select('checked_in_at, sop_completed_at, delivery_checked_in_at, delivery_sop_completed_at, status')
       .eq('job_id', jobId)
       .eq('driver_id', user.id)
       .single();
@@ -151,7 +153,7 @@ export default function JobDetailPage() {
                       : 'text-orange-600'
                   }`}>
                     • {jobApplication?.sop_completed_at 
-                      ? 'รอ SOP' 
+                      ? 'SOP สำเร็จ' 
                       : jobApplication?.checked_in_at 
                       ? 'เช็คอินแล้ว' 
                       : 'รอเช็คอิน'}
@@ -221,9 +223,22 @@ export default function JobDetailPage() {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold">จุดส่ง คศน.ชัยนาต</h3>
+                  <span className={`text-xs font-medium ${
+                    jobApplication?.delivery_sop_completed_at 
+                      ? 'text-green-600' 
+                      : jobApplication?.delivery_checked_in_at 
+                      ? 'text-blue-600' 
+                      : 'text-orange-600'
+                  }`}>
+                    • {jobApplication?.delivery_sop_completed_at 
+                      ? 'SOP สำเร็จ' 
+                      : jobApplication?.delivery_checked_in_at 
+                      ? 'เช็คอินแล้ว' 
+                      : 'รอเช็คอิน'}
+                  </span>
                 </div>
 
-                <div className="space-y-1 text-sm">
+                <div className="space-y-1 text-sm mb-3">
                   <div className="flex">
                     <span className="text-muted-foreground w-28">ชื่อผู้ติดต่อ</span>
                     <span>: คุณธงใบย</span>
@@ -237,13 +252,40 @@ export default function JobDetailPage() {
                     <span>: น้ำตาล (10 กล่อง)</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">เข้ารับสินค้า</span>
+                    <span className="text-muted-foreground w-28">ส่งสินค้า</span>
                     <span>: {formatDate(job.start_date)} | 11:00</span>
                   </div>
                   <div className="flex">
                     <span className="text-muted-foreground w-28">หมายเหตุ</span>
                     <span>: -</span>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <Button variant="outline" size="sm" className="h-10">
+                    <Phone className="w-4 h-4" />
+                    โทร
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-10">
+                    <Navigation className="w-4 h-4" />
+                    เส้นทาง
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="h-10 bg-blue-600 hover:bg-blue-700"
+                    onClick={() => {
+                      if (jobApplication?.delivery_checked_in_at && !jobApplication?.delivery_sop_completed_at) {
+                        navigate(`/job/${job.id}/delivery-sop`);
+                      } else {
+                        navigate(`/job/${job.id}/delivery`);
+                      }
+                    }}
+                    disabled={!!jobApplication?.delivery_sop_completed_at || !jobApplication?.sop_completed_at}
+                  >
+                    {jobApplication?.delivery_sop_completed_at 
+                      ? 'เสร็จสมบูรณ์' 
+                      : 'อัปเดตสถานะ'}
+                  </Button>
                 </div>
               </div>
             </div>

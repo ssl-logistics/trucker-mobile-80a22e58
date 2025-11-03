@@ -28,12 +28,12 @@ interface JobDetail {
   id: string;
   order_code: string;
   employer_name: string;
-  origin_location: string;
+  destination_location: string;
   start_date: string;
   start_time: string;
 }
 
-export default function SOPCheckInPage() {
+export default function DeliverySOPCheckInPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
@@ -56,7 +56,7 @@ export default function SOPCheckInPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('jobs')
-      .select('id, order_code, employer_name, origin_location, start_date, start_time')
+      .select('id, order_code, employer_name, destination_location, start_date, start_time')
       .eq('id', jobId)
       .single();
 
@@ -117,7 +117,7 @@ export default function SOPCheckInPage() {
     try {
       // Upload photo to storage
       const fileExt = photoFile.name.split('.').pop();
-      const fileName = `${user.id}/${job.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${job.id}/delivery/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('vehicle-photos')
@@ -129,7 +129,7 @@ export default function SOPCheckInPage() {
         .from('vehicle-photos')
         .getPublicUrl(fileName);
 
-      // Save SOP photo record
+      // Save SOP photo record (reusing pickup_sop_photos table or could create delivery_sop_photos)
       const { error: insertError } = await supabase
         .from('pickup_sop_photos')
         .insert({
@@ -144,8 +144,8 @@ export default function SOPCheckInPage() {
       const { error: updateError } = await supabase
         .from('job_applications')
         .update({ 
-          sop_completed_at: new Date().toISOString(),
-          status: 'sop_completed'
+          delivery_sop_completed_at: new Date().toISOString(),
+          status: 'delivery_sop_completed'
         })
         .eq('job_id', job.id)
         .eq('driver_id', user.id);
@@ -195,10 +195,10 @@ export default function SOPCheckInPage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.id}/pickup`)} className="p-1">
+          <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">จุดรับสินค้า Factory1</h1>
+          <h1 className="text-lg font-semibold">จุดส่ง คศน.ชัยนาต</h1>
           <div className="w-6" />
         </div>
       </header>
