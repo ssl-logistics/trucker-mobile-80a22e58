@@ -48,8 +48,19 @@ export function WorkAreaAutocomplete({
   };
 
   const filteredLocations = locations.filter((location) =>
-    location.displayText.toLowerCase().includes(searchQuery.toLowerCase())
+    location.displayText.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    location.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    location.province.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Group locations by province
+  const groupedLocations = filteredLocations.reduce((acc, location) => {
+    if (!acc[location.province]) {
+      acc[location.province] = [];
+    }
+    acc[location.province].push(location);
+    return acc;
+  }, {} as Record<string, Location[]>);
 
   return (
     <div className="w-full space-y-2">
@@ -68,64 +79,69 @@ export function WorkAreaAutocomplete({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between h-auto min-h-[2.5rem] px-3 py-2"
+            className="w-full justify-between h-auto min-h-[2.5rem] px-3 py-2 bg-white border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm"
           >
-            <div className="flex flex-wrap gap-1 flex-1">
+            <div className="flex flex-wrap gap-1.5 flex-1">
               {selectedLocations.length > 0 ? (
                 selectedLocations.map((location) => (
                   <Badge
                     key={location.displayText}
-                    variant="secondary"
-                    className="gap-1 pr-1"
+                    className="gap-1 pr-1 bg-[#1D4ED8] hover:bg-[#1e40af] text-white border-0 rounded-md"
                   >
-                    <span>{location.displayText}</span>
+                    <span className="text-xs">{location.displayText}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemove(location.displayText);
                       }}
-                      className="ml-1 rounded-full hover:bg-muted"
+                      className="ml-1 rounded-full hover:bg-white/20 p-0.5 transition-colors"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
                 ))
               ) : (
-                <span className="text-muted-foreground">{placeholder}</span>
+                <span className="text-muted-foreground text-sm">{placeholder}</span>
               )}
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 bg-popover" align="start">
-          <Command>
+        <PopoverContent className="w-full p-0 bg-white shadow-lg rounded-lg border border-gray-200" align="start">
+          <Command className="rounded-lg">
             <CommandInput
               placeholder={placeholder}
               value={searchQuery}
               onValueChange={setSearchQuery}
+              className="border-0 focus:ring-0"
             />
-            <CommandList>
-              <CommandEmpty>ไม่พบข้อมูล</CommandEmpty>
-              <CommandGroup>
-                {filteredLocations.map((location) => {
-                  const isSelected = value.includes(location.displayText);
-                  return (
-                    <CommandItem
-                      key={location.displayText}
-                      value={location.displayText}
-                      onSelect={() => handleSelect(location)}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          isSelected ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {location.displayText}
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
+            <CommandList className="max-h-[300px]">
+              <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+                ไม่พบข้อมูล
+              </CommandEmpty>
+              {Object.entries(groupedLocations).map(([province, provinceLocations]) => (
+                <CommandGroup key={province} heading={province} className="px-2">
+                  {provinceLocations.map((location) => {
+                    const isSelected = value.includes(location.displayText);
+                    return (
+                      <CommandItem
+                        key={location.displayText}
+                        value={location.displayText}
+                        onSelect={() => handleSelect(location)}
+                        className="rounded-md cursor-pointer"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4 text-[#1D4ED8]",
+                            isSelected ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <span className="text-sm">{location.district}</span>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              ))}
             </CommandList>
           </Command>
         </PopoverContent>
