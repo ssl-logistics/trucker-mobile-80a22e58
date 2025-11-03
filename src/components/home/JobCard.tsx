@@ -47,6 +47,9 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
           <span className="font-medium">{job.employer_name}</span>
         </div>
         <div className="text-sm text-blue-600 font-medium">
+          {job.job_type}
+        </div>
+        <div className="text-sm text-muted-foreground">
           {job.transport_type}
         </div>
 
