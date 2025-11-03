@@ -156,7 +156,7 @@ export default function DeliveryDetailPage() {
 
         {/* Check-in Status - Show only after check-in */}
         {jobApplication?.delivery_checked_in_at && (
-          <div className="bg-white rounded-xl border-[3px] border-red-500 shadow-md p-4 space-y-4">
+          <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
