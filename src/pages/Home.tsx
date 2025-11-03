@@ -63,7 +63,7 @@ export default function Home() {
         variant: 'destructive'
       });
     } else {
-      // Check which jobs the user has already accepted
+      // Filter out jobs the user has already accepted
       if (user) {
         const { data: applications } = await supabase
           .from('job_applications')
@@ -72,12 +72,10 @@ export default function Home() {
         
         const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
         
-        const jobsWithStatus = (data || []).map(job => ({
-          ...job,
-          isAccepted: acceptedJobIds.has(job.id)
-        }));
+        // Only show jobs that haven't been accepted by this user
+        const availableJobs = (data || []).filter(job => !acceptedJobIds.has(job.id));
         
-        setJobs(jobsWithStatus);
+        setJobs(availableJobs);
       } else {
         setJobs(data || []);
       }
