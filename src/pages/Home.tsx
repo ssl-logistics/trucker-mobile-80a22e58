@@ -38,8 +38,13 @@ export default function Home() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   useEffect(() => {
     loadJobs();
-    loadProfile();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
   const loadJobs = async () => {
     const {
       data,
@@ -60,8 +65,14 @@ export default function Home() {
   const loadProfile = async () => {
     if (!user) return;
     const {
-      data
+      data,
+      error
     } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single();
+    
+    console.log('Profile loaded:', data);
+    console.log('Profile error:', error);
+    console.log('User ID:', user.id);
+    
     setProfile(data);
   };
   const handleAcceptJob = (job: Job) => {
