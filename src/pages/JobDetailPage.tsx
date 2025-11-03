@@ -236,7 +236,7 @@ export default function JobDetailPage() {
                     • {!jobApplication?.sop_completed_at
                       ? 'รอ SOP รับสินค้า'
                       : jobApplication?.delivery_sop_completed_at 
-                      ? 'SOP สำเร็จ' 
+                      ? 'POD สำเร็จ' 
                       : jobApplication?.delivery_checked_in_at 
                       ? 'เช็คอินแล้ว' 
                       : 'รอเช็คอิน'}
@@ -290,7 +290,7 @@ export default function JobDetailPage() {
                     disabled={!jobApplication?.sop_completed_at}
                   >
                     {jobApplication?.delivery_sop_completed_at 
-                      ? 'เสร็จสมบูรณ์' 
+                      ? 'ดูข้อมูล' 
                       : 'อัปเดตสถานะ'}
                   </Button>
                 </div>
