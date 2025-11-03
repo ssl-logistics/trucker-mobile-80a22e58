@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Phone, Navigation, MapPin } from 'lucide-react';
+import { ArrowLeft, Phone, Navigation, MapPin, Camera, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 
 interface JobDetail {
   id: string;
@@ -25,6 +34,10 @@ interface JobDetail {
 
 interface JobApplication {
   delivery_checked_in_at: string | null;
+  payment_completed_at: string | null;
+  payment_method: string | null;
+  pod_photo_url: string | null;
+  delivery_sop_completed_at: string | null;
 }
 
 export default function DeliveryDetailPage() {
@@ -35,6 +48,12 @@ export default function DeliveryDetailPage() {
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showPaymentDrawer, setShowPaymentDrawer] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('cash');
+  const [showPodConfirmDialog, setShowPodConfirmDialog] = useState(false);
+  const [podPhoto, setPodPhoto] = useState<File | null>(null);
+  const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadJobDetail();
@@ -64,16 +83,119 @@ export default function DeliveryDetailPage() {
     // Load job application status
     const { data: appData } = await supabase
       .from('job_applications')
-      .select('delivery_checked_in_at')
+      .select('delivery_checked_in_at, payment_completed_at, payment_method, pod_photo_url, delivery_sop_completed_at')
       .eq('job_id', jobId)
       .eq('driver_id', user.id)
       .single();
 
     if (appData) {
       setJobApplication(appData);
+      // Load existing POD photo preview if available
+      if (appData.pod_photo_url) {
+        setPodPhotoPreview(appData.pod_photo_url);
+      }
     }
 
     setLoading(false);
+  };
+
+  const handlePaymentConfirm = async () => {
+    if (!job || !user) return;
+
+    const { error } = await supabase
+      .from('job_applications')
+      .update({ 
+        payment_completed_at: new Date().toISOString(),
+        payment_method: selectedPaymentMethod
+      })
+      .eq('job_id', job.id)
+      .eq('driver_id', user.id);
+
+    if (error) {
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถบันทึกการชำระเงินได้',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    toast({
+      title: 'ชำระเงินสำเร็จ',
+      description: 'บันทึกข้อมูลการชำระเงินเรียบร้อยแล้ว',
+    });
+    setShowPaymentDrawer(false);
+    loadJobDetail();
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPodPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPodPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePodConfirm = async () => {
+    if (!job || !user) return;
+
+    let photoUrl = jobApplication?.pod_photo_url;
+
+    // Upload photo if new one is selected
+    if (podPhoto) {
+      const fileExt = podPhoto.name.split('.').pop();
+      const fileName = `${user.id}-${job.id}-${Date.now()}.${fileExt}`;
+      const filePath = `pod-documents/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('driver-documents')
+        .upload(filePath, podPhoto);
+
+      if (uploadError) {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถอัปโหลดเอกสารได้',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('driver-documents')
+        .getPublicUrl(filePath);
+
+      photoUrl = publicUrl;
+    }
+
+    // Update job application with POD completion
+    const { error } = await supabase
+      .from('job_applications')
+      .update({ 
+        delivery_sop_completed_at: new Date().toISOString(),
+        pod_photo_url: photoUrl
+      })
+      .eq('job_id', job.id)
+      .eq('driver_id', user.id);
+
+    if (error) {
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถยืนยัน POD ได้',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    toast({
+      title: 'ยืนยัน POD สำเร็จ',
+      description: 'บันทึกข้อมูล POD เรียบร้อยแล้ว',
+    });
+    setShowPodConfirmDialog(false);
+    loadJobDetail();
   };
 
   const handleCheckIn = async () => {
@@ -174,9 +296,24 @@ export default function DeliveryDetailPage() {
                 <span className="font-semibold text-lg">เช็คอินสำเร็จ</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
-                {jobApplication?.delivery_checked_in_at 
-                  ? formatDateTime(jobApplication.delivery_checked_in_at)
-                  : `${formatDate(job.start_date)} | 12.00`}
+                {formatDateTime(jobApplication.delivery_checked_in_at)}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Status - Show after payment */}
+        {jobApplication?.payment_completed_at && (
+          <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
+                  <Check className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-semibold text-lg">ชำระเงินสำเร็จ</span>
+              </div>
+              <span className="text-sm text-gray-600 font-medium">
+                {formatDateTime(jobApplication.payment_completed_at)}
               </span>
             </div>
 
@@ -185,7 +322,11 @@ export default function DeliveryDetailPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
                   <div className="text-gray-500 text-xs">วิธีการชำระเงิน</div>
-                  <div className="font-medium text-gray-900">เก็บเงินปลายทาง</div>
+                  <div className="font-medium text-gray-900">
+                    {jobApplication.payment_method === 'cash' && 'เงินสด'}
+                    {jobApplication.payment_method === 'mobile_banking' && 'ชำระเงินผ่าน Mobile Banking'}
+                    {jobApplication.payment_method === 'qr_code' && 'ชำระเงินผ่าน QR Code'}
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-gray-500 text-xs">จำนวนเงิน (บาท)</div>
@@ -193,6 +334,64 @@ export default function DeliveryDetailPage() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* POD Upload Section - Show after payment */}
+        {jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
+          <div>
+            <label className="text-sm font-medium text-gray-900 mb-2 block">
+              อัพโหลดเอกสาร (ใบขนส่ง) <span className="text-red-500">*</span>
+            </label>
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 bg-gray-50"
+            >
+              {podPhotoPreview ? (
+                <img src={podPhotoPreview} alt="POD Document" className="w-full h-full object-contain rounded-lg" />
+              ) : (
+                <>
+                  <Camera className="w-12 h-12 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 text-center">
+                    กดเพื่อถ่ายหรือเลือก<br />เอกสาร (ใบขนส่ง)
+                  </p>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="hidden"
+            />
+          </div>
+        )}
+
+        {/* POD Success - Show after POD completed */}
+        {jobApplication?.delivery_sop_completed_at && (
+          <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
+                  <Check className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-semibold text-lg">POD สำเร็จ</span>
+              </div>
+              <span className="text-sm text-gray-600 font-medium">
+                {formatDateTime(jobApplication.delivery_sop_completed_at)}
+              </span>
+            </div>
+
+            {jobApplication.pod_photo_url && (
+              <div className="mt-4">
+                <img 
+                  src={jobApplication.pod_photo_url} 
+                  alt="POD Document" 
+                  className="w-full h-48 object-contain rounded-lg border bg-gray-50"
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -266,14 +465,39 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* Confirm Button - Show after check-in */}
-      {jobApplication?.delivery_checked_in_at && (
+      {/* Payment Button - Show after check-in, hide after payment */}
+      {jobApplication?.delivery_checked_in_at && !jobApplication?.payment_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button 
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
-            onClick={() => navigate(`/job/${job.id}`)}
+            onClick={() => setShowPaymentDrawer(true)}
           >
             ชำระเงิน
+          </Button>
+        </div>
+      )}
+
+      {/* POD Confirm Button - Show after payment, hide after POD completed */}
+      {jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+          <Button 
+            className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
+            onClick={() => setShowPodConfirmDialog(true)}
+            disabled={!podPhoto && !jobApplication?.pod_photo_url}
+          >
+            ยืนยัน POD
+          </Button>
+        </div>
+      )}
+
+      {/* Back to Job Detail - Show after POD completed */}
+      {jobApplication?.delivery_sop_completed_at && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+          <Button 
+            className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
+            onClick={() => navigate(`/job/${job.id}`)}
+          >
+            ดูข้อมูล
           </Button>
         </div>
       )}
@@ -303,6 +527,129 @@ export default function DeliveryDetailPage() {
             <Button
               onClick={handleCheckIn}
               className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
+            >
+              ยืนยัน
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Method Drawer */}
+      <Drawer open={showPaymentDrawer} onOpenChange={setShowPaymentDrawer}>
+        <DrawerContent>
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="text-xl">ชำระเงิน</DrawerTitle>
+            <DrawerDescription className="text-base mt-2">ช่องทางชำระเงิน</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
+            <button
+              onClick={() => setSelectedPaymentMethod('cash')}
+              className={`w-full flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
+                selectedPaymentMethod === 'cash'
+                  ? 'border-teal-500 bg-teal-50'
+                  : 'border-gray-200 bg-white hover:bg-gray-50'
+              }`}
+            >
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                selectedPaymentMethod === 'cash' ? 'border-teal-500' : 'border-gray-300'
+              }`}>
+                {selectedPaymentMethod === 'cash' && (
+                  <div className="w-3 h-3 rounded-full bg-teal-500" />
+                )}
+              </div>
+              <span className="text-base font-medium">เงินสด</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedPaymentMethod('mobile_banking')}
+              className={`w-full flex items-center justify-between gap-4 p-4 rounded-lg border-2 transition-all ${
+                selectedPaymentMethod === 'mobile_banking'
+                  ? 'border-teal-500 bg-teal-50'
+                  : 'border-gray-200 bg-white hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  selectedPaymentMethod === 'mobile_banking' ? 'border-teal-500' : 'border-gray-300'
+                }`}>
+                  {selectedPaymentMethod === 'mobile_banking' && (
+                    <div className="w-3 h-3 rounded-full bg-teal-500" />
+                  )}
+                </div>
+                <span className="text-base font-medium">ชำระเงินผ่าน Mobile Banking</span>
+              </div>
+              <Phone className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => setSelectedPaymentMethod('qr_code')}
+              className={`w-full flex items-center justify-between gap-4 p-4 rounded-lg border-2 transition-all ${
+                selectedPaymentMethod === 'qr_code'
+                  ? 'border-teal-500 bg-teal-50'
+                  : 'border-gray-200 bg-white hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  selectedPaymentMethod === 'qr_code' ? 'border-teal-500' : 'border-gray-300'
+                }`}>
+                  {selectedPaymentMethod === 'qr_code' && (
+                    <div className="w-3 h-3 rounded-full bg-teal-500" />
+                  )}
+                </div>
+                <span className="text-base font-medium">ชำระเงินผ่าน QR Code</span>
+              </div>
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            </button>
+          </div>
+          <DrawerFooter>
+            <Button 
+              onClick={handlePaymentConfirm}
+              className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
+            >
+              ยืนยันการชำระเงิน
+            </Button>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full h-12 text-base">
+                ยกเลิก
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* POD Confirmation Dialog */}
+      <Dialog open={showPodConfirmDialog} onOpenChange={setShowPodConfirmDialog}>
+        <DialogContent className="max-w-[340px] rounded-2xl">
+          <DialogHeader className="items-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <DialogTitle className="text-xl text-center">
+              แจ้งเตือนการยืนยันสถานะ
+            </DialogTitle>
+            <DialogDescription className="text-center text-base">
+              คุณต้องการยืนยันการยืนยันอัพโหลดรูปสินค้า POD ใช่หรือไม่?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-3 sm:gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowPodConfirmDialog(false)}
+              className="flex-1 h-11"
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              onClick={handlePodConfirm}
+              className="flex-1 h-11 bg-teal-600 hover:bg-teal-700"
             >
               ยืนยัน
             </Button>
