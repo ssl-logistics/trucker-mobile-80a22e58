@@ -301,7 +301,7 @@ export default function JobDetailPage() {
           className="w-full h-12 text-base"
           onClick={() => navigate('/current-jobs')}
         >
-          เรียบงาม
+          เริ่มงาน
         </Button>
       </div>
     </div>
