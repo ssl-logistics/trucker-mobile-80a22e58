@@ -113,6 +113,13 @@ export default function DeliveryDetailPage() {
     return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  const formatDateTime = (dateTime: string) => {
+    const d = new Date(dateTime);
+    const date = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+    const time = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `${date} | ${time}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -167,7 +174,9 @@ export default function DeliveryDetailPage() {
                 <span className="font-semibold text-lg">เช็คอินสำเร็จ</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
-                {formatDate(job.start_date)} | 12.00
+                {jobApplication?.delivery_checked_in_at 
+                  ? formatDateTime(jobApplication.delivery_checked_in_at)
+                  : `${formatDate(job.start_date)} | 12.00`}
               </span>
             </div>
 
