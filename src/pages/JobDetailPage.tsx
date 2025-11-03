@@ -298,8 +298,13 @@ export default function JobDetailPage() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
           variant="secondary" 
-          className="w-full h-12 text-base"
+          className="w-full h-12 text-base disabled:opacity-100"
+          style={{
+            backgroundColor: !jobApplication?.sop_completed_at ? 'hsla(0, 0%, 66%, 1)' : undefined,
+            color: !jobApplication?.sop_completed_at ? 'white' : undefined
+          }}
           onClick={() => navigate('/current-jobs')}
+          disabled={!jobApplication?.sop_completed_at}
         >
           เริ่มงาน
         </Button>
