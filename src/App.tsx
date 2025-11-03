@@ -14,6 +14,7 @@ import SearchPage from "./pages/SearchPage";
 import CurrentJobsPage from "./pages/CurrentJobsPage";
 import JobDetailPage from "./pages/JobDetailPage";
 import PickupDetailPage from "./pages/PickupDetailPage";
+import SOPCheckInPage from "./pages/SOPCheckInPage";
 import DashboardPage from "./pages/DashboardPage";
 import FinancePage from "./pages/dashboard/FinancePage";
 import ShippingPage from "./pages/dashboard/ShippingPage";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/current-jobs" element={<ProtectedRoute><CurrentJobsPage /></ProtectedRoute>} />
           <Route path="/job/:jobId" element={<ProtectedRoute><JobDetailPage /></ProtectedRoute>} />
           <Route path="/job/:jobId/pickup" element={<ProtectedRoute><PickupDetailPage /></ProtectedRoute>} />
+          <Route path="/job/:jobId/sop" element={<ProtectedRoute><SOPCheckInPage /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/dashboard/finance" element={<ProtectedRoute><FinancePage /></ProtectedRoute>} />
           <Route path="/dashboard/shipping" element={<ProtectedRoute><ShippingPage /></ProtectedRoute>} />

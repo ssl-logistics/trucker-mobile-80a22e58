@@ -22,11 +22,18 @@ interface JobDetail {
   safety_equipment: string | null;
 }
 
+interface JobApplication {
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+  status: string;
+}
+
 export default function JobDetailPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
   const [job, setJob] = useState<JobDetail | null>(null);
+  const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,6 +44,8 @@ export default function JobDetailPage() {
     if (!user || !jobId) return;
 
     setLoading(true);
+    
+    // Load job details
     const { data, error } = await supabase
       .from('jobs')
       .select('*')
@@ -53,6 +62,19 @@ export default function JobDetailPage() {
     } else {
       setJob(data);
     }
+
+    // Load job application status
+    const { data: appData } = await supabase
+      .from('job_applications')
+      .select('checked_in_at, sop_completed_at, status')
+      .eq('job_id', jobId)
+      .eq('driver_id', user.id)
+      .single();
+
+    if (appData) {
+      setJobApplication(appData);
+    }
+
     setLoading(false);
   };
 
@@ -121,7 +143,19 @@ export default function JobDetailPage() {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold">จุดรับสินค้า Factory1</h3>
-                  <span className="text-xs text-orange-600 font-medium">• รอเช็คอิน</span>
+                  <span className={`text-xs font-medium ${
+                    jobApplication?.sop_completed_at 
+                      ? 'text-green-600' 
+                      : jobApplication?.checked_in_at 
+                      ? 'text-blue-600' 
+                      : 'text-orange-600'
+                  }`}>
+                    • {jobApplication?.sop_completed_at 
+                      ? 'รอ SOP' 
+                      : jobApplication?.checked_in_at 
+                      ? 'เช็คอินแล้ว' 
+                      : 'รอเช็คอิน'}
+                  </span>
                 </div>
 
                 <div className="space-y-1 text-sm mb-3">
@@ -159,9 +193,20 @@ export default function JobDetailPage() {
                   <Button 
                     size="sm" 
                     className="h-10 bg-blue-600 hover:bg-blue-700"
-                    onClick={() => navigate(`/job/${job.id}/pickup`)}
+                    onClick={() => {
+                      if (jobApplication?.checked_in_at && !jobApplication?.sop_completed_at) {
+                        navigate(`/job/${job.id}/sop`);
+                      } else {
+                        navigate(`/job/${job.id}/pickup`);
+                      }
+                    }}
+                    disabled={!!jobApplication?.sop_completed_at}
                   >
-                    อัปเดตสถานะ
+                    {jobApplication?.sop_completed_at 
+                      ? 'เสร็จสมบูรณ์' 
+                      : jobApplication?.checked_in_at 
+                      ? 'อัปโหลด SOP' 
+                      : 'อัปเดตสถานะ'}
                   </Button>
                 </div>
               </div>

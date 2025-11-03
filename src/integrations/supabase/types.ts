@@ -77,23 +77,29 @@ export type Database = {
       job_applications: {
         Row: {
           applied_at: string
+          checked_in_at: string | null
           driver_id: string
           id: string
           job_id: string
+          sop_completed_at: string | null
           status: string
         }
         Insert: {
           applied_at?: string
+          checked_in_at?: string | null
           driver_id: string
           id?: string
           job_id: string
+          sop_completed_at?: string | null
           status?: string
         }
         Update: {
           applied_at?: string
+          checked_in_at?: string | null
           driver_id?: string
           id?: string
           job_id?: string
+          sop_completed_at?: string | null
           status?: string
         }
         Relationships: [
@@ -170,6 +176,30 @@ export type Database = {
           status?: string
           transport_type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      pickup_sop_photos: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          job_id: string
+          photo_url: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          job_id: string
+          photo_url: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          job_id?: string
+          photo_url?: string
         }
         Relationships: []
       }

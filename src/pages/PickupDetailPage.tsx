@@ -61,13 +61,31 @@ export default function PickupDetailPage() {
   const handleCheckIn = async () => {
     if (!job || !user) return;
 
-    // TODO: Update job application status to 'checked_in' or similar
+    // Update job application with check-in timestamp
+    const { error } = await supabase
+      .from('job_applications')
+      .update({ 
+        checked_in_at: new Date().toISOString(),
+        status: 'checked_in'
+      })
+      .eq('job_id', job.id)
+      .eq('driver_id', user.id);
+
+    if (error) {
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถบันทึกการเช็คอินได้',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     toast({
       title: 'เช็คอินสำเร็จ',
       description: 'คุณได้เช็คอินที่จุดรับสินค้าเรียบร้อยแล้ว',
     });
     setShowConfirmDialog(false);
-    navigate(`/job/${job.id}`);
+    navigate(`/job/${job.id}/sop`);
   };
 
   const formatDate = (date: string) => {
