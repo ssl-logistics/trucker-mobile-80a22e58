@@ -196,7 +196,11 @@ export default function CurrentJobsPage() {
                     </div>
                   </div>
 
-                  <Button variant="outline" className="w-full h-11 text-base font-medium">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-11 text-base font-medium"
+                    onClick={() => navigate(`/job/${job.id}`)}
+                  >
                     ดูรายละเอียด
                   </Button>
                 </Card>
