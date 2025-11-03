@@ -11,6 +11,7 @@ import VerifyOTPReset from "./pages/VerifyOTPReset";
 import CreateNewPassword from "./pages/CreateNewPassword";
 import Home from "./pages/Home";
 import SearchPage from "./pages/SearchPage";
+import CurrentJobsPage from "./pages/CurrentJobsPage";
 import DashboardPage from "./pages/DashboardPage";
 import FinancePage from "./pages/dashboard/FinancePage";
 import ShippingPage from "./pages/dashboard/ShippingPage";
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/create-new-password" element={<CreateNewPassword />} />
           <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+          <Route path="/current-jobs" element={<ProtectedRoute><CurrentJobsPage /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/dashboard/finance" element={<ProtectedRoute><FinancePage /></ProtectedRoute>} />
           <Route path="/dashboard/shipping" element={<ProtectedRoute><ShippingPage /></ProtectedRoute>} />

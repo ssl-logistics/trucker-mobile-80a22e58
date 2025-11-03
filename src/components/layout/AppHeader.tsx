@@ -1,4 +1,5 @@
 import { Bell, Power } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface AppHeaderProps {
   userName?: string;
@@ -7,6 +8,8 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ userName, onSignOut, showQuickMenu = false }: AppHeaderProps) {
+  const navigate = useNavigate();
+  
   const getDayName = () => {
     const days = ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'];
     return days[new Date().getDay()];
@@ -43,13 +46,14 @@ export function AppHeader({ userName, onSignOut, showQuickMenu = false }: AppHea
       {showQuickMenu && (
         <div className="grid grid-cols-4 gap-3 mt-6">
           {[
-            { icon: '🚛', label: 'งานปัจจุบัน', color: 'bg-blue-400' },
-            { icon: '💰', label: 'เสนอราคา', color: 'bg-teal-400' },
-            { icon: '💼', label: 'รายได้', color: 'bg-yellow-400' },
-            { icon: '📋', label: 'ประวัติงาน', color: 'bg-purple-400' },
+            { icon: '🚛', label: 'งานปัจจุบัน', color: 'bg-blue-400', path: '/current-jobs' },
+            { icon: '💰', label: 'เสนอราคา', color: 'bg-teal-400', path: null },
+            { icon: '💼', label: 'รายได้', color: 'bg-yellow-400', path: null },
+            { icon: '📋', label: 'ประวัติงาน', color: 'bg-purple-400', path: null },
           ].map((item) => (
             <button
               key={item.label}
+              onClick={() => item.path && navigate(item.path)}
               className="flex flex-col items-center gap-2 text-white"
             >
               <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-md text-2xl`}>
