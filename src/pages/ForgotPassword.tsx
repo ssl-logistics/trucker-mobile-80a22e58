@@ -81,7 +81,7 @@ const ForgotPassword = () => {
       <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
         <div className="max-w-md mx-auto mt-6">
           {/* Back Button */}
-          <button onClick={() => navigate(-1)} className="mb-6 flex items-center text-foreground/60 hover:text-foreground">
+          <button onClick={() => navigate("/register")} className="mb-6 flex items-center text-foreground/60 hover:text-foreground">
             <ArrowLeft className="w-5 h-5 mr-2" />
             <span>ย้อนกลับ</span>
           </button>
