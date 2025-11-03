@@ -63,17 +63,25 @@ export default function Home() {
         variant: 'destructive'
       });
     } else {
-      // Filter out jobs the user has already accepted
+      // Check which jobs the user has accepted and completed
       if (user) {
         const { data: applications } = await supabase
           .from('job_applications')
-          .select('job_id')
+          .select('job_id, payment_completed_at')
           .eq('driver_id', user.id);
         
+        const completedJobIds = new Set(
+          applications?.filter(app => app.payment_completed_at).map(app => app.job_id) || []
+        );
         const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
         
-        // Only show jobs that haven't been accepted by this user
-        const availableJobs = (data || []).filter(job => !acceptedJobIds.has(job.id));
+        // Filter out only completed jobs, keep jobs that are accepted but not completed
+        const availableJobs = (data || [])
+          .filter(job => !completedJobIds.has(job.id))
+          .map(job => ({
+            ...job,
+            isAccepted: acceptedJobIds.has(job.id)
+          }));
         
         setJobs(availableJobs);
       } else {
