@@ -490,18 +490,6 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* Back to Job Detail - Show after POD completed */}
-      {jobApplication?.delivery_sop_completed_at && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-          <Button 
-            className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
-            onClick={() => navigate(`/job/${job.id}`)}
-          >
-            ดูข้อมูล
-          </Button>
-        </div>
-      )}
-
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
