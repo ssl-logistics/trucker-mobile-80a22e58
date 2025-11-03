@@ -111,26 +111,42 @@ const ReviewStep = ({ data, onBack, onSubmit }: ReviewStepProps) => {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">รูปหน้ารถ</p>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <span className="text-muted-foreground">📷</span>
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.frontPhoto ? (
+                  <img src={URL.createObjectURL(data.frontPhoto)} alt="รูปหน้ารถ" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">📷</span>
+                )}
               </div>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">รูปข้างรถ</p>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <span className="text-muted-foreground">📷</span>
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.sidePhoto ? (
+                  <img src={URL.createObjectURL(data.sidePhoto)} alt="รูปข้างรถ" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">📷</span>
+                )}
               </div>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">รูปหลังรถ</p>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <span className="text-muted-foreground">📷</span>
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.backPhoto ? (
+                  <img src={URL.createObjectURL(data.backPhoto)} alt="รูปหลังรถ" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">📷</span>
+                )}
               </div>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">รูปป้ายทะเบียน</p>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <span className="text-muted-foreground">📷</span>
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.platePhoto ? (
+                  <img src={URL.createObjectURL(data.platePhoto)} alt="รูปป้ายทะเบียน" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">📷</span>
+                )}
               </div>
             </div>
           </div>
@@ -138,8 +154,12 @@ const ReviewStep = ({ data, onBack, onSubmit }: ReviewStepProps) => {
           {data.hasTrailer && (
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">รูปภาพป้ายทะเบียนหางลาก</p>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <span className="text-muted-foreground">📷</span>
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.trailerPlatePhoto ? (
+                  <img src={URL.createObjectURL(data.trailerPlatePhoto)} alt="รูปป้ายทะเบียนหางลาก" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">📷</span>
+                )}
               </div>
             </div>
           )}
