@@ -9,58 +9,61 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import loginBackground from "@/assets/login-background.png";
-
 const phoneSchema = z.object({
   phone: z.string().regex(/^[0-9]{10}$/, {
     message: "กรุณากรอกเบอร์โทรศัพท์ 10 หลัก"
   })
 });
-
 type PhoneFormData = z.infer<typeof phoneSchema>;
-
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [serverError, setServerError] = useState<string>("");
-
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: {
+      errors
+    },
     getValues
   } = useForm<PhoneFormData>({
     resolver: zodResolver(phoneSchema)
   });
-
   const onSubmit = async (data: PhoneFormData) => {
     try {
       setServerError("");
-      
+
       // TODO: Check phone number in database first
       // For now, assume phone exists and send OTP
-      
-      // Send OTP via ThailBulkSMS
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data: otpData, error: otpError } = await supabase.functions.invoke("send-otp", {
-        body: { phone: data.phone }
-      });
 
+      // Send OTP via ThailBulkSMS
+      const {
+        supabase
+      } = await import("@/integrations/supabase/client");
+      const {
+        data: otpData,
+        error: otpError
+      } = await supabase.functions.invoke("send-otp", {
+        body: {
+          phone: data.phone
+        }
+      });
       if (otpError || !otpData?.success) {
         console.error("Error sending OTP:", otpError);
         setServerError("ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่อีกครั้ง");
         return;
       }
-
       toast({
         title: "ส่งรหัสยืนยันแล้ว",
         description: "กรุณาตรวจสอบ SMS"
       });
-      
-      navigate("/verify-otp-reset", { 
-        state: { 
-          phone: data.phone, 
+      navigate("/verify-otp-reset", {
+        state: {
+          phone: data.phone,
           token: otpData.token,
-          from: "forgot-password" 
+          from: "forgot-password"
         }
       });
     } catch (error) {
@@ -68,26 +71,17 @@ const ForgotPassword = () => {
       setServerError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section */}
       <div className="relative h-[40vh]">
-        <img 
-          src={loginBackground} 
-          alt="The Truckers" 
-          className="absolute inset-0 w-full h-full object-fill"
-        />
+        <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill" />
       </div>
 
       {/* Form Section */}
       <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto mt-6">
           {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="mb-6 flex items-center text-foreground/60 hover:text-foreground"
-          >
+          <button onClick={() => navigate(-1)} className="mb-6 flex items-center text-foreground/60 hover:text-foreground">
             <ArrowLeft className="w-5 h-5 mr-2" />
             <span>ย้อนกลับ</span>
           </button>
@@ -105,43 +99,23 @@ const ForgotPassword = () => {
               <Label htmlFor="phone" className="text-foreground">
                 เบอร์โทรศัพท์ <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="081 234 5679"
-                {...register("phone")}
-                className={errors.phone || serverError ? "border-destructive" : ""}
-              />
-              {errors.phone && (
-                <p className="text-sm text-destructive">{errors.phone.message}</p>
-              )}
-              {serverError && (
-                <p className="text-sm text-destructive">{serverError}</p>
-              )}
+              <Input id="phone" type="tel" placeholder="081 234 5679" {...register("phone")} className={errors.phone || serverError ? "border-destructive" : ""} />
+              {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
+              {serverError && <p className="text-sm text-destructive">{serverError}</p>}
             </div>
 
             {/* Submit Button */}
             <div className="space-y-3 pt-4">
-              <Button
-                type="submit"
-                className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium"
-              >
+              <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium">
                 ยืนยัน
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/")}
-                className="w-full h-12 rounded-xl text-base font-medium border-2"
-              >
+              <Button type="button" variant="outline" onClick={() => navigate("/")} className="w-full h-12 rounded-xl text-base font-medium border-2">
                 เข้าสู่ระบบ
               </Button>
             </div>
           </form>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ForgotPassword;
