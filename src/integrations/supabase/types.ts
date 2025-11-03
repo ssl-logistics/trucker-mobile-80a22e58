@@ -83,6 +83,7 @@ export type Database = {
           driver_id: string
           id: string
           job_id: string
+          job_started_at: string | null
           payment_completed_at: string | null
           payment_method: string | null
           pod_photo_url: string | null
@@ -97,6 +98,7 @@ export type Database = {
           driver_id: string
           id?: string
           job_id: string
+          job_started_at?: string | null
           payment_completed_at?: string | null
           payment_method?: string | null
           pod_photo_url?: string | null
@@ -111,6 +113,7 @@ export type Database = {
           driver_id?: string
           id?: string
           job_id?: string
+          job_started_at?: string | null
           payment_completed_at?: string | null
           payment_method?: string | null
           pod_photo_url?: string | null

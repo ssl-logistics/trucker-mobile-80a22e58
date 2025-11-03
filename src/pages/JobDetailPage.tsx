@@ -25,6 +25,7 @@ interface JobDetail {
 interface JobApplication {
   checked_in_at: string | null;
   sop_completed_at: string | null;
+  job_started_at: string | null;
   delivery_checked_in_at: string | null;
   delivery_sop_completed_at: string | null;
   status: string;
@@ -68,7 +69,7 @@ export default function JobDetailPage() {
     // Load job application status
     const { data: appData } = await supabase
       .from('job_applications')
-      .select('checked_in_at, sop_completed_at, delivery_checked_in_at, delivery_sop_completed_at, status')
+      .select('checked_in_at, sop_completed_at, job_started_at, delivery_checked_in_at, delivery_sop_completed_at, status')
       .eq('job_id', jobId)
       .eq('driver_id', user.id)
       .single();
@@ -215,17 +216,17 @@ export default function JobDetailPage() {
           </Card>
 
           {/* Delivery Point */}
-          <Card className={`p-4 border-2 ${!jobApplication?.sop_completed_at ? 'border-gray-200 opacity-50' : 'border-teal-200'}`}>
+          <Card className={`p-4 border-2 ${!jobApplication?.job_started_at ? 'border-gray-200 opacity-50' : 'border-teal-200'}`}>
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center">
-                <Circle className={`w-6 h-6 ${!jobApplication?.sop_completed_at ? 'text-gray-400' : jobApplication?.delivery_sop_completed_at ? 'text-teal-600 fill-teal-600' : 'text-teal-600'}`} />
+                <Circle className={`w-6 h-6 ${!jobApplication?.job_started_at ? 'text-gray-400' : jobApplication?.delivery_sop_completed_at ? 'text-teal-600 fill-teal-600' : 'text-teal-600'}`} />
               </div>
               
-              <div className={`flex-1 ${!jobApplication?.sop_completed_at ? 'text-gray-400' : ''}`}>
+              <div className={`flex-1 ${!jobApplication?.job_started_at ? 'text-gray-400' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className={`font-semibold ${!jobApplication?.sop_completed_at ? 'text-gray-400' : ''}`}>จุดส่ง คศน.ชัยนาต</h3>
+                  <h3 className={`font-semibold ${!jobApplication?.job_started_at ? 'text-gray-400' : ''}`}>จุดส่ง คศน.ชัยนาต</h3>
                   <span className={`text-xs font-medium ${
-                    !jobApplication?.sop_completed_at
+                    !jobApplication?.job_started_at
                       ? 'text-gray-400'
                       : jobApplication?.delivery_sop_completed_at 
                       ? 'text-green-600' 
@@ -233,8 +234,8 @@ export default function JobDetailPage() {
                       ? 'text-blue-600' 
                       : 'text-orange-600'
                   }`}>
-                    • {!jobApplication?.sop_completed_at
-                      ? 'รอ SOP รับสินค้า'
+                    • {!jobApplication?.job_started_at
+                      ? 'รอเริ่มงาน'
                       : jobApplication?.delivery_sop_completed_at 
                       ? 'POD สำเร็จ' 
                       : jobApplication?.delivery_checked_in_at 
@@ -281,7 +282,7 @@ export default function JobDetailPage() {
                     onClick={() => {
                       navigate(`/job/${job.id}/delivery`);
                     }}
-                    disabled={!jobApplication?.sop_completed_at}
+                    disabled={!jobApplication?.job_started_at}
                   >
                     {jobApplication?.delivery_sop_completed_at 
                       ? 'ดูข้อมูล' 
@@ -303,7 +304,32 @@ export default function JobDetailPage() {
             backgroundColor: !jobApplication?.sop_completed_at ? 'hsla(0, 0%, 66%, 1)' : undefined,
             color: !jobApplication?.sop_completed_at ? 'white' : undefined
           }}
-          onClick={() => navigate('/current-jobs')}
+          onClick={async () => {
+            if (!user || !jobId) return;
+            
+            const { error } = await supabase
+              .from('job_applications')
+              .update({ 
+                job_started_at: new Date().toISOString(),
+                status: 'job_started'
+              })
+              .eq('job_id', jobId)
+              .eq('driver_id', user.id);
+
+            if (error) {
+              toast({
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถเริ่มงานได้',
+                variant: 'destructive'
+              });
+            } else {
+              toast({
+                title: 'เริ่มงานสำเร็จ',
+                description: 'คุณสามารถทำงานส่งของได้แล้ว'
+              });
+              loadJobDetail();
+            }
+          }}
           disabled={!jobApplication?.sop_completed_at}
         >
           เริ่มงาน
