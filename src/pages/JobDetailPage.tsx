@@ -225,13 +225,17 @@ export default function JobDetailPage() {
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold">จุดส่ง คศน.ชัยนาต</h3>
                   <span className={`text-xs font-medium ${
-                    jobApplication?.delivery_sop_completed_at 
+                    !jobApplication?.sop_completed_at
+                      ? 'text-gray-400'
+                      : jobApplication?.delivery_sop_completed_at 
                       ? 'text-green-600' 
                       : jobApplication?.delivery_checked_in_at 
                       ? 'text-blue-600' 
                       : 'text-orange-600'
                   }`}>
-                    • {jobApplication?.delivery_sop_completed_at 
+                    • {!jobApplication?.sop_completed_at
+                      ? 'รอ SOP รับสินค้า'
+                      : jobApplication?.delivery_sop_completed_at 
                       ? 'SOP สำเร็จ' 
                       : jobApplication?.delivery_checked_in_at 
                       ? 'เช็คอินแล้ว' 
