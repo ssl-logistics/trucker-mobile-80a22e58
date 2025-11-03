@@ -114,7 +114,6 @@ const Register = () => {
 
   const handleSubmit = async () => {
     try {
-      // Create user account directly (OTP temporarily disabled)
       console.log("Registration data:", registrationData);
       
       const { supabase } = await import("@/integrations/supabase/client");
@@ -137,6 +136,46 @@ const Register = () => {
         console.error("Error creating user:", authError);
         alert("ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่อีกครั้ง");
         return;
+      }
+
+      if (!authData.user) {
+        alert("ไม่สามารถสร้างบัญชีได้");
+        return;
+      }
+
+      let avatarUrl = null;
+
+      // Upload profile photo if provided
+      if (registrationData.profilePhoto) {
+        const fileExt = registrationData.profilePhoto.name.split('.').pop();
+        const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError, data: uploadData } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, registrationData.profilePhoto);
+
+        if (uploadError) {
+          console.error("Error uploading profile photo:", uploadError);
+        } else {
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+          avatarUrl = publicUrl;
+        }
+      }
+
+      // Update profile with avatar URL
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          avatar_url: avatarUrl,
+          full_name: `${registrationData.firstName} ${registrationData.lastName}`
+        })
+        .eq('id', authData.user.id);
+
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
       }
 
       alert("สมัครสมาชิกสำเร็จ!");
