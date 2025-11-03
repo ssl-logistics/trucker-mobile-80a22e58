@@ -23,7 +23,24 @@ interface VehiclePhotosStepProps {
 const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => {
   const [hasTrailer, setHasTrailer] = useState(data.hasTrailer || false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [currentPhotoType, setCurrentPhotoType] = useState<keyof typeof photos | null>(null);
+  const [currentPhotoType, setCurrentPhotoType] = useState<keyof typeof photoFiles | null>(null);
+  
+  // Store actual File objects
+  const [photoFiles, setPhotoFiles] = useState<{
+    front: File | null;
+    side: File | null;
+    back: File | null;
+    plate: File | null;
+    trailerPlate: File | null;
+  }>({
+    front: data.frontPhoto || null,
+    side: data.sidePhoto || null,
+    back: data.backPhoto || null,
+    plate: data.platePhoto || null,
+    trailerPlate: data.trailerPlatePhoto || null,
+  });
+  
+  // Store preview URLs for display
   const [photos, setPhotos] = useState({
     front: data.frontPhoto ? URL.createObjectURL(data.frontPhoto) : "",
     side: data.sidePhoto ? URL.createObjectURL(data.sidePhoto) : "",
@@ -32,21 +49,29 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
     trailerPlate: data.trailerPlatePhoto ? URL.createObjectURL(data.trailerPlatePhoto) : "",
   });
 
-  const handlePhotoChange = (type: keyof typeof photos, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = (type: keyof typeof photoFiles, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setPhotoFiles(prev => ({ ...prev, [type]: file }));
       setPhotos(prev => ({ ...prev, [type]: URL.createObjectURL(file) }));
       setDrawerOpen(false);
     }
   };
 
-  const openPhotoDrawer = (type: keyof typeof photos) => {
+  const openPhotoDrawer = (type: keyof typeof photoFiles) => {
     setCurrentPhotoType(type);
     setDrawerOpen(true);
   };
 
   const handleSubmit = () => {
-    onNext({ hasTrailer });
+    onNext({ 
+      hasTrailer,
+      frontPhoto: photoFiles.front || undefined,
+      sidePhoto: photoFiles.side || undefined,
+      backPhoto: photoFiles.back || undefined,
+      platePhoto: photoFiles.plate || undefined,
+      trailerPlatePhoto: photoFiles.trailerPlate || undefined,
+    });
   };
 
   const PhotoUploadBox = ({ 
@@ -54,7 +79,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
     label, 
     required = true 
   }: { 
-    type: keyof typeof photos; 
+    type: keyof typeof photoFiles; 
     label: string; 
     required?: boolean;
   }) => (
