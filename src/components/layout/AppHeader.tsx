@@ -1,13 +1,15 @@
 import { Bell, Power } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface AppHeaderProps {
   userName?: string;
+  profilePhoto?: string;
   onSignOut?: () => void;
   showQuickMenu?: boolean;
 }
 
-export function AppHeader({ userName, onSignOut, showQuickMenu = false }: AppHeaderProps) {
+export function AppHeader({ userName, profilePhoto, onSignOut, showQuickMenu = false }: AppHeaderProps) {
   const navigate = useNavigate();
   
   const getDayName = () => {
@@ -19,9 +21,12 @@ export function AppHeader({ userName, onSignOut, showQuickMenu = false }: AppHea
     <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl">
-            👤
-          </div>
+          <Avatar className="w-12 h-12 border-2 border-white/20">
+            <AvatarImage src={profilePhoto} alt={userName} />
+            <AvatarFallback className="bg-white/20 text-white text-lg">
+              {userName?.charAt(0) || '👤'}
+            </AvatarFallback>
+          </Avatar>
           <div>
             <div className="text-sm opacity-90">👋 {getDayName()}</div>
             <div className="font-semibold">

@@ -25,6 +25,7 @@ interface Job {
 }
 interface Profile {
   full_name: string;
+  avatar_url?: string;
 }
 export default function Home() {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ export default function Home() {
     if (!user) return;
     const {
       data
-    } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+    } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single();
     setProfile(data);
   };
   const handleAcceptJob = (job: Job) => {
@@ -98,7 +99,7 @@ export default function Home() {
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header and Search Bar - Sticky Together */}
       <div className="sticky top-0 z-50">
-        <AppHeader userName={profile?.full_name} onSignOut={handleSignOut} showQuickMenu={true} />
+        <AppHeader userName={profile?.full_name} profilePhoto={profile?.avatar_url} onSignOut={handleSignOut} showQuickMenu={true} />
 
         {/* Search Bar */}
         <div className="px-4 -mt-4 pb-4 ">
