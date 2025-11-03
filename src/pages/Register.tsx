@@ -143,21 +143,19 @@ const Register = () => {
         return;
       }
 
-      let avatarUrl = null;
+      const userId = authData.user.id;
 
-      // Upload profile photo if provided
+      // Upload profile photo
+      let avatarUrl = null;
       if (registrationData.profilePhoto) {
         const fileExt = registrationData.profilePhoto.name.split('.').pop();
-        const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
+        const fileName = `${userId}-${Date.now()}.${fileExt}`;
         
-        const { error: uploadError, data: uploadData } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(fileName, registrationData.profilePhoto);
 
-        if (uploadError) {
-          console.error("Error uploading profile photo:", uploadError);
-        } else {
-          // Get public URL
+        if (!uploadError) {
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
             .getPublicUrl(fileName);
@@ -166,16 +164,113 @@ const Register = () => {
       }
 
       // Update profile with avatar URL
-      const { error: profileError } = await supabase
+      await supabase
         .from('profiles')
         .update({
           avatar_url: avatarUrl,
           full_name: `${registrationData.firstName} ${registrationData.lastName}`
         })
-        .eq('id', authData.user.id);
+        .eq('id', userId);
 
-      if (profileError) {
-        console.error("Error updating profile:", profileError);
+      // Save work preferences
+      await supabase.from('driver_work_preferences').insert({
+        driver_id: userId,
+        work_areas: registrationData.workAreas,
+        price_range_min: registrationData.priceRangeMin ? parseFloat(registrationData.priceRangeMin) : null,
+        price_range_max: registrationData.priceRangeMax ? parseFloat(registrationData.priceRangeMax) : null
+      });
+
+      // Save vehicle information
+      const { data: vehicleData, error: vehicleError } = await supabase.from('vehicles').insert({
+        driver_id: userId,
+        plate_number: registrationData.plateNumber,
+        plate_province: registrationData.plateProvince,
+        vehicle_brand: registrationData.vehicleBrand,
+        vehicle_color: registrationData.vehicleColor,
+        vin: registrationData.vin,
+        vehicle_type: registrationData.vehicleType,
+        fuel_type: registrationData.fuelType,
+        load_capacity: parseFloat(registrationData.loadCapacity),
+        width: registrationData.dimensions.width ? parseFloat(registrationData.dimensions.width) : null,
+        length: registrationData.dimensions.length ? parseFloat(registrationData.dimensions.length) : null,
+        height: registrationData.dimensions.height ? parseFloat(registrationData.dimensions.height) : null,
+        container_types: registrationData.containerTypes,
+        has_trailer: registrationData.hasTrailer,
+        trailer_plate_number: registrationData.trailerPlateNumber || null,
+        trailer_plate_province: registrationData.trailerPlateProvince || null
+      }).select().single();
+
+      if (vehicleError) {
+        console.error("Error saving vehicle:", vehicleError);
+        alert("บันทึกข้อมูลรถไม่สำเร็จ");
+        return;
+      }
+
+      // Upload vehicle photos
+      const vehiclePhotos = [
+        { type: 'front', file: registrationData.frontPhoto },
+        { type: 'side', file: registrationData.sidePhoto },
+        { type: 'back', file: registrationData.backPhoto },
+        { type: 'plate', file: registrationData.platePhoto },
+        { type: 'trailer_plate', file: registrationData.trailerPlatePhoto }
+      ];
+
+      for (const photo of vehiclePhotos) {
+        if (photo.file) {
+          const fileExt = photo.file.name.split('.').pop();
+          const fileName = `${userId}/${vehicleData.id}-${photo.type}-${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('vehicle-photos')
+            .upload(fileName, photo.file);
+
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('vehicle-photos')
+              .getPublicUrl(fileName);
+
+            await supabase.from('vehicle_photos').insert({
+              vehicle_id: vehicleData.id,
+              photo_type: photo.type,
+              photo_url: publicUrl
+            });
+          }
+        }
+      }
+
+      // Upload driver documents
+      const documents = [
+        { type: 'registration', file: registrationData.registrationPhoto },
+        { type: 'insurance', file: registrationData.insurancePhoto },
+        { type: 'license', file: registrationData.licensePhoto },
+        { type: 'id_card', file: registrationData.idCardPhoto },
+        { type: 'compulsory_insurance', file: registrationData.compulsoryInsurancePhoto }
+      ];
+
+      for (const doc of documents) {
+        if (doc.file) {
+          const fileExt = doc.file.name.split('.').pop();
+          const fileName = `${userId}/${doc.type}-${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('driver-documents')
+            .upload(fileName, doc.file);
+
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('driver-documents')
+              .getPublicUrl(fileName);
+
+            await supabase.from('driver_documents').insert({
+              driver_id: userId,
+              document_type: doc.type,
+              document_url: publicUrl,
+              insurance_value: doc.type === 'insurance' && registrationData.insuranceValue 
+                ? parseFloat(registrationData.insuranceValue) 
+                : null
+            });
+          }
+        }
       }
 
       alert("สมัครสมาชิกสำเร็จ!");

@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      driver_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          document_url: string
+          driver_id: string
+          id: string
+          insurance_value: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          document_url: string
+          driver_id: string
+          id?: string
+          insurance_value?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          document_url?: string
+          driver_id?: string
+          id?: string
+          insurance_value?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      driver_work_preferences: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          price_range_max: number | null
+          price_range_min: number | null
+          updated_at: string
+          work_areas: string[]
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          price_range_max?: number | null
+          price_range_min?: number | null
+          updated_at?: string
+          work_areas?: string[]
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          price_range_max?: number | null
+          price_range_min?: number | null
+          updated_at?: string
+          work_areas?: string[]
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           applied_at: string
@@ -137,6 +197,104 @@ export type Database = {
           id?: string
           phone_number?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      vehicle_photos: {
+        Row: {
+          created_at: string
+          id: string
+          photo_type: string
+          photo_url: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_type: string
+          photo_url: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_type?: string
+          photo_url?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_photos_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          container_types: string[] | null
+          created_at: string
+          driver_id: string
+          fuel_type: string
+          has_trailer: boolean | null
+          height: number | null
+          id: string
+          length: number | null
+          load_capacity: number
+          plate_number: string
+          plate_province: string
+          trailer_plate_number: string | null
+          trailer_plate_province: string | null
+          updated_at: string
+          vehicle_brand: string
+          vehicle_color: string
+          vehicle_type: string
+          vin: string
+          width: number | null
+        }
+        Insert: {
+          container_types?: string[] | null
+          created_at?: string
+          driver_id: string
+          fuel_type: string
+          has_trailer?: boolean | null
+          height?: number | null
+          id?: string
+          length?: number | null
+          load_capacity: number
+          plate_number: string
+          plate_province: string
+          trailer_plate_number?: string | null
+          trailer_plate_province?: string | null
+          updated_at?: string
+          vehicle_brand: string
+          vehicle_color: string
+          vehicle_type: string
+          vin: string
+          width?: number | null
+        }
+        Update: {
+          container_types?: string[] | null
+          created_at?: string
+          driver_id?: string
+          fuel_type?: string
+          has_trailer?: boolean | null
+          height?: number | null
+          id?: string
+          length?: number | null
+          load_capacity?: number
+          plate_number?: string
+          plate_province?: string
+          trailer_plate_number?: string | null
+          trailer_plate_province?: string | null
+          updated_at?: string
+          vehicle_brand?: string
+          vehicle_color?: string
+          vehicle_type?: string
+          vin?: string
+          width?: number | null
         }
         Relationships: []
       }
