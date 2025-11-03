@@ -46,7 +46,7 @@ export default function SearchPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery.trim() || domesticType || internationalType || province || district || minPrice || maxPrice) {
-        handleSearch();
+        performSearch();
       } else {
         setShowResults(false);
       }
@@ -110,7 +110,7 @@ export default function SearchPage() {
     setDistrict(''); // Reset district when province changes
   };
 
-  const handleSearch = (query?: string) => {
+  const performSearch = (query?: string) => {
     const searchTerm = query || searchQuery;
     
     let filtered = [...allJobs];
@@ -172,12 +172,16 @@ export default function SearchPage() {
 
     setSearchResults(filtered);
     setShowResults(true);
+  };
+
+  const handleSearch = () => {
+    performSearch();
     setFilterOpen(false);
   };
 
   const handleSearchTermClick = (term: string) => {
     setSearchQuery(term);
-    handleSearch(term);
+    performSearch(term);
   };
 
   const handleAcceptJob = (job: any) => {
@@ -203,7 +207,11 @@ export default function SearchPage() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                performSearch();
+              }
+            }}
             placeholder="ค้นหา"
             className="flex-1 border-primary"
           />
@@ -400,7 +408,7 @@ export default function SearchPage() {
             >
               ล้างค่า
             </Button>
-            <Button onClick={() => handleSearch()} className="flex-1">
+            <Button onClick={handleSearch} className="flex-1">
               ค้นหา
             </Button>
           </div>
