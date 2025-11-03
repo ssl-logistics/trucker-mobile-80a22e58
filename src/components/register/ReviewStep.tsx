@@ -33,8 +33,12 @@ const ReviewStep = ({ data, onBack, onSubmit }: ReviewStepProps) => {
           </div>
 
           <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-2xl">👤</span>
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+              {data.profilePhoto ? (
+                <img src={URL.createObjectURL(data.profilePhoto)} alt="รูปโปรไฟล์" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-2xl">👤</span>
+              )}
             </div>
           </div>
 
@@ -215,9 +219,65 @@ const ReviewStep = ({ data, onBack, onSubmit }: ReviewStepProps) => {
               <span className="text-muted-foreground">ตู้คอนเทนเนอร์</span>
               <span>{data.containerTypes.join(", ")}</span>
             </div>
+
+            <div className="space-y-2">
+              <p className="text-muted-foreground">รูปรายการจดทะเบียนรถ</p>
+              <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.registrationPhoto ? (
+                  <img src={URL.createObjectURL(data.registrationPhoto)} alt="รูปรายการจดทะเบียนรถ" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">ไม่พบรูปภาพ</span>
+                )}
+              </div>
+            </div>
+
             <div className="flex justify-between">
               <span className="text-muted-foreground">มูลค่าประกันสินค้า</span>
               <span>{data.insuranceValue} บาท</span>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-muted-foreground">แนบเอกสารประกัน</p>
+              <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.insurancePhoto ? (
+                  <img src={URL.createObjectURL(data.insurancePhoto)} alt="เอกสารประกัน" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">ไม่พบรูปภาพ</span>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-muted-foreground">ใบอนุญาติขับขี่</p>
+              <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.licensePhoto ? (
+                  <img src={URL.createObjectURL(data.licensePhoto)} alt="ใบอนุญาติขับขี่" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">ไม่พบรูปภาพ</span>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-muted-foreground">บัตรประชาชนผู้ขับ</p>
+              <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.idCardPhoto ? (
+                  <img src={URL.createObjectURL(data.idCardPhoto)} alt="บัตรประชาชนผู้ขับ" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">ไม่พบรูปภาพ</span>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-muted-foreground">สำเนา พรบ.</p>
+              <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                {data.compulsoryInsurancePhoto ? (
+                  <img src={URL.createObjectURL(data.compulsoryInsurancePhoto)} alt="สำเนา พรบ." className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-muted-foreground">ไม่พบรูปภาพ</span>
+                )}
+              </div>
             </div>
           </div>
         </TabsContent>
