@@ -196,16 +196,17 @@ export default function JobDetailPage() {
                     size="sm" 
                     className="h-10 bg-blue-600 hover:bg-blue-700"
                     onClick={() => {
-                      if (jobApplication?.checked_in_at && !jobApplication?.sop_completed_at) {
+                      if (jobApplication?.sop_completed_at) {
+                        navigate(`/job/${job.id}/pickup-summary`);
+                      } else if (jobApplication?.checked_in_at) {
                         navigate(`/job/${job.id}/sop`);
                       } else {
                         navigate(`/job/${job.id}/pickup`);
                       }
                     }}
-                    disabled={!!jobApplication?.sop_completed_at}
                   >
                     {jobApplication?.sop_completed_at 
-                      ? 'เสร็จสมบูรณ์' 
+                      ? 'ดูข้อมูล' 
                       : 'อัปเดตสถานะ'}
                   </Button>
                 </div>
