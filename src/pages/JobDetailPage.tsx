@@ -215,7 +215,7 @@ export default function JobDetailPage() {
           </Card>
 
           {/* Delivery Point */}
-          <Card className={`p-4 border-2 ${!jobApplication?.sop_completed_at ? 'border-gray-200 opacity-50' : 'border-teal-200'}`}>
+          <Card className={`p-4 border-2 ${!jobApplication?.sop_completed_at ? 'border-gray-200' : 'border-teal-200'}`}>
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center">
                 <Circle className={`w-6 h-6 ${!jobApplication?.sop_completed_at ? 'text-gray-400' : jobApplication?.delivery_sop_completed_at ? 'text-teal-600 fill-teal-600' : 'text-teal-600'}`} />
@@ -223,7 +223,7 @@ export default function JobDetailPage() {
               
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">จุดส่ง คศน.ชัยนาต</h3>
+                  <h3 className={`font-semibold ${!jobApplication?.sop_completed_at ? 'text-gray-400' : ''}`}>จุดส่ง คศน.ชัยนาต</h3>
                   <span className={`text-xs font-medium ${
                     !jobApplication?.sop_completed_at
                       ? 'text-gray-400'
@@ -243,25 +243,25 @@ export default function JobDetailPage() {
                   </span>
                 </div>
 
-                <div className="space-y-1 text-sm mb-3">
+                <div className={`space-y-1 text-sm mb-3 ${!jobApplication?.sop_completed_at ? 'text-gray-400' : ''}`}>
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">ชื่อผู้ติดต่อ</span>
+                    <span className="w-28">ชื่อผู้ติดต่อ</span>
                     <span>: คุณธงใบย</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">เลขทาง</span>
+                    <span className="w-28">เลขทาง</span>
                     <span>: SAM001 เมือง/สมุทรปราการ</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">ประเภทสินค้า</span>
+                    <span className="w-28">ประเภทสินค้า</span>
                     <span>: น้ำตาล (10 กล่อง)</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">ส่งสินค้า</span>
+                    <span className="w-28">ส่งสินค้า</span>
                     <span>: {formatDate(job.start_date)} | 11:00</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">หมายเหตุ</span>
+                    <span className="w-28">หมายเหตุ</span>
                     <span>: -</span>
                   </div>
                 </div>
