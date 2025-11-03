@@ -221,9 +221,9 @@ export default function JobDetailPage() {
                 <Circle className={`w-6 h-6 ${!jobApplication?.sop_completed_at ? 'text-gray-400' : jobApplication?.delivery_sop_completed_at ? 'text-teal-600 fill-teal-600' : 'text-teal-600'}`} />
               </div>
               
-              <div className="flex-1">
+              <div className={`flex-1 ${!jobApplication?.sop_completed_at ? 'text-gray-400' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">จุดส่ง คศน.ชัยนาต</h3>
+                  <h3 className={`font-semibold ${!jobApplication?.sop_completed_at ? 'text-gray-400' : ''}`}>จุดส่ง คศน.ชัยนาต</h3>
                   <span className={`text-xs font-medium ${
                     !jobApplication?.sop_completed_at
                       ? 'text-gray-400'
