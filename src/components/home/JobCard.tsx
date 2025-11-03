@@ -15,6 +15,7 @@ interface Job {
   start_time: string;
   equipment_list: string | null;
   safety_equipment: string | null;
+  isAccepted?: boolean;
 }
 
 interface JobCardProps {
@@ -84,8 +85,12 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
         </div>
       </div>
 
-      <Button onClick={() => onAccept(job)} className="w-full h-11 text-base font-medium">
-        รับงานนี้
+      <Button 
+        onClick={() => onAccept(job)} 
+        className="w-full h-11 text-base font-medium"
+        disabled={job.isAccepted}
+      >
+        {job.isAccepted ? 'รับงานนี้แล้ว' : 'รับงานนี้'}
       </Button>
     </Card>
   );

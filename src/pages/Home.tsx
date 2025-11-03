@@ -22,6 +22,7 @@ interface Job {
   start_time: string;
   equipment_list: string | null;
   safety_equipment: string | null;
+  isAccepted?: boolean;
 }
 interface Profile {
   full_name: string;
@@ -38,8 +39,10 @@ export default function Home() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   useEffect(() => {
-    loadJobs();
-  }, []);
+    if (user) {
+      loadJobs();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -60,7 +63,24 @@ export default function Home() {
         variant: 'destructive'
       });
     } else {
-      setJobs(data || []);
+      // Check which jobs the user has already accepted
+      if (user) {
+        const { data: applications } = await supabase
+          .from('job_applications')
+          .select('job_id')
+          .eq('driver_id', user.id);
+        
+        const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
+        
+        const jobsWithStatus = (data || []).map(job => ({
+          ...job,
+          isAccepted: acceptedJobIds.has(job.id)
+        }));
+        
+        setJobs(jobsWithStatus);
+      } else {
+        setJobs(data || []);
+      }
     }
   };
   const loadProfile = async () => {
