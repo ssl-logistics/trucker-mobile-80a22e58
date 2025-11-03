@@ -296,45 +296,47 @@ export default function JobDetailPage() {
       </div>
 
       {/* Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-        <Button 
-          variant="secondary" 
-          className="w-full h-12 text-base disabled:opacity-100"
-          style={{
-            backgroundColor: !jobApplication?.sop_completed_at ? 'hsla(0, 0%, 66%, 1)' : undefined,
-            color: !jobApplication?.sop_completed_at ? 'white' : undefined
-          }}
-          onClick={async () => {
-            if (!user || !jobId) return;
-            
-            const { error } = await supabase
-              .from('job_applications')
-              .update({ 
-                job_started_at: new Date().toISOString(),
-                status: 'job_started'
-              })
-              .eq('job_id', jobId)
-              .eq('driver_id', user.id);
+      {!jobApplication?.job_started_at && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+          <Button 
+            variant="secondary" 
+            className="w-full h-12 text-base disabled:opacity-100"
+            style={{
+              backgroundColor: !jobApplication?.sop_completed_at ? 'hsla(0, 0%, 66%, 1)' : undefined,
+              color: !jobApplication?.sop_completed_at ? 'white' : undefined
+            }}
+            onClick={async () => {
+              if (!user || !jobId) return;
+              
+              const { error } = await supabase
+                .from('job_applications')
+                .update({ 
+                  job_started_at: new Date().toISOString(),
+                  status: 'job_started'
+                })
+                .eq('job_id', jobId)
+                .eq('driver_id', user.id);
 
-            if (error) {
-              toast({
-                title: 'เกิดข้อผิดพลาด',
-                description: 'ไม่สามารถเริ่มงานได้',
-                variant: 'destructive'
-              });
-            } else {
-              toast({
-                title: 'เริ่มงานสำเร็จ',
-                description: 'คุณสามารถทำงานส่งของได้แล้ว'
-              });
-              loadJobDetail();
-            }
-          }}
-          disabled={!jobApplication?.sop_completed_at}
-        >
-          เริ่มงาน
-        </Button>
-      </div>
+              if (error) {
+                toast({
+                  title: 'เกิดข้อผิดพลาด',
+                  description: 'ไม่สามารถเริ่มงานได้',
+                  variant: 'destructive'
+                });
+              } else {
+                toast({
+                  title: 'เริ่มงานสำเร็จ',
+                  description: 'คุณสามารถทำงานส่งของได้แล้ว'
+                });
+                loadJobDetail();
+              }
+            }}
+            disabled={!jobApplication?.sop_completed_at}
+          >
+            เริ่มงาน
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
