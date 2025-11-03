@@ -312,6 +312,7 @@ const Register = () => {
           onNext={handleNext}
           onBack={handleBack}
           onSubmit={handleSubmit}
+          onEditStep={(step: number) => setCurrentStep(step)}
         />
       </div>
     </div>

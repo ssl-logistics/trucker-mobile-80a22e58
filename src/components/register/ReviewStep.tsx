@@ -9,9 +9,10 @@ interface ReviewStepProps {
   data: RegistrationData;
   onBack: () => void;
   onSubmit: () => void;
+  onEditStep: (step: number) => void;
 }
 
-const ReviewStep = ({ data, onBack, onSubmit }: ReviewStepProps) => {
+const ReviewStep = ({ data, onBack, onSubmit, onEditStep }: ReviewStepProps) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   return (
@@ -26,7 +27,7 @@ const ReviewStep = ({ data, onBack, onSubmit }: ReviewStepProps) => {
         <TabsContent value="general" className="space-y-4 mt-6">
           <div className="flex justify-between items-start">
             <h3 className="font-semibold text-foreground">ข้อมูลทั่วไป</h3>
-            <Button variant="ghost" size="sm" onClick={onBack}>
+            <Button variant="ghost" size="sm" onClick={() => onEditStep(1)}>
               <Pencil className="w-4 h-4 mr-1" />
               แก้ไข
             </Button>
@@ -106,7 +107,7 @@ const ReviewStep = ({ data, onBack, onSubmit }: ReviewStepProps) => {
         <TabsContent value="photos" className="space-y-4 mt-6">
           <div className="flex justify-between items-start">
             <h3 className="font-semibold text-foreground">อัพโหลดรูปรถ</h3>
-            <Button variant="ghost" size="sm" onClick={onBack}>
+            <Button variant="ghost" size="sm" onClick={() => onEditStep(2)}>
               <Pencil className="w-4 h-4 mr-1" />
               แก้ไข
             </Button>
@@ -172,7 +173,7 @@ const ReviewStep = ({ data, onBack, onSubmit }: ReviewStepProps) => {
         <TabsContent value="vehicle" className="space-y-4 mt-6">
           <div className="flex justify-between items-start">
             <h3 className="font-semibold text-foreground">ข้อมูลรถยนต์</h3>
-            <Button variant="ghost" size="sm" onClick={onBack}>
+            <Button variant="ghost" size="sm" onClick={() => onEditStep(3)}>
               <Pencil className="w-4 h-4 mr-1" />
               แก้ไข
             </Button>
