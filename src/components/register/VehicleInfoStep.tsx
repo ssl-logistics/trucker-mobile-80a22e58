@@ -43,11 +43,11 @@ interface VehicleInfoStepProps {
 
 const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const [containerTypes, setContainerTypes] = useState<string[]>(data.containerTypes || []);
-  const [registrationPhoto, setRegistrationPhoto] = useState<File | null>(null);
-  const [insurancePhoto, setInsurancePhoto] = useState<File | null>(null);
-  const [licensePhoto, setLicensePhoto] = useState<File | null>(null);
-  const [idCardPhoto, setIdCardPhoto] = useState<File | null>(null);
-  const [compulsoryInsurancePhoto, setCompulsoryInsurancePhoto] = useState<File | null>(null);
+  const [registrationPhoto, setRegistrationPhoto] = useState<File | null>(data.registrationPhoto || null);
+  const [insurancePhoto, setInsurancePhoto] = useState<File | null>(data.insurancePhoto || null);
+  const [licensePhoto, setLicensePhoto] = useState<File | null>(data.licensePhoto || null);
+  const [idCardPhoto, setIdCardPhoto] = useState<File | null>(data.idCardPhoto || null);
+  const [compulsoryInsurancePhoto, setCompulsoryInsurancePhoto] = useState<File | null>(data.compulsoryInsurancePhoto || null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentPhotoId, setCurrentPhotoId] = useState<string | null>(null);
   

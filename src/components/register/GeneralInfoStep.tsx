@@ -36,7 +36,10 @@ interface GeneralInfoStepProps {
 const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [profilePreview, setProfilePreview] = useState<string>("");
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(data.profilePhoto || null);
+  const [profilePreview, setProfilePreview] = useState<string>(
+    data.profilePhoto ? URL.createObjectURL(data.profilePhoto) : ""
+  );
   const [selectedAreas, setSelectedAreas] = useState<string[]>(data.workAreas || []);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -58,12 +61,9 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePreview(reader.result as string);
-        setIsDrawerOpen(false);
-      };
-      reader.readAsDataURL(file);
+      setProfilePhotoFile(file);
+      setProfilePreview(URL.createObjectURL(file));
+      setIsDrawerOpen(false);
     }
   };
 
@@ -71,6 +71,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     onNext({
       ...formData,
       workAreas: selectedAreas,
+      profilePhoto: profilePhotoFile || undefined,
     });
   };
 
