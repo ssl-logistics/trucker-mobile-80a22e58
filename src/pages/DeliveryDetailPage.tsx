@@ -111,13 +111,29 @@ export default function DeliveryDetailPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">จุดส่ง คศน.ชัยนาต</h1>
+          <h1 className="text-lg font-semibold">จุดส่ง หวค.ชัยน้ำตาล</h1>
           <div className="w-6" />
         </div>
       </header>
 
       {/* Content */}
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-4 space-y-4">
+        {/* Top Action Buttons */}
+        <div className="grid grid-cols-3 gap-3">
+          <button className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border hover:bg-gray-50">
+            <div className="text-2xl">💰</div>
+            <span className="text-xs">ดูค่าใช้จ่าย</span>
+          </button>
+          <button className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border hover:bg-gray-50">
+            <div className="text-2xl">➕</div>
+            <span className="text-xs">เพิ่มค่าใช้จ่าย</span>
+          </button>
+          <button className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border hover:bg-gray-50">
+            <div className="text-2xl">💬</div>
+            <span className="text-xs">แจ้งปัญหา</span>
+          </button>
+        </div>
+
         {/* Contact Name */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">ชื่อผู้ติดต่อ</div>
@@ -133,7 +149,7 @@ export default function DeliveryDetailPage() {
         {/* Address */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">ที่อยู่</div>
-          <div className="text-base">88/2 ถ.สุขุมวิท แขวงพระโขนง กทม.</div>
+          <div className="text-base">ที่อยู่ 55/5 ช.ลาดพร้าว 101 แขวงคลองจั่น คณ.</div>
         </div>
 
         {/* Map Placeholder */}
@@ -152,8 +168,8 @@ export default function DeliveryDetailPage() {
 
         {/* Delivery Time */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">ส่งสินค้า</div>
-          <div className="text-base">{formatDate(job.start_date)} | 11:00</div>
+          <div className="text-sm text-muted-foreground mb-1">เข้ารับสินค้า</div>
+          <div className="text-base">{formatDate(job.start_date)} | 10.00</div>
         </div>
 
         {/* Note */}
@@ -162,8 +178,8 @@ export default function DeliveryDetailPage() {
           <div className="text-base">-</div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3 pt-4">
+        {/* Action Buttons in Blue Frame */}
+        <div className="border-2 border-blue-500 rounded-lg p-3 space-y-3">
           <Button variant="outline" className="w-full h-12 text-base">
             <Phone className="w-5 h-5 mr-2" />
             โทร
@@ -197,7 +213,7 @@ export default function DeliveryDetailPage() {
               แจ้งเตือนการยืนยันสถานะ
             </DialogTitle>
             <DialogDescription className="text-center text-base">
-              คุณต้องการเช็คอินที่ "จุดส่ง คศน.ชัยนาต" ใช่หรือไม่?
+              คุณต้องการเช็คอินที่ "จุดส่ง หวค.ชัยน้ำตาล" ใช่หรือไม่?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
