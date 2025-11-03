@@ -279,13 +279,7 @@ export default function JobDetailPage() {
                     size="sm" 
                     className="h-10 bg-blue-600 hover:bg-blue-700"
                     onClick={() => {
-                      if (jobApplication?.delivery_sop_completed_at) {
-                        navigate(`/job/${job.id}/pickup-summary`);
-                      } else if (jobApplication?.delivery_checked_in_at) {
-                        navigate(`/job/${job.id}/delivery`);
-                      } else {
-                        navigate(`/job/${job.id}/delivery`);
-                      }
+                      navigate(`/job/${job.id}/delivery`);
                     }}
                     disabled={!jobApplication?.sop_completed_at}
                   >
