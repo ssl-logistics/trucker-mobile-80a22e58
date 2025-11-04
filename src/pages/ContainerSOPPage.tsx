@@ -204,7 +204,7 @@ const ContainerSOPPage = () => {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#245D9E] text-white p-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)}>
+        <button onClick={() => navigate(`/job/${jobId}`)}>
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="text-lg font-semibold">
