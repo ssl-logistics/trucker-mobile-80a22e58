@@ -148,7 +148,7 @@ export default function PickupSummaryPage() {
                 <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-green-900">SOP สำเร็จ</div>
+                <div className="font-semibold text-green-900">รับตู้เปล่าสำเร็จ</div>
                 <div className="text-sm text-green-700">
                   {formatDateTime(application.sop_completed_at)}
                 </div>
