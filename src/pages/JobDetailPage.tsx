@@ -120,16 +120,6 @@ export default function JobDetailPage() {
   const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
   const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
 
-  // Debug: Check button state
-  console.log('Job Details:', {
-    isDomestic,
-    isInternational,
-    job_started_at: jobApplication?.job_started_at,
-    sop_completed_at: jobApplication?.sop_completed_at,
-    container_sop_completed_at: jobApplication?.container_sop_completed_at,
-    shouldShowGradient: !((isDomestic && !jobApplication?.sop_completed_at) || (isInternational && !jobApplication?.container_sop_completed_at))
-  });
-
   // Mock data for international transport
   const mockContainerData = {
     checkpoint: job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย',
