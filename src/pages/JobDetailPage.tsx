@@ -266,7 +266,7 @@ export default function JobDetailPage() {
                       variant="outline" 
                       size="sm" 
                       className="h-10"
-                      disabled={!jobApplication?.job_started_at}
+                      disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}
                     >
                       <Navigation className="w-4 h-4 mr-1" />
                       เส้นทาง
@@ -275,6 +275,9 @@ export default function JobDetailPage() {
                       size="sm" 
                       className="h-10 bg-blue-600 hover:bg-blue-700"
                       disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}
+                      onClick={() => {
+                        navigate(`/job/${job.id}/container-checkin`);
+                      }}
                     >
                       อัปเดตสถานะ
                     </Button>
@@ -384,7 +387,7 @@ export default function JobDetailPage() {
                         navigate(`/job/${job.id}/pickup`);
                       }
                     }}
-                    disabled={isInternational && !jobApplication?.container_sop_completed_at}
+                    disabled={(isInternational && !jobApplication?.container_sop_completed_at) || (!isInternational && !jobApplication?.job_started_at)}
                   >
                     {jobApplication?.sop_completed_at 
                       ? 'ดูข้อมูล' 
@@ -477,7 +480,7 @@ export default function JobDetailPage() {
                     variant="outline" 
                     size="sm" 
                     className="h-10" 
-                    disabled={!jobApplication?.job_started_at}
+                    disabled={!jobApplication?.sop_completed_at}
                   >
                     <Navigation className="w-4 h-4 mr-1" />
                     เส้นทาง
@@ -488,7 +491,7 @@ export default function JobDetailPage() {
                     onClick={() => {
                       navigate(`/job/${job.id}/delivery`);
                     }}
-                    disabled={!jobApplication?.job_started_at}
+                    disabled={!jobApplication?.sop_completed_at}
                   >
                     {jobApplication?.delivery_sop_completed_at 
                       ? 'ดูข้อมูล' 
