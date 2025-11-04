@@ -70,7 +70,8 @@ export default function ContainerCheckInPage() {
     const { error } = await supabase
       .from('job_applications')
       .update({ 
-        container_checked_in_at: new Date().toISOString()
+        container_checked_in_at: new Date().toISOString(),
+        status: 'รอรับตู้เปล่า'
       })
       .eq('job_id', jobId)
       .eq('driver_id', user.id);
@@ -84,9 +85,10 @@ export default function ContainerCheckInPage() {
     } else {
       toast({
         title: 'เช็คอินสำเร็จ',
-        description: 'คุณได้เช็คอินที่จุดรับตู้เปล่าแล้ว'
+        description: 'สถานะเปลี่ยนเป็น รอรับตู้เปล่า แล้ว'
       });
-      navigate(`/job/${jobId}/container-sop`);
+      setShowConfirmDialog(false);
+      loadJobDetail();
     }
   };
 

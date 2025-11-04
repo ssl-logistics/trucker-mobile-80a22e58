@@ -281,7 +281,11 @@ export default function JobDetailPage() {
                       className="h-10 bg-blue-600 hover:bg-blue-700"
                       disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}
                       onClick={() => {
-                        navigate(`/job/${job.id}/container-checkin`);
+                        if (jobApplication?.container_checked_in_at) {
+                          navigate(`/job/${job.id}/container-sop`);
+                        } else {
+                          navigate(`/job/${job.id}/container-checkin`);
+                        }
                       }}
                     >
                       อัปเดตสถานะ
