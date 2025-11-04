@@ -322,13 +322,13 @@ export default function JobDetailPage() {
                     จุดรับสินค้า
                   </h3>
                   {(!isInternational || jobApplication?.container_sop_completed_at) && (
-                    <span className={`text-xs font-medium ${
+                     <span className={`text-xs font-medium ${
                       jobApplication?.sop_completed_at 
                         ? 'text-green-600' 
                         : 'text-orange-500'
                     }`}>
                       • {jobApplication?.sop_completed_at 
-                        ? 'SOP สำเร็จ' 
+                        ? 'รับตู้เปล่าสำเร็จ' 
                         : 'รอเช็คอิน'}
                     </span>
                   )}
