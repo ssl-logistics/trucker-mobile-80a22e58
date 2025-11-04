@@ -126,40 +126,34 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
           <Card className={`p-4 mb-3 border-2 rounded-2xl ${
             jobApplication?.sop_completed_at
               ? 'border-green-500 bg-green-50'
-              : jobApplication?.job_started_at
-              ? 'border-teal-500 bg-white' 
-              : 'border-gray-300 bg-gray-50'
+              : 'border-teal-500 bg-white'
           }`}>
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center pt-1">
                 {jobApplication?.sop_completed_at ? (
                   <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
-                ) : jobApplication?.job_started_at ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-teal-600" />
                 ) : (
-                  <Circle className="w-5 h-5 text-gray-400" />
+                  <div className="w-5 h-5 rounded-full border-2 border-teal-600" />
                 )}
                 <div className="w-0.5 h-full border-l-2 border-dashed border-gray-300 my-1" />
               </div>
               
-              <div className={`flex-1 ${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
+              <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-sm">จุดรับสินค้า</h3>
-                  {jobApplication?.job_started_at && (
-                    <span className={`text-xs font-medium ${
-                      jobApplication?.sop_completed_at 
-                        ? 'text-green-600' 
-                        : jobApplication?.checked_in_at
-                        ? 'text-orange-500'
-                        : 'text-orange-500'
-                    }`}>
-                      • {jobApplication?.sop_completed_at 
-                        ? 'SOP สำเร็จ' 
-                        : jobApplication?.checked_in_at
-                        ? 'รอ SOP'
-                        : 'รอเช็คอิน'}
-                    </span>
-                  )}
+                  <span className={`text-xs font-medium ${
+                    jobApplication?.sop_completed_at 
+                      ? 'text-green-600' 
+                      : jobApplication?.checked_in_at
+                      ? 'text-orange-500'
+                      : 'text-orange-500'
+                  }`}>
+                    • {jobApplication?.sop_completed_at 
+                      ? 'SOP สำเร็จ' 
+                      : jobApplication?.checked_in_at
+                      ? 'รอ SOP'
+                      : 'รอเช็คอิน'}
+                  </span>
                 </div>
 
                 <h4 className="font-semibold text-base mb-2">
@@ -198,7 +192,6 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                     variant="outline" 
                     size="sm" 
                     className="h-10"
-                    disabled={!jobApplication?.job_started_at}
                   >
                     <Phone className="w-4 h-4" />
                     โทร
@@ -207,7 +200,6 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                     variant="outline" 
                     size="sm" 
                     className="h-10"
-                    disabled={!jobApplication?.job_started_at}
                   >
                     <Navigation className="w-4 h-4" />
                     เส้นทาง
@@ -224,7 +216,6 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                         navigate(`/job/${job.id}/pickup`);
                       }
                     }}
-                    disabled={!jobApplication?.job_started_at}
                   >
                     {jobApplication?.sop_completed_at 
                       ? 'ดูข้อมูล' 
@@ -239,7 +230,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
           <Card className={`p-4 border-2 rounded-2xl ${
             jobApplication?.delivery_sop_completed_at
               ? 'border-green-500 bg-green-50'
-              : jobApplication?.sop_completed_at
+              : jobApplication?.job_started_at
               ? 'border-teal-500 bg-white' 
               : 'border-gray-300 bg-gray-50'
           }`}>
@@ -247,17 +238,17 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
               <div className="flex flex-col items-center pt-1">
                 {jobApplication?.delivery_sop_completed_at ? (
                   <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
-                ) : jobApplication?.sop_completed_at ? (
+                ) : jobApplication?.job_started_at ? (
                   <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-teal-600" />
                 ) : (
                   <Circle className="w-5 h-5 text-gray-400" />
                 )}
               </div>
               
-              <div className={`flex-1 ${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
+              <div className={`flex-1 ${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-sm">จุดส่งสินค้า</h3>
-                  {jobApplication?.sop_completed_at && (
+                  {jobApplication?.job_started_at && (
                     <span className={`text-xs font-medium ${
                       jobApplication?.delivery_sop_completed_at 
                         ? 'text-green-600' 
@@ -298,7 +289,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                     variant="outline" 
                     size="sm" 
                     className="h-10" 
-                    disabled={!jobApplication?.sop_completed_at}
+                    disabled={!jobApplication?.job_started_at}
                   >
                     <Phone className="w-4 h-4" />
                     โทร
@@ -307,7 +298,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                     variant="outline" 
                     size="sm" 
                     className="h-10" 
-                    disabled={!jobApplication?.sop_completed_at}
+                    disabled={!jobApplication?.job_started_at}
                   >
                     <Navigation className="w-4 h-4" />
                     เส้นทาง
@@ -316,7 +307,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                     size="sm" 
                     className="h-10 bg-blue-600 hover:bg-blue-700"
                     onClick={() => navigate(`/job/${job.id}/delivery`)}
-                    disabled={!jobApplication?.sop_completed_at}
+                    disabled={!jobApplication?.job_started_at}
                   >
                     {jobApplication?.delivery_sop_completed_at 
                       ? 'ดูข้อมูล' 
