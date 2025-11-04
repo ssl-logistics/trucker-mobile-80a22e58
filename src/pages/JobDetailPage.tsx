@@ -513,8 +513,7 @@ export default function JobDetailPage() {
       {!jobApplication?.job_started_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button 
-            variant="secondary" 
-            className="w-full h-12 text-base text-white disabled:opacity-100"
+            className="w-full h-12 text-base text-white disabled:opacity-100 disabled:cursor-not-allowed"
             style={{
               background: (isDomestic && !jobApplication?.sop_completed_at) || (isInternational && !jobApplication?.container_sop_completed_at)
                 ? 'hsla(0, 0%, 66%, 1)' 
