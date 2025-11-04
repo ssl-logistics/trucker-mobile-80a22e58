@@ -46,6 +46,8 @@ interface JobApplication {
   job_started_at: string | null;
   delivery_checked_in_at: string | null;
   delivery_sop_completed_at: string | null;
+  container_checked_in_at: string | null;
+  container_sop_completed_at: string | null;
   status: string;
 }
 
@@ -87,7 +89,7 @@ export default function JobDetailPage() {
     // Load job application status
     const { data: appData } = await supabase
       .from('job_applications')
-      .select('checked_in_at, sop_completed_at, job_started_at, delivery_checked_in_at, delivery_sop_completed_at, status')
+      .select('checked_in_at, sop_completed_at, job_started_at, delivery_checked_in_at, delivery_sop_completed_at, container_checked_in_at, container_sop_completed_at, status')
       .eq('job_id', jobId)
       .eq('driver_id', user.id)
       .single();
@@ -175,16 +177,43 @@ export default function JobDetailPage() {
 
           {/* International: Container Checkpoint */}
           {isInternational && (
-            <Card className="p-4 mb-4 border-2 border-teal-200">
+            <Card className={`p-4 mb-4 border-2 ${
+              jobApplication?.job_started_at && !jobApplication?.container_sop_completed_at
+                ? 'border-green-400' 
+                : jobApplication?.container_sop_completed_at 
+                ? 'border-teal-200' 
+                : 'border-gray-200 opacity-50'
+            }`}>
               <div className="flex items-start gap-3">
                 <div className="flex flex-col items-center">
-                  <Circle className="w-6 h-6 text-teal-600 fill-teal-600" />
+                  <Circle className={`w-6 h-6 ${
+                    jobApplication?.container_sop_completed_at 
+                      ? 'text-teal-600 fill-teal-600'
+                      : 'text-teal-600'
+                  }`} />
                   <div className="w-0.5 h-16 bg-dashed border-l-2 border-dashed border-muted-foreground my-1" />
                 </div>
                 
-                <div className="flex-1">
+                <div className={`flex-1 ${!jobApplication?.job_started_at ? 'text-gray-400' : ''}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">จุดตรวจตู้เปล่า {job.container_checkpoint || job.origin_location}</h3>
+                    <h3 className={`font-semibold ${!jobApplication?.job_started_at ? 'text-gray-400' : ''}`}>
+                      จุดตรวจตู้เปล่า {job.container_checkpoint || job.origin_location}
+                    </h3>
+                    {jobApplication?.job_started_at && (
+                      <span className={`text-xs font-medium ${
+                        jobApplication?.container_sop_completed_at 
+                          ? 'text-green-600' 
+                          : jobApplication?.container_checked_in_at 
+                          ? 'text-blue-600' 
+                          : 'text-orange-600'
+                      }`}>
+                        • {jobApplication?.container_sop_completed_at 
+                          ? 'SOP สำเร็จ' 
+                          : jobApplication?.container_checked_in_at 
+                          ? 'เช็คอินแล้ว' 
+                          : 'รอเช็คอิน'}
+                      </span>
+                    )}
                   </div>
 
                   <div className="space-y-1 text-sm mb-3">
@@ -215,13 +244,19 @@ export default function JobDetailPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="sm" className="h-10">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-10"
+                      disabled={!jobApplication?.job_started_at}
+                    >
                       <Navigation className="w-4 h-4 mr-1" />
                       เส้นทาง
                     </Button>
                     <Button 
                       size="sm" 
                       className="h-10 bg-blue-600 hover:bg-blue-700"
+                      disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}
                     >
                       อัปเดตสถานะ
                     </Button>
@@ -232,31 +267,39 @@ export default function JobDetailPage() {
           )}
 
           {/* Pickup Point */}
-          <Card className="p-4 mb-4 border-2 border-teal-200">
+          <Card className={`p-4 mb-4 border-2 ${
+            !isInternational 
+              ? 'border-teal-200' 
+              : !jobApplication?.container_sop_completed_at 
+              ? 'border-gray-200 opacity-50' 
+              : 'border-teal-200'
+          }`}>
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center">
                 <Circle className="w-6 h-6 text-teal-600 fill-teal-600" />
                 <div className="w-0.5 h-full bg-dashed border-l-2 border-dashed border-muted-foreground my-1" />
               </div>
               
-              <div className="flex-1">
+              <div className={`flex-1 ${isInternational && !jobApplication?.container_sop_completed_at ? 'text-gray-400' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">
+                  <h3 className={`font-semibold ${isInternational && !jobApplication?.container_sop_completed_at ? 'text-gray-400' : ''}`}>
                     {isInternational ? `จุดรับสินค้า ${job.origin_location}` : `จุดรับสินค้า Factory1`}
                   </h3>
-                  <span className={`text-xs font-medium ${
-                    jobApplication?.sop_completed_at 
-                      ? 'text-green-600' 
-                      : jobApplication?.checked_in_at 
-                      ? 'text-blue-600' 
-                      : 'text-orange-600'
-                  }`}>
-                    • {jobApplication?.sop_completed_at 
-                      ? 'SOP สำเร็จ' 
-                      : jobApplication?.checked_in_at 
-                      ? 'เช็คอินแล้ว' 
-                      : 'รอเช็คอิน'}
-                  </span>
+                  {(!isInternational || jobApplication?.container_sop_completed_at) && (
+                    <span className={`text-xs font-medium ${
+                      jobApplication?.sop_completed_at 
+                        ? 'text-green-600' 
+                        : jobApplication?.checked_in_at 
+                        ? 'text-blue-600' 
+                        : 'text-orange-600'
+                    }`}>
+                      • {jobApplication?.sop_completed_at 
+                        ? 'SOP สำเร็จ' 
+                        : jobApplication?.checked_in_at 
+                        ? 'เช็คอินแล้ว' 
+                        : 'รอเช็คอิน'}
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-1 text-sm mb-3">
@@ -293,11 +336,21 @@ export default function JobDetailPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
-                  <Button variant="outline" size="sm" className="h-10">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-10"
+                    disabled={isInternational && !jobApplication?.container_sop_completed_at}
+                  >
                     <Phone className="w-4 h-4" />
                     โทร
                   </Button>
-                  <Button variant="outline" size="sm" className="h-10">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-10"
+                    disabled={isInternational && !jobApplication?.container_sop_completed_at}
+                  >
                     <Navigation className="w-4 h-4" />
                     เส้นทาง
                   </Button>
@@ -313,6 +366,7 @@ export default function JobDetailPage() {
                         navigate(`/job/${job.id}/pickup`);
                       }
                     }}
+                    disabled={isInternational && !jobApplication?.container_sop_completed_at}
                   >
                     {jobApplication?.sop_completed_at 
                       ? 'ดูข้อมูล' 
@@ -420,8 +474,12 @@ export default function JobDetailPage() {
             variant="secondary" 
             className="w-full h-12 text-base disabled:opacity-100"
             style={{
-              backgroundColor: !jobApplication?.sop_completed_at ? 'hsla(0, 0%, 66%, 1)' : undefined,
-              color: !jobApplication?.sop_completed_at ? 'white' : undefined
+              backgroundColor: (isDomestic && !jobApplication?.sop_completed_at) || (isInternational) 
+                ? 'hsla(0, 0%, 66%, 1)' 
+                : undefined,
+              color: (isDomestic && !jobApplication?.sop_completed_at) || (isInternational) 
+                ? 'white' 
+                : undefined
             }}
             onClick={async () => {
               if (!user || !jobId) return;
@@ -444,14 +502,16 @@ export default function JobDetailPage() {
               } else {
                 toast({
                   title: 'เริ่มงานสำเร็จ',
-                  description: 'คุณสามารถทำงานส่งของได้แล้ว'
+                  description: isInternational 
+                    ? 'คุณสามารถเริ่มตรวจตู้เปล่าได้แล้ว' 
+                    : 'คุณสามารถทำงานส่งของได้แล้ว'
                 });
                 loadJobDetail();
               }
             }}
-            disabled={!jobApplication?.sop_completed_at}
+            disabled={isDomestic && !jobApplication?.sop_completed_at}
           >
-            เริ่มงาน
+            เริ่มงานเลย
           </Button>
         </div>
       )}

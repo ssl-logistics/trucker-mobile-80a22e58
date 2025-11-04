@@ -78,6 +78,8 @@ export type Database = {
         Row: {
           applied_at: string
           checked_in_at: string | null
+          container_checked_in_at: string | null
+          container_sop_completed_at: string | null
           delivery_checked_in_at: string | null
           delivery_sop_completed_at: string | null
           driver_id: string
@@ -93,6 +95,8 @@ export type Database = {
         Insert: {
           applied_at?: string
           checked_in_at?: string | null
+          container_checked_in_at?: string | null
+          container_sop_completed_at?: string | null
           delivery_checked_in_at?: string | null
           delivery_sop_completed_at?: string | null
           driver_id: string
@@ -108,6 +112,8 @@ export type Database = {
         Update: {
           applied_at?: string
           checked_in_at?: string | null
+          container_checked_in_at?: string | null
+          container_sop_completed_at?: string | null
           delivery_checked_in_at?: string | null
           delivery_sop_completed_at?: string | null
           driver_id?: string
