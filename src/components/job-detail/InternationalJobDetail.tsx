@@ -155,40 +155,34 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
           <Card className={`p-4 mb-3 border-2 ${
             jobApplication?.container_sop_completed_at 
               ? 'border-green-500 bg-green-50' 
-              : jobApplication?.job_started_at
-              ? 'border-teal-500 bg-white' 
-              : 'border-gray-300 bg-gray-50'
+              : 'border-teal-500 bg-white'
           }`}>
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center pt-1">
                 {jobApplication?.container_sop_completed_at ? (
                   <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
-                ) : jobApplication?.job_started_at ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-white" />
                 ) : (
-                  <Circle className="w-5 h-5 text-gray-400" />
+                  <div className="w-5 h-5 rounded-full border-2 border-teal-600" />
                 )}
                 <div className="w-0.5 h-full border-l-2 border-dashed border-gray-300 my-1" />
               </div>
               
-              <div className={`flex-1 ${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
+              <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-sm">จุดรับตู้เปล่า</h3>
-                  {jobApplication?.job_started_at && (
-                    <span className={`text-xs font-medium ${
-                      jobApplication?.container_sop_completed_at 
-                        ? 'text-green-600' 
-                        : jobApplication?.container_checked_in_at
-                        ? 'text-blue-600'
-                        : 'text-orange-500'
-                    }`}>
-                      • {jobApplication?.container_sop_completed_at 
-                        ? 'รับตู้เปล่าสำเร็จ' 
-                        : jobApplication?.container_checked_in_at
-                        ? 'รอรับตู้เปล่า'
-                        : 'รอเช็คอิน'}
-                    </span>
-                  )}
+                  <span className={`text-xs font-medium ${
+                    jobApplication?.container_sop_completed_at 
+                      ? 'text-green-600' 
+                      : jobApplication?.container_checked_in_at
+                      ? 'text-blue-600'
+                      : 'text-orange-500'
+                  }`}>
+                    • {jobApplication?.container_sop_completed_at 
+                      ? 'รับตู้เปล่าสำเร็จ' 
+                      : jobApplication?.container_checked_in_at
+                      ? 'รอรับตู้เปล่า'
+                      : 'รอเช็คอิน'}
+                  </span>
                 </div>
 
                 <h4 className="font-semibold text-base mb-2">
@@ -260,7 +254,6 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
                     variant="outline" 
                     size="sm" 
                     className="h-10"
-                    disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}
                   >
                     <Navigation className="w-4 h-4 mr-1" />
                     เส้นทาง
@@ -268,7 +261,6 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
                   <Button 
                     size="sm" 
                     className="h-10 bg-blue-600 hover:bg-blue-700"
-                    disabled={!jobApplication?.job_started_at}
                     onClick={() => {
                       if (jobApplication?.container_sop_completed_at) {
                         navigate(`/job/${job.id}/container-summary`);
@@ -547,20 +539,6 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
         </div>
       </div>
 
-      {/* Bottom Button */}
-      {!jobApplication?.job_started_at && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-          <Button 
-            className="w-full h-12 text-base text-white"
-            style={{
-              background: 'linear-gradient(90deg, #245D9E 0%, #1A4271 100%)'
-            }}
-            onClick={handleStartJob}
-          >
-            เริ่มงานเลย
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
