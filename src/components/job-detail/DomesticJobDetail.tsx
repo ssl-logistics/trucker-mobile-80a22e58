@@ -123,7 +123,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
           </div>
 
           {/* Pickup Point */}
-          <Card className={`p-4 mb-3 border-2 ${
+          <Card className={`p-4 mb-3 border-2 rounded-2xl ${
             jobApplication?.sop_completed_at
               ? 'border-green-500 bg-green-50'
               : jobApplication?.job_started_at
@@ -135,7 +135,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                 {jobApplication?.sop_completed_at ? (
                   <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
                 ) : jobApplication?.job_started_at ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-white" />
+                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-teal-600" />
                 ) : (
                   <Circle className="w-5 h-5 text-gray-400" />
                 )}
@@ -143,28 +143,24 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
               </div>
               
               <div className={`flex-1 ${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-sm">จุดรับสินค้า</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="font-semibold text-base">{job.origin_location}</h3>
                   {jobApplication?.job_started_at && (
                     <span className={`text-xs font-medium ${
                       jobApplication?.sop_completed_at 
                         ? 'text-green-600' 
                         : jobApplication?.checked_in_at
-                        ? 'text-blue-600'
+                        ? 'text-orange-500'
                         : 'text-orange-500'
                     }`}>
                       • {jobApplication?.sop_completed_at 
                         ? 'SOP สำเร็จ' 
                         : jobApplication?.checked_in_at
-                        ? 'กำลังทำ SOP'
+                        ? 'รอ SOP'
                         : 'รอเช็คอิน'}
                     </span>
                   )}
                 </div>
-
-                <h4 className="font-semibold text-base mb-2">
-                  {job.origin_location}
-                </h4>
 
                 <div className="space-y-1 text-sm mb-3">
                   <div className="flex">
@@ -236,7 +232,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
           </Card>
 
           {/* Delivery Point */}
-          <Card className={`p-4 border-2 ${
+          <Card className={`p-4 border-2 rounded-2xl ${
             jobApplication?.delivery_sop_completed_at
               ? 'border-green-500 bg-green-50'
               : jobApplication?.sop_completed_at
@@ -248,31 +244,27 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                 {jobApplication?.delivery_sop_completed_at ? (
                   <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
                 ) : jobApplication?.sop_completed_at ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-white" />
+                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-teal-600" />
                 ) : (
                   <Circle className="w-5 h-5 text-gray-400" />
                 )}
               </div>
               
               <div className={`flex-1 ${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-sm">จุดส่งสินค้า</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="font-semibold text-base">{job.destination_location}</h3>
                   {jobApplication?.sop_completed_at && (
                     <span className={`text-xs font-medium ${
                       jobApplication?.delivery_sop_completed_at 
                         ? 'text-green-600' 
-                        : 'text-gray-400'
+                        : 'text-orange-500'
                     }`}>
                       • {jobApplication?.delivery_sop_completed_at 
                         ? 'POD สำเร็จ' 
-                        : 'อัปเดตงาน'}
+                        : 'รอเช็คอิน'}
                     </span>
                   )}
                 </div>
-
-                <h4 className="font-semibold text-base mb-2">
-                  {job.destination_location}
-                </h4>
 
                 <div className="space-y-1 text-sm mb-3">
                   <div className="flex">
