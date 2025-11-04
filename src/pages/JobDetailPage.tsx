@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -51,7 +51,6 @@ interface JobApplication {
 
 export default function JobDetailPage() {
   const { jobId } = useParams();
-  const location = useLocation();
   const { user } = useAuth();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
@@ -59,7 +58,7 @@ export default function JobDetailPage() {
 
   useEffect(() => {
     loadJobDetail();
-  }, [jobId, user, location.key]);
+  }, [jobId, user]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
