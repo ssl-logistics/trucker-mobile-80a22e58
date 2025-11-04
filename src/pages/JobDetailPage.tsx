@@ -545,7 +545,6 @@ export default function JobDetailPage() {
                 loadJobDetail();
               }
             }}
-            disabled={(isDomestic && !jobApplication?.sop_completed_at) || (isInternational && !jobApplication?.container_sop_completed_at)}
           >
             เริ่มงานเลย
           </Button>
