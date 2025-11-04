@@ -120,36 +120,6 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
 
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
-        {/* Action Buttons */}
-        <div className="grid grid-cols-3 gap-3">
-          <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <span className="text-xs font-medium">ดูค่าใช้จ่าย</span>
-          </button>
-          
-          <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
-              </svg>
-            </div>
-            <span className="text-xs font-medium">เพิ่มค่าใช้จ่าย</span>
-          </button>
-          
-          <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <span className="text-xs font-medium">แจ้งปัญหา</span>
-          </button>
-        </div>
-
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-3">
           <Card className="p-3 text-center">
@@ -164,6 +134,11 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
             <div className="text-lg font-semibold">60</div>
           </Card>
         </div>
+
+        {/* Report Problem Button */}
+        <Button variant="outline" className="w-full">
+          📋 แจ้งปัญหา
+        </Button>
 
         {/* Route Info */}
         <div>
