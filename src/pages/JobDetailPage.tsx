@@ -379,11 +379,11 @@ export default function JobDetailPage() {
                 <div className="w-0.5 h-full border-l-2 border-dashed border-gray-300 my-1" />
               </div>
               
-              <div className={`flex-1 ${isInternational && !jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-sm">
-                    {isInbound ? 'จุดส่งสินค้า' : 'จุดรับสินค้า'}
-                  </h3>
+                <div className={`flex-1 ${isInternational && !jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-sm">
+                      {isInbound ? 'จุดรับสินค้า' : 'จุดรับสินค้า'}
+                    </h3>
                   {(!isInternational || jobApplication?.container_sop_completed_at) && (
                     <span className={`text-xs font-medium ${
                       jobApplication?.sop_completed_at 
@@ -404,12 +404,12 @@ export default function JobDetailPage() {
                 <div className="space-y-1 text-sm mb-3">
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">เลขที่เอียด</span>
-                    <span>: {isInbound ? '123456789' : (mockOriginData.contactPerson)}</span>
+                    <span>: {isInbound ? '123456789012345' : (mockOriginData.contactPerson)}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">ชื่อจุดรับ</span>
+                    <span className="text-muted-foreground min-w-[100px]">ชื่อจุดติดต่อ</span>
                     <span>: {isInbound 
-                      ? 'คลังเป็ธพงศ์ (เจ้าหน้าที่คลังสินค้า)'
+                      ? 'คลังภัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)'
                       : mockOriginData.billOfLading}</span>
                   </div>
                   <div className="flex">
@@ -420,7 +420,7 @@ export default function JobDetailPage() {
                   </div>
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">เข้าส่งสินค้า</span>
-                    <span>: {formatDate(job.start_date)} | {isInbound ? '20.00' : job.start_time.substring(0, 5)}</span>
+                    <span>: {formatDate(job.start_date)} | {isInbound ? '20:00' : job.start_time.substring(0, 5)}</span>
                   </div>
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
@@ -516,15 +516,15 @@ export default function JobDetailPage() {
                     <>
                       <div className="flex">
                         <span className="text-muted-foreground min-w-[140px]">วันที่หมดคืนตู้เปล่า</span>
-                        <span>: 03/11/2025 | 20.00</span>
+                        <span>: 03/11/2025 | 20:00</span>
                       </div>
                       <div className="flex">
                         <span className="text-muted-foreground min-w-[140px]">ผู้รับรอง</span>
-                        <span>: บริษัท เอราวา โฮเทล เจ็ดกดิษฐ</span>
+                        <span>: บริษัท เอราวา เอรารา จำกัด</span>
                       </div>
                       <div className="flex">
                         <span className="text-muted-foreground min-w-[140px]">หมายเหตุ</span>
-                        <span>: ต้องคืนตู้ก่อนนัดต้องภูดบา Detention</span>
+                        <span>: ต้องคืนตู้ก่อนนัดต้องถูดมา Detention</span>
                       </div>
                     </>
                   ) : (
