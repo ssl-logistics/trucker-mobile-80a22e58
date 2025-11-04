@@ -215,7 +215,7 @@ export default function CurrentJobsPage() {
                     className="w-full h-11 text-base font-medium"
                     onClick={() => navigate(`/job/${job.id}`)}
                   >
-                    ดูรายละเอียด
+                    ดูข้อมูลงาน
                   </Button>
                 </Card>
               );
