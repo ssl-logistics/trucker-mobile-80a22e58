@@ -178,10 +178,14 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
                     <span className={`text-xs font-medium ${
                       jobApplication?.container_sop_completed_at 
                         ? 'text-green-600' 
+                        : jobApplication?.container_checked_in_at
+                        ? 'text-blue-600'
                         : 'text-orange-500'
                     }`}>
                       • {jobApplication?.container_sop_completed_at 
                         ? 'รับตู้เปล่าสำเร็จ' 
+                        : jobApplication?.container_checked_in_at
+                        ? 'รอรับตู้เปล่า'
                         : 'รอเช็คอิน'}
                     </span>
                   )}
