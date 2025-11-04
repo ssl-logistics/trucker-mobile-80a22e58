@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 
 interface JobDetail {
@@ -96,6 +97,10 @@ export default function JobDetailPage() {
 
   if (!job) return null;
 
+  // Determine if domestic or international
+  const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
+  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
@@ -104,7 +109,21 @@ export default function JobDetailPage() {
           <button onClick={() => navigate('/current-jobs')} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">{job.order_code}</h1>
+          <div className="flex-1 text-center">
+            <h1 className="text-xl font-semibold">{job.order_code}</h1>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              {isDomestic && (
+                <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 text-xs">
+                  ขนส่งภายในประเทศ
+                </Badge>
+              )}
+              {isInternational && (
+                <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 text-xs">
+                  ขนส่งภายนอกประเทศ
+                </Badge>
+              )}
+            </div>
+          </div>
           <div className="w-6" />
         </div>
       </header>

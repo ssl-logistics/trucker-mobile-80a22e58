@@ -1,6 +1,7 @@
 import { Clock, MapPin, CircleDot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface Job {
   id: string;
@@ -29,6 +30,10 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
     return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
   };
 
+  // Determine if domestic or international based on transport_type
+  const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
+  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+
   return (
     <Card className="p-4 space-y-3 bg-card">
       <div className="flex items-start justify-between mb-3">
@@ -46,8 +51,20 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
           <span className="text-muted-foreground">ผู้จ้าง : </span>
           <span className="font-medium">{job.employer_name}</span>
         </div>
-        <div className="text-sm text-blue-600 font-medium">
-          {job.job_type}
+        <div className="flex items-center gap-2">
+          <div className="text-sm text-blue-600 font-medium">
+            {job.job_type}
+          </div>
+          {isDomestic && (
+            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+              ขนส่งภายในประเทศ
+            </Badge>
+          )}
+          {isInternational && (
+            <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+              ขนส่งภายนอกประเทศ
+            </Badge>
+          )}
         </div>
         <div className="text-sm text-muted-foreground">
           {job.transport_type}
