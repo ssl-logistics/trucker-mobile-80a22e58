@@ -311,7 +311,7 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
               <div className={`flex-1 ${!jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-sm">
-                    {isInbound ? 'จุดรับสินค้า' : 'จุดส่งสินค้า'}
+                    {isInbound ? 'จุดส่งสินค้า' : 'จุดรับสินค้า'}
                   </h3>
                   {jobApplication?.container_sop_completed_at && (
                     <span className={`text-xs font-medium ${
