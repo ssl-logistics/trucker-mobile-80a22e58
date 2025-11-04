@@ -273,7 +273,10 @@ export default function DeliveryDetailPage() {
             <div className="text-2xl">💰</div>
             <span className="text-xs">ดูค่าใช้จ่าย</span>
           </button>
-          <button className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border hover:bg-gray-50">
+          <button 
+            className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border hover:bg-gray-50"
+            onClick={() => navigate(`/job/${jobId}/add-expense`)}
+          >
             <div className="text-2xl">➕</div>
             <span className="text-xs">เพิ่มค่าใช้จ่าย</span>
           </button>

@@ -141,7 +141,10 @@ export default function ContainerCheckInPage() {
           <button className="py-4 text-center border-b-2 border-blue-600 text-blue-600 font-medium">
             ดูค่าใช้จ่าย
           </button>
-          <button className="py-4 text-center text-gray-500">
+          <button 
+            className="py-4 text-center text-gray-500"
+            onClick={() => navigate(`/job/${jobId}/add-expense`)}
+          >
             เพิ่มค่าใช้จ่าย
           </button>
           <button className="py-4 text-center text-gray-500">
