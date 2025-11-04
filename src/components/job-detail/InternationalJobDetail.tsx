@@ -421,6 +421,8 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
           <Card className={`p-4 border-2 ${
             jobApplication?.delivery_sop_completed_at
               ? 'border-green-500 bg-green-50'
+              : jobApplication?.delivery_checked_in_at
+              ? 'border-blue-500 bg-blue-50' 
               : jobApplication?.sop_completed_at
               ? 'border-teal-500 bg-white' 
               : 'border-gray-300 bg-gray-50'
@@ -429,6 +431,8 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
               <div className="flex flex-col items-center pt-1">
                 {jobApplication?.delivery_sop_completed_at ? (
                   <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
+                ) : jobApplication?.delivery_checked_in_at ? (
+                  <div className="w-5 h-5 rounded-full border-2 border-blue-600 bg-white" />
                 ) : jobApplication?.sop_completed_at ? (
                   <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-white" />
                 ) : (
@@ -445,11 +449,15 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
                     <span className={`text-xs font-medium ${
                       jobApplication?.delivery_sop_completed_at 
                         ? 'text-green-600' 
-                        : 'text-gray-400'
+                        : jobApplication?.delivery_checked_in_at
+                        ? 'text-blue-600'
+                        : 'text-orange-500'
                     }`}>
                       • {jobApplication?.delivery_sop_completed_at 
-                        ? 'POD สำเร็จ' 
-                        : 'อัปเดตงาน'}
+                        ? 'ส่งคืนสำเร็จ' 
+                        : jobApplication?.delivery_checked_in_at
+                        ? 'รอส่งคืน'
+                        : 'รอเช็คอิน'}
                     </span>
                   )}
                 </div>
