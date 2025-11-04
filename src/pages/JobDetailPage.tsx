@@ -514,14 +514,11 @@ export default function JobDetailPage() {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button 
             variant="secondary" 
-            className="w-full h-12 text-base disabled:opacity-100"
+            className="w-full h-12 text-base text-white disabled:opacity-100"
             style={{
-              backgroundColor: (isDomestic && !jobApplication?.sop_completed_at) || (isInternational) 
+              background: (isDomestic && !jobApplication?.sop_completed_at) || (isInternational && !jobApplication?.container_sop_completed_at)
                 ? 'hsla(0, 0%, 66%, 1)' 
-                : undefined,
-              color: (isDomestic && !jobApplication?.sop_completed_at) || (isInternational) 
-                ? 'white' 
-                : undefined
+                : 'linear-gradient(90deg, #245D9E 0%, #1A4271 100%)'
             }}
             onClick={async () => {
               if (!user || !jobId) return;
@@ -551,7 +548,7 @@ export default function JobDetailPage() {
                 loadJobDetail();
               }
             }}
-            disabled={isDomestic && !jobApplication?.sop_completed_at}
+            disabled={(isDomestic && !jobApplication?.sop_completed_at) || (isInternational && !jobApplication?.container_sop_completed_at)}
           >
             เริ่มงานเลย
           </Button>
