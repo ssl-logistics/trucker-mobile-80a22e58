@@ -311,28 +311,22 @@ export default function JobDetailPage() {
                 </h4>
 
                 <div className="space-y-1 text-sm mb-3">
-                  {(isInternational ? job.origin_contact_person : 'คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)') && (
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">ชื่อผู้ติดต่อ</span>
-                      <span>: {isInternational 
-                        ? `${job.origin_contact_person}${job.origin_contact_role ? ` (${job.origin_contact_role})` : ''}` 
-                        : 'คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)'}</span>
-                    </div>
-                  )}
-                  {(isInternational ? job.origin_bill_of_lading : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร') && (
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">เลขทาง</span>
-                      <span>: {isInternational ? job.origin_bill_of_lading : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร'}</span>
-                    </div>
-                  )}
-                  {(isInternational ? job.origin_goods_type && job.origin_goods_quantity : true) && (
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
-                      <span>: {isInternational 
-                        ? `${job.origin_goods_type} (${job.origin_goods_quantity})` 
-                        : 'น้ำตาล (30 กล่อง)'}</span>
-                    </div>
-                  )}
+                  <div className="flex">
+                    <span className="text-muted-foreground min-w-[100px]">ชื่อผู้ติดต่อ</span>
+                    <span>: {isInternational 
+                      ? `${job.origin_contact_person || '-'}${job.origin_contact_role ? ` (${job.origin_contact_role})` : ''}` 
+                      : 'คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-muted-foreground min-w-[100px]">เลขทาง</span>
+                    <span>: {isInternational ? (job.origin_bill_of_lading || '-') : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
+                    <span>: {isInternational 
+                      ? `${job.origin_goods_type || '-'} (${job.origin_goods_quantity || '-'})` 
+                      : 'น้ำตาล (10 กล่อง)'}</span>
+                  </div>
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
                     <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
@@ -427,17 +421,20 @@ export default function JobDetailPage() {
                 </h4>
 
                 <div className="space-y-1 text-sm mb-3">
-                  {(isInternational ? job.destination_contact_person : 'คุณธงใบย') && (
+                  <div className="flex">
+                    <span className="text-muted-foreground min-w-[140px]">
+                      {isInternational ? 'วันคืนตู้คอนเทนเนอร์' : 'ชื่อผู้ติดต่อ'}
+                    </span>
+                    <span>: {isInternational 
+                      ? `${formatDate(job.start_date)} | ${job.destination_time ? job.destination_time.substring(0, 5) : '20:00'}`
+                      : 'คุณธงใบย'}</span>
+                  </div>
+                  {isInternational ? (
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">
-                        {isInternational ? 'วันคืนตู้คอนเทนเนอร์' : 'ชื่อผู้ติดต่อ'}
-                      </span>
-                      <span>: {isInternational 
-                        ? `${formatDate(job.start_date)} | ${job.destination_time ? job.destination_time.substring(0, 5) : '20:00'}`
-                        : 'คุณธงใบย'}</span>
+                      <span className="text-muted-foreground min-w-[140px]">ผู้รับรอง</span>
+                      <span>: {job.destination_remarks || job.employer_name || '-'}</span>
                     </div>
-                  )}
-                  {!isInternational && (
+                  ) : (
                     <>
                       <div className="flex">
                         <span className="text-muted-foreground min-w-[140px]">เลขทาง</span>
@@ -456,12 +453,6 @@ export default function JobDetailPage() {
                         <span>: -</span>
                       </div>
                     </>
-                  )}
-                  {isInternational && job.destination_remarks && (
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">ผู้รรรษฐิ</span>
-                      <span>: {job.destination_remarks}</span>
-                    </div>
                   )}
                 </div>
 
