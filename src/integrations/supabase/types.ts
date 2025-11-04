@@ -139,18 +139,35 @@ export type Database = {
       }
       jobs: {
         Row: {
+          container_checkpoint: string | null
+          container_checkpoint_code: string | null
+          container_number: string | null
           created_at: string
+          destination_bill_of_lading: string | null
+          destination_contact_person: string | null
+          destination_goods_quantity: string | null
+          destination_goods_type: string | null
           destination_location: string
+          destination_remarks: string | null
+          destination_time: string | null
           district: string | null
           employer_name: string
+          empty_container_date: string | null
           equipment_list: string | null
           id: string
           job_type: string
           order_code: string
+          origin_bill_of_lading: string | null
+          origin_contact_person: string | null
+          origin_contact_role: string | null
+          origin_goods_quantity: string | null
+          origin_goods_type: string | null
           origin_location: string
+          origin_remarks: string | null
           price: number
           province: string | null
           safety_equipment: string | null
+          seal_number: string | null
           start_date: string
           start_time: string
           status: string
@@ -158,18 +175,35 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          container_checkpoint?: string | null
+          container_checkpoint_code?: string | null
+          container_number?: string | null
           created_at?: string
+          destination_bill_of_lading?: string | null
+          destination_contact_person?: string | null
+          destination_goods_quantity?: string | null
+          destination_goods_type?: string | null
           destination_location: string
+          destination_remarks?: string | null
+          destination_time?: string | null
           district?: string | null
           employer_name: string
+          empty_container_date?: string | null
           equipment_list?: string | null
           id?: string
           job_type: string
           order_code: string
+          origin_bill_of_lading?: string | null
+          origin_contact_person?: string | null
+          origin_contact_role?: string | null
+          origin_goods_quantity?: string | null
+          origin_goods_type?: string | null
           origin_location: string
+          origin_remarks?: string | null
           price: number
           province?: string | null
           safety_equipment?: string | null
+          seal_number?: string | null
           start_date: string
           start_time: string
           status?: string
@@ -177,18 +211,35 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          container_checkpoint?: string | null
+          container_checkpoint_code?: string | null
+          container_number?: string | null
           created_at?: string
+          destination_bill_of_lading?: string | null
+          destination_contact_person?: string | null
+          destination_goods_quantity?: string | null
+          destination_goods_type?: string | null
           destination_location?: string
+          destination_remarks?: string | null
+          destination_time?: string | null
           district?: string | null
           employer_name?: string
+          empty_container_date?: string | null
           equipment_list?: string | null
           id?: string
           job_type?: string
           order_code?: string
+          origin_bill_of_lading?: string | null
+          origin_contact_person?: string | null
+          origin_contact_role?: string | null
+          origin_goods_quantity?: string | null
+          origin_goods_type?: string | null
           origin_location?: string
+          origin_remarks?: string | null
           price?: number
           province?: string | null
           safety_equipment?: string | null
+          seal_number?: string | null
           start_date?: string
           start_time?: string
           status?: string

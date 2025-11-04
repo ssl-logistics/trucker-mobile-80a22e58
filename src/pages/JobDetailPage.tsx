@@ -21,6 +21,23 @@ interface JobDetail {
   start_time: string;
   equipment_list: string | null;
   safety_equipment: string | null;
+  container_checkpoint: string | null;
+  container_checkpoint_code: string | null;
+  empty_container_date: string | null;
+  container_number: string | null;
+  seal_number: string | null;
+  origin_contact_person: string | null;
+  origin_contact_role: string | null;
+  origin_bill_of_lading: string | null;
+  origin_goods_type: string | null;
+  origin_goods_quantity: string | null;
+  origin_remarks: string | null;
+  destination_contact_person: string | null;
+  destination_bill_of_lading: string | null;
+  destination_goods_type: string | null;
+  destination_goods_quantity: string | null;
+  destination_time: string | null;
+  destination_remarks: string | null;
 }
 
 interface JobApplication {
@@ -152,7 +169,67 @@ export default function JobDetailPage() {
 
         {/* Route Info */}
         <div>
-          <h2 className="text-lg font-semibold mb-3">ผู้รับ : {job.employer_name}</h2>
+          <h2 className="text-lg font-semibold mb-3">
+            {isInternational ? 'Booking' : 'ผู้รับ'} : {job.employer_name}
+          </h2>
+
+          {/* International: Container Checkpoint */}
+          {isInternational && (
+            <Card className="p-4 mb-4 border-2 border-teal-200">
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col items-center">
+                  <Circle className="w-6 h-6 text-teal-600 fill-teal-600" />
+                  <div className="w-0.5 h-16 bg-dashed border-l-2 border-dashed border-muted-foreground my-1" />
+                </div>
+                
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold">จุดตรวจตู้เปล่า {job.container_checkpoint || job.origin_location}</h3>
+                  </div>
+
+                  <div className="space-y-1 text-sm mb-3">
+                    {job.container_checkpoint_code && (
+                      <div className="flex">
+                        <span className="text-muted-foreground w-40">จุดตรวจตู้เปล่า</span>
+                        <span>: {job.container_checkpoint_code}</span>
+                      </div>
+                    )}
+                    {job.empty_container_date && (
+                      <div className="flex">
+                        <span className="text-muted-foreground w-40">วันเริ่มเข้ารับตู้เปล่า</span>
+                        <span>: {formatDate(job.empty_container_date)}</span>
+                      </div>
+                    )}
+                    {job.container_number && (
+                      <div className="flex">
+                        <span className="text-muted-foreground w-40">เลขตู้คอนเทนเนอร์</span>
+                        <span>: {job.container_number}</span>
+                      </div>
+                    )}
+                    {job.seal_number && (
+                      <div className="flex">
+                        <span className="text-muted-foreground w-40">เลขซีล</span>
+                        <span>: {job.seal_number}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" className="h-10">
+                      <Navigation className="w-4 h-4 mr-1" />
+                      เส้นทาง
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      className="h-10 bg-blue-600 hover:bg-blue-700"
+                    >
+                      อัปเดตสถานะ
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Pickup Point */}
           <Card className="p-4 mb-4 border-2 border-teal-200">
@@ -164,7 +241,9 @@ export default function JobDetailPage() {
               
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">จุดรับสินค้า Factory1</h3>
+                  <h3 className="font-semibold">
+                    {isInternational ? `จุดรับสินค้า ${job.origin_location}` : `จุดรับสินค้า Factory1`}
+                  </h3>
                   <span className={`text-xs font-medium ${
                     jobApplication?.sop_completed_at 
                       ? 'text-green-600' 
@@ -181,25 +260,35 @@ export default function JobDetailPage() {
                 </div>
 
                 <div className="space-y-1 text-sm mb-3">
+                  {(isInternational ? job.origin_contact_person : 'คุณณัฏฐพงศ์') && (
+                    <div className="flex">
+                      <span className="text-muted-foreground w-40">ชื่อผู้ติดต่อ</span>
+                      <span>: {isInternational 
+                        ? `${job.origin_contact_person}${job.origin_contact_role ? ` (${job.origin_contact_role})` : ''}` 
+                        : 'คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)'}</span>
+                    </div>
+                  )}
+                  {(isInternational ? job.origin_bill_of_lading : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร') && (
+                    <div className="flex">
+                      <span className="text-muted-foreground w-40">{isInternational ? 'เลขที่ใบกำกับสินค้า' : 'เลขทาง'}</span>
+                      <span>: {isInternational ? job.origin_bill_of_lading : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร'}</span>
+                    </div>
+                  )}
+                  {(isInternational ? job.origin_goods_type && job.origin_goods_quantity : true) && (
+                    <div className="flex">
+                      <span className="text-muted-foreground w-40">ประเภทสินค้า</span>
+                      <span>: {isInternational 
+                        ? `${job.origin_goods_type} (${job.origin_goods_quantity})` 
+                        : 'น้ำตาล (30 กล่อง)'}</span>
+                    </div>
+                  )}
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">ชื่อผู้ติดต่อ</span>
-                    <span>: คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-muted-foreground w-28">เลขทาง</span>
-                    <span>: BKK001 ลาดพร้าว/กรุงเทพมหานคร</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-muted-foreground w-28">ประเภทสินค้า</span>
-                    <span>: น้ำตาล (30 กล่อง)</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-muted-foreground w-28">เข้ารับสินค้า</span>
+                    <span className="text-muted-foreground w-40">เข้ารับสินค้า</span>
                     <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">หมายเหตุ</span>
-                    <span>: เข้าสถานที่ต้องแสดงบัตรชิด</span>
+                    <span className="text-muted-foreground w-40">หมายเหตุ</span>
+                    <span>: {isInternational ? (job.origin_remarks || '-') : 'เข้าสถานที่ต้องแสดงบัตรชิด'}</span>
                   </div>
                 </div>
 
@@ -243,7 +332,9 @@ export default function JobDetailPage() {
               
               <div className={`flex-1 ${!jobApplication?.job_started_at ? 'text-gray-400' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className={`font-semibold ${!jobApplication?.job_started_at ? 'text-gray-400' : ''}`}>จุดส่ง คศน.ชัยนาต</h3>
+                  <h3 className={`font-semibold ${!jobApplication?.job_started_at ? 'text-gray-400' : ''}`}>
+                    จุดส่ง{isInternational ? 'สินค้า' : ''} {job.destination_location}
+                  </h3>
                   <span className={`text-xs font-medium ${
                     !jobApplication?.job_started_at
                       ? 'text-gray-400'
@@ -264,34 +355,42 @@ export default function JobDetailPage() {
                 </div>
 
                 <div className="space-y-1 text-sm mb-3">
+                  {(isInternational ? job.destination_contact_person : 'คุณธงใบย') && (
+                    <div className="flex">
+                      <span className="text-muted-foreground w-40">ชื่อผู้ติดต่อ</span>
+                      <span>: {isInternational ? job.destination_contact_person : 'คุณธงใบย'}</span>
+                    </div>
+                  )}
+                  {(isInternational ? job.destination_bill_of_lading : 'SAM001 เมือง/สมุทรปราการ') && (
+                    <div className="flex">
+                      <span className="text-muted-foreground w-40">เลขทาง</span>
+                      <span>: {isInternational ? job.destination_bill_of_lading : 'SAM001 เมือง/สมุทรปราการ'}</span>
+                    </div>
+                  )}
+                  {(isInternational ? job.destination_goods_type && job.destination_goods_quantity : true) && (
+                    <div className="flex">
+                      <span className="text-muted-foreground w-40">ประเภทสินค้า</span>
+                      <span>: {isInternational 
+                        ? `${job.destination_goods_type} (${job.destination_goods_quantity})` 
+                        : 'น้ำตาล (10 กล่อง)'}</span>
+                    </div>
+                  )}
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">ชื่อผู้ติดต่อ</span>
-                    <span>: คุณธงใบย</span>
+                    <span className="text-muted-foreground w-40">ส่งสินค้า</span>
+                    <span>: {formatDate(job.start_date)} | {isInternational && job.destination_time ? job.destination_time.substring(0, 5) : '11:00'}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground w-28">เลขทาง</span>
-                    <span>: SAM001 เมือง/สมุทรปราการ</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-muted-foreground w-28">ประเภทสินค้า</span>
-                    <span>: น้ำตาล (10 กล่อง)</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-muted-foreground w-28">ส่งสินค้า</span>
-                    <span>: {formatDate(job.start_date)} | 11:00</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-muted-foreground w-28">หมายเหตุ</span>
-                    <span>: -</span>
+                    <span className="text-muted-foreground w-40">หมายเหตุ</span>
+                    <span>: {isInternational ? (job.destination_remarks || '-') : '-'}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
-                  <Button variant="outline" size="sm" className="h-10">
+                  <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
                     <Phone className="w-4 h-4" />
                     โทร
                   </Button>
-                  <Button variant="outline" size="sm" className="h-10">
+                  <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
                     <Navigation className="w-4 h-4" />
                     เส้นทาง
                   </Button>
