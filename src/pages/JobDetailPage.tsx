@@ -274,22 +274,18 @@ export default function JobDetailPage() {
                       <span className="text-muted-foreground min-w-[140px]">วัน/เวลาเริ่มต้น</span>
                       <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
                     </div>
-                    {isInbound && (
-                      <>
-                        <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">วันรับเข้าช่างต้นต้น</span>
-                          <span>: {formatDate(mockContainerData.emptyDate)}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">ผู้รับสินค้า</span>
-                          <span>: บริษัท โซเดคซ์ จำกัด</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">วันคนเทนเนอร์</span>
-                          <span>: FCL 2 x 40 HC</span>
-                        </div>
-                      </>
-                    )}
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[140px]">วันรับเข้าช่างต้นต้น</span>
+                      <span>: {formatDate(mockContainerData.emptyDate)}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[140px]">ผู้รับสินค้า</span>
+                      <span>: {isInbound ? 'บริษัท โซเดคซ์ จำกัด' : mockOriginData.billOfLading}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[140px]">วันคนเทนเนอร์</span>
+                      <span>: {isInbound ? 'FCL 2 x 40 HC' : mockContainerData.checkpointCode}</span>
+                    </div>
                     
                     {/* Container Pairs */}
                     <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 mt-2">
