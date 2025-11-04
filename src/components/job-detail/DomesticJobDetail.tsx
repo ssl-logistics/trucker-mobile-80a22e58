@@ -126,9 +126,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
           <Card className={`p-4 mb-3 border-2 rounded-2xl ${
             jobApplication?.sop_completed_at
               ? 'border-green-500 bg-green-50'
-              : jobApplication?.job_started_at
-              ? 'border-teal-500 bg-white' 
-              : 'border-gray-300 bg-gray-50'
+              : 'border-teal-500 bg-white'
           }`}>
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center pt-1">
@@ -137,12 +135,12 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                 ) : jobApplication?.job_started_at ? (
                   <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-teal-600" />
                 ) : (
-                  <Circle className="w-5 h-5 text-gray-400" />
+                  <div className="w-5 h-5 rounded-full border-2 border-teal-600" />
                 )}
                 <div className="w-0.5 h-full border-l-2 border-dashed border-gray-300 my-1" />
               </div>
               
-              <div className={`flex-1 ${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
+              <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-sm">จุดรับสินค้า</h3>
                   {jobApplication?.job_started_at && (
