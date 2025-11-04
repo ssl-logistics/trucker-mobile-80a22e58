@@ -119,14 +119,24 @@ export default function JobDetailPage() {
   // Determine if domestic or international
   const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
   const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+  const isInbound = job.transport_type?.includes('ขาเข้า'); // International inbound
+  const isOutbound = job.transport_type?.includes('ขาออก'); // International outbound
 
   // Mock data for international transport
   const mockContainerData = {
     checkpoint: job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย',
     checkpointCode: job.container_checkpoint_code || 'LCB B1',
     emptyDate: job.empty_container_date || '2023-11-02',
-    containerNumber: job.container_number || 'MSKU1234567',
-    sealNumber: job.seal_number || 'SEAL987654'
+    containers: [
+      {
+        number: 'TGHU4455667',
+        seal: 'SEAL556677'
+      },
+      {
+        number: 'CAIU9988776',
+        seal: 'SEAL112233'
+      }
+    ]
   };
 
   const mockOriginData = {
@@ -249,20 +259,57 @@ export default function JobDetailPage() {
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">จุดตรวจตู้เปล่า</span>
-                      <span>: {mockContainerData.checkpointCode}</span>
+                      <span className="text-muted-foreground min-w-[140px]">วัน/เวลาเริ่มต้น</span>
+                      <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">วันเริ่มเข้ารับตู้เปล่า</span>
+                      <span className="text-muted-foreground min-w-[140px]">วันรับเข้าช่างต้นต้น</span>
                       <span>: {formatDate(mockContainerData.emptyDate)}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">เลขตู้คอนเทนเนอร์</span>
-                      <span>: {mockContainerData.containerNumber}</span>
+                      <span className="text-muted-foreground min-w-[140px]">ผู้รับสินค้า</span>
+                      <span>: {isInbound ? 'บริษัท โซเดคซ์ จำกัด' : mockOriginData.billOfLading}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">เลขซีล</span>
-                      <span>: {mockContainerData.sealNumber}</span>
+                      <span className="text-muted-foreground min-w-[140px]">วันคนเทนเนอร์</span>
+                      <span>: {isInbound ? 'FCL 2 x 40 HC' : mockContainerData.checkpointCode}</span>
+                    </div>
+                    
+                    {/* Container Pairs */}
+                    <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 mt-2">
+                      <div className="flex items-start gap-2">
+                        <div className="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                          1
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-start">
+                            <span className="text-muted-foreground text-xs min-w-[130px]">เลขตู้คอนเทนเนอร์</span>
+                            <span className="text-xs font-medium">: {mockContainerData.containers[0].number}</span>
+                          </div>
+                          <div className="flex items-start">
+                            <span className="text-muted-foreground text-xs min-w-[130px]">เลขซีล</span>
+                            <span className="text-xs font-medium">: {mockContainerData.containers[0].seal}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-teal-50 border border-teal-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <div className="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                          2
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-start">
+                            <span className="text-muted-foreground text-xs min-w-[130px]">เลขตู้คอนเทนเนอร์</span>
+                            <span className="text-xs font-medium">: {mockContainerData.containers[1].number}</span>
+                          </div>
+                          <div className="flex items-start">
+                            <span className="text-muted-foreground text-xs min-w-[130px]">เลขซีล</span>
+                            <span className="text-xs font-medium">: {mockContainerData.containers[1].seal}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -323,7 +370,7 @@ export default function JobDetailPage() {
               <div className={`flex-1 ${isInternational && !jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-sm">
-                    จุดรับสินค้า
+                    {isInbound ? 'จุดส่งสินค้า' : 'จุดรับสินค้า'}
                   </h3>
                   {(!isInternational || jobApplication?.container_sop_completed_at) && (
                     <span className={`text-xs font-medium ${
@@ -339,33 +386,33 @@ export default function JobDetailPage() {
                 </div>
 
                 <h4 className="font-semibold text-base mb-2">
-                  {isInternational ? job.origin_location : 'Factory1'}
+                  {isInbound ? 'คลังสินค้าทางบก, สมุทรปราการ' : (isInternational ? job.origin_location : 'Factory1')}
                 </h4>
 
                 <div className="space-y-1 text-sm mb-3">
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">ชื่อผู้ติดต่อ</span>
-                    <span>: {isInternational 
-                      ? `${mockOriginData.contactPerson} (${mockOriginData.contactRole})` 
-                      : 'คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)'}</span>
+                    <span className="text-muted-foreground min-w-[100px]">เลขที่เอียด</span>
+                    <span>: {isInbound ? '123456789' : (mockOriginData.contactPerson)}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">เลขทาง</span>
-                    <span>: {mockOriginData.billOfLading}</span>
+                    <span className="text-muted-foreground min-w-[100px]">ชื่อจุดรับ</span>
+                    <span>: {isInbound 
+                      ? 'คลังเป็ธพงศ์ (เจ้าหน้าที่คลังสินค้า)'
+                      : mockOriginData.billOfLading}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
-                    <span>: {isInternational 
-                      ? `${mockOriginData.goodsType} (${mockOriginData.goodsQuantity})` 
-                      : 'น้ำตาล (10 กล่อง)'}</span>
+                    <span className="text-muted-foreground min-w-[100px]">เส้นทาง</span>
+                    <span>: {isInbound 
+                      ? 'SAM001 ลาดพร้าว, กรุงเทพมหานคร'
+                      : mockOriginData.billOfLading}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
-                    <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
+                    <span className="text-muted-foreground min-w-[100px]">เข้าส่งสินค้า</span>
+                    <span>: {formatDate(job.start_date)} | {isInbound ? '20.00' : job.start_time.substring(0, 5)}</span>
                   </div>
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
-                    <span>: {mockOriginData.remarks}</span>
+                    <span>: {isInbound ? 'เข้าสถานที่ต้องแสดงบัตรชิด' : mockOriginData.remarks}</span>
                   </div>
                 </div>
 
@@ -411,7 +458,7 @@ export default function JobDetailPage() {
             </div>
           </Card>
 
-          {/* Delivery Point */}
+          {/* Delivery Point / Return Empty Container for Inbound */}
           <Card className={`p-4 border-2 ${
             jobApplication?.delivery_sop_completed_at
               ? 'border-green-500 bg-green-50'
@@ -433,83 +480,134 @@ export default function JobDetailPage() {
               <div className={`flex-1 ${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-sm">
-                    {isInternational ? 'จุดคืนตู้เต็ม' : 'จุดส่ง'}
+                    {isInbound ? 'จุดคืนตู้เปล่า' : (isOutbound ? 'จุดคืนตู้เต็ม' : 'จุดส่ง')}
                   </h3>
                   {jobApplication?.sop_completed_at && (
                     <span className={`text-xs font-medium ${
                       jobApplication?.delivery_sop_completed_at 
                         ? 'text-green-600' 
-                        : 'text-orange-500'
+                        : 'text-gray-400'
                     }`}>
                       • {jobApplication?.delivery_sop_completed_at 
                         ? 'POD สำเร็จ' 
-                        : 'รอเช็คอิน'}
+                        : 'อัปเดตงาน'}
                     </span>
                   )}
                 </div>
 
                 <h4 className="font-semibold text-base mb-2">
-                  {job.destination_location}
+                  {isInbound ? 'ICD ลาดกระบัง' : job.destination_location}
                 </h4>
 
                 <div className="space-y-1 text-sm mb-3">
-                  <div className="flex">
-                    <span className="text-muted-foreground min-w-[140px]">
-                      {isInternational ? 'วันคืนตู้คอนเทนเนอร์' : 'ชื่อผู้ติดต่อ'}
-                    </span>
-                    <span>: {isInternational 
-                      ? `${formatDate(job.start_date)} | ${mockDestinationData.time}`
-                      : 'คุณธงใบย'}</span>
-                  </div>
-                  {isInternational ? (
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">ผู้รับรอง</span>
-                      <span>: {mockDestinationData.remarks}</span>
-                    </div>
-                  ) : (
+                  {isInbound ? (
                     <>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[140px]">เลขทาง</span>
-                        <span>: SAM001 เมือง/สมุทรปราการ</span>
+                        <span className="text-muted-foreground min-w-[140px]">วันที่หมดคืนตู้เปล่า</span>
+                        <span>: 03/11/2025 | 20.00</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[140px]">ประเภทสินค้า</span>
-                        <span>: น้ำตาล (10 กล่อง)</span>
-                      </div>
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[140px]">ส่งสินค้า</span>
-                        <span>: {formatDate(job.start_date)} | 11:00</span>
+                        <span className="text-muted-foreground min-w-[140px]">ผู้รับรอง</span>
+                        <span>: บริษัท เอราวา โฮเทล เจ็ดกดิษฐ</span>
                       </div>
                       <div className="flex">
                         <span className="text-muted-foreground min-w-[140px]">หมายเหตุ</span>
-                        <span>: -</span>
+                        <span>: ต้องคืนตู้ก่อนนัดต้องภูดบา Detention</span>
                       </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[140px]">
+                          {isOutbound ? 'วันคืนตู้คอนเทนเนอร์' : 'ชื่อผู้ติดต่อ'}
+                        </span>
+                        <span>: {isOutbound 
+                          ? `${formatDate(job.start_date)} | ${mockDestinationData.time}`
+                          : 'คุณธงใบย'}</span>
+                      </div>
+                      {isOutbound ? (
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">ผู้รับรอง</span>
+                          <span>: {mockDestinationData.remarks}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex">
+                            <span className="text-muted-foreground min-w-[140px]">เลขทาง</span>
+                            <span>: SAM001 เมือง/สมุทรปราการ</span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-muted-foreground min-w-[140px]">ประเภทสินค้า</span>
+                            <span>: น้ำตาล (10 กล่อง)</span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-muted-foreground min-w-[140px]">ส่งสินค้า</span>
+                            <span>: {formatDate(job.start_date)} | 11:00</span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-muted-foreground min-w-[140px]">หมายเหตุ</span>
+                            <span>: -</span>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-10" 
-                    disabled={!jobApplication?.sop_completed_at}
-                  >
-                    <Navigation className="w-4 h-4 mr-1" />
-                    เส้นทาง
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="h-10 bg-blue-600 hover:bg-blue-700"
-                    onClick={() => {
-                      navigate(`/job/${job.id}/delivery`);
-                    }}
-                    disabled={!jobApplication?.sop_completed_at}
-                  >
-                    {jobApplication?.delivery_sop_completed_at 
-                      ? 'ดูข้อมูล' 
-                      : 'อัปเดตสถานะ'}
-                  </Button>
+                <div className="grid grid-cols-3 gap-2">
+                  {isInbound ? (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-10"
+                        disabled={!jobApplication?.sop_completed_at}
+                      >
+                        <Phone className="w-4 h-4" />
+                        โทร
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-10" 
+                        disabled={!jobApplication?.sop_completed_at}
+                      >
+                        <Navigation className="w-4 h-4" />
+                        เส้นทาง
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="h-10 bg-gray-300 hover:bg-gray-300 text-gray-500 cursor-not-allowed"
+                        disabled
+                      >
+                        อัปเดตงาน
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-10" 
+                        disabled={!jobApplication?.sop_completed_at}
+                      >
+                        <Navigation className="w-4 h-4 mr-1" />
+                        เส้นทาง
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="h-10 bg-blue-600 hover:bg-blue-700"
+                        onClick={() => {
+                          navigate(`/job/${job.id}/delivery`);
+                        }}
+                        disabled={!jobApplication?.sop_completed_at}
+                      >
+                        {jobApplication?.delivery_sop_completed_at 
+                          ? 'ดูข้อมูล' 
+                          : 'อัปเดตสถานะ'}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

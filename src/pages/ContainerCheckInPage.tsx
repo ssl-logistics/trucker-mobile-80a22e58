@@ -111,8 +111,16 @@ export default function ContainerCheckInPage() {
     checkpoint: job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย',
     checkpointCode: job.container_checkpoint_code || 'LCB B1',
     emptyDate: job.empty_container_date || '2023-11-02',
-    containerNumber: job.container_number || 'MSKU1234567',
-    sealNumber: job.seal_number || 'SEAL987654'
+    containers: [
+      {
+        number: 'TGHU4455667',
+        seal: 'SEAL556677'
+      },
+      {
+        number: 'CAIU9988776',
+        seal: 'SEAL112233'
+      }
+    ]
   };
 
   return (
@@ -157,29 +165,62 @@ export default function ContainerCheckInPage() {
         </Card>
 
         {/* Container Details */}
-        <Card className="p-4">
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground">จุดรับตู้เปล่า (CY EMPTY / CFS CONTAINER AT)</p>
-              <p className="font-medium">{mockContainerData.checkpointCode}</p>
-            </div>
-            
-            <div>
-              <p className="text-sm text-muted-foreground">วันรับรับตู้เปล่า (FIRST DATE PICK UP CTNR)</p>
-              <p className="font-medium">{formatDate(mockContainerData.emptyDate)}</p>
-            </div>
-            
-            <div>
-              <p className="text-sm text-muted-foreground">เลขตู้คอนเทนเนอร์ (Container No.)</p>
-              <p className="font-medium">{mockContainerData.containerNumber}</p>
-            </div>
-            
-            <div>
-              <p className="text-sm text-muted-foreground">เลขซีล (Seal No.)</p>
-              <p className="font-medium">{mockContainerData.sealNumber}</p>
-            </div>
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm text-gray-600 mb-1">วัน/เวลาเริ่มต้น</p>
+            <p className="font-medium">{formatDate(job.empty_container_date || '2023-11-18')} | 09.00</p>
           </div>
-        </Card>
+
+          <div>
+            <p className="text-sm text-gray-600 mb-1">วันรับเข้าช่างต้นต้น</p>
+            <p className="font-medium">{mockContainerData.checkpointCode}</p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600 mb-1">วันรับเข้าช่างต้นต้น (FIRST DATE PICK UP CTNR)</p>
+            <p className="font-medium">{formatDate(mockContainerData.emptyDate)}</p>
+          </div>
+
+          {/* Container Pair 1 */}
+          <Card className="p-4 bg-white border-2 border-gray-200">
+            <div className="flex items-start gap-2 mb-3">
+              <div className="bg-teal-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                1
+              </div>
+              <h3 className="font-semibold text-base">คู่ที่ 1</h3>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm text-muted-foreground">เลขตู้คอนเทนเนอร์ (Container No.)</p>
+                <p className="font-medium">{mockContainerData.containers[0].number}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">เลขซีล (Seal No.)</p>
+                <p className="font-medium">{mockContainerData.containers[0].seal}</p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Container Pair 2 */}
+          <Card className="p-4 bg-white border-2 border-gray-200">
+            <div className="flex items-start gap-2 mb-3">
+              <div className="bg-teal-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                2
+              </div>
+              <h3 className="font-semibold text-base">คู่ที่ 2</h3>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm text-muted-foreground">เลขตู้คอนเทนเนอร์ (Container No.)</p>
+                <p className="font-medium">{mockContainerData.containers[1].number}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">เลขซีล (Seal No.)</p>
+                <p className="font-medium">{mockContainerData.containers[1].seal}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
 
         {/* Navigation Button */}
         <Button 
