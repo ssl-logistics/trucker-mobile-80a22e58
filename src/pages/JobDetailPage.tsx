@@ -237,7 +237,7 @@ export default function JobDetailPage() {
                           : 'text-orange-500'
                       }`}>
                         • {jobApplication?.container_sop_completed_at 
-                          ? 'SOP สำเร็จ' 
+                          ? 'รับตู้เปล่าสำเร็จ' 
                           : 'รอเช็คอิน'}
                       </span>
                     )}
