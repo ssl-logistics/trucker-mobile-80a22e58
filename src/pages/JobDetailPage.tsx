@@ -164,16 +164,28 @@ export default function JobDetailPage() {
           </button>
           <div className="flex-1 text-center">
             <h1 className="text-xl font-semibold">{job.order_code}</h1>
-            <div className="flex items-center justify-center gap-2 mt-1">
+            <div className="flex items-center justify-center gap-2 mt-1 flex-wrap">
               {isDomestic && (
                 <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 text-xs">
                   ขนส่งภายในประเทศ
                 </Badge>
               )}
               {isInternational && (
-                <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 text-xs">
-                  ขนส่งภายนอกประเทศ
-                </Badge>
+                <>
+                  <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 text-xs">
+                    ขนส่งภายนอกประเทศ
+                  </Badge>
+                  {isInbound && (
+                    <Badge variant="secondary" className="bg-blue-500/80 text-white hover:bg-blue-600/80 text-xs">
+                      ขาเข้า
+                    </Badge>
+                  )}
+                  {isOutbound && (
+                    <Badge variant="secondary" className="bg-orange-500/80 text-white hover:bg-orange-600/80 text-xs">
+                      ขาออก
+                    </Badge>
+                  )}
+                </>
               )}
             </div>
           </div>
