@@ -392,14 +392,10 @@ export default function JobDetailPage() {
                     <span className={`text-xs font-medium ${
                       jobApplication?.sop_completed_at 
                         ? 'text-green-600' 
-                        : jobApplication?.checked_in_at
-                        ? 'text-blue-600'
                         : 'text-orange-500'
                     }`}>
                       • {jobApplication?.sop_completed_at 
                         ? 'SOP สำเร็จ' 
-                        : jobApplication?.checked_in_at
-                        ? 'กำลังทำ SOP'
                         : 'รอเช็คอิน'}
                     </span>
                   )}
