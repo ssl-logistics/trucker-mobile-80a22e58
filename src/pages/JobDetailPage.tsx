@@ -195,9 +195,14 @@ export default function JobDetailPage() {
 
         {/* Route Info */}
         <div>
-          <h2 className="text-lg font-semibold mb-3">
-            {isInternational ? 'Booking' : 'ผู้รับ'} : {job.employer_name}
-          </h2>
+          <div className="mb-3">
+            <h2 className="text-lg font-semibold">
+              Booking : {job.order_code}
+            </h2>
+            <p className="text-base font-medium text-foreground">
+              ผู้จ้าง : {job.employer_name}
+            </p>
+          </div>
 
           {/* International: Container Checkpoint */}
           {isInternational && (
