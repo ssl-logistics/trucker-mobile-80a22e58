@@ -195,7 +195,7 @@ export default function DeliveryDetailPage() {
       description: 'บันทึกข้อมูล POD เรียบร้อยแล้ว',
     });
     setShowPodConfirmDialog(false);
-    loadJobDetail();
+    navigate(`/job/${job.id}`);
   };
 
   const handleCheckIn = async () => {
