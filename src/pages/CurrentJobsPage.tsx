@@ -158,9 +158,21 @@ export default function CurrentJobsPage() {
                 </Badge>
               )}
               {(job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก')) && (
-                <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-                  ขนส่งภายนอกประเทศ
-                </Badge>
+                <>
+                  <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+                    ขนส่งภายนอกประเทศ
+                  </Badge>
+                  {job.transport_type?.includes('ขาเข้า') && (
+                    <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                      ขาเข้า
+                    </Badge>
+                  )}
+                  {job.transport_type?.includes('ขาออก') && (
+                    <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
+                      ขาออก
+                    </Badge>
+                  )}
+                </>
               )}
             </div>
             <div className="text-sm text-muted-foreground">
