@@ -52,9 +52,6 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
           <span className="font-medium">{job.employer_name}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="text-sm text-blue-600 font-medium">
-            {job.job_type}
-          </div>
           {isDomestic && (
             <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
               ขนส่งภายในประเทศ
