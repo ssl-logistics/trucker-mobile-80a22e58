@@ -324,7 +324,7 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
                       • {jobApplication?.sop_completed_at 
                         ? 'SOP สำเร็จ' 
                         : jobApplication?.checked_in_at
-                        ? 'กำลังทำ SOP'
+                        ? 'รอ SOP'
                         : 'รอเช็คอิน'}
                     </span>
                   )}
