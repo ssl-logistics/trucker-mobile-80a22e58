@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 
 interface JobApplication {
@@ -145,16 +146,28 @@ export default function CurrentJobsPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">ผู้จ้าง : </span>
-                      <span className="font-medium">{job.employer_name}</span>
-                    </div>
-                    <div className="text-sm text-blue-600 font-medium">
-                      {job.transport_type}
-                    </div>
+          <div className="space-y-2">
+            <div className="text-sm">
+              <span className="text-muted-foreground">ผู้จ้าง : </span>
+              <span className="font-medium">{job.employer_name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {(job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่')) && (
+                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                  ขนส่งภายในประเทศ
+                </Badge>
+              )}
+              {(job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก')) && (
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+                  ขนส่งภายนอกประเทศ
+                </Badge>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {job.transport_type}
+            </div>
 
-                    <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-start gap-2">
                           <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
