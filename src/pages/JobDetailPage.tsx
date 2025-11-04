@@ -402,7 +402,7 @@ export default function JobDetailPage() {
           <Card className={`p-4 border-2 ${
             jobApplication?.delivery_sop_completed_at
               ? 'border-green-500 bg-green-50'
-              : jobApplication?.job_started_at
+              : jobApplication?.sop_completed_at
               ? 'border-teal-500 bg-white' 
               : 'border-gray-300 bg-gray-50'
           }`}>
@@ -410,19 +410,19 @@ export default function JobDetailPage() {
               <div className="flex flex-col items-center pt-1">
                 {jobApplication?.delivery_sop_completed_at ? (
                   <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
-                ) : jobApplication?.job_started_at ? (
+                ) : jobApplication?.sop_completed_at ? (
                   <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-white" />
                 ) : (
                   <Circle className="w-5 h-5 text-gray-400" />
                 )}
               </div>
               
-              <div className={`flex-1 ${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
+              <div className={`flex-1 ${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-sm">
                     {isInternational ? 'จุดคืนตู้เต็ม' : 'จุดส่ง'}
                   </h3>
-                  {jobApplication?.job_started_at && (
+                  {jobApplication?.sop_completed_at && (
                     <span className={`text-xs font-medium ${
                       jobApplication?.delivery_sop_completed_at 
                         ? 'text-green-600' 
