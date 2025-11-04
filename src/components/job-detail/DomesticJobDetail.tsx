@@ -333,11 +333,18 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
       {!jobApplication?.job_started_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button 
-            className="w-full h-12 text-base text-white"
-            style={{
+            className={`w-full h-12 text-base ${
+              jobApplication?.sop_completed_at 
+                ? 'text-white' 
+                : 'text-gray-500 cursor-not-allowed'
+            }`}
+            style={jobApplication?.sop_completed_at ? {
               background: 'linear-gradient(90deg, #245D9E 0%, #1A4271 100%)'
+            } : {
+              background: '#E5E7EB'
             }}
             onClick={handleStartJob}
+            disabled={!jobApplication?.sop_completed_at}
           >
             เริ่มงาน
           </Button>
