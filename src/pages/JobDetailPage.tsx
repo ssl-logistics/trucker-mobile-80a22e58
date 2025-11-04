@@ -120,6 +120,30 @@ export default function JobDetailPage() {
   const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
   const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
 
+  // Mock data for international transport
+  const mockContainerData = {
+    checkpoint: job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย',
+    checkpointCode: job.container_checkpoint_code || 'LCB B1',
+    emptyDate: job.empty_container_date || '2023-11-02',
+    containerNumber: job.container_number || 'MSKU1234567',
+    sealNumber: job.seal_number || 'SEAL987654'
+  };
+
+  const mockOriginData = {
+    contactPerson: job.origin_contact_person || 'คุณณัฏฐพงศ์',
+    contactRole: job.origin_contact_role || 'เจ้าหน้าที่คลังสินค้า',
+    billOfLading: job.origin_bill_of_lading || 'BKK001 ลาดพร้าว/กรุงเทพมหานคร',
+    goodsType: job.origin_goods_type || 'น้ำตาล',
+    goodsQuantity: job.origin_goods_quantity || '10 กล่อง',
+    remarks: job.origin_remarks || 'เข้าสถานที่ต้องแสดงบัตรชิด'
+  };
+
+  const mockDestinationData = {
+    contactPerson: job.destination_contact_person || 'บริษัท เอเซีย เทรนส์ โลจิสติกส์ จำกัด',
+    time: job.destination_time || '20:00',
+    remarks: job.destination_remarks || job.employer_name || 'แปซิฟิค อิมปอร์ต จำกัด'
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
@@ -215,34 +239,26 @@ export default function JobDetailPage() {
                   </div>
 
                   <h4 className="font-semibold text-base mb-2">
-                    {job.container_checkpoint || job.origin_location}
+                    {mockContainerData.checkpoint}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
-                    {job.container_checkpoint_code && (
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[140px]">จุดตรวจตู้เปล่า</span>
-                        <span>: {job.container_checkpoint_code}</span>
-                      </div>
-                    )}
-                    {job.empty_container_date && (
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[140px]">วันเริ่มเข้ารับตู้เปล่า</span>
-                        <span>: {formatDate(job.empty_container_date)}</span>
-                      </div>
-                    )}
-                    {job.container_number && (
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[140px]">เลขตู้คอนเทนเนอร์</span>
-                        <span>: {job.container_number}</span>
-                      </div>
-                    )}
-                    {job.seal_number && (
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[140px]">เลขซีล</span>
-                        <span>: {job.seal_number}</span>
-                      </div>
-                    )}
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[140px]">จุดตรวจตู้เปล่า</span>
+                      <span>: {mockContainerData.checkpointCode}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[140px]">วันเริ่มเข้ารับตู้เปล่า</span>
+                      <span>: {formatDate(mockContainerData.emptyDate)}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[140px]">เลขตู้คอนเทนเนอร์</span>
+                      <span>: {mockContainerData.containerNumber}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[140px]">เลขซีล</span>
+                      <span>: {mockContainerData.sealNumber}</span>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -314,17 +330,17 @@ export default function JobDetailPage() {
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">ชื่อผู้ติดต่อ</span>
                     <span>: {isInternational 
-                      ? `${job.origin_contact_person || '-'}${job.origin_contact_role ? ` (${job.origin_contact_role})` : ''}` 
+                      ? `${mockOriginData.contactPerson} (${mockOriginData.contactRole})` 
                       : 'คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)'}</span>
                   </div>
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">เลขทาง</span>
-                    <span>: {isInternational ? (job.origin_bill_of_lading || '-') : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร'}</span>
+                    <span>: {mockOriginData.billOfLading}</span>
                   </div>
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
                     <span>: {isInternational 
-                      ? `${job.origin_goods_type || '-'} (${job.origin_goods_quantity || '-'})` 
+                      ? `${mockOriginData.goodsType} (${mockOriginData.goodsQuantity})` 
                       : 'น้ำตาล (10 กล่อง)'}</span>
                   </div>
                   <div className="flex">
@@ -333,7 +349,7 @@ export default function JobDetailPage() {
                   </div>
                   <div className="flex">
                     <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
-                    <span>: {isInternational ? (job.origin_remarks || '-') : 'เข้าสถานที่ต้องแสดงบัตรชิด'}</span>
+                    <span>: {mockOriginData.remarks}</span>
                   </div>
                 </div>
 
@@ -426,13 +442,13 @@ export default function JobDetailPage() {
                       {isInternational ? 'วันคืนตู้คอนเทนเนอร์' : 'ชื่อผู้ติดต่อ'}
                     </span>
                     <span>: {isInternational 
-                      ? `${formatDate(job.start_date)} | ${job.destination_time ? job.destination_time.substring(0, 5) : '20:00'}`
+                      ? `${formatDate(job.start_date)} | ${mockDestinationData.time}`
                       : 'คุณธงใบย'}</span>
                   </div>
                   {isInternational ? (
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[140px]">ผู้รับรอง</span>
-                      <span>: {job.destination_remarks || job.employer_name || '-'}</span>
+                      <span>: {mockDestinationData.remarks}</span>
                     </div>
                   ) : (
                     <>
