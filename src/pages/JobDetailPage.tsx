@@ -287,42 +287,46 @@ export default function JobDetailPage() {
                       <span>: {isInbound ? 'FCL 2 x 40 HC' : mockContainerData.checkpointCode}</span>
                     </div>
                     
-                    {/* Container Pairs */}
-                    <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 mt-2">
-                      <div className="flex items-start gap-2">
-                        <div className="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                          1
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-start">
-                            <span className="text-muted-foreground text-xs min-w-[130px]">เลขตู้คอนเทนเนอร์</span>
-                            <span className="text-xs font-medium">: {mockContainerData.containers[0].number}</span>
-                          </div>
-                          <div className="flex items-start">
-                            <span className="text-muted-foreground text-xs min-w-[130px]">เลขซีล</span>
-                            <span className="text-xs font-medium">: {mockContainerData.containers[0].seal}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-teal-50 border border-teal-200 rounded-lg p-3">
-                      <div className="flex items-start gap-2">
-                        <div className="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                          2
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-start">
-                            <span className="text-muted-foreground text-xs min-w-[130px]">เลขตู้คอนเทนเนอร์</span>
-                            <span className="text-xs font-medium">: {mockContainerData.containers[1].number}</span>
-                          </div>
-                          <div className="flex items-start">
-                            <span className="text-muted-foreground text-xs min-w-[130px]">เลขซีล</span>
-                            <span className="text-xs font-medium">: {mockContainerData.containers[1].seal}</span>
+                    {/* Container Pairs - Only for Inbound */}
+                    {isInbound && (
+                      <>
+                        <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 mt-2">
+                          <div className="flex items-start gap-2">
+                            <div className="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                              1
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-start">
+                                <span className="text-muted-foreground text-xs min-w-[130px]">เลขตู้คอนเทนเนอร์</span>
+                                <span className="text-xs font-medium">: {mockContainerData.containers[0].number}</span>
+                              </div>
+                              <div className="flex items-start">
+                                <span className="text-muted-foreground text-xs min-w-[130px]">เลขซีล</span>
+                                <span className="text-xs font-medium">: {mockContainerData.containers[0].seal}</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
+                        
+                        <div className="bg-teal-50 border border-teal-200 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <div className="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                              2
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-start">
+                                <span className="text-muted-foreground text-xs min-w-[130px]">เลขตู้คอนเทนเนอร์</span>
+                                <span className="text-xs font-medium">: {mockContainerData.containers[1].number}</span>
+                              </div>
+                              <div className="flex items-start">
+                                <span className="text-muted-foreground text-xs min-w-[130px]">เลขซีล</span>
+                                <span className="text-xs font-medium">: {mockContainerData.containers[1].seal}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
