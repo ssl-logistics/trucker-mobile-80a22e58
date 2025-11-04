@@ -107,9 +107,6 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
           </Card>
         </div>
 
-        {/* Action Buttons */}
-        <JobActionButtons jobId={job.id} />
-
         {/* Route Info */}
         <div>
           <div className="mb-3">

@@ -136,9 +136,6 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
           </Card>
         </div>
 
-        {/* Action Buttons */}
-        <JobActionButtons jobId={job.id} />
-
         {/* Route Info */}
         <div>
           <div className="mb-3">
