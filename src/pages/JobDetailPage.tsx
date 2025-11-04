@@ -382,7 +382,7 @@ export default function JobDetailPage() {
                 <div className={`flex-1 ${isInternational && !jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm">
-                      {isInbound ? 'จุดรับสินค้า' : 'จุดรับสินค้า'}
+                      {isInbound ? 'จุดรับสินค้า' : 'จุดส่งสินค้า'}
                     </h3>
                   {(!isInternational || jobApplication?.container_sop_completed_at) && (
                     <span className={`text-xs font-medium ${
@@ -403,29 +403,43 @@ export default function JobDetailPage() {
 
                 <div className="space-y-1 text-sm mb-3">
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">เลขที่เอียด</span>
-                    <span>: {isInbound ? '123456789012345' : (mockOriginData.contactPerson)}</span>
+                    <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'เลขที่เอียด' : 'ชื่อผู้ติดต่อ'}</span>
+                    <span>: {isInbound ? '123456789012345' : mockOriginData.contactPerson}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">ชื่อจุดติดต่อ</span>
+                    <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'ชื่อจุดติดต่อ' : 'ตำแหน่ง'}</span>
                     <span>: {isInbound 
                       ? 'คลังภัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)'
-                      : mockOriginData.billOfLading}</span>
+                      : mockOriginData.contactRole}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">เส้นทาง</span>
+                    <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'เส้นทาง' : 'เลขทาง'}</span>
                     <span>: {isInbound 
                       ? 'SAM001 ลาดพร้าว, กรุงเทพมหานคร'
                       : mockOriginData.billOfLading}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">เข้าส่งสินค้า</span>
-                    <span>: {formatDate(job.start_date)} | {isInbound ? '20:00' : job.start_time.substring(0, 5)}</span>
+                    <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'เข้าส่งสินค้า' : 'ประเภทสินค้า'}</span>
+                    <span>: {isInbound 
+                      ? `${formatDate(job.start_date)} | 20:00`
+                      : mockOriginData.goodsType}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
-                    <span>: {isInbound ? 'เข้าสถานที่ต้องแสดงบัตรชิด' : mockOriginData.remarks}</span>
+                    <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'หมายเหตุ' : 'จำนวนสินค้า'}</span>
+                    <span>: {isInbound ? 'เข้าสถานที่ต้องแสดงบัตรชิด' : mockOriginData.goodsQuantity}</span>
                   </div>
+                  {!isInbound && (
+                    <>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
+                        <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
+                        <span>: {mockOriginData.remarks}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
