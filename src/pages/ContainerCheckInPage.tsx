@@ -88,7 +88,7 @@ export default function ContainerCheckInPage() {
         description: 'สถานะเปลี่ยนเป็น รอรับตู้เปล่า แล้ว'
       });
       setShowConfirmDialog(false);
-      loadJobDetail();
+      navigate(`/job/${jobId}`);
     }
   };
 
