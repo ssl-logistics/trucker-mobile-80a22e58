@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import JobActionButtons from '@/components/job/JobActionButtons';
 
 interface JobDetail {
   id: string;
@@ -106,10 +107,8 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
           </Card>
         </div>
 
-        {/* Report Problem Button */}
-        <Button variant="outline" className="w-full">
-          📋 แจ้งปัญหา
-        </Button>
+        {/* Action Buttons */}
+        <JobActionButtons jobId={job.id} />
 
         {/* Route Info */}
         <div>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import JobActionButtons from '@/components/job/JobActionButtons';
 import {
   Dialog,
   DialogContent,
@@ -205,6 +206,9 @@ export default function DeliverySOPCheckInPage() {
 
       {/* Content */}
       <div className="px-4 py-6 space-y-6">
+        {/* Action Buttons */}
+        <JobActionButtons jobId={jobId} />
+
         {/* Check-in Success Banner */}
         <Card className="p-4 bg-green-50 border-green-200">
           <div className="flex items-center gap-3">

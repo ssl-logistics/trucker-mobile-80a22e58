@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import JobActionButtons from '@/components/job/JobActionButtons';
 import {
   Dialog,
   DialogContent,
@@ -268,23 +269,7 @@ export default function DeliveryDetailPage() {
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
         {/* Top Action Buttons */}
-        <div className="grid grid-cols-3 gap-3">
-          <button className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border hover:bg-gray-50">
-            <div className="text-2xl">💰</div>
-            <span className="text-xs">ดูค่าใช้จ่าย</span>
-          </button>
-          <button 
-            className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border hover:bg-gray-50"
-            onClick={() => navigate(`/job/${jobId}/add-expense`)}
-          >
-            <div className="text-2xl">➕</div>
-            <span className="text-xs">เพิ่มค่าใช้จ่าย</span>
-          </button>
-          <button className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border hover:bg-gray-50">
-            <div className="text-2xl">💬</div>
-            <span className="text-xs">แจ้งปัญหา</span>
-          </button>
-        </div>
+        <JobActionButtons jobId={jobId} />
 
         {/* Check-in Status - Show only after check-in */}
         {jobApplication?.delivery_checked_in_at && (

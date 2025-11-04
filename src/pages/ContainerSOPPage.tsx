@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import JobActionButtons from "@/components/job/JobActionButtons";
 import {
   Dialog,
   DialogContent,
@@ -213,6 +214,9 @@ const ContainerSOPPage = () => {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Action Buttons */}
+        <JobActionButtons jobId={jobId} />
+
         {/* Success Banner */}
         <div className="bg-[#E8F5E9] border border-[#4CAF50] rounded-lg p-3 flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-[#4CAF50]" />
