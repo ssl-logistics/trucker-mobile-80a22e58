@@ -260,6 +260,7 @@ export type Database = {
           driver_id: string
           id: string
           job_id: string
+          photo_type: string
           photo_url: string
         }
         Insert: {
@@ -267,6 +268,7 @@ export type Database = {
           driver_id: string
           id?: string
           job_id: string
+          photo_type?: string
           photo_url: string
         }
         Update: {
@@ -274,6 +276,7 @@ export type Database = {
           driver_id?: string
           id?: string
           job_id?: string
+          photo_type?: string
           photo_url?: string
         }
         Relationships: []
