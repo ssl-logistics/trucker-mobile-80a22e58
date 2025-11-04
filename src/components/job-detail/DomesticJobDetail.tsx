@@ -331,7 +331,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
             }}
             onClick={handleStartJob}
           >
-            เริ่มงานเลย
+            เริ่มงาน
           </Button>
         </div>
       )}
