@@ -20,6 +20,7 @@ import DeliveryDetailPage from "./pages/DeliveryDetailPage";
 import DeliverySOPCheckInPage from "./pages/DeliverySOPCheckInPage";
 import ContainerCheckInPage from "./pages/ContainerCheckInPage";
 import ContainerSOPPage from "./pages/ContainerSOPPage";
+import ContainerSummaryPage from "./pages/ContainerSummaryPage";
 import DashboardPage from "./pages/DashboardPage";
 import FinancePage from "./pages/dashboard/FinancePage";
 import ShippingPage from "./pages/dashboard/ShippingPage";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/job/:jobId" element={<ProtectedRoute><JobDetailPage /></ProtectedRoute>} />
           <Route path="/job/:jobId/container-checkin" element={<ProtectedRoute><ContainerCheckInPage /></ProtectedRoute>} />
           <Route path="/job/:jobId/container-sop" element={<ProtectedRoute><ContainerSOPPage /></ProtectedRoute>} />
+          <Route path="/job/:jobId/container-summary" element={<ProtectedRoute><ContainerSummaryPage /></ProtectedRoute>} />
             <Route path="/job/:jobId/pickup" element={<ProtectedRoute><PickupDetailPage /></ProtectedRoute>} />
             <Route path="/job/:jobId/sop" element={<ProtectedRoute><SOPCheckInPage /></ProtectedRoute>} />
             <Route path="/job/:jobId/pickup-summary" element={<ProtectedRoute><PickupSummaryPage /></ProtectedRoute>} />

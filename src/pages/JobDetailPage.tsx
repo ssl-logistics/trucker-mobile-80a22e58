@@ -237,7 +237,7 @@ export default function JobDetailPage() {
                           : 'text-orange-500'
                       }`}>
                         • {jobApplication?.container_sop_completed_at 
-                          ? 'SOP สำเร็จ' 
+                          ? 'รับตู้เปล่าสำเร็จ' 
                           : 'รอเช็คอิน'}
                       </span>
                     )}
@@ -279,16 +279,20 @@ export default function JobDetailPage() {
                     <Button 
                       size="sm" 
                       className="h-10 bg-blue-600 hover:bg-blue-700"
-                      disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}
+                      disabled={!jobApplication?.job_started_at}
                       onClick={() => {
-                        if (jobApplication?.container_checked_in_at) {
+                        if (jobApplication?.container_sop_completed_at) {
+                          navigate(`/job/${job.id}/container-summary`);
+                        } else if (jobApplication?.container_checked_in_at) {
                           navigate(`/job/${job.id}/container-sop`);
                         } else {
                           navigate(`/job/${job.id}/container-checkin`);
                         }
                       }}
                     >
-                      อัปเดตสถานะ
+                      {jobApplication?.container_sop_completed_at 
+                        ? 'ดูข้อมูล' 
+                        : 'อัปเดตสถานะ'}
                     </Button>
                   </div>
                 </div>
