@@ -78,7 +78,7 @@ export default function BiddingPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background border-b">
         <div className="flex items-center gap-4 px-4 py-4">
-          <button onClick={() => navigate(-1)}>
+          <button onClick={() => navigate('/home')}>
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">เสนอราคา</h1>
