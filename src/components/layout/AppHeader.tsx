@@ -42,11 +42,11 @@ export function AppHeader({
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => navigate('/notifications')} className="relative p-2 hover:bg-white/10 rounded-full transition-colors">
-            <Bell className="w-5 h-5" />
+            <Bell className="w-5 h-5 text-[#153860]" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
           <button onClick={onSignOut} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <Power className="w-5 h-5" />
+            <Power className="w-5 h-5 text-[#153860]" />
           </button>
         </div>
         </div>
