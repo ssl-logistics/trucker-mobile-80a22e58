@@ -72,7 +72,7 @@ export default function BiddingPage() {
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setMyBids(data);
+      setMyBids(data as any);
     }
   };
 

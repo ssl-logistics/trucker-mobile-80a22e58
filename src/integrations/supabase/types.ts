@@ -143,6 +143,44 @@ export type Database = {
           },
         ]
       }
+      job_bids: {
+        Row: {
+          bid_amount: number
+          created_at: string
+          driver_id: string
+          id: string
+          job_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bid_amount: number
+          created_at?: string
+          driver_id: string
+          id?: string
+          job_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bid_amount?: number
+          created_at?: string
+          driver_id?: string
+          id?: string
+          job_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_bids_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           container_checkpoint: string | null
