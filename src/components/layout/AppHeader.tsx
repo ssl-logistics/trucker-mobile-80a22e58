@@ -36,7 +36,7 @@ export function AppHeader({ userName, profilePhoto, onSignOut, showQuickMenu = f
                   {userName?.charAt(0) || "👤"}
                 </AvatarFallback>
               </Avatar>
-              <div className="bg-[#FFFFFF4D]">
+              <div className="bg-[#FFFFFF4D] h-6 w-12">
                 <div className="text-sm opacity-90 text-[#126D8A]">👋 {getDayName()}</div>
                 <div className="font-semibold text-[#153860]">{userName || "คุณผู้ใช้งาน"}</div>
               </div>
