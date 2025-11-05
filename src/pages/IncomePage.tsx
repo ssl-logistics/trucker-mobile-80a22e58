@@ -14,6 +14,7 @@ export default function IncomePage() {
     paid: [
       {
         id: 1,
+        jobId: 'job-uuid-1', // Replace with actual job ID from database
         jobTitle: 'ไทยพีเอ็ม ชาร์เตอร์ จำกัด',
         employer: 'ไทยพีเอ็ม ชาร์เตอร์',
         amount: 3000,
@@ -23,6 +24,7 @@ export default function IncomePage() {
       },
       {
         id: 2,
+        jobId: 'job-uuid-2', // Replace with actual job ID from database
         jobTitle: 'ซีพี ออลล์ จำกัดมหาชน',
         employer: 'ซีพี ออลล์',
         amount: 2000,
@@ -34,6 +36,7 @@ export default function IncomePage() {
     unpaid: [
       {
         id: 3,
+        jobId: 'job-uuid-3', // Replace with actual job ID from database
         jobTitle: 'ไทยพีเอ็ม ชาร์เตอร์ จำกัด',
         employer: 'ไทยพีเอ็ม ชาร์เตอร์',
         amount: 3000,
@@ -42,6 +45,10 @@ export default function IncomePage() {
         month: 'กุมภาพันธ์'
       }
     ]
+  };
+
+  const handleViewJobDetail = (jobId: string) => {
+    navigate(`/job/${jobId}`, { state: { openExpensesTab: true } });
   };
 
   const allIncome = [...incomeData.paid, ...incomeData.unpaid];
@@ -97,7 +104,10 @@ export default function IncomePage() {
                     ฿ {income.amount.toLocaleString()}
                   </div>
                 </div>
-                <button className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                <button 
+                  onClick={() => handleViewJobDetail(income.jobId)}
+                  className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
+                >
                   ดูข้อมูลงาน
                 </button>
               </Card>
@@ -117,7 +127,10 @@ export default function IncomePage() {
                     ฿ {income.amount.toLocaleString()}
                   </div>
                 </div>
-                <button className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                <button 
+                  onClick={() => handleViewJobDetail(income.jobId)}
+                  className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
+                >
                   ดูข้อมูลงาน
                 </button>
               </Card>
@@ -140,7 +153,10 @@ export default function IncomePage() {
                     ฿ {income.amount.toLocaleString()}
                   </div>
                 </div>
-                <button className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                <button 
+                  onClick={() => handleViewJobDetail(income.jobId)}
+                  className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
+                >
                   ดูข้อมูลงาน
                 </button>
               </Card>
@@ -163,7 +179,10 @@ export default function IncomePage() {
                     ฿ {income.amount.toLocaleString()}
                   </div>
                 </div>
-                <button className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                <button 
+                  onClick={() => handleViewJobDetail(income.jobId)}
+                  className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
+                >
                   ดูข้อมูลงาน
                 </button>
               </Card>
