@@ -19,13 +19,14 @@ export function AppHeader({ userName, profilePhoto, onSignOut, showQuickMenu = f
   };
 
   return (
-    <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
-      <div className="flex items-center justify-between mb-4 relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm p-4">
+    <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden">
+      <div className="relative overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${coverHeader})` }}
         />
-        <div className="relative z-10 flex items-center justify-between w-full">{/* Content wrapper for layering above background */}
+        <div className="relative z-10 px-4 py-4">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <Avatar className="w-12 h-12 border-2 border-white/20">
             <AvatarImage src={profilePhoto} alt={userName} />
@@ -57,9 +58,11 @@ export function AppHeader({ userName, profilePhoto, onSignOut, showQuickMenu = f
         </div>
         </div>
       </div>
+      </div>
 
       {showQuickMenu && (
-        <div className="grid grid-cols-4 gap-3 mt-6">
+        <div className="px-4 pb-2">
+        <div className="grid grid-cols-4 gap-3">{/* Quick menu section with its own padding */}
           {[
             { icon: '🚛', label: 'งานปัจจุบัน', color: 'bg-blue-400', path: '/current-jobs' },
             { icon: '💰', label: 'เสนอราคา', color: 'bg-teal-400', path: '/bidding' },
@@ -77,6 +80,7 @@ export function AppHeader({ userName, profilePhoto, onSignOut, showQuickMenu = f
               <span className="text-xs">{item.label}</span>
             </button>
           ))}
+        </div>
         </div>
       )}
     </header>
