@@ -68,8 +68,11 @@ const AddExpensePage = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        handleExpenseChange(id, "receiptPhoto", file);
-        handleExpenseChange(id, "receiptPreview", reader.result as string);
+        setExpenses(expenses.map(exp => 
+          exp.id === id 
+            ? { ...exp, receiptPhoto: file, receiptPreview: reader.result as string } 
+            : exp
+        ));
       };
       reader.readAsDataURL(file);
     }
@@ -80,14 +83,7 @@ const AddExpensePage = () => {
   };
 
   const validateForm = () => {
-    console.log("Validating expenses:", expenses);
     for (const expense of expenses) {
-      console.log("Checking expense:", {
-        type: expense.type,
-        amount: expense.amount,
-        hasPhoto: !!expense.receiptPhoto
-      });
-      
       if (!expense.type || !expense.amount || !expense.receiptPhoto) {
         toast({
           title: "กรุณากรอกข้อมูลให้ครบถ้วน",
