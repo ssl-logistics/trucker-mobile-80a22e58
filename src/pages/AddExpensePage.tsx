@@ -172,7 +172,11 @@ const AddExpensePage = () => {
       console.log('About to navigate(-1)...');
       console.log('History length:', window.history.length);
       
-      navigate(-1);
+      // Add small delay to ensure toast shows before navigation
+      setTimeout(() => {
+        navigate(-1);
+        console.log('Navigate called');
+      }, 100);
       
       console.log('Navigate called');
     } catch (error) {
