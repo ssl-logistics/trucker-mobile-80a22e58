@@ -139,7 +139,7 @@ export default function ProfilePage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)}>
+          <button onClick={() => navigate('/settings')}>
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-semibold">โปรไฟล์</h1>
