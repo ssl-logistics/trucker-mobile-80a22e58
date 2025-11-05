@@ -80,7 +80,7 @@ export default function NotificationsPage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1">
+          <button onClick={() => navigate('/home')} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold flex-1 text-center mr-7">แจ้งเตือน</h1>
