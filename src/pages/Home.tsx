@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';

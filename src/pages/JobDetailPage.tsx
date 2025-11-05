@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
 import InternationalJobDetail from '@/components/job-detail/InternationalJobDetail';

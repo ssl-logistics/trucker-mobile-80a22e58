@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import VerifyOTP from "./pages/VerifyOTP";
@@ -43,49 +44,51 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<SignIn />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify-otp" element={<VerifyOTP />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/verify-otp-reset" element={<VerifyOTPReset />} />
-          <Route path="/create-new-password" element={<CreateNewPassword />} />
-          <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-          <Route path="/current-jobs" element={<ProtectedRoute><CurrentJobsPage /></ProtectedRoute>} />
-            <Route path="/job/:jobId" element={<ProtectedRoute><JobDetailPage /></ProtectedRoute>} />
-          <Route path="/job/:jobId/container-checkin" element={<ProtectedRoute><ContainerCheckInPage /></ProtectedRoute>} />
-          <Route path="/job/:jobId/container-sop" element={<ProtectedRoute><ContainerSOPPage /></ProtectedRoute>} />
-          <Route path="/job/:jobId/container-summary" element={<ProtectedRoute><ContainerSummaryPage /></ProtectedRoute>} />
-          <Route path="/job/:jobId/add-expense" element={<ProtectedRoute><AddExpensePage /></ProtectedRoute>} />
-            <Route path="/job/:jobId/pickup" element={<ProtectedRoute><PickupDetailPage /></ProtectedRoute>} />
-            <Route path="/job/:jobId/sop" element={<ProtectedRoute><SOPCheckInPage /></ProtectedRoute>} />
-            <Route path="/job/:jobId/pickup-summary" element={<ProtectedRoute><PickupSummaryPage /></ProtectedRoute>} />
-            <Route path="/job/:jobId/delivery" element={<ProtectedRoute><DeliveryDetailPage /></ProtectedRoute>} />
-            <Route path="/job/:jobId/delivery-sop" element={<ProtectedRoute><DeliverySOPCheckInPage /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/dashboard/finance" element={<ProtectedRoute><FinancePage /></ProtectedRoute>} />
-          <Route path="/dashboard/shipping" element={<ProtectedRoute><ShippingPage /></ProtectedRoute>} />
-          <Route path="/dashboard/customer" element={<ProtectedRoute><CustomerPage /></ProtectedRoute>} />
-          <Route path="/dashboard/product" element={<ProtectedRoute><ProductPage /></ProtectedRoute>} />
-          <Route path="/bidding" element={<ProtectedRoute><BiddingPage /></ProtectedRoute>} />
-          <Route path="/bidding/:jobId" element={<ProtectedRoute><PlaceBidPage /></ProtectedRoute>} />
-          <Route path="/income" element={<ProtectedRoute><IncomePage /></ProtectedRoute>} />
-          <Route path="/job/:jobId/route-expenses" element={<ProtectedRoute><JobRouteExpensesPage /></ProtectedRoute>} />
-          <Route path="/job-history" element={<ProtectedRoute><JobHistoryPage /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-          <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetailPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<SignIn />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp-reset" element={<VerifyOTPReset />} />
+            <Route path="/create-new-password" element={<CreateNewPassword />} />
+            <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+            <Route path="/current-jobs" element={<ProtectedRoute><CurrentJobsPage /></ProtectedRoute>} />
+              <Route path="/job/:jobId" element={<ProtectedRoute><JobDetailPage /></ProtectedRoute>} />
+            <Route path="/job/:jobId/container-checkin" element={<ProtectedRoute><ContainerCheckInPage /></ProtectedRoute>} />
+            <Route path="/job/:jobId/container-sop" element={<ProtectedRoute><ContainerSOPPage /></ProtectedRoute>} />
+            <Route path="/job/:jobId/container-summary" element={<ProtectedRoute><ContainerSummaryPage /></ProtectedRoute>} />
+            <Route path="/job/:jobId/add-expense" element={<ProtectedRoute><AddExpensePage /></ProtectedRoute>} />
+              <Route path="/job/:jobId/pickup" element={<ProtectedRoute><PickupDetailPage /></ProtectedRoute>} />
+              <Route path="/job/:jobId/sop" element={<ProtectedRoute><SOPCheckInPage /></ProtectedRoute>} />
+              <Route path="/job/:jobId/pickup-summary" element={<ProtectedRoute><PickupSummaryPage /></ProtectedRoute>} />
+              <Route path="/job/:jobId/delivery" element={<ProtectedRoute><DeliveryDetailPage /></ProtectedRoute>} />
+              <Route path="/job/:jobId/delivery-sop" element={<ProtectedRoute><DeliverySOPCheckInPage /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/dashboard/finance" element={<ProtectedRoute><FinancePage /></ProtectedRoute>} />
+            <Route path="/dashboard/shipping" element={<ProtectedRoute><ShippingPage /></ProtectedRoute>} />
+            <Route path="/dashboard/customer" element={<ProtectedRoute><CustomerPage /></ProtectedRoute>} />
+            <Route path="/dashboard/product" element={<ProtectedRoute><ProductPage /></ProtectedRoute>} />
+            <Route path="/bidding" element={<ProtectedRoute><BiddingPage /></ProtectedRoute>} />
+            <Route path="/bidding/:jobId" element={<ProtectedRoute><PlaceBidPage /></ProtectedRoute>} />
+            <Route path="/income" element={<ProtectedRoute><IncomePage /></ProtectedRoute>} />
+            <Route path="/job/:jobId/route-expenses" element={<ProtectedRoute><JobRouteExpensesPage /></ProtectedRoute>} />
+            <Route path="/job-history" element={<ProtectedRoute><JobHistoryPage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetailPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
