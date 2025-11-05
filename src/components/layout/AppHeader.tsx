@@ -2,6 +2,10 @@ import { Bell, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import coverHeader from "@/assets/cover-header.png";
+import currentJobIcon from "@/assets/current-job-icon.svg";
+import biddingIcon from "@/assets/bidding-icon.svg";
+import incomeIcon from "@/assets/income-icon.svg";
+import jobHistoryIcon from "@/assets/job-history-icon.svg";
 interface AppHeaderProps {
   userName?: string;
   profilePhoto?: string;
@@ -57,28 +61,28 @@ export function AppHeader({
           <div className="grid grid-cols-4 gap-3 p-4">
             {/* Quick menu section with its own padding */}
             {[{
-          icon: "🚛",
+          icon: currentJobIcon,
           label: "งานปัจจุบัน",
           color: "bg-blue-400",
           path: "/current-jobs"
         }, {
-          icon: "💰",
+          icon: biddingIcon,
           label: "เสนอราคา",
           color: "bg-teal-400",
           path: "/bidding"
         }, {
-          icon: "💼",
+          icon: incomeIcon,
           label: "รายได้",
           color: "bg-yellow-400",
           path: "/income"
         }, {
-          icon: "📋",
+          icon: jobHistoryIcon,
           label: "ประวัติงาน",
           color: "bg-purple-400",
           path: "/job-history"
         }].map(item => <button key={item.label} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2 text-white">
-                <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-md text-2xl`}>
-                  {item.icon}
+                <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-md p-2`}>
+                  <img src={item.icon} alt={item.label} className="w-full h-full object-contain" />
                 </div>
                 <span className="text-xs text-[#153860] text-center">{item.label}</span>
               </button>)}
