@@ -80,7 +80,14 @@ const AddExpensePage = () => {
   };
 
   const validateForm = () => {
+    console.log("Validating expenses:", expenses);
     for (const expense of expenses) {
+      console.log("Checking expense:", {
+        type: expense.type,
+        amount: expense.amount,
+        hasPhoto: !!expense.receiptPhoto
+      });
+      
       if (!expense.type || !expense.amount || !expense.receiptPhoto) {
         toast({
           title: "กรุณากรอกข้อมูลให้ครบถ้วน",
