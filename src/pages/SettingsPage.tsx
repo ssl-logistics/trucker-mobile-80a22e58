@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, LogOut } from 'lucide-react';
+import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -8,6 +8,16 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Profile {
   full_name: string;
@@ -20,6 +30,7 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -161,13 +172,39 @@ export default function SettingsPage() {
       {/* Sign Out Button */}
       <div className="px-4 mt-6">
         <Button
-          onClick={handleSignOut}
+          onClick={() => setShowSignOutDialog(true)}
           variant="outline"
           className="w-full border-destructive text-destructive hover:bg-destructive/10"
         >
           ออกจากระบบ
         </Button>
       </div>
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader className="items-center">
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Power className="w-10 h-10 text-slate-600" />
+            </div>
+            <AlertDialogTitle className="text-center">
+              คุณต้องการออกจากระบบหรือไม่?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-sm">
+              การออกจากระบบจะทำให้คุณต้องล็อกอินเข้าสู่ระบบอีกครั้ง ในครั้งถัดไป กรุณายืนยันออกจากระบบ
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2">
+            <AlertDialogAction 
+              onClick={handleSignOut}
+              className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              ออกจากระบบ
+            </AlertDialogAction>
+            <AlertDialogCancel className="flex-1 m-0">ยกเลิก</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNavigation />
     </div>
