@@ -89,17 +89,9 @@ export default function AccountPage() {
       <div className="p-4 space-y-4">
         {/* Username Field */}
         <div className="bg-white rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label className="text-sm text-muted-foreground">ชื่อผู้ใช้</label>
-              <p className="text-foreground mt-1">{user?.email || 'ไม่มีข้อมูล'}</p>
-            </div>
-            <button
-              onClick={() => navigate('/profile/edit', { state: { field: 'email', value: user?.email } })}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
-              <Edit className="w-5 h-5 text-muted-foreground" />
-            </button>
+          <div>
+            <label className="text-sm text-muted-foreground">ชื่อผู้ใช้</label>
+            <p className="text-foreground mt-1">{user?.email || 'ไม่มีข้อมูล'}</p>
           </div>
         </div>
 
