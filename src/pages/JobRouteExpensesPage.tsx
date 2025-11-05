@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Truck, MapPin, Package, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Truck, MapPin, Package, CheckCircle2, Fuel } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -35,12 +35,21 @@ interface JobApplication {
   delivery_sop_completed_at: string | null;
 }
 
+interface Expense {
+  id: string;
+  expense_type: string;
+  amount: number;
+  receipt_photo_url: string;
+  created_at: string;
+}
+
 export default function JobRouteExpensesPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,6 +81,17 @@ export default function JobRouteExpensesPage() {
 
       if (appError) throw appError;
       setJobApplication(appData);
+
+      // Load expenses
+      const { data: expensesData, error: expensesError } = await supabase
+        .from('expenses')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('driver_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (expensesError) throw expensesError;
+      setExpenses(expensesData || []);
     } catch (error) {
       console.error('Error loading job data:', error);
       toast({
@@ -258,15 +278,58 @@ export default function JobRouteExpensesPage() {
 
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-4">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">ยังไม่มีข้อมูลค่าใช้จ่าย</p>
-              <button
-                onClick={() => navigate(`/job/${jobId}/add-expense`)}
-                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-              >
-                เพิ่มค่าใช้จ่าย
-              </button>
-            </div>
+            {expenses.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground mb-4">ยังไม่มีข้อมูลค่าใช้จ่าย</p>
+                <button
+                  onClick={() => navigate(`/job/${jobId}/add-expense`)}
+                  className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                >
+                  เพิ่มค่าใช้จ่าย
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Total Summary */}
+                <Card className="p-4 bg-primary/5 border-primary/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Fuel className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="text-2xl font-bold text-primary">
+                      ฿ {expenses.reduce((sum, exp) => sum + Number(exp.amount), 0).toLocaleString()}
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Expense Items */}
+                {expenses.map((expense) => (
+                  <div key={expense.id} className="space-y-2">
+                    <div className="text-sm font-medium text-foreground">
+                      {expense.expense_type} : ฿ {Number(expense.amount).toLocaleString()}
+                    </div>
+                    <div className="relative rounded-lg overflow-hidden bg-muted">
+                      <img 
+                        src={expense.receipt_photo_url} 
+                        alt={`ใบเสร็จ ${expense.expense_type}`}
+                        className="w-full h-auto object-cover"
+                      />
+                      <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/90 flex items-center justify-center shadow-md">
+                        <Package className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add More Button */}
+                <button
+                  onClick={() => navigate(`/job/${jobId}/add-expense`)}
+                  className="w-full px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                >
+                  เพิ่มค่าใช้จ่าย
+                </button>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
