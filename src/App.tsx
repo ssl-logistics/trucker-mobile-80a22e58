@@ -31,6 +31,7 @@ import BiddingPage from "./pages/BiddingPage";
 import PlaceBidPage from "./pages/PlaceBidPage";
 import IncomePage from "./pages/IncomePage";
 import JobRouteExpensesPage from "./pages/JobRouteExpensesPage";
+import JobHistoryPage from "./pages/JobHistoryPage";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/bidding/:jobId" element={<ProtectedRoute><PlaceBidPage /></ProtectedRoute>} />
           <Route path="/income" element={<ProtectedRoute><IncomePage /></ProtectedRoute>} />
           <Route path="/job/:jobId/route-expenses" element={<ProtectedRoute><JobRouteExpensesPage /></ProtectedRoute>} />
+          <Route path="/job-history" element={<ProtectedRoute><JobHistoryPage /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
