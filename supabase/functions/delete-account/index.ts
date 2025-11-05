@@ -14,10 +14,13 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('Missing authorization header');
       throw new Error('Missing authorization header');
     }
 
-    // Create Supabase client with user's token
+    console.log('Processing delete account request');
+
+    // Create Supabase client to verify the user's token
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -28,12 +31,20 @@ serve(async (req) => {
       }
     );
 
-    // Get the user from the token
+    // Get the user from the JWT token
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     
-    if (userError || !user) {
+    if (userError) {
+      console.error('Error getting user:', userError);
       throw new Error('Unauthorized');
     }
+
+    if (!user) {
+      console.error('No user found in token');
+      throw new Error('Unauthorized');
+    }
+
+    console.log('User verified:', user.id);
 
     // Create admin client to delete the user
     const supabaseAdmin = createClient(
@@ -47,13 +58,17 @@ serve(async (req) => {
       }
     );
 
-    // Delete the user account (this will cascade delete related data)
+    console.log('Attempting to delete user:', user.id);
+
+    // Delete the user account (this will cascade delete related data due to ON DELETE CASCADE)
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
 
     if (deleteError) {
       console.error('Error deleting user:', deleteError);
       throw deleteError;
     }
+
+    console.log('User deleted successfully:', user.id);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Account deleted successfully' }),
@@ -64,8 +79,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in delete-account function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
@@ -73,3 +89,4 @@ serve(async (req) => {
     );
   }
 });
+
