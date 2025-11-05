@@ -39,7 +39,7 @@ export default function IncomePage() {
 
     setLoading(true);
     try {
-      // Fetch all job applications for the current user
+      // Fetch all job applications for the current user that are accepted/completed
       const { data: applications, error } = await supabase
         .from('job_applications')
         .select(`
@@ -56,7 +56,7 @@ export default function IncomePage() {
           )
         `)
         .eq('driver_id', user.id)
-        .in('status', ['completed', 'payment_completed']);
+        .eq('status', 'accepted');
 
       if (error) {
         toast({
