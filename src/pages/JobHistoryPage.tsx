@@ -98,12 +98,27 @@ export default function JobHistoryPage() {
 
   const getStatusBadge = (app: JobApplication) => {
     if (app.payment_completed_at) {
-      return <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">เสร็จสิ้น</span>;
+      return (
+        <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-100 rounded-lg">
+          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+          <span className="text-xs font-medium text-gray-700">เสร็จสิ้น</span>
+        </div>
+      );
     }
     if (app.job_started_at) {
-      return <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">กำลังส่ง</span>;
+      return (
+        <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-50 rounded-lg">
+          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+          <span className="text-xs font-medium text-orange-700">กำลังจัดส่ง</span>
+        </div>
+      );
     }
-    return <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">รับงานแล้ว</span>;
+    return (
+      <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-50 rounded-lg">
+        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+        <span className="text-xs font-medium text-blue-700">รับงานแล้ว</span>
+      </div>
+    );
   };
 
   const filterApplications = (apps: JobApplication[]) => {
@@ -271,7 +286,7 @@ export default function JobHistoryPage() {
                       </div>
                     </div>
 
-                    <div className="flex justify-end mt-3">
+                    <div className="mt-3">
                       {getStatusBadge(app)}
                     </div>
                   </div>
