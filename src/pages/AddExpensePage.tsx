@@ -171,7 +171,13 @@ const AddExpensePage = () => {
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="px-4 py-4 flex items-center gap-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate(`/job/${jobId}/route-expenses`);
+              }
+            }}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
