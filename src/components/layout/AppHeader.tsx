@@ -1,6 +1,17 @@
+import { useState } from "react";
 import { Bell, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import coverHeader from "@/assets/cover-header.png";
 import currentJobIcon from "@/assets/current-job-icon.svg";
 import biddingIcon from "@/assets/bidding-icon.svg";
@@ -19,6 +30,7 @@ export function AppHeader({
   showQuickMenu = false
 }: AppHeaderProps) {
   const navigate = useNavigate();
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const getDayName = () => {
     const days = ["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"];
     return days[new Date().getDay()];
@@ -47,7 +59,7 @@ export function AppHeader({
                 <Bell className="w-5 h-5 text-[#153860]" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              <button onClick={onSignOut} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <button onClick={() => setShowSignOutDialog(true)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <Power className="w-5 h-5 text-[#153860]" />
               </button>
             </div>
@@ -84,5 +96,34 @@ export function AppHeader({
               </button>)}
           </div>
         </div>}
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent className="max-w-[320px] w-[90%] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl">
+          <AlertDialogHeader className="items-center">
+            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Power className="w-8 h-8 text-slate-600" />
+            </div>
+            <AlertDialogTitle className="text-center text-base">
+              คุณต้องการออกจากระบบหรือไม่?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-xs px-2">
+              การออกจากระบบจะทำให้คุณต้องล็อกอินเข้าสู่ระบบอีกครั้ง ในครั้งถัดไป กรุณายืนยันออกจากระบบ
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2">
+            <AlertDialogAction 
+              onClick={() => {
+                setShowSignOutDialog(false);
+                onSignOut?.();
+              }}
+              className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              ออกจากระบบ
+            </AlertDialogAction>
+            <AlertDialogCancel className="flex-1 m-0">ยกเลิก</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>;
 }
