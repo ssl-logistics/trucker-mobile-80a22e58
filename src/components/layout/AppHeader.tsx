@@ -53,7 +53,7 @@ export function AppHeader({ userName, profilePhoto, onSignOut, showQuickMenu = f
           {[
             { icon: '🚛', label: 'งานปัจจุบัน', color: 'bg-blue-400', path: '/current-jobs' },
             { icon: '💰', label: 'เสนอราคา', color: 'bg-teal-400', path: '/bidding' },
-            { icon: '💼', label: 'รายได้', color: 'bg-yellow-400', path: null },
+            { icon: '💼', label: 'รายได้', color: 'bg-yellow-400', path: '/income' },
             { icon: '📋', label: 'ประวัติงาน', color: 'bg-purple-400', path: null },
           ].map((item) => (
             <button
