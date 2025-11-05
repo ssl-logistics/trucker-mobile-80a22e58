@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Clock, CircleDot, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
@@ -201,62 +202,75 @@ export default function JobHistoryPage() {
               filteredApplications.map((app) => (
                 <Card
                   key={app.id}
-                  className={`p-4 cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(app.status)}`}
+                  className="p-4 space-y-3 bg-card cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => navigate(`/job/${app.jobs.id}`)}
                 >
-                  <div className="space-y-3">
-                    {/* Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">
-                            {app.jobs.employer_name}
-                          </h3>
-                          {getStatusBadge(app)}
-                        </div>
-                        <p className="text-sm text-gray-600">{app.jobs.order_code}</p>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
+                        รหัสออเดอร์ {app.jobs.order_code}
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(app.jobs.start_date)} {formatTime(app.jobs.start_time)}</span>
-                        </div>
-                      </div>
+                      {getStatusBadge(app)}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5" />
+                      {formatDate(app.jobs.start_date)} | {formatTime(app.jobs.start_time)}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">ผู้จ้าง : </span>
+                      <span className="font-medium">{app.jobs.employer_name}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {app.jobs.job_type === "domestic" ? (
+                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                          ขนส่งภายในประเทศ
+                        </Badge>
+                      ) : (
+                        <>
+                          <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+                            ขนส่งภายนอกประเทศ
+                          </Badge>
+                          {app.jobs.transport_type?.includes("inbound") && (
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                              ขาเข้า
+                            </Badge>
+                          )}
+                          {app.jobs.transport_type?.includes("outbound") && (
+                            <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
+                              ขาออก
+                            </Badge>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {app.jobs.transport_type}
                     </div>
 
-                    {/* Locations */}
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-2">
-                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <div className="w-2 h-2 bg-white rounded-full" />
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-xs">
+                            <div className="text-muted-foreground">ต้นทาง</div>
+                            <div className="font-medium">{app.jobs.origin_location}</div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-600">ต้นทาง</p>
-                          <p className="font-medium text-gray-900">{app.jobs.origin_location}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-2">
-                        <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-600">ปลายทาง</p>
-                          <p className="font-medium text-gray-900">{app.jobs.destination_location}</p>
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-xs">
+                            <div className="text-muted-foreground">ปลายทาง</div>
+                            <div className="font-medium">{app.jobs.destination_location}</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-green-600">
-                          ฿ {app.jobs.price.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {app.jobs.job_type === "domestic" ? "ในประเทศ" : "ระหว่างประเทศ"} • {" "}
-                        {app.jobs.transport_type === "inbound" ? "นำเข้า" : "ส่งออก"}
+                      
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50">
+                        <span className="text-lg font-bold text-teal-700">฿ {app.jobs.price.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
