@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ReportProblemDrawer from "./ReportProblemDrawer";
 
 interface JobActionButtonsProps {
@@ -6,6 +7,7 @@ interface JobActionButtonsProps {
 }
 
 export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
+  const navigate = useNavigate();
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
 
   return (
@@ -20,7 +22,10 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
           <span className="text-xs font-medium">ดูค่าใช้จ่าย</span>
         </button>
 
-        <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+        <button 
+          className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+          onClick={() => navigate(`/job/${jobId}/add-expense`)}
+        >
           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
             <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
