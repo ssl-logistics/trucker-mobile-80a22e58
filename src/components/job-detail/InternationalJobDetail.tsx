@@ -515,10 +515,13 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
                       </Button>
                       <Button 
                         size="sm" 
-                        className="h-10 bg-gray-300 hover:bg-gray-300 text-gray-500 cursor-not-allowed"
-                        disabled
+                        className="h-10 bg-blue-600 hover:bg-blue-700"
+                        onClick={() => navigate(`/job/${job.id}/delivery`)}
+                        disabled={!jobApplication?.sop_completed_at}
                       >
-                        อัปเดตงาน
+                        {jobApplication?.delivery_sop_completed_at 
+                          ? 'ดูข้อมูล' 
+                          : 'อัปเดตสถานะ'}
                       </Button>
                     </>
                   ) : (
