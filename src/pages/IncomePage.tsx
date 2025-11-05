@@ -1,57 +1,135 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Wallet, Receipt } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
+
+interface IncomeJob {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  employer: string;
+  amount: number;
+  status: 'paid' | 'pending';
+  date: string;
+  month: string;
+  orderCode: string;
+}
 
 export default function IncomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedMonth, setSelectedMonth] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [paidJobs, setPaidJobs] = useState<IncomeJob[]>([]);
+  const [unpaidJobs, setUnpaidJobs] = useState<IncomeJob[]>([]);
 
-  // Mock data - replace with actual data from Supabase
-  const incomeData = {
-    paid: [
-      {
-        id: 1,
-        jobId: 'job-uuid-1', // Replace with actual job ID from database
-        jobTitle: 'ไทยพีเอ็ม ชาร์เตอร์ จำกัด',
-        employer: 'ไทยพีเอ็ม ชาร์เตอร์',
-        amount: 3000,
-        status: 'paid',
-        date: '15/08/2025',
-        month: 'มกราคม'
-      },
-      {
-        id: 2,
-        jobId: 'job-uuid-2', // Replace with actual job ID from database
-        jobTitle: 'ซีพี ออลล์ จำกัดมหาชน',
-        employer: 'ซีพี ออลล์',
-        amount: 2000,
-        status: 'paid',
-        date: '14/08/2025',
-        month: 'มกราคม'
+  useEffect(() => {
+    if (user) {
+      loadIncomeData();
+    }
+  }, [user]);
+
+  const loadIncomeData = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // Fetch all job applications for the current user
+      const { data: applications, error } = await supabase
+        .from('job_applications')
+        .select(`
+          id,
+          job_id,
+          payment_completed_at,
+          status,
+          jobs (
+            id,
+            order_code,
+            employer_name,
+            price,
+            start_date
+          )
+        `)
+        .eq('driver_id', user.id)
+        .in('status', ['completed', 'payment_completed']);
+
+      if (error) {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถโหลดข้อมูลรายได้ได้',
+          variant: 'destructive'
+        });
+        return;
       }
-    ],
-    unpaid: [
-      {
-        id: 3,
-        jobId: 'job-uuid-3', // Replace with actual job ID from database
-        jobTitle: 'ไทยพีเอ็ม ชาร์เตอร์ จำกัด',
-        employer: 'ไทยพีเอ็ม ชาร์เตอร์',
-        amount: 3000,
-        status: 'pending',
-        date: '16/08/2025',
-        month: 'กุมภาพันธ์'
-      }
-    ]
+
+      // Process the data
+      const paid: IncomeJob[] = [];
+      const unpaid: IncomeJob[] = [];
+
+      applications?.forEach((app: any) => {
+        if (!app.jobs) return;
+
+        const job: IncomeJob = {
+          id: app.id,
+          jobId: app.job_id,
+          jobTitle: app.jobs.employer_name,
+          employer: app.jobs.employer_name,
+          amount: app.jobs.price,
+          status: app.payment_completed_at ? 'paid' : 'pending',
+          date: new Date(app.jobs.start_date).toLocaleDateString('th-TH'),
+          month: new Date(app.jobs.start_date).toLocaleDateString('th-TH', { month: 'long' }),
+          orderCode: app.jobs.order_code
+        };
+
+        if (app.payment_completed_at) {
+          paid.push(job);
+        } else {
+          unpaid.push(job);
+        }
+      });
+
+      setPaidJobs(paid);
+      setUnpaidJobs(unpaid);
+    } catch (error) {
+      console.error('Error loading income data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleViewJobDetail = (jobId: string) => {
     navigate(`/job/${jobId}`, { state: { openExpensesTab: true } });
   };
 
-  const allIncome = [...incomeData.paid, ...incomeData.unpaid];
+  // Group jobs by month
+  const groupJobsByMonth = (jobs: IncomeJob[]) => {
+    const grouped: { [key: string]: IncomeJob[] } = {};
+    jobs.forEach(job => {
+      if (!grouped[job.month]) {
+        grouped[job.month] = [];
+      }
+      grouped[job.month].push(job);
+    });
+    return grouped;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  const allJobs = [...paidJobs, ...unpaidJobs];
+  const allGrouped = groupJobsByMonth(allJobs);
+  const paidGrouped = groupJobsByMonth(paidJobs);
+  const unpaidGrouped = groupJobsByMonth(unpaidJobs);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -88,105 +166,116 @@ export default function IncomePage() {
 
           {/* All Tab */}
           <TabsContent value="all" className="space-y-4">
-            <div className="text-sm text-muted-foreground mb-2">มกราคม</div>
-            {incomeData.paid.map((income) => (
-              <Card key={income.id} className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
-                  </div>
-                  <div className="flex items-center gap-2 text-green-600 font-semibold">
-                    {income.status === 'paid' && (
-                      <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-green-600 rounded-full" />
+            {Object.keys(allGrouped).length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                ไม่มีข้อมูลรายได้
+              </div>
+            ) : (
+              Object.entries(allGrouped).map(([month, jobs]) => (
+                <div key={month}>
+                  <div className="text-sm text-muted-foreground mb-2">{month}</div>
+                  {jobs.map((income) => (
+                    <Card key={income.id} className="p-4 mb-3">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
+                        </div>
+                        <div className={`flex items-center gap-2 font-semibold ${income.status === 'paid' ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {income.status === 'paid' ? (
+                            <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
+                              <div className="w-2 h-2 bg-green-600 rounded-full" />
+                            </div>
+                          ) : (
+                            <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
+                              <Receipt className="w-3 h-3" />
+                            </div>
+                          )}
+                          ฿ {income.amount.toLocaleString()}
+                        </div>
                       </div>
-                    )}
-                    ฿ {income.amount.toLocaleString()}
-                  </div>
+                      <button 
+                        onClick={() => handleViewJobDetail(income.jobId)}
+                        className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
+                      >
+                        ดูข้อมูลงาน
+                      </button>
+                    </Card>
+                  ))}
                 </div>
-                <button 
-                  onClick={() => handleViewJobDetail(income.jobId)}
-                  className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
-                >
-                  ดูข้อมูลงาน
-                </button>
-              </Card>
-            ))}
-
-            <div className="text-sm text-muted-foreground mb-2 mt-6">กุมภาพันธ์</div>
-            {incomeData.unpaid.map((income) => (
-              <Card key={income.id} className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground font-semibold">
-                    <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
-                      <Receipt className="w-3 h-3" />
-                    </div>
-                    ฿ {income.amount.toLocaleString()}
-                  </div>
-                </div>
-                <button 
-                  onClick={() => handleViewJobDetail(income.jobId)}
-                  className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
-                >
-                  ดูข้อมูลงาน
-                </button>
-              </Card>
-            ))}
+              ))
+            )}
           </TabsContent>
 
           {/* Paid Tab */}
           <TabsContent value="paid" className="space-y-4">
-            <div className="text-sm text-muted-foreground mb-2">มกราคม</div>
-            {incomeData.paid.map((income) => (
-              <Card key={income.id} className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
-                  </div>
-                  <div className="flex items-center gap-2 text-green-600 font-semibold">
-                    <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
-                      <div className="w-2 h-2 bg-green-600 rounded-full" />
-                    </div>
-                    ฿ {income.amount.toLocaleString()}
-                  </div>
+            {Object.keys(paidGrouped).length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                ไม่มีงานที่ชำระแล้ว
+              </div>
+            ) : (
+              Object.entries(paidGrouped).map(([month, jobs]) => (
+                <div key={month}>
+                  <div className="text-sm text-muted-foreground mb-2">{month}</div>
+                  {jobs.map((income) => (
+                    <Card key={income.id} className="p-4 mb-3">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
+                        </div>
+                        <div className="flex items-center gap-2 text-green-600 font-semibold">
+                          <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-green-600 rounded-full" />
+                          </div>
+                          ฿ {income.amount.toLocaleString()}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleViewJobDetail(income.jobId)}
+                        className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
+                      >
+                        ดูข้อมูลงาน
+                      </button>
+                    </Card>
+                  ))}
                 </div>
-                <button 
-                  onClick={() => handleViewJobDetail(income.jobId)}
-                  className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
-                >
-                  ดูข้อมูลงาน
-                </button>
-              </Card>
-            ))}
+              ))
+            )}
           </TabsContent>
 
           {/* Unpaid Tab */}
           <TabsContent value="unpaid" className="space-y-4">
-            <div className="text-sm text-muted-foreground mb-2">กุมภาพันธ์</div>
-            {incomeData.unpaid.map((income) => (
-              <Card key={income.id} className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground font-semibold">
-                    <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
-                      <Receipt className="w-3 h-3" />
-                    </div>
-                    ฿ {income.amount.toLocaleString()}
-                  </div>
+            {Object.keys(unpaidGrouped).length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                ไม่มีงานที่ยังไม่ชำระ
+              </div>
+            ) : (
+              Object.entries(unpaidGrouped).map(([month, jobs]) => (
+                <div key={month}>
+                  <div className="text-sm text-muted-foreground mb-2">{month}</div>
+                  {jobs.map((income) => (
+                    <Card key={income.id} className="p-4 mb-3">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground font-semibold">
+                          <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
+                            <Receipt className="w-3 h-3" />
+                          </div>
+                          ฿ {income.amount.toLocaleString()}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleViewJobDetail(income.jobId)}
+                        className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
+                      >
+                        ดูข้อมูลงาน
+                      </button>
+                    </Card>
+                  ))}
                 </div>
-                <button 
-                  onClick={() => handleViewJobDetail(income.jobId)}
-                  className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
-                >
-                  ดูข้อมูลงาน
-                </button>
-              </Card>
-            ))}
+              ))
+            )}
           </TabsContent>
         </Tabs>
       </div>
