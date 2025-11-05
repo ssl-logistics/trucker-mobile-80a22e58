@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, Navigation, CheckCircle, Circle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 
@@ -40,10 +39,6 @@ interface DomesticJobDetailProps {
 
 export default function DomesticJobDetail({ job, jobApplication, userId, onUpdate }: DomesticJobDetailProps) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [activeTab, setActiveTab] = useState(
-    location.state?.openExpensesTab ? 'expenses' : 'route'
-  );
 
   const formatDate = (date: string) => {
     const d = new Date(date);
@@ -97,16 +92,8 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
 
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="route">เส้นทาง</TabsTrigger>
-            <TabsTrigger value="expenses">ค่าใช้จ่าย</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="route" className="space-y-4 mt-4">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-3 gap-3">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-3 gap-3">
           <Card className="p-3 text-center">
             <div className="text-2xl font-bold text-teal-600">฿ {job.price.toLocaleString()}</div>
           </Card>
@@ -327,34 +314,6 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
             </div>
           </Card>
         </div>
-          </TabsContent>
-
-          <TabsContent value="expenses" className="space-y-4 mt-4">
-            <Card className="p-6">
-              <div className="text-center space-y-4">
-                <div className="flex justify-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">ยังไม่มีค่าใช้จ่าย</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    คุณยังไม่ได้บันทึกค่าใช้จ่ายสำหรับงานนี้
-                  </p>
-                  <Button 
-                    onClick={() => navigate(`/job/${job.id}/add-expense`)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    เพิ่มค่าใช้จ่าย
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
       </div>
 
       {/* Bottom Button */}
