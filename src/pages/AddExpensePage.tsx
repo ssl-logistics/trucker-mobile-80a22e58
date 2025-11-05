@@ -106,14 +106,20 @@ const AddExpensePage = () => {
   };
 
   const handleConfirm = async () => {
-    if (!user || !jobId) return;
+    if (!user || !jobId) {
+      console.log('Missing user or jobId:', { user, jobId });
+      return;
+    }
     
+    console.log('Starting expense submission...');
     setIsSubmitting(true);
     
     try {
       // Upload receipt photos and save expenses
       for (const expense of expenses) {
         if (!expense.receiptPhoto) continue;
+        
+        console.log('Processing expense:', expense.id, expense.type);
         
         // Upload photo to storage
         const fileExt = expense.receiptPhoto.name.split('.').pop();
@@ -124,13 +130,18 @@ const AddExpensePage = () => {
           .upload(fileName, expense.receiptPhoto);
         
         if (uploadError) {
+          console.error('Upload error:', uploadError);
           throw new Error(`เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ: ${uploadError.message}`);
         }
+        
+        console.log('Upload success:', uploadData);
         
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
           .from('expense-receipts')
           .getPublicUrl(fileName);
+        
+        console.log('Public URL:', publicUrl);
         
         // Save expense to database
         const { error: insertError } = await supabase
@@ -144,15 +155,26 @@ const AddExpensePage = () => {
           });
         
         if (insertError) {
+          console.error('Insert error:', insertError);
           throw new Error(`เกิดข้อผิดพลาดในการบันทึกค่าใช้จ่าย: ${insertError.message}`);
         }
+        
+        console.log('Expense saved successfully');
       }
+      
+      console.log('All expenses saved successfully');
       
       toast({
         title: "เพิ่มค่าใช้จ่ายสำเร็จ",
         description: `บันทึกค่าใช้จ่ายทั้งหมด ${calculateTotal()} บาท`,
       });
+      
+      console.log('About to navigate(-1)...');
+      console.log('History length:', window.history.length);
+      
       navigate(-1);
+      
+      console.log('Navigate called');
     } catch (error) {
       console.error('Error saving expenses:', error);
       toast({
@@ -162,6 +184,7 @@ const AddExpensePage = () => {
       });
     } finally {
       setIsSubmitting(false);
+      console.log('Submission complete');
     }
   };
 
