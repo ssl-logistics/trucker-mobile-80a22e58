@@ -52,7 +52,7 @@ export function AppHeader({
       </div>
 
       {showQuickMenu && <div className="px-4 pb-2">
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-3 p-4">
             {/* Quick menu section with its own padding */}
             {[{
           icon: "🚛",
