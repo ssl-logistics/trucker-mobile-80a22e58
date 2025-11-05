@@ -152,7 +152,7 @@ const AddExpensePage = () => {
         title: "เพิ่มค่าใช้จ่ายสำเร็จ",
         description: `บันทึกค่าใช้จ่ายทั้งหมด ${calculateTotal()} บาท`,
       });
-      navigate(`/job/${jobId}/route-expenses`, { replace: true });
+      navigate(-1);
     } catch (error) {
       console.error('Error saving expenses:', error);
       toast({
