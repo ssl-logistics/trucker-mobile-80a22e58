@@ -27,6 +27,8 @@ import FinancePage from "./pages/dashboard/FinancePage";
 import ShippingPage from "./pages/dashboard/ShippingPage";
 import CustomerPage from "./pages/dashboard/CustomerPage";
 import ProductPage from "./pages/dashboard/ProductPage";
+import BiddingPage from "./pages/BiddingPage";
+import PlaceBidPage from "./pages/PlaceBidPage";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -63,6 +65,8 @@ const App = () => (
           <Route path="/dashboard/shipping" element={<ProtectedRoute><ShippingPage /></ProtectedRoute>} />
           <Route path="/dashboard/customer" element={<ProtectedRoute><CustomerPage /></ProtectedRoute>} />
           <Route path="/dashboard/product" element={<ProtectedRoute><ProductPage /></ProtectedRoute>} />
+          <Route path="/bidding" element={<ProtectedRoute><BiddingPage /></ProtectedRoute>} />
+          <Route path="/bidding/:jobId" element={<ProtectedRoute><PlaceBidPage /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
