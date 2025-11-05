@@ -152,7 +152,7 @@ const AddExpensePage = () => {
         title: "เพิ่มค่าใช้จ่ายสำเร็จ",
         description: `บันทึกค่าใช้จ่ายทั้งหมด ${calculateTotal()} บาท`,
       });
-      navigate(`/job/${jobId}/route-expenses`);
+      navigate(-1);
     } catch (error) {
       console.error('Error saving expenses:', error);
       toast({
@@ -171,7 +171,7 @@ const AddExpensePage = () => {
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="px-4 py-4 flex items-center gap-3">
           <button
-            onClick={() => navigate(`/job/${jobId}/route-expenses`)}
+            onClick={() => navigate(-1)}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
