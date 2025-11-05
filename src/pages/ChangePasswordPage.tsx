@@ -54,10 +54,12 @@ export default function ChangePasswordPage() {
 
       toast({
         title: "เปลี่ยนรหัสผ่านสำเร็จ",
-        description: "รหัสผ่านของคุณถูกเปลี่ยนเรียบร้อยแล้ว",
+        description: "กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่",
       });
 
-      navigate('/account');
+      // Sign out and redirect to login
+      await supabase.auth.signOut();
+      navigate('/', { replace: true });
     } catch (error: any) {
       toast({
         title: "เกิดข้อผิดพลาด",
