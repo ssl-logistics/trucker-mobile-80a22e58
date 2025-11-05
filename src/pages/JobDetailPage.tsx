@@ -126,7 +126,6 @@ export default function JobDetailPage() {
       jobApplication={jobApplication} 
       userId={user.id}
       onUpdate={loadJobDetail}
-      openExpensesTab={location.state?.openExpensesTab}
     />
   ) : isInternational ? (
     <InternationalJobDetail 
