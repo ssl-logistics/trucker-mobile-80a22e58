@@ -182,15 +182,15 @@ export default function SettingsPage() {
 
       {/* Sign Out Confirmation Dialog */}
       <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
-        <AlertDialogContent className="max-w-sm">
+        <AlertDialogContent className="max-w-[320px] mx-4">
           <AlertDialogHeader className="items-center">
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-              <Power className="w-10 h-10 text-slate-600" />
+            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Power className="w-8 h-8 text-slate-600" />
             </div>
-            <AlertDialogTitle className="text-center">
+            <AlertDialogTitle className="text-center text-base">
               คุณต้องการออกจากระบบหรือไม่?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-sm">
+            <AlertDialogDescription className="text-center text-xs px-2">
               การออกจากระบบจะทำให้คุณต้องล็อกอินเข้าสู่ระบบอีกครั้ง ในครั้งถัดไป กรุณายืนยันออกจากระบบ
             </AlertDialogDescription>
           </AlertDialogHeader>
