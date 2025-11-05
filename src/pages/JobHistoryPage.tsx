@@ -206,11 +206,8 @@ export default function JobHistoryPage() {
                   onClick={() => navigate(`/job/${app.jobs.id}`)}
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
-                        รหัสออเดอร์ {app.jobs.order_code}
-                      </div>
-                      {getStatusBadge(app)}
+                    <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
+                      รหัสออเดอร์ {app.jobs.order_code}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" />
@@ -272,6 +269,10 @@ export default function JobHistoryPage() {
                       <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50">
                         <span className="text-lg font-bold text-teal-700">฿ {app.jobs.price.toLocaleString()}</span>
                       </div>
+                    </div>
+
+                    <div className="flex justify-end mt-3">
+                      {getStatusBadge(app)}
                     </div>
                   </div>
                 </Card>
