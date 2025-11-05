@@ -182,7 +182,7 @@ export default function SettingsPage() {
 
       {/* Sign Out Confirmation Dialog */}
       <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
-        <AlertDialogContent className="max-w-[320px] w-[90%] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+        <AlertDialogContent className="max-w-[320px] w-[90%] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl">
           <AlertDialogHeader className="items-center">
             <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-2">
               <Power className="w-8 h-8 text-slate-600" />
