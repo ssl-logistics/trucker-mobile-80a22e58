@@ -1,6 +1,7 @@
 import { Bell, Power } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import coverHeader from '@/assets/cover-header.png';
 
 interface AppHeaderProps {
   userName?: string;
@@ -18,7 +19,12 @@ export function AppHeader({ userName, profilePhoto, onSignOut, showQuickMenu = f
   };
 
   return (
-    <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
+    <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg relative overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${coverHeader})` }}
+      />
+      <div className="relative z-10">{/* Content wrapper for layering above background */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <Avatar className="w-12 h-12 border-2 border-white/20">
@@ -72,6 +78,7 @@ export function AppHeader({ userName, profilePhoto, onSignOut, showQuickMenu = f
           ))}
         </div>
       )}
+      </div>
     </header>
   );
 }
