@@ -103,7 +103,7 @@ export default function AccountPage() {
               <p className="text-foreground mt-1">**********</p>
             </div>
             <button
-              onClick={() => navigate('/profile/edit', { state: { field: 'password' } })}
+              onClick={() => navigate('/change-password')}
               className="p-2 hover:bg-muted rounded-lg transition-colors"
             >
               <Edit className="w-5 h-5 text-muted-foreground" />
