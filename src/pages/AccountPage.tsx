@@ -52,19 +52,42 @@ export default function AccountPage() {
     setIsDeleting(true);
     
     try {
-      // Sign out the user (account deletion requires backend function)
-      await supabase.auth.signOut();
+      const { data: { session } } = await supabase.auth.getSession();
       
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Call edge function to delete account
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete account');
+      }
+
       toast({
         title: "ลบบัญชีสำเร็จ",
         description: "บัญชีของคุณถูกลบเรียบร้อยแล้ว",
       });
-      
-      navigate('/');
-    } catch (error) {
+
+      // Sign out after successful deletion
+      await supabase.auth.signOut();
+      navigate('/', { replace: true });
+    } catch (error: any) {
+      console.error('Delete account error:', error);
       toast({
         title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถลบบัญชีได้ กรุณาลองใหม่อีกครั้ง",
+        description: error.message || "ไม่สามารถลบบัญชีได้ กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       });
     } finally {
