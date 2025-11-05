@@ -97,7 +97,7 @@ export default function PlaceBidPage() {
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">
-            {job ? `${job.job_type} ${job.employer_name}` : 'กำลังโหลด...'}
+            {job ? job.order_code : 'กำลังโหลด...'}
           </h1>
         </div>
       </header>
