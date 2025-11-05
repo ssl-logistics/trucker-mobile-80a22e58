@@ -63,25 +63,21 @@ export function AppHeader({
             {[{
           icon: currentJobIcon,
           label: "งานปัจจุบัน",
-          color: "bg-blue-400",
           path: "/current-jobs"
         }, {
           icon: biddingIcon,
           label: "เสนอราคา",
-          color: "bg-teal-400",
           path: "/bidding"
         }, {
           icon: incomeIcon,
           label: "รายได้",
-          color: "bg-yellow-400",
           path: "/income"
         }, {
           icon: jobHistoryIcon,
           label: "ประวัติงาน",
-          color: "bg-purple-400",
           path: "/job-history"
-        }].map(item => <button key={item.label} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2 text-white">
-                <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-md p-2`}>
+        }].map(item => <button key={item.label} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
+                <div className="w-16 h-16 flex items-center justify-center">
                   <img src={item.icon} alt={item.label} className="w-full h-full object-contain" />
                 </div>
                 <span className="text-xs text-[#153860] text-center">{item.label}</span>
