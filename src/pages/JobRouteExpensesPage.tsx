@@ -110,7 +110,7 @@ export default function JobRouteExpensesPage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/10 rounded-full">
+          <button onClick={() => navigate('/income')} className="p-2 hover:bg-white/10 rounded-full">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-semibold">{job.employer_name}</h1>
