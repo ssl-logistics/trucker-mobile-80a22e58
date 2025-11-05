@@ -37,6 +37,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import NotificationDetailPage from "./pages/NotificationDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
+import VehicleInfoPage from "./pages/VehicleInfoPage";
 import AccountPage from "./pages/AccountPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import EditFieldPage from "./pages/EditFieldPage";
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetailPage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/vehicle-info" element={<ProtectedRoute><VehicleInfoPage /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
           <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
           <Route path="/profile/edit" element={<ProtectedRoute><EditFieldPage /></ProtectedRoute>} />
