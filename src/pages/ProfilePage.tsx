@@ -4,6 +4,16 @@ import { ChevronLeft, Camera, Edit2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from '@/hooks/use-toast';
 
 interface ProfileData {
@@ -21,6 +31,9 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -52,21 +65,35 @@ export default function ProfilePage() {
     });
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !user) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
 
     const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
+    setSelectedFile(file);
+    
+    // Create preview URL
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!selectedFile || !user) return;
+
+    const fileExt = selectedFile.name.split('.').pop();
     const filePath = `${user.id}/avatar-${Date.now()}.${fileExt}`;
 
     setLoading(true);
+    setShowConfirmDialog(false);
+
     const { error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(filePath, file);
+      .upload(filePath, selectedFile);
 
     if (uploadError) {
       toast({ title: 'เกิดข้อผิดพลาด', description: 'ไม่สามารถอัพโหลดรูปภาพได้', variant: 'destructive' });
       setLoading(false);
+      cleanupPreview();
       return;
     }
 
@@ -82,8 +109,25 @@ export default function ProfilePage() {
     if (!updateError) {
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
       toast({ title: 'สำเร็จ', description: 'อัพเดทรูปโปรไฟล์แล้ว' });
+    } else {
+      toast({ title: 'เกิดข้อผิดพลาด', description: 'ไม่สามารถอัพเดทโปรไฟล์ได้', variant: 'destructive' });
     }
+    
     setLoading(false);
+    cleanupPreview();
+  };
+
+  const handleCancelUpload = () => {
+    setShowConfirmDialog(false);
+    cleanupPreview();
+  };
+
+  const cleanupPreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
   };
 
   const nameParts = profile?.full_name.split(' ') || [];
@@ -117,7 +161,7 @@ export default function ProfilePage() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleAvatarUpload}
+                onChange={handleFileSelect}
                 className="hidden"
                 disabled={loading}
               />
@@ -223,6 +267,41 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Confirm Avatar Upload Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-[320px] w-[90%] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl">
+          <AlertDialogHeader className="items-center">
+            <div className="w-24 h-24 rounded-full overflow-hidden mb-3 border-4 border-gray-200">
+              {previewUrl && (
+                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+              )}
+            </div>
+            <AlertDialogTitle className="text-center text-base">
+              ยืนยันการเปลี่ยนรูปโปรไฟล์
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-xs px-2">
+              คุณต้องการเปลี่ยนรูปโปรไฟล์เป็นรูปนี้หรือไม่?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2">
+            <AlertDialogAction 
+              onClick={handleConfirmUpload}
+              disabled={loading}
+              className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {loading ? 'กำลังอัพโหลด...' : 'ยืนยัน'}
+            </AlertDialogAction>
+            <AlertDialogCancel 
+              onClick={handleCancelUpload}
+              disabled={loading}
+              className="flex-1 m-0"
+            >
+              ยกเลิก
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
