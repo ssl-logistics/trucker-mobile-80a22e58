@@ -1,0 +1,275 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Truck, MapPin, Package, CheckCircle2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
+
+interface JobDetail {
+  id: string;
+  order_code: string;
+  employer_name: string;
+  price: number;
+  transport_type: string;
+  origin_location: string;
+  destination_location: string;
+  origin_contact_person: string | null;
+  destination_contact_person: string | null;
+  origin_bill_of_lading: string | null;
+  destination_bill_of_lading: string | null;
+  start_date: string;
+  start_time: string;
+  origin_remarks: string | null;
+  destination_remarks: string | null;
+}
+
+interface JobApplication {
+  status: string;
+  payment_completed_at: string | null;
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+  delivery_checked_in_at: string | null;
+  delivery_sop_completed_at: string | null;
+}
+
+export default function JobRouteExpensesPage() {
+  const { jobId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [job, setJob] = useState<JobDetail | null>(null);
+  const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadJobData();
+  }, [jobId, user]);
+
+  const loadJobData = async () => {
+    if (!user || !jobId) return;
+
+    setLoading(true);
+    try {
+      // Load job details
+      const { data: jobData, error: jobError } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('id', jobId)
+        .single();
+
+      if (jobError) throw jobError;
+      setJob(jobData);
+
+      // Load job application
+      const { data: appData, error: appError } = await supabase
+        .from('job_applications')
+        .select('status, payment_completed_at, checked_in_at, sop_completed_at, delivery_checked_in_at, delivery_sop_completed_at')
+        .eq('job_id', jobId)
+        .eq('driver_id', user.id)
+        .single();
+
+      if (appError) throw appError;
+      setJobApplication(appData);
+    } catch (error) {
+      console.error('Error loading job data:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!job || !jobApplication) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center">
+          <p className="text-muted-foreground">ไม่พบข้อมูลงานนี้</p>
+        </div>
+      </div>
+    );
+  }
+
+  const pickupPoints = job.transport_type?.includes('หลายที่') ? 4 : 1;
+  const totalItems = 60;
+
+  return (
+    <div className="min-h-screen bg-background pb-20">
+      {/* Header */}
+      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
+        <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/10 rounded-full">
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h1 className="text-xl font-semibold">{job.employer_name}</h1>
+        </div>
+      </header>
+
+      <div className="px-4 pt-6">
+        <Tabs defaultValue="route" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="route">เส้นทาง</TabsTrigger>
+            <TabsTrigger value="expenses">ค่าใช้จ่าย</TabsTrigger>
+          </TabsList>
+
+          {/* Route Tab */}
+          <TabsContent value="route" className="space-y-4">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <Card className="p-3 text-center bg-muted/50">
+                <Truck className="w-6 h-6 mx-auto mb-1 text-primary" />
+                <div className="text-lg font-semibold text-primary">฿ {job.price.toLocaleString()}</div>
+              </Card>
+              <Card className="p-3 text-center bg-muted/50">
+                <MapPin className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                <div className="text-sm font-medium text-muted-foreground">จุดรับ/ส่ง: {pickupPoints}</div>
+              </Card>
+              <Card className="p-3 text-center bg-muted/50">
+                <Package className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                <div className="text-sm font-medium text-muted-foreground">สินค้าร่วม: {totalItems}</div>
+              </Card>
+            </div>
+
+            {/* Payment Status */}
+            {jobApplication.payment_completed_at && (
+              <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-center justify-center">
+                <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
+                <span className="text-green-700 dark:text-green-400 font-medium">ชำระแล้ว</span>
+              </div>
+            )}
+
+            {/* Route Details */}
+            <div className="space-y-4">
+              <div className="text-base font-semibold text-foreground">
+                ผู้จ้าง : {job.employer_name}
+              </div>
+
+              {/* Pickup Point */}
+              <div className="relative pl-8">
+                <div className="absolute left-0 top-0">
+                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
+                  {/* Dashed line */}
+                  <div className="absolute left-3 top-6 w-0.5 h-24 border-l-2 border-dashed border-muted-foreground"></div>
+                </div>
+
+                <Card className="p-4 mb-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="font-semibold">จุดรับสินค้า {job.origin_contact_person || 'Factory1'}</div>
+                    {jobApplication.sop_completed_at && (
+                      <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
+                        SOP สำเร็จ
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">ชื่อผู้ติดต่อ</span>
+                      <span className="text-foreground">: {job.origin_contact_person || '-'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">เลขที่ใบ</span>
+                      <span className="text-foreground">: {job.origin_bill_of_lading || job.order_code}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">ปลายทาง</span>
+                      <span className="text-foreground">: {job.origin_location}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
+                      <span className="text-foreground">: {job.transport_type}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
+                      <span className="text-foreground">: {new Date(job.start_date).toLocaleDateString('th-TH')} | {job.start_time}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
+                      <span className="text-foreground">: {job.origin_remarks || '-'}</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Delivery Points */}
+              {job.destination_location && (
+                <div className="relative pl-8">
+                  <div className="absolute left-0 top-0">
+                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+
+                  <Card className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="font-semibold">จุดส่ง {job.destination_contact_person || job.destination_location.split(' ')[0]}</div>
+                      {jobApplication.delivery_sop_completed_at && (
+                        <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                          <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
+                          POD สำเร็จ
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">ชื่อผู้ติดต่อ</span>
+                        <span className="text-foreground">: {job.destination_contact_person || '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">เลขที่ใบ</span>
+                        <span className="text-foreground">: {job.destination_bill_of_lading || job.order_code}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">ปลายทาง</span>
+                        <span className="text-foreground">: {job.destination_location}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
+                        <span className="text-foreground">: {job.transport_type}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
+                        <span className="text-foreground">: {new Date(job.start_date).toLocaleDateString('th-TH')} | {job.start_time}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
+                        <span className="text-foreground">: {job.destination_remarks || '-'}</span>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Expenses Tab */}
+          <TabsContent value="expenses" className="space-y-4">
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">ยังไม่มีข้อมูลค่าใช้จ่าย</p>
+              <button
+                onClick={() => navigate(`/job/${jobId}/add-expense`)}
+                className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+              >
+                เพิ่มค่าใช้จ่าย
+              </button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}

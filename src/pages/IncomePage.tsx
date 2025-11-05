@@ -104,7 +104,7 @@ export default function IncomePage() {
   };
 
   const handleViewJobDetail = (jobId: string) => {
-    navigate(`/job/${jobId}`, { state: { openExpensesTab: true } });
+    navigate(`/job/${jobId}/route-expenses`);
   };
 
   // Group jobs by month
