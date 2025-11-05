@@ -36,8 +36,8 @@ export default function PlaceBidPage() {
 
     setIsSubmitting(true);
 
-    const { error } = await (supabase
-      .from('job_bids') as any)
+    const { error } = await supabase
+      .from('job_bids')
       .insert({
         job_id: jobId,
         driver_id: user.id,

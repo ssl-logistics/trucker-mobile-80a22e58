@@ -8,28 +8,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
-interface BiddingJob {
-  id: string;
-  order_code: string;
-  job_type: string;
-  employer_name: string;
-  transport_type: string;
-  origin_location: string;
-  destination_location: string;
-  price: number;
-  start_date: string;
-  start_time: string;
-  equipment_list: string | null;
-  safety_equipment: string | null;
-}
+type BiddingJob = Database['public']['Tables']['jobs']['Row'];
+type JobBid = Database['public']['Tables']['job_bids']['Row'];
 
-interface Bid {
-  id: string;
-  job_id: string;
-  bid_amount: number;
-  status: string;
-  created_at: string;
+
+interface Bid extends JobBid {
   jobs: BiddingJob;
 }
 
@@ -64,15 +49,12 @@ export default function BiddingPage() {
 
     const { data, error } = await supabase
       .from('job_bids')
-      .select(`
-        *,
-        jobs (*)
-      `)
+      .select('*, jobs(*)')
       .eq('driver_id', user.id)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setMyBids(data as any);
+      setMyBids(data as Bid[]);
     }
   };
 
