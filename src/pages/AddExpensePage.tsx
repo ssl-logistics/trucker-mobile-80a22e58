@@ -22,6 +22,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ExpenseItem {
   id: string;
@@ -41,10 +43,12 @@ const AddExpensePage = () => {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     { id: "1", type: "", amount: "", receiptPhoto: null, receiptPreview: null },
   ]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddExpense = () => {
     const newExpense: ExpenseItem = {
@@ -101,13 +105,64 @@ const AddExpensePage = () => {
     setShowConfirmDialog(true);
   };
 
-  const handleConfirm = () => {
-    // TODO: Save to database
-    toast({
-      title: "เพิ่มค่าใช้จ่ายสำเร็จ",
-      description: `บันทึกค่าใช้จ่ายทั้งหมด ${calculateTotal()} บาท`,
-    });
-    navigate(`/job/${jobId}/route-expenses`);
+  const handleConfirm = async () => {
+    if (!user || !jobId) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Upload receipt photos and save expenses
+      for (const expense of expenses) {
+        if (!expense.receiptPhoto) continue;
+        
+        // Upload photo to storage
+        const fileExt = expense.receiptPhoto.name.split('.').pop();
+        const fileName = `${user.id}/${jobId}_${expense.id}_${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('expense-receipts')
+          .upload(fileName, expense.receiptPhoto);
+        
+        if (uploadError) {
+          throw new Error(`เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ: ${uploadError.message}`);
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('expense-receipts')
+          .getPublicUrl(fileName);
+        
+        // Save expense to database
+        const { error: insertError } = await supabase
+          .from('expenses')
+          .insert({
+            job_id: jobId,
+            driver_id: user.id,
+            expense_type: expense.type,
+            amount: parseFloat(expense.amount),
+            receipt_photo_url: publicUrl
+          });
+        
+        if (insertError) {
+          throw new Error(`เกิดข้อผิดพลาดในการบันทึกค่าใช้จ่าย: ${insertError.message}`);
+        }
+      }
+      
+      toast({
+        title: "เพิ่มค่าใช้จ่ายสำเร็จ",
+        description: `บันทึกค่าใช้จ่ายทั้งหมด ${calculateTotal()} บาท`,
+      });
+      navigate(`/job/${jobId}/route-expenses`);
+    } catch (error) {
+      console.error('Error saving expenses:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: error instanceof Error ? error.message : "ไม่สามารถบันทึกค่าใช้จ่ายได้",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -266,8 +321,9 @@ const AddExpensePage = () => {
             <AlertDialogAction
               className="flex-1 m-0"
               onClick={handleConfirm}
+              disabled={isSubmitting}
             >
-              ยืนยัน
+              {isSubmitting ? 'กำลังบันทึก...' : 'ยืนยัน'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

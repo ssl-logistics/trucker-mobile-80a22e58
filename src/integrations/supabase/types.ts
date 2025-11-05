@@ -74,6 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          driver_id: string
+          expense_type: string
+          id: string
+          job_id: string
+          receipt_photo_url: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          driver_id: string
+          expense_type: string
+          id?: string
+          job_id: string
+          receipt_photo_url: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          driver_id?: string
+          expense_type?: string
+          id?: string
+          job_id?: string
+          receipt_photo_url?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           applied_at: string
