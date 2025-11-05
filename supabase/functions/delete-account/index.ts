@@ -20,33 +20,10 @@ serve(async (req) => {
 
     console.log('Processing delete account request');
 
-    // Create Supabase client to verify the user's token
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    );
+    // Extract the JWT token from the Authorization header
+    const token = authHeader.replace('Bearer ', '');
 
-    // Get the user from the JWT token
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    
-    if (userError) {
-      console.error('Error getting user:', userError);
-      throw new Error('Unauthorized');
-    }
-
-    if (!user) {
-      console.error('No user found in token');
-      throw new Error('Unauthorized');
-    }
-
-    console.log('User verified:', user.id);
-
-    // Create admin client to delete the user
+    // Create admin client with service role key
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -57,6 +34,21 @@ serve(async (req) => {
         }
       }
     );
+
+    // Get the user from the JWT token using admin client
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (userError) {
+      console.error('Error getting user:', userError);
+      throw new Error('Unauthorized - Invalid token');
+    }
+
+    if (!user) {
+      console.error('No user found in token');
+      throw new Error('Unauthorized - No user found');
+    }
+
+    console.log('User verified:', user.id);
 
     console.log('Attempting to delete user:', user.id);
 
