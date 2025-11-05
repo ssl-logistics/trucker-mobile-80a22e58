@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +35,7 @@ export default function ContainerCheckInPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
 
   useEffect(() => {
     loadJobDetail();
@@ -147,7 +149,10 @@ export default function ContainerCheckInPage() {
           >
             เพิ่มค่าใช้จ่าย
           </button>
-          <button className="py-4 text-center text-gray-500">
+          <button 
+            className="py-4 text-center text-gray-500"
+            onClick={() => setIsReportDrawerOpen(true)}
+          >
             แจ้งปัญหา
           </button>
         </div>
@@ -276,6 +281,13 @@ export default function ContainerCheckInPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Report Problem Drawer */}
+      <ReportProblemDrawer
+        open={isReportDrawerOpen}
+        onOpenChange={setIsReportDrawerOpen}
+        jobId={jobId}
+      />
     </div>
   );
 }
