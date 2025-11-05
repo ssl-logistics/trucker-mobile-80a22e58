@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, CircleDot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -103,60 +103,65 @@ export default function BiddingPage() {
             </div>
           ) : (
             availableJobs.map((job) => (
-              <Card key={job.id} className="p-4">
+              <Card key={job.id} className="p-4 space-y-3 bg-card">
                 <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <Badge variant="secondary" className="mb-2">
-                      รหัสลูกค้าเจอร์ {job.order_code}
-                    </Badge>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>📅 {new Date(job.start_date).toLocaleDateString('th-TH')} | {job.start_time}</span>
-                    </div>
+                  <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
+                    รหัสออเดอร์ {job.order_code}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5" />
+                    {new Date(job.start_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })} | {job.start_time.substring(0, 5)}
                   </div>
                 </div>
 
-                <h3 className="font-semibold mb-2">
-                  ชื่องาน : {job.job_type} {job.employer_name}
-                </h3>
-                
-                <div className="text-sm text-primary font-semibold mb-3">
-                  {job.transport_type}
-                </div>
+                <div className="space-y-2">
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">ผู้จ้าง : </span>
+                    <span className="font-medium">{job.employer_name}</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {job.transport_type}
+                  </div>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-start gap-2">
-                    <div className="w-4 h-4 rounded-full border-2 border-primary flex-shrink-0 mt-1" />
-                    <div>
-                      <div className="text-xs text-muted-foreground">ต้นทาง</div>
-                      <div className="text-sm">{job.origin_location}</div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs">
+                          <div className="text-muted-foreground">ต้นทาง</div>
+                          <div className="font-medium">{job.origin_location}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs">
+                          <div className="text-muted-foreground">ปลายทาง</div>
+                          <div className="font-medium">{job.destination_location}</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-2">
-                    <div className="w-4 h-4 rounded-full bg-destructive flex-shrink-0 mt-1" />
-                    <div>
-                      <div className="text-xs text-muted-foreground">ปลายทาง</div>
-                      <div className="text-sm">{job.destination_location}</div>
+
+                  {(job.equipment_list || job.safety_equipment) && (
+                    <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
+                      {job.equipment_list && (
+                        <div>
+                          <span className="text-muted-foreground">อุปกรณ์ติดรถ : </span>
+                          <span>{job.equipment_list}</span>
+                        </div>
+                      )}
+                      {job.safety_equipment && (
+                        <div>
+                          <span className="text-muted-foreground">อุปกรณ์ Safety : </span>
+                          <span>{job.safety_equipment}</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
-
-                {job.equipment_list && (
-                  <div className="bg-muted/50 rounded-lg p-3 mb-3 text-sm">
-                    <div className="font-medium mb-1">อุปกรณ์ที่ต้องมี:</div>
-                    <div>{job.equipment_list}</div>
-                  </div>
-                )}
-
-                {job.safety_equipment && (
-                  <div className="bg-muted/50 rounded-lg p-3 mb-3 text-sm">
-                    <div className="font-medium mb-1">อุปกรณ์ Safety:</div>
-                    <div>{job.safety_equipment}</div>
-                  </div>
-                )}
 
                 <Button 
-                  className="w-full" 
+                  className="w-full h-11 text-base font-medium" 
                   onClick={() => handlePlaceBid(job.id)}
                 >
                   เริ่มเสนอราคา
