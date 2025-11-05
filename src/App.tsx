@@ -34,6 +34,7 @@ import JobRouteExpensesPage from "./pages/JobRouteExpensesPage";
 import JobHistoryPage from "./pages/JobHistoryPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import NotificationDetailPage from "./pages/NotificationDetailPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/job-history" element={<ProtectedRoute><JobHistoryPage /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetailPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
