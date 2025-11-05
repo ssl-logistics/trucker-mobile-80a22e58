@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Camera, Edit2, X } from 'lucide-react';
+import { ChevronLeft, Camera, Edit2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 
 interface ProfileData {
@@ -23,7 +20,6 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [editDialog, setEditDialog] = useState<{ field: string; value: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -90,54 +86,6 @@ export default function ProfilePage() {
     setLoading(false);
   };
 
-  const handleSaveField = async () => {
-    if (!editDialog || !user) return;
-
-    setLoading(true);
-    const { field, value } = editDialog;
-
-    if (field === 'ชื่อ') {
-      const nameParts = profile?.full_name.split(' ') || [];
-      const newFullName = `${value} ${nameParts.slice(1).join(' ')}`;
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: newFullName })
-        .eq('id', user.id);
-
-      if (!error) {
-        setProfile(prev => prev ? { ...prev, full_name: newFullName } : null);
-        toast({ title: 'สำเร็จ', description: 'อัพเดทข้อมูลแล้ว' });
-      }
-    } else if (field === 'นามสกุล') {
-      const nameParts = profile?.full_name.split(' ') || [];
-      const newFullName = `${nameParts[0]} ${value}`;
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: newFullName })
-        .eq('id', user.id);
-
-      if (!error) {
-        setProfile(prev => prev ? { ...prev, full_name: newFullName } : null);
-        toast({ title: 'สำเร็จ', description: 'อัพเดทข้อมูลแล้ว' });
-      }
-    } else if (field === 'เบอร์โทรศัพท์') {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ phone_number: value })
-        .eq('id', user.id);
-
-      if (!error) {
-        setProfile(prev => prev ? { ...prev, phone_number: value } : null);
-        toast({ title: 'สำเร็จ', description: 'อัพเดทข้อมูลแล้ว' });
-      }
-    }
-
-    setLoading(false);
-    setEditDialog(null);
-  };
-
   const nameParts = profile?.full_name.split(' ') || [];
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
@@ -185,7 +133,13 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between">
             <span className="text-foreground">{firstName}</span>
             <button
-              onClick={() => setEditDialog({ field: 'ชื่อ', value: firstName })}
+              onClick={() => navigate('/profile/edit', { 
+                state: { 
+                  field: 'ชื่อ', 
+                  value: firstName, 
+                  fullName: profile?.full_name 
+                } 
+              })}
               className="p-2"
             >
               <Edit2 className="w-4 h-4 text-muted-foreground" />
@@ -198,7 +152,13 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between">
             <span className="text-foreground">{lastName}</span>
             <button
-              onClick={() => setEditDialog({ field: 'นามสกุล', value: lastName })}
+              onClick={() => navigate('/profile/edit', { 
+                state: { 
+                  field: 'นามสกุล', 
+                  value: lastName, 
+                  fullName: profile?.full_name 
+                } 
+              })}
               className="p-2"
             >
               <Edit2 className="w-4 h-4 text-muted-foreground" />
@@ -211,7 +171,12 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between">
             <span className="text-foreground">{profile?.phone_number}</span>
             <button
-              onClick={() => setEditDialog({ field: 'เบอร์โทรศัพท์', value: profile?.phone_number || '' })}
+              onClick={() => navigate('/profile/edit', { 
+                state: { 
+                  field: 'เบอร์โทรศัพท์', 
+                  value: profile?.phone_number || '' 
+                } 
+              })}
               className="p-2"
             >
               <Edit2 className="w-4 h-4 text-muted-foreground" />
@@ -258,39 +223,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      {/* Edit Dialog */}
-      <Dialog open={!!editDialog} onOpenChange={(open) => !open && setEditDialog(null)}>
-        <DialogContent className="max-w-[320px] w-[90%] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-sm text-muted-foreground">
-                {editDialog?.field}
-              </DialogTitle>
-              <button
-                onClick={() => setEditDialog(null)}
-                className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              value={editDialog?.value || ''}
-              onChange={(e) => setEditDialog(prev => prev ? { ...prev, value: e.target.value } : null)}
-              className="border-b border-gray-300 rounded-none px-0 focus-visible:ring-0 focus-visible:border-blue-600"
-            />
-            <Button
-              onClick={handleSaveField}
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              บันทึก
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
