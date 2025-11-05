@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Camera, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,9 +41,11 @@ const expenseTypes = [
 
 const AddExpensePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { jobId } = useParams();
   const { toast } = useToast();
   const { user } = useAuth();
+  const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     { id: "1", type: "", amount: "", receiptPhoto: null, receiptPreview: null },
   ]);
@@ -169,11 +171,11 @@ const AddExpensePage = () => {
         description: `บันทึกค่าใช้จ่ายทั้งหมด ${calculateTotal()} บาท`,
       });
       
-      console.log('About to navigate to route-expenses...');
+      console.log('About to navigate back...');
       
-      // Navigate to route-expenses page
+      // Navigate back to the page we came from
       setTimeout(() => {
-        navigate(`/job/${jobId}/route-expenses`);
+        navigate(returnPath);
         console.log('Navigate called');
       }, 100);
       
@@ -197,7 +199,7 @@ const AddExpensePage = () => {
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="px-4 py-4 flex items-center gap-3">
           <button
-            onClick={() => navigate(`/job/${jobId}/route-expenses`)}
+            onClick={() => navigate(returnPath)}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ReportProblemDrawer from "./ReportProblemDrawer";
 
 interface JobActionButtonsProps {
@@ -8,6 +8,7 @@ interface JobActionButtonsProps {
 
 export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
 
   return (
@@ -24,7 +25,7 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
 
         <button 
           className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-          onClick={() => navigate(`/job/${jobId}/add-expense`)}
+          onClick={() => navigate(`/job/${jobId}/add-expense`, { state: { returnPath: location.pathname } })}
         >
           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
             <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
