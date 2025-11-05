@@ -39,7 +39,7 @@ export default function IncomePage() {
 
     setLoading(true);
     try {
-      // Fetch all job applications for the current user that are accepted/completed
+      // Fetch all accepted job applications (excluding pending and rejected)
       const { data: applications, error } = await supabase
         .from('job_applications')
         .select(`
@@ -56,7 +56,8 @@ export default function IncomePage() {
           )
         `)
         .eq('driver_id', user.id)
-        .eq('status', 'accepted');
+        .neq('status', 'pending')
+        .neq('status', 'rejected');
 
       if (error) {
         toast({
