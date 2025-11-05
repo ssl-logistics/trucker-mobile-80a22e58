@@ -37,7 +37,7 @@ export function AppHeader({
                   {userName?.charAt(0) || "👤"}
                 </AvatarFallback>
               </Avatar>
-              <div className="w-36 h-14 rounded-xl bg-slate-100 p-4">
+              <div className="w-36 h-14 rounded-xl bg-slate-100 p-2">
                 <div className="text-sm opacity-90 text-[#126D8A]">👋 {getDayName()}</div>
                 <div className="font-semibold text-[#153860]">{userName || "คุณผู้ใช้งาน"}</div>
               </div>
