@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,6 +6,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type Job = Database['public']['Tables']['jobs']['Row'];
 
 export default function PlaceBidPage() {
   const navigate = useNavigate();
@@ -13,6 +16,25 @@ export default function PlaceBidPage() {
   const { user } = useAuth();
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [job, setJob] = useState<Job | null>(null);
+
+  useEffect(() => {
+    if (jobId) {
+      loadJob();
+    }
+  }, [jobId]);
+
+  const loadJob = async () => {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+
+    if (!error && data) {
+      setJob(data);
+    }
+  };
 
   const handleSubmitBid = async () => {
     if (!bidAmount || !user || !jobId) {
@@ -74,7 +96,9 @@ export default function PlaceBidPage() {
           <button onClick={() => navigate(-1)}>
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{jobId}</h1>
+          <h1 className="text-lg font-semibold">
+            {job ? `${job.job_type} ${job.employer_name}` : 'กำลังโหลด...'}
+          </h1>
         </div>
       </header>
 
