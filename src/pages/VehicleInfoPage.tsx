@@ -98,25 +98,38 @@ export default function VehicleInfoPage() {
     if (!user) return;
 
     try {
+      console.log('Loading vehicle photos for user:', user.id);
+      
       const { data: vehicleData } = await supabase
         .from('vehicles')
         .select('id')
         .eq('driver_id', user.id)
         .single();
 
-      if (!vehicleData) return;
+      if (!vehicleData) {
+        console.log('No vehicle data found');
+        return;
+      }
+
+      console.log('Vehicle ID:', vehicleData.id);
 
       const { data, error } = await supabase
         .from('vehicle_photos')
         .select('*')
         .eq('vehicle_id', vehicleData.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading photos:', error);
+        throw error;
+      }
+      
+      console.log('Loaded photos:', data);
       setPhotos(data || []);
       
       // Load registration photo
       const registrationPhotoData = data?.find(p => p.photo_type === 'registration');
       if (registrationPhotoData) {
+        console.log('Registration photo:', registrationPhotoData.photo_url);
         setRegistrationPhoto(registrationPhotoData.photo_url);
       }
     } catch (error) {
@@ -128,22 +141,32 @@ export default function VehicleInfoPage() {
   const handlePhotoUpload = async (photoType: string, file: File) => {
     if (!user || !vehicleData) return;
 
+    console.log('Starting photo upload for type:', photoType);
+    
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${vehicleData.id}-${photoType}-${Date.now()}.${fileExt}`;
+
+      console.log('Uploading to:', fileName);
 
       const { error: uploadError } = await supabase.storage
         .from('vehicle-photos')
         .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('vehicle-photos')
         .getPublicUrl(fileName);
 
+      console.log('Public URL:', publicUrl);
+
       // Check if photo already exists
       const existingPhoto = photos.find(p => p.photo_type === photoType);
+      console.log('Existing photo:', existingPhoto);
 
       if (existingPhoto) {
         const { error: updateError } = await supabase
@@ -151,7 +174,11 @@ export default function VehicleInfoPage() {
           .update({ photo_url: publicUrl })
           .eq('id', existingPhoto.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Update error:', updateError);
+          throw updateError;
+        }
+        console.log('Updated existing photo');
       } else {
         const { error: insertError } = await supabase
           .from('vehicle_photos')
@@ -161,10 +188,19 @@ export default function VehicleInfoPage() {
             photo_url: publicUrl,
           });
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          throw insertError;
+        }
+        console.log('Inserted new photo');
       }
 
+      // Reload photos with a slight delay to ensure DB is updated
+      console.log('Reloading photos...');
+      await new Promise(resolve => setTimeout(resolve, 500));
       await loadVehiclePhotos();
+      console.log('Photos reloaded, new photos:', photos);
+      
       setIsVehiclePhotoDrawerOpen(false);
       toast({
         title: 'อัพโหลดสำเร็จ',
