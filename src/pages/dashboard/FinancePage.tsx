@@ -124,8 +124,8 @@ export default function FinancePage() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-10 shadow-md">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+        <div className="flex items-center justify-center relative">
+          <button onClick={() => navigate('/dashboard')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-bold">การเงิน</h1>

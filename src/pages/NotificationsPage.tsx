@@ -79,11 +79,11 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/home')} className="p-1">
+        <div className="flex items-center justify-center relative">
+          <button onClick={() => navigate('/home')} className="absolute left-0 p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold flex-1 text-center mr-7">แจ้งเตือน</h1>
+          <h1 className="text-lg font-semibold">แจ้งเตือน</h1>
         </div>
       </header>
 

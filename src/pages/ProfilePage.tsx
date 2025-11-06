@@ -140,8 +140,8 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/settings')}>
+        <div className="flex items-center justify-center relative">
+          <button onClick={() => navigate('/settings')} className="absolute left-0">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-semibold">{t('profile.title')}</h1>

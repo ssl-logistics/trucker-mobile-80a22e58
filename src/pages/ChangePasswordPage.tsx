@@ -75,8 +75,8 @@ export default function ChangePasswordPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/account')}>
+        <div className="flex items-center justify-center relative">
+          <button onClick={() => navigate('/account')} className="absolute left-0">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-semibold">เปลี่ยนรหัสผ่าน</h1>
