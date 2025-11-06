@@ -147,11 +147,9 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
             </p>
           </div>
 
-          {/* Step Tracker Wrapper */}
-          <div className="flex items-start gap-3">
-            {/* Vertical Timeline */}
+          {/* Container Checkpoint */}
+          <div className="flex items-start gap-3 mb-3">
             <div className="flex flex-col items-center pt-2">
-              {/* Step 1 - Container Checkpoint */}
               {jobApplication?.container_sop_completed_at ? (
                 <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md flex-shrink-0">
                   <CheckCircle className="w-4 h-4 text-white" />
@@ -161,40 +159,10 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
               ) : (
                 <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white flex-shrink-0" />
               )}
-              <div className={`w-0.5 flex-1 min-h-[100px] ${
+              <div className={`w-0.5 h-full min-h-[80px] mt-1 ${
                 jobApplication?.container_sop_completed_at ? 'bg-red-500' : 'bg-gray-300'
               }`} />
-              
-              {/* Step 2 - Pickup/Loading Point */}
-              {jobApplication?.sop_completed_at ? (
-                <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md flex-shrink-0">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-              ) : jobApplication?.container_sop_completed_at ? (
-                <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm flex-shrink-0" />
-              ) : (
-                <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white flex-shrink-0" />
-              )}
-              <div className={`w-0.5 flex-1 min-h-[100px] ${
-                jobApplication?.sop_completed_at ? 'bg-red-500' : 'bg-gray-300'
-              }`} />
-              
-              {/* Step 3 - Delivery/Return Point */}
-              {jobApplication?.delivery_sop_completed_at ? (
-                <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md flex-shrink-0">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-              ) : jobApplication?.sop_completed_at ? (
-                <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm flex-shrink-0" />
-              ) : (
-                <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white flex-shrink-0" />
-              )}
             </div>
-
-            {/* Content Column */}
-            <div className="flex-1 space-y-3">
-              {/* Container Checkpoint */}
-              <div>
             
             <Card className={`flex-1 p-4 border-2 ${
               jobApplication?.container_sop_completed_at 
@@ -321,7 +289,21 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
           </div>
 
           {/* Pickup/Loading Point */}
-          <div>
+          <div className="flex items-start gap-3 mb-3">
+            <div className="flex flex-col items-center pt-2">
+              {jobApplication?.sop_completed_at ? (
+                <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md flex-shrink-0">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+              ) : jobApplication?.container_sop_completed_at ? (
+                <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm flex-shrink-0" />
+              ) : (
+                <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white flex-shrink-0" />
+              )}
+              <div className={`w-0.5 h-full min-h-[80px] mt-1 ${
+                jobApplication?.sop_completed_at ? 'bg-red-500' : 'bg-gray-300'
+              }`} />
+            </div>
             
             <Card className={`flex-1 p-4 border-2 ${
               jobApplication?.sop_completed_at
@@ -440,7 +422,18 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
           </div>
 
           {/* Delivery/Return Point */}
-          <div>
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col items-center pt-2">
+              {jobApplication?.delivery_sop_completed_at ? (
+                <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md flex-shrink-0">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+              ) : jobApplication?.sop_completed_at ? (
+                <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm flex-shrink-0" />
+              ) : (
+                <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white flex-shrink-0" />
+              )}
+            </div>
             
             <Card className={`flex-1 p-4 border-2 ${
               jobApplication?.delivery_sop_completed_at
@@ -565,8 +558,6 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
                 </div>
               </div>
             </Card>
-          </div>
-            </div>
           </div>
         </div>
       </div>
