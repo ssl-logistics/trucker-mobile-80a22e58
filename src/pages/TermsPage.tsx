@@ -12,7 +12,7 @@ export default function TermsPage() {
         <button onClick={() => navigate("/settings")} className="p-1">
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <h1 className="font-semibold text-sm">{t("terms.title")}</h1>
+        <h1 className="font-semibold text-sm text-center">{t("terms.title")}</h1>
       </header>
 
       {/* Content */}
