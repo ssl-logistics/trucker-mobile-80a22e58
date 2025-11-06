@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Filter, Clock, MapPin, CircleDot, X } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,10 @@ import { toast } from '@/hooks/use-toast';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerFooter } from '@/components/ui/drawer';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface JobApplication {
   job_id: string;
@@ -43,7 +47,8 @@ export default function CurrentJobsPage() {
   // Filter states
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedTransportType, setSelectedTransportType] = useState<string>('all');
-  const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   useEffect(() => {
     loadCurrentJobs();
@@ -103,7 +108,8 @@ export default function CurrentJobsPage() {
   const handleResetFilter = () => {
     setSelectedJobType('all');
     setSelectedTransportType('all');
-    setSelectedDateRange('all');
+    setStartDate(undefined);
+    setEndDate(undefined);
   };
 
   // Filter applications based on selected filters
@@ -139,25 +145,20 @@ export default function CurrentJobsPage() {
     }
 
     // Date range filter
-    if (selectedDateRange !== 'all') {
+    if (startDate || endDate) {
       const jobDate = new Date(job.start_date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      jobDate.setHours(0, 0, 0, 0);
       
-      if (selectedDateRange === 'today') {
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        if (jobDate < today || jobDate >= tomorrow) return false;
-      } else if (selectedDateRange === 'tomorrow') {
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dayAfter = new Date(tomorrow);
-        dayAfter.setDate(dayAfter.getDate() + 1);
-        if (jobDate < tomorrow || jobDate >= dayAfter) return false;
-      } else if (selectedDateRange === 'week') {
-        const weekLater = new Date(today);
-        weekLater.setDate(weekLater.getDate() + 7);
-        if (jobDate < today || jobDate >= weekLater) return false;
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (jobDate < start) return false;
+      }
+      
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (jobDate > end) return false;
       }
     }
 
@@ -383,25 +384,58 @@ export default function CurrentJobsPage() {
 
             {/* Date Range Filter */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold">วันเริ่มงาน</Label>
-              <RadioGroup value={selectedDateRange} onValueChange={setSelectedDateRange}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="all" id="date-all" />
-                  <Label htmlFor="date-all" className="font-normal cursor-pointer">ทั้งหมด</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="today" id="date-today" />
-                  <Label htmlFor="date-today" className="font-normal cursor-pointer">วันนี้</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="tomorrow" id="date-tomorrow" />
-                  <Label htmlFor="date-tomorrow" className="font-normal cursor-pointer">พรุ่งนี้</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="week" id="date-week" />
-                  <Label htmlFor="date-week" className="font-normal cursor-pointer">สัปดาห์นี้</Label>
-                </div>
-              </RadioGroup>
+              <Label className="text-base font-semibold">วันเวลาที่รับมอบงาน</Label>
+              <div className="flex items-center gap-3">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "flex-1 justify-start text-left font-normal h-11",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "dd/MM/yyyy") : "วันที่เริ่มต้น"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                <span className="text-muted-foreground">—</span>
+                
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "flex-1 justify-start text-left font-normal h-11",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "dd/MM/yyyy") : "วันที่สิ้นสุด"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
 
