@@ -24,6 +24,9 @@ interface Message {
   sender_avatar: string | null;
   is_read: boolean;
   created_at: string;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_size?: number | null;
 }
 
 interface Conversation {
@@ -44,7 +47,9 @@ export default function ChatRoomPage() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const [showManageGroup, setShowManageGroup] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -118,6 +123,76 @@ export default function ChatRoomPage() {
       .eq('conversation_id', conversationId)
       .neq('sender_id', user.id)
       .eq('is_read', false);
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user || !conversationId) return;
+
+    // Check file size (10MB limit)
+    if (file.size > 10485760) {
+      toast({
+        title: t('chat.error'),
+        description: 'ไฟล์มีขนาดใหญ่เกิน 10MB',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(fileName);
+
+      // Send message with file attachment
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          sender_name: profile?.full_name || 'User',
+          sender_avatar: profile?.avatar_url,
+          content: file.name,
+          message_type: 'file',
+          file_url: publicUrl,
+          file_name: file.name,
+          file_size: file.size
+        });
+
+      if (error) throw error;
+
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      toast({
+        title: t('chat.error'),
+        description: t('chat.sendError'),
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -288,7 +363,29 @@ export default function ChatRoomPage() {
                       : 'bg-accent text-foreground rounded-bl-none'
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  {message.file_url ? (
+                    <div className="flex flex-col gap-2">
+                      {message.file_name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                        <img 
+                          src={message.file_url} 
+                          alt={message.file_name}
+                          className="max-w-[200px] max-h-[200px] rounded-lg object-cover"
+                        />
+                      ) : (
+                        <a 
+                          href={message.file_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 hover:underline"
+                        >
+                          <Paperclip className="w-4 h-4" />
+                          <span className="text-sm">{message.file_name}</span>
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm">{message.content}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 mt-1 px-2">
                   <span className="text-xs text-muted-foreground">
@@ -318,9 +415,21 @@ export default function ChatRoomPage() {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            className="flex-1 bg-accent/30 border-none"
+            className="flex-1 bg-accent/30 border-none rounded-full"
+            disabled={isUploading}
           />
-          <button className="p-2 text-muted-foreground hover:text-foreground">
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileSelect}
+            className="hidden"
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+          />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
             <Paperclip className="w-5 h-5" />
           </button>
           <button className="p-2 text-muted-foreground hover:text-foreground">
@@ -329,7 +438,8 @@ export default function ChatRoomPage() {
           <Button
             onClick={handleSendMessage}
             size="icon"
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 rounded-full"
+            disabled={isUploading || !newMessage.trim()}
           >
             <Send className="w-5 h-5" />
           </Button>
