@@ -132,7 +132,7 @@ export default function JobHistoryPage() {
   return <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
-        <div className="px-4 py-4 flex items-center gap-3 bg-[#DDEDFF]">
+        <div className="px-4 py-4 flex items-center gap-3 bg-[#DDEDFF] rounded-b-xl ">
           <button onClick={() => navigate("/home")} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
