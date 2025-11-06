@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bell, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,10 +31,12 @@ export function AppHeader({
   showQuickMenu = false
 }: AppHeaderProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  
   const getDayName = () => {
-    const days = ["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"];
-    return days[new Date().getDay()];
+    const dayKeys = ['home.sunday', 'home.monday', 'home.tuesday', 'home.wednesday', 'home.thursday', 'home.friday', 'home.saturday'];
+    return t(dayKeys[new Date().getDay()]);
   };
   return <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden">
       <div className="relative overflow-hidden h-20">
@@ -50,8 +53,8 @@ export function AppHeader({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-fit h-14 rounded-xl bg-slate-100 px-3 py-2">
-                <div className="text-sm opacity-90 text-[#126D8A] whitespace-nowrap">👋 {getDayName()}</div>
-                <div className="font-semibold text-[#153860] whitespace-nowrap">{userName || "คุณผู้ใช้งาน"}</div>
+                <div className="text-sm opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
+                <div className="font-semibold text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -74,25 +77,25 @@ export function AppHeader({
             {/* Quick menu section with its own padding */}
             {[{
           icon: currentJobIcon,
-          label: "งานปัจจุบัน",
+          labelKey: "home.current_jobs",
           path: "/current-jobs"
         }, {
           icon: biddingIcon,
-          label: "เสนอราคา",
+          labelKey: "home.bidding",
           path: "/bidding"
         }, {
           icon: incomeIcon,
-          label: "รายได้",
+          labelKey: "home.income",
           path: "/income"
         }, {
           icon: jobHistoryIcon,
-          label: "ประวัติงาน",
+          labelKey: "home.job_history",
           path: "/job-history"
-        }].map(item => <button key={item.label} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
+        }].map(item => <button key={item.labelKey} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
                 <div className="w-16 h-16 flex items-center justify-center">
-                  <img src={item.icon} alt={item.label} className="w-full h-full object-contain" />
+                  <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" />
                 </div>
-                <span className="text-xs text-[#153860] text-center">{item.label}</span>
+                <span className="text-xs text-[#153860] text-center">{t(item.labelKey)}</span>
               </button>)}
           </div>
         </div>}
@@ -105,10 +108,10 @@ export function AppHeader({
               <Power className="w-8 h-8 text-slate-600" />
             </div>
             <AlertDialogTitle className="text-center text-base">
-              คุณต้องการออกจากระบบหรือไม่?
+              {t('home.sign_out_confirm')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-xs px-2">
-              การออกจากระบบจะทำให้คุณต้องล็อกอินเข้าสู่ระบบอีกครั้ง ในครั้งถัดไป กรุณายืนยันออกจากระบบ
+              {t('home.sign_out_desc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2">
@@ -119,9 +122,9 @@ export function AppHeader({
               }}
               className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              ออกจากระบบ
+              {t('home.sign_out_btn')}
             </AlertDialogAction>
-            <AlertDialogCancel className="flex-1 m-0">ยกเลิก</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 m-0">{t('home.cancel')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

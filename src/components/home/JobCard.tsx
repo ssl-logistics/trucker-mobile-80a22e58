@@ -2,6 +2,7 @@ import { Clock, MapPin, CircleDot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Job {
   id: string;
@@ -25,9 +26,12 @@ interface JobCardProps {
 }
 
 export const JobCard = ({ job, onAccept }: JobCardProps) => {
+  const { t, language } = useLanguage();
+  
   const formatDate = (date: string) => {
     const d = new Date(date);
-    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+    const locale = language === 'th' ? 'th-TH' : 'en-US';
+    return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: '2-digit' });
   };
 
   // Determine if domestic or international based on transport_type
@@ -40,7 +44,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
     <Card className="p-4 space-y-3 bg-card">
       <div className="flex items-start justify-between mb-3">
         <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
-          รหัสออเดอร์ {job.order_code}
+          {t('job.order_code')} {job.order_code}
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock className="w-3.5 h-3.5" />
@@ -50,28 +54,28 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
 
       <div className="space-y-2">
         <div className="text-sm">
-          <span className="text-muted-foreground">ผู้จ้าง : </span>
+          <span className="text-muted-foreground">{t('job.employer')} : </span>
           <span className="font-medium">{job.employer_name}</span>
         </div>
         <div className="flex items-center gap-2">
           {isDomestic && (
             <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-              ขนส่งภายในประเทศ
+              {t('job.domestic')}
             </Badge>
           )}
           {isInternational && (
             <>
               <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-                ขนส่งภายนอกประเทศ
+                {t('job.international')}
               </Badge>
               {isInbound && (
                 <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                  ขาเข้า
+                  {t('job.inbound')}
                 </Badge>
               )}
               {isOutbound && (
                 <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
-                  ขาออก
+                  {t('job.outbound')}
                 </Badge>
               )}
             </>
@@ -86,14 +90,14 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
             <div className="flex items-start gap-2">
               <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
               <div className="text-xs">
-                <div className="text-muted-foreground">ต้นทาง</div>
+                <div className="text-muted-foreground">{t('job.origin')}</div>
                 <div className="font-medium">{job.origin_location}</div>
               </div>
             </div>
             <div className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
               <div className="text-xs">
-                <div className="text-muted-foreground">ปลายทาง</div>
+                <div className="text-muted-foreground">{t('job.destination')}</div>
                 <div className="font-medium">{job.destination_location}</div>
               </div>
             </div>
@@ -106,11 +110,11 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
 
         <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
           <div>
-            <span className="text-muted-foreground">อุปกรณ์ติดรถ : </span>
+            <span className="text-muted-foreground">{t('job.equipment')} : </span>
             <span>{job.equipment_list || '-'}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">อุปกรณ์ Safety : </span>
+            <span className="text-muted-foreground">{t('job.safety')} : </span>
             <span>{job.safety_equipment || '-'}</span>
           </div>
         </div>
@@ -121,7 +125,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
         className="w-full h-11 text-base font-medium"
         disabled={job.isAccepted}
       >
-        {job.isAccepted ? 'รับงานนี้แล้ว' : 'รับงานนี้'}
+        {job.isAccepted ? t('job.accepted') : t('job.accept')}
       </Button>
     </Card>
   );
