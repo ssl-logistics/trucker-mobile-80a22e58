@@ -14,7 +14,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface Message {
   id: string;
@@ -49,6 +55,7 @@ export default function ChatRoomPage() {
   const [isOnline, setIsOnline] = useState(true);
   const [showManageGroup, setShowManageGroup] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -243,6 +250,11 @@ export default function ChatRoomPage() {
     } else {
       setNewMessage('');
     }
+  };
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setNewMessage(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -484,9 +496,20 @@ export default function ChatRoomPage() {
               <Paperclip className="w-5 h-5" />
             )}
           </button>
-          <button className="p-2 text-muted-foreground hover:text-foreground">
-            <Smile className="w-5 h-5" />
-          </button>
+          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+            <PopoverTrigger asChild>
+              <button className="p-2 text-muted-foreground hover:text-foreground">
+                <Smile className="w-5 h-5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0 border-none" align="end">
+              <EmojiPicker 
+                onEmojiClick={handleEmojiClick}
+                width="100%"
+                height="400px"
+              />
+            </PopoverContent>
+          </Popover>
           <Button
             onClick={handleSendMessage}
             size="icon"
