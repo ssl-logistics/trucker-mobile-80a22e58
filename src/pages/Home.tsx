@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
@@ -31,9 +32,8 @@ interface Profile {
 }
 export default function Home() {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const { t } = useLanguage();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -58,8 +58,8 @@ export default function Home() {
     });
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('home.error_load'),
+        description: t('home.error_load_desc'),
         variant: 'destructive'
       });
     } else {
@@ -138,14 +138,14 @@ export default function Home() {
     });
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถรับงานได้',
+        title: t('home.error_load'),
+        description: t('home.error_accept'),
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'รับงานสำเร็จ',
-        description: `คุณได้รับงาน ${selectedJob.order_code} แล้ว`
+        title: t('home.accept_success'),
+        description: `${t('home.accept_success_desc')} ${selectedJob.order_code} แล้ว`
       });
       setConfirmDialogOpen(false);
       loadJobs();
@@ -164,7 +164,7 @@ export default function Home() {
         <div className="px-4 -mt-4 pb-4 ">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input placeholder="ค้นหา" className="pl-10 bg-white shadow-sm border-0" onClick={() => navigate('/search')} readOnly />
+            <Input placeholder={t('home.search')} className="pl-10 bg-white shadow-sm border-0" onClick={() => navigate('/search')} readOnly />
           </div>
         </div>
       </div>
@@ -172,8 +172,8 @@ export default function Home() {
       {/* Jobs Section */}
       <div className="px-4 mt-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">งานแนะนำสำหรับคุณ</h2>
-          <span className="text-sm text-muted-foreground">{jobs.length} รายการ</span>
+          <h2 className="text-lg font-bold">{t('home.recommended')}</h2>
+          <span className="text-sm text-muted-foreground">{jobs.length} {t('home.items')}</span>
         </div>
 
         <div className="space-y-4">

@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, Truck, Users, Package } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import financeBg from "@/assets/finance-bg.png";
@@ -9,11 +10,13 @@ import customerBg from "@/assets/customer-bg.png";
 import productBg from "@/assets/product-bg.png";
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  
   const dashboardItems = [
     {
       id: "finance",
-      title: "การเงิน (ค่าใช้จ่าย)",
-      description: "ติดตามรายรับ, รายจ่าย ได้ง่าย",
+      title: t('dashboard.finance'),
+      description: t('dashboard.finance_desc'),
       icon: TrendingUp,
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50",
@@ -22,8 +25,8 @@ export default function DashboardPage() {
     },
     {
       id: "shipping",
-      title: "การจัดส่ง",
-      description: "ตรวจสอบการจัดส่งของคุณ",
+      title: t('dashboard.shipping'),
+      description: t('dashboard.shipping_desc'),
       icon: Truck,
       color: "from-teal-500 to-teal-600",
       bgColor: "bg-teal-50",
@@ -32,8 +35,8 @@ export default function DashboardPage() {
     },
     {
       id: "customer",
-      title: "ลูกค้า",
-      description: "ดูข้อมูลลูกค้าของคุณ",
+      title: t('dashboard.customer'),
+      description: t('dashboard.customer_desc'),
       icon: Users,
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50",
@@ -42,8 +45,8 @@ export default function DashboardPage() {
     },
     {
       id: "product",
-      title: "สินค้า",
-      description: "ดูข้อมูลประเภทสินค้า",
+      title: t('dashboard.product'),
+      description: t('dashboard.product_desc'),
       icon: Package,
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50",
@@ -79,7 +82,7 @@ export default function DashboardPage() {
                   <button
                     className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all`}
                   >
-                    ดู{item.title.split(" ")[0]}
+                    {t('dashboard.view')}{item.title.split(" ")[0]}
                   </button>
                 </div>
               </div>

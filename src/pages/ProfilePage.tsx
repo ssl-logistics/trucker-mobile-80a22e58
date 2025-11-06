@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Camera, Edit2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   AlertDialog,
@@ -29,6 +30,7 @@ interface ProfileData {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -91,7 +93,7 @@ export default function ProfilePage() {
       .upload(filePath, selectedFile);
 
     if (uploadError) {
-      toast({ title: 'เกิดข้อผิดพลาด', description: 'ไม่สามารถอัพโหลดรูปภาพได้', variant: 'destructive' });
+      toast({ title: t('home.error_load'), description: t('profile.error_upload'), variant: 'destructive' });
       setLoading(false);
       cleanupPreview();
       return;
@@ -108,9 +110,9 @@ export default function ProfilePage() {
 
     if (!updateError) {
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-      toast({ title: 'สำเร็จ', description: 'อัพเดทรูปโปรไฟล์แล้ว' });
+      toast({ title: t('profile.success'), description: t('profile.success_desc') });
     } else {
-      toast({ title: 'เกิดข้อผิดพลาด', description: 'ไม่สามารถอัพเดทโปรไฟล์ได้', variant: 'destructive' });
+      toast({ title: t('home.error_load'), description: t('profile.error_update'), variant: 'destructive' });
     }
     
     setLoading(false);
@@ -142,7 +144,7 @@ export default function ProfilePage() {
           <button onClick={() => navigate('/settings')}>
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">โปรไฟล์</h1>
+          <h1 className="text-xl font-semibold">{t('profile.title')}</h1>
         </div>
       </header>
 
@@ -173,13 +175,13 @@ export default function ProfilePage() {
       {/* Profile Fields */}
       <div className="bg-white mt-2 divide-y">
         <div className="px-4 py-3">
-          <div className="text-sm text-muted-foreground mb-1">ชื่อ</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('profile.first_name')}</div>
           <div className="flex items-center justify-between">
             <span className="text-foreground">{firstName}</span>
             <button
               onClick={() => navigate('/profile/edit', { 
                 state: { 
-                  field: 'ชื่อ', 
+                  field: t('profile.first_name'), 
                   value: firstName, 
                   fullName: profile?.full_name 
                 } 
@@ -192,13 +194,13 @@ export default function ProfilePage() {
         </div>
 
         <div className="px-4 py-3">
-          <div className="text-sm text-muted-foreground mb-1">นามสกุล</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('profile.last_name')}</div>
           <div className="flex items-center justify-between">
             <span className="text-foreground">{lastName}</span>
             <button
               onClick={() => navigate('/profile/edit', { 
                 state: { 
-                  field: 'นามสกุล', 
+                  field: t('profile.last_name'), 
                   value: lastName, 
                   fullName: profile?.full_name 
                 } 
@@ -211,13 +213,13 @@ export default function ProfilePage() {
         </div>
 
         <div className="px-4 py-3">
-          <div className="text-sm text-muted-foreground mb-1">เบอร์โทรศัพท์</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('profile.phone')}</div>
           <div className="flex items-center justify-between">
             <span className="text-foreground">{profile?.phone_number}</span>
             <button
               onClick={() => navigate('/profile/edit', { 
                 state: { 
-                  field: 'เบอร์โทรศัพท์', 
+                  field: t('profile.phone'), 
                   value: profile?.phone_number || '' 
                 } 
               })}
@@ -229,7 +231,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="px-4 py-3">
-          <div className="text-sm text-muted-foreground mb-1">อีเมล</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('profile.email')}</div>
           <div className="flex items-center justify-between">
             <span className="text-foreground">{profile?.email}</span>
             <button className="p-2">
@@ -243,7 +245,7 @@ export default function ProfilePage() {
       {profile?.work_areas && profile.work_areas.length > 0 && (
         <div className="bg-white mt-2 px-4 py-3">
           <div className="text-sm text-muted-foreground mb-3">
-            อำเภอ หรือ จังหวัด ที่ถนัดหรือจังหวัดทั่วเป็นประจำ
+            {t('profile.work_areas')}
           </div>
           <div className="flex flex-wrap gap-2">
             {profile.work_areas.map((area, index) => (
@@ -261,7 +263,7 @@ export default function ProfilePage() {
       {/* Price Range */}
       {profile?.price_range_min && profile?.price_range_max && (
         <div className="bg-white mt-2 px-4 py-3">
-          <div className="text-sm text-muted-foreground mb-1">เรทราคาวังงาน (฿)</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('profile.price_range')}</div>
           <div className="text-foreground">
             {profile.price_range_min.toLocaleString()} - {profile.price_range_max.toLocaleString()}
           </div>
@@ -278,10 +280,10 @@ export default function ProfilePage() {
               )}
             </div>
             <AlertDialogTitle className="text-center text-base">
-              ยืนยันการเปลี่ยนรูปโปรไฟล์
+              {t('profile.change_avatar')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-xs px-2">
-              คุณต้องการเปลี่ยนรูปโปรไฟล์เป็นรูปนี้หรือไม่?
+              {t('profile.change_avatar_desc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2">
@@ -290,14 +292,14 @@ export default function ProfilePage() {
               disabled={loading}
               className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {loading ? 'กำลังอัพโหลด...' : 'ยืนยัน'}
+              {loading ? t('profile.uploading') : t('profile.confirm')}
             </AlertDialogAction>
             <AlertDialogCancel 
               onClick={handleCancelUpload}
               disabled={loading}
               className="flex-1 m-0"
             >
-              ยกเลิก
+              {t('profile.cancel')}
             </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>

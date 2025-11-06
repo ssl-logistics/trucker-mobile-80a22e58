@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Edit, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -24,6 +25,7 @@ interface Profile {
 export default function AccountPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -62,8 +64,8 @@ export default function AccountPage() {
       }
 
       toast({
-        title: "ลบบัญชีสำเร็จ",
-        description: "บัญชีของคุณถูกลบเรียบร้อยแล้ว",
+        title: t('account.delete_success'),
+        description: t('account.delete_success_desc'),
       });
 
       // Sign out after successful deletion
@@ -72,8 +74,8 @@ export default function AccountPage() {
     } catch (error: any) {
       console.error('Delete account error:', error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: error.message || "ไม่สามารถลบบัญชีได้ กรุณาลองใหม่อีกครั้ง",
+        title: t('account.delete_error'),
+        description: error.message || t('account.delete_error_desc'),
         variant: "destructive",
       });
     } finally {
@@ -90,7 +92,7 @@ export default function AccountPage() {
           <button onClick={() => navigate('/settings')}>
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">บัญชี</h1>
+          <h1 className="text-xl font-semibold">{t('account.title')}</h1>
         </div>
       </header>
 
@@ -99,8 +101,8 @@ export default function AccountPage() {
         {/* Username Field */}
         <div className="bg-white rounded-lg p-4">
           <div>
-            <label className="text-sm text-muted-foreground">ชื่อผู้ใช้</label>
-            <p className="text-foreground mt-1">{user?.email || 'ไม่มีข้อมูล'}</p>
+            <label className="text-sm text-muted-foreground">{t('account.username')}</label>
+            <p className="text-foreground mt-1">{user?.email || t('account.no_data')}</p>
           </div>
         </div>
 
@@ -108,7 +110,7 @@ export default function AccountPage() {
         <div className="bg-white rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <label className="text-sm text-muted-foreground">รหัสผ่าน</label>
+              <label className="text-sm text-muted-foreground">{t('account.password')}</label>
               <p className="text-foreground mt-1">**********</p>
             </div>
             <button
@@ -127,7 +129,7 @@ export default function AccountPage() {
             variant="outline"
             className="w-full border-destructive text-destructive hover:bg-destructive/10"
           >
-            ลบบัญชี
+            {t('account.delete')}
           </Button>
         </div>
       </div>
@@ -140,16 +142,16 @@ export default function AccountPage() {
               <UserX className="w-8 h-8 text-red-600" />
             </div>
             <AlertDialogTitle className="text-center text-base">
-              คุณกำลังจะลบบัญชีใช่ไหม
+              {t('account.delete_confirm')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-xs px-2">
-              <p className="mb-2">การลบบัญชีนี้จะเป็นการลบข้อมูลทั้งหมด</p>
+              <p className="mb-2">{t('account.delete_desc')}</p>
               <ul className="text-left space-y-1 list-disc list-inside">
-                <li>ข้อมูลส่วนตัว</li>
-                <li>ประวัติการใช้บริการ</li>
-                <li>ข้อมูลธุรกรรมทั้งหมด</li>
+                <li>{t('account.delete_personal')}</li>
+                <li>{t('account.delete_history')}</li>
+                <li>{t('account.delete_transactions')}</li>
               </ul>
-              <p className="mt-2">หลังจากลบบัญชีแล้วจะไม่สามารถกู้คืนได้</p>
+              <p className="mt-2">{t('account.delete_warning')}</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2">
@@ -158,10 +160,10 @@ export default function AccountPage() {
               disabled={isDeleting}
               className="flex-1 m-0 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'กำลังลบ...' : 'ลบบัญชี'}
+              {isDeleting ? t('account.deleting') : t('account.delete')}
             </AlertDialogAction>
             <AlertDialogCancel className="flex-1 m-0" disabled={isDeleting}>
-              ยกเลิก
+              {t('account.cancel')}
             </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>

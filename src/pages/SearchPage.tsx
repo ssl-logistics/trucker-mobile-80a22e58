@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { JobCard } from '@/components/home/JobCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import {
 
 export default function SearchPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [domesticType, setDomesticType] = useState('');
@@ -64,8 +66,8 @@ export default function SearchPage() {
 
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('home.error_load'),
+        description: t('home.error_load_desc'),
         variant: 'destructive',
       });
     } else {
@@ -196,7 +198,7 @@ export default function SearchPage() {
           <button onClick={() => navigate('/home')} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold flex-1 text-center">ค้นหา</h1>
+          <h1 className="text-lg font-semibold flex-1 text-center">{t('search.title')}</h1>
           <div className="w-6" />
         </div>
       </header>
@@ -212,7 +214,7 @@ export default function SearchPage() {
                 performSearch();
               }
             }}
-            placeholder="ค้นหา"
+            placeholder={t('search.search')}
             className="flex-1 border-primary"
           />
           <button
@@ -228,9 +230,9 @@ export default function SearchPage() {
       {showResults ? (
         <div className="px-4 py-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">ผลการค้นหา</h3>
+            <h3 className="text-sm font-semibold">{t('search.results')}</h3>
             <span className="text-sm text-muted-foreground">
-              {searchResults.length} รายการ
+              {searchResults.length} {t('home.items')}
             </span>
           </div>
           {searchResults.length > 0 ? (
@@ -241,14 +243,14 @@ export default function SearchPage() {
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              ไม่พบผลการค้นหา
+              {t('search.no_results')}
             </div>
           )}
         </div>
       ) : (
         <div className="px-4 py-6 space-y-6">
           <div>
-            <h3 className="text-sm font-semibold mb-3">คำค้นหาล่าสุด</h3>
+            <h3 className="text-sm font-semibold mb-3">{t('search.recent')}</h3>
             <div className="flex flex-wrap gap-2">
               {recentSearches.map((term) => (
                 <button
@@ -263,7 +265,7 @@ export default function SearchPage() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold mb-3">คำค้นหายอดนิยม</h3>
+            <h3 className="text-sm font-semibold mb-3">{t('search.popular')}</h3>
             <div className="flex flex-wrap gap-2">
               {popularSearches.map((term) => (
                 <button
@@ -283,9 +285,9 @@ export default function SearchPage() {
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
         <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
           <SheetHeader>
-            <SheetTitle>ตัวกรอง</SheetTitle>
+            <SheetTitle>{t('search.filter')}</SheetTitle>
             <SheetDescription className="sr-only">
-              กรองผลการค้นหา
+              {t('search.filter_desc')}
             </SheetDescription>
           </SheetHeader>
 
@@ -293,7 +295,7 @@ export default function SearchPage() {
             {/* Domestic Transport */}
             <div>
               <label className="text-sm font-medium mb-2 block">
-                ขนส่งภายในประเทศ
+                {t('search.domestic')}
               </label>
               <div className="flex flex-wrap gap-2">
                 {domesticTypes.map((type) => (
@@ -317,7 +319,7 @@ export default function SearchPage() {
             {/* International Transport */}
             <div>
               <label className="text-sm font-medium mb-2 block">
-                ขนส่งภายนอกประเทศ
+                {t('search.international')}
               </label>
               <div className="flex flex-wrap gap-2">
                 {internationalTypes.map((type) => (
@@ -340,10 +342,10 @@ export default function SearchPage() {
 
             {/* Province */}
             <div>
-              <label className="text-sm font-medium mb-2 block">จังหวัด</label>
+              <label className="text-sm font-medium mb-2 block">{t('search.province')}</label>
               <Select value={province} onValueChange={handleProvinceChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="เลือกจังหวัด" />
+                  <SelectValue placeholder={t('search.select_province')} />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
                   {provinces.map((prov) => (
@@ -357,14 +359,14 @@ export default function SearchPage() {
 
             {/* District */}
             <div>
-              <label className="text-sm font-medium mb-2 block">อำเภอ</label>
+              <label className="text-sm font-medium mb-2 block">{t('search.district')}</label>
               <Select 
                 value={district} 
                 onValueChange={setDistrict}
                 disabled={!province}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={province ? "เลือกอำเภอ" : "กรุณาเลือกจังหวัดก่อน"} />
+                  <SelectValue placeholder={province ? t('search.select_district') : t('search.select_district_first')} />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
                   {availableDistricts.map((dist) => (
@@ -379,19 +381,19 @@ export default function SearchPage() {
             {/* Price Range */}
             <div>
               <label className="text-sm font-medium mb-2 block">
-                ช่วงราคา (฿)
+                {t('search.price_range')}
               </label>
               <div className="flex items-center gap-3">
                 <Input
                   type="number"
-                  placeholder="ใส่ราคาต่ำสุด"
+                  placeholder={t('search.min_price')}
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                 />
                 <span>—</span>
                 <Input
                   type="number"
-                  placeholder="ใส่ราคาสูงสุด"
+                  placeholder={t('search.max_price')}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                 />
@@ -406,10 +408,10 @@ export default function SearchPage() {
               onClick={handleClearFilter}
               className="flex-1"
             >
-              ล้างค่า
+              {t('search.clear')}
             </Button>
             <Button onClick={handleSearch} className="flex-1">
-              ค้นหา
+              {t('search.apply')}
             </Button>
           </div>
         </SheetContent>
