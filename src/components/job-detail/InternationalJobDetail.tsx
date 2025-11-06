@@ -159,7 +159,7 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
               ) : (
                 <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white flex-shrink-0" />
               )}
-              <div className={`w-0.5 h-full min-h-[80px] mt-1 ${
+              <div className={`w-0.5 flex-1 mt-1 ${
                 jobApplication?.container_sop_completed_at ? 'bg-red-500' : 'bg-gray-300'
               }`} />
             </div>
@@ -300,7 +300,7 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
               ) : (
                 <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white flex-shrink-0" />
               )}
-              <div className={`w-0.5 h-full min-h-[80px] mt-1 ${
+              <div className={`w-0.5 flex-1 mt-1 ${
                 jobApplication?.sop_completed_at ? 'bg-red-500' : 'bg-gray-300'
               }`} />
             </div>
