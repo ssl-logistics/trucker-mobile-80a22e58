@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Navigation, MapPin } from 'lucide-react';
+import expenseViewIcon from '@/assets/expense-view-icon.svg';
+import expenseAddIcon from '@/assets/expense-add-icon.svg';
+import reportProblemIcon from '@/assets/report-problem-icon.svg';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -139,21 +142,24 @@ export default function ContainerCheckInPage() {
 
       {/* Tabs */}
       <div className="bg-white border-b">
-        <div className="grid grid-cols-3 px-4">
-          <button className="py-4 text-center border-b-2 border-blue-600 text-blue-600 font-medium">
-            ดูค่าใช้จ่าย
+        <div className="grid grid-cols-3 px-4 py-3">
+          <button className="flex flex-col items-center gap-1 text-[#0A8778]">
+            <img src={expenseViewIcon} alt="" className="w-8 h-8" />
+            <span className="text-xs font-medium">ดูค่าใช้จ่าย</span>
           </button>
           <button 
-            className="py-4 text-center text-gray-500"
+            className="flex flex-col items-center gap-1 text-[#0A8778]"
             onClick={() => navigate(`/job/${jobId}/add-expense`)}
           >
-            เพิ่มค่าใช้จ่าย
+            <img src={expenseAddIcon} alt="" className="w-8 h-8" />
+            <span className="text-xs font-medium">เพิ่มค่าใช้จ่าย</span>
           </button>
           <button 
-            className="py-4 text-center text-gray-500"
+            className="flex flex-col items-center gap-1 text-[#0A8778]"
             onClick={() => setIsReportDrawerOpen(true)}
           >
-            แจ้งปัญหา
+            <img src={reportProblemIcon} alt="" className="w-8 h-8" />
+            <span className="text-xs font-medium">แจ้งปัญหา</span>
           </button>
         </div>
       </div>
