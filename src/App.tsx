@@ -12,7 +12,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import VerifyOTPReset from "./pages/VerifyOTPReset";
 import CreateNewPassword from "./pages/CreateNewPassword";
 import Home from "./pages/Home";
-import SearchPage from "./pages/SearchPage";
+import ChatListPage from "./pages/ChatListPage";
+import ChatRoomPage from "./pages/ChatRoomPage";
 import LanguagePage from "./pages/LanguagePage";
 import CurrentJobsPage from "./pages/CurrentJobsPage";
 import JobDetailPage from "./pages/JobDetailPage";
@@ -66,7 +67,8 @@ const App = () => (
             <Route path="/verify-otp-reset" element={<VerifyOTPReset />} />
             <Route path="/create-new-password" element={<CreateNewPassword />} />
             <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-              <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+              <Route path="/chat" element={<ProtectedRoute><ChatListPage /></ProtectedRoute>} />
+              <Route path="/chat/:conversationId" element={<ProtectedRoute><ChatRoomPage /></ProtectedRoute>} />
               <Route path="/language" element={<ProtectedRoute><LanguagePage /></ProtectedRoute>} />
             <Route path="/current-jobs" element={<ProtectedRoute><CurrentJobsPage /></ProtectedRoute>} />
               <Route path="/job/:jobId" element={<ProtectedRoute><JobDetailPage /></ProtectedRoute>} />

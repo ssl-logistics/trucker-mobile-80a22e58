@@ -183,6 +183,26 @@ const thTranslations: Record<string, string> = {
   'terms.sharing_provider_desc': 'บริษัทหรือบุคคลที่เราใช้บริการในด้านต่างๆ (เช่น บริการชำระเงิน, การวิเคราะห์ข้อมูล) ซึ่งมีข้อกำหนดความเป็นส่วนตัวที่ป้องกันข้อมูลของคุณ',
   'terms.sharing_legal': 'การปฏิบัติตามกฎหมาย:',
   'terms.sharing_legal_desc': 'ในกรณีที่เราถูกบังคับตามกฎหมาย',
+  
+  // Chat Page
+  'chat.title': 'แชท',
+  'chat.search': 'ค้นหาข้อความ',
+  'chat.company': 'บริษัท',
+  'chat.friends': 'เพื่อน',
+  'chat.groups': 'กลุ่ม',
+  'chat.online': 'ออนไลน์',
+  'chat.offline': 'ออฟไลน์',
+  'chat.typeMessage': 'พิมพ์ข้อความ',
+  'chat.welcomeGroup': 'ยินดีต้อนรับกลุ่มสนทนา กับเพื่อนของคุณ!',
+  'chat.addMembers': 'เพิ่มสมาชิก',
+  'chat.memberList': 'รายชื่อสมาชิก',
+  'chat.filesMedia': 'ไฟล์ รูปและวีดีโอ',
+  'chat.muteNotifications': 'เปิดการแจ้งเตือน',
+  'chat.deleteConversation': 'ลบการสนทนา',
+  'chat.error': 'เกิดข้อผิดพลาด',
+  'chat.sendError': 'ไม่สามารถส่งข้อความได้',
+  'chat.muted': 'ปิดเสียงแล้ว',
+  'chat.mutedDesc': 'คุณจะไม่ได้รับการแจ้งเตือนจากการสนทนานี้',
 };
 
 // English translations
@@ -327,4 +347,24 @@ const enTranslations: Record<string, string> = {
   'terms.sharing_provider_desc': 'Companies or individuals we use for services in various areas (such as payment services, data analysis) that have privacy terms to protect your data',
   'terms.sharing_legal': 'Legal Compliance:',
   'terms.sharing_legal_desc': 'In cases where we are legally obligated',
+  
+  // Chat Page
+  'chat.title': 'Chat',
+  'chat.search': 'Search conversations',
+  'chat.company': 'Company',
+  'chat.friends': 'Friends',
+  'chat.groups': 'Groups',
+  'chat.online': 'Online',
+  'chat.offline': 'Offline',
+  'chat.typeMessage': 'Type a message',
+  'chat.welcomeGroup': 'Welcome to the group chat with your friends!',
+  'chat.addMembers': 'Add Members',
+  'chat.memberList': 'Member List',
+  'chat.filesMedia': 'Files and Media',
+  'chat.muteNotifications': 'Mute Notifications',
+  'chat.deleteConversation': 'Delete Conversation',
+  'chat.error': 'Error',
+  'chat.sendError': 'Failed to send message',
+  'chat.muted': 'Muted',
+  'chat.mutedDesc': 'You will no longer receive notifications from this conversation',
 };

@@ -15,7 +15,7 @@ export function BottomNavigation() {
         {[
           { icon: Home, label: t('nav.home'), path: '/home' },
           { icon: LayoutGrid, label: t('nav.dashboard'), path: '/dashboard' },
-          { icon: MessageCircle, label: t('nav.chat'), path: '/search' },
+          { icon: MessageCircle, label: t('nav.chat'), path: '/chat' },
           { icon: Settings, label: t('nav.settings'), path: '/settings' },
         ].map((item) => (
           <button
