@@ -336,52 +336,6 @@ export default function CurrentJobsPage() {
           </DrawerHeader>
 
           <div className="px-4 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
-            {/* Job Type Filter */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">ประเภทงาน</Label>
-              <RadioGroup value={selectedJobType} onValueChange={setSelectedJobType}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="all" id="job-all" />
-                  <Label htmlFor="job-all" className="font-normal cursor-pointer">ทั้งหมด</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="domestic" id="job-domestic" />
-                  <Label htmlFor="job-domestic" className="font-normal cursor-pointer">ขนส่งภายในประเทศ</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="international" id="job-international" />
-                  <Label htmlFor="job-international" className="font-normal cursor-pointer">ขนส่งภายนอกประเทศ</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Transport Type Filter */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">ประเภทเส้นทาง</Label>
-              <RadioGroup value={selectedTransportType} onValueChange={setSelectedTransportType}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="all" id="transport-all" />
-                  <Label htmlFor="transport-all" className="font-normal cursor-pointer">ทั้งหมด</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="single" id="transport-single" />
-                  <Label htmlFor="transport-single" className="font-normal cursor-pointer">เที่ยวเดียว</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="multiple" id="transport-multiple" />
-                  <Label htmlFor="transport-multiple" className="font-normal cursor-pointer">หลายที่</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="inbound" id="transport-inbound" />
-                  <Label htmlFor="transport-inbound" className="font-normal cursor-pointer">ขาเข้า</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="outbound" id="transport-outbound" />
-                  <Label htmlFor="transport-outbound" className="font-normal cursor-pointer">ขาออก</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
             {/* Date Range Filter */}
             <div className="space-y-3">
               <Label className="text-base font-semibold">วันเวลาที่รับมอบงาน</Label>
