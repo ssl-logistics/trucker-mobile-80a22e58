@@ -222,11 +222,7 @@ export default function DomesticJobDetail({ job, jobApplication, userId, onUpdat
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
-                      <span>: น้ำตาล</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">จำนวนสินค้า</span>
-                      <span>: 10 กล่อง</span>
+                      <span>: น้ำตาล (10 กล่อง)</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
