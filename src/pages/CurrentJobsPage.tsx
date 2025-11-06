@@ -171,11 +171,11 @@ export default function CurrentJobsPage() {
       </header>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white px-4 py-3 shadow-sm sticky top-[60px] z-40">
+      <div className="bg-white/10 px-4 py-3 shadow-sm sticky top-[60px] z-40 ">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input placeholder="ค้นหา ชื่อ,ออเดอร์,รหัสออเดอร์" className="pl-9 h-10 bg-muted/30" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            <Input placeholder="ค้นหา ชื่อ,ออเดอร์,รหัสออเดอร์" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 h-10 bg-white " />
           </div>
           <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setFilterOpen(true)}>
             <Filter className="w-4 h-4" />
