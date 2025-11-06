@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Filter, Clock, MapPin, CircleDot } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Clock, MapPin, CircleDot, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerFooter } from '@/components/ui/drawer';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 interface JobApplication {
   job_id: string;
@@ -34,6 +37,13 @@ export default function CurrentJobsPage() {
   const { user } = useAuth();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Filter states
+  const [selectedJobType, setSelectedJobType] = useState<string>('all');
+  const [selectedTransportType, setSelectedTransportType] = useState<string>('all');
+  const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
 
   useEffect(() => {
     loadCurrentJobs();
@@ -85,6 +95,75 @@ export default function CurrentJobsPage() {
     return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
   };
 
+  const handleApplyFilter = () => {
+    setFilterOpen(false);
+    // Filter logic is applied in filteredApplications
+  };
+
+  const handleResetFilter = () => {
+    setSelectedJobType('all');
+    setSelectedTransportType('all');
+    setSelectedDateRange('all');
+  };
+
+  // Filter applications based on selected filters
+  const filteredApplications = applications.filter((application) => {
+    const job = application.jobs;
+    
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        job.order_code.toLowerCase().includes(query) ||
+        job.employer_name.toLowerCase().includes(query) ||
+        job.origin_location.toLowerCase().includes(query) ||
+        job.destination_location.toLowerCase().includes(query);
+      if (!matchesSearch) return false;
+    }
+
+    // Job type filter
+    if (selectedJobType !== 'all') {
+      const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
+      const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+      
+      if (selectedJobType === 'domestic' && !isDomestic) return false;
+      if (selectedJobType === 'international' && !isInternational) return false;
+    }
+
+    // Transport type filter
+    if (selectedTransportType !== 'all') {
+      if (selectedTransportType === 'inbound' && !job.transport_type?.includes('ขาเข้า')) return false;
+      if (selectedTransportType === 'outbound' && !job.transport_type?.includes('ขาออก')) return false;
+      if (selectedTransportType === 'single' && !job.transport_type?.includes('เที่ยวเดียว')) return false;
+      if (selectedTransportType === 'multiple' && !job.transport_type?.includes('หลายที่')) return false;
+    }
+
+    // Date range filter
+    if (selectedDateRange !== 'all') {
+      const jobDate = new Date(job.start_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDateRange === 'today') {
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        if (jobDate < today || jobDate >= tomorrow) return false;
+      } else if (selectedDateRange === 'tomorrow') {
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dayAfter = new Date(tomorrow);
+        dayAfter.setDate(dayAfter.getDate() + 1);
+        if (jobDate < tomorrow || jobDate >= dayAfter) return false;
+      } else if (selectedDateRange === 'week') {
+        const weekLater = new Date(today);
+        weekLater.setDate(weekLater.getDate() + 7);
+        if (jobDate < today || jobDate >= weekLater) return false;
+      }
+    }
+
+    return true;
+  });
+
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -114,9 +193,16 @@ export default function CurrentJobsPage() {
             <Input 
               placeholder="ค้นหา ชื่อ,ออเดอร์,รหัสออเดอร์" 
               className="pl-9 h-10 bg-muted/30"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon" className="h-10 w-10">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="h-10 w-10"
+            onClick={() => setFilterOpen(true)}
+          >
             <Filter className="w-4 h-4" />
           </Button>
         </div>
@@ -128,11 +214,11 @@ export default function CurrentJobsPage() {
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-        ) : applications.length === 0 ? (
+        ) : filteredApplications.length === 0 ? (
           <EmptyState />
         ) : (
           <div className="space-y-4">
-            {applications.map((application) => {
+            {filteredApplications.map((application) => {
               const job = application.jobs;
               return (
                 <Card key={application.job_id} className="p-4 space-y-3 bg-card">
@@ -235,6 +321,102 @@ export default function CurrentJobsPage() {
           </div>
         )}
       </div>
+
+      {/* Filter Drawer */}
+      <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
+        <DrawerContent>
+          <DrawerHeader className="border-b">
+            <div className="flex items-center justify-between">
+              <DrawerTitle>ตัวกรอง</DrawerTitle>
+              <DrawerClose>
+                <X className="w-5 h-5" />
+              </DrawerClose>
+            </div>
+          </DrawerHeader>
+
+          <div className="px-4 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            {/* Job Type Filter */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">ประเภทงาน</Label>
+              <RadioGroup value={selectedJobType} onValueChange={setSelectedJobType}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="job-all" />
+                  <Label htmlFor="job-all" className="font-normal cursor-pointer">ทั้งหมด</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="domestic" id="job-domestic" />
+                  <Label htmlFor="job-domestic" className="font-normal cursor-pointer">ขนส่งภายในประเทศ</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="international" id="job-international" />
+                  <Label htmlFor="job-international" className="font-normal cursor-pointer">ขนส่งภายนอกประเทศ</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Transport Type Filter */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">ประเภทเส้นทาง</Label>
+              <RadioGroup value={selectedTransportType} onValueChange={setSelectedTransportType}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="transport-all" />
+                  <Label htmlFor="transport-all" className="font-normal cursor-pointer">ทั้งหมด</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="single" id="transport-single" />
+                  <Label htmlFor="transport-single" className="font-normal cursor-pointer">เที่ยวเดียว</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="multiple" id="transport-multiple" />
+                  <Label htmlFor="transport-multiple" className="font-normal cursor-pointer">หลายที่</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="inbound" id="transport-inbound" />
+                  <Label htmlFor="transport-inbound" className="font-normal cursor-pointer">ขาเข้า</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="outbound" id="transport-outbound" />
+                  <Label htmlFor="transport-outbound" className="font-normal cursor-pointer">ขาออก</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Date Range Filter */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">วันเริ่มงาน</Label>
+              <RadioGroup value={selectedDateRange} onValueChange={setSelectedDateRange}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="date-all" />
+                  <Label htmlFor="date-all" className="font-normal cursor-pointer">ทั้งหมด</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="today" id="date-today" />
+                  <Label htmlFor="date-today" className="font-normal cursor-pointer">วันนี้</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="tomorrow" id="date-tomorrow" />
+                  <Label htmlFor="date-tomorrow" className="font-normal cursor-pointer">พรุ่งนี้</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="week" id="date-week" />
+                  <Label htmlFor="date-week" className="font-normal cursor-pointer">สัปดาห์นี้</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+
+          <DrawerFooter className="border-t">
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" onClick={handleResetFilter}>
+                ล้างค่า
+              </Button>
+              <Button onClick={handleApplyFilter}>
+                ค้นหา
+              </Button>
+            </div>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
