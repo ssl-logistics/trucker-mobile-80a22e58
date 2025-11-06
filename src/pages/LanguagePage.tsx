@@ -3,6 +3,8 @@ import { ChevronLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import flagTh from '@/assets/flag-th.png';
+import flagEn from '@/assets/flag-en.png';
 
 export default function LanguagePage() {
   const navigate = useNavigate();
@@ -29,11 +31,11 @@ export default function LanguagePage() {
             {/* Thai */}
             <div className="flex items-center justify-between px-4 py-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                  <div className="w-full h-1/3 bg-white"></div>
-                  <div className="w-full h-1/3 bg-blue-600"></div>
-                  <div className="w-full h-1/3 bg-red-600"></div>
-                </div>
+                <img 
+                  src={flagTh} 
+                  alt="Thai flag" 
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                />
                 <Label htmlFor="thai" className="text-base font-normal cursor-pointer">
                   {t('language.thai')}
                 </Label>
@@ -44,15 +46,11 @@ export default function LanguagePage() {
             {/* English */}
             <div className="flex items-center justify-between px-4 py-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 relative bg-blue-800">
-                  {/* UK Flag simplified */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="absolute w-full h-1 bg-white"></div>
-                    <div className="absolute w-1 h-full bg-white"></div>
-                    <div className="absolute w-full h-0.5 bg-red-600"></div>
-                    <div className="absolute w-0.5 h-full bg-red-600"></div>
-                  </div>
-                </div>
+                <img 
+                  src={flagEn} 
+                  alt="UK flag" 
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                />
                 <Label htmlFor="english" className="text-base font-normal cursor-pointer">
                   {t('language.english')}
                 </Label>
