@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
-import JobActionButtons from '@/components/job/JobActionButtons';
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
+import JobActionButtons from "@/components/job/JobActionButtons";
 
 interface JobDetail {
   id: string;
@@ -43,32 +43,32 @@ export default function PickupSummaryPage() {
     if (!user || !jobId) return;
 
     setLoading(true);
-    
+
     // Load job details
     const { data: jobData, error: jobError } = await supabase
-      .from('jobs')
-      .select('id, order_code, employer_name, origin_location, start_date, start_time')
-      .eq('id', jobId)
+      .from("jobs")
+      .select("id, order_code, employer_name, origin_location, start_date, start_time")
+      .eq("id", jobId)
       .single();
 
     if (jobError) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
-        variant: 'destructive'
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโหลดข้อมูลงานได้",
+        variant: "destructive",
       });
-      navigate('/current-jobs');
+      navigate("/current-jobs");
       return;
     }
-    
+
     setJob(jobData);
 
     // Load job application
     const { data: appData } = await supabase
-      .from('job_applications')
-      .select('checked_in_at, sop_completed_at')
-      .eq('job_id', jobId)
-      .eq('driver_id', user.id)
+      .from("job_applications")
+      .select("checked_in_at, sop_completed_at")
+      .eq("job_id", jobId)
+      .eq("driver_id", user.id)
       .single();
 
     if (appData) {
@@ -77,11 +77,11 @@ export default function PickupSummaryPage() {
 
     // Load SOP photo
     const { data: photoData } = await supabase
-      .from('pickup_sop_photos')
-      .select('photo_url, created_at')
-      .eq('job_id', jobId)
-      .eq('driver_id', user.id)
-      .order('created_at', { ascending: false })
+      .from("pickup_sop_photos")
+      .select("photo_url, created_at")
+      .eq("job_id", jobId)
+      .eq("driver_id", user.id)
+      .order("created_at", { ascending: false })
       .limit(1)
       .single();
 
@@ -94,8 +94,8 @@ export default function PickupSummaryPage() {
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    const dateStr = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-    const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const dateStr = date.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+    const timeStr = date.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", hour12: false });
     return `${dateStr} | ${timeStr}`;
   };
 
@@ -125,8 +125,9 @@ export default function PickupSummaryPage() {
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
         {/* Action Buttons */}
-        <JobActionButtons jobId={jobId} />
-
+        <div className="bg-white rounded-xl">
+          <JobActionButtons jobId={jobId} />
+        </div>
         {/* Check-in Status */}
         {application?.checked_in_at && (
           <Card className="p-4 bg-green-50 border-green-200">
@@ -136,9 +137,7 @@ export default function PickupSummaryPage() {
               </div>
               <div className="flex-1">
                 <div className="font-semibold text-green-900">เช็คอินสำเร็จ</div>
-                <div className="text-sm text-green-700">
-                  {formatDateTime(application.checked_in_at)}
-                </div>
+                <div className="text-sm text-green-700">{formatDateTime(application.checked_in_at)}</div>
               </div>
             </div>
           </Card>
@@ -153,9 +152,7 @@ export default function PickupSummaryPage() {
               </div>
               <div className="flex-1">
                 <div className="font-semibold text-green-900">SOP สำเร็จ</div>
-                <div className="text-sm text-green-700">
-                  {formatDateTime(application.sop_completed_at)}
-                </div>
+                <div className="text-sm text-green-700">{formatDateTime(application.sop_completed_at)}</div>
               </div>
             </div>
           </Card>
@@ -166,11 +163,7 @@ export default function PickupSummaryPage() {
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">รูปภาพสินค้า</div>
             <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-              <img 
-                src={sopPhoto.photo_url} 
-                alt="SOP Photo" 
-                className="w-full h-full object-cover"
-              />
+              <img src={sopPhoto.photo_url} alt="SOP Photo" className="w-full h-full object-cover" />
             </div>
           </div>
         )}
