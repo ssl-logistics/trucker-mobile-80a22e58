@@ -24,6 +24,7 @@ interface Message {
   sender_avatar: string | null;
   is_read: boolean;
   created_at: string;
+  message_type?: string;
   file_url?: string | null;
   file_name?: string | null;
   file_size?: number | null;
@@ -195,6 +196,7 @@ export default function ChatRoomPage() {
     }
   };
 
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || !conversationId) return;
 
@@ -224,6 +226,17 @@ export default function ChatRoomPage() {
     } else {
       setNewMessage('');
     }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const isImageFile = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '');
   };
 
   const handleMuteConversation = async () => {
@@ -356,37 +369,55 @@ export default function ChatRoomPage() {
               )}
               
               <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[75%]`}>
-                <div
-                  className={`rounded-2xl px-4 py-2 ${
-                    isOwn
-                      ? 'bg-[#153860] text-white rounded-br-none'
-                      : 'bg-accent text-foreground rounded-bl-none'
-                  }`}
-                >
-                  {message.file_url ? (
-                    <div className="flex flex-col gap-2">
-                      {message.file_name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                {message.file_url ? (
+                  <div
+                    className={`rounded-2xl overflow-hidden ${
+                      isOwn
+                        ? 'bg-[#153860] text-white rounded-br-none'
+                        : 'bg-accent text-foreground rounded-bl-none'
+                    }`}
+                  >
+                    {message.file_name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                      <div>
                         <img 
                           src={message.file_url} 
                           alt={message.file_name}
-                          className="max-w-[200px] max-h-[200px] rounded-lg object-cover"
+                          className="max-w-[250px] max-h-[250px] object-cover"
                         />
-                      ) : (
-                        <a 
-                          href={message.file_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 hover:underline"
-                        >
-                          <Paperclip className="w-4 h-4" />
-                          <span className="text-sm">{message.file_name}</span>
-                        </a>
-                      )}
-                    </div>
-                  ) : (
+                        <div className="px-3 py-2">
+                          <p className="text-xs opacity-80">{message.file_name}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <a 
+                        href={message.file_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-4 py-3 hover:opacity-80 transition-opacity"
+                      >
+                        <div className="p-2 bg-white/10 rounded-lg">
+                          <Paperclip className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{message.file_name}</p>
+                          {message.file_size && (
+                            <p className="text-xs opacity-70">{formatFileSize(message.file_size)}</p>
+                          )}
+                        </div>
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    className={`rounded-2xl px-4 py-2 ${
+                      isOwn
+                        ? 'bg-[#153860] text-white rounded-br-none'
+                        : 'bg-accent text-foreground rounded-bl-none'
+                    }`}
+                  >
                     <p className="text-sm">{message.content}</p>
-                  )}
-                </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-1 mt-1 px-2">
                   <span className="text-xs text-muted-foreground">
                     {formatTime(message.created_at)}
