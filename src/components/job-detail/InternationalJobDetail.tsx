@@ -415,12 +415,14 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'เข้าส่งสินค้า' : 'ประเภทสินค้า'}</span>
                       <span>: {isInbound 
                         ? `${formatDate(job.start_date)} | 20:00`
-                        : 'น้ำตาล'}</span>
+                        : 'น้ำตาล (10 กล่อง)'}</span>
                     </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'หมายเหตุ' : 'จำนวนสินค้า'}</span>
-                      <span>: {isInbound ? 'เข้าสถานที่ต้องแสดงบัตรชิด' : '10 กล่อง'}</span>
-                    </div>
+                    {isInbound && (
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
+                        <span>: เข้าสถานที่ต้องแสดงบัตรชิด</span>
+                      </div>
+                    )}
                     {!isInbound && (
                       <>
                         <div className="flex">
