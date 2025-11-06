@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Edit2 } from 'lucide-react';
+import { ArrowLeft, Camera, Edit2, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
 
@@ -55,6 +56,8 @@ export default function VehicleInfoPage() {
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRegistrationDrawerOpen, setIsRegistrationDrawerOpen] = useState(false);
+  const [registrationPhoto, setRegistrationPhoto] = useState<string | null>(null);
 
   const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
 
@@ -108,6 +111,12 @@ export default function VehicleInfoPage() {
 
       if (error) throw error;
       setPhotos(data || []);
+      
+      // Load registration photo
+      const registrationPhotoData = data?.find(p => p.photo_type === 'registration');
+      if (registrationPhotoData) {
+        setRegistrationPhoto(registrationPhotoData.photo_url);
+      }
     } catch (error) {
       console.error('Error loading vehicle photos:', error);
     }
@@ -172,6 +181,62 @@ export default function VehicleInfoPage() {
     return photos.find(p => p.photo_type === type);
   };
 
+  const handleRegistrationPhotoUpload = async (file: File) => {
+    if (!user || !vehicleData) return;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${vehicleData.id}-registration-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('vehicle-photos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('vehicle-photos')
+        .getPublicUrl(fileName);
+
+      // Check if registration photo already exists
+      const existingPhoto = photos.find(p => p.photo_type === 'registration');
+
+      if (existingPhoto) {
+        const { error: updateError } = await supabase
+          .from('vehicle_photos')
+          .update({ photo_url: publicUrl })
+          .eq('id', existingPhoto.id);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from('vehicle_photos')
+          .insert({
+            vehicle_id: vehicleData.id,
+            photo_type: 'registration',
+            photo_url: publicUrl,
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      setRegistrationPhoto(publicUrl);
+      await loadVehiclePhotos();
+      setIsRegistrationDrawerOpen(false);
+      toast({
+        title: 'อัพโหลดสำเร็จ',
+        description: 'รูปทะเบียนรถถูกบันทึกเรียบร้อยแล้ว',
+      });
+    } catch (error) {
+      console.error('Error uploading registration photo:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถอัพโหลดรูปภาพได้',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -212,12 +277,17 @@ export default function VehicleInfoPage() {
         {/* Vehicle Data Tab */}
         <TabsContent value="data" className="p-4 space-y-4">
           {/* Registration Document */}
-          <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center">
-            <span className="text-muted-foreground">กดที่นี่เพื่อดูรูป</span>
+          <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
+            {registrationPhoto ? (
+              <img src={registrationPhoto} alt="ทะเบียนรถ" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-muted-foreground">กดที่นี่เพื่อดูรูป</span>
+            )}
             <Button 
               variant="ghost" 
               size="icon" 
               className="absolute top-2 right-2 bg-background/80 hover:bg-background"
+              onClick={() => setIsRegistrationDrawerOpen(true)}
             >
               <Edit2 className="w-4 h-4 text-muted-foreground" />
             </Button>
@@ -429,6 +499,61 @@ export default function VehicleInfoPage() {
           })}
         </TabsContent>
       </Tabs>
+
+      {/* Registration Photo Upload Drawer */}
+      <Drawer open={isRegistrationDrawerOpen} onOpenChange={setIsRegistrationDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>เลือกวิธีการอัปโหลดรูป</DrawerTitle>
+          </DrawerHeader>
+          <div className="p-4 space-y-3">
+            <label className="block">
+              <Button 
+                variant="outline" 
+                className="w-full h-14 justify-start gap-3"
+                asChild
+              >
+                <div>
+                  <Camera className="w-5 h-5" />
+                  <span>ถ่ายภาพ</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleRegistrationPhotoUpload(file);
+                    }}
+                  />
+                </div>
+              </Button>
+            </label>
+            
+            <label className="block">
+              <Button 
+                variant="outline" 
+                className="w-full h-14 justify-start gap-3"
+                asChild
+              >
+                <div>
+                  <Image className="w-5 h-5" />
+                  <span>เลือกรูปจากแกลลอรี่</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleRegistrationPhotoUpload(file);
+                    }}
+                  />
+                </div>
+              </Button>
+            </label>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
