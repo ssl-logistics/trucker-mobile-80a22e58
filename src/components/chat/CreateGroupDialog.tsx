@@ -71,7 +71,13 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
   };
 
   const handleCreateGroup = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('❌ No user found');
+      return;
+    }
+    
+    console.log('🔍 User info:', { userId: user.id, email: user.email });
+    
     if (!groupName.trim()) {
       toast({
         title: t('chat.error'),
@@ -93,7 +99,17 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
     setLoading(true);
 
     try {
+      // Check current session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log('🔑 Session check:', { 
+        hasSession: !!sessionData?.session,
+        sessionError,
+        userId: sessionData?.session?.user?.id
+      });
+
       // Create conversation
+      console.log('📝 Attempting to create conversation:', { name: groupName, type: 'group' });
+      
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
         .insert({
@@ -102,6 +118,8 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
         })
         .select()
         .single();
+
+      console.log('📊 Conversation creation result:', { conversation, error: convError });
 
       if (convError) throw convError;
 
