@@ -171,7 +171,7 @@ export default function CurrentJobsPage() {
       </header>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white/10 px-4 py-3 shadow-sm sticky top-[60px] z-40 ">
+      <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm sticky top-[60px] z-40 ">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
