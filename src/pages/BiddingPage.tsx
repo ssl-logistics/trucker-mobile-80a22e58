@@ -75,7 +75,7 @@ export default function BiddingPage() {
   return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background border-b">
-        <div className="flex items-center gap-4 px-4 py-4 bg-[#DDEDFF] ">
+        <div className="flex items-center gap-4 px-4 py-4 bg-[#DDEDFF] rounded-b-xl ">
           <button onClick={() => navigate('/home')}>
             <ArrowLeft className="w-6 h-6" />
           </button>
