@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import VerifyOTP from "./pages/VerifyOTP";
@@ -12,6 +13,7 @@ import VerifyOTPReset from "./pages/VerifyOTPReset";
 import CreateNewPassword from "./pages/CreateNewPassword";
 import Home from "./pages/Home";
 import SearchPage from "./pages/SearchPage";
+import LanguagePage from "./pages/LanguagePage";
 import CurrentJobsPage from "./pages/CurrentJobsPage";
 import JobDetailPage from "./pages/JobDetailPage";
 import PickupDetailPage from "./pages/PickupDetailPage";
@@ -50,10 +52,11 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<SignIn />} />
             <Route path="/register" element={<Register />} />
@@ -62,7 +65,8 @@ const App = () => (
             <Route path="/verify-otp-reset" element={<VerifyOTPReset />} />
             <Route path="/create-new-password" element={<CreateNewPassword />} />
             <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+              <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+              <Route path="/language" element={<ProtectedRoute><LanguagePage /></ProtectedRoute>} />
             <Route path="/current-jobs" element={<ProtectedRoute><CurrentJobsPage /></ProtectedRoute>} />
               <Route path="/job/:jobId" element={<ProtectedRoute><JobDetailPage /></ProtectedRoute>} />
             <Route path="/job/:jobId/container-checkin" element={<ProtectedRoute><ContainerCheckInPage /></ProtectedRoute>} />
@@ -98,6 +102,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </LanguageProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

@@ -1,9 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, LayoutGrid, MessageCircle, Settings } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -11,10 +13,10 @@ export function BottomNavigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 text-white px-6 py-3 shadow-lg" style={{ backgroundColor: '#153860' }}>
       <div className="flex justify-around items-center max-w-lg mx-auto">
         {[
-          { icon: Home, label: 'หน้าแรก', path: '/home' },
-          { icon: LayoutGrid, label: 'แผงควบคุม', path: '/dashboard' },
-          { icon: MessageCircle, label: 'แชท', path: '/search' },
-          { icon: Settings, label: 'ตั้งค่า', path: '/settings' },
+          { icon: Home, label: t('nav.home'), path: '/home' },
+          { icon: LayoutGrid, label: t('nav.dashboard'), path: '/dashboard' },
+          { icon: MessageCircle, label: t('nav.chat'), path: '/search' },
+          { icon: Settings, label: t('nav.settings'), path: '/settings' },
         ].map((item) => (
           <button
             key={item.path}

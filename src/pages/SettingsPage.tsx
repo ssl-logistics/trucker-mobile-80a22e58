@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ interface Profile {
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -78,24 +80,24 @@ export default function SettingsPage() {
 
   const menuItems = [
     {
-      section: 'ข้อมูลส่วนตัว',
+      section: t('settings.personal_info'),
       items: [
-        { icon: User, label: 'บัญชี', path: '/account' },
-        { icon: Truck, label: 'ข้อมูลรถ', path: '/vehicle-info' },
+        { icon: User, label: t('settings.account'), path: '/account' },
+        { icon: Truck, label: t('settings.vehicle_info'), path: '/vehicle-info' },
       ]
     },
     {
-      section: 'ทั่วไป',
+      section: t('settings.general'),
       items: [
-        { icon: Bell, label: 'การแจ้งเตือน', hasToggle: true },
+        { icon: Bell, label: t('settings.notifications'), hasToggle: true },
       ]
     },
     {
-      section: 'ข้อมูลเกี่ยวกับแอป',
+      section: t('settings.about'),
       items: [
-        { icon: Globe, label: 'ภาษา', path: '/language' },
-        { icon: Info, label: 'เงื่อนไขการใช้บริการและนโยบาย', path: '/terms' },
-        { icon: HelpCircle, label: 'ติดต่อศูนย์', path: '/contact' },
+        { icon: Globe, label: t('settings.language'), path: '/language' },
+        { icon: Info, label: t('settings.terms'), path: '/terms' },
+        { icon: HelpCircle, label: t('settings.contact'), path: '/contact' },
       ]
     }
   ];
@@ -104,7 +106,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 text-center">
-        <h1 className="text-xl font-semibold">ตั้งค่า</h1>
+        <h1 className="text-xl font-semibold">{t('settings.title')}</h1>
       </header>
 
       {/* Profile Section */}
@@ -120,7 +122,7 @@ export default function SettingsPage() {
                 {profile?.full_name?.charAt(0) || "👤"}
               </AvatarFallback>
             </Avatar>
-            <span className="font-semibold text-foreground">{profile?.full_name || "โปรไฟล์"}</span>
+            <span className="font-semibold text-foreground">{profile?.full_name || t('settings.profile')}</span>
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </button>
@@ -143,7 +145,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-green-600">
-                        {notificationsEnabled ? 'เปิดแจ้งเตือน' : 'ปิดแจ้งเตือน'}
+                        {notificationsEnabled ? t('settings.notifications_enabled') : t('settings.notifications_disabled')}
                       </span>
                       <Switch 
                         checked={notificationsEnabled}
@@ -176,7 +178,7 @@ export default function SettingsPage() {
           variant="outline"
           className="w-full border-destructive text-destructive hover:bg-destructive/10"
         >
-          ออกจากระบบ
+          {t('settings.sign_out')}
         </Button>
       </div>
 
@@ -188,10 +190,10 @@ export default function SettingsPage() {
               <Power className="w-8 h-8 text-slate-600" />
             </div>
             <AlertDialogTitle className="text-center text-base">
-              คุณต้องการออกจากระบบหรือไม่?
+              {t('settings.sign_out_confirm')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-xs px-2">
-              การออกจากระบบจะทำให้คุณต้องล็อกอินเข้าสู่ระบบอีกครั้ง ในครั้งถัดไป กรุณายืนยันออกจากระบบ
+              {t('settings.sign_out_description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2">
@@ -199,9 +201,9 @@ export default function SettingsPage() {
               onClick={handleSignOut}
               className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              ออกจากระบบ
+              {t('settings.sign_out')}
             </AlertDialogAction>
-            <AlertDialogCancel className="flex-1 m-0">ยกเลิก</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 m-0">{t('settings.cancel')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
