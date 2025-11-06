@@ -6,7 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Phone, MoreVertical, Send, Paperclip, Smile, Check, CheckCheck } from 'lucide-react';
+import { ArrowLeft, Phone, MoreVertical, Send, Paperclip, Smile, Check, CheckCheck, Settings } from 'lucide-react';
+import { ManageGroupSheet } from '@/components/chat/ManageGroupSheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +43,7 @@ export default function ChatRoomPage() {
   const [newMessage, setNewMessage] = useState('');
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isOnline, setIsOnline] = useState(true);
+  const [showManageGroup, setShowManageGroup] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -223,6 +225,12 @@ export default function ChatRoomPage() {
             <Phone className="w-5 h-5" />
           </button>
           
+          {conversation?.type === 'group' && (
+            <button className="p-2" onClick={() => setShowManageGroup(true)}>
+              <Settings className="w-5 h-5" />
+            </button>
+          )}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="p-2">
@@ -230,15 +238,6 @@ export default function ChatRoomPage() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => {}}>
-                {t('chat.addMembers')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {}}>
-                {t('chat.memberList')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {}}>
-                {t('chat.filesMedia')}
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleMuteConversation}>
                 {t('chat.muteNotifications')}
               </DropdownMenuItem>
@@ -336,6 +335,15 @@ export default function ChatRoomPage() {
           </Button>
         </div>
       </div>
+
+      {conversation?.type === 'group' && (
+        <ManageGroupSheet
+          open={showManageGroup}
+          onOpenChange={setShowManageGroup}
+          conversationId={conversationId!}
+          conversationName={conversation?.name || ''}
+        />
+      )}
     </div>
   );
 }

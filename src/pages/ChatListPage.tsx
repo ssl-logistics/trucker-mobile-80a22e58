@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { Input } from '@/components/ui/input';
-import { Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { CreateGroupDialog } from '@/components/chat/CreateGroupDialog';
 interface Conversation {
   id: string;
   name: string;
@@ -33,6 +35,7 @@ export default function ChatListPage() {
     friends: true,
     groups: true
   });
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
   useEffect(() => {
     if (user) {
       loadConversations();
@@ -145,9 +148,17 @@ export default function ChatListPage() {
         </div>}
     </div>;
   return <div className="min-h-screen bg-background pb-20">
-      {/* Simple Header */}
-      <div className="bg-[#153860] text-white p-4 shadow-lg">
-        <h1 className="text-xl font-semibold text-center">{t('chat.title')}</h1>
+      {/* Header with Create Group Button */}
+      <div className="bg-[#153860] text-white p-4 shadow-lg flex items-center justify-between">
+        <h1 className="text-xl font-semibold">{t('chat.title')}</h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowCreateGroup(true)}
+          className="text-white hover:bg-white/20"
+        >
+          <Plus className="h-5 w-5" />
+        </Button>
       </div>
       
       <div className="p-4">
@@ -162,6 +173,11 @@ export default function ChatListPage() {
         {renderSection(t('chat.friends'), friendChats.length, friendChats, 'friends')}
         {renderSection(t('chat.groups'), groupChats.length, groupChats, 'groups')}
       </div>
+
+      <CreateGroupDialog
+        open={showCreateGroup}
+        onOpenChange={setShowCreateGroup}
+      />
 
       <BottomNavigation />
     </div>;
