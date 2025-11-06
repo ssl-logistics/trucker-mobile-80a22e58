@@ -9,75 +9,73 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
-
 type BiddingJob = Database['public']['Tables']['jobs']['Row'];
 type JobBid = Database['public']['Tables']['job_bids']['Row'];
-
-
 interface Bid extends JobBid {
   jobs: BiddingJob;
 }
-
 export default function BiddingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [availableJobs, setAvailableJobs] = useState<BiddingJob[]>([]);
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [activeTab, setActiveTab] = useState('bidding');
-
   useEffect(() => {
     if (user) {
       loadAvailableJobs();
       loadMyBids();
     }
   }, [user]);
-
   const loadAvailableJobs = async () => {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('status', 'available')
-      .order('created_at', { ascending: false });
-
+    const {
+      data,
+      error
+    } = await supabase.from('jobs').select('*').eq('status', 'available').order('created_at', {
+      ascending: false
+    });
     if (!error && data) {
       setAvailableJobs(data);
     }
   };
-
   const loadMyBids = async () => {
     if (!user) return;
-
-    const { data, error } = await supabase
-      .from('job_bids')
-      .select('*, jobs(*)')
-      .eq('driver_id', user.id)
-      .order('created_at', { ascending: false });
-
+    const {
+      data,
+      error
+    } = await supabase.from('job_bids').select('*, jobs(*)').eq('driver_id', user.id).order('created_at', {
+      ascending: false
+    });
     if (!error && data) {
       setMyBids(data as Bid[]);
     }
   };
-
   const handlePlaceBid = (jobId: string) => {
     navigate(`/bidding/${jobId}`);
   };
-
   const getBidStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: 'รอดำเนินการ', variant: 'secondary' as const },
-      accepted: { label: 'เสร็จสิ้น', variant: 'default' as const },
-      rejected: { label: 'ปฏิเสธ', variant: 'destructive' as const },
+      pending: {
+        label: 'รอดำเนินการ',
+        variant: 'secondary' as const
+      },
+      accepted: {
+        label: 'เสร็จสิ้น',
+        variant: 'default' as const
+      },
+      rejected: {
+        label: 'ปฏิเสธ',
+        variant: 'destructive' as const
+      }
     };
-    
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
-
-  return (
-    <div className="min-h-screen bg-background pb-20">
+  return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background border-b">
-        <div className="flex items-center gap-4 px-4 py-4">
+        <div className="flex items-center gap-4 px-4 py-4 ">
           <button onClick={() => navigate('/home')}>
             <ArrowLeft className="w-6 h-6" />
           </button>
@@ -97,20 +95,20 @@ export default function BiddingPage() {
         </TabsList>
 
         <TabsContent value="bidding" className="px-4 mt-4 space-y-4">
-          {availableJobs.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+          {availableJobs.length === 0 ? <div className="text-center py-12 text-muted-foreground">
               ไม่มีงานที่เปิดรับเสนอราคา
-            </div>
-          ) : (
-            availableJobs.map((job) => (
-              <Card key={job.id} className="p-4 space-y-3 bg-card">
+            </div> : availableJobs.map(job => <Card key={job.id} className="p-4 space-y-3 bg-card">
                 <div className="flex items-start justify-between mb-3">
                   <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
                     รหัสออเดอร์ {job.order_code}
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock className="w-3.5 h-3.5" />
-                    {new Date(job.start_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })} | {job.start_time.substring(0, 5)}
+                    {new Date(job.start_date).toLocaleDateString('th-TH', {
+                day: 'numeric',
+                month: 'short',
+                year: '2-digit'
+              })} | {job.start_time.substring(0, 5)}
                   </div>
                 </div>
 
@@ -142,33 +140,22 @@ export default function BiddingPage() {
                     </div>
                   </div>
 
-                  {(job.equipment_list || job.safety_equipment) && (
-                    <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
-                      {job.equipment_list && (
-                        <div>
+                  {(job.equipment_list || job.safety_equipment) && <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
+                      {job.equipment_list && <div>
                           <span className="text-muted-foreground">อุปกรณ์ติดรถ : </span>
                           <span>{job.equipment_list}</span>
-                        </div>
-                      )}
-                      {job.safety_equipment && (
-                        <div>
+                        </div>}
+                      {job.safety_equipment && <div>
                           <span className="text-muted-foreground">อุปกรณ์ Safety : </span>
                           <span>{job.safety_equipment}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        </div>}
+                    </div>}
                 </div>
 
-                <Button 
-                  className="w-full h-11 text-base font-medium" 
-                  onClick={() => handlePlaceBid(job.id)}
-                >
+                <Button className="w-full h-11 text-base font-medium" onClick={() => handlePlaceBid(job.id)}>
                   เริ่มเสนอราคา
                 </Button>
-              </Card>
-            ))
-          )}
+              </Card>)}
         </TabsContent>
 
         <TabsContent value="history" className="px-4 mt-4">
@@ -180,21 +167,21 @@ export default function BiddingPage() {
 
           <div className="mb-4">
             <h3 className="font-semibold text-sm mb-3">กุมภาพันธ์</h3>
-            {myBids.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
+            {myBids.length === 0 ? <div className="text-center py-12 text-muted-foreground">
                 ยังไม่มีประวัติการเสนอราคา
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {myBids.map((bid) => (
-                  <Card key={bid.id} className="p-4 space-y-3 bg-card">
+              </div> : <div className="space-y-4">
+                {myBids.map(bid => <Card key={bid.id} className="p-4 space-y-3 bg-card">
                     <div className="flex items-start justify-between mb-3">
                       <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
                         รหัสออเดอร์ {bid.jobs.order_code}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Clock className="w-3.5 h-3.5" />
-                        {new Date(bid.jobs.start_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })} | {bid.jobs.start_time.substring(0, 5)}
+                        {new Date(bid.jobs.start_date).toLocaleDateString('th-TH', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: '2-digit'
+                  })} | {bid.jobs.start_time.substring(0, 5)}
                       </div>
                     </div>
 
@@ -230,37 +217,34 @@ export default function BiddingPage() {
                         </div>
                       </div>
 
-                      {(bid.jobs.equipment_list || bid.jobs.safety_equipment) && (
-                        <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
-                          {bid.jobs.equipment_list && (
-                            <div>
+                      {(bid.jobs.equipment_list || bid.jobs.safety_equipment) && <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
+                          {bid.jobs.equipment_list && <div>
                               <span className="text-muted-foreground">อุปกรณ์ติดรถ : </span>
                               <span>{bid.jobs.equipment_list}</span>
-                            </div>
-                          )}
-                          {bid.jobs.safety_equipment && (
-                            <div>
+                            </div>}
+                          {bid.jobs.safety_equipment && <div>
                               <span className="text-muted-foreground">อุปกรณ์ Safety : </span>
                               <span>{bid.jobs.safety_equipment}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                            </div>}
+                        </div>}
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t">
                       <span className="text-xs text-muted-foreground">
-                        เสนอราคาเมื่อ {new Date(bid.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        เสนอราคาเมื่อ {new Date(bid.created_at).toLocaleString('th-TH', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                       </span>
                       {getBidStatusBadge(bid.status)}
                     </div>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  </Card>)}
+              </div>}
           </div>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 }
