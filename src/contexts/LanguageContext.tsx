@@ -146,6 +146,21 @@ const thTranslations: Record<string, string> = {
   'jobHistory.statusDelivering': 'กำลังจัดส่ง',
   'jobHistory.statusAccepted': 'รับงานแล้ว',
   
+  // Current Jobs Page
+  'currentJobs.title': 'งานปัจจุบัน',
+  'currentJobs.search': 'ค้นหา ชื่อ,ออเดอร์,รหัสออเดอร์',
+  'currentJobs.empty': 'ยังไม่มีงานในตอนนี้',
+  'currentJobs.viewDetails': 'ดูข้อมูลงาน',
+  'currentJobs.filter': 'ตัวกรอง',
+  'currentJobs.dateRange': 'วันเวลาที่รับมอบงาน',
+  'currentJobs.startDate': 'วันที่เริ่มต้น',
+  'currentJobs.endDate': 'วันที่สิ้นสุด',
+  'currentJobs.clearFilter': 'ล้างค่า',
+  'currentJobs.applyFilter': 'ค้นหา',
+  'currentJobs.startJobDate': 'วันเริ่มงาน',
+  'currentJobs.errorLoad': 'เกิดข้อผิดพลาด',
+  'currentJobs.errorLoadDesc': 'ไม่สามารถโหลดข้อมูลงานได้',
+  
   // Dashboard Page
   'dashboard.finance': 'การเงิน (ค่าใช้จ่าย)',
   'dashboard.finance_desc': 'ติดตามรายรับ, รายจ่าย ได้ง่าย',
@@ -401,6 +416,21 @@ const enTranslations: Record<string, string> = {
   'jobHistory.statusCompleted': 'Completed',
   'jobHistory.statusDelivering': 'In Delivery',
   'jobHistory.statusAccepted': 'Accepted',
+  
+  // Current Jobs Page
+  'currentJobs.title': 'Current Jobs',
+  'currentJobs.search': 'Search by name, order, order code',
+  'currentJobs.empty': 'No jobs available at the moment',
+  'currentJobs.viewDetails': 'View Job Details',
+  'currentJobs.filter': 'Filter',
+  'currentJobs.dateRange': 'Job Assignment Date',
+  'currentJobs.startDate': 'Start Date',
+  'currentJobs.endDate': 'End Date',
+  'currentJobs.clearFilter': 'Clear',
+  'currentJobs.applyFilter': 'Search',
+  'currentJobs.startJobDate': 'Start Date',
+  'currentJobs.errorLoad': 'Error',
+  'currentJobs.errorLoadDesc': 'Unable to load jobs',
   
   // Dashboard Page
   'dashboard.finance': 'Finance (Expenses)',

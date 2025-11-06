@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -36,9 +37,8 @@ interface JobApplication {
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -81,8 +81,8 @@ export default function CurrentJobsPage() {
     });
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('currentJobs.errorLoad'),
+        description: t('currentJobs.errorLoadDesc'),
         variant: 'destructive'
       });
     } else {
@@ -90,9 +90,11 @@ export default function CurrentJobsPage() {
     }
     setLoading(false);
   };
+  
   const formatDate = (date: string) => {
     const d = new Date(date);
-    return d.toLocaleDateString('th-TH', {
+    const locale = language === 'th' ? 'th-TH' : 'en-US';
+    return d.toLocaleDateString(locale, {
       day: 'numeric',
       month: 'short',
       year: '2-digit'
@@ -157,7 +159,7 @@ export default function CurrentJobsPage() {
       <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center mb-4">
         <MapPin className="w-16 h-16 text-muted-foreground" />
       </div>
-      <p className="text-muted-foreground text-center">ยังไม่มีงานในตอนนี้</p>
+      <p className="text-muted-foreground text-center">{t('currentJobs.empty')}</p>
     </div>;
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
@@ -166,7 +168,7 @@ export default function CurrentJobsPage() {
           <button onClick={() => navigate('/home')} className="absolute left-0 p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">งานปัจจุบัน</h1>
+          <h1 className="text-xl font-semibold">{t('currentJobs.title')}</h1>
         </div>
       </header>
 
@@ -175,7 +177,7 @@ export default function CurrentJobsPage() {
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input placeholder="ค้นหา ชื่อ,ออเดอร์,รหัสออเดอร์" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 h-10 bg-white " />
+            <Input placeholder={t('currentJobs.search')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 h-10 bg-white " />
           </div>
           <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setFilterOpen(true)}>
             <Filter className="w-4 h-4" />
@@ -193,7 +195,7 @@ export default function CurrentJobsPage() {
           return <Card key={application.job_id} className="p-4 space-y-3 bg-card">
                   <div className="flex items-start justify-between mb-3">
                     <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
-                      รหัสออเดอร์ {job.order_code}
+                      {t('job.order_code')} {job.order_code}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" />
@@ -203,22 +205,22 @@ export default function CurrentJobsPage() {
 
           <div className="space-y-2">
             <div className="text-sm">
-              <span className="text-muted-foreground">ผู้จ้าง : </span>
+              <span className="text-muted-foreground">{t('job.employer')} : </span>
               <span className="font-medium">{job.employer_name}</span>
             </div>
             <div className="flex items-center gap-2">
               {(job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่')) && <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-                  ขนส่งภายในประเทศ
+                  {t('job.domestic')}
                 </Badge>}
               {(job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก')) && <>
                   <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-                    ขนส่งภายนอกประเทศ
+                    {t('job.international')}
                   </Badge>
                   {job.transport_type?.includes('ขาเข้า') && <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                      ขาเข้า
+                      {t('job.inbound')}
                     </Badge>}
                   {job.transport_type?.includes('ขาออก') && <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
-                      ขาออก
+                      {t('job.outbound')}
                     </Badge>}
                 </>}
             </div>
@@ -231,14 +233,14 @@ export default function CurrentJobsPage() {
                         <div className="flex items-start gap-2">
                           <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                           <div className="text-xs">
-                            <div className="text-muted-foreground">ต้นทาง</div>
+                            <div className="text-muted-foreground">{t('job.origin')}</div>
                             <div className="font-medium">{job.origin_location}</div>
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
                           <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                           <div className="text-xs">
-                            <div className="text-muted-foreground">ปลายทาง</div>
+                            <div className="text-muted-foreground">{t('job.destination')}</div>
                             <div className="font-medium">{job.destination_location}</div>
                           </div>
                         </div>
@@ -249,7 +251,7 @@ export default function CurrentJobsPage() {
                           <span className="text-lg font-bold text-teal-700">฿ {job.price.toLocaleString()}</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          วันเริ่มงาน
+                          {t('currentJobs.startJobDate')}
                         </div>
                         <div className="text-xs font-medium">
                           {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}
@@ -259,18 +261,18 @@ export default function CurrentJobsPage() {
 
                     <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
                       <div>
-                        <span className="text-muted-foreground">อุปกรณ์ติดรถ : </span>
+                        <span className="text-muted-foreground">{t('job.equipment')} : </span>
                         <span>{job.equipment_list || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">อุปกรณ์ Safety : </span>
+                        <span className="text-muted-foreground">{t('job.safety')} : </span>
                         <span>{job.safety_equipment || '-'}</span>
                       </div>
                     </div>
                   </div>
 
                   <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => navigate(`/job/${job.id}`)}>
-                    ดูข้อมูลงาน
+                    {t('currentJobs.viewDetails')}
                   </Button>
                 </Card>;
         })}
@@ -282,7 +284,7 @@ export default function CurrentJobsPage() {
         <DrawerContent>
           <DrawerHeader className="border-b">
             <div className="flex items-center justify-between">
-              <DrawerTitle>ตัวกรอง</DrawerTitle>
+              <DrawerTitle>{t('currentJobs.filter')}</DrawerTitle>
               <DrawerClose>
                 <X className="w-5 h-5" />
               </DrawerClose>
@@ -292,13 +294,13 @@ export default function CurrentJobsPage() {
           <div className="px-4 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
             {/* Date Range Filter */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold">วันเวลาที่รับมอบงาน</Label>
+              <Label className="text-base font-semibold">{t('currentJobs.dateRange')}</Label>
               <div className="flex items-center gap-3">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal h-11", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "dd/MM/yyyy") : "วันที่เริ่มต้น"}
+                      {startDate ? format(startDate, "dd/MM/yyyy") : t('currentJobs.startDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -312,7 +314,7 @@ export default function CurrentJobsPage() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal h-11", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "dd/MM/yyyy") : "วันที่สิ้นสุด"}
+                      {endDate ? format(endDate, "dd/MM/yyyy") : t('currentJobs.endDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -326,10 +328,10 @@ export default function CurrentJobsPage() {
           <DrawerFooter className="border-t">
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" onClick={handleResetFilter}>
-                ล้างค่า
+                {t('currentJobs.clearFilter')}
               </Button>
               <Button onClick={handleApplyFilter}>
-                ค้นหา
+                {t('currentJobs.applyFilter')}
               </Button>
             </div>
           </DrawerFooter>
