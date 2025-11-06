@@ -3,9 +3,10 @@ import { ChevronLeft } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 export default function TermsPage() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  return (
-    <div className="min-h-screen bg-background">
+  const {
+    t
+  } = useLanguage();
+  return <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
         <button onClick={() => navigate("/settings")} className="p-1">
@@ -67,12 +68,11 @@ export default function TermsPage() {
               <span className="font-semibold text-sm">{t("terms.sharing_provider")}</span>
               <div className="ml-4 mt-1">{t("terms.sharing_provider_desc")}</div>
             </li>
-            <li className="text-base text-foreground leading-relaxed">
-              <span className="font-semibold">{t("terms.sharing_legal")}</span> {t("terms.sharing_legal_desc")}
+            <li className="text-foreground leading-relaxed text-sm">
+              <span className="font-semibold text-sm">{t("terms.sharing_legal")}</span> {t("terms.sharing_legal_desc")}
             </li>
           </ul>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
