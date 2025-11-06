@@ -141,6 +141,11 @@ export default function ChatRoomPage() {
     }
 
     setIsUploading(true);
+    
+    toast({
+      title: 'กำลังอัพโหลดไฟล์...',
+      description: file.name,
+    });
 
     try {
       const { data: profile } = await supabase
@@ -157,7 +162,10 @@ export default function ChatRoomPage() {
         .from('chat-attachments')
         .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
@@ -179,16 +187,25 @@ export default function ChatRoomPage() {
           file_size: file.size
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Message insert error:', error);
+        throw error;
+      }
+
+      toast({
+        title: 'ส่งไฟล์สำเร็จ',
+        description: file.name,
+      });
 
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
+      console.error('File upload failed:', error);
       toast({
-        title: t('chat.error'),
-        description: t('chat.sendError'),
+        title: 'ส่งไฟล์ล้มเหลว',
+        description: 'กรุณาลองใหม่อีกครั้ง',
         variant: 'destructive'
       });
     } finally {
@@ -459,9 +476,13 @@ export default function ChatRoomPage() {
           <button 
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+            className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50 relative"
           >
-            <Paperclip className="w-5 h-5" />
+            {isUploading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
+            ) : (
+              <Paperclip className="w-5 h-5" />
+            )}
           </button>
           <button className="p-2 text-muted-foreground hover:text-foreground">
             <Smile className="w-5 h-5" />
