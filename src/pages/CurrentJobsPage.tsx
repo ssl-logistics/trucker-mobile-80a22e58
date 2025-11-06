@@ -161,7 +161,7 @@ export default function CurrentJobsPage() {
     </div>;
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
+      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50 rounded-b-xl ">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate('/home')} className="absolute left-0 p-1">
             <ArrowLeft className="w-6 h-6" />
