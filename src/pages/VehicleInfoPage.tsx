@@ -282,7 +282,12 @@ export default function VehicleInfoPage() {
           {/* Registration Document */}
           <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
             {registrationPhoto ? (
-              <img src={registrationPhoto} alt="ทะเบียนรถ" className="w-full h-full object-cover" />
+              <img 
+                src={`${registrationPhoto}?t=${Date.now()}`}
+                alt="ทะเบียนรถ" 
+                className="w-full h-full object-cover"
+                key={registrationPhoto}
+              />
             ) : (
               <span className="text-muted-foreground">กดที่นี่เพื่อดูรูป</span>
             )}
@@ -489,7 +494,12 @@ export default function VehicleInfoPage() {
                 <div className="relative bg-muted rounded-2xl aspect-video overflow-hidden">
                   {photo ? (
                     <>
-                      <img src={photo.photo_url} alt={labels[photoType]} className="w-full h-full object-cover" />
+                      <img 
+                        src={`${photo.photo_url}?t=${Date.now()}`} 
+                        alt={labels[photoType]} 
+                        className="w-full h-full object-cover"
+                        key={photo.photo_url}
+                      />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                         <span className="text-white text-lg font-medium drop-shadow-lg">กดที่นี่เพื่อดูรูป</span>
                       </div>
