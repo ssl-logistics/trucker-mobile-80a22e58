@@ -60,6 +60,7 @@ export default function VehicleInfoPage() {
   const [registrationPhoto, setRegistrationPhoto] = useState<string | null>(null);
   const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
+  const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
 
   const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
 
@@ -199,6 +200,9 @@ export default function VehicleInfoPage() {
       console.log('Reloading photos...');
       await new Promise(resolve => setTimeout(resolve, 500));
       await loadVehiclePhotos();
+      
+      // Force refresh by updating timestamp
+      setPhotoTimestamp(Date.now());
       console.log('Photos reloaded, new photos:', photos);
       
       setIsVehiclePhotoDrawerOpen(false);
@@ -261,6 +265,10 @@ export default function VehicleInfoPage() {
 
       setRegistrationPhoto(publicUrl);
       await loadVehiclePhotos();
+      
+      // Force refresh by updating timestamp
+      setPhotoTimestamp(Date.now());
+      
       setIsRegistrationDrawerOpen(false);
       toast({
         title: 'อัพโหลดสำเร็จ',
@@ -319,10 +327,10 @@ export default function VehicleInfoPage() {
           <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
             {registrationPhoto ? (
               <img 
-                src={`${registrationPhoto}?t=${Date.now()}`}
+                src={`${registrationPhoto}?t=${photoTimestamp}`}
                 alt="ทะเบียนรถ" 
                 className="w-full h-full object-cover"
-                key={registrationPhoto}
+                key={`registration-${photoTimestamp}`}
               />
             ) : (
               <span className="text-muted-foreground">กดที่นี่เพื่อดูรูป</span>
@@ -531,10 +539,10 @@ export default function VehicleInfoPage() {
                   {photo ? (
                     <>
                       <img 
-                        src={`${photo.photo_url}?t=${Date.now()}`} 
+                        src={`${photo.photo_url}?t=${photoTimestamp}`} 
                         alt={labels[photoType]} 
                         className="w-full h-full object-cover"
-                        key={photo.photo_url}
+                        key={`${photoType}-${photoTimestamp}`}
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                         <span className="text-white text-lg font-medium drop-shadow-lg">กดที่นี่เพื่อดูรูป</span>
