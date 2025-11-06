@@ -125,7 +125,7 @@ export default function PickupSummaryPage() {
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
         {/* Action Buttons */}
-        <div className="bg-white rounded-xl">
+        <div className="bg-white rounded-xl p-4">
           <JobActionButtons jobId={jobId} />
         </div>
         {/* Check-in Status */}
