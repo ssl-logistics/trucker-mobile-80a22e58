@@ -383,7 +383,7 @@ export default function InternationalJobDetail({
                       {isInbound ? 'จุดคืนตู้เปล่า' : 'จุดคืนตู้เต็ม'}
                     </h3>
                     {jobApplication?.sop_completed_at && <span className={`text-xs font-medium ${jobApplication?.delivery_sop_completed_at ? 'text-green-600' : jobApplication?.delivery_checked_in_at ? 'text-blue-600' : 'text-orange-500'}`}>
-                        • {jobApplication?.delivery_sop_completed_at ? 'ส่งคืนสำเร็จ' : jobApplication?.delivery_checked_in_at ? 'รอส่งคืน' : 'รอเช็คอิน'}
+                        • {jobApplication?.delivery_sop_completed_at ? 'ส่งคืนสำเร็จ' : jobApplication?.delivery_checked_in_at ? 'รอ POD' : 'รอเช็คอิน'}
                       </span>}
                   </div>
 
