@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, MapPin, CircleDot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,9 +17,8 @@ interface Bid extends JobBid {
 }
 export default function BiddingPage() {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [availableJobs, setAvailableJobs] = useState<BiddingJob[]>([]);
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [activeTab, setActiveTab] = useState('bidding');
@@ -57,15 +57,15 @@ export default function BiddingPage() {
   const getBidStatusBadge = (status: string) => {
     const statusConfig = {
       pending: {
-        label: 'รอดำเนินการ',
+        label: t('bidding.statusPending'),
         variant: 'secondary' as const
       },
       accepted: {
-        label: 'เสร็จสิ้น',
+        label: t('bidding.statusAccepted'),
         variant: 'default' as const
       },
       rejected: {
-        label: 'ปฏิเสธ',
+        label: t('bidding.statusRejected'),
         variant: 'destructive' as const
       }
     };
@@ -79,7 +79,7 @@ export default function BiddingPage() {
           <button onClick={() => navigate('/home')}>
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">เสนอราคา</h1>
+          <h1 className="text-lg font-semibold">{t('bidding.title')}</h1>
         </div>
       </header>
 
@@ -87,24 +87,24 @@ export default function BiddingPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
           <TabsTrigger value="bidding" className="rounded-none">
-            เสนอราคา
+            {t('bidding.biddingTab')}
           </TabsTrigger>
           <TabsTrigger value="history" className="rounded-none">
-            ประวัติ
+            {t('bidding.historyTab')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="bidding" className="px-4 mt-4 space-y-4">
           {availableJobs.length === 0 ? <div className="text-center py-12 text-muted-foreground">
-              ไม่มีงานที่เปิดรับเสนอราคา
+              {t('bidding.noJobs')}
             </div> : availableJobs.map(job => <Card key={job.id} className="p-4 space-y-3 bg-card">
                 <div className="flex items-start justify-between mb-3">
                   <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
-                    รหัสออเดอร์ {job.order_code}
+                    {t('job.order_code')} {job.order_code}
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock className="w-3.5 h-3.5" />
-                    {new Date(job.start_date).toLocaleDateString('th-TH', {
+                    {new Date(job.start_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
                 day: 'numeric',
                 month: 'short',
                 year: '2-digit'
@@ -114,7 +114,7 @@ export default function BiddingPage() {
 
                 <div className="space-y-2">
                   <div className="text-sm">
-                    <span className="text-muted-foreground">ผู้จ้าง : </span>
+                    <span className="text-muted-foreground">{t('job.employer')} : </span>
                     <span className="font-medium">{job.employer_name}</span>
                   </div>
                   <div className="text-sm text-muted-foreground">
@@ -126,14 +126,14 @@ export default function BiddingPage() {
                       <div className="flex items-start gap-2">
                         <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                         <div className="text-xs">
-                          <div className="text-muted-foreground">ต้นทาง</div>
+                          <div className="text-muted-foreground">{t('job.origin')}</div>
                           <div className="font-medium">{job.origin_location}</div>
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
                         <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                         <div className="text-xs">
-                          <div className="text-muted-foreground">ปลายทาง</div>
+                          <div className="text-muted-foreground">{t('job.destination')}</div>
                           <div className="font-medium">{job.destination_location}</div>
                         </div>
                       </div>
@@ -142,18 +142,18 @@ export default function BiddingPage() {
 
                   {(job.equipment_list || job.safety_equipment) && <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
                       {job.equipment_list && <div>
-                          <span className="text-muted-foreground">อุปกรณ์ติดรถ : </span>
+                          <span className="text-muted-foreground">{t('job.equipment')} : </span>
                           <span>{job.equipment_list}</span>
                         </div>}
                       {job.safety_equipment && <div>
-                          <span className="text-muted-foreground">อุปกรณ์ Safety : </span>
+                          <span className="text-muted-foreground">{t('job.safety')} : </span>
                           <span>{job.safety_equipment}</span>
                         </div>}
                     </div>}
                 </div>
 
                 <Button className="w-full h-11 text-base font-medium" onClick={() => handlePlaceBid(job.id)}>
-                  เริ่มเสนอราคา
+                  {t('bidding.placeBid')}
                 </Button>
               </Card>)}
         </TabsContent>
@@ -161,23 +161,23 @@ export default function BiddingPage() {
         <TabsContent value="history" className="px-4 mt-4">
           <div className="mb-4">
             <select className="w-full p-3 border rounded-lg bg-background">
-              <option>ทุกเดือน</option>
+              <option>{t('jobHistory.allMonths')}</option>
             </select>
           </div>
 
           <div className="mb-4">
-            <h3 className="font-semibold text-sm mb-3">กุมภาพันธ์</h3>
+            <h3 className="font-semibold text-sm mb-3">{t('bidding.monthLabel')}</h3>
             {myBids.length === 0 ? <div className="text-center py-12 text-muted-foreground">
-                ยังไม่มีประวัติการเสนอราคา
+                {t('bidding.noHistory')}
               </div> : <div className="space-y-4">
                 {myBids.map(bid => <Card key={bid.id} className="p-4 space-y-3 bg-card">
                     <div className="flex items-start justify-between mb-3">
                       <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
-                        รหัสออเดอร์ {bid.jobs.order_code}
+                        {t('job.order_code')} {bid.jobs.order_code}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Clock className="w-3.5 h-3.5" />
-                        {new Date(bid.jobs.start_date).toLocaleDateString('th-TH', {
+                        {new Date(bid.jobs.start_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
                     day: 'numeric',
                     month: 'short',
                     year: '2-digit'
@@ -187,7 +187,7 @@ export default function BiddingPage() {
 
                     <div className="space-y-2">
                       <div className="text-sm">
-                        <span className="text-muted-foreground">ผู้จ้าง : </span>
+                        <span className="text-muted-foreground">{t('job.employer')} : </span>
                         <span className="font-medium">{bid.jobs.employer_name}</span>
                       </div>
                       <div className="text-sm text-muted-foreground">
@@ -199,14 +199,14 @@ export default function BiddingPage() {
                           <div className="flex items-start gap-2">
                             <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <div className="text-xs">
-                              <div className="text-muted-foreground">ต้นทาง</div>
+                              <div className="text-muted-foreground">{t('job.origin')}</div>
                               <div className="font-medium">{bid.jobs.origin_location}</div>
                             </div>
                           </div>
                           <div className="flex items-start gap-2">
                             <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                             <div className="text-xs">
-                              <div className="text-muted-foreground">ปลายทาง</div>
+                              <div className="text-muted-foreground">{t('job.destination')}</div>
                               <div className="font-medium">{bid.jobs.destination_location}</div>
                             </div>
                           </div>
@@ -219,11 +219,11 @@ export default function BiddingPage() {
 
                       {(bid.jobs.equipment_list || bid.jobs.safety_equipment) && <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
                           {bid.jobs.equipment_list && <div>
-                              <span className="text-muted-foreground">อุปกรณ์ติดรถ : </span>
+                              <span className="text-muted-foreground">{t('job.equipment')} : </span>
                               <span>{bid.jobs.equipment_list}</span>
                             </div>}
                           {bid.jobs.safety_equipment && <div>
-                              <span className="text-muted-foreground">อุปกรณ์ Safety : </span>
+                              <span className="text-muted-foreground">{t('job.safety')} : </span>
                               <span>{bid.jobs.safety_equipment}</span>
                             </div>}
                         </div>}
@@ -231,7 +231,7 @@ export default function BiddingPage() {
 
                     <div className="flex items-center justify-between pt-2 border-t">
                       <span className="text-xs text-muted-foreground">
-                        เสนอราคาเมื่อ {new Date(bid.created_at).toLocaleString('th-TH', {
+                        {t('bidding.bidAt')} {new Date(bid.created_at).toLocaleString(language === 'th' ? 'th-TH' : 'en-US', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',

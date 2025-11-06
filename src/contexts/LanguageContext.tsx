@@ -161,6 +161,19 @@ const thTranslations: Record<string, string> = {
   'currentJobs.errorLoad': 'เกิดข้อผิดพลาด',
   'currentJobs.errorLoadDesc': 'ไม่สามารถโหลดข้อมูลงานได้',
   
+  // Bidding Page
+  'bidding.title': 'เสนอราคา',
+  'bidding.biddingTab': 'เสนอราคา',
+  'bidding.historyTab': 'ประวัติ',
+  'bidding.noJobs': 'ไม่มีงานที่เปิดรับเสนอราคา',
+  'bidding.placeBid': 'เริ่มเสนอราคา',
+  'bidding.noHistory': 'ยังไม่มีประวัติการเสนอราคา',
+  'bidding.bidAt': 'เสนอราคาเมื่อ',
+  'bidding.statusPending': 'รอดำเนินการ',
+  'bidding.statusAccepted': 'เสร็จสิ้น',
+  'bidding.statusRejected': 'ปฏิเสธ',
+  'bidding.monthLabel': 'กุมภาพันธ์',
+  
   // Dashboard Page
   'dashboard.finance': 'การเงิน (ค่าใช้จ่าย)',
   'dashboard.finance_desc': 'ติดตามรายรับ, รายจ่าย ได้ง่าย',
@@ -431,6 +444,19 @@ const enTranslations: Record<string, string> = {
   'currentJobs.startJobDate': 'Start Date',
   'currentJobs.errorLoad': 'Error',
   'currentJobs.errorLoadDesc': 'Unable to load jobs',
+  
+  // Bidding Page
+  'bidding.title': 'Bidding',
+  'bidding.biddingTab': 'Bidding',
+  'bidding.historyTab': 'History',
+  'bidding.noJobs': 'No jobs available for bidding',
+  'bidding.placeBid': 'Place Bid',
+  'bidding.noHistory': 'No bidding history yet',
+  'bidding.bidAt': 'Bid placed at',
+  'bidding.statusPending': 'Pending',
+  'bidding.statusAccepted': 'Completed',
+  'bidding.statusRejected': 'Rejected',
+  'bidding.monthLabel': 'February',
   
   // Dashboard Page
   'dashboard.finance': 'Finance (Expenses)',
