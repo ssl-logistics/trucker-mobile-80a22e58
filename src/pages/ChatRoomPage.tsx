@@ -63,8 +63,10 @@ export default function ChatRoomPage() {
     if (conversationId && user) {
       loadConversation();
       loadMessages();
-      subscribeToMessages();
+      const cleanup = subscribeToMessages();
       markMessagesAsRead();
+      
+      return cleanup;
     }
   }, [conversationId, user]);
 
@@ -112,7 +114,15 @@ export default function ChatRoomPage() {
           filter: `conversation_id=eq.${conversationId}`
         },
         (payload) => {
-          setMessages(prev => [...prev, payload.new as Message]);
+          const newMsg = payload.new as Message;
+          // Only add if not already in messages (avoid duplicates from optimistic updates)
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === newMsg.id || (m.sender_id === newMsg.sender_id && m.content === newMsg.content && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 1000));
+            if (exists) {
+              return prev.map(m => m.id.startsWith('temp-') && m.content === newMsg.content ? newMsg : m);
+            }
+            return [...prev, newMsg];
+          });
         }
       )
       .subscribe();
@@ -224,11 +234,28 @@ export default function ChatRoomPage() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || !conversationId) return;
 
+    const messageContent = newMessage;
+    setNewMessage('');
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('full_name, avatar_url')
       .eq('id', user.id)
       .single();
+
+    // Optimistic update
+    const tempMessage: Message = {
+      id: `temp-${Date.now()}`,
+      sender_id: user.id,
+      sender_name: profile?.full_name || 'User',
+      sender_avatar: profile?.avatar_url,
+      content: messageContent,
+      message_type: 'text',
+      is_read: false,
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages(prev => [...prev, tempMessage]);
 
     const { error } = await supabase
       .from('messages')
@@ -237,18 +264,19 @@ export default function ChatRoomPage() {
         sender_id: user.id,
         sender_name: profile?.full_name || 'User',
         sender_avatar: profile?.avatar_url,
-        content: newMessage,
+        content: messageContent,
         message_type: 'text'
       });
 
     if (error) {
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== tempMessage.id));
+      setNewMessage(messageContent);
       toast({
         title: t('chat.error'),
         description: t('chat.sendError'),
         variant: 'destructive'
       });
-    } else {
-      setNewMessage('');
     }
   };
 
