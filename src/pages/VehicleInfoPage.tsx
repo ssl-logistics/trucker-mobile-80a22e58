@@ -260,7 +260,7 @@ export default function VehicleInfoPage() {
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)}>
+        <button onClick={() => navigate('/settings')}>
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="text-xl font-semibold">ข้อมูลรถ</h1>
