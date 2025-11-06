@@ -16,7 +16,7 @@ export default function LanguagePage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1">
+        <button onClick={() => navigate('/settings')} className="p-1">
           <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-xl font-semibold">{t('language.title')}</h1>
