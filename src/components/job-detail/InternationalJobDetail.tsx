@@ -156,15 +156,21 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
               : 'border-gray-300 bg-gray-50'
           }`}>
             <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center pt-1">
+              <div className="flex flex-col items-center pt-1 min-h-full">
                 {jobApplication?.container_sop_completed_at ? (
-                  <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
+                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
                 ) : jobApplication?.job_started_at ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-white" />
+                  <div className="w-6 h-6 rounded-full border-3 border-teal-500 bg-white" />
                 ) : (
-                  <Circle className="w-5 h-5 text-gray-400" />
+                  <div className="w-6 h-6 rounded-full border-2 border-gray-300 bg-white" />
                 )}
-                <div className="w-0.5 h-full border-l-2 border-dashed border-gray-300 my-1" />
+                <div className={`w-0.5 flex-1 min-h-[60px] ${
+                  jobApplication?.container_sop_completed_at 
+                    ? 'bg-red-500' 
+                    : 'bg-gray-300'
+                } my-1`} />
               </div>
               
               <div className={`flex-1 ${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
@@ -293,15 +299,21 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
               : 'border-gray-300 bg-gray-50'
           }`}>
             <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center pt-1">
+              <div className="flex flex-col items-center pt-1 min-h-full">
                 {jobApplication?.sop_completed_at ? (
-                  <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
+                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
                 ) : jobApplication?.container_sop_completed_at ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-white" />
+                  <div className="w-6 h-6 rounded-full border-3 border-teal-500 bg-white" />
                 ) : (
-                  <Circle className="w-5 h-5 text-gray-400" />
+                  <div className="w-6 h-6 rounded-full border-2 border-gray-300 bg-white" />
                 )}
-                <div className="w-0.5 h-full border-l-2 border-dashed border-gray-300 my-1" />
+                <div className={`w-0.5 flex-1 min-h-[60px] ${
+                  jobApplication?.sop_completed_at 
+                    ? 'bg-red-500' 
+                    : 'bg-gray-300'
+                } my-1`} />
               </div>
               
               <div className={`flex-1 ${!jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
@@ -426,13 +438,13 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center pt-1">
                 {jobApplication?.delivery_sop_completed_at ? (
-                  <CheckCircle className="w-5 h-5 text-green-600 fill-green-600" />
-                ) : jobApplication?.delivery_checked_in_at ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-blue-600 bg-white" />
+                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
                 ) : jobApplication?.sop_completed_at ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-teal-600 bg-white" />
+                  <div className="w-6 h-6 rounded-full border-3 border-teal-500 bg-white" />
                 ) : (
-                  <Circle className="w-5 h-5 text-gray-400" />
+                  <div className="w-6 h-6 rounded-full border-2 border-gray-300 bg-white" />
                 )}
               </div>
               
