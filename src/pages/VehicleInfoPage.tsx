@@ -461,7 +461,7 @@ export default function VehicleInfoPage() {
         </TabsContent>
 
         {/* Vehicle Photos Tab */}
-        <TabsContent value="photos" className="p-4 space-y-4">
+        <TabsContent value="photos" className="p-4 space-y-6">
           {['front', 'side', 'back'].map((photoType) => {
             const photo = getPhotoByType(photoType);
             const labels: Record<string, string> = {
@@ -472,25 +472,43 @@ export default function VehicleInfoPage() {
 
             return (
               <div key={photoType}>
-                <Label className="mb-2 block">{labels[photoType]}</Label>
-                <div className="relative bg-muted rounded-lg aspect-video overflow-hidden">
-                  {photo ? (
-                    <img src={photo.photo_url} alt={labels[photoType]} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      ยังไม่มีรูปภาพ
-                    </div>
-                  )}
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-base font-medium">{labels[photoType]}</Label>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute bottom-2 right-2 bg-background/80 hover:bg-background"
+                    className="h-8 w-8"
                     onClick={() => {
                       setCurrentPhotoType(photoType);
                       setIsVehiclePhotoDrawerOpen(true);
                     }}
                   >
-                    <Edit2 className="w-5 h-5 text-foreground" />
+                    <Edit2 className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </div>
+                <div className="relative bg-muted rounded-2xl aspect-video overflow-hidden">
+                  {photo ? (
+                    <>
+                      <img src={photo.photo_url} alt={labels[photoType]} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <span className="text-white text-lg font-medium drop-shadow-lg">กดที่นี่เพื่อดูรูป</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-muted-foreground text-lg">กดที่นี่เพื่อดูรูป</span>
+                    </div>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg"
+                    onClick={() => {
+                      setCurrentPhotoType(photoType);
+                      setIsVehiclePhotoDrawerOpen(true);
+                    }}
+                  >
+                    <Camera className="w-5 h-5 text-gray-700" />
                   </Button>
                 </div>
               </div>
