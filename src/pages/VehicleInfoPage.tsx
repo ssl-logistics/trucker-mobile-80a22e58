@@ -58,6 +58,8 @@ export default function VehicleInfoPage() {
   const [loading, setLoading] = useState(true);
   const [isRegistrationDrawerOpen, setIsRegistrationDrawerOpen] = useState(false);
   const [registrationPhoto, setRegistrationPhoto] = useState<string | null>(null);
+  const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
+  const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
 
   const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
 
@@ -163,6 +165,7 @@ export default function VehicleInfoPage() {
       }
 
       await loadVehiclePhotos();
+      setIsVehiclePhotoDrawerOpen(false);
       toast({
         title: 'อัพโหลดสำเร็จ',
         description: 'รูปภาพถูกบันทึกเรียบร้อยแล้ว',
@@ -478,21 +481,17 @@ export default function VehicleInfoPage() {
                       ยังไม่มีรูปภาพ
                     </div>
                   )}
-                  <label className="absolute bottom-2 right-2">
-                    <div className="bg-white rounded-full p-2 cursor-pointer shadow-lg">
-                      <Camera className="w-5 h-5 text-foreground" />
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handlePhotoUpload(photoType, file);
-                      }}
-                    />
-                  </label>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute bottom-2 right-2 bg-background/80 hover:bg-background"
+                    onClick={() => {
+                      setCurrentPhotoType(photoType);
+                      setIsVehiclePhotoDrawerOpen(true);
+                    }}
+                  >
+                    <Edit2 className="w-5 h-5 text-foreground" />
+                  </Button>
                 </div>
               </div>
             );
@@ -546,6 +545,61 @@ export default function VehicleInfoPage() {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) handleRegistrationPhotoUpload(file);
+                    }}
+                  />
+                </div>
+              </Button>
+            </label>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Vehicle Photo Upload Drawer */}
+      <Drawer open={isVehiclePhotoDrawerOpen} onOpenChange={setIsVehiclePhotoDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>เลือกวิธีการอัปโหลดรูป</DrawerTitle>
+          </DrawerHeader>
+          <div className="p-4 space-y-3">
+            <label className="block">
+              <Button 
+                variant="outline" 
+                className="w-full h-14 justify-start gap-3"
+                asChild
+              >
+                <div>
+                  <Camera className="w-5 h-5" />
+                  <span>ถ่ายภาพ</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && currentPhotoType) handlePhotoUpload(currentPhotoType, file);
+                    }}
+                  />
+                </div>
+              </Button>
+            </label>
+            
+            <label className="block">
+              <Button 
+                variant="outline" 
+                className="w-full h-14 justify-start gap-3"
+                asChild
+              >
+                <div>
+                  <Image className="w-5 h-5" />
+                  <span>เลือกรูปจากแกลลอรี่</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && currentPhotoType) handlePhotoUpload(currentPhotoType, file);
                     }}
                   />
                 </div>
