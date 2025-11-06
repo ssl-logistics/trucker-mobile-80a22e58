@@ -212,8 +212,15 @@ export default function VehicleInfoPage() {
         {/* Vehicle Data Tab */}
         <TabsContent value="data" className="p-4 space-y-4">
           {/* Registration Document */}
-          <div className="bg-muted rounded-lg p-4 aspect-video flex items-center justify-center">
-            <span className="text-muted-foreground">ทะเบียนรถ</span>
+          <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center">
+            <span className="text-muted-foreground">กดที่นี่เพื่อดูรูป</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-2 right-2 bg-background/80 hover:bg-background"
+            >
+              <Edit2 className="w-4 h-4 text-muted-foreground" />
+            </Button>
           </div>
 
           {/* Vehicle Info Fields */}
