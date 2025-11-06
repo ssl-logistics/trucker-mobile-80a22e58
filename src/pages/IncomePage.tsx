@@ -135,7 +135,7 @@ export default function IncomePage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-6 rounded-b-3xl shadow-lg">
+      <header className="bg-header text-header-foreground px-4 py-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate('/home')} className="p-2 hover:bg-white/10 rounded-full">
             <ArrowLeft className="w-6 h-6" />

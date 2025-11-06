@@ -123,7 +123,7 @@ export default function FinancePage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4 sticky top-0 z-10 shadow-md">
+      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-10 shadow-md">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-white/10 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />

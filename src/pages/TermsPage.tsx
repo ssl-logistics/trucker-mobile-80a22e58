@@ -8,7 +8,7 @@ export default function TermsPage() {
   } = useLanguage();
   return <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
+      <header className="bg-header text-header-foreground px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
         <button onClick={() => navigate("/settings")} className="p-1">
           <ChevronLeft className="w-6 h-6" />
         </button>

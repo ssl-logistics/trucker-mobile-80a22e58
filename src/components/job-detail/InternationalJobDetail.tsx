@@ -107,7 +107,7 @@ export default function InternationalJobDetail({ job, jobApplication, userId, on
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4 sticky top-0 z-50">
+      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate('/current-jobs')} className="p-1">
             <ArrowLeft className="w-6 h-6" />

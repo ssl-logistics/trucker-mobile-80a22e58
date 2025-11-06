@@ -78,7 +78,7 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4">
+      <header className="bg-header text-header-foreground px-4 py-4">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/home')} className="p-1">
             <ChevronLeft className="w-6 h-6" />

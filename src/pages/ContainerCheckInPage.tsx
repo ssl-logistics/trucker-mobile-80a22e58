@@ -128,7 +128,7 @@ export default function ContainerCheckInPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-4 sticky top-0 z-50">
+      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(`/job/${jobId}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
