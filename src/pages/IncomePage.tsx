@@ -20,7 +20,9 @@ interface IncomeJob {
 }
 export default function IncomePage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [loading, setLoading] = useState(true);
   const [paidJobs, setPaidJobs] = useState<IncomeJob[]>([]);
@@ -35,10 +37,10 @@ export default function IncomePage() {
     setLoading(true);
     try {
       // Fetch all accepted job applications (excluding pending and rejected)
-      const { data: applications, error } = await supabase
-        .from("job_applications")
-        .select(
-          `
+      const {
+        data: applications,
+        error
+      } = await supabase.from("job_applications").select(`
           id,
           job_id,
           payment_completed_at,
@@ -50,16 +52,12 @@ export default function IncomePage() {
             price,
             start_date
           )
-        `,
-        )
-        .eq("driver_id", user.id)
-        .neq("status", "pending")
-        .neq("status", "rejected");
+        `).eq("driver_id", user.id).neq("status", "pending").neq("status", "rejected");
       if (error) {
         toast({
           title: "เกิดข้อผิดพลาด",
           description: "ไม่สามารถโหลดข้อมูลรายได้ได้",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -78,9 +76,9 @@ export default function IncomePage() {
           status: app.payment_completed_at ? "paid" : "pending",
           date: new Date(app.jobs.start_date).toLocaleDateString("th-TH"),
           month: new Date(app.jobs.start_date).toLocaleDateString("th-TH", {
-            month: "long",
+            month: "long"
           }),
-          orderCode: app.jobs.order_code,
+          orderCode: app.jobs.order_code
         };
         if (app.payment_completed_at) {
           paid.push(job);
@@ -105,7 +103,7 @@ export default function IncomePage() {
     const grouped: {
       [key: string]: IncomeJob[];
     } = {};
-    jobs.forEach((job) => {
+    jobs.forEach(job => {
       if (!grouped[job.month]) {
         grouped[job.month] = [];
       }
@@ -114,20 +112,17 @@ export default function IncomePage() {
     return grouped;
   };
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+    return <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
   const allJobs = [...paidJobs, ...unpaidJobs];
   const allGrouped = groupJobsByMonth(allJobs);
   const paidGrouped = groupJobsByMonth(paidJobs);
   const unpaidGrouped = groupJobsByMonth(unpaidJobs);
-  return (
-    <div className="min-h-screen bg-background pb-20">
+  return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-4 rounded-b-3xl shadow-lg">
+      <header className="bg-header text-header-foreground px-4 py-4 rounded-b-xl  shadow-lg">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate("/home")} className="absolute left-0 p-2 hover:bg-white/10 rounded-full">
             <ArrowLeft className="w-6 h-6" />
@@ -159,56 +154,34 @@ export default function IncomePage() {
 
           {/* All Tab */}
           <TabsContent value="all" className="space-y-4">
-            {Object.keys(allGrouped).length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">ไม่มีข้อมูลรายได้</div>
-            ) : (
-              Object.entries(allGrouped).map(([month, jobs]) => (
-                <div key={month}>
+            {Object.keys(allGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">ไม่มีข้อมูลรายได้</div> : Object.entries(allGrouped).map(([month, jobs]) => <div key={month}>
                   <div className="text-sm text-muted-foreground mb-2">{month}</div>
-                  {jobs.map((income) => (
-                    <Card key={income.id} className="p-4 mb-3">
+                  {jobs.map(income => <Card key={income.id} className="p-4 mb-3">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
                         </div>
-                        <div
-                          className={`flex items-center gap-2 font-semibold ${income.status === "paid" ? "text-green-600" : "text-muted-foreground"}`}
-                        >
-                          {income.status === "paid" ? (
-                            <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
+                        <div className={`flex items-center gap-2 font-semibold ${income.status === "paid" ? "text-green-600" : "text-muted-foreground"}`}>
+                          {income.status === "paid" ? <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
                               <div className="w-2 h-2 bg-green-600 rounded-full" />
-                            </div>
-                          ) : (
-                            <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
+                            </div> : <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
                               <Receipt className="w-3 h-3" />
-                            </div>
-                          )}
+                            </div>}
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleViewJobDetail(income.jobId)}
-                        className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
-                      >
+                      <button onClick={() => handleViewJobDetail(income.jobId)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         ดูข้อมูลงาน
                       </button>
-                    </Card>
-                  ))}
-                </div>
-              ))
-            )}
+                    </Card>)}
+                </div>)}
           </TabsContent>
 
           {/* Paid Tab */}
           <TabsContent value="paid" className="space-y-4">
-            {Object.keys(paidGrouped).length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">ไม่มีงานที่ชำระแล้ว</div>
-            ) : (
-              Object.entries(paidGrouped).map(([month, jobs]) => (
-                <div key={month}>
+            {Object.keys(paidGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">ไม่มีงานที่ชำระแล้ว</div> : Object.entries(paidGrouped).map(([month, jobs]) => <div key={month}>
                   <div className="text-sm text-muted-foreground mb-2">{month}</div>
-                  {jobs.map((income) => (
-                    <Card key={income.id} className="p-4 mb-3">
+                  {jobs.map(income => <Card key={income.id} className="p-4 mb-3">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
@@ -220,29 +193,18 @@ export default function IncomePage() {
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleViewJobDetail(income.jobId)}
-                        className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
-                      >
+                      <button onClick={() => handleViewJobDetail(income.jobId)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         ดูข้อมูลงาน
                       </button>
-                    </Card>
-                  ))}
-                </div>
-              ))
-            )}
+                    </Card>)}
+                </div>)}
           </TabsContent>
 
           {/* Unpaid Tab */}
           <TabsContent value="unpaid" className="space-y-4">
-            {Object.keys(unpaidGrouped).length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">ไม่มีงานที่ยังไม่ชำระ</div>
-            ) : (
-              Object.entries(unpaidGrouped).map(([month, jobs]) => (
-                <div key={month}>
+            {Object.keys(unpaidGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">ไม่มีงานที่ยังไม่ชำระ</div> : Object.entries(unpaidGrouped).map(([month, jobs]) => <div key={month}>
                   <div className="text-sm text-muted-foreground mb-2">{month}</div>
-                  {jobs.map((income) => (
-                    <Card key={income.id} className="p-4 mb-3">
+                  {jobs.map(income => <Card key={income.id} className="p-4 mb-3">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
@@ -254,20 +216,13 @@ export default function IncomePage() {
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleViewJobDetail(income.jobId)}
-                        className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors"
-                      >
+                      <button onClick={() => handleViewJobDetail(income.jobId)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         ดูข้อมูลงาน
                       </button>
-                    </Card>
-                  ))}
-                </div>
-              ))
-            )}
+                    </Card>)}
+                </div>)}
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 }
