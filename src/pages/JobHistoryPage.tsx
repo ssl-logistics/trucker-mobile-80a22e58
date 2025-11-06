@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-
 interface JobApplication {
   id: string;
   applied_at: string;
@@ -27,26 +26,26 @@ interface JobApplication {
     job_type: string;
   };
 }
-
 export default function JobHistoryPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
-
   useEffect(() => {
     if (user) {
       loadJobHistory();
     }
   }, [user]);
-
   const loadJobHistory = async () => {
     try {
-      const { data, error } = await supabase
-        .from("job_applications")
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from("job_applications").select(`
           id,
           applied_at,
           status,
@@ -64,10 +63,9 @@ export default function JobHistoryPage() {
             start_time,
             job_type
           )
-        `)
-        .eq("driver_id", user?.id)
-        .order("applied_at", { ascending: false });
-
+        `).eq("driver_id", user?.id).order("applied_at", {
+        ascending: false
+      });
       if (error) throw error;
       setApplications(data || []);
     } catch (error) {
@@ -76,51 +74,40 @@ export default function JobHistoryPage() {
       setLoading(false);
     }
   };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("th-TH", {
       day: "numeric",
       month: "short",
-      year: "2-digit",
+      year: "2-digit"
     });
   };
-
   const formatTime = (timeString: string) => {
     return timeString.slice(0, 5);
   };
-
   const getStatusColor = (status: string) => {
     if (status === "accepted" || status === "in_progress") return "bg-green-50 border-green-200";
     if (status === "completed") return "bg-gray-50 border-gray-200";
     return "bg-yellow-50 border-yellow-200";
   };
-
   const getStatusBadge = (app: JobApplication) => {
     if (app.payment_completed_at) {
-      return (
-        <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-100 rounded-lg">
+      return <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-100 rounded-lg">
           <div className="w-2 h-2 rounded-full bg-gray-500"></div>
           <span className="text-xs font-medium text-gray-700">เสร็จสิ้น</span>
-        </div>
-      );
+        </div>;
     }
     if (app.job_started_at) {
-      return (
-        <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-50 rounded-lg">
+      return <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-50 rounded-lg">
           <div className="w-2 h-2 rounded-full bg-orange-500"></div>
           <span className="text-xs font-medium text-orange-700">กำลังจัดส่ง</span>
-        </div>
-      );
+        </div>;
     }
-    return (
-      <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-50 rounded-lg">
+    return <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-50 rounded-lg">
         <div className="w-2 h-2 rounded-full bg-blue-500"></div>
         <span className="text-xs font-medium text-blue-700">รับงานแล้ว</span>
-      </div>
-    );
+      </div>;
   };
-
   const filterApplications = (apps: JobApplication[]) => {
     let filtered = apps;
 
@@ -139,21 +126,14 @@ export default function JobHistoryPage() {
         return month === targetMonth;
       });
     }
-
     return filtered;
   };
-
   const filteredApplications = filterApplications(applications);
-
-  return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+  return <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
-        <div className="px-4 py-4 flex items-center gap-3">
-          <button
-            onClick={() => navigate("/home")}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
+        <div className="px-4 py-4 flex items-center gap-3 bg-[#DDEDFF]">
+          <button onClick={() => navigate("/home")} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-semibold flex-1">ประวัติงาน</h1>
@@ -163,22 +143,13 @@ export default function JobHistoryPage() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start border-b rounded-none bg-white h-auto p-0">
-          <TabsTrigger 
-            value="all" 
-            className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent"
-          >
+          <TabsTrigger value="all" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent">
             ทั้งหมด
           </TabsTrigger>
-          <TabsTrigger 
-            value="in-progress"
-            className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent"
-          >
+          <TabsTrigger value="in-progress" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent">
             กำลังส่ง
           </TabsTrigger>
-          <TabsTrigger 
-            value="completed"
-            className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent"
-          >
+          <TabsTrigger value="completed" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent">
             เสร็จสิ้น
           </TabsTrigger>
         </TabsList>
@@ -209,17 +180,7 @@ export default function JobHistoryPage() {
 
         <TabsContent value={activeTab} className="m-0">
           <div className="p-4 space-y-4">
-            {loading ? (
-              <div className="text-center py-8 text-gray-500">กำลังโหลด...</div>
-            ) : filteredApplications.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">ไม่พบประวัติงาน</div>
-            ) : (
-              filteredApplications.map((app) => (
-                <Card
-                  key={app.id}
-                  className="p-4 space-y-3 bg-card cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate(`/job/${app.jobs.id}`)}
-                >
+            {loading ? <div className="text-center py-8 text-gray-500">กำลังโหลด...</div> : filteredApplications.length === 0 ? <div className="text-center py-8 text-gray-500">ไม่พบประวัติงาน</div> : filteredApplications.map(app => <Card key={app.id} className="p-4 space-y-3 bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/job/${app.jobs.id}`)}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
                       รหัสออเดอร์ {app.jobs.order_code}
@@ -237,27 +198,19 @@ export default function JobHistoryPage() {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      {app.jobs.job_type === "domestic" ? (
-                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                      {app.jobs.job_type === "domestic" ? <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
                           ขนส่งภายในประเทศ
-                        </Badge>
-                      ) : (
-                        <>
+                        </Badge> : <>
                           <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
                             ขนส่งภายนอกประเทศ
                           </Badge>
-                          {app.jobs.transport_type?.includes("inbound") && (
-                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                          {app.jobs.transport_type?.includes("inbound") && <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
                               ขาเข้า
-                            </Badge>
-                          )}
-                          {app.jobs.transport_type?.includes("outbound") && (
-                            <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
+                            </Badge>}
+                          {app.jobs.transport_type?.includes("outbound") && <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
                               ขาออก
-                            </Badge>
-                          )}
-                        </>
-                      )}
+                            </Badge>}
+                        </>}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {app.jobs.transport_type}
@@ -290,12 +243,9 @@ export default function JobHistoryPage() {
                       {getStatusBadge(app)}
                     </div>
                   </div>
-                </Card>
-              ))
-            )}
+                </Card>)}
           </div>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 }
