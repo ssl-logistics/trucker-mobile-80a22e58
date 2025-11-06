@@ -174,6 +174,19 @@ const thTranslations: Record<string, string> = {
   'bidding.statusRejected': 'ปฏิเสธ',
   'bidding.monthLabel': 'กุมภาพันธ์',
   
+  // Income Page
+  'income.title': 'รายได้ของฉัน',
+  'income.all': 'ทั้งหมด',
+  'income.paid': 'ชำระแล้ว',
+  'income.unpaid': 'ยังไม่ชำระ',
+  'income.selectMonth': 'เลือกเดือน',
+  'income.viewDetails': 'ดูข้อมูลงาน',
+  'income.noData': 'ไม่มีข้อมูลรายได้',
+  'income.noPaid': 'ไม่มีงานที่ชำระแล้ว',
+  'income.noUnpaid': 'ไม่มีงานที่ยังไม่ชำระ',
+  'income.errorLoad': 'เกิดข้อผิดพลาด',
+  'income.errorLoadDesc': 'ไม่สามารถโหลดข้อมูลรายได้ได้',
+  
   // Dashboard Page
   'dashboard.finance': 'การเงิน (ค่าใช้จ่าย)',
   'dashboard.finance_desc': 'ติดตามรายรับ, รายจ่าย ได้ง่าย',
@@ -457,6 +470,19 @@ const enTranslations: Record<string, string> = {
   'bidding.statusAccepted': 'Completed',
   'bidding.statusRejected': 'Rejected',
   'bidding.monthLabel': 'February',
+  
+  // Income Page
+  'income.title': 'My Income',
+  'income.all': 'All',
+  'income.paid': 'Paid',
+  'income.unpaid': 'Unpaid',
+  'income.selectMonth': 'Select Month',
+  'income.viewDetails': 'View Job Details',
+  'income.noData': 'No income data',
+  'income.noPaid': 'No paid jobs',
+  'income.noUnpaid': 'No unpaid jobs',
+  'income.errorLoad': 'Error',
+  'income.errorLoadDesc': 'Unable to load income data',
   
   // Dashboard Page
   'dashboard.finance': 'Finance (Expenses)',
