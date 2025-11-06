@@ -54,7 +54,6 @@ export default function VehicleInfoPage() {
   const [activeTab, setActiveTab] = useState('data');
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
@@ -114,47 +113,6 @@ export default function VehicleInfoPage() {
     }
   };
 
-  const handleSave = async () => {
-    if (!user || !vehicleData) return;
-
-    try {
-      const { error } = await supabase
-        .from('vehicles')
-        .update({
-          plate_number: vehicleData.plate_number,
-          plate_province: vehicleData.plate_province,
-          vehicle_brand: vehicleData.vehicle_brand,
-          vehicle_color: vehicleData.vehicle_color,
-          vin: vehicleData.vin,
-          fuel_type: vehicleData.fuel_type,
-          load_capacity: vehicleData.load_capacity,
-          vehicle_type: vehicleData.vehicle_type,
-          width: vehicleData.width,
-          length: vehicleData.length,
-          height: vehicleData.height,
-          has_trailer: vehicleData.has_trailer,
-          trailer_plate_number: vehicleData.trailer_plate_number,
-          trailer_plate_province: vehicleData.trailer_plate_province,
-          container_types: vehicleData.container_types,
-        })
-        .eq('id', vehicleData.id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'บันทึกสำเร็จ',
-        description: 'ข้อมูลรถถูกบันทึกเรียบร้อยแล้ว',
-      });
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error saving vehicle data:', error);
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถบันทึกข้อมูลได้',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const handlePhotoUpload = async (photoType: string, file: File) => {
     if (!user || !vehicleData) return;
@@ -253,24 +211,6 @@ export default function VehicleInfoPage() {
 
         {/* Vehicle Data Tab */}
         <TabsContent value="data" className="p-4 space-y-4">
-          <div className="flex justify-end mb-4">
-            {isEditing ? (
-              <div className="flex gap-2">
-                <Button onClick={() => setIsEditing(false)} variant="outline" size="sm">
-                  ยกเลิก
-                </Button>
-                <Button onClick={handleSave} size="sm">
-                  บันทึก
-                </Button>
-              </div>
-            ) : (
-              <Button onClick={() => setIsEditing(true)} size="sm" variant="outline">
-                <Edit2 className="w-4 h-4 mr-2" />
-                แก้ไข
-              </Button>
-            )}
-          </div>
-
           {/* Registration Document */}
           <div className="bg-muted rounded-lg p-4 aspect-video flex items-center justify-center">
             <span className="text-muted-foreground">ทะเบียนรถ</span>
@@ -278,175 +218,114 @@ export default function VehicleInfoPage() {
 
           {/* Vehicle Info Fields */}
           <div className="space-y-4">
-            <div>
-              <Label>หมายเลขทะเบียนรถ</Label>
-              <Input
-                value={vehicleData.plate_number}
-                onChange={(e) => setVehicleData({ ...vehicleData, plate_number: e.target.value })}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div>
-              <Label>จังหวัดจดทะเบียนรถ</Label>
-              <Select
-                value={vehicleData.plate_province}
-                onValueChange={(value) => setVehicleData({ ...vehicleData, plate_province: value })}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {provinces.map((province) => (
-                    <SelectItem key={province} value={province}>
-                      {province}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>ยี่ห้อรถยนต์</Label>
-              <Select
-                value={vehicleData.vehicle_brand}
-                onValueChange={(value) => setVehicleData({ ...vehicleData, vehicle_brand: value })}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {vehicleBrands.map((brand) => (
-                    <SelectItem key={brand} value={brand}>
-                      {brand}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>สีรถยนต์</Label>
-              <Input
-                value={vehicleData.vehicle_color}
-                onChange={(e) => setVehicleData({ ...vehicleData, vehicle_color: e.target.value })}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div>
-              <Label>VIN</Label>
-              <Input
-                value={vehicleData.vin}
-                onChange={(e) => setVehicleData({ ...vehicleData, vin: e.target.value })}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div>
-              <Label>ประเภทรถยนต์</Label>
-              <Select
-                value={vehicleData.vehicle_type}
-                onValueChange={(value) => setVehicleData({ ...vehicleData, vehicle_type: value })}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {vehicleTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>ประเภทเชื้อเพลิง</Label>
-              <Select
-                value={vehicleData.fuel_type}
-                onValueChange={(value) => setVehicleData({ ...vehicleData, fuel_type: value })}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {fuelTypes.map((fuel) => (
-                    <SelectItem key={fuel} value={fuel}>
-                      {fuel}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>น้ำหนักบรรทุก (ตัน)</Label>
-              <Input
-                type="number"
-                value={vehicleData.load_capacity}
-                onChange={(e) => setVehicleData({ ...vehicleData, load_capacity: parseFloat(e.target.value) })}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>กว้าง (ม.)</Label>
-                <Input
-                  type="number"
-                  value={vehicleData.width || ''}
-                  onChange={(e) => setVehicleData({ ...vehicleData, width: parseFloat(e.target.value) || undefined })}
-                  disabled={!isEditing}
-                />
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">หมายเลขทะเบียนรถ</Label>
+                <p className="text-base font-medium mt-1">{vehicleData.plate_number}</p>
               </div>
-              <div>
-                <Label>ยาว (ม.)</Label>
-                <Input
-                  type="number"
-                  value={vehicleData.length || ''}
-                  onChange={(e) => setVehicleData({ ...vehicleData, length: parseFloat(e.target.value) || undefined })}
-                  disabled={!isEditing}
-                />
-              </div>
-              <div>
-                <Label>สูง (ม.)</Label>
-                <Input
-                  type="number"
-                  value={vehicleData.height || ''}
-                  onChange={(e) => setVehicleData({ ...vehicleData, height: parseFloat(e.target.value) || undefined })}
-                  disabled={!isEditing}
-                />
-              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
             </div>
 
-            <div>
-              <Label className="mb-3 block">ประเภทตู้คอนเทนเนอร์ที่รองรับ</Label>
-              <div className="space-y-3">
-                {containerTypeOptions.map((option) => (
-                  <div key={option.value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={option.value}
-                      checked={vehicleData.container_types?.includes(option.value)}
-                      onCheckedChange={(checked) => {
-                        const newTypes = checked
-                          ? [...(vehicleData.container_types || []), option.value]
-                          : vehicleData.container_types?.filter((t) => t !== option.value) || [];
-                        setVehicleData({ ...vehicleData, container_types: newTypes });
-                      }}
-                      disabled={!isEditing}
-                    />
-                    <Label htmlFor={option.value} className="font-normal">
-                      {option.label}
-                    </Label>
-                  </div>
-                ))}
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">จังหวัดจดทะเบียนรถ</Label>
+                <p className="text-base font-medium mt-1">{vehicleData.plate_province}</p>
               </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">ยี่ห้อรถยนต์</Label>
+                <p className="text-base font-medium mt-1">{vehicleData.vehicle_brand}</p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">สีรถยนต์</Label>
+                <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">VIN</Label>
+                <p className="text-base font-medium mt-1">{vehicleData.vin}</p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">ประเภทรถยนต์</Label>
+                <p className="text-base font-medium mt-1">{vehicleData.vehicle_type}</p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">ประเภทเชื้อเพลิง</Label>
+                <p className="text-base font-medium mt-1">{vehicleData.fuel_type}</p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">น้ำหนักบรรทุก (ตัน)</Label>
+                <p className="text-base font-medium mt-1">{vehicleData.load_capacity}</p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">ขนาดรถ</Label>
+                <p className="text-base font-medium mt-1">
+                  {vehicleData.width && vehicleData.length && vehicleData.height
+                    ? `กว้าง ${vehicleData.width} ม. × ยาว ${vehicleData.length} ม. × สูง ${vehicleData.height} ม.`
+                    : 'ไม่ระบุ'}
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">ประเภทตู้คอนเทนเนอร์ที่รองรับ</Label>
+                <p className="text-base font-medium mt-1">
+                  {vehicleData.container_types && vehicleData.container_types.length > 0
+                    ? vehicleData.container_types
+                        .map((type) => containerTypeOptions.find((opt) => opt.value === type)?.label || type)
+                        .join(', ')
+                    : 'ไม่ระบุ'}
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
             </div>
           </div>
         </TabsContent>
