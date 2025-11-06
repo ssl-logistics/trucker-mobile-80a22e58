@@ -41,6 +41,7 @@ import VehicleInfoPage from "./pages/VehicleInfoPage";
 import AccountPage from "./pages/AccountPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import EditFieldPage from "./pages/EditFieldPage";
+import EditVehicleFieldPage from "./pages/EditVehicleFieldPage";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -91,6 +92,7 @@ const App = () => (
           <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
           <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
           <Route path="/profile/edit" element={<ProtectedRoute><EditFieldPage /></ProtectedRoute>} />
+          <Route path="/edit-vehicle-field" element={<ProtectedRoute><EditVehicleFieldPage /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

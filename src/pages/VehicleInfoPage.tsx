@@ -230,7 +230,12 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">หมายเลขทะเบียนรถ</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.plate_number}</p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=หมายเลขทะเบียนรถ')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -240,7 +245,12 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">จังหวัดจดทะเบียนรถ</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.plate_province}</p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=จังหวัดจดทะเบียนรถ')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -250,7 +260,12 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">ยี่ห้อรถยนต์</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_brand}</p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=ยี่ห้อรถยนต์')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -260,7 +275,12 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">สีรถยนต์</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=สีรถยนต์')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -270,7 +290,12 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">VIN</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vin}</p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=VIN')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -280,7 +305,12 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">ประเภทรถยนต์</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_type}</p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=ประเภทรถยนต์')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -290,7 +320,12 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">ประเภทเชื้อเพลิง</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.fuel_type}</p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=ประเภทเชื้อเพลิง')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -300,7 +335,12 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">น้ำหนักบรรทุก (ตัน)</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.load_capacity}</p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=น้ำหนักบรรทุก')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -314,7 +354,12 @@ export default function VehicleInfoPage() {
                     : 'ไม่ระบุ'}
                 </p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=ขนาดรถ')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
@@ -330,7 +375,12 @@ export default function VehicleInfoPage() {
                     : 'ไม่ระบุ'}
                 </p>
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={() => navigate('/edit-vehicle-field?field=ประเภทตู้คอนเทนเนอร์')}
+              >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
