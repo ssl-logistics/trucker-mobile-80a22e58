@@ -210,7 +210,7 @@ const ContainerSOPPage = () => {
         <button onClick={() => navigate(`/job/${jobId}`)}>
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-semibold">
+        <h1 className="text-lg font-semibold text-center flex-1">
           {t('containerSop.title')} {jobDetail.container_checkpoint}
         </h1>
       </div>
