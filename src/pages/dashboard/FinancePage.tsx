@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -64,7 +64,7 @@ export default function FinancePage() {
   };
 
   // Dynamic data based on filters
-  const getFilteredData = () => {
+  const { chartData, totalIncome, totalExpense, profit, profitPercentage, pendingPayments } = useMemo(() => {
     // Date-based variation
     const dateHash = selectedDate.getTime() % 100;
     const dateVariation = 1 + (dateHash / 100);
@@ -131,9 +131,7 @@ export default function FinancePage() {
       profitPercentage,
       pendingPayments
     };
-  };
-
-  const { chartData, totalIncome, totalExpense, profit, profitPercentage, pendingPayments } = getFilteredData();
+  }, [selectedDate, timePeriod, monthsShort]);
 
   return (
     <div className="min-h-screen bg-background pb-20">

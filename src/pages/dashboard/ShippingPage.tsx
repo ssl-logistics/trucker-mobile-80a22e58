@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -54,7 +54,7 @@ export default function ShippingPage() {
   };
 
   // Dynamic data based on filters
-  const getFilteredData = () => {
+  const { jobStats, regionStats } = useMemo(() => {
     // Base multiplier based on time period
     let timeMultiplier = 1;
     if (timePeriod === 'day') {
@@ -103,9 +103,7 @@ export default function ShippingPage() {
         { region: t('shipping.south'), value: Math.round(baseTotal * 0.12), change: Math.round(2 * dateVariation) },
       ]
     };
-  };
-
-  const { jobStats, regionStats } = getFilteredData();
+  }, [selectedDate, timePeriod, vehicleType, t]);
 
   return (
     <div className="min-h-screen bg-background pb-20">

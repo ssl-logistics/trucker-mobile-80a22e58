@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -53,7 +53,7 @@ export default function CustomerPage() {
   };
 
   // Dynamic data based on filters
-  const getFilteredData = () => {
+  const { pieData, customerDetails } = useMemo(() => {
     // Base multiplier based on time period
     let timeMultiplier = 1;
     if (timePeriod === 'day') {
@@ -92,9 +92,7 @@ export default function CustomerPage() {
     }));
 
     return { pieData, customerDetails };
-  };
-
-  const { pieData, customerDetails } = getFilteredData();
+  }, [selectedDate, timePeriod]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
