@@ -10,17 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 interface JobDetail {
   id: string;
   order_code: string;
@@ -30,31 +20,28 @@ interface JobDetail {
   container_number: string | null;
   seal_number: string | null;
 }
-
 export default function ContainerCheckInPage() {
   const navigate = useNavigate();
-  const { jobId } = useParams();
-  const { user } = useAuth();
+  const {
+    jobId
+  } = useParams();
+  const {
+    user
+  } = useAuth();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
-
   useEffect(() => {
     loadJobDetail();
   }, [jobId, user]);
-
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
-
     setLoading(true);
-    
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('id', jobId)
-      .single();
-
+    const {
+      data,
+      error
+    } = await supabase.from('jobs').select('*').eq('id', jobId).single();
     if (error) {
       toast({
         title: 'เกิดข้อผิดพลาด',
@@ -65,22 +52,16 @@ export default function ContainerCheckInPage() {
     } else {
       setJob(data);
     }
-
     setLoading(false);
   };
-
   const handleCheckIn = async () => {
     if (!user || !jobId) return;
-
-    const { error } = await supabase
-      .from('job_applications')
-      .update({ 
-        container_checked_in_at: new Date().toISOString(),
-        status: 'รอรับตู้เปล่า'
-      })
-      .eq('job_id', jobId)
-      .eq('driver_id', user.id);
-
+    const {
+      error
+    } = await supabase.from('job_applications').update({
+      container_checked_in_at: new Date().toISOString(),
+      status: 'รอรับตู้เปล่า'
+    }).eq('job_id', jobId).eq('driver_id', user.id);
     if (error) {
       toast({
         title: 'เกิดข้อผิดพลาด',
@@ -96,47 +77,40 @@ export default function ContainerCheckInPage() {
       navigate(`/job/${jobId}`);
     }
   };
-
   const formatDate = (date: string) => {
     const d = new Date(date);
-    return d.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return d.toLocaleDateString('th-TH', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+    return <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
   if (!job) return null;
-
   const mockContainerData = {
     checkpoint: job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย',
     checkpointCode: job.container_checkpoint_code || 'LCB B1',
     emptyDate: job.empty_container_date || '2023-11-02',
-    containers: [
-      {
-        number: 'TGHU4455667',
-        seal: 'SEAL556677'
-      },
-      {
-        number: 'CAIU9988776',
-        seal: 'SEAL112233'
-      }
-    ]
+    containers: [{
+      number: 'TGHU4455667',
+      seal: 'SEAL556677'
+    }, {
+      number: 'CAIU9988776',
+      seal: 'SEAL112233'
+    }]
   };
-
-  return (
-    <div className="min-h-screen bg-background pb-24">
+  return <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate(`/job/${jobId}`)} className="absolute left-0 p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">จุดรับตู้เปล่า ท่าเรือแหลมฉบัง, ประเทศไทย</h1>
+          <h1 className="text-lg font-semibold text-center">จุดรับตู้เปล่า ท่าเรือแหลมฉบัง, ประเทศไทย</h1>
         </div>
       </header>
 
@@ -147,17 +121,11 @@ export default function ContainerCheckInPage() {
             <img src={expenseViewIcon} alt="" className="w-8 h-8" />
             <span className="text-xs font-medium">ดูค่าใช้จ่าย</span>
           </button>
-          <button 
-            className="flex flex-col items-center gap-1 text-[#0A8778]"
-            onClick={() => navigate(`/job/${jobId}/add-expense`)}
-          >
+          <button className="flex flex-col items-center gap-1 text-[#0A8778]" onClick={() => navigate(`/job/${jobId}/add-expense`)}>
             <img src={expenseAddIcon} alt="" className="w-8 h-8" />
             <span className="text-xs font-medium">เพิ่มค่าใช้จ่าย</span>
           </button>
-          <button 
-            className="flex flex-col items-center gap-1 text-[#0A8778]"
-            onClick={() => setIsReportDrawerOpen(true)}
-          >
+          <button className="flex flex-col items-center gap-1 text-[#0A8778]" onClick={() => setIsReportDrawerOpen(true)}>
             <img src={reportProblemIcon} alt="" className="w-8 h-8" />
             <span className="text-xs font-medium">แจ้งปัญหา</span>
           </button>
@@ -174,7 +142,11 @@ export default function ContainerCheckInPage() {
 
         {/* Map Placeholder */}
         <Card className="h-48 bg-blue-100 flex items-center justify-center relative overflow-hidden">
-          <MapPin className="w-12 h-12 text-red-600 absolute" style={{ top: '40%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+          <MapPin className="w-12 h-12 text-red-600 absolute" style={{
+          top: '40%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)'
+        }} />
           <div className="absolute inset-0 bg-gradient-to-br from-blue-200/30 to-blue-400/30"></div>
         </Card>
 
@@ -237,10 +209,7 @@ export default function ContainerCheckInPage() {
         </div>
 
         {/* Navigation Button */}
-        <Button 
-          variant="outline" 
-          className="w-full h-12"
-        >
+        <Button variant="outline" className="w-full h-12">
           <Navigation className="w-5 h-5 mr-2" />
           เส้นทาง
         </Button>
@@ -248,13 +217,9 @@ export default function ContainerCheckInPage() {
 
       {/* Bottom Check-in Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-        <Button 
-          className="w-full h-12 text-base text-white"
-          style={{
-            background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)'
-          }}
-          onClick={() => setShowConfirmDialog(true)}
-        >
+        <Button className="w-full h-12 text-base text-white" style={{
+        background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)'
+      }} onClick={() => setShowConfirmDialog(true)}>
           <MapPin className="w-5 h-5 mr-2" />
           เช็คอิน
         </Button>
@@ -278,10 +243,7 @@ export default function ContainerCheckInPage() {
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:space-x-4">
             <AlertDialogCancel className="sm:mt-0">ยกเลิก</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleCheckIn}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
+            <AlertDialogAction onClick={handleCheckIn} className="bg-blue-600 hover:bg-blue-700">
               ยืนยัน
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -289,11 +251,6 @@ export default function ContainerCheckInPage() {
       </AlertDialog>
 
       {/* Report Problem Drawer */}
-      <ReportProblemDrawer
-        open={isReportDrawerOpen}
-        onOpenChange={setIsReportDrawerOpen}
-        jobId={jobId}
-      />
-    </div>
-  );
+      <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={jobId} />
+    </div>;
 }
