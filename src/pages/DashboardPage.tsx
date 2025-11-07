@@ -91,7 +91,7 @@ export default function DashboardPage() {
         {dashboardItems.map((item) => (
           <Card
             key={item.id}
-            className="opacity-10 shadow-md hover:shadow-lg transition-shadow cursor-pointer rounded-3xl"
+            className="shadow-md hover:shadow-lg transition-shadow cursor-pointer rounded-3xl"
             onClick={() => navigate(item.path)}
           >
             <div
@@ -101,7 +101,7 @@ export default function DashboardPage() {
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
               }}
-              className="p-6 relative min-h-[120px] -mt-4 rounded-3xl"
+              className="p-6 relative w-full min-h-[120px] -mt-4 rounded-3xl"
             >
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1">
