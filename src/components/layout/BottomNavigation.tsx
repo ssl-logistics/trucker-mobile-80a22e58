@@ -7,6 +7,8 @@ import DashboardIcon from "@/assets/dashboard-icon.svg";
 import DashboardIconActive from "@/assets/dashboard-icon-active.svg";
 import ChatIcon from "@/assets/chat-icon.svg";
 import ChatIconActive from "@/assets/chat-icon-active.svg";
+import SettingsIcon from "@/assets/settings-icon.svg";
+import SettingsIconActive from "@/assets/settings-icon-active.svg";
 export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,6 +48,8 @@ export function BottomNavigation() {
             icon: Settings,
             label: t("nav.settings"),
             path: "/settings",
+            customIcon: SettingsIcon,
+            customActiveIcon: SettingsIconActive,
           },
         ].map((item) => (
           <button
