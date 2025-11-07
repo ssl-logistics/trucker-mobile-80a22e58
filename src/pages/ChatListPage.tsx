@@ -44,53 +44,42 @@ export default function ChatListPage() {
   }, [user]);
   const loadConversations = async () => {
     if (!user) return;
-    
-    // First get conversation IDs for the user
-    const { data: participantData } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', user.id);
 
+    // First get conversation IDs for the user
+    const {
+      data: participantData
+    } = await supabase.from('conversation_participants').select('conversation_id').eq('user_id', user.id);
     if (!participantData || participantData.length === 0) {
       setConversations([]);
       return;
     }
-
     const conversationIds = participantData.map(p => p.conversation_id);
 
     // Then get conversation details
-    const { data: conversationData } = await supabase
-      .from('conversations')
-      .select('id, name, type, avatar_url, updated_at')
-      .in('id', conversationIds);
-
+    const {
+      data: conversationData
+    } = await supabase.from('conversations').select('id, name, type, avatar_url, updated_at').in('id', conversationIds);
     if (conversationData) {
       // Get last messages and unread counts
-      const conversationsWithData = await Promise.all(
-        conversationData.map(async (conv: any) => {
-          const { data: messages } = await supabase
-            .from('messages')
-            .select('content, is_read, sender_id')
-            .eq('conversation_id', conv.id)
-            .order('created_at', { ascending: false })
-            .limit(1);
-
-          const { count: unreadCount } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversation_id', conv.id)
-            .eq('is_read', false)
-            .neq('sender_id', user.id);
-
-          return {
-            ...conv,
-            last_message: messages?.[0]?.content || '',
-            unread_count: unreadCount || 0,
-            is_online: Math.random() > 0.5 // Mock online status
-          };
-        })
-      );
-      
+      const conversationsWithData = await Promise.all(conversationData.map(async (conv: any) => {
+        const {
+          data: messages
+        } = await supabase.from('messages').select('content, is_read, sender_id').eq('conversation_id', conv.id).order('created_at', {
+          ascending: false
+        }).limit(1);
+        const {
+          count: unreadCount
+        } = await supabase.from('messages').select('*', {
+          count: 'exact',
+          head: true
+        }).eq('conversation_id', conv.id).eq('is_read', false).neq('sender_id', user.id);
+        return {
+          ...conv,
+          last_message: messages?.[0]?.content || '',
+          unread_count: unreadCount || 0,
+          is_online: Math.random() > 0.5 // Mock online status
+        };
+      }));
       setConversations(conversationsWithData);
     }
   };
@@ -161,14 +150,9 @@ export default function ChatListPage() {
     </div>;
   return <div className="min-h-screen bg-background pb-20">
       {/* Header with Create Group Button */}
-      <div className="bg-[#153860] text-white p-4 shadow-lg flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t('chat.title')}</h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowCreateGroup(true)}
-          className="text-white hover:bg-white/20"
-        >
+      <div className="bg-[#DDEDFF] text-white p-4 shadow-lg flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-[#153860]">{t('chat.title')}</h1>
+        <Button variant="ghost" size="icon" onClick={() => setShowCreateGroup(true)} className="text-white hover:bg-white/20">
           <Plus className="h-5 w-5" />
         </Button>
       </div>
@@ -186,10 +170,7 @@ export default function ChatListPage() {
         {renderSection(t('chat.groups'), groupChats.length, groupChats, 'groups')}
       </div>
 
-      <CreateGroupDialog
-        open={showCreateGroup}
-        onOpenChange={setShowCreateGroup}
-      />
+      <CreateGroupDialog open={showCreateGroup} onOpenChange={setShowCreateGroup} />
 
       <BottomNavigation />
     </div>;
