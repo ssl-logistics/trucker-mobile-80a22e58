@@ -93,8 +93,8 @@ export default function DashboardPage() {
         }} className="p-2 relative w-full min-h-[120px] -mt-4 rounded-2xl">
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1 p-4">
-                  <h3 className="font-bold text-gray-800 mb-2 text-base">{item.title}</h3>
-                  <p className="text-sm text-gray-600 mb-4">{item.description}</p>
+                  <h3 className="font-bold text-[#1B4D36] mb-2 text-sm">{item.title}</h3>
+                  <p className="text-[#22733F] mb-4 text-xs">{item.description}</p>
                   <button className={`bg-gradient-to-r ${item.color} text-white w-[90px] h-[30px] rounded-full font-medium text-xs shadow-md hover:shadow-lg transition-all flex items-center justify-center`}>
                     {t("dashboard.view")}
                     {item.title.split(" ")[0]}
