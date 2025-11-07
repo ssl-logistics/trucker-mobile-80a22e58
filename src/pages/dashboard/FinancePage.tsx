@@ -4,9 +4,11 @@ import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function FinancePage() {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [timePeriod, setTimePeriod] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -15,22 +17,35 @@ export default function FinancePage() {
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ];
 
+  const englishMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
   const thaiMonthsShort = [
     'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
     'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
   ];
 
+  const englishMonthsShort = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
+  const months = language === 'th' ? thaiMonths : englishMonths;
+  const monthsShort = language === 'th' ? thaiMonthsShort : englishMonthsShort;
+
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
-    const month = thaiMonths[selectedDate.getMonth()];
-    const year = selectedDate.getFullYear() + 543;
+    const month = months[selectedDate.getMonth()];
+    const year = language === 'th' ? selectedDate.getFullYear() + 543 : selectedDate.getFullYear();
 
     if (timePeriod === 'day') {
       return `${day} ${month} ${year}`;
     } else if (timePeriod === 'month') {
       return `${month} ${year}`;
     } else {
-      return `พ.ศ. ${year}`;
+      return `${t('finance.buddhist_era')} ${year}`;
     }
   };
 
@@ -83,7 +98,7 @@ export default function FinancePage() {
       totalExpense = Math.round(250000 * dateVariation);
     } else {
       // Generate data for all months in year
-      chartData = thaiMonthsShort.map((month, i) => ({
+      chartData = monthsShort.map((month, i) => ({
         month,
         income: Math.round((45000 + i * 2500) * dateVariation),
         expense: Math.round((20000 + i * 1000) * dateVariation)
@@ -128,7 +143,7 @@ export default function FinancePage() {
           <button onClick={() => navigate('/dashboard')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-bold">การเงิน</h1>
+          <h1 className="text-xl font-bold">{t('finance.title')}</h1>
         </div>
       </header>
 
@@ -136,9 +151,9 @@ export default function FinancePage() {
         {/* Time Period Tabs */}
         <Tabs value={timePeriod} onValueChange={setTimePeriod} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
-            <TabsTrigger value="day">วัน</TabsTrigger>
-            <TabsTrigger value="month">เดือน</TabsTrigger>
-            <TabsTrigger value="year">ปี</TabsTrigger>
+            <TabsTrigger value="day">{t('finance.day')}</TabsTrigger>
+            <TabsTrigger value="month">{t('finance.month')}</TabsTrigger>
+            <TabsTrigger value="year">{t('finance.year')}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -167,7 +182,7 @@ export default function FinancePage() {
                 <TrendingUp className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-gray-600">กำไร</p>
+                <p className="text-xs text-gray-600">{t('finance.profit')}</p>
                 <p className="text-2xl font-bold text-green-600">{profit.toLocaleString()}</p>
               </div>
             </div>
@@ -179,7 +194,7 @@ export default function FinancePage() {
                 <TrendingDown className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-gray-600">ค่าใช้จ่าย</p>
+                <p className="text-xs text-gray-600">{t('finance.expenses')}</p>
                 <p className="text-2xl font-bold text-red-600">{totalExpense.toLocaleString()}</p>
               </div>
             </div>
@@ -189,13 +204,13 @@ export default function FinancePage() {
         {/* Profit Info */}
         <Card className="p-4 bg-white shadow-sm">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-sm text-gray-600">รายได้ทั้งหมด</p>
+            <p className="text-sm text-gray-600">{t('finance.total_income')}</p>
             <span className="text-sm font-medium text-green-600 flex items-center gap-1">
               <span>▲{profitPercentage}%</span>
             </span>
           </div>
           <p className="text-2xl font-bold text-primary">{profit.toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-1">เปรียบเทียบกับปี: 2566</p>
+          <p className="text-xs text-gray-500 mt-1">{t('finance.compare_year')}</p>
         </Card>
 
         {/* Chart */}
@@ -207,8 +222,8 @@ export default function FinancePage() {
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name="รายได้" />
-              <Line type="monotone" dataKey="expense" stroke="#374151" strokeWidth={2} name="ค่าใช้จ่าย" />
+              <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name={t('finance.income')} />
+              <Line type="monotone" dataKey="expense" stroke="#374151" strokeWidth={2} name={t('finance.expenses')} />
             </LineChart>
           </ResponsiveContainer>
         </Card>
@@ -216,8 +231,8 @@ export default function FinancePage() {
         {/* Pending Payments */}
         <Card className="p-4 bg-white shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800">รายได้ค้างชำระ</h3>
-            <span className="text-sm text-gray-500">3 บริษัท</span>
+            <h3 className="font-bold text-gray-800">{t('finance.pending_payments')}</h3>
+            <span className="text-sm text-gray-500">3 {t('finance.companies')}</span>
           </div>
           <div className="space-y-2">
             {pendingPayments.map((payment, index) => (

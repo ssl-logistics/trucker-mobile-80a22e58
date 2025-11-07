@@ -4,9 +4,11 @@ import { ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ProductPage() {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [timePeriod, setTimePeriod] = useState('year');
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -15,17 +17,24 @@ export default function ProductPage() {
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ];
 
+  const englishMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const months = language === 'th' ? thaiMonths : englishMonths;
+
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
-    const month = thaiMonths[selectedDate.getMonth()];
-    const year = selectedDate.getFullYear() + 543;
+    const month = months[selectedDate.getMonth()];
+    const year = language === 'th' ? selectedDate.getFullYear() + 543 : selectedDate.getFullYear();
 
     if (timePeriod === 'day') {
       return `${day} ${month} ${year}`;
     } else if (timePeriod === 'month') {
       return `${month} ${year}`;
     } else {
-      return `พ.ศ. ${year}`;
+      return `${t('finance.buddhist_era')} ${year}`;
     }
   };
 
@@ -94,7 +103,7 @@ export default function ProductPage() {
           <button onClick={() => navigate('/dashboard')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-bold">สินค้า</h1>
+          <h1 className="text-xl font-bold">{t('product.title')}</h1>
         </div>
       </header>
 
@@ -102,9 +111,9 @@ export default function ProductPage() {
         {/* Time Period Tabs */}
         <Tabs value={timePeriod} onValueChange={setTimePeriod} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
-            <TabsTrigger value="day">วัน</TabsTrigger>
-            <TabsTrigger value="month">เดือน</TabsTrigger>
-            <TabsTrigger value="year">ปี</TabsTrigger>
+            <TabsTrigger value="day">{t('finance.day')}</TabsTrigger>
+            <TabsTrigger value="month">{t('finance.month')}</TabsTrigger>
+            <TabsTrigger value="year">{t('finance.year')}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -128,8 +137,8 @@ export default function ProductPage() {
         {/* Pie Chart */}
         <Card className="p-4 bg-white shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800">ประเภทสินค้า</h3>
-            <span className="text-sm text-gray-500">5 อันดับสูงสุด</span>
+            <h3 className="font-bold text-gray-800">{t('product.product_types')}</h3>
+            <span className="text-sm text-gray-500">{t('product.top_5')}</span>
           </div>
           <div className="flex items-center justify-center">
             <ResponsiveContainer width="100%" height={250}>
@@ -169,7 +178,7 @@ export default function ProductPage() {
               <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                 <p className="font-medium text-gray-800">{product.name}</p>
                 <div className="flex items-center gap-8">
-                  <p className="text-sm font-bold text-primary">{product.jobs} งาน</p>
+                  <p className="text-sm font-bold text-primary">{product.jobs} {t('product.jobs')}</p>
                   <p className="text-sm font-bold text-gray-900">฿ {product.amount.toLocaleString()}</p>
                 </div>
               </div>

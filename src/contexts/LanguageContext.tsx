@@ -197,6 +197,52 @@ const thTranslations: Record<string, string> = {
   'dashboard.product': 'สินค้า',
   'dashboard.product_desc': 'ดูข้อมูลประเภทสินค้า',
   'dashboard.view': 'ดู',
+
+  // Finance Page
+  'finance.title': 'การเงิน',
+  'finance.day': 'วัน',
+  'finance.month': 'เดือน',
+  'finance.year': 'ปี',
+  'finance.profit': 'กำไร',
+  'finance.expenses': 'ค่าใช้จ่าย',
+  'finance.total_income': 'รายได้ทั้งหมด',
+  'finance.compare_year': 'เปรียบเทียบกับปี: 2566',
+  'finance.buddhist_era': 'พ.ศ.',
+  'finance.income': 'รายได้',
+  'finance.pending_payments': 'รายได้ค้างชำระ',
+  'finance.companies': 'บริษัท',
+
+  // Shipping Page
+  'shipping.title': 'การจัดส่ง',
+  'shipping.all_types': 'ทุกประเภทการขนส่ง',
+  'shipping.tractor': 'หัวลาก',
+  'shipping.12wheels': '12 ล้อ',
+  'shipping.10wheels': '10 ล้อ',
+  'shipping.6wheels': '6 ล้อ',
+  'shipping.4wheels': '4 ล้อ',
+  'shipping.job_data': 'ข้อมูลงานจัดส่ง',
+  'shipping.all_jobs': 'งานทั้งหมด',
+  'shipping.success': 'สำเร็จ',
+  'shipping.in_delivery': 'กำลังจัดส่ง',
+  'shipping.cancelled': 'ยกเลิก',
+  'shipping.by_region': 'การขนส่งแต่ละภาค',
+  'shipping.north': 'ภาคเหนือ',
+  'shipping.central': 'ภาคกลาง',
+  'shipping.northeast': 'ภาคอีสาน',
+  'shipping.east': 'ภาคตะวันออก',
+  'shipping.west': 'ภาคตะวันตก',
+  'shipping.south': 'ภาคใต้',
+
+  // Customer Page
+  'customer.title': 'ลูกค้า',
+  'customer.top_5': '5 อันดับสูงสุด',
+  'customer.jobs': 'งาน',
+
+  // Product Page
+  'product.title': 'สินค้า',
+  'product.product_types': 'ประเภทสินค้า',
+  'product.top_5': '5 อันดับสูงสุด',
+  'product.jobs': 'งาน',
   
   // Search Page
   'search.title': 'ค้นหา',
@@ -494,6 +540,52 @@ const enTranslations: Record<string, string> = {
   'dashboard.product': 'Product',
   'dashboard.product_desc': 'View product type information',
   'dashboard.view': 'View',
+
+  // Finance Page
+  'finance.title': 'Finance',
+  'finance.day': 'Day',
+  'finance.month': 'Month',
+  'finance.year': 'Year',
+  'finance.profit': 'Profit',
+  'finance.expenses': 'Expenses',
+  'finance.total_income': 'Total Income',
+  'finance.compare_year': 'Compared to year: 2023',
+  'finance.buddhist_era': 'Year',
+  'finance.income': 'Income',
+  'finance.pending_payments': 'Pending Payments',
+  'finance.companies': 'Companies',
+
+  // Shipping Page
+  'shipping.title': 'Shipping',
+  'shipping.all_types': 'All Transport Types',
+  'shipping.tractor': 'Tractor',
+  'shipping.12wheels': '12 Wheels',
+  'shipping.10wheels': '10 Wheels',
+  'shipping.6wheels': '6 Wheels',
+  'shipping.4wheels': '4 Wheels',
+  'shipping.job_data': 'Shipping Jobs Data',
+  'shipping.all_jobs': 'All Jobs',
+  'shipping.success': 'Success',
+  'shipping.in_delivery': 'In Delivery',
+  'shipping.cancelled': 'Cancelled',
+  'shipping.by_region': 'Shipping by Region',
+  'shipping.north': 'North',
+  'shipping.central': 'Central',
+  'shipping.northeast': 'Northeast',
+  'shipping.east': 'East',
+  'shipping.west': 'West',
+  'shipping.south': 'South',
+
+  // Customer Page
+  'customer.title': 'Customer',
+  'customer.top_5': 'Top 5',
+  'customer.jobs': 'jobs',
+
+  // Product Page
+  'product.title': 'Product',
+  'product.product_types': 'Product Types',
+  'product.top_5': 'Top 5',
+  'product.jobs': 'jobs',
   
   // Search Page
   'search.title': 'Search',

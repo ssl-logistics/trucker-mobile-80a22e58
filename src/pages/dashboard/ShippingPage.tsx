@@ -4,9 +4,11 @@ import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ShippingPage() {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [timePeriod, setTimePeriod] = useState('month');
   const [vehicleType, setVehicleType] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -16,17 +18,24 @@ export default function ShippingPage() {
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ];
 
+  const englishMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const months = language === 'th' ? thaiMonths : englishMonths;
+
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
-    const month = thaiMonths[selectedDate.getMonth()];
-    const year = selectedDate.getFullYear() + 543;
+    const month = months[selectedDate.getMonth()];
+    const year = language === 'th' ? selectedDate.getFullYear() + 543 : selectedDate.getFullYear();
 
     if (timePeriod === 'day') {
       return `${day} ${month} ${year}`;
     } else if (timePeriod === 'month') {
       return `${month} ${year}`;
     } else {
-      return `พ.ศ. ${year}`;
+      return `${t('finance.buddhist_era')} ${year}`;
     }
   };
 
@@ -80,18 +89,18 @@ export default function ShippingPage() {
 
     return {
       jobStats: [
-        { label: 'งานทั้งหมด', value: baseTotal, change: Math.round(2 * dateVariation), icon: '📦' },
-        { label: 'สำเร็จ', value: baseSuccess, change: Math.round(2 * dateVariation), icon: '✅' },
-        { label: 'กำลังจัดส่ง', value: baseInProgress, change: Math.round(1 * dateVariation), icon: '🚚' },
-        { label: 'ยกเลิก', value: baseCancelled, change: Math.round(1 * dateVariation), icon: '❌' },
+        { label: t('shipping.all_jobs'), value: baseTotal, change: Math.round(2 * dateVariation), icon: '📦' },
+        { label: t('shipping.success'), value: baseSuccess, change: Math.round(2 * dateVariation), icon: '✅' },
+        { label: t('shipping.in_delivery'), value: baseInProgress, change: Math.round(1 * dateVariation), icon: '🚚' },
+        { label: t('shipping.cancelled'), value: baseCancelled, change: Math.round(1 * dateVariation), icon: '❌' },
       ],
       regionStats: [
-        { region: 'ภาคเหนือ', value: Math.round(baseTotal * 0.18), change: Math.round(2 * dateVariation) },
-        { region: 'ภาคกลาง', value: Math.round(baseTotal * 0.25), change: Math.round(3 * dateVariation) },
-        { region: 'ภาคอีสาน', value: Math.round(baseTotal * 0.15), change: Math.round(1 * dateVariation) },
-        { region: 'ภาคตะวันออก', value: Math.round(baseTotal * 0.20), change: Math.round(2 * dateVariation) },
-        { region: 'ภาคตะวันตก', value: Math.round(baseTotal * 0.10), change: Math.round(1 * dateVariation) },
-        { region: 'ภาคใต้', value: Math.round(baseTotal * 0.12), change: Math.round(2 * dateVariation) },
+        { region: t('shipping.north'), value: Math.round(baseTotal * 0.18), change: Math.round(2 * dateVariation) },
+        { region: t('shipping.central'), value: Math.round(baseTotal * 0.25), change: Math.round(3 * dateVariation) },
+        { region: t('shipping.northeast'), value: Math.round(baseTotal * 0.15), change: Math.round(1 * dateVariation) },
+        { region: t('shipping.east'), value: Math.round(baseTotal * 0.20), change: Math.round(2 * dateVariation) },
+        { region: t('shipping.west'), value: Math.round(baseTotal * 0.10), change: Math.round(1 * dateVariation) },
+        { region: t('shipping.south'), value: Math.round(baseTotal * 0.12), change: Math.round(2 * dateVariation) },
       ]
     };
   };
@@ -106,7 +115,7 @@ export default function ShippingPage() {
           <button onClick={() => navigate('/dashboard')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-bold">การจัดส่ง</h1>
+          <h1 className="text-xl font-bold">{t('shipping.title')}</h1>
         </div>
       </header>
 
@@ -114,9 +123,9 @@ export default function ShippingPage() {
         {/* Time Period Tabs */}
         <Tabs value={timePeriod} onValueChange={setTimePeriod} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
-            <TabsTrigger value="day">วัน</TabsTrigger>
-            <TabsTrigger value="month">เดือน</TabsTrigger>
-            <TabsTrigger value="year">ปี</TabsTrigger>
+            <TabsTrigger value="day">{t('finance.day')}</TabsTrigger>
+            <TabsTrigger value="month">{t('finance.month')}</TabsTrigger>
+            <TabsTrigger value="year">{t('finance.year')}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -140,23 +149,23 @@ export default function ShippingPage() {
         {/* Vehicle Type Dropdown */}
         <Select value={vehicleType} onValueChange={setVehicleType}>
           <SelectTrigger className="w-full bg-white shadow-sm border-2 border-primary">
-            <SelectValue placeholder="ทุกประเภทการขนส่ง" />
+            <SelectValue placeholder={t('shipping.all_types')} />
           </SelectTrigger>
           <SelectContent className="bg-white">
-            <SelectItem value="all">ทุกประเภทการขนส่ง</SelectItem>
-            <SelectItem value="หัวลาก">หัวลาก</SelectItem>
-            <SelectItem value="12ล้อ">12 ล้อ</SelectItem>
-            <SelectItem value="10ล้อ">10 ล้อ</SelectItem>
-            <SelectItem value="6ล้อ">6 ล้อ</SelectItem>
-            <SelectItem value="4ล้อ">4 ล้อ</SelectItem>
+            <SelectItem value="all">{t('shipping.all_types')}</SelectItem>
+            <SelectItem value="หัวลาก">{t('shipping.tractor')}</SelectItem>
+            <SelectItem value="12ล้อ">{t('shipping.12wheels')}</SelectItem>
+            <SelectItem value="10ล้อ">{t('shipping.10wheels')}</SelectItem>
+            <SelectItem value="6ล้อ">{t('shipping.6wheels')}</SelectItem>
+            <SelectItem value="4ล้อ">{t('shipping.4wheels')}</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Job Stats */}
         <Card className="p-4 bg-white shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800">ข้อมูลงานจัดส่ง</h3>
-            <span className="text-xs text-gray-500">เปรียบเทียบกับปี: 2566</span>
+            <h3 className="font-bold text-gray-800">{t('shipping.job_data')}</h3>
+            <span className="text-xs text-gray-500">{t('finance.compare_year')}</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {jobStats.map((stat, index) => (
@@ -182,8 +191,8 @@ export default function ShippingPage() {
         {/* Region Stats */}
         <Card className="p-4 bg-white shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800">การขนส่งแต่ละภาค</h3>
-            <span className="text-xs text-gray-500">เปรียบเทียบกับปี: 2566</span>
+            <h3 className="font-bold text-gray-800">{t('shipping.by_region')}</h3>
+            <span className="text-xs text-gray-500">{t('finance.compare_year')}</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {regionStats.map((stat, index) => (
