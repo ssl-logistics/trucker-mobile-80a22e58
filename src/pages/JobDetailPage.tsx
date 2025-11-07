@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
 import InternationalJobDetail from '@/components/job-detail/InternationalJobDetail';
@@ -53,6 +54,7 @@ export default function JobDetailPage() {
   const { jobId } = useParams();
   const location = useLocation();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,8 +77,8 @@ export default function JobDetailPage() {
 
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('jobDetail.error'),
+        description: t('jobDetail.errorLoadDesc'),
         variant: 'destructive'
       });
     } else {
@@ -110,7 +112,7 @@ export default function JobDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="text-center">
-          <p className="text-muted-foreground">ไม่พบข้อมูลงานนี้</p>
+          <p className="text-muted-foreground">{t('jobDetail.notFound')}</p>
         </div>
       </div>
     );
@@ -137,7 +139,7 @@ export default function JobDetailPage() {
   ) : (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="text-center">
-        <p className="text-muted-foreground">ประเภทงานไม่ถูกต้อง</p>
+        <p className="text-muted-foreground">{t('jobDetail.invalidType')}</p>
       </div>
     </div>
   );

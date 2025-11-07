@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, Navigation, CheckCircle, Circle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +48,7 @@ export default function InternationalJobDetail({
   onUpdate
 }: InternationalJobDetailProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const card1Ref = useRef<HTMLDivElement>(null);
   const card2Ref = useRef<HTMLDivElement>(null);
   const card3Ref = useRef<HTMLDivElement>(null);
@@ -85,14 +87,14 @@ export default function InternationalJobDetail({
     }).eq('job_id', job.id).eq('driver_id', userId);
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถเริ่มงานได้',
+        title: t('jobDetail.error'),
+        description: t('jobDetail.errorStartJob'),
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'เริ่มงานสำเร็จ',
-        description: 'คุณสามารถเริ่มตรวจตู้เปล่าได้แล้ว'
+        title: t('jobDetail.startJobSuccess'),
+        description: t('jobDetail.startJobDesc')
       });
       onUpdate();
     }
@@ -120,13 +122,13 @@ export default function InternationalJobDetail({
             <h1 className="text-xl font-semibold">{job.order_code}</h1>
             <div className="flex items-center justify-center gap-2 mt-1 flex-wrap">
               <Badge variant="secondary" className="text-white text-xs bg-blue-600">
-                ขนส่งภายนอกประเทศ
+                {t('jobDetail.international')}
               </Badge>
               {isInbound && <Badge variant="secondary" className="bg-blue-500/80 text-white hover:bg-blue-600/80 text-xs">
-                  ขาเข้า
+                  {t('jobDetail.inbound')}
                 </Badge>}
               {isOutbound && <Badge variant="secondary" className="bg-orange-500/80 text-white hover:bg-orange-600/80 text-xs">
-                  ขาออก
+                  {t('jobDetail.outbound')}
                 </Badge>}
             </div>
           </div>
@@ -156,7 +158,7 @@ export default function InternationalJobDetail({
                 </svg>
               </div>
             </div>
-            <div className="text-base text-gray-700">จุดรับ/ส่ง : <span className="font-semibold">4</span></div>
+            <div className="text-base text-gray-700">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">4</span></div>
           </Card>
         </div>
 
@@ -170,7 +172,7 @@ export default function InternationalJobDetail({
             <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
               <path d="M0 3.5C0 1.568 1.568 0 3.5 0H28.5C30.432 0 32 1.568 32 3.5V22.5C32 23.4283 31.6313 24.3185 30.9749 24.9749C30.3185 25.6313 29.4283 26 28.5 26H16.12L10.974 31.146C10.5661 31.5524 10.047 31.8289 9.48224 31.9407C8.91743 32.0525 8.33217 31.9946 7.80023 31.7743C7.26828 31.5539 6.81346 31.1811 6.49309 30.7027C6.17272 30.2243 6.00115 29.6618 6 29.086V26H3.5C2.57174 26 1.6815 25.6313 1.02513 24.9749C0.368749 24.3185 0 23.4283 0 22.5L0 3.5ZM3.5 3C3.36739 3 3.24021 3.05268 3.14645 3.14645C3.05268 3.24021 3 3.36739 3 3.5V22.5C3 22.776 3.224 23 3.5 23H7.5C7.89782 23 8.27936 23.158 8.56066 23.4393C8.84196 23.7206 9 24.1022 9 24.5V28.88L14.44 23.44C14.721 23.1586 15.1023 23.0004 15.5 23H28.5C28.6326 23 28.7598 22.9473 28.8536 22.8536C28.9473 22.7598 29 22.6326 29 22.5V3.5C29 3.36739 28.9473 3.24021 28.8536 3.14645C28.7598 3.05268 28.6326 3 28.5 3H3.5ZM17.5 7.5V12.5C17.5 12.8978 17.342 13.2794 17.0607 13.5607C16.7794 13.842 16.3978 14 16 14C15.6022 14 15.2206 13.842 14.9393 13.5607C14.658 13.2794 14.5 12.8978 14.5 12.5V7.5C14.5 7.10218 14.658 6.72064 14.9393 6.43934C15.2206 6.15804 15.6022 6 16 6C16.3978 6 16.7794 6.15804 17.0607 6.43934C17.342 6.72064 17.5 7.10218 17.5 7.5ZM18 18C18 18.5304 17.7893 19.0391 17.4142 19.4142C17.0391 19.7893 16.5304 20 16 20C15.4696 20 14.9609 19.7893 14.5858 19.4142C14.2107 19.0391 14 18.5304 14 18C14 17.4696 14.2107 16.9609 14.5858 16.5858C14.9609 16.2107 15.4696 16 16 16C16.5304 16 17.0391 16.2107 17.4142 16.5858C17.7893 16.9609 18 17.4696 18 18Z" fill="#0A8778"/>
             </svg>
-            <span className="font-medium">แจ้งปัญหา</span>
+            <span className="font-medium">{t('jobDetail.reportProblem')}</span>
           </div>
         </Button>
 
@@ -178,10 +180,10 @@ export default function InternationalJobDetail({
         <div>
           <div className="mb-3">
             <h2 className="text-lg font-semibold">
-              Booking : {job.order_code}
+              {t('jobDetail.booking')} : {job.order_code}
             </h2>
             <p className="text-base font-medium text-foreground">
-              ผู้จ้าง : {job.employer_name}
+              {t('jobDetail.employer')} : {job.employer_name}
             </p>
           </div>
 
@@ -239,9 +241,9 @@ export default function InternationalJobDetail({
               <Card ref={card1Ref} className={`p-4 border-2 ${jobApplication?.container_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-sm">จุดรับตู้เปล่า</h3>
+                    <h3 className="font-semibold text-sm">{t('jobDetail.containerCheckpoint')}</h3>
                     {jobApplication?.job_started_at && <span className={`text-xs font-medium ${jobApplication?.container_sop_completed_at ? 'text-green-600' : jobApplication?.container_checked_in_at ? 'text-blue-600' : 'text-orange-500'}`}>
-                        • {jobApplication?.container_sop_completed_at ? 'รับตู้เปล่าสำเร็จ' : jobApplication?.container_checked_in_at ? 'รอรับตู้เปล่า' : 'รอเช็คอิน'}
+                        • {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : jobApplication?.container_checked_in_at ? t('jobDetail.waitingContainer') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
 
@@ -251,19 +253,19 @@ export default function InternationalJobDetail({
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">วัน/เวลาเริ่มต้น</span>
+                      <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.startDateTime')}</span>
                       <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">วันรับเข้าช่างต้นต้น</span>
+                      <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
                       <span>: {formatDate(mockContainerData.emptyDate)}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">ผู้รับสินค้า</span>
+                      <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.receiver')}</span>
                       <span>: {isInbound ? 'บริษัท โซเดคซ์ จำกัด' : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">วันคนเทนเนอร์</span>
+                      <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerDate')}</span>
                       <span>: {isInbound ? 'FCL 2 x 40 HC' : mockContainerData.checkpointCode}</span>
                     </div>
                     
@@ -276,11 +278,11 @@ export default function InternationalJobDetail({
                             </div>
                             <div className="flex-1 space-y-1">
                               <div className="flex items-start">
-                                <span className="text-muted-foreground text-xs min-w-[130px]">เลขตู้คอนเทนเนอร์</span>
+                                <span className="text-muted-foreground text-xs min-w-[130px]">{t('jobDetail.containerNumber')}</span>
                                 <span className="text-xs font-medium">: {mockContainerData.containers[0].number}</span>
                               </div>
                               <div className="flex items-start">
-                                <span className="text-muted-foreground text-xs min-w-[130px]">เลขซีล</span>
+                                <span className="text-muted-foreground text-xs min-w-[130px]">{t('jobDetail.sealNumber')}</span>
                                 <span className="text-xs font-medium">: {mockContainerData.containers[0].seal}</span>
                               </div>
                             </div>
@@ -294,11 +296,11 @@ export default function InternationalJobDetail({
                             </div>
                             <div className="flex-1 space-y-1">
                               <div className="flex items-start">
-                                <span className="text-muted-foreground text-xs min-w-[130px]">เลขตู้คอนเทนเนอร์</span>
+                                <span className="text-muted-foreground text-xs min-w-[130px]">{t('jobDetail.containerNumber')}</span>
                                 <span className="text-xs font-medium">: {mockContainerData.containers[1].number}</span>
                               </div>
                               <div className="flex items-start">
-                                <span className="text-muted-foreground text-xs min-w-[130px]">เลขซีล</span>
+                                <span className="text-muted-foreground text-xs min-w-[130px]">{t('jobDetail.sealNumber')}</span>
                                 <span className="text-xs font-medium">: {mockContainerData.containers[1].seal}</span>
                               </div>
                             </div>
@@ -310,7 +312,7 @@ export default function InternationalJobDetail({
                   <div className="grid grid-cols-2 gap-2">
                     <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}>
                       <Navigation className="w-4 h-4 mr-1" />
-                      เส้นทาง
+                      {t('jobDetail.route')}
                     </Button>
                     <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" disabled={!jobApplication?.job_started_at} onClick={() => {
                     if (jobApplication?.container_sop_completed_at) {
@@ -321,7 +323,7 @@ export default function InternationalJobDetail({
                       navigate(`/job/${job.id}/container-checkin`);
                     }
                   }}>
-                      {jobApplication?.container_sop_completed_at ? 'ดูข้อมูล' : 'อัปเดตสถานะ'}
+                      {jobApplication?.container_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
                     </Button>
                   </div>
                 </div>
@@ -332,10 +334,10 @@ export default function InternationalJobDetail({
                 <div className={`${!jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm">
-                      {isInbound ? 'จุดส่งสินค้า' : 'จุดรับสินค้า'}
+                      {isInbound ? t('jobDetail.unloadingPoint') : t('jobDetail.loadingPoint')}
                     </h3>
                     {jobApplication?.container_sop_completed_at && <span className={`text-xs font-medium ${jobApplication?.sop_completed_at ? 'text-green-600' : jobApplication?.checked_in_at ? 'text-blue-600' : 'text-orange-500'}`}>
-                        • {jobApplication?.sop_completed_at ? 'SOP สำเร็จ' : jobApplication?.checked_in_at ? 'รอ SOP' : 'รอเช็คอิน'}
+                        • {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
 
@@ -345,32 +347,32 @@ export default function InternationalJobDetail({
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'เลขที่เอียด' : 'ชื่อผู้ติดต่อ'}</span>
+                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.billOfLading') : t('jobDetail.contactPerson')}</span>
                       <span>: {isInbound ? '123456789012345' : 'คุณณัฏฐพงศ์'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'ชื่อจุดติดต่อ' : 'ตำแหน่ง'}</span>
+                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.contactPoint') : t('jobDetail.position')}</span>
                       <span>: {isInbound ? 'คลังภัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)' : 'เจ้าหน้าที่คลังสินค้า'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'เส้นทาง' : 'เลขทาง'}</span>
+                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryRoute') : t('jobDetail.routeCode')}</span>
                       <span>: {isInbound ? 'SAM001 ลาดพร้าว, กรุงเทพมหานคร' : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? 'เข้าส่งสินค้า' : 'ประเภทสินค้า'}</span>
+                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryTime') : t('jobDetail.goodsType')}</span>
                       <span>: {isInbound ? `${formatDate(job.start_date)} | 20:00` : 'น้ำตาล (10 กล่อง)'}</span>
                     </div>
                     {isInbound && <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
                         <span>: เข้าสถานที่ต้องแสดงบัตรชิด</span>
                       </div>}
                     {!isInbound && <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.pickupTime')}</span>
                           <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
                           <span>: เข้าสถานที่ต้องแสดงบัตรชิด</span>
                         </div>
                       </>}
@@ -379,11 +381,11 @@ export default function InternationalJobDetail({
                   <div className="grid grid-cols-3 gap-2">
                     <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.container_sop_completed_at}>
                       <Phone className="w-4 h-4" />
-                      โทร
+                      {t('jobDetail.call')}
                     </Button>
                     <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.container_sop_completed_at}>
                       <Navigation className="w-4 h-4" />
-                      เส้นทาง
+                      {t('jobDetail.route')}
                     </Button>
                     <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => {
                     if (jobApplication?.sop_completed_at) {
@@ -394,7 +396,7 @@ export default function InternationalJobDetail({
                       navigate(`/job/${job.id}/pickup`);
                     }
                   }} disabled={!jobApplication?.container_sop_completed_at}>
-                      {jobApplication?.sop_completed_at ? 'ดูข้อมูล' : 'อัปเดตสถานะ'}
+                      {jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
                     </Button>
                   </div>
                 </div>
@@ -405,10 +407,10 @@ export default function InternationalJobDetail({
                 <div className={`${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm">
-                      {isInbound ? 'จุดคืนตู้เปล่า' : 'จุดคืนตู้เต็ม'}
+                      {isInbound ? t('jobDetail.emptyReturn') : t('jobDetail.fullReturn')}
                     </h3>
                     {jobApplication?.sop_completed_at && <span className={`text-xs font-medium ${jobApplication?.delivery_sop_completed_at ? 'text-green-600' : jobApplication?.delivery_checked_in_at ? 'text-blue-600' : 'text-orange-500'}`}>
-                        • {jobApplication?.delivery_sop_completed_at ? 'POD สำเร็จ' : jobApplication?.delivery_checked_in_at ? 'รอ POD' : 'รอเช็คอิน'}
+                        • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
 
@@ -419,24 +421,24 @@ export default function InternationalJobDetail({
                   <div className="space-y-1 text-sm mb-3">
                     {isInbound ? <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">วันที่หมดคืนตู้เปล่า</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.returnDeadline')}</span>
                           <span>: 03/11/2025 | 20:00</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">ผู้รับรอง</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.guarantor')}</span>
                           <span>: บริษัท เอราวา เอรารา จำกัด</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">หมายเหตุ</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.remarks')}</span>
                           <span>: ต้องคืนตู้ก่อนนัดต้องถูดมา Detention</span>
                         </div>
                       </> : <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">วันคืนตู้คอนเทนเนอร์</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.returnDate')}</span>
                           <span>: {formatDate(job.start_date)} | {job.destination_time || '20:00'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">ผู้รับรอง</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.guarantor')}</span>
                           <span>: {job.employer_name}</span>
                         </div>
                       </>}
@@ -446,22 +448,22 @@ export default function InternationalJobDetail({
                     {isInbound ? <>
                         <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.sop_completed_at}>
                           <Phone className="w-4 h-4" />
-                          โทร
+                          {t('jobDetail.call')}
                         </Button>
                         <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.sop_completed_at}>
                           <Navigation className="w-4 h-4" />
-                          เส้นทาง
+                          {t('jobDetail.route')}
                         </Button>
                         <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
-                          {jobApplication?.delivery_sop_completed_at ? 'ดูข้อมูล' : 'อัปเดตสถานะ'}
+                          {jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
                         </Button>
                       </> : <>
                         <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.sop_completed_at}>
                           <Navigation className="w-4 h-4 mr-1" />
-                          เส้นทาง
+                          {t('jobDetail.route')}
                         </Button>
                         <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
-                          {jobApplication?.delivery_sop_completed_at ? 'ดูข้อมูล' : 'อัปเดตสถานะ'}
+                          {jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
                         </Button>
                       </>}
                   </div>
@@ -477,7 +479,7 @@ export default function InternationalJobDetail({
           <Button className="w-full h-12 text-base text-white" style={{
         background: 'linear-gradient(90deg, #245D9E 0%, #1A4271 100%)'
       }} onClick={handleStartJob}>
-            เริ่มงานเลย
+            {t('jobDetail.startJobNow')}
           </Button>
         </div>}
 
