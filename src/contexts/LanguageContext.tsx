@@ -332,7 +332,9 @@ const thTranslations: Record<string, string> = {
   'terms.sharing_provider': 'ผู้ให้บริการที่เราจ้าง:',
   'terms.sharing_provider_desc': 'บริษัทหรือบุคคลที่เราใช้บริการในด้านต่างๆ (เช่น บริการชำระเงิน, การวิเคราะห์ข้อมูล) ซึ่งมีข้อกำหนดความเป็นส่วนตัวที่ป้องกันข้อมูลของคุณ',
   'terms.sharing_legal': 'การปฏิบัติตามกฎหมาย:',
-  'terms.sharing_legal_desc': 'ในกรณีที่เราถูกบังคับตามกฎหมาย',
+  'terms.sharing_legal_desc': 'ในกรณีที่เราถูกบังคับตามกฎหมาย เช่น การให้ข้อมูลแก่หน่วยงานราชการ หรือการปฏิบัติตามคำสั่งศาล',
+  'terms.sharing_anonymous': 'การแชร์ข้อมูลที่ไม่สามารถระบุตัวตน:',
+  'terms.sharing_anonymous_desc': 'เช่น ข้อมูลทางสถิติที่ไม่ระบุตัวตนหรือข้อมูลที่ใช้ในการวิเคราะห์เพื่อพัฒนาแอป',
   
   // Chat Page
   'chat.title': 'แชท',
@@ -675,7 +677,9 @@ const enTranslations: Record<string, string> = {
   'terms.sharing_provider': 'Service Providers We Hire:',
   'terms.sharing_provider_desc': 'Companies or individuals we use for services in various areas (such as payment services, data analysis) that have privacy terms to protect your data',
   'terms.sharing_legal': 'Legal Compliance:',
-  'terms.sharing_legal_desc': 'In cases where we are legally obligated',
+  'terms.sharing_legal_desc': 'In cases where we are required by law, such as providing information to government agencies or complying with court orders',
+  'terms.sharing_anonymous': 'Sharing of De-identified Data:',
+  'terms.sharing_anonymous_desc': 'Such as anonymized statistical data or data used for analysis to improve the app',
   
   // Chat Page
   'chat.title': 'Chat',

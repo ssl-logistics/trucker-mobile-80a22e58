@@ -71,6 +71,9 @@ export default function TermsPage() {
             <li className="text-foreground leading-relaxed text-sm">
               <span className="font-semibold text-sm">{t("terms.sharing_legal")}</span> {t("terms.sharing_legal_desc")}
             </li>
+            <li className="text-foreground leading-relaxed text-sm">
+              <span className="font-semibold text-sm">{t("terms.sharing_anonymous")}</span> {t("terms.sharing_anonymous_desc")}
+            </li>
           </ul>
         </div>
       </div>
