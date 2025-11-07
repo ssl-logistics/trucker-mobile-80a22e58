@@ -42,10 +42,8 @@ export function BottomNavigation() {
             className="flex flex-col items-center gap-1 transition-colors"
           >
             <div
-              className={`p-3 rounded-full transition-all ${
-                isActive(item.path)
-                  ? "bg-gradient-to-r from-[#00C188] to-[#23B9E9]"
-                  : ""
+              className={`p-3 rounded-2xl transition-all ${
+                isActive(item.path) ? "bg-gradient-to-r from-[#00C188] to-[#23B9E9]" : ""
               }`}
             >
               <item.icon className="w-6 h-6 text-[#E0FFEA]" />
