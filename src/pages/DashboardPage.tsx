@@ -101,7 +101,7 @@ export default function DashboardPage() {
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
               }}
-              className="p-10 relative w-full min-h-[120px] -mt-4 rounded-3xl"
+              className="p-4 relative w-full min-h-[120px] -mt-4 rounded-3xl"
             >
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1">
