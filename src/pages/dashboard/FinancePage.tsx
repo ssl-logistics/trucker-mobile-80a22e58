@@ -1,24 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, Calendar as CalendarIcon, Filter } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import type { DateRange } from 'react-day-picker';
 
 export default function FinancePage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const [timePeriod, setTimePeriod] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [showDateFilter, setShowDateFilter] = useState(false);
 
   const thaiMonths = [
     'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
@@ -156,93 +148,14 @@ export default function FinancePage() {
       </header>
 
       <div className="px-4 py-4 space-y-4">
-        {/* Time Period Tabs and Date Filter */}
-        <div className="space-y-3">
-          <Tabs value={timePeriod} onValueChange={setTimePeriod} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
-              <TabsTrigger value="day">{t('finance.day')}</TabsTrigger>
-              <TabsTrigger value="month">{t('finance.month')}</TabsTrigger>
-              <TabsTrigger value="year">{t('finance.year')}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* Date Range Filter */}
-          <Card className="p-3 bg-white shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-gray-700">{t('dateFilter.title')}</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowDateFilter(!showDateFilter)}
-                className="h-8"
-              >
-                <CalendarIcon className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            {showDateFilter && (
-              <div className="space-y-3 pt-2 border-t">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dateRange && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange?.from ? (
-                        dateRange.to ? (
-                          <>
-                            {format(dateRange.from, "dd/MM/yyyy")} - {format(dateRange.to, "dd/MM/yyyy")}
-                          </>
-                        ) : (
-                          format(dateRange.from, "dd/MM/yyyy")
-                        )
-                      ) : (
-                        <span>{t('dateFilter.selectDate')}</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="range"
-                      selected={dateRange}
-                      onSelect={setDateRange}
-                      numberOfMonths={1}
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setDateRange(undefined);
-                      setShowDateFilter(false);
-                    }}
-                    className="flex-1"
-                  >
-                    {t('dateFilter.clear')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => setShowDateFilter(false)}
-                    className="flex-1 bg-primary"
-                  >
-                    {t('dateFilter.apply')}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </Card>
-        </div>
+        {/* Time Period Tabs */}
+        <Tabs value={timePeriod} onValueChange={setTimePeriod} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
+            <TabsTrigger value="day">{t('finance.day')}</TabsTrigger>
+            <TabsTrigger value="month">{t('finance.month')}</TabsTrigger>
+            <TabsTrigger value="year">{t('finance.year')}</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* Date Navigation */}
         <div className="flex items-center justify-center gap-4 py-2">
