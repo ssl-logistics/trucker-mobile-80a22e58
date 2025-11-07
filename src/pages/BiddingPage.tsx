@@ -22,6 +22,30 @@ export default function BiddingPage() {
   const [availableJobs, setAvailableJobs] = useState<BiddingJob[]>([]);
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [activeTab, setActiveTab] = useState('bidding');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+
+  const months = [
+    { value: 'all', label: t('jobHistory.allMonths') },
+    { value: '0', label: language === 'th' ? 'มกราคม' : 'January' },
+    { value: '1', label: language === 'th' ? 'กุมภาพันธ์' : 'February' },
+    { value: '2', label: language === 'th' ? 'มีนาคม' : 'March' },
+    { value: '3', label: language === 'th' ? 'เมษายน' : 'April' },
+    { value: '4', label: language === 'th' ? 'พฤษภาคม' : 'May' },
+    { value: '5', label: language === 'th' ? 'มิถุนายน' : 'June' },
+    { value: '6', label: language === 'th' ? 'กรกฎาคม' : 'July' },
+    { value: '7', label: language === 'th' ? 'สิงหาคม' : 'August' },
+    { value: '8', label: language === 'th' ? 'กันยายน' : 'September' },
+    { value: '9', label: language === 'th' ? 'ตุลาคม' : 'October' },
+    { value: '10', label: language === 'th' ? 'พฤศจิกายน' : 'November' },
+    { value: '11', label: language === 'th' ? 'ธันวาคม' : 'December' },
+  ];
+
+  const filteredBids = selectedMonth === 'all' 
+    ? myBids 
+    : myBids.filter(bid => {
+        const bidMonth = new Date(bid.created_at).getMonth();
+        return bidMonth === parseInt(selectedMonth);
+      });
   useEffect(() => {
     if (user) {
       loadAvailableJobs();
@@ -160,17 +184,25 @@ export default function BiddingPage() {
 
         <TabsContent value="history" className="px-4 mt-4">
           <div className="mb-4">
-            <select className="w-full p-3 border rounded-lg bg-background">
-              <option>{t('jobHistory.allMonths')}</option>
+            <select 
+              className="w-full p-3 border rounded-lg bg-background"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            >
+              {months.map(month => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
             </select>
           </div>
 
           <div className="mb-4">
             <h3 className="font-semibold text-sm mb-3">{t('bidding.monthLabel')}</h3>
-            {myBids.length === 0 ? <div className="text-center py-12 text-muted-foreground">
+            {filteredBids.length === 0 ? <div className="text-center py-12 text-muted-foreground">
                 {t('bidding.noHistory')}
               </div> : <div className="space-y-4">
-                {myBids.map(bid => <Card key={bid.id} className="p-4 space-y-3 bg-card">
+                {filteredBids.map(bid => <Card key={bid.id} className="p-4 space-y-3 bg-card">
                     <div className="flex items-start justify-between mb-3">
                       <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
                         {t('job.order_code')} {bid.jobs.order_code}
