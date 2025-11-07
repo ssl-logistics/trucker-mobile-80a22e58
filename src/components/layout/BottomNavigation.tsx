@@ -39,9 +39,17 @@ export function BottomNavigation() {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`flex flex-col items-center gap-1 transition-colors ${isActive(item.path) ? "text-primary" : "text-white/70"}`}
+            className="flex flex-col items-center gap-1 transition-colors"
           >
-            <item.icon className="w-6 h-6 text-[#E0FFEA]" />
+            <div
+              className={`p-3 rounded-full transition-all ${
+                isActive(item.path)
+                  ? "bg-gradient-to-r from-[#00C188] to-[#23B9E9]"
+                  : ""
+              }`}
+            >
+              <item.icon className="w-6 h-6 text-[#E0FFEA]" />
+            </div>
             <span className="text-xs text-[#E2F8FF]">{item.label}</span>
           </button>
         ))}
