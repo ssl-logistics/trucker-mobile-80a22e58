@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import HomeIcon from "@/assets/home-icon.svg";
+import HomeIconActive from "@/assets/home-icon-active.svg";
 export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,6 +21,8 @@ export function BottomNavigation() {
             icon: Home,
             label: t("nav.home"),
             path: "/home",
+            customIcon: HomeIcon,
+            customActiveIcon: HomeIconActive,
           },
           {
             icon: LayoutGrid,
@@ -46,7 +50,16 @@ export function BottomNavigation() {
                 isActive(item.path) ? "bg-gradient-to-r from-[#00C188] to-[#23B9E9]" : ""
               }`}
             >
-              <item.icon className="w-6 h-6 text-[#E0FFEA]" />
+              {item.customIcon ? (
+                <img 
+                  src={isActive(item.path) && item.customActiveIcon ? item.customActiveIcon : item.customIcon} 
+                  alt={item.label}
+                  className="w-6 h-6"
+                  style={{ filter: 'brightness(0) saturate(100%) invert(93%) sepia(8%) saturate(437%) hue-rotate(83deg) brightness(103%) contrast(101%)' }}
+                />
+              ) : (
+                <item.icon className="w-6 h-6 text-[#E0FFEA]" />
+              )}
             </div>
             <span className="text-xs text-[#E2F8FF]">{item.label}</span>
           </button>
