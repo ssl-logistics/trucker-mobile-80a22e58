@@ -101,9 +101,9 @@ export default function DashboardPage() {
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
               }}
-              className="p-6 relative min-h-[120px] -mt-4 rounded-3xl"
+              className="p-6 relative min-h-[120px] -mt-4 rounded-3xl  bg-black"
             >
-              <div className="flex items-start justify-between relative z-10 bg-black">
+              <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h3>
                   <p className="text-sm text-gray-600 mb-4">{item.description}</p>
