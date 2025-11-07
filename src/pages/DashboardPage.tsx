@@ -113,7 +113,7 @@ export default function DashboardPage() {
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
               }}
-              className="p-6 relative min-h-[100px]"
+              className="p-6 relative min-h-[120px]"
             >
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex-1">
