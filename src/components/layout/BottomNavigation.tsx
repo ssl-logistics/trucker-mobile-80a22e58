@@ -5,6 +5,8 @@ import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
 import DashboardIcon from "@/assets/dashboard-icon.svg";
 import DashboardIconActive from "@/assets/dashboard-icon-active.svg";
+import ChatIcon from "@/assets/chat-icon.svg";
+import ChatIconActive from "@/assets/chat-icon-active.svg";
 export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,6 +39,8 @@ export function BottomNavigation() {
             icon: MessageCircle,
             label: t("nav.chat"),
             path: "/chat",
+            customIcon: ChatIcon,
+            customActiveIcon: ChatIconActive,
           },
           {
             icon: Settings,
