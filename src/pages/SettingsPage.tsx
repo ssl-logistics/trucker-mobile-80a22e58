@@ -195,7 +195,7 @@ export default function SettingsPage() {
         >
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12">
-              <AvatarImage src={profile?.vehicle_photo_url || profile?.avatar_url} alt={profile?.full_name} />
+              <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
               <AvatarFallback className="bg-primary/10 text-primary">
                 {profile?.full_name?.charAt(0) || "👤"}
               </AvatarFallback>
