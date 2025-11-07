@@ -101,56 +101,37 @@ export default function DashboardPage() {
       {/* Dashboard Grid */}
       <div className="px-4 py-6 space-y-4">
         {dashboardItems.map((item) => (
-          item.id === "finance" ? (
-            <div
-              key={item.id}
-              className="relative cursor-pointer hover:opacity-95 transition-opacity"
-              onClick={() => navigate(item.path)}
-            >
-              <img 
-                src={item.imageSrc} 
-                alt={item.title}
-                className="w-full h-auto rounded-lg shadow-md hover:shadow-lg transition-shadow"
-              />
-              <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                <h3 className="text-lg font-bold text-white mb-2 drop-shadow-lg">{item.title}</h3>
-                <p className="text-sm text-white mb-4 drop-shadow-lg">{item.description}</p>
+          <div
+            key={item.id}
+            className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
+            onClick={() => navigate(item.path)}
+          >
+            <div className="flex items-center p-4 gap-4">
+              {/* Left side - Text content */}
+              <div className="flex-1 flex flex-col justify-center">
+                <h3 className="text-lg font-bold text-gray-800 mb-1">{item.title}</h3>
+                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
                 <button
-                  className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all w-fit`}
+                  className={`bg-gradient-to-r ${item.color} text-white px-6 py-2 rounded-full font-medium shadow-md hover:shadow-lg transition-all w-fit text-sm`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(item.path);
+                  }}
                 >
                   {t('dashboard.view')}{item.title.split(" ")[0]}
                 </button>
               </div>
-            </div>
-          ) : (
-            <Card
-              key={item.id}
-              className="overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(item.path)}
-            >
-              <div
-                style={{
-                  backgroundImage: `url(${item.imageSrc})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                }}
-                className="p-6 relative min-h-[100px]"
-              >
-                <div className="flex items-start justify-between relative z-10">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4">{item.description}</p>
-                    <button
-                      className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all`}
-                    >
-                      {t('dashboard.view')}{item.title.split(" ")[0]}
-                    </button>
-                  </div>
-                </div>
+              
+              {/* Right side - Image */}
+              <div className="w-40 h-32 flex-shrink-0">
+                <img 
+                  src={item.imageSrc} 
+                  alt={item.title}
+                  className="w-full h-full object-contain"
+                />
               </div>
-            </Card>
-          )
+            </div>
+          </div>
         ))}
       </div>
 
