@@ -8,20 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Phone, MoreVertical, Send, Paperclip, Smile, Check, CheckCheck, Settings } from 'lucide-react';
 import { ManageGroupSheet } from '@/components/chat/ManageGroupSheet';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-
 interface Message {
   id: string;
   content: string;
@@ -35,20 +25,26 @@ interface Message {
   file_name?: string | null;
   file_size?: number | null;
 }
-
 interface Conversation {
   id: string;
   name: string;
   type: string;
   avatar_url: string | null;
 }
-
 export default function ChatRoomPage() {
-  const { conversationId } = useParams();
+  const {
+    conversationId
+  } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const {
+    t
+  } = useLanguage();
+  const {
+    user
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -58,91 +54,68 @@ export default function ChatRoomPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     if (conversationId && user) {
       loadConversation();
       loadMessages();
       const cleanup = subscribeToMessages();
       markMessagesAsRead();
-      
       return cleanup;
     }
   }, [conversationId, user]);
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: 'smooth'
+    });
   };
-
   const loadConversation = async () => {
-    const { data } = await supabase
-      .from('conversations')
-      .select('*')
-      .eq('id', conversationId)
-      .single();
-
+    const {
+      data
+    } = await supabase.from('conversations').select('*').eq('id', conversationId).single();
     if (data) {
       setConversation(data);
     }
   };
-
   const loadMessages = async () => {
-    const { data } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
-
+    const {
+      data
+    } = await supabase.from('messages').select('*').eq('conversation_id', conversationId).order('created_at', {
+      ascending: true
+    });
     if (data) {
       setMessages(data);
     }
   };
-
   const subscribeToMessages = () => {
-    const channel = supabase
-      .channel(`messages_${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
-        },
-        (payload) => {
-          const newMsg = payload.new as Message;
-          // Only add if not already in messages (avoid duplicates from optimistic updates)
-          setMessages(prev => {
-            const exists = prev.some(m => m.id === newMsg.id || (m.sender_id === newMsg.sender_id && m.content === newMsg.content && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 1000));
-            if (exists) {
-              return prev.map(m => m.id.startsWith('temp-') && m.content === newMsg.content ? newMsg : m);
-            }
-            return [...prev, newMsg];
-          });
+    const channel = supabase.channel(`messages_${conversationId}`).on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `conversation_id=eq.${conversationId}`
+    }, payload => {
+      const newMsg = payload.new as Message;
+      // Only add if not already in messages (avoid duplicates from optimistic updates)
+      setMessages(prev => {
+        const exists = prev.some(m => m.id === newMsg.id || m.sender_id === newMsg.sender_id && m.content === newMsg.content && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 1000);
+        if (exists) {
+          return prev.map(m => m.id.startsWith('temp-') && m.content === newMsg.content ? newMsg : m);
         }
-      )
-      .subscribe();
-
+        return [...prev, newMsg];
+      });
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   };
-
   const markMessagesAsRead = async () => {
     if (!user) return;
-
-    await supabase
-      .from('messages')
-      .update({ is_read: true })
-      .eq('conversation_id', conversationId)
-      .neq('sender_id', user.id)
-      .eq('is_read', false);
+    await supabase.from('messages').update({
+      is_read: true
+    }).eq('conversation_id', conversationId).neq('sender_id', user.id).eq('is_read', false);
   };
-
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user || !conversationId) return;
@@ -156,62 +129,55 @@ export default function ChatRoomPage() {
       });
       return;
     }
-
     setIsUploading(true);
-    
     toast({
       title: 'กำลังอัพโหลดไฟล์...',
-      description: file.name,
+      description: file.name
     });
-
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', user.id)
-        .single();
+      const {
+        data: profile
+      } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single();
 
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('chat-attachments')
-        .upload(fileName, file);
-
+      const {
+        error: uploadError
+      } = await supabase.storage.from('chat-attachments').upload(fileName, file);
       if (uploadError) {
         console.error('Upload error:', uploadError);
         throw uploadError;
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-attachments')
-        .getPublicUrl(fileName);
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from('chat-attachments').getPublicUrl(fileName);
 
       // Send message with file attachment
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          sender_name: profile?.full_name || 'User',
-          sender_avatar: profile?.avatar_url,
-          content: file.name,
-          message_type: 'file',
-          file_url: publicUrl,
-          file_name: file.name,
-          file_size: file.size
-        });
-
+      const {
+        error
+      } = await supabase.from('messages').insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        sender_name: profile?.full_name || 'User',
+        sender_avatar: profile?.avatar_url,
+        content: file.name,
+        message_type: 'file',
+        file_url: publicUrl,
+        file_name: file.name,
+        file_size: file.size
+      });
       if (error) {
         console.error('Message insert error:', error);
         throw error;
       }
-
       toast({
         title: 'ส่งไฟล์สำเร็จ',
-        description: file.name,
+        description: file.name
       });
 
       // Reset file input
@@ -229,19 +195,13 @@ export default function ChatRoomPage() {
       setIsUploading(false);
     }
   };
-
-
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || !conversationId) return;
-
     const messageContent = newMessage;
     setNewMessage('');
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, avatar_url')
-      .eq('id', user.id)
-      .single();
+    const {
+      data: profile
+    } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single();
 
     // Optimistic update
     const tempMessage: Message = {
@@ -252,22 +212,19 @@ export default function ChatRoomPage() {
       content: messageContent,
       message_type: 'text',
       is_read: false,
-      created_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
     };
-
     setMessages(prev => [...prev, tempMessage]);
-
-    const { error } = await supabase
-      .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: user.id,
-        sender_name: profile?.full_name || 'User',
-        sender_avatar: profile?.avatar_url,
-        content: messageContent,
-        message_type: 'text'
-      });
-
+    const {
+      error
+    } = await supabase.from('messages').insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      sender_name: profile?.full_name || 'User',
+      sender_avatar: profile?.avatar_url,
+      content: messageContent,
+      message_type: 'text'
+    });
     if (error) {
       // Remove optimistic message on error
       setMessages(prev => prev.filter(m => m.id !== tempMessage.id));
@@ -279,65 +236,47 @@ export default function ChatRoomPage() {
       });
     }
   };
-
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     setNewMessage(prev => prev + emojiData.emoji);
     setShowEmojiPicker(false);
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
-
   const isImageFile = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
     return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '');
   };
-
   const handleMuteConversation = async () => {
     if (!user) return;
-
-    await supabase
-      .from('conversation_participants')
-      .update({ is_muted: true })
-      .eq('conversation_id', conversationId)
-      .eq('user_id', user.id);
-
+    await supabase.from('conversation_participants').update({
+      is_muted: true
+    }).eq('conversation_id', conversationId).eq('user_id', user.id);
     toast({
       title: t('chat.muted'),
       description: t('chat.mutedDesc')
     });
   };
-
   const handleDeleteConversation = async () => {
     if (!user) return;
-
-    await supabase
-      .from('conversation_participants')
-      .delete()
-      .eq('conversation_id', conversationId)
-      .eq('user_id', user.id);
-
+    await supabase.from('conversation_participants').delete().eq('conversation_id', conversationId).eq('user_id', user.id);
     navigate('/chat');
   };
-
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString('th-TH', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
-
   if (!conversation) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="bg-[#153860] text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
@@ -352,9 +291,7 @@ export default function ChatRoomPage() {
                 {conversation.name?.[0]?.toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
-            {isOnline && (
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#153860]"></div>
-            )}
+            {isOnline && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#153860]"></div>}
           </div>
           
           <div className="flex-1 min-w-0">
@@ -370,11 +307,9 @@ export default function ChatRoomPage() {
             <Phone className="w-5 h-5" />
           </button>
           
-          {conversation?.type === 'group' && (
-            <button className="p-2" onClick={() => setShowManageGroup(true)}>
+          {conversation?.type === 'group' && <button className="p-2" onClick={() => setShowManageGroup(true)}>
               <Settings className="w-5 h-5" />
-            </button>
-          )}
+            </button>}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -386,10 +321,7 @@ export default function ChatRoomPage() {
               <DropdownMenuItem onClick={handleMuteConversation}>
                 {t('chat.muteNotifications')}
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handleDeleteConversation}
-                className="text-destructive"
-              >
+              <DropdownMenuItem onClick={handleDeleteConversation} className="text-destructive">
                 {t('chat.deleteConversation')}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -399,130 +331,62 @@ export default function ChatRoomPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && conversation.type === 'group' && (
-          <div className="text-center py-12">
+        {messages.length === 0 && conversation.type === 'group' && <div className="text-center py-12">
             <div className="text-6xl mb-4">👋</div>
             <h3 className="font-bold text-lg mb-2">{conversation.name}</h3>
             <p className="text-muted-foreground text-sm">
               {t('chat.welcomeGroup')}
             </p>
-          </div>
-        )}
+          </div>}
 
-        {messages.map((message) => {
-          const isOwn = message.sender_id === user?.id;
-          return (
-            <div
-              key={message.id}
-              className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
-            >
-              {!isOwn && (
-                <Avatar className="w-8 h-8 flex-shrink-0">
+        {messages.map(message => {
+        const isOwn = message.sender_id === user?.id;
+        return <div key={message.id} className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+              {!isOwn && <Avatar className="w-8 h-8 flex-shrink-0">
                   <AvatarImage src={message.sender_avatar || ''} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs">
                     {message.sender_name?.[0]?.toUpperCase() || '?'}
                   </AvatarFallback>
-                </Avatar>
-              )}
+                </Avatar>}
               
               <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[75%]`}>
-                {message.file_url ? (
-                  <div
-                    className={`rounded-2xl overflow-hidden ${
-                      isOwn
-                        ? 'bg-[#153860] text-white rounded-br-none'
-                        : 'bg-accent text-foreground rounded-bl-none'
-                    }`}
-                  >
-                    {message.file_name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                      <div>
-                        <img 
-                          src={message.file_url} 
-                          alt={message.file_name}
-                          className="max-w-[250px] max-h-[250px] object-cover"
-                        />
+                {message.file_url ? <div className={`rounded-2xl overflow-hidden ${isOwn ? 'bg-[#153860] text-white rounded-br-none' : 'bg-accent text-foreground rounded-bl-none'}`}>
+                    {message.file_name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? <div>
+                        <img src={message.file_url} alt={message.file_name} className="max-w-[250px] max-h-[250px] object-cover" />
                         <div className="px-3 py-2">
                           <p className="text-xs opacity-80">{message.file_name}</p>
                         </div>
-                      </div>
-                    ) : (
-                      <a 
-                        href={message.file_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 px-4 py-3 hover:opacity-80 transition-opacity"
-                      >
+                      </div> : <a href={message.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 hover:opacity-80 transition-opacity">
                         <div className="p-2 bg-white/10 rounded-lg">
                           <Paperclip className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{message.file_name}</p>
-                          {message.file_size && (
-                            <p className="text-xs opacity-70">{formatFileSize(message.file_size)}</p>
-                          )}
+                          {message.file_size && <p className="text-xs opacity-70">{formatFileSize(message.file_size)}</p>}
                         </div>
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    className={`rounded-2xl px-4 py-2 ${
-                      isOwn
-                        ? 'bg-[#153860] text-white rounded-br-none'
-                        : 'bg-accent text-foreground rounded-bl-none'
-                    }`}
-                  >
+                      </a>}
+                  </div> : <div className={`rounded-2xl px-4 py-2 ${isOwn ? 'bg-[#153860] text-white rounded-br-none' : 'bg-accent text-foreground rounded-bl-none'}`}>
                     <p className="text-sm">{message.content}</p>
-                  </div>
-                )}
+                  </div>}
                 <div className="flex items-center gap-1 mt-1 px-2">
                   <span className="text-xs text-muted-foreground">
                     {formatTime(message.created_at)}
                   </span>
-                  {isOwn && (
-                    message.is_read ? (
-                      <CheckCheck className="w-3 h-3 text-blue-500" />
-                    ) : (
-                      <Check className="w-3 h-3 text-muted-foreground" />
-                    )
-                  )}
+                  {isOwn && (message.is_read ? <CheckCheck className="w-3 h-3 text-blue-500" /> : <Check className="w-3 h-3 text-muted-foreground" />)}
                 </div>
               </div>
-            </div>
-          );
-        })}
+            </div>;
+      })}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
       <div className="p-4 bg-background border-t border-border">
         <div className="flex items-center gap-2">
-          <Input
-            type="text"
-            placeholder={t('chat.typeMessage')}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            className="flex-1 bg-accent/30 border-none rounded-full"
-            disabled={isUploading}
-          />
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileSelect}
-            className="hidden"
-            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-          />
-          <button 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50 relative"
-          >
-            {isUploading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
-            ) : (
-              <Paperclip className="w-5 h-5" />
-            )}
+          <Input type="text" placeholder={t('chat.typeMessage')} value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSendMessage()} disabled={isUploading} className="flex-1 bg-gray/30 border-none rounded-full" />
+          <input ref={fileInputRef} type="file" onChange={handleFileSelect} className="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
+          <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50 relative">
+            {isUploading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" /> : <Paperclip className="w-5 h-5" />}
           </button>
           <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
             <PopoverTrigger asChild>
@@ -531,32 +395,15 @@ export default function ChatRoomPage() {
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0 border-none" align="end">
-              <EmojiPicker 
-                onEmojiClick={handleEmojiClick}
-                width="100%"
-                height="400px"
-              />
+              <EmojiPicker onEmojiClick={handleEmojiClick} width="100%" height="400px" />
             </PopoverContent>
           </Popover>
-          <Button
-            onClick={handleSendMessage}
-            size="icon"
-            className="bg-primary hover:bg-primary/90 rounded-full"
-            disabled={isUploading || !newMessage.trim()}
-          >
+          <Button onClick={handleSendMessage} size="icon" className="bg-primary hover:bg-primary/90 rounded-full" disabled={isUploading || !newMessage.trim()}>
             <Send className="w-5 h-5" />
           </Button>
         </div>
       </div>
 
-      {conversation?.type === 'group' && (
-        <ManageGroupSheet
-          open={showManageGroup}
-          onOpenChange={setShowManageGroup}
-          conversationId={conversationId!}
-          conversationName={conversation?.name || ''}
-        />
-      )}
-    </div>
-  );
+      {conversation?.type === 'group' && <ManageGroupSheet open={showManageGroup} onOpenChange={setShowManageGroup} conversationId={conversationId!} conversationName={conversation?.name || ''} />}
+    </div>;
 }
