@@ -91,7 +91,7 @@ export default function DashboardPage() {
         {dashboardItems.map((item) => (
           <Card
             key={item.id}
-            className="shadow-md hover:shadow-lg transition-shadow cursor-pointer rounded-3xl"
+            className="opacity-10 shadow-md hover:shadow-lg transition-shadow cursor-pointer rounded-3xl"
             onClick={() => navigate(item.path)}
           >
             <div
