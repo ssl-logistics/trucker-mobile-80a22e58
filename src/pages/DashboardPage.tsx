@@ -97,7 +97,6 @@ export default function DashboardPage() {
                   <p className="text-[#22733F] mb-4  text-xs">{item.description}</p>
                   <button className={`bg-gradient-to-r ${item.color} text-white w-[90px] h-[30px] rounded-full font-medium text-xs shadow-md hover:shadow-lg transition-all flex items-center justify-center`}>
                     {t("dashboard.view")}
-                    {item.title.split(" ")[0]}
                   </button>
                 </div>
               </div>
