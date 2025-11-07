@@ -564,6 +564,21 @@ const thTranslations: Record<string, string> = {
   'sop.selectSource': 'เลือกแหล่งที่มาของรูปภาพ',
   'sop.takePhoto': 'ถ่ายภาพ',
   'sop.selectFromGallery': 'เลือกรูปจากแกลอรี่',
+  
+  // Container SOP Page
+  'containerSop.title': 'จุดรับตู้เปล่า',
+  'containerSop.uploadPhoto': 'อัพโหลดรูปตู้เปล่า',
+  'containerSop.clickToTake': 'คลิกเพื่อถ่ายหรือเลือกรูปตู้เปล่า',
+  'containerSop.confirmButton': 'ยืนยันรับตู้เปล่า',
+  'containerSop.confirmTitle': 'ยืนยันการรับตู้เปล่า',
+  'containerSop.confirmMessage': 'คุณต้องการยืนยันการรับตู้เปล่าใช่หรือไม่?',
+  'containerSop.photoRequiredMessage': 'กรุณาอัพโหลดรูปภาพตู้เปล่า',
+  'containerSop.success': 'สำเร็จ',
+  'containerSop.successMessage': 'บันทึกข้อมูลสำเร็จ',
+  'containerSop.saveError': 'ไม่สามารถบันทึกข้อมูลได้',
+  'containerSop.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
+  'containerSop.noData': 'ไม่พบข้อมูลงาน',
+  'containerSop.loading': 'กำลังโหลด...',
 };
 
 // English translations
@@ -1089,4 +1104,19 @@ const enTranslations: Record<string, string> = {
   'sop.selectSource': 'Select Photo Source',
   'sop.takePhoto': 'Take Photo',
   'sop.selectFromGallery': 'Select from Gallery',
+  
+  // Container SOP Page
+  'containerSop.title': 'Empty Container Point',
+  'containerSop.uploadPhoto': 'Upload Empty Container Photo',
+  'containerSop.clickToTake': 'Click to take or select empty container photo',
+  'containerSop.confirmButton': 'Confirm Empty Container Receipt',
+  'containerSop.confirmTitle': 'Confirm Empty Container Receipt',
+  'containerSop.confirmMessage': 'Do you want to confirm receiving the empty container?',
+  'containerSop.photoRequiredMessage': 'Please upload an empty container photo',
+  'containerSop.success': 'Success',
+  'containerSop.successMessage': 'Information saved successfully',
+  'containerSop.saveError': 'Unable to save information',
+  'containerSop.loadError': 'Unable to load job data',
+  'containerSop.noData': 'Job data not found',
+  'containerSop.loading': 'Loading...',
 };

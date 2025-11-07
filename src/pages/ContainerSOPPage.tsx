@@ -4,6 +4,7 @@ import { ArrowLeft, Camera, CheckCircle2, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import {
@@ -38,6 +39,7 @@ const ContainerSOPPage = () => {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -65,8 +67,8 @@ const ContainerSOPPage = () => {
     } catch (error) {
       console.error('Error loading job details:', error);
       toast({
-        title: "Error",
-        description: "ไม่สามารถโหลดข้อมูลงานได้",
+        title: t('containerSop.error'),
+        description: t('containerSop.loadError'),
         variant: "destructive",
       });
     } finally {
@@ -101,8 +103,8 @@ const ContainerSOPPage = () => {
   const handleConfirmClick = () => {
     if (!photoFile) {
       toast({
-        title: "แจ้งเตือน",
-        description: "กรุณาอัพโหลดรูปภาพตู้เปล่า",
+        title: t('sop.photoRequired'),
+        description: t('containerSop.photoRequiredMessage'),
         variant: "destructive",
       });
       return;
@@ -155,16 +157,16 @@ const ContainerSOPPage = () => {
       if (updateError) throw updateError;
 
       toast({
-        title: "สำเร็จ",
-        description: "บันทึกข้อมูลสำเร็จ",
+        title: t('containerSop.success'),
+        description: t('containerSop.successMessage'),
       });
 
       navigate(`/job/${jobId}`);
     } catch (error) {
       console.error('Error saving SOP:', error);
       toast({
-        title: "Error",
-        description: "ไม่สามารถบันทึกข้อมูลได้",
+        title: t('sop.error'),
+        description: t('containerSop.saveError'),
         variant: "destructive",
       });
     } finally {
@@ -188,7 +190,7 @@ const ContainerSOPPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">{t('containerSop.loading')}</div>
       </div>
     );
   }
@@ -196,7 +198,7 @@ const ContainerSOPPage = () => {
   if (!jobDetail) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">ไม่พบข้อมูลงาน</div>
+        <div className="text-center">{t('containerSop.noData')}</div>
       </div>
     );
   }
@@ -209,29 +211,26 @@ const ContainerSOPPage = () => {
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="text-lg font-semibold">
-          {jobDetail.container_checkpoint}
+          {t('containerSop.title')} {jobDetail.container_checkpoint}
         </h1>
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Action Buttons */}
         <JobActionButtons jobId={jobId} />
 
-        {/* Success Banner */}
         <div className="bg-[#E8F5E9] border border-[#4CAF50] rounded-lg p-3 flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-[#4CAF50]" />
           <div className="flex-1">
-            <div className="font-medium text-[#2E7D32]">เช็คอินสำเร็จ</div>
+            <div className="font-medium text-[#2E7D32]">{t('sop.checkInSuccess')}</div>
             <div className="text-sm text-[#2E7D32]">
               {formatDate(jobDetail.start_date)} | {formatTime(jobDetail.start_time)}
             </div>
           </div>
         </div>
 
-        {/* Photo Upload Section */}
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            อัพโหลดรูปตู้เปล่า <span className="text-red-500">*</span>
+            {t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
           </label>
           
           {photoPreview ? (
@@ -255,29 +254,27 @@ const ContainerSOPPage = () => {
             >
               <Camera className="w-8 h-8 text-gray-400" />
               <span className="text-sm text-gray-500">
-                คลิกเพื่อถ่ายหรือเลือกรูปตู้เปล่า
+                {t('containerSop.clickToTake')}
               </span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Fixed Bottom Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button
           onClick={handleConfirmClick}
           disabled={!photoFile || uploading}
           className="w-full h-12 text-base bg-[#0FA968] hover:bg-[#0C8B53] text-white"
         >
-          {uploading ? "กำลังบันทึก..." : "ยืนยันรับตู้เปล่า"}
+          {uploading ? t('sop.saving') : t('containerSop.confirmButton')}
         </Button>
       </div>
 
-      {/* Photo Source Drawer */}
       <Drawer open={showPhotoDrawer} onOpenChange={setShowPhotoDrawer}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle className="text-center">เลือกแหล่งที่มาของรูปภาพ</DrawerTitle>
+            <DrawerTitle className="text-center">{t('sop.selectSource')}</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-2">
             <button
@@ -285,31 +282,30 @@ const ContainerSOPPage = () => {
               className="w-full flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
             >
               <Camera className="w-5 h-5" />
-              <span>ถ่ายภาพ</span>
+              <span>{t('sop.takePhoto')}</span>
             </button>
             <button
               onClick={() => handlePhotoSelect('gallery')}
               className="w-full flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
             >
               <Image className="w-5 h-5" />
-              <span>เลือกรูปจากแกลลอรี่</span>
+              <span>{t('sop.selectFromGallery')}</span>
             </button>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
-              <Button variant="outline">ยกเลิก</Button>
+              <Button variant="outline">{t('sop.cancel')}</Button>
             </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
 
-      {/* Confirm Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>ยืนยันการรับตู้เปล่า</DialogTitle>
+            <DialogTitle>{t('containerSop.confirmTitle')}</DialogTitle>
             <DialogDescription>
-              คุณต้องการยืนยันการรับตู้เปล่าใช่หรือไม่?
+              {t('containerSop.confirmMessage')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -318,14 +314,14 @@ const ContainerSOPPage = () => {
               onClick={() => setShowConfirmDialog(false)}
               disabled={uploading}
             >
-              ยกเลิก
+              {t('sop.cancel')}
             </Button>
             <Button
               onClick={handleConfirmSOP}
               disabled={uploading}
               className="bg-[#0FA968] hover:bg-[#0C8B53] text-white"
             >
-              {uploading ? "กำลังบันทึก..." : "ยืนยัน"}
+              {uploading ? t('sop.saving') : t('sop.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
