@@ -10,6 +10,13 @@ import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
 import {
+  requestNotificationPermission,
+  subscribeToPushNotifications,
+  savePushSubscription,
+  unsubscribeFromPushNotifications,
+  checkPushSubscriptionStatus,
+} from '@/utils/pushNotifications';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -31,14 +38,25 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isNotificationLoading, setIsNotificationLoading] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadProfile();
+      checkNotificationStatus();
     }
   }, [user]);
+
+  const checkNotificationStatus = async () => {
+    try {
+      const isSubscribed = await checkPushSubscriptionStatus();
+      setNotificationsEnabled(isSubscribed);
+    } catch (error) {
+      console.error('Failed to check notification status:', error);
+    }
+  };
 
   const loadProfile = async () => {
     if (!user) return;
@@ -71,6 +89,66 @@ export default function SettingsPage() {
       ...profileData,
       vehicle_photo_url: vehiclePhotoUrl
     });
+  };
+
+  const handleNotificationToggle = async (enabled: boolean) => {
+    setIsNotificationLoading(true);
+    
+    try {
+      if (enabled) {
+        // Check if notifications are supported
+        if (!('Notification' in window)) {
+          toast({
+            title: "ไม่รองรับ",
+            description: "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Request permission
+        const permission = await requestNotificationPermission();
+        
+        if (permission === 'granted') {
+          // Subscribe to push notifications
+          const subscription = await subscribeToPushNotifications();
+          
+          // Save subscription to database
+          await savePushSubscription(subscription);
+          
+          setNotificationsEnabled(true);
+          
+          toast({
+            title: "เปิดการแจ้งเตือนสำเร็จ",
+            description: "คุณจะได้รับการแจ้งเตือนจากระบบแล้ว",
+          });
+        } else if (permission === 'denied') {
+          toast({
+            title: "ไม่สามารถเปิดการแจ้งเตือนได้",
+            description: "กรุณาอนุญาตการแจ้งเตือนในการตั้งค่าเบราว์เซอร์",
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Unsubscribe from push notifications
+        await unsubscribeFromPushNotifications();
+        setNotificationsEnabled(false);
+        
+        toast({
+          title: "ปิดการแจ้งเตือนสำเร็จ",
+          description: "คุณจะไม่ได้รับการแจ้งเตือนอีกต่อไป",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to toggle notifications:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถเปลี่ยนการตั้งค่าได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    } finally {
+      setIsNotificationLoading(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -149,7 +227,8 @@ export default function SettingsPage() {
                       </span>
                       <Switch 
                         checked={notificationsEnabled}
-                        onCheckedChange={setNotificationsEnabled}
+                        onCheckedChange={handleNotificationToggle}
+                        disabled={isNotificationLoading}
                       />
                     </div>
                   </div>
