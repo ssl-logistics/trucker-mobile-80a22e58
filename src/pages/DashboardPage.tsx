@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
-import financeBg from "@/assets/finance-bg-new.png";
+import financeBg from "@/assets/finance-card-bg.png";
 import shippingBg from "@/assets/shipping-bg.png";
 import customerBg from "@/assets/customer-bg.png";
 import productBg from "@/assets/product-bg.png";
@@ -101,33 +101,56 @@ export default function DashboardPage() {
       {/* Dashboard Grid */}
       <div className="px-4 py-6 space-y-4">
         {dashboardItems.map((item) => (
-          <Card
-            key={item.id}
-            className="overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => navigate(item.path)}
-          >
+          item.id === "finance" ? (
             <div
-              style={{
-                backgroundImage: `url(${item.imageSrc})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-              }}
-              className="p-6 relative min-h-[100px]"
+              key={item.id}
+              className="relative cursor-pointer hover:opacity-95 transition-opacity"
+              onClick={() => navigate(item.path)}
             >
-              <div className="flex items-start justify-between relative z-10">
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-600 mb-4">{item.description}</p>
-                  <button
-                    className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all`}
-                  >
-                    {t('dashboard.view')}{item.title.split(" ")[0]}
-                  </button>
-                </div>
+              <img 
+                src={item.imageSrc} 
+                alt={item.title}
+                className="w-full h-auto rounded-lg shadow-md hover:shadow-lg transition-shadow"
+              />
+              <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                <h3 className="text-lg font-bold text-white mb-2 drop-shadow-lg">{item.title}</h3>
+                <p className="text-sm text-white mb-4 drop-shadow-lg">{item.description}</p>
+                <button
+                  className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all w-fit`}
+                >
+                  {t('dashboard.view')}{item.title.split(" ")[0]}
+                </button>
               </div>
             </div>
-          </Card>
+          ) : (
+            <Card
+              key={item.id}
+              className="overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => navigate(item.path)}
+            >
+              <div
+                style={{
+                  backgroundImage: `url(${item.imageSrc})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+                className="p-6 relative min-h-[100px]"
+              >
+                <div className="flex items-start justify-between relative z-10">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h3>
+                    <p className="text-sm text-gray-600 mb-4">{item.description}</p>
+                    <button
+                      className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all`}
+                    >
+                      {t('dashboard.view')}{item.title.split(" ")[0]}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )
         ))}
       </div>
 
