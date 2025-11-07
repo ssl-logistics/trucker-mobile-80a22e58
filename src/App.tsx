@@ -48,6 +48,7 @@ import EditFieldPage from "./pages/EditFieldPage";
 import EditVehicleFieldPage from "./pages/EditVehicleFieldPage";
 import TermsPage from "./pages/TermsPage";
 import NotFound from "./pages/NotFound";
+import SearchPage from "./pages/SearchPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/verify-otp-reset" element={<VerifyOTPReset />} />
             <Route path="/create-new-password" element={<CreateNewPassword />} />
             <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
               <Route path="/chat" element={<ProtectedRoute><ChatListPage /></ProtectedRoute>} />
               <Route path="/chat/:conversationId" element={<ProtectedRoute><ChatRoomPage /></ProtectedRoute>} />
               <Route path="/language" element={<ProtectedRoute><LanguagePage /></ProtectedRoute>} />
