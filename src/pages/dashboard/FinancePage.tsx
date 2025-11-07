@@ -163,7 +163,12 @@ export default function FinancePage() {
           >
             <span className="text-2xl">{'<'}</span>
           </button>
-          <span className="text-xl font-bold text-primary">{getDisplayDate()}</span>
+          <span 
+            key={getDisplayDate()} 
+            className="text-xl font-bold text-primary animate-in fade-in duration-300"
+          >
+            {getDisplayDate()}
+          </span>
           <button 
             onClick={() => navigateDate('next')}
             className="p-2 hover:bg-accent rounded-full transition-colors"
@@ -173,7 +178,7 @@ export default function FinancePage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-3">
+        <div key={`${timePeriod}-${selectedDate.getTime()}`} className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <div className="flex items-start gap-2 mb-2">
               <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
@@ -212,7 +217,7 @@ export default function FinancePage() {
         </Card>
 
         {/* Chart */}
-        <Card className="p-4 bg-white shadow-sm">
+        <Card key={`chart-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

@@ -123,7 +123,12 @@ export default function ProductPage() {
           >
             <span className="text-2xl">{'<'}</span>
           </button>
-          <span className="text-xl font-bold text-primary">{getDisplayDate()}</span>
+          <span 
+            key={getDisplayDate()} 
+            className="text-xl font-bold text-primary animate-in fade-in duration-300"
+          >
+            {getDisplayDate()}
+          </span>
           <button 
             onClick={() => navigateDate('next')}
             className="p-2 hover:bg-accent rounded-full transition-colors"
@@ -133,7 +138,7 @@ export default function ProductPage() {
         </div>
 
         {/* Pie Chart */}
-        <Card className="p-4 bg-white shadow-sm">
+        <Card key={`chart-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-gray-800">{t('product.product_types')}</h3>
             <span className="text-sm text-gray-500">{t('product.top_5')}</span>
@@ -170,7 +175,7 @@ export default function ProductPage() {
         </Card>
 
         {/* Product List */}
-        <Card className="p-4 bg-white shadow-sm">
+        <Card key={`list-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="space-y-3">
             {productDetails.map((product, index) => (
               <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
