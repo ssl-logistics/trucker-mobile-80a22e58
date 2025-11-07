@@ -3,6 +3,8 @@ import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
+import DashboardIcon from "@/assets/dashboard-icon.svg";
+import DashboardIconActive from "@/assets/dashboard-icon-active.svg";
 export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,6 +30,8 @@ export function BottomNavigation() {
             icon: LayoutGrid,
             label: t("nav.dashboard"),
             path: "/dashboard",
+            customIcon: DashboardIcon,
+            customActiveIcon: DashboardIconActive,
           },
           {
             icon: MessageCircle,
