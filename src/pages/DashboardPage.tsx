@@ -113,12 +113,15 @@ export default function DashboardPage() {
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
               }}
-              className="p-6 relative min-h-[100px]"
+              className="p-6 relative min-h-[200px] flex items-end"
             >
-              <div className="flex items-start justify-between relative z-10">
+              {/* Overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              
+              <div className="flex items-start justify-between relative z-10 w-full">
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-600 mb-4">{item.description}</p>
+                  <h3 className="text-lg font-bold text-white mb-2 drop-shadow-lg">{item.title}</h3>
+                  <p className="text-sm text-white/90 mb-4 drop-shadow-md">{item.description}</p>
                   <button
                     className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all`}
                   >
