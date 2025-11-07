@@ -87,7 +87,7 @@ export default function DashboardPage() {
       <AppHeader userName={profile?.full_name} profilePhoto={profile?.avatar_url} onSignOut={handleSignOut} />
 
       {/* Dashboard Grid */}
-      <div className="px-4 py-6 space-y-4">
+      <div className="px-4 py-6 space-y-8">
         {dashboardItems.map((item) => (
           <Card
             key={item.id}
