@@ -95,7 +95,7 @@ export default function DashboardPage() {
                 <div className="flex-1 p-4">
                   <h3 className="font-bold text-gray-800 mb-2 text-base">{item.title}</h3>
                   <p className="text-sm text-gray-600 mb-4">{item.description}</p>
-                  <button className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all`}>
+                  <button className={`bg-gradient-to-r ${item.color} text-white w-[90px] h-[30px] rounded-full font-medium shadow-md hover:shadow-lg transition-all flex items-center justify-center`}>
                     {t("dashboard.view")}
                     {item.title.split(" ")[0]}
                   </button>
