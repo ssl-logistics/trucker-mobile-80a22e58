@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Phone, Navigation, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
@@ -28,6 +29,7 @@ export default function PickupDetailPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -48,8 +50,8 @@ export default function PickupDetailPage() {
 
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('pickup.error'),
+        description: t('pickup.loadError'),
         variant: 'destructive'
       });
       navigate('/current-jobs');
@@ -62,7 +64,6 @@ export default function PickupDetailPage() {
   const handleCheckIn = async () => {
     if (!job || !user) return;
 
-    // Update job application with check-in timestamp
     const { error } = await supabase
       .from('job_applications')
       .update({ 
@@ -74,16 +75,16 @@ export default function PickupDetailPage() {
 
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถบันทึกการเช็คอินได้',
+        title: t('pickup.error'),
+        description: t('pickup.checkInError'),
         variant: 'destructive'
       });
       return;
     }
 
     toast({
-      title: 'เช็คอินสำเร็จ',
-      description: 'คุณได้เช็คอินที่จุดรับสินค้าเรียบร้อยแล้ว',
+      title: t('pickup.checkInSuccess'),
+      description: t('pickup.checkInSuccessMessage'),
     });
     setShowConfirmDialog(false);
     navigate(`/job/${job.id}`);
@@ -112,85 +113,73 @@ export default function PickupDetailPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">จุดรับสินค้า Factory1</h1>
+          <h1 className="text-lg font-semibold">{t('pickup.title')} Factory1</h1>
           <div className="w-6" />
         </div>
       </header>
 
-      {/* Content */}
       <div className="px-4 py-6 space-y-6">
-        {/* Action Buttons */}
         <JobActionButtons jobId={jobId} />
 
-        {/* Contact Name */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">ชื่อผู้ติดต่อ</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('pickup.contactName')}</div>
           <div className="text-base">คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)</div>
         </div>
 
-        {/* Route Number */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">เลขทาง</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('pickup.routeNumber')}</div>
           <div className="text-base">BKK001 ลาดพร้าว/กรุงเทพมหานคร</div>
         </div>
 
-        {/* Address */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">ที่อยู่</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('pickup.address')}</div>
           <div className="text-base">55/5 ซ.ลาดพร้าว 101 แขวงคลองจั่น กทม.</div>
         </div>
 
-        {/* Map Placeholder */}
         <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
           <div className="text-center">
             <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">แผนที่</p>
+            <p className="text-sm text-muted-foreground">{t('pickup.map')}</p>
           </div>
         </div>
 
-        {/* Product Type */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">ประเภทสินค้า</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('pickup.productType')}</div>
           <div className="text-base">น้ำตาล (30 กล่อง)</div>
         </div>
 
-        {/* Pickup Time */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">เข้ารับสินค้า</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('pickup.pickupTime')}</div>
           <div className="text-base">{formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</div>
         </div>
 
-        {/* Note */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">หมายเหตุ</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('pickup.note')}</div>
           <div className="text-base">เข้าสถานที่ต้องแสดงบัตรชิด</div>
         </div>
 
-        {/* Action Buttons */}
         <div className="space-y-3 pt-4">
           <Button variant="outline" className="w-full h-12 text-base">
             <Phone className="w-5 h-5 mr-2" />
-            โทร
+            {t('pickup.call')}
           </Button>
           <Button variant="outline" className="w-full h-12 text-base">
             <Navigation className="w-5 h-5 mr-2" />
-            เส้นทาง
+            {t('pickup.route')}
           </Button>
         </div>
       </div>
 
-      {/* Check-in Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={() => setShowConfirmDialog(true)}
         >
           <MapPin className="w-5 h-5 mr-2" />
-          เช็คอิน
+          {t('pickup.checkIn')}
         </Button>
       </div>
 
-      {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
@@ -198,10 +187,10 @@ export default function PickupDetailPage() {
               <MapPin className="w-8 h-8 text-green-600" />
             </div>
             <DialogTitle className="text-xl text-center">
-              แจ้งเตือนการยืนยันสถานะ
+              {t('pickup.confirmTitle')}
             </DialogTitle>
             <DialogDescription className="text-center text-base">
-              คุณต้องการเช็คอินที่ "จุดรับสินค้า Factory1" ใช่หรือไม่?
+              {t('pickup.confirmMessage')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
@@ -210,13 +199,13 @@ export default function PickupDetailPage() {
               onClick={() => setShowConfirmDialog(false)}
               className="flex-1 h-11"
             >
-              ยกเลิก
+              {t('pickup.cancel')}
             </Button>
             <Button
               onClick={handleCheckIn}
               className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
             >
-              ยืนยัน
+              {t('pickup.confirmButton')}
             </Button>
           </DialogFooter>
         </DialogContent>

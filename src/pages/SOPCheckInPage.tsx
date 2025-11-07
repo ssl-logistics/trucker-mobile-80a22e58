@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
@@ -38,6 +39,7 @@ export default function SOPCheckInPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -63,8 +65,8 @@ export default function SOPCheckInPage() {
 
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('sop.error'),
+        description: t('pickup.loadError'),
         variant: 'destructive'
       });
       navigate('/current-jobs');
@@ -101,8 +103,8 @@ export default function SOPCheckInPage() {
   const handleConfirmClick = () => {
     if (!photoFile) {
       toast({
-        title: 'กรุณาอัปโหลดรูปภาพ',
-        description: 'คุณต้องอัปโหลดรูปสินค้าก่อนยืนยัน SOP',
+        title: t('sop.photoRequired'),
+        description: t('sop.photoRequiredMessage'),
         variant: 'destructive'
       });
       return;
@@ -154,16 +156,16 @@ export default function SOPCheckInPage() {
       if (updateError) throw updateError;
 
       toast({
-        title: 'ยืนยัน SOP สำเร็จ',
-        description: 'บันทึกข้อมูลเรียบร้อยแล้ว',
+        title: t('sop.sopSuccess'),
+        description: t('sop.sopSuccessMessage'),
       });
 
       navigate(`/job/${job.id}`);
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+        title: t('sop.error'),
+        description: t('sop.errorMessage'),
         variant: 'destructive'
       });
     } finally {
@@ -199,24 +201,21 @@ export default function SOPCheckInPage() {
           <button onClick={() => navigate(`/job/${job.id}/pickup`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">จุดรับสินค้า Factory1</h1>
+          <h1 className="text-lg font-semibold">{t('sop.title')} Factory1</h1>
           <div className="w-6" />
         </div>
       </header>
 
-      {/* Content */}
       <div className="px-4 py-6 space-y-6">
-        {/* Action Buttons */}
         <JobActionButtons jobId={jobId} />
 
-        {/* Check-in Success Banner */}
         <Card className="p-4 bg-green-50 border-green-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <div className="font-semibold text-green-900">เช็คอินสำเร็จ</div>
+              <div className="font-semibold text-green-900">{t('sop.checkInSuccess')}</div>
               <div className="text-sm text-green-700">
                 {formatDate(job.start_date)} | {formatTime(checkInTime)}
               </div>
@@ -224,10 +223,9 @@ export default function SOPCheckInPage() {
           </div>
         </Card>
 
-        {/* Photo Upload Section */}
         <div className="space-y-2">
           <Label className="text-base">
-            อัพโหลดรูปสินค้า <span className="text-red-500">*</span>
+            {t('sop.uploadPhoto')} <span className="text-red-500">*</span>
           </Label>
           
           <button
@@ -245,27 +243,23 @@ export default function SOPCheckInPage() {
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
                   <Camera className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground text-center px-4">
-                  กดเพื่อถ่ายหรือเลือก<br />รูปสินค้า
-                </p>
+                <p className="text-sm text-muted-foreground text-center px-4" dangerouslySetInnerHTML={{ __html: `${t('sop.clickToTake')}<br />${t('sop.productPhoto')}` }} />
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Confirm Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
           disabled={uploading || !photoFile}
         >
-          ยืนยัน SOP
+          {t('sop.confirmSOP')}
         </Button>
       </div>
 
-      {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
@@ -273,11 +267,10 @@ export default function SOPCheckInPage() {
               <span className="text-4xl">⚠️</span>
             </div>
             <DialogTitle className="text-xl text-center">
-              แจ้งเตือนการยืนยันสถานะ
+              {t('sop.confirmTitle')}
             </DialogTitle>
             <DialogDescription className="text-center text-base">
-              คุณต้องการยืนยันการยืนยันสินค้าด้วยไฟล์สแกน<br />
-              Scan of Package (SOP) ใช่หรือไม่?
+              {t('sop.confirmMessage')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
@@ -287,24 +280,23 @@ export default function SOPCheckInPage() {
               className="flex-1 h-11"
               disabled={uploading}
             >
-              ยกเลิก
+              {t('sop.cancel')}
             </Button>
             <Button
               onClick={handleConfirmSOP}
               className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
               disabled={uploading}
             >
-              {uploading ? 'กำลังบันทึก...' : 'ยืนยัน'}
+              {uploading ? t('sop.saving') : t('sop.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Photo Source Drawer */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle className="text-center">เลือกแหล่งที่มาของรูปภาพ</DrawerTitle>
+            <DrawerTitle className="text-center">{t('sop.selectSource')}</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-3">
             <Button
@@ -313,7 +305,7 @@ export default function SOPCheckInPage() {
               onClick={() => handlePhotoSelect('camera')}
             >
               <Camera className="w-6 h-6" />
-              ถ่ายภาพ
+              {t('sop.takePhoto')}
             </Button>
             <Button
               variant="outline"
@@ -321,13 +313,13 @@ export default function SOPCheckInPage() {
               onClick={() => handlePhotoSelect('gallery')}
             >
               <ImageIcon className="w-6 h-6" />
-              เลือกรูปจากแกลอรี่
+              {t('sop.selectFromGallery')}
             </Button>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
               <Button variant="outline" className="w-full h-12">
-                ยกเลิก
+                {t('sop.cancel')}
               </Button>
             </DrawerClose>
           </DrawerFooter>

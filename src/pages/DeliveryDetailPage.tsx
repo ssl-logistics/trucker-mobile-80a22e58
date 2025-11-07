@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Phone, Navigation, MapPin, Camera, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
@@ -45,6 +46,7 @@ export default function DeliveryDetailPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,8 +74,8 @@ export default function DeliveryDetailPage() {
 
     if (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถโหลดข้อมูลงานได้",
+        title: t('delivery.error'),
+        description: t('pickup.loadError'),
         variant: "destructive",
       });
       navigate("/current-jobs");
@@ -114,16 +116,16 @@ export default function DeliveryDetailPage() {
 
     if (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถบันทึกการชำระเงินได้",
+        title: t('delivery.error'),
+        description: t('delivery.paymentError'),
         variant: "destructive",
       });
       return;
     }
 
     toast({
-      title: "ชำระเงินสำเร็จ",
-      description: "บันทึกข้อมูลการชำระเงินเรียบร้อยแล้ว",
+      title: t('delivery.paymentSuccess'),
+      description: t('delivery.paymentSuccessToast'),
     });
     setShowPaymentDrawer(false);
     loadJobDetail();
@@ -156,8 +158,8 @@ export default function DeliveryDetailPage() {
 
       if (uploadError) {
         toast({
-          title: "เกิดข้อผิดพลาด",
-          description: "ไม่สามารถอัปโหลดเอกสารได้",
+          title: t('delivery.error'),
+          description: t('delivery.uploadError'),
           variant: "destructive",
         });
         return;
@@ -182,16 +184,16 @@ export default function DeliveryDetailPage() {
 
     if (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถยืนยัน POD ได้",
+        title: t('delivery.error'),
+        description: t('delivery.podError'),
         variant: "destructive",
       });
       return;
     }
 
     toast({
-      title: "ยืนยัน POD สำเร็จ",
-      description: "บันทึกข้อมูล POD เรียบร้อยแล้ว",
+      title: t('delivery.podSuccess'),
+      description: t('delivery.podSuccessToast'),
     });
     setShowPodConfirmDialog(false);
     navigate(`/job/${job.id}`);
@@ -212,16 +214,16 @@ export default function DeliveryDetailPage() {
 
     if (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถบันทึกการเช็คอินได้",
+        title: t('delivery.error'),
+        description: t('pickup.checkInError'),
         variant: "destructive",
       });
       return;
     }
 
     toast({
-      title: "เช็คอินสำเร็จ",
-      description: "คุณได้เช็คอินที่จุดส่งสินค้าเรียบร้อยแล้ว",
+      title: t('delivery.checkInSuccess'),
+      description: t('pickup.checkInSuccessMessage'),
     });
     setShowConfirmDialog(false);
 
@@ -259,18 +261,15 @@ export default function DeliveryDetailPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">จุดส่ง หวค.ชัยน้ำตาล</h1>
+          <h1 className="text-lg font-semibold">{t('delivery.title')} หวค.ชัยน้ำตาล</h1>
           <div className="w-6" />
         </div>
       </header>
 
-      {/* Content */}
       <div className="px-4 py-4 space-y-4">
-        {/* Top Action Buttons */}
         <div className="bg-white rounded-xl p-4">
           <JobActionButtons jobId={jobId} />
         </div>
-        {/* Check-in Status - Show only after check-in */}
         {jobApplication?.delivery_checked_in_at && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
@@ -280,7 +279,7 @@ export default function DeliveryDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="font-semibold text-lg">เช็คอินสำเร็จ</span>
+                <span className="font-semibold text-lg">{t('delivery.checkInSuccess')}</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
                 {formatDateTime(jobApplication.delivery_checked_in_at)}
@@ -289,7 +288,6 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
-        {/* Payment Status - Show after payment */}
         {jobApplication?.payment_completed_at && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
@@ -297,7 +295,7 @@ export default function DeliveryDetailPage() {
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
                   <Check className="w-6 h-6 text-white" />
                 </div>
-                <span className="font-semibold text-lg">ชำระเงินสำเร็จ</span>
+                <span className="font-semibold text-lg">{t('delivery.paymentSuccess')}</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
                 {formatDateTime(jobApplication.payment_completed_at)}
@@ -305,18 +303,18 @@ export default function DeliveryDetailPage() {
             </div>
 
             <div className="border-t-2 border-gray-100 pt-4">
-              <h3 className="font-semibold text-base mb-3 text-gray-800">ข้อมูลการชำระเงิน</h3>
+              <h3 className="font-semibold text-base mb-3 text-gray-800">{t('delivery.paymentInfo')}</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
-                  <div className="text-gray-500 text-xs">วิธีการชำระเงิน</div>
+                  <div className="text-gray-500 text-xs">{t('delivery.paymentMethod')}</div>
                   <div className="font-medium text-gray-900">
-                    {jobApplication.payment_method === "cash" && "เงินสด"}
-                    {jobApplication.payment_method === "mobile_banking" && "ชำระเงินผ่าน Mobile Banking"}
-                    {jobApplication.payment_method === "qr_code" && "ชำระเงินผ่าน QR Code"}
+                    {jobApplication.payment_method === "cash" && t('delivery.cash')}
+                    {jobApplication.payment_method === "mobile_banking" && t('delivery.mobileBanking')}
+                    {jobApplication.payment_method === "qr_code" && t('delivery.qrCode')}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-gray-500 text-xs">จำนวนเงิน (บาท)</div>
+                  <div className="text-gray-500 text-xs">{t('delivery.amount')}</div>
                   <div className="font-medium text-gray-900">1,000</div>
                 </div>
               </div>
@@ -324,11 +322,10 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
-        {/* POD Upload Section - Show after payment */}
         {jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
           <div>
             <label className="text-sm font-medium text-gray-900 mb-2 block">
-              อัพโหลดเอกสาร (ใบขนส่ง) <span className="text-red-500">*</span>
+              {t('delivery.uploadDocument')} <span className="text-red-500">*</span>
             </label>
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -339,11 +336,7 @@ export default function DeliveryDetailPage() {
               ) : (
                 <>
                   <Camera className="w-12 h-12 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-500 text-center">
-                    กดเพื่อถ่ายหรือเลือก
-                    <br />
-                    เอกสาร (ใบขนส่ง)
-                  </p>
+                  <p className="text-sm text-gray-500 text-center" dangerouslySetInnerHTML={{ __html: `${t('delivery.clickToTake')}<br />${t('delivery.waybill')}` }} />
                 </>
               )}
             </div>
