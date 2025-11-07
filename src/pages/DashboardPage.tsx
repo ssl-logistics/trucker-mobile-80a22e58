@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
-import financeBg from "@/assets/finance-card-bg.png";
+import financeBg from "@/assets/finance-bg-new.png";
 import shippingBg from "@/assets/shipping-bg.png";
 import customerBg from "@/assets/customer-bg.png";
 import productBg from "@/assets/product-bg.png";
@@ -31,13 +31,13 @@ export default function DashboardPage() {
 
   const loadProfile = async () => {
     if (!user) return;
-
+    
     const { data: profileData } = await supabase
-      .from("profiles")
-      .select("full_name, avatar_url")
-      .eq("id", user.id)
+      .from('profiles')
+      .select('full_name, avatar_url')
+      .eq('id', user.id)
       .single();
-
+    
     if (profileData) {
       setProfile(profileData);
     }
@@ -45,14 +45,14 @@ export default function DashboardPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/");
+    navigate('/');
   };
-
+  
   const dashboardItems = [
     {
       id: "finance",
-      title: t("dashboard.finance"),
-      description: t("dashboard.finance_desc"),
+      title: t('dashboard.finance'),
+      description: t('dashboard.finance_desc'),
       icon: TrendingUp,
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50",
@@ -61,8 +61,8 @@ export default function DashboardPage() {
     },
     {
       id: "shipping",
-      title: t("dashboard.shipping"),
-      description: t("dashboard.shipping_desc"),
+      title: t('dashboard.shipping'),
+      description: t('dashboard.shipping_desc'),
       icon: Truck,
       color: "from-teal-500 to-teal-600",
       bgColor: "bg-teal-50",
@@ -71,8 +71,8 @@ export default function DashboardPage() {
     },
     {
       id: "customer",
-      title: t("dashboard.customer"),
-      description: t("dashboard.customer_desc"),
+      title: t('dashboard.customer'),
+      description: t('dashboard.customer_desc'),
       icon: Users,
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50",
@@ -81,8 +81,8 @@ export default function DashboardPage() {
     },
     {
       id: "product",
-      title: t("dashboard.product"),
-      description: t("dashboard.product_desc"),
+      title: t('dashboard.product'),
+      description: t('dashboard.product_desc'),
       icon: Package,
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50",
@@ -92,36 +92,42 @@ export default function DashboardPage() {
   ];
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
-      <AppHeader userName={profile?.full_name} profilePhoto={profile?.avatar_url} onSignOut={handleSignOut} />
+      <AppHeader 
+        userName={profile?.full_name} 
+        profilePhoto={profile?.avatar_url} 
+        onSignOut={handleSignOut}
+      />
 
       {/* Dashboard Grid */}
       <div className="px-4 py-6 space-y-4">
         {dashboardItems.map((item) => (
-          <div
+          <Card
             key={item.id}
-            className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
+            className="overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => navigate(item.path)}
           >
-            <div className="flex items-center p-4 gap-4">
-              {/* Left side - Text content */}
-              <div className="flex-1 flex flex-col justify-center">
-                <h3 className="text-lg font-bold text-gray-800 mb-1">{item.title}</h3>
-                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-                <button
-                  className={`bg-gradient-to-r ${item.color} text-white px-6 py-2 rounded-full font-medium shadow-md hover:shadow-lg transition-all w-fit text-sm`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(item.path);
-                  }}
-                >
-                  {t("dashboard.view")}
-                  {item.title.split(" ")[0]}
-                </button>
+            <div
+              style={{
+                backgroundImage: `url(${item.imageSrc})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+              }}
+              className="p-6 relative min-h-[100px]"
+            >
+              <div className="flex items-start justify-between relative z-10">
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h3>
+                  <p className="text-sm text-gray-600 mb-4">{item.description}</p>
+                  <button
+                    className={`bg-gradient-to-r ${item.color} text-white px-6 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all`}
+                  >
+                    {t('dashboard.view')}{item.title.split(" ")[0]}
+                  </button>
+                </div>
               </div>
-
-              <img src={item.imageSrc} alt={item.title} className="w-full h-full object-cover" />
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
