@@ -119,7 +119,7 @@ export default function DashboardPage() {
                 </button>
               </div>
 
-              <img src={item.imageSrc} alt={item.title} className="w-full h-full object-contain" />
+              <img src={item.imageSrc} alt={item.title} className="w-full h-full object-cover" />
             </div>
           </div>
         ))}
