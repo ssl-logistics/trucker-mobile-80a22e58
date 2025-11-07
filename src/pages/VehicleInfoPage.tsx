@@ -324,6 +324,9 @@ export default function VehicleInfoPage() {
         {/* Vehicle Data Tab */}
         <TabsContent value="data" className="p-4 space-y-4">
           {/* Registration Document */}
+          <div className="mb-2">
+            <h3 className="text-sm font-medium text-foreground">รูปรายการจดทะเบียนรถ</h3>
+          </div>
           <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
             {registrationPhoto ? (
               <img 
