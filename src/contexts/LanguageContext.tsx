@@ -243,6 +243,14 @@ const thTranslations: Record<string, string> = {
   'product.product_types': 'ประเภทสินค้า',
   'product.top_5': '5 อันดับสูงสุด',
   'product.jobs': 'งาน',
+
+  // Date Filter
+  'dateFilter.title': 'กรองตามช่วงวันที่',
+  'dateFilter.startDate': 'วันที่เริ่มต้น',
+  'dateFilter.endDate': 'วันที่สิ้นสุด',
+  'dateFilter.apply': 'ค้นหา',
+  'dateFilter.clear': 'ล้างค่า',
+  'dateFilter.selectDate': 'เลือกวันที่',
   
   // Search Page
   'search.title': 'ค้นหา',
@@ -586,6 +594,14 @@ const enTranslations: Record<string, string> = {
   'product.product_types': 'Product Types',
   'product.top_5': 'Top 5',
   'product.jobs': 'jobs',
+
+  // Date Filter
+  'dateFilter.title': 'Filter by Date Range',
+  'dateFilter.startDate': 'Start Date',
+  'dateFilter.endDate': 'End Date',
+  'dateFilter.apply': 'Apply',
+  'dateFilter.clear': 'Clear',
+  'dateFilter.selectDate': 'Select date',
   
   // Search Page
   'search.title': 'Search',
