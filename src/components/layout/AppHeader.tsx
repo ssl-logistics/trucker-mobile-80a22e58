@@ -46,7 +46,7 @@ export function AppHeader({
         <div className="relative z-10 p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Avatar className="w-12 h-12 border-2 border-white/20">
+              <Avatar className="w-12 h-12 border-2 border-white/20" key={profilePhoto}>
                 <AvatarImage src={profilePhoto} alt={userName} />
                 <AvatarFallback className="bg-white/20 text-white text-lg">
                   {userName?.charAt(0) || "👤"}
