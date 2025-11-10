@@ -184,8 +184,8 @@ export default function Home() {
         <AppHeader 
           userName={profile?.full_name} 
           profilePhoto={
-            profile?.vehicle_photo_url || profile?.avatar_url 
-              ? `${profile?.vehicle_photo_url || profile?.avatar_url}?t=${profile?.avatar_timestamp || Date.now()}`
+            profile?.avatar_url || profile?.vehicle_photo_url
+              ? `${profile?.avatar_url || profile?.vehicle_photo_url}?t=${profile?.avatar_timestamp || Date.now()}`
               : undefined
           } 
           onSignOut={handleSignOut} 
