@@ -29,6 +29,7 @@ interface Profile {
   full_name: string;
   avatar_url?: string;
   vehicle_photo_url?: string;
+  avatar_timestamp?: number;
 }
 export default function Home() {
   const navigate = useNavigate();
@@ -141,7 +142,8 @@ export default function Home() {
     
     setProfile({
       ...profileData,
-      vehicle_photo_url: vehiclePhotoUrl
+      vehicle_photo_url: vehiclePhotoUrl,
+      avatar_timestamp: Date.now()
     });
   };
   const handleAcceptJob = (job: Job) => {
@@ -183,7 +185,7 @@ export default function Home() {
           userName={profile?.full_name} 
           profilePhoto={
             profile?.vehicle_photo_url || profile?.avatar_url 
-              ? `${profile?.vehicle_photo_url || profile?.avatar_url}?t=${Date.now()}`
+              ? `${profile?.vehicle_photo_url || profile?.avatar_url}?t=${profile?.avatar_timestamp || Date.now()}`
               : undefined
           } 
           onSignOut={handleSignOut} 
