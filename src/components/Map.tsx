@@ -1,20 +1,6 @@
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
-
-// Fix default marker icon issue with webpack
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-let DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
+import 'leaflet/dist/leaflet.css';
 
 interface MapProps {
   latitude: number;
@@ -23,25 +9,53 @@ interface MapProps {
 }
 
 const Map: React.FC<MapProps> = ({ latitude, longitude, markerLabel }) => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<L.Map | null>(null);
+
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    // Initialize map
+    map.current = L.map(mapContainer.current).setView([latitude, longitude], 15);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map.current);
+
+    // Create custom marker icon
+    const customIcon = L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
+    // Add marker
+    const marker = L.marker([latitude, longitude], { icon: customIcon }).addTo(map.current);
+
+    if (markerLabel) {
+      marker.bindPopup(`<div class="p-2 font-medium">${markerLabel}</div>`);
+    }
+
+    // Cleanup
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, [latitude, longitude, markerLabel]);
+
   return (
-    <MapContainer
-      center={[latitude, longitude]}
-      zoom={15}
-      style={{ height: '192px', width: '100%', borderRadius: '0.5rem' }}
-      scrollWheelZoom={false}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={[latitude, longitude]}>
-        {markerLabel && (
-          <Popup>
-            <div className="p-1 font-medium">{markerLabel}</div>
-          </Popup>
-        )}
-      </Marker>
-    </MapContainer>
+    <div 
+      ref={mapContainer} 
+      className="w-full h-48 rounded-lg"
+      style={{ zIndex: 0 }}
+    />
   );
 };
 
