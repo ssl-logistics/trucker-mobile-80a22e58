@@ -47,6 +47,27 @@ export default function Home() {
   useEffect(() => {
     if (user) {
       loadProfile();
+      
+      // Subscribe to profile changes for real-time updates
+      const channel = supabase
+        .channel('profile-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
+          },
+          () => {
+            loadProfile();
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
   const loadJobs = async () => {
