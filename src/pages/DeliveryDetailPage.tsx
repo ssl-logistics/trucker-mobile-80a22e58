@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
+import Map from "@/components/Map";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,8 @@ interface JobDetail {
   destination_location: string;
   start_date: string;
   start_time: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface JobApplication {
@@ -80,7 +83,21 @@ export default function DeliveryDetailPage() {
       });
       navigate("/current-jobs");
     } else {
-      setJob(data);
+      // Mock latitude/longitude for delivery locations
+      const mockCoordinates = {
+        'SAM001': { lat: 13.5990, lng: 100.5998 }, // Samut Prakan
+        'BKK002': { lat: 13.7878, lng: 100.5332 }, // Chatuchak
+        'BKK003': { lat: 13.7245, lng: 100.4930 }, // Silom
+      };
+      
+      const coords = mockCoordinates['SAM001' as keyof typeof mockCoordinates] || 
+                     { lat: 13.5990, lng: 100.5998 };
+      
+      setJob({
+        ...data,
+        latitude: coords.lat,
+        longitude: coords.lng
+      });
     }
 
     // Load job application status
@@ -389,13 +406,21 @@ export default function DeliveryDetailPage() {
           <div className="text-base">ที่อยู่ 55/5 ช.ลาดพร้าว 101 แขวงคลองจั่น คณ.</div>
         </div>
 
-        {/* Map Placeholder */}
-        <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
-          <div className="text-center">
-            <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">แผนที่</p>
+        {/* Map */}
+        {job.latitude && job.longitude ? (
+          <Map 
+            latitude={job.latitude} 
+            longitude={job.longitude}
+            markerLabel={job.destination_location}
+          />
+        ) : (
+          <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">แผนที่</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Product Type */}
         <div>
