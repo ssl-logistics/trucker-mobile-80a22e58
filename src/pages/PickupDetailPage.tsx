@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
+import Map from '@/components/Map';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,8 @@ interface JobDetail {
   origin_location: string;
   start_date: string;
   start_time: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export default function PickupDetailPage() {
@@ -56,7 +59,21 @@ export default function PickupDetailPage() {
       });
       navigate('/current-jobs');
     } else {
-      setJob(data);
+      // Mock latitude/longitude for each order
+      const mockCoordinates = {
+        'BKK001': { lat: 13.7563, lng: 100.5018 }, // Bangkok
+        'BKK002': { lat: 13.7878, lng: 100.5332 }, // Chatuchak
+        'BKK003': { lat: 13.7245, lng: 100.4930 }, // Silom
+      };
+      
+      const coords = mockCoordinates['BKK001' as keyof typeof mockCoordinates] || 
+                     { lat: 13.7563, lng: 100.5018 };
+      
+      setJob({
+        ...data,
+        latitude: coords.lat,
+        longitude: coords.lng
+      });
     }
     setLoading(false);
   };
@@ -136,12 +153,20 @@ export default function PickupDetailPage() {
           <div className="text-base">55/5 ซ.ลาดพร้าว 101 แขวงคลองจั่น กทม.</div>
         </div>
 
-        <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
-          <div className="text-center">
-            <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">{t('pickup.map')}</p>
+        {job.latitude && job.longitude ? (
+          <Map 
+            latitude={job.latitude} 
+            longitude={job.longitude}
+            markerLabel={job.origin_location}
+          />
+        ) : (
+          <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">{t('pickup.map')}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.productType')}</div>
