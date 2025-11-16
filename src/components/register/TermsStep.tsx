@@ -20,8 +20,8 @@ const TermsStep = ({ onNext }: TermsStepProps) => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)]">
-      <div className="text-center mb-6">
+    <div className="flex flex-col max-h-[calc(100vh-200px)]">
+      <div className="text-center mb-6 flex-shrink-0">
         <h2 className="text-xl font-bold text-foreground mb-2">
           Truckers นโยบายความเป็นส่วนตัวของผู้ขับรถ
         </h2>
@@ -31,8 +31,9 @@ const TermsStep = ({ onNext }: TermsStepProps) => {
       </div>
 
       <div 
-        className="flex-1 overflow-y-auto space-y-6 text-sm text-foreground mb-6"
+        className="flex-1 overflow-y-auto space-y-6 text-sm text-foreground mb-6 pr-2"
         onScroll={handleScroll}
+        style={{ maxHeight: 'calc(100vh - 350px)' }}
       >
         <section>
           <h3 className="font-semibold mb-2">ข้อมูลที่เรารวบรวม</h3>
@@ -102,7 +103,7 @@ const TermsStep = ({ onNext }: TermsStepProps) => {
         <div className="h-20" />
       </div>
 
-      <div className="pt-4 border-t">
+      <div className="flex-shrink-0 pt-4 border-t border-border">
         <Button
           onClick={handleAccept}
           disabled={!canAccept}
@@ -110,6 +111,11 @@ const TermsStep = ({ onNext }: TermsStepProps) => {
         >
           {canAccept ? "ยอมรับ" : "เลื่อนลงจนสุดเพื่อดำเนินการต่อ"}
         </Button>
+        {!canAccept && (
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            กรุณาเลื่อนอ่านข้อกำหนดจนจบเพื่อดำเนินการต่อ
+          </p>
+        )}
       </div>
     </div>
   );
