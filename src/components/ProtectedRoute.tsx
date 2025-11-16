@@ -8,6 +8,13 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
+  // 🚧 DEV MODE: ปิด auth ชั่วคราวเพื่อพัฒนา
+  const DEV_MODE = true; // เปลี่ยนเป็น false เมื่อจะใช้งานจริง
+
+  if (DEV_MODE) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
