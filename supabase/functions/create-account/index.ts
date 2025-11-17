@@ -233,6 +233,22 @@ serve(async (req) => {
 
     console.log('Profile created/updated successfully');
 
+    // Assign company role
+    console.log('Assigning company role...');
+    const { error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .insert({
+        user_id: userId,
+        role: 'company'
+      });
+
+    if (roleError) {
+      console.error('Role assignment error:', roleError);
+      // Note: We continue even if role assignment fails to avoid blocking account creation
+    } else {
+      console.log('Company role assigned successfully');
+    }
+
     // Insert bank info if provided
     if (data.bankName && data.bankAccountName && data.bankAccountNumber) {
       console.log('Adding bank account information...');
