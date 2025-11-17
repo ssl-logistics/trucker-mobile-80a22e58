@@ -12,6 +12,7 @@ interface CreateAccountRequest {
   lastName: string;
   phone: string;
   email: string;
+  password: string;
   avatarUrl?: string;
   vehicleId?: string;
   bankName?: string;
@@ -48,6 +49,9 @@ const validateInput = (data: CreateAccountRequest): string | null => {
   }
   if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return 'Invalid email format';
+  }
+  if (!data.password || data.password.length < 6) {
+    return 'password must be at least 6 characters';
   }
   return null;
 };
@@ -105,6 +109,7 @@ serve(async (req) => {
     // Create user account in Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
+      password: data.password,
       phone: normalizedPhone,
       email_confirm: true,
       phone_confirm: true,
