@@ -68,7 +68,20 @@ serve(async (req) => {
     
     console.log('=== Received Create Account Request ===');
     console.log('Timestamp:', new Date().toISOString());
-    console.log('Data:', JSON.stringify(data, null, 2));
+    
+    // Log sanitized data (without password for security)
+    const sanitizedData = {
+      ...data,
+      password: `[${data.password.length} characters]`,
+      passwordValidation: {
+        length: data.password.length,
+        hasMinLength: data.password.length >= 6,
+        hasUpperCase: /[A-Z]/.test(data.password),
+        hasLowerCase: /[a-z]/.test(data.password),
+        hasNumber: /[0-9]/.test(data.password)
+      }
+    };
+    console.log('Request Data:', JSON.stringify(sanitizedData, null, 2));
     
     // Validate input
     const validationError = validateInput(data);
@@ -107,6 +120,9 @@ serve(async (req) => {
     );
 
     // Create user account in Supabase Auth
+    console.log('Creating user with email:', data.email);
+    console.log('Password length:', data.password.length, 'characters');
+    
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
@@ -121,6 +137,7 @@ serve(async (req) => {
 
     if (authError) {
       console.error('Auth error:', authError);
+      console.error('Failed to create user with email:', data.email);
       return new Response(
         JSON.stringify({
           status: 'error',
@@ -138,7 +155,10 @@ serve(async (req) => {
     }
 
     const userId = authData.user.id;
-    console.log('Created user with ID:', userId);
+    console.log('✅ User created successfully');
+    console.log('User ID:', userId);
+    console.log('Email:', authData.user?.email);
+    console.log('Password set: YES (length:', data.password.length, 'chars)');
 
     // Check if profile already exists (shouldn't happen, but handle it gracefully)
     const { data: existingProfile } = await supabaseAdmin
