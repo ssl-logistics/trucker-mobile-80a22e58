@@ -19,6 +19,23 @@ interface CreateAccountRequest {
   bankAccountNumber?: string;
 }
 
+const normalizePhoneNumber = (phone: string): string => {
+  // Remove all non-digit characters
+  let cleaned = phone.replace(/\D/g, '');
+  
+  // If starts with 0, replace with 66 (Thailand)
+  if (cleaned.startsWith('0')) {
+    cleaned = '66' + cleaned.substring(1);
+  }
+  
+  // If doesn't start with country code, assume Thailand (+66)
+  if (!cleaned.startsWith('66')) {
+    cleaned = '66' + cleaned;
+  }
+  
+  return '+' + cleaned;
+};
+
 const validateInput = (data: CreateAccountRequest): string | null => {
   if (!data.firstName || data.firstName.trim() === '') {
     return 'firstName is required';
@@ -26,12 +43,8 @@ const validateInput = (data: CreateAccountRequest): string | null => {
   if (!data.lastName || data.lastName.trim() === '') {
     return 'lastName is required';
   }
-  if (!data.phone || data.phone.length < 10) {
-    return 'phone must be at least 10 digits';
-  }
-  // Validate E.164 phone format (+66xxxxxxxxx)
-  if (!data.phone.startsWith('+')) {
-    return 'phone must be in E.164 format (e.g., +66825940196)';
+  if (!data.phone || data.phone.replace(/\D/g, '').length < 9) {
+    return 'phone must be at least 9 digits';
   }
   if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return 'Invalid email format';
@@ -72,6 +85,10 @@ serve(async (req) => {
         }
       );
     }
+
+    // Normalize phone number to E.164 format
+    const normalizedPhone = normalizePhoneNumber(data.phone);
+    console.log('Normalized phone:', normalizedPhone);
 
     // Initialize Supabase Admin client
     const supabaseAdmin = createClient(
@@ -129,7 +146,7 @@ serve(async (req) => {
     // Create user account in Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
-      phone: data.phone,
+      phone: normalizedPhone,
       email_confirm: true,
       phone_confirm: true,
       user_metadata: {
@@ -175,7 +192,7 @@ serve(async (req) => {
         .from('profiles')
         .update({
           full_name: `${data.firstName} ${data.lastName}`,
-          phone_number: data.phone,
+          phone_number: normalizedPhone,
           avatar_url: data.avatarUrl || null,
           updated_at: new Date().toISOString(),
         })
@@ -188,7 +205,7 @@ serve(async (req) => {
         .insert({
           id: userId,
           full_name: `${data.firstName} ${data.lastName}`,
-          phone_number: data.phone,
+          phone_number: normalizedPhone,
           avatar_url: data.avatarUrl || null,
         });
       profileError = error;
