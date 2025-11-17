@@ -12,13 +12,11 @@ interface CreateAccountRequest {
   lastName: string;
   phone: string;
   email: string;
-  profileImage?: string;
-  assignedCarId?: string;
-  bankInfo?: {
-    bankName: string;
-    accountName: string;
-    accountNumber: string;
-  };
+  avatarUrl?: string;
+  vehicleId?: string;
+  bankName?: string;
+  bankAccountName?: string;
+  bankAccountNumber?: string;
 }
 
 const validateInput = (data: CreateAccountRequest): string | null => {
@@ -30,6 +28,10 @@ const validateInput = (data: CreateAccountRequest): string | null => {
   }
   if (!data.phone || data.phone.length < 10) {
     return 'phone must be at least 10 digits';
+  }
+  // Validate E.164 phone format (+66xxxxxxxxx)
+  if (!data.phone.startsWith('+')) {
+    return 'phone must be in E.164 format (e.g., +66825940196)';
   }
   if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return 'Invalid email format';
@@ -83,6 +85,47 @@ serve(async (req) => {
       }
     );
 
+    // Check if email already exists
+    console.log('Checking if email already exists:', data.email);
+    const { data: existingUser, error: checkError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (checkError) {
+      console.error('Error checking existing users:', checkError);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Failed to check existing users',
+          details: checkError.message
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    const emailExists = existingUser?.users.some(user => user.email === data.email);
+    if (emailExists) {
+      console.log('Email already exists:', data.email);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Email already exists',
+          details: 'A user with this email address has already been registered'
+        }),
+        {
+          status: 409,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
     // Create user account in Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
@@ -116,15 +159,40 @@ serve(async (req) => {
     const userId = authData.user.id;
     console.log('Created user with ID:', userId);
 
-    // Insert profile data
-    const { error: profileError } = await supabaseAdmin
+    // Check if profile already exists (shouldn't happen, but handle it gracefully)
+    const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
-      .insert({
-        id: userId,
-        full_name: `${data.firstName} ${data.lastName}`,
-        phone_number: data.phone,
-        avatar_url: data.profileImage || null,
-      });
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    let profileError = null;
+
+    if (existingProfile) {
+      console.log('Profile already exists, updating instead...');
+      // Update existing profile
+      const { error } = await supabaseAdmin
+        .from('profiles')
+        .update({
+          full_name: `${data.firstName} ${data.lastName}`,
+          phone_number: data.phone,
+          avatar_url: data.avatarUrl || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+      profileError = error;
+    } else {
+      // Insert new profile
+      const { error } = await supabaseAdmin
+        .from('profiles')
+        .insert({
+          id: userId,
+          full_name: `${data.firstName} ${data.lastName}`,
+          phone_number: data.phone,
+          avatar_url: data.avatarUrl || null,
+        });
+      profileError = error;
+    }
 
     if (profileError) {
       console.error('Profile error:', profileError);
@@ -146,33 +214,67 @@ serve(async (req) => {
       );
     }
 
-    // Insert bank info if provided
-    if (data.bankInfo) {
-      const { error: bankError } = await supabaseAdmin
-        .from('bank_accounts')
-        .insert({
-          user_id: userId,
-          bank_name: data.bankInfo.bankName,
-          account_name: data.bankInfo.accountName,
-          account_number: data.bankInfo.accountNumber,
-        });
+    console.log('Profile created/updated successfully');
 
-      if (bankError) {
-        console.error('Bank info error:', bankError);
-        // Continue anyway, bank info is optional
+    // Insert bank info if provided
+    if (data.bankName && data.bankAccountName && data.bankAccountNumber) {
+      console.log('Adding bank account information...');
+      
+      // Check if bank account already exists
+      const { data: existingBank } = await supabaseAdmin
+        .from('bank_accounts')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+
+      if (existingBank) {
+        // Update existing bank account
+        const { error: bankError } = await supabaseAdmin
+          .from('bank_accounts')
+          .update({
+            bank_name: data.bankName,
+            account_name: data.bankAccountName,
+            account_number: data.bankAccountNumber,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId);
+
+        if (bankError) {
+          console.error('Bank account update error:', bankError);
+        } else {
+          console.log('Bank account updated successfully');
+        }
+      } else {
+        // Insert new bank account
+        const { error: bankError } = await supabaseAdmin
+          .from('bank_accounts')
+          .insert({
+            user_id: userId,
+            bank_name: data.bankName,
+            account_name: data.bankAccountName,
+            account_number: data.bankAccountNumber,
+          });
+
+        if (bankError) {
+          console.error('Bank account insert error:', bankError);
+        } else {
+          console.log('Bank account created successfully');
+        }
       }
     }
 
     // Assign vehicle if provided
-    if (data.assignedCarId) {
+    if (data.vehicleId) {
+      console.log('Assigning vehicle:', data.vehicleId);
       const { error: vehicleError } = await supabaseAdmin
         .from('vehicles')
         .update({ driver_id: userId })
-        .eq('id', data.assignedCarId);
+        .eq('id', data.vehicleId);
 
       if (vehicleError) {
         console.error('Vehicle assignment error:', vehicleError);
-        // Continue anyway, vehicle assignment is optional
+      } else {
+        console.log('Vehicle assigned successfully');
       }
     }
 
