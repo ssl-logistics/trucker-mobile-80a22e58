@@ -275,6 +275,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          assigned_role: Database["public"]["Enums"]["app_role"] | null
           container_checkpoint: string | null
           container_checkpoint_code: string | null
           container_number: string | null
@@ -311,6 +312,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_role?: Database["public"]["Enums"]["app_role"] | null
           container_checkpoint?: string | null
           container_checkpoint_code?: string | null
           container_number?: string | null
@@ -347,6 +349,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_role?: Database["public"]["Enums"]["app_role"] | null
           container_checkpoint?: string | null
           container_checkpoint_code?: string | null
           container_number?: string | null
@@ -521,6 +524,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       vehicle_photos: {
         Row: {
           created_at: string
@@ -624,10 +648,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "freelance" | "company" | "factory"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -754,6 +788,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["freelance", "company", "factory"],
+    },
   },
 } as const
