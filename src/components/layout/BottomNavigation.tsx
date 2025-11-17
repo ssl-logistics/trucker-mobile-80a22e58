@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
 import DashboardIcon from "@/assets/dashboard-icon.svg";
@@ -13,6 +14,7 @@ export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
+  const { isFreelance } = useUserRole();
   const isActive = (path: string) => location.pathname === path;
   return (
     <nav
@@ -36,6 +38,7 @@ export function BottomNavigation() {
             path: "/dashboard",
             customIcon: DashboardIcon,
             customActiveIcon: DashboardIconActive,
+            showForFreelanceOnly: true,
           },
           {
             icon: MessageCircle,
@@ -51,7 +54,9 @@ export function BottomNavigation() {
             customIcon: SettingsIcon,
             customActiveIcon: SettingsIconActive,
           },
-        ].map((item) => (
+        ]
+        .filter((item) => !item.showForFreelanceOnly || isFreelance)
+        .map((item) => (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}

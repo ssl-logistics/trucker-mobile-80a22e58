@@ -3,6 +3,7 @@ import { Bell, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +33,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { isFreelance } = useUserRole();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   
   const getDayName = () => {
@@ -82,7 +84,8 @@ export function AppHeader({
         }, {
           icon: biddingIcon,
           labelKey: "home.bidding",
-          path: "/bidding"
+          path: "/bidding",
+          showForFreelanceOnly: true
         }, {
           icon: incomeIcon,
           labelKey: "home.income",
@@ -91,7 +94,9 @@ export function AppHeader({
           icon: jobHistoryIcon,
           labelKey: "home.job_history",
           path: "/job-history"
-        }].map(item => <button key={item.labelKey} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
+        }]
+        .filter(item => !item.showForFreelanceOnly || isFreelance)
+        .map(item => <button key={item.labelKey} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
                 <div className="w-16 h-16 flex items-center justify-center">
                   <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" />
                 </div>
