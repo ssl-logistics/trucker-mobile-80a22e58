@@ -18,6 +18,7 @@ interface CreateAccountRequest {
   bankName?: string;
   bankAccountName?: string;
   bankAccountNumber?: string;
+  role?: 'freelance' | 'company' | 'factory';
 }
 
 const normalizePhoneNumber = (phone: string): string => {
@@ -217,20 +218,21 @@ serve(async (req) => {
 
     console.log('Profile created/updated successfully');
 
-    // Assign company role
-    console.log('Assigning company role...');
+    // Assign role (default to company if not specified)
+    const userRole = data.role || 'company';
+    console.log(`Assigning ${userRole} role...`);
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
         user_id: userId,
-        role: 'company'
+        role: userRole
       });
 
     if (roleError) {
       console.error('Role assignment error:', roleError);
       // Note: We continue even if role assignment fails to avoid blocking account creation
     } else {
-      console.log('Company role assigned successfully');
+      console.log(`${userRole} role assigned successfully`);
     }
 
     // Insert bank info if provided
