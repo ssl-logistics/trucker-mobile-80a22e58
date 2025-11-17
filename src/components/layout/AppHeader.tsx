@@ -75,7 +75,7 @@ export function AppHeader({
       {showQuickMenu && <div className="pb-2" style={{
       background: "linear-gradient(180deg, #F5FAFF 74.22%, #E1EBF7 100%)"
     }}>
-          <div className="flex justify-center gap-3 p-4">
+          <div className="flex justify-evenly px-4 py-4">
             {/* Quick menu section with its own padding */}
             {[{
           icon: currentJobIcon,
