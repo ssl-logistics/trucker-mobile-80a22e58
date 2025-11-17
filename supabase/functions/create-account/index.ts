@@ -102,47 +102,6 @@ serve(async (req) => {
       }
     );
 
-    // Check if email already exists
-    console.log('Checking if email already exists:', data.email);
-    const { data: existingUser, error: checkError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (checkError) {
-      console.error('Error checking existing users:', checkError);
-      return new Response(
-        JSON.stringify({
-          status: 'error',
-          message: 'Failed to check existing users',
-          details: checkError.message
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-    }
-
-    const emailExists = existingUser?.users.some(user => user.email === data.email);
-    if (emailExists) {
-      console.log('Email already exists:', data.email);
-      return new Response(
-        JSON.stringify({
-          status: 'error',
-          message: 'Email already exists',
-          details: 'A user with this email address has already been registered'
-        }),
-        {
-          status: 409,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-    }
-
     // Create user account in Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
