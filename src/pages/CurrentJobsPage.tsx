@@ -16,6 +16,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 interface JobApplication {
   job_id: string;
   status: string;
@@ -90,16 +91,7 @@ export default function CurrentJobsPage() {
     }
     setLoading(false);
   };
-  
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    const locale = language === 'th' ? 'th-TH' : 'en-US';
-    return d.toLocaleDateString(locale, {
-      day: 'numeric',
-      month: 'short',
-      year: '2-digit'
-    });
-  };
+
   const handleApplyFilter = () => {
     setFilterOpen(false);
     // Filter logic is applied in filteredApplications
@@ -199,7 +191,7 @@ export default function CurrentJobsPage() {
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" />
-                      {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}
+                      {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
                     </div>
                   </div>
 
@@ -254,7 +246,7 @@ export default function CurrentJobsPage() {
                           {t('currentJobs.startJobDate')}
                         </div>
                         <div className="text-xs font-medium">
-                          {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}
+                          {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
                         </div>
                       </div>
                     </div>
