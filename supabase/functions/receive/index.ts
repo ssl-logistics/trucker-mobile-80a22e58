@@ -27,6 +27,50 @@ serve(async (req) => {
     console.log('Timestamp:', new Date().toISOString());
     console.log('Data:', JSON.stringify(data, null, 2));
 
+    // Mapping for job_type (support both Thai and English)
+    const jobTypeMapping: Record<string, string> = {
+      'urgent': 'งานด่วน',
+      'daily': 'งานรายวัน',
+      'contract': 'งานสัญญาจ้าง',
+      'งานด่วน': 'งานด่วน',
+      'งานรายวัน': 'งานรายวัน',
+      'งานสัญญาจ้าง': 'งานสัญญาจ้าง'
+    };
+
+    // Mapping for transport_type (support both Thai and English)
+    const transportTypeMapping: Record<string, string> = {
+      'single': 'ขนส่งเที่ยวเดียว',
+      'single_trip': 'ขนส่งเที่ยวเดียว',
+      'multi': 'ขนส่งหลายที่',
+      'multiple': 'ขนส่งหลายที่',
+      'import': 'ขนส่งขาเข้า',
+      'inbound': 'ขนส่งขาเข้า',
+      'export': 'ขนส่งขาออก',
+      'outbound': 'ขนส่งขาออก',
+      'ขนส่งเที่ยวเดียว': 'ขนส่งเที่ยวเดียว',
+      'ขนส่งหลายที่': 'ขนส่งหลายที่',
+      'ขนส่งขาเข้า': 'ขนส่งขาเข้า',
+      'ขนส่งขาออก': 'ขนส่งขาออก'
+    };
+
+    // Auto-convert job_type if provided
+    if (data.job_type) {
+      const mappedJobType = jobTypeMapping[data.job_type.toLowerCase()];
+      if (mappedJobType) {
+        console.log(`Mapped job_type: ${data.job_type} -> ${mappedJobType}`);
+        data.job_type = mappedJobType;
+      }
+    }
+
+    // Auto-convert transport_type if provided
+    if (data.transport_type) {
+      const mappedTransportType = transportTypeMapping[data.transport_type.toLowerCase()];
+      if (mappedTransportType) {
+        console.log(`Mapped transport_type: ${data.transport_type} -> ${mappedTransportType}`);
+        data.transport_type = mappedTransportType;
+      }
+    }
+
     // Validate required fields
     const requiredFields = ['order_code', 'employer_name', 'job_type', 'transport_type', 
                            'origin_location', 'destination_location', 'price', 
@@ -57,8 +101,9 @@ serve(async (req) => {
           status: 'error',
           message: 'Invalid job_type value',
           received_value: data.job_type,
-          valid_values: validJobTypes,
-          note: 'job_type must be one of the valid Thai values'
+          valid_values_thai: validJobTypes,
+          valid_values_english: ['urgent', 'daily', 'contract'],
+          note: 'job_type can be in Thai or English. Auto-mapping is supported.'
         }),
         {
           status: 400,
@@ -76,8 +121,9 @@ serve(async (req) => {
           status: 'error',
           message: 'Invalid transport_type value',
           received_value: data.transport_type,
-          valid_values: validTransportTypes,
-          note: 'transport_type must be one of the valid Thai values'
+          valid_values_thai: validTransportTypes,
+          valid_values_english: ['single/single_trip', 'multi/multiple', 'import/inbound', 'export/outbound'],
+          note: 'transport_type can be in Thai or English. Auto-mapping is supported.'
         }),
         {
           status: 400,
