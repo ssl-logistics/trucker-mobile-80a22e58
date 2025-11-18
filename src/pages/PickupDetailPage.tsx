@@ -24,8 +24,8 @@ interface JobDetail {
   origin_location: string;
   start_date: string;
   start_time: string;
-  latitude?: number;
-  longitude?: number;
+  origin_latitude?: number;
+  origin_longitude?: number;
 }
 
 export default function PickupDetailPage() {
@@ -47,7 +47,7 @@ export default function PickupDetailPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('jobs')
-      .select('id, order_code, employer_name, origin_location, start_date, start_time')
+      .select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude')
       .eq('id', jobId)
       .single();
 
@@ -59,21 +59,7 @@ export default function PickupDetailPage() {
       });
       navigate('/current-jobs');
     } else {
-      // Mock latitude/longitude for each order
-      const mockCoordinates = {
-        'BKK001': { lat: 13.7563, lng: 100.5018 }, // Bangkok
-        'BKK002': { lat: 13.7878, lng: 100.5332 }, // Chatuchak
-        'BKK003': { lat: 13.7245, lng: 100.4930 }, // Silom
-      };
-      
-      const coords = mockCoordinates['BKK001' as keyof typeof mockCoordinates] || 
-                     { lat: 13.7563, lng: 100.5018 };
-      
-      setJob({
-        ...data,
-        latitude: coords.lat,
-        longitude: coords.lng
-      });
+      setJob(data);
     }
     setLoading(false);
   };
@@ -153,10 +139,10 @@ export default function PickupDetailPage() {
           <div className="text-base">55/5 ซ.ลาดพร้าว 101 แขวงคลองจั่น กทม.</div>
         </div>
 
-        {job.latitude && job.longitude ? (
+        {job.origin_latitude && job.origin_longitude ? (
           <Map 
-            latitude={job.latitude} 
-            longitude={job.longitude}
+            latitude={job.origin_latitude} 
+            longitude={job.origin_longitude}
             markerLabel={job.origin_location}
           />
         ) : (

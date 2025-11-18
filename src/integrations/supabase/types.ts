@@ -308,13 +308,17 @@ export type Database = {
           assigned_role: Database["public"]["Enums"]["app_role"] | null
           container_checkpoint: string | null
           container_checkpoint_code: string | null
+          container_checkpoint_latitude: number | null
+          container_checkpoint_longitude: number | null
           container_number: string | null
           created_at: string
           destination_bill_of_lading: string | null
           destination_contact_person: string | null
           destination_goods_quantity: string | null
           destination_goods_type: string | null
+          destination_latitude: number | null
           destination_location: string
+          destination_longitude: number | null
           destination_remarks: string | null
           destination_time: string | null
           district: string | null
@@ -329,7 +333,9 @@ export type Database = {
           origin_contact_role: string | null
           origin_goods_quantity: string | null
           origin_goods_type: string | null
+          origin_latitude: number | null
           origin_location: string
+          origin_longitude: number | null
           origin_remarks: string | null
           price: number
           province: string | null
@@ -345,13 +351,17 @@ export type Database = {
           assigned_role?: Database["public"]["Enums"]["app_role"] | null
           container_checkpoint?: string | null
           container_checkpoint_code?: string | null
+          container_checkpoint_latitude?: number | null
+          container_checkpoint_longitude?: number | null
           container_number?: string | null
           created_at?: string
           destination_bill_of_lading?: string | null
           destination_contact_person?: string | null
           destination_goods_quantity?: string | null
           destination_goods_type?: string | null
+          destination_latitude?: number | null
           destination_location: string
+          destination_longitude?: number | null
           destination_remarks?: string | null
           destination_time?: string | null
           district?: string | null
@@ -366,7 +376,9 @@ export type Database = {
           origin_contact_role?: string | null
           origin_goods_quantity?: string | null
           origin_goods_type?: string | null
+          origin_latitude?: number | null
           origin_location: string
+          origin_longitude?: number | null
           origin_remarks?: string | null
           price: number
           province?: string | null
@@ -382,13 +394,17 @@ export type Database = {
           assigned_role?: Database["public"]["Enums"]["app_role"] | null
           container_checkpoint?: string | null
           container_checkpoint_code?: string | null
+          container_checkpoint_latitude?: number | null
+          container_checkpoint_longitude?: number | null
           container_number?: string | null
           created_at?: string
           destination_bill_of_lading?: string | null
           destination_contact_person?: string | null
           destination_goods_quantity?: string | null
           destination_goods_type?: string | null
+          destination_latitude?: number | null
           destination_location?: string
+          destination_longitude?: number | null
           destination_remarks?: string | null
           destination_time?: string | null
           district?: string | null
@@ -403,7 +419,9 @@ export type Database = {
           origin_contact_role?: string | null
           origin_goods_quantity?: string | null
           origin_goods_type?: string | null
+          origin_latitude?: number | null
           origin_location?: string
+          origin_longitude?: number | null
           origin_remarks?: string | null
           price?: number
           province?: string | null
