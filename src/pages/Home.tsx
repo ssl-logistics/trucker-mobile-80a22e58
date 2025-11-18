@@ -71,6 +71,30 @@ export default function Home() {
       };
     }
   }, [user]);
+
+  // Subscribe to jobs table changes for real-time updates
+  useEffect(() => {
+    if (user) {
+      const jobsChannel = supabase
+        .channel('jobs-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'jobs'
+          },
+          () => {
+            loadJobs();
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        supabase.removeChannel(jobsChannel);
+      };
+    }
+  }, [user]);
   const loadJobs = async () => {
     const {
       data,
