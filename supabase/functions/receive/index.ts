@@ -152,6 +152,13 @@ serve(async (req) => {
       district: data.district || null,
       assigned_role: data.assigned_role || null,
       status: data.status || 'available',
+      // Location coordinates
+      origin_latitude: data.origin_latitude || null,
+      origin_longitude: data.origin_longitude || null,
+      destination_latitude: data.destination_latitude || null,
+      destination_longitude: data.destination_longitude || null,
+      container_checkpoint_latitude: data.container_checkpoint_latitude || null,
+      container_checkpoint_longitude: data.container_checkpoint_longitude || null,
       // International job fields
       empty_container_date: data.empty_container_date || null,
       destination_time: data.destination_time || null,
