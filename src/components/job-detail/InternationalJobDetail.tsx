@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
+import { formatDate } from '@/lib/dateUtils';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -48,7 +49,7 @@ export default function InternationalJobDetail({
   onUpdate
 }: InternationalJobDetailProps) {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const card1Ref = useRef<HTMLDivElement>(null);
   const card2Ref = useRef<HTMLDivElement>(null);
   const card3Ref = useRef<HTMLDivElement>(null);
@@ -70,14 +71,6 @@ export default function InternationalJobDetail({
       });
     }
   }, [jobApplication]);
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('th-TH', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
   const handleStartJob = async () => {
     const {
       error

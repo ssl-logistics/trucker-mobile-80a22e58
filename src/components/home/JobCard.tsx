@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDate } from '@/lib/dateUtils';
 
 interface Job {
   id: string;
@@ -27,12 +28,6 @@ interface JobCardProps {
 
 export const JobCard = ({ job, onAccept }: JobCardProps) => {
   const { t, language } = useLanguage();
-  
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    const locale = language === 'th' ? 'th-TH' : 'en-US';
-    return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: '2-digit' });
-  };
 
   // Determine if domestic or international based on transport_type
   const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
@@ -48,7 +43,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock className="w-3.5 h-3.5" />
-          {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}
+          {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
         </div>
       </div>
 
