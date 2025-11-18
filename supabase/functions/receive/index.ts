@@ -48,6 +48,44 @@ serve(async (req) => {
       );
     }
 
+    // Validate job_type
+    const validJobTypes = ['งานด่วน', 'งานรายวัน', 'งานสัญญาจ้าง'];
+    if (!validJobTypes.includes(data.job_type)) {
+      console.error('Invalid job_type:', data.job_type);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Invalid job_type value',
+          received_value: data.job_type,
+          valid_values: validJobTypes,
+          note: 'job_type must be one of the valid Thai values'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Validate transport_type
+    const validTransportTypes = ['ขนส่งเที่ยวเดียว', 'ขนส่งหลายที่', 'ขนส่งขาเข้า', 'ขนส่งขาออก'];
+    if (!validTransportTypes.includes(data.transport_type)) {
+      console.error('Invalid transport_type:', data.transport_type);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Invalid transport_type value',
+          received_value: data.transport_type,
+          valid_values: validTransportTypes,
+          note: 'transport_type must be one of the valid Thai values'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     // Prepare job data for insertion
     const jobData = {
       order_code: data.order_code,
