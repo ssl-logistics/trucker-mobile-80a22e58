@@ -174,20 +174,23 @@ serve(async (req) => {
       destination_remarks: data.destination_remarks || null,
     };
 
-    // Insert job into database
-    const { data: insertedJob, error: insertError } = await supabase
+    // Upsert job into database (insert or update if order_code exists)
+    const { data: upsertedJob, error: upsertError } = await supabase
       .from('jobs')
-      .insert(jobData)
+      .upsert(jobData, { 
+        onConflict: 'order_code',
+        ignoreDuplicates: false 
+      })
       .select()
       .single();
 
-    if (insertError) {
-      console.error('Database insert error:', insertError);
+    if (upsertError) {
+      console.error('Database upsert error:', upsertError);
       return new Response(
         JSON.stringify({
           status: 'error',
-          message: 'Failed to insert job into database',
-          error: insertError.message
+          message: 'Failed to upsert job into database',
+          error: upsertError.message
         }),
         {
           status: 500,
@@ -196,7 +199,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Successfully inserted job:', insertedJob.id);
+    console.log('Successfully upserted job:', upsertedJob.id);
     console.log('================================');
 
     // Return success response
@@ -204,8 +207,8 @@ serve(async (req) => {
       JSON.stringify({
         status: 'success',
         message: 'Job created successfully',
-        job_id: insertedJob.id,
-        order_code: insertedJob.order_code,
+        job_id: upsertedJob.id,
+        order_code: upsertedJob.order_code,
         timestamp: new Date().toISOString()
       }),
       {
