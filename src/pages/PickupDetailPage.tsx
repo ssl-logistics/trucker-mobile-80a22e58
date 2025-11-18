@@ -158,6 +158,7 @@ export default function PickupDetailPage() {
             latitude={job.origin_latitude} 
             longitude={job.origin_longitude}
             markerLabel={job.origin_location}
+            showRoute={true}
           />
         ) : (
           <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
