@@ -98,6 +98,20 @@ export default function PickupDetailPage() {
     return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  const openGoogleMaps = () => {
+    if (!job?.origin_latitude || !job?.origin_longitude) {
+      toast({
+        title: t('pickup.error'),
+        description: 'ไม่พบข้อมูลพิกัดสถานที่',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${job.origin_latitude},${job.origin_longitude}`;
+    window.open(url, '_blank');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -174,7 +188,11 @@ export default function PickupDetailPage() {
             <Phone className="w-5 h-5 mr-2" />
             {t('pickup.call')}
           </Button>
-          <Button variant="outline" className="w-full h-12 text-base">
+          <Button 
+            variant="outline" 
+            className="w-full h-12 text-base"
+            onClick={openGoogleMaps}
+          >
             <Navigation className="w-5 h-5 mr-2" />
             {t('pickup.route')}
           </Button>
