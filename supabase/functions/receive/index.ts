@@ -32,6 +32,7 @@ serve(async (req) => {
       'urgent': 'งานด่วน',
       'daily': 'งานรายวัน',
       'contract': 'งานสัญญาจ้าง',
+      'domestic': 'งานรายวัน',  // domestic -> daily job
       'งานด่วน': 'งานด่วน',
       'งานรายวัน': 'งานรายวัน',
       'งานสัญญาจ้าง': 'งานสัญญาจ้าง'
@@ -41,6 +42,8 @@ serve(async (req) => {
     const transportTypeMapping: Record<string, string> = {
       'single': 'ขนส่งเที่ยวเดียว',
       'single_trip': 'ขนส่งเที่ยวเดียว',
+      'one_way': 'ขนส่งเที่ยวเดียว',
+      'round_trip': 'ขนส่งเที่ยวเดียว',  // round trip also maps to single trip
       'multi': 'ขนส่งหลายที่',
       'multiple': 'ขนส่งหลายที่',
       'import': 'ขนส่งขาเข้า',
