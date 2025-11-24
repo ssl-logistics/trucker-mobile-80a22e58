@@ -26,6 +26,11 @@ interface JobDetail {
   start_time: string;
   origin_latitude?: number;
   origin_longitude?: number;
+  origin_contact_person?: string | null;
+  origin_contact_role?: string | null;
+  origin_goods_type?: string | null;
+  origin_goods_quantity?: string | null;
+  origin_remarks?: string | null;
 }
 
 export default function PickupDetailPage() {
@@ -47,7 +52,7 @@ export default function PickupDetailPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('jobs')
-      .select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude')
+      .select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude, origin_contact_person, origin_contact_role, origin_goods_type, origin_goods_quantity, origin_remarks')
       .eq('id', jobId)
       .single();
 
@@ -140,7 +145,10 @@ export default function PickupDetailPage() {
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.contactName')}</div>
-          <div className="text-base">คุณณัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)</div>
+          <div className="text-base">
+            {job.origin_contact_person || '-'}
+            {job.origin_contact_role && ` (${job.origin_contact_role})`}
+          </div>
         </div>
 
         <div>
@@ -171,7 +179,9 @@ export default function PickupDetailPage() {
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.productType')}</div>
-          <div className="text-base">น้ำตาล (30 กล่อง)</div>
+          <div className="text-base">
+            {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}
+          </div>
         </div>
 
         <div>
@@ -181,7 +191,7 @@ export default function PickupDetailPage() {
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.note')}</div>
-          <div className="text-base">เข้าสถานที่ต้องแสดงบัตรชิด</div>
+          <div className="text-base">{job.origin_remarks || '-'}</div>
         </div>
 
         <div className="space-y-3 pt-4">
