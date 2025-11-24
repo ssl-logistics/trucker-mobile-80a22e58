@@ -158,7 +158,7 @@ export default function PickupDetailPage() {
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.address')}</div>
-          <div className="text-base">55/5 ซ.ลาดพร้าว 101 แขวงคลองจั่น กทม.</div>
+          <div className="text-base">{job.origin_location || '-'}</div>
         </div>
 
         {job.origin_latitude && job.origin_longitude ? (
