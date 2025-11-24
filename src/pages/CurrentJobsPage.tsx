@@ -52,6 +52,27 @@ export default function CurrentJobsPage() {
   const [endDate, setEndDate] = useState<Date | undefined>();
   useEffect(() => {
     loadCurrentJobs();
+
+    // Real-time subscription for job applications changes
+    const channel = supabase
+      .channel('job-applications-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'job_applications'
+        },
+        () => {
+          console.log('Job applications changed, reloading...');
+          loadCurrentJobs();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
   const loadCurrentJobs = async () => {
     if (!user) return;
