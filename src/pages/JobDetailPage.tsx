@@ -61,6 +61,43 @@ export default function JobDetailPage() {
 
   useEffect(() => {
     loadJobDetail();
+
+    if (!jobId || !user) return;
+
+    // Real-time subscription for job changes
+    const jobChannel = supabase
+      .channel('job-detail-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'jobs',
+          filter: `id=eq.${jobId}`
+        },
+        () => {
+          console.log('Job changed, reloading...');
+          loadJobDetail();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'job_applications',
+          filter: `job_id=eq.${jobId}`
+        },
+        () => {
+          console.log('Job application changed, reloading...');
+          loadJobDetail();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(jobChannel);
+    };
   }, [jobId, user, location.key]);
 
   const loadJobDetail = async () => {
