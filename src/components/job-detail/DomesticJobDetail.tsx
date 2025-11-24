@@ -21,6 +21,16 @@ interface JobDetail {
   price: number;
   start_date: string;
   start_time: string;
+  origin_contact_person: string | null;
+  origin_contact_role: string | null;
+  origin_goods_type: string | null;
+  origin_goods_quantity: string | null;
+  origin_remarks: string | null;
+  destination_contact_person: string | null;
+  destination_goods_type: string | null;
+  destination_goods_quantity: string | null;
+  destination_remarks: string | null;
+  destination_time: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -207,15 +217,15 @@ export default function DomesticJobDetail({
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                      <span>: คุณณัฏฐพงศ์</span>
+                      <span>: {job.origin_contact_person || '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
-                      <span>: เจ้าหน้าที่คลังสินค้า</span>
+                      <span>: {job.origin_contact_role || '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                      <span>: น้ำตาล (10 กล่อง)</span>
+                      <span>: {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.pickupTime')}</span>
@@ -223,7 +233,7 @@ export default function DomesticJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                      <span>: เข้าสถานที่ต้องแสดงบัตรชิด</span>
+                      <span>: {job.origin_remarks || '-'}</span>
                     </div>
                   </div>
 
@@ -268,19 +278,19 @@ export default function DomesticJobDetail({
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                      <span>: คุณธงใบย</span>
+                      <span>: {job.destination_contact_person || '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                      <span>: น้ำตาล (10 กล่อง)</span>
+                      <span>: {job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
-                      <span>: {formatDate(job.start_date)} | 11:00</span>
+                      <span>: {formatDate(job.start_date)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                      <span>: -</span>
+                      <span>: {job.destination_remarks || '-'}</span>
                     </div>
                   </div>
 
