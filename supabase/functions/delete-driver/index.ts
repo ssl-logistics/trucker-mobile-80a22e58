@@ -1,23 +1,27 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, driverCode } = await req.json();
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    if (!email || !driverCode) {
+    const { email, driverCode } = await req.json();
+    console.log('🗑️ Deleting driver:', { email, driverCode });
+
+    if (!email) {
       return new Response(
         JSON.stringify({ 
-          error: 'Missing required fields: email and driverCode are required',
+          error: 'Missing required field: email is required',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -26,32 +30,18 @@ serve(async (req) => {
       );
     }
 
-    console.log('Processing delete driver request:', { email, driverCode });
-
-    // Create admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-
-    // Get user by email
-    const { data: { users }, error: getUserError } = await supabaseAdmin.auth.admin.listUsers();
+    // Get user by email and delete
+    const { data: userData, error: listError } = await supabase.auth.admin.listUsers();
     
-    if (getUserError) {
-      console.error('Error listing users:', getUserError);
-      throw new Error(`Failed to list users: ${getUserError.message}`);
+    if (listError) {
+      console.error('❌ Error listing users:', listError);
+      throw new Error(`Failed to list users: ${listError.message}`);
     }
 
-    const user = users.find(u => u.email === email);
+    const user = userData.users.find((u) => u.email === email);
     
     if (!user) {
-      console.log('User not found with email:', email);
+      console.log('⚠️ No auth user found for this email');
       return new Response(
         JSON.stringify({ 
           error: 'User not found with the provided email',
@@ -63,30 +53,15 @@ serve(async (req) => {
       );
     }
 
-    console.log('Found user:', user.id);
-
-    // Delete from internal_drivers table
-    const { error: deleteDriverError } = await supabaseAdmin
-      .from('internal_drivers')
-      .delete()
-      .eq('driver_code', driverCode);
-
-    if (deleteDriverError) {
-      console.error('Error deleting from internal_drivers:', deleteDriverError);
-      throw new Error(`Failed to delete driver data: ${deleteDriverError.message}`);
-    }
-
-    console.log('Deleted driver data for code:', driverCode);
-
     // Delete user account
-    const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
-
-    if (deleteUserError) {
-      console.error('Error deleting user account:', deleteUserError);
-      throw new Error(`Failed to delete user account: ${deleteUserError.message}`);
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
+    
+    if (deleteError) {
+      console.error('❌ Error deleting user account:', deleteError);
+      throw new Error(`Failed to delete user account: ${deleteError.message}`);
     }
 
-    console.log('Deleted user account:', user.id);
+    console.log('✅ Deleted auth user:', user.id);
 
     return new Response(
       JSON.stringify({ 
@@ -100,13 +75,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in delete-driver function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    console.error('❌ Error in delete-driver function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     
     return new Response(
       JSON.stringify({ 
         error: errorMessage,
-        details: error instanceof Error ? { stack: error.stack } : {}
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
