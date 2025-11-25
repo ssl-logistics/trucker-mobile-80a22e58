@@ -50,7 +50,6 @@ import TermsPage from "./pages/TermsPage";
 import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
 import ApiTestPage from "./pages/ApiTestPage";
-import ApiTestCompanyPage from "./pages/ApiTestCompanyPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -108,7 +107,6 @@ const App = () => (
           <Route path="/edit-vehicle-field" element={<ProtectedRoute><EditVehicleFieldPage /></ProtectedRoute>} />
           <Route path="/terms" element={<ProtectedRoute><TermsPage /></ProtectedRoute>} />
           <Route path="/api-test" element={<ProtectedRoute><ApiTestPage /></ProtectedRoute>} />
-          <Route path="/api-test-company" element={<ProtectedRoute><ApiTestCompanyPage /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
