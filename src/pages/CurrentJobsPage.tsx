@@ -4,6 +4,7 @@ import { ArrowLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon } 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -40,6 +41,7 @@ export default function CurrentJobsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { role } = useUserRole();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -102,12 +104,14 @@ export default function CurrentJobsPage() {
       ascending: false
     });
     if (error) {
+      console.error('Error loading current jobs:', error);
       toast({
         title: t('currentJobs.errorLoad'),
         description: t('currentJobs.errorLoadDesc'),
         variant: 'destructive'
       });
     } else {
+      console.log('Loaded current jobs for role:', role, 'Total applications:', data?.length);
       setApplications(data || []);
     }
     setLoading(false);
