@@ -1,0 +1,288 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.77.0';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Parse incoming JSON data
+    const data = await req.json();
+    
+    // Log received data to console
+    console.log('=== Received Company/Factory Job Data ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Data:', JSON.stringify(data, null, 2));
+
+    // Mapping for job_type (support both Thai and English)
+    const jobTypeMapping: Record<string, string> = {
+      'urgent': 'งานด่วน',
+      'daily': 'งานรายวัน',
+      'contract': 'งานสัญญาจ้าง',
+      'domestic': 'งานรายวัน',
+      'งานด่วน': 'งานด่วน',
+      'งานรายวัน': 'งานรายวัน',
+      'งานสัญญาจ้าง': 'งานสัญญาจ้าง'
+    };
+
+    // Mapping for transport_type (support both Thai and English)
+    const transportTypeMapping: Record<string, string> = {
+      'single': 'ขนส่งเที่ยวเดียว',
+      'single_trip': 'ขนส่งเที่ยวเดียว',
+      'one_way': 'ขนส่งเที่ยวเดียว',
+      'round_trip': 'ขนส่งเที่ยวเดียว',
+      'multi': 'ขนส่งหลายที่',
+      'multiple': 'ขนส่งหลายที่',
+      'import': 'ขนส่งขาเข้า',
+      'inbound': 'ขนส่งขาเข้า',
+      'export': 'ขนส่งขาออก',
+      'outbound': 'ขนส่งขาออก',
+      'ขนส่งเที่ยวเดียว': 'ขนส่งเที่ยวเดียว',
+      'ขนส่งหลายที่': 'ขนส่งหลายที่',
+      'ขนส่งขาเข้า': 'ขนส่งขาเข้า',
+      'ขนส่งขาออก': 'ขนส่งขาออก'
+    };
+
+    // Mapping for assigned_role (support both Thai and English)
+    const roleMapping: Record<string, string> = {
+      'company': 'company',
+      'factory': 'factory',
+      'บริษัท': 'company',
+      'โรงงาน': 'factory'
+    };
+
+    // Auto-convert job_type if provided
+    if (data.job_type) {
+      const mappedJobType = jobTypeMapping[data.job_type.toLowerCase()];
+      if (mappedJobType) {
+        console.log(`Mapped job_type: ${data.job_type} -> ${mappedJobType}`);
+        data.job_type = mappedJobType;
+      }
+    }
+
+    // Auto-convert transport_type if provided
+    if (data.transport_type) {
+      const mappedTransportType = transportTypeMapping[data.transport_type.toLowerCase()];
+      if (mappedTransportType) {
+        console.log(`Mapped transport_type: ${data.transport_type} -> ${mappedTransportType}`);
+        data.transport_type = mappedTransportType;
+      }
+    }
+
+    // Auto-convert assigned_role if provided, default to 'company'
+    let assignedRole = 'company'; // Default to company
+    if (data.assigned_role) {
+      const mappedRole = roleMapping[data.assigned_role.toLowerCase()];
+      if (mappedRole) {
+        console.log(`Mapped assigned_role: ${data.assigned_role} -> ${mappedRole}`);
+        assignedRole = mappedRole;
+      } else {
+        assignedRole = data.assigned_role;
+      }
+    }
+
+    // Validate required fields
+    const requiredFields = ['order_code', 'employer_name', 'job_type', 'transport_type', 
+                           'origin_location', 'destination_location', 'price', 
+                           'start_date', 'start_time'];
+    
+    const missingFields = requiredFields.filter(field => !data[field]);
+    if (missingFields.length > 0) {
+      console.error('Missing required fields:', missingFields);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Missing required fields',
+          missing_fields: missingFields
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Validate job_type
+    const validJobTypes = ['งานด่วน', 'งานรายวัน', 'งานสัญญาจ้าง'];
+    if (!validJobTypes.includes(data.job_type)) {
+      console.error('Invalid job_type:', data.job_type);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Invalid job_type value',
+          received_value: data.job_type,
+          valid_values_thai: validJobTypes,
+          valid_values_english: ['urgent', 'daily', 'contract'],
+          note: 'job_type can be in Thai or English. Auto-mapping is supported.'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Validate transport_type
+    const validTransportTypes = ['ขนส่งเที่ยวเดียว', 'ขนส่งหลายที่', 'ขนส่งขาเข้า', 'ขนส่งขาออก'];
+    if (!validTransportTypes.includes(data.transport_type)) {
+      console.error('Invalid transport_type:', data.transport_type);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Invalid transport_type value',
+          received_value: data.transport_type,
+          valid_values_thai: validTransportTypes,
+          valid_values_english: ['single/single_trip', 'multi/multiple', 'import/inbound', 'export/outbound'],
+          note: 'transport_type can be in Thai or English. Auto-mapping is supported.'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Validate assigned_role
+    const validRoles = ['company', 'factory'];
+    if (!validRoles.includes(assignedRole)) {
+      console.error('Invalid assigned_role:', assignedRole);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Invalid assigned_role value',
+          received_value: assignedRole,
+          valid_values: validRoles,
+          valid_values_thai: ['บริษัท', 'โรงงาน'],
+          note: 'assigned_role can be in Thai or English. Auto-mapping is supported. Defaults to "company" if not provided.'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Prepare job data for insertion
+    const jobData = {
+      order_code: data.order_code,
+      employer_name: data.employer_name,
+      job_type: data.job_type,
+      transport_type: data.transport_type,
+      origin_location: data.origin_location,
+      destination_location: data.destination_location,
+      price: data.price,
+      start_date: data.start_date,
+      start_time: data.start_time,
+      equipment_list: data.equipment_list || null,
+      safety_equipment: data.safety_equipment || null,
+      province: data.province || null,
+      district: data.district || null,
+      assigned_role: assignedRole,
+      status: data.status || 'available',
+      // Location coordinates
+      origin_latitude: data.origin_latitude || null,
+      origin_longitude: data.origin_longitude || null,
+      destination_latitude: data.destination_latitude || null,
+      destination_longitude: data.destination_longitude || null,
+      container_checkpoint_latitude: data.container_checkpoint_latitude || null,
+      container_checkpoint_longitude: data.container_checkpoint_longitude || null,
+      // International job fields
+      empty_container_date: data.empty_container_date || null,
+      destination_time: data.destination_time || null,
+      container_number: data.container_number || null,
+      seal_number: data.seal_number || null,
+      container_checkpoint: data.container_checkpoint || null,
+      container_checkpoint_code: data.container_checkpoint_code || null,
+      // Pickup details
+      origin_contact_person: data.origin_contact_person || null,
+      origin_contact_role: data.origin_contact_role || null,
+      origin_bill_of_lading: data.origin_bill_of_lading || null,
+      origin_goods_type: data.origin_goods_type || null,
+      origin_goods_quantity: data.origin_goods_quantity || null,
+      origin_remarks: data.origin_remarks || null,
+      // Delivery details
+      destination_contact_person: data.destination_contact_person || null,
+      destination_bill_of_lading: data.destination_bill_of_lading || null,
+      destination_goods_type: data.destination_goods_type || null,
+      destination_goods_quantity: data.destination_goods_quantity || null,
+      destination_remarks: data.destination_remarks || null,
+    };
+
+    // Upsert job into database (insert or update if order_code exists)
+    const { data: upsertedJob, error: upsertError } = await supabase
+      .from('jobs')
+      .upsert(jobData, { 
+        onConflict: 'order_code',
+        ignoreDuplicates: false 
+      })
+      .select()
+      .single();
+
+    if (upsertError) {
+      console.error('Database upsert error:', upsertError);
+      return new Response(
+        JSON.stringify({
+          status: 'error',
+          message: 'Failed to upsert job into database',
+          error: upsertError.message
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    console.log('Successfully upserted company/factory job:', upsertedJob.id);
+    console.log('Assigned Role:', upsertedJob.assigned_role);
+    console.log('================================');
+
+    // Return success response
+    return new Response(
+      JSON.stringify({
+        status: 'success',
+        message: 'Company/Factory job created successfully',
+        job_id: upsertedJob.id,
+        order_code: upsertedJob.order_code,
+        assigned_role: upsertedJob.assigned_role,
+        timestamp: new Date().toISOString()
+      }),
+      {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  } catch (error) {
+    console.error('Error processing request:', error);
+    
+    return new Response(
+      JSON.stringify({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }
+});
