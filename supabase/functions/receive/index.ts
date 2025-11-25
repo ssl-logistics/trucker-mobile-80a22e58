@@ -150,7 +150,7 @@ serve(async (req) => {
       safety_equipment: data.safety_equipment || null,
       province: data.province || null,
       district: data.district || null,
-      assigned_role: data.assigned_role || null,
+      assigned_role: data.assigned_role || 'freelance', // Default to freelance if not specified
       status: data.status || 'available',
       // Location coordinates
       origin_latitude: data.origin_latitude || null,
