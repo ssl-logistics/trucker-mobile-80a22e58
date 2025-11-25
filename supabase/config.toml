@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.delete-driver]
 verify_jwt = false
+
+[functions.receive-company-factory]
+verify_jwt = false
