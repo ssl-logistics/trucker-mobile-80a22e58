@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { role } = useUserRole();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -102,13 +104,16 @@ export default function Home() {
     } = await supabase.from('jobs').select('*').eq('status', 'available').order('created_at', {
       ascending: false
     });
+    
     if (error) {
+      console.error('Error loading jobs:', error);
       toast({
         title: t('home.error_load'),
         description: t('home.error_load_desc'),
         variant: 'destructive'
       });
     } else {
+      console.log('Loaded jobs for role:', role, 'Total jobs:', data?.length);
       // Check which jobs the user has accepted and completed
       if (user) {
         const { data: applications } = await supabase
