@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Edit2, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +53,7 @@ const vehicleTypes = ['รถหัวลาก', 'รถกระบะ', 'ร�
 export default function VehicleInfoPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('data');
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
@@ -86,8 +88,8 @@ export default function VehicleInfoPage() {
     } catch (error) {
       console.error('Error loading vehicle data:', error);
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลรถได้',
+        title: t('vehicle.errorLoad'),
+        description: t('vehicle.errorLoadDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -207,14 +209,14 @@ export default function VehicleInfoPage() {
       
       setIsVehiclePhotoDrawerOpen(false);
       toast({
-        title: 'อัพโหลดสำเร็จ',
-        description: 'รูปภาพถูกบันทึกเรียบร้อยแล้ว',
+        title: t('vehicle.uploadSuccess'),
+        description: t('vehicle.uploadSuccessDesc'),
       });
     } catch (error) {
       console.error('Error uploading photo:', error);
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถอัพโหลดรูปภาพได้',
+        title: t('vehicle.errorLoad'),
+        description: t('vehicle.uploadError'),
         variant: 'destructive',
       });
     }
@@ -271,14 +273,14 @@ export default function VehicleInfoPage() {
       
       setIsRegistrationDrawerOpen(false);
       toast({
-        title: 'อัพโหลดสำเร็จ',
-        description: 'รูปทะเบียนรถถูกบันทึกเรียบร้อยแล้ว',
+        title: t('vehicle.uploadSuccess'),
+        description: t('vehicle.registrationSuccessDesc'),
       });
     } catch (error) {
       console.error('Error uploading registration photo:', error);
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถอัพโหลดรูปภาพได้',
+        title: t('vehicle.errorLoad'),
+        description: t('vehicle.uploadError'),
         variant: 'destructive',
       });
     }
@@ -287,7 +289,7 @@ export default function VehicleInfoPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">กำลังโหลด...</div>
+        <div className="text-center">{t('vehicle.loading')}</div>
       </div>
     );
   }
@@ -295,7 +297,7 @@ export default function VehicleInfoPage() {
   if (!vehicleData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">ไม่พบข้อมูลรถ</div>
+        <div className="text-center">{t('vehicle.noData')}</div>
       </div>
     );
   }
@@ -307,17 +309,17 @@ export default function VehicleInfoPage() {
         <button onClick={() => navigate('/settings')} className="absolute left-0">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-semibold">ข้อมูลรถ</h1>
+        <h1 className="text-xl font-semibold">{t('vehicle.title')}</h1>
       </header>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
           <TabsTrigger value="data" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
-            ข้อมูลรถ
+            {t('vehicle.dataTab')}
           </TabsTrigger>
           <TabsTrigger value="photos" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
-            รูปรถ
+            {t('vehicle.photosTab')}
           </TabsTrigger>
         </TabsList>
 
@@ -325,7 +327,7 @@ export default function VehicleInfoPage() {
         <TabsContent value="data" className="p-4 space-y-4">
           {/* Registration Document */}
           <div className="mb-2">
-            <h3 className="text-sm font-medium text-foreground">รูปรายการจดทะเบียนรถ</h3>
+            <h3 className="text-sm font-medium text-foreground">{t('vehicle.registrationDoc')}</h3>
           </div>
           <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
             {registrationPhoto ? (
@@ -336,7 +338,7 @@ export default function VehicleInfoPage() {
                 key={`registration-${photoTimestamp}`}
               />
             ) : (
-              <span className="text-muted-foreground">กดที่นี่เพื่อดูรูป</span>
+              <span className="text-muted-foreground">{t('vehicle.clickToView')}</span>
             )}
             <Button 
               variant="ghost" 
@@ -352,7 +354,7 @@ export default function VehicleInfoPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">หมายเลขทะเบียนรถ</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.plateNumber')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.plate_number}</p>
               </div>
               <Button 
@@ -367,7 +369,7 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">จังหวัดจดทะเบียนรถ</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.plateProvince')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.plate_province}</p>
               </div>
               <Button 
@@ -382,7 +384,7 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">ยี่ห้อรถยนต์</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.brand')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_brand}</p>
               </div>
               <Button 
@@ -397,7 +399,7 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">สีรถยนต์</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.color')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
               </div>
               <Button 
@@ -412,7 +414,7 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">VIN</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.vin')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vin}</p>
               </div>
               <Button 
@@ -427,7 +429,7 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">ประเภทรถยนต์</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.type')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_type}</p>
               </div>
               <Button 
@@ -442,7 +444,7 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">ประเภทเชื้อเพลิง</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.fuelType')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.fuel_type}</p>
               </div>
               <Button 
@@ -457,7 +459,7 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">น้ำหนักบรรทุก (ตัน)</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.loadCapacity')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.load_capacity}</p>
               </div>
               <Button 
@@ -472,10 +474,10 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">ขนาดรถ</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.dimensions')}</Label>
                 <p className="text-base font-medium mt-1">
                   {vehicleData.width && vehicleData.length && vehicleData.height
-                    ? `กว้าง ${vehicleData.width} ม. × ยาว ${vehicleData.length} ม. × สูง ${vehicleData.height} ม.`
+                    ? `${t('vehicle.width')} ${vehicleData.width} ${t('vehicle.length')} ${vehicleData.length} ${t('vehicle.height')} ${vehicleData.height} ม.`
                     : 'ไม่ระบุ'}
                 </p>
               </div>
@@ -491,7 +493,7 @@ export default function VehicleInfoPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">ประเภทตู้คอนเทนเนอร์ที่รองรับ</Label>
+                <Label className="text-sm text-muted-foreground">{t('vehicle.containerTypes')}</Label>
                 <p className="text-base font-medium mt-1">
                   {vehicleData.container_types && vehicleData.container_types.length > 0
                     ? vehicleData.container_types
@@ -517,9 +519,9 @@ export default function VehicleInfoPage() {
           {['front', 'side', 'back'].map((photoType) => {
             const photo = getPhotoByType(photoType);
             const labels: Record<string, string> = {
-              front: 'รูปหน้ารถ',
-              side: 'รูปข้างรถ',
-              back: 'รูปหลังรถ',
+              front: t('vehicle.frontPhoto'),
+              side: t('vehicle.leftPhoto'),
+              back: t('vehicle.backPhoto'),
             };
 
             return (
@@ -548,12 +550,12 @@ export default function VehicleInfoPage() {
                         key={`${photoType}-${photoTimestamp}`}
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                        <span className="text-white text-lg font-medium drop-shadow-lg">กดที่นี่เพื่อดูรูป</span>
+                        <span className="text-white text-lg font-medium drop-shadow-lg">{t('vehicle.clickToView')}</span>
                       </div>
                     </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-muted-foreground text-lg">กดที่นี่เพื่อดูรูป</span>
+                      <span className="text-muted-foreground text-lg">{t('vehicle.clickToView')}</span>
                     </div>
                   )}
                   <Button
@@ -578,7 +580,7 @@ export default function VehicleInfoPage() {
       <Drawer open={isRegistrationDrawerOpen} onOpenChange={setIsRegistrationDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>เลือกวิธีการอัปโหลดรูป</DrawerTitle>
+            <DrawerTitle>{t('vehicle.selectPhoto')}</DrawerTitle>
           </DrawerHeader>
           <div className="p-4 space-y-3">
             <label className="block">
@@ -589,7 +591,7 @@ export default function VehicleInfoPage() {
               >
                 <div>
                   <Camera className="w-5 h-5" />
-                  <span>ถ่ายภาพ</span>
+                  <span>{t('vehicle.takePhoto')}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -612,7 +614,7 @@ export default function VehicleInfoPage() {
               >
                 <div>
                   <Image className="w-5 h-5" />
-                  <span>เลือกรูปจากแกลลอรี่</span>
+                  <span>{t('vehicle.chooseFromGallery')}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -633,7 +635,7 @@ export default function VehicleInfoPage() {
       <Drawer open={isVehiclePhotoDrawerOpen} onOpenChange={setIsVehiclePhotoDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>เลือกวิธีการอัปโหลดรูป</DrawerTitle>
+            <DrawerTitle>{t('vehicle.selectPhoto')}</DrawerTitle>
           </DrawerHeader>
           <div className="p-4 space-y-3">
             <label className="block">
@@ -644,7 +646,7 @@ export default function VehicleInfoPage() {
               >
                 <div>
                   <Camera className="w-5 h-5" />
-                  <span>ถ่ายภาพ</span>
+                  <span>{t('vehicle.takePhoto')}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -667,7 +669,7 @@ export default function VehicleInfoPage() {
               >
                 <div>
                   <Image className="w-5 h-5" />
-                  <span>เลือกรูปจากแกลลอรี่</span>
+                  <span>{t('vehicle.chooseFromGallery')}</span>
                   <input
                     type="file"
                     accept="image/*"
