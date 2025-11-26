@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,18 +13,12 @@ import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
 
 const vehicleBrands = ['Isuzu', 'Hino', 'Mitsubishi', 'Nissan', 'Mercedes-Benz', 'Volvo', 'Scania'];
-const fuelTypes = ['ดีเซล', 'เบนซิน', 'ไฟฟ้า', 'ไฮบริด'];
 const vehicleTypes = ['รถหัวลาก', 'รถกระบะ', 'รถบรรทุก 6 ล้อ', 'รถบรรทุก 10 ล้อ'];
-const containerTypeOptions = [
-  { value: '20ft', label: '20 ฟุต' },
-  { value: '40ft', label: '40 ฟุต' },
-  { value: '40ft_hc', label: '40 ฟุต High Cube' },
-  { value: 'reefer', label: 'ตู้เย็น (Reefer)' },
-];
 
 export default function EditVehicleFieldPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [searchParams] = useSearchParams();
   const field = searchParams.get('field');
   const [value, setValue] = useState('');
@@ -31,6 +26,14 @@ export default function EditVehicleFieldPage() {
   const [loading, setLoading] = useState(false);
   const [dimensions, setDimensions] = useState({ width: '', length: '', height: '' });
   const [containerTypes, setContainerTypes] = useState<string[]>([]);
+
+  const fuelTypes = [t('editVehicle.diesel'), t('editVehicle.gasoline'), t('editVehicle.electric'), t('editVehicle.hybrid')];
+  const containerTypeOptions = [
+    { value: '20ft', label: t('editVehicle.container20ft') },
+    { value: '40ft', label: t('editVehicle.container40ft') },
+    { value: '40ft_hc', label: t('editVehicle.container40ftHC') },
+    { value: 'reefer', label: t('editVehicle.containerReefer') },
+  ];
 
   const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
 
@@ -146,15 +149,15 @@ export default function EditVehicleFieldPage() {
       if (error) throw error;
 
       toast({
-        title: 'บันทึกสำเร็จ',
-        description: `${field}ถูกอัปเดตเรียบร้อยแล้ว`,
+        title: t('editVehicle.saveSuccess'),
+        description: t('editVehicle.saveSuccessMessage'),
       });
       navigate('/vehicle-info');
     } catch (error) {
       console.error('Error updating vehicle:', error);
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถบันทึกข้อมูลได้',
+        title: t('editVehicle.error'),
+        description: t('editVehicle.saveError'),
         variant: 'destructive',
       });
     } finally {
@@ -235,7 +238,7 @@ export default function EditVehicleFieldPage() {
               type="number"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="กรอกน้ำหนักบรรทุก"
+              placeholder={t('editVehicle.enterLoadCapacity')}
             />
             {value && (
               <button onClick={handleClear} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -248,30 +251,30 @@ export default function EditVehicleFieldPage() {
         return (
           <div className="space-y-4">
             <div>
-              <Label>กว้าง (ม.)</Label>
+              <Label>{t('editVehicle.width')}</Label>
               <Input
                 type="number"
                 value={dimensions.width}
                 onChange={(e) => setDimensions({ ...dimensions, width: e.target.value })}
-                placeholder="กรอกความกว้าง"
+                placeholder={t('editVehicle.enterWidth')}
               />
             </div>
             <div>
-              <Label>ยาว (ม.)</Label>
+              <Label>{t('editVehicle.length')}</Label>
               <Input
                 type="number"
                 value={dimensions.length}
                 onChange={(e) => setDimensions({ ...dimensions, length: e.target.value })}
-                placeholder="กรอกความยาว"
+                placeholder={t('editVehicle.enterLength')}
               />
             </div>
             <div>
-              <Label>สูง (ม.)</Label>
+              <Label>{t('editVehicle.height')}</Label>
               <Input
                 type="number"
                 value={dimensions.height}
                 onChange={(e) => setDimensions({ ...dimensions, height: e.target.value })}
-                placeholder="กรอกความสูง"
+                placeholder={t('editVehicle.enterHeight')}
               />
             </div>
           </div>
@@ -305,7 +308,7 @@ export default function EditVehicleFieldPage() {
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder={`กรอก${field}`}
+              placeholder={`${t('editVehicle.enter')}${field}`}
             />
             {value && (
               <button onClick={handleClear} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -348,7 +351,7 @@ export default function EditVehicleFieldPage() {
           disabled={!isValid() || loading}
           className="w-full"
         >
-          {loading ? 'กำลังบันทึก...' : 'บันทึก'}
+          {loading ? t('editVehicle.saving') : t('editVehicle.save')}
         </Button>
       </div>
     </div>
