@@ -825,6 +825,26 @@ const thTranslations: Record<string, string> = {
   'expense.portFee': 'ค่าเข้าท่าเรือ',
   'expense.parkingFee': 'ค่าที่จอด',
   
+  // Delivery Detail Page - Additional Keys
+  'delivery.deliveryTo': 'ส่งของถึง',
+  'delivery.employerName': 'หวค.ชัยน้ำตาล',
+  'delivery.podCompleted': 'POD สำเร็จ',
+  'delivery.contactPersonData': 'คุณธงใบย',
+  'delivery.routeData': 'SAM001 เมือง/สมุทรปราการ',
+  'delivery.addressData': 'ที่อยู่ 55/5 ช.ลาดพร้าว 101 แขวงคลองจั่น คณ.',
+  'delivery.map': 'แผนที่',
+  'delivery.productData': 'น้ำตาล (10 กล่อง)',
+  'delivery.pickupTime': 'เข้ารับสินค้า',
+  'delivery.remarks': 'หมายเหตุ',
+  'delivery.navigate': 'เส้นทาง',
+  'delivery.makePayment': 'ชำระเงิน',
+  'delivery.confirmPod': 'ยืนยัน POD',
+  'delivery.confirmStatusTitle': 'แจ้งเตือนการยืนยันสถานะ',
+  'delivery.confirmCheckInMessage': 'คุณต้องการเช็คอินที่ "จุดส่ง หวค.ชัยน้ำตาล" ใช่หรือไม่?',
+  'delivery.confirm': 'ยืนยัน',
+  'delivery.paymentChannel': 'ช่องทางชำระเงิน',
+  'delivery.confirmPodMessage': 'คุณต้องการยืนยันการยืนยันอัพโหลดรูปสินค้า POD ใช่หรือไม่?',
+  
   // Change Password Page
   'changePassword.title': 'เปลี่ยนรหัสผ่าน',
   'changePassword.newPassword': 'รหัสผ่านใหม่',
@@ -1508,6 +1528,26 @@ const enTranslations: Record<string, string> = {
   'delivery.confirmMessage': 'Do you want to check in at "Delivery Point Chai Sugar"?',
   'delivery.cancel': 'Cancel',
   'delivery.confirmButton': 'Confirm',
+  
+  // Delivery Detail Page - Additional Keys
+  'delivery.deliveryTo': 'Delivery To',
+  'delivery.employerName': 'Chai Sugar Company',
+  'delivery.podCompleted': 'POD Completed',
+  'delivery.contactPersonData': 'Mr. Thongbai',
+  'delivery.routeData': 'SAM001 Mueang/Samut Prakan',
+  'delivery.addressData': 'Address 55/5 Ladprao 101 Rd., Khlong Chan, BKK',
+  'delivery.map': 'Map',
+  'delivery.productData': 'Sugar (10 boxes)',
+  'delivery.pickupTime': 'Pickup Time',
+  'delivery.remarks': 'Remarks',
+  'delivery.navigate': 'Navigate',
+  'delivery.makePayment': 'Make Payment',
+  'delivery.confirmPod': 'Confirm POD',
+  'delivery.confirmStatusTitle': 'Confirm Status',
+  'delivery.confirmCheckInMessage': 'Do you want to check in at "Delivery Point Chai Sugar"?',
+  'delivery.confirm': 'Confirm',
+  'delivery.paymentChannel': 'Payment Method',
+  'delivery.confirmPodMessage': 'Do you want to confirm uploading POD product photo?',
   
   // Container Check-in Page
   'container.title': 'Empty Container Point',

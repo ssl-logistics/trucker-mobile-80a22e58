@@ -278,7 +278,7 @@ export default function DeliveryDetailPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('delivery.title')} หวค.ชัยน้ำตาล</h1>
+          <h1 className="text-lg font-semibold">{t('delivery.deliveryTo')} {t('delivery.employerName')}</h1>
           <div className="w-6" />
         </div>
       </header>
@@ -369,7 +369,7 @@ export default function DeliveryDetailPage() {
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
                   <Check className="w-6 h-6 text-white" />
                 </div>
-                <span className="font-semibold text-lg">POD สำเร็จ</span>
+                <span className="font-semibold text-lg">{t('delivery.podCompleted')}</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
                 {formatDateTime(jobApplication.delivery_sop_completed_at)}
@@ -390,20 +390,20 @@ export default function DeliveryDetailPage() {
 
         {/* Contact Name */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">ชื่อผู้ติดต่อ</div>
-          <div className="text-base">คุณธงใบย</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('delivery.contactName')}</div>
+          <div className="text-base">{t('delivery.contactPersonData')}</div>
         </div>
 
         {/* Route Number */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">เลขทาง</div>
-          <div className="text-base">SAM001 เมือง/สมุทรปราการ</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('delivery.routeNumber')}</div>
+          <div className="text-base">{t('delivery.routeData')}</div>
         </div>
 
         {/* Address */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">ที่อยู่</div>
-          <div className="text-base">ที่อยู่ 55/5 ช.ลาดพร้าว 101 แขวงคลองจั่น คณ.</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('delivery.address')}</div>
+          <div className="text-base">{t('delivery.addressData')}</div>
         </div>
 
         {/* Map */}
@@ -417,26 +417,26 @@ export default function DeliveryDetailPage() {
           <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
             <div className="text-center">
               <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">แผนที่</p>
+              <p className="text-sm text-muted-foreground">{t('delivery.map')}</p>
             </div>
           </div>
         )}
 
         {/* Product Type */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">ประเภทสินค้า</div>
-          <div className="text-base">น้ำตาล (10 กล่อง)</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('delivery.productType')}</div>
+          <div className="text-base">{t('delivery.productData')}</div>
         </div>
 
         {/* Delivery Time */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">เข้ารับสินค้า</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('delivery.pickupTime')}</div>
           <div className="text-base">{formatDate(job.start_date)} | 10.00</div>
         </div>
 
         {/* Note */}
         <div>
-          <div className="text-sm text-muted-foreground mb-1">หมายเหตุ</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('delivery.remarks')}</div>
           <div className="text-base">-</div>
         </div>
 
@@ -444,11 +444,11 @@ export default function DeliveryDetailPage() {
         <div className="border-2 border-blue-500 rounded-lg p-3 space-y-3">
           <Button variant="outline" className="w-full h-12 text-base">
             <Phone className="w-5 h-5 mr-2" />
-            โทร
+            {t('delivery.call')}
           </Button>
           <Button variant="outline" className="w-full h-12 text-base">
             <Navigation className="w-5 h-5 mr-2" />
-            เส้นทาง
+            {t('delivery.navigate')}
           </Button>
         </div>
       </div>
@@ -461,7 +461,7 @@ export default function DeliveryDetailPage() {
             onClick={() => setShowConfirmDialog(true)}
           >
             <MapPin className="w-5 h-5 mr-2" />
-            เช็คอิน
+            {t('delivery.checkIn')}
           </Button>
         </div>
       )}
@@ -473,7 +473,7 @@ export default function DeliveryDetailPage() {
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
             onClick={() => setShowPaymentDrawer(true)}
           >
-            ชำระเงิน
+            {t('delivery.makePayment')}
           </Button>
         </div>
       )}
@@ -486,7 +486,7 @@ export default function DeliveryDetailPage() {
             onClick={() => setShowPodConfirmDialog(true)}
             disabled={!podPhoto && !jobApplication?.pod_photo_url}
           >
-            ยืนยัน POD
+            {t('delivery.confirmPod')}
           </Button>
         </div>
       )}
@@ -498,17 +498,17 @@ export default function DeliveryDetailPage() {
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
               <MapPin className="w-8 h-8 text-green-600" />
             </div>
-            <DialogTitle className="text-xl text-center">แจ้งเตือนการยืนยันสถานะ</DialogTitle>
+            <DialogTitle className="text-xl text-center">{t('delivery.confirmStatusTitle')}</DialogTitle>
             <DialogDescription className="text-center text-base">
-              คุณต้องการเช็คอินที่ "จุดส่ง หวค.ชัยน้ำตาล" ใช่หรือไม่?
+              {t('delivery.confirmCheckInMessage')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="flex-1 h-11">
-              ยกเลิก
+              {t('delivery.cancel')}
             </Button>
             <Button onClick={handleCheckIn} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
-              ยืนยัน
+              {t('delivery.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -518,8 +518,8 @@ export default function DeliveryDetailPage() {
       <Drawer open={showPaymentDrawer} onOpenChange={setShowPaymentDrawer}>
         <DrawerContent>
           <DrawerHeader className="text-left">
-            <DrawerTitle className="text-xl">ชำระเงิน</DrawerTitle>
-            <DrawerDescription className="text-base mt-2">ช่องทางชำระเงิน</DrawerDescription>
+            <DrawerTitle className="text-xl">{t('delivery.makePayment')}</DrawerTitle>
+            <DrawerDescription className="text-base mt-2">{t('delivery.paymentChannel')}</DrawerDescription>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-3">
             <button
@@ -537,7 +537,7 @@ export default function DeliveryDetailPage() {
               >
                 {selectedPaymentMethod === "cash" && <div className="w-3 h-3 rounded-full bg-teal-500" />}
               </div>
-              <span className="text-base font-medium">เงินสด</span>
+              <span className="text-base font-medium">{t('delivery.cash')}</span>
             </button>
 
             <button
@@ -556,7 +556,7 @@ export default function DeliveryDetailPage() {
                 >
                   {selectedPaymentMethod === "mobile_banking" && <div className="w-3 h-3 rounded-full bg-teal-500" />}
                 </div>
-                <span className="text-base font-medium">ชำระเงินผ่าน Mobile Banking</span>
+                <span className="text-base font-medium">{t('delivery.mobileBanking')}</span>
               </div>
               <Phone className="w-5 h-5 text-gray-400" />
             </button>
@@ -577,7 +577,7 @@ export default function DeliveryDetailPage() {
                 >
                   {selectedPaymentMethod === "qr_code" && <div className="w-3 h-3 rounded-full bg-teal-500" />}
                 </div>
-                <span className="text-base font-medium">ชำระเงินผ่าน QR Code</span>
+                <span className="text-base font-medium">{t('delivery.qrCode')}</span>
               </div>
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -589,11 +589,11 @@ export default function DeliveryDetailPage() {
           </div>
           <DrawerFooter>
             <Button onClick={handlePaymentConfirm} className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700">
-              ยืนยันการชำระเงิน
+              {t('delivery.confirmPayment')}
             </Button>
             <DrawerClose asChild>
               <Button variant="outline" className="w-full h-12 text-base">
-                ยกเลิก
+                {t('delivery.cancel')}
               </Button>
             </DrawerClose>
           </DrawerFooter>
@@ -614,17 +614,17 @@ export default function DeliveryDetailPage() {
                 />
               </svg>
             </div>
-            <DialogTitle className="text-xl text-center">แจ้งเตือนการยืนยันสถานะ</DialogTitle>
+            <DialogTitle className="text-xl text-center">{t('delivery.confirmStatusTitle')}</DialogTitle>
             <DialogDescription className="text-center text-base">
-              คุณต้องการยืนยันการยืนยันอัพโหลดรูปสินค้า POD ใช่หรือไม่?
+              {t('delivery.confirmPodMessage')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
             <Button variant="outline" onClick={() => setShowPodConfirmDialog(false)} className="flex-1 h-11">
-              ยกเลิก
+              {t('delivery.cancel')}
             </Button>
             <Button onClick={handlePodConfirm} className="flex-1 h-11 bg-teal-600 hover:bg-teal-700">
-              ยืนยัน
+              {t('delivery.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
