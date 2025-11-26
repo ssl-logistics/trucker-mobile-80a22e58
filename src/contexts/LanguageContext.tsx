@@ -459,7 +459,12 @@ const thTranslations: Record<string, string> = {
   'reportProblem.confirm': 'ยืนยัน',
   'reportProblem.fillAllFields': 'กรุณากรอกข้อมูลให้ครบถ้วน',
   
-  // Pickup Detail Page  
+  // Job Action Buttons
+  'jobActions.viewExpenses': 'ดูค่าใช้จ่าย',
+  'jobActions.addExpense': 'เพิ่มค่าใช้จ่าย',
+  'jobActions.reportProblem': 'แจ้งปัญหา',
+  
+  // Pickup Detail Page
   'pickup.title': 'จุดรับสินค้า',
   'pickup.contactName': 'ชื่อผู้ติดต่อ',
   'pickup.routeNumber': 'เลขทาง',
@@ -1080,6 +1085,11 @@ const enTranslations: Record<string, string> = {
   'reportProblem.downloadVehicleChange': 'Download Vehicle Change Form',
   'reportProblem.confirm': 'Confirm',
   'reportProblem.fillAllFields': 'Please fill in all fields',
+  
+  // Job Action Buttons
+  'jobActions.viewExpenses': 'View Expenses',
+  'jobActions.addExpense': 'Add Expense',
+  'jobActions.reportProblem': 'Report Problem',
   
   // Pickup Detail Page
   'pickup.title': 'Pickup Point',
