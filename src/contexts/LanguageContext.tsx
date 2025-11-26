@@ -882,6 +882,28 @@ const thTranslations: Record<string, string> = {
   'deliverySop.takePhoto': 'ถ่ายภาพ',
   'deliverySop.selectFromGallery': 'เลือกรูปจากแกลอรี่',
   
+  // Edit Field Page
+  'editField.success': 'สำเร็จ',
+  'editField.updated': 'อัพเดทข้อมูลแล้ว',
+  'editField.error': 'เกิดข้อผิดพลาด',
+  'editField.updateError': 'ไม่สามารถอัพเดทข้อมูลได้',
+  'editField.profile': 'โปรไฟล์',
+  'editField.save': 'บันทึก',
+  
+  // Place Bid Page
+  'placeBid.pleaseEnterPrice': 'กรุณาระบุราคา',
+  'placeBid.enterPriceDescription': 'กรุณาใส่ราคาที่ต้องการเสนอ',
+  'placeBid.invalidPrice': 'ราคาไม่ถูกต้อง',
+  'placeBid.enterValidPrice': 'กรุณาใส่ราคาที่ถูกต้อง',
+  'placeBid.error': 'เกิดข้อผิดพลาด',
+  'placeBid.submitError': 'ไม่สามารถส่งราคาเสนอได้',
+  'placeBid.success': 'การเสนอราคาสำเร็จ',
+  'placeBid.successMessage': 'ส่งราคาเสนอสำเร็จเป็นที่เรียบร้อย "ประวัติ"',
+  'placeBid.loading': 'กำลังโหลด...',
+  'placeBid.priceLabel': 'ราคาที่ต้องการเสนอ',
+  'placeBid.submitting': 'กำลังส่ง...',
+  'placeBid.confirm': 'ยืนยัน',
+  
   // Change Password Page
   'changePassword.title': 'เปลี่ยนรหัสผ่าน',
   'changePassword.newPassword': 'รหัสผ่านใหม่',
@@ -1622,6 +1644,28 @@ const enTranslations: Record<string, string> = {
   'deliverySop.selectSource': 'Select Photo Source',
   'deliverySop.takePhoto': 'Take Photo',
   'deliverySop.selectFromGallery': 'Select from Gallery',
+  
+  // Edit Field Page
+  'editField.success': 'Success',
+  'editField.updated': 'Data updated',
+  'editField.error': 'Error',
+  'editField.updateError': 'Unable to update data',
+  'editField.profile': 'Profile',
+  'editField.save': 'Save',
+  
+  // Place Bid Page
+  'placeBid.pleaseEnterPrice': 'Please enter price',
+  'placeBid.enterPriceDescription': 'Please enter your bid price',
+  'placeBid.invalidPrice': 'Invalid price',
+  'placeBid.enterValidPrice': 'Please enter valid price',
+  'placeBid.error': 'Error',
+  'placeBid.submitError': 'Unable to submit bid',
+  'placeBid.success': 'Bid Submitted Successfully',
+  'placeBid.successMessage': 'Your bid has been submitted successfully. Check "History"',
+  'placeBid.loading': 'Loading...',
+  'placeBid.priceLabel': 'Bid Amount',
+  'placeBid.submitting': 'Submitting...',
+  'placeBid.confirm': 'Confirm',
   
   // Container Check-in Page
   'container.title': 'Empty Container Point',

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
@@ -14,6 +15,7 @@ export default function PlaceBidPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [job, setJob] = useState<Job | null>(null);
@@ -39,8 +41,8 @@ export default function PlaceBidPage() {
   const handleSubmitBid = async () => {
     if (!bidAmount || !user || !jobId) {
       toast({
-        title: 'กรุณาระบุราคา',
-        description: 'กรุณาใส่ราคาที่ต้องการเสนอ',
+        title: t('placeBid.pleaseEnterPrice'),
+        description: t('placeBid.enterPriceDescription'),
         variant: 'destructive'
       });
       return;
@@ -49,8 +51,8 @@ export default function PlaceBidPage() {
     const amount = parseFloat(bidAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({
-        title: 'ราคาไม่ถูกต้อง',
-        description: 'กรุณาใส่ราคาที่ถูกต้อง',
+        title: t('placeBid.invalidPrice'),
+        description: t('placeBid.enterValidPrice'),
         variant: 'destructive'
       });
       return;
@@ -71,14 +73,14 @@ export default function PlaceBidPage() {
 
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถส่งราคาเสนอได้',
+        title: t('placeBid.error'),
+        description: t('placeBid.submitError'),
         variant: 'destructive'
       });
     } else {
       toast({
-        title: 'การเสนอราคาสำเร็จ',
-        description: 'ส่งราคาเสนอสำเร็จเป็นที่เรียบร้อย "ประวัติ"'
+        title: t('placeBid.success'),
+        description: t('placeBid.successMessage')
       });
       
       // Navigate back to bidding page with history tab
@@ -97,7 +99,7 @@ export default function PlaceBidPage() {
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">
-            {job ? job.order_code : 'กำลังโหลด...'}
+            {job ? job.order_code : t('placeBid.loading')}
           </h1>
         </div>
       </header>
@@ -106,7 +108,7 @@ export default function PlaceBidPage() {
       <div className="px-4 py-6">
         <div className="mb-6">
           <label className="text-sm text-muted-foreground mb-2 block">
-            ราคาที่ต้องการเสนอ <span className="text-destructive">*</span>
+            {t('placeBid.priceLabel')} <span className="text-destructive">*</span>
           </label>
           <Input
             type="number"
@@ -123,7 +125,7 @@ export default function PlaceBidPage() {
           onClick={handleSubmitBid}
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'กำลังส่ง...' : 'ยืนยัน'}
+          {isSubmitting ? t('placeBid.submitting') : t('placeBid.confirm')}
         </Button>
       </div>
     </div>
