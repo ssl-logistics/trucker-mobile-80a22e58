@@ -845,6 +845,14 @@ const thTranslations: Record<string, string> = {
   'delivery.paymentChannel': 'ช่องทางชำระเงิน',
   'delivery.confirmPodMessage': 'คุณต้องการยืนยันการยืนยันอัพโหลดรูปสินค้า POD ใช่หรือไม่?',
   
+  // Pickup Summary Page
+  'pickupSummary.title': 'จุดรับสินค้า Factory1',
+  'pickupSummary.error': 'เกิดข้อผิดพลาด',
+  'pickupSummary.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
+  'pickupSummary.checkInSuccess': 'เช็คอินสำเร็จ',
+  'pickupSummary.sopSuccess': 'SOP สำเร็จ',
+  'pickupSummary.productPhoto': 'รูปภาพสินค้า',
+  
   // Change Password Page
   'changePassword.title': 'เปลี่ยนรหัสผ่าน',
   'changePassword.newPassword': 'รหัสผ่านใหม่',
@@ -1548,6 +1556,14 @@ const enTranslations: Record<string, string> = {
   'delivery.confirm': 'Confirm',
   'delivery.paymentChannel': 'Payment Method',
   'delivery.confirmPodMessage': 'Do you want to confirm uploading POD product photo?',
+  
+  // Pickup Summary Page
+  'pickupSummary.title': 'Pickup Point Factory1',
+  'pickupSummary.error': 'Error',
+  'pickupSummary.loadError': 'Unable to load job data',
+  'pickupSummary.checkInSuccess': 'Check-in Successful',
+  'pickupSummary.sopSuccess': 'SOP Successful',
+  'pickupSummary.productPhoto': 'Product Photo',
   
   // Container Check-in Page
   'container.title': 'Empty Container Point',

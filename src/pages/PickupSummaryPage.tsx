@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
@@ -30,6 +31,7 @@ export default function PickupSummaryPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [application, setApplication] = useState<JobApplication | null>(null);
   const [sopPhoto, setSOPPhoto] = useState<SOPPhoto | null>(null);
@@ -53,8 +55,8 @@ export default function PickupSummaryPage() {
 
     if (jobError) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถโหลดข้อมูลงานได้",
+        title: t('pickupSummary.error'),
+        description: t('pickupSummary.loadError'),
         variant: "destructive",
       });
       navigate("/current-jobs");
@@ -117,7 +119,7 @@ export default function PickupSummaryPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">จุดรับสินค้า Factory1</h1>
+          <h1 className="text-lg font-semibold">{t('pickupSummary.title')}</h1>
           <div className="w-6" />
         </div>
       </header>
@@ -136,7 +138,7 @@ export default function PickupSummaryPage() {
                 <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-green-900">เช็คอินสำเร็จ</div>
+                <div className="font-semibold text-green-900">{t('pickupSummary.checkInSuccess')}</div>
                 <div className="text-sm text-green-700">{formatDateTime(application.checked_in_at)}</div>
               </div>
             </div>
@@ -151,7 +153,7 @@ export default function PickupSummaryPage() {
                 <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-green-900">SOP สำเร็จ</div>
+                <div className="font-semibold text-green-900">{t('pickupSummary.sopSuccess')}</div>
                 <div className="text-sm text-green-700">{formatDateTime(application.sop_completed_at)}</div>
               </div>
             </div>
@@ -161,7 +163,7 @@ export default function PickupSummaryPage() {
         {/* SOP Photo */}
         {sopPhoto && (
           <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">รูปภาพสินค้า</div>
+            <div className="text-sm text-muted-foreground">{t('pickupSummary.productPhoto')}</div>
             <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
               <img src={sopPhoto.photo_url} alt="SOP Photo" className="w-full h-full object-cover" />
             </div>
