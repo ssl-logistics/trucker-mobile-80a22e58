@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { locations, Location } from "@/data/locations";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WorkAreaAutocompleteProps {
   value: string[];
@@ -27,8 +28,10 @@ interface WorkAreaAutocompleteProps {
 export function WorkAreaAutocomplete({
   value = [],
   onChange,
-  placeholder = "ค้นหาอำเภอ/จังหวัด",
+  placeholder,
 }: WorkAreaAutocompleteProps) {
+  const { t } = useLanguage();
+  const actualPlaceholder = placeholder || t('autocomplete.searchPlaceholder');
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -66,10 +69,10 @@ export function WorkAreaAutocomplete({
     <div className="w-full space-y-2">
       <div className="space-y-1">
         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          พื้นที่วิ่งงาน
+          {t('autocomplete.workArea')}
         </label>
         <p className="text-xs text-muted-foreground">
-          อำเภอ หรือ จังหวัด ที่ถนัดหรือวิ่งงานเป็นประจำ
+          {t('autocomplete.workAreaDesc')}
         </p>
       </div>
 
@@ -101,7 +104,7 @@ export function WorkAreaAutocomplete({
                   </Badge>
                 ))
               ) : (
-                <span className="text-muted-foreground text-sm">{placeholder}</span>
+                <span className="text-muted-foreground text-sm">{actualPlaceholder}</span>
               )}
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -110,14 +113,14 @@ export function WorkAreaAutocomplete({
         <PopoverContent className="w-full p-0 bg-white shadow-lg rounded-lg border border-gray-200" align="start">
           <Command className="rounded-lg">
             <CommandInput
-              placeholder={placeholder}
+              placeholder={actualPlaceholder}
               value={searchQuery}
               onValueChange={setSearchQuery}
               className="border-0 focus:ring-0"
             />
             <CommandList className="max-h-[300px]">
               <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-                ไม่พบข้อมูล
+                {t('autocomplete.noData')}
               </CommandEmpty>
               {Object.entries(groupedLocations).map(([province, provinceLocations]) => (
                 <CommandGroup key={province} heading={province} className="px-2">

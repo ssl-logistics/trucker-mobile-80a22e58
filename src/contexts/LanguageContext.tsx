@@ -554,6 +554,12 @@ const thTranslations: Record<string, string> = {
   'vehicleInfoStep.plateNumber': 'หมายเลขทะเบียน (ไม่เว้นวรรคไม่ใส่ขีด)',
   'vehicleInfoStep.plateProvince': 'จังหวัดเลขทะเบียน',
   'vehicleInfoStep.selectProvince': 'เลือกจังหวัด',
+  
+  // Location/Area Autocomplete
+  'autocomplete.noData': 'ไม่พบข้อมูล',
+  'autocomplete.searchPlaceholder': 'ค้นหาอำเภอ/จังหวัด',
+  'autocomplete.workArea': 'พื้นที่วิ่งงาน',
+  'autocomplete.workAreaDesc': 'อำเภอ หรือ จังหวัด ที่ถนัดหรือวิ่งงานเป็นประจำ',
   'vehicleInfoStep.trailerPlateNumber': 'หมายเลขทะเบียนหางลาก (ไม่เว้นวรรคไม่ใส่ขีด)',
   'vehicleInfoStep.trailerPlateProvince': 'จังหวัดเลขทะเบียนหางลาก',
   'vehicleInfoStep.vehicleBrand': 'ยี่ห้อรถยนต์',
@@ -1342,6 +1348,12 @@ const enTranslations: Record<string, string> = {
   'vehicleInfoStep.plateNumber': 'License Plate Number (no spaces or dashes)',
   'vehicleInfoStep.plateProvince': 'License Plate Province',
   'vehicleInfoStep.selectProvince': 'Select province',
+  
+  // Location/Area Autocomplete
+  'autocomplete.noData': 'No data found',
+  'autocomplete.searchPlaceholder': 'Search district/province',
+  'autocomplete.workArea': 'Work Area',
+  'autocomplete.workAreaDesc': 'Districts or provinces you work regularly',
   'vehicleInfoStep.trailerPlateNumber': 'Trailer License Plate Number (no spaces or dashes)',
   'vehicleInfoStep.trailerPlateProvince': 'Trailer License Plate Province',
   'vehicleInfoStep.vehicleBrand': 'Vehicle Brand',
