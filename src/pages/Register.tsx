@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 import TermsStep from "@/components/register/TermsStep";
 import GeneralInfoStep from "@/components/register/GeneralInfoStep";
 import VehiclePhotosStep from "@/components/register/VehiclePhotosStep";
@@ -59,6 +60,7 @@ export interface RegistrationData {
 const Register = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [registrationData, setRegistrationData] = useState<RegistrationData>({
     firstName: "",
@@ -136,12 +138,20 @@ const Register = () => {
 
       if (authError) {
         console.error("Error creating user:", authError);
-        alert(t('register.createAccountFailed'));
+        toast({
+          variant: "destructive",
+          title: t('register.error'),
+          description: authError.message || t('register.createAccountFailed'),
+        });
         return;
       }
 
       if (!authData.user) {
-        alert(t('register.createAccountError'));
+        toast({
+          variant: "destructive",
+          title: t('register.error'),
+          description: t('register.createAccountError'),
+        });
         return;
       }
 
@@ -204,7 +214,11 @@ const Register = () => {
 
       if (vehicleError) {
         console.error("Error saving vehicle:", vehicleError);
-        alert(t('register.vehicleSaveFailed'));
+        toast({
+          variant: "destructive",
+          title: t('register.error'),
+          description: t('register.vehicleSaveFailed'),
+        });
         return;
       }
 
@@ -275,11 +289,21 @@ const Register = () => {
         }
       }
 
-      alert(t('register.success'));
-      navigate("/");
+      toast({
+        title: t('register.success'),
+        description: t('register.successDesc'),
+      });
+      
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
     } catch (error) {
       console.error("Error:", error);
-      alert(t('register.error'));
+      toast({
+        variant: "destructive",
+        title: t('register.error'),
+        description: t('register.errorDesc'),
+      });
     }
   };
 
