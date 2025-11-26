@@ -853,6 +853,35 @@ const thTranslations: Record<string, string> = {
   'pickupSummary.sopSuccess': 'SOP สำเร็จ',
   'pickupSummary.productPhoto': 'รูปภาพสินค้า',
   
+  // Container Summary Page
+  'containerSummary.error': 'เกิดข้อผิดพลาด',
+  'containerSummary.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
+  'containerSummary.checkInSuccess': 'เช็คอินสำเร็จ',
+  'containerSummary.containerSuccess': 'รับตู้เปล่าสำเร็จ',
+  'containerSummary.containerPhoto': 'รูปภาพตู้เปล่า',
+  
+  // Delivery SOP Page
+  'deliverySop.error': 'เกิดข้อผิดพลาด',
+  'deliverySop.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
+  'deliverySop.title': 'จุดส่ง คศน.ชัยนาท',
+  'deliverySop.checkInSuccess': 'เช็คอินสำเร็จ',
+  'deliverySop.uploadPhoto': 'อัพโหลดรูปสินค้า',
+  'deliverySop.clickToTake': 'กดเพื่อถ่ายหรือเลือก<br />รูปสินค้า',
+  'deliverySop.confirmSOP': 'ยืนยัน SOP',
+  'deliverySop.photoRequired': 'กรุณาอัปโหลดรูปภาพ',
+  'deliverySop.photoRequiredMessage': 'คุณต้องอัปโหลดรูปสินค้าก่อนยืนยัน SOP',
+  'deliverySop.sopSuccess': 'ยืนยัน SOP สำเร็จ',
+  'deliverySop.sopSuccessMessage': 'บันทึกข้อมูลเรียบร้อยแล้ว',
+  'deliverySop.saveError': 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+  'deliverySop.confirmTitle': 'แจ้งเตือนการยืนยันสถานะ',
+  'deliverySop.confirmMessage': 'คุณต้องการยืนยันการยืนยันสินค้าด้วยไฟล์สแกน<br />Scan of Package (SOP) ใช่หรือไม่?',
+  'deliverySop.cancel': 'ยกเลิก',
+  'deliverySop.confirm': 'ยืนยัน',
+  'deliverySop.saving': 'กำลังบันทึก...',
+  'deliverySop.selectSource': 'เลือกแหล่งที่มาของรูปภาพ',
+  'deliverySop.takePhoto': 'ถ่ายภาพ',
+  'deliverySop.selectFromGallery': 'เลือกรูปจากแกลอรี่',
+  
   // Change Password Page
   'changePassword.title': 'เปลี่ยนรหัสผ่าน',
   'changePassword.newPassword': 'รหัสผ่านใหม่',
@@ -1564,6 +1593,35 @@ const enTranslations: Record<string, string> = {
   'pickupSummary.checkInSuccess': 'Check-in Successful',
   'pickupSummary.sopSuccess': 'SOP Successful',
   'pickupSummary.productPhoto': 'Product Photo',
+  
+  // Container Summary Page
+  'containerSummary.error': 'Error',
+  'containerSummary.loadError': 'Unable to load job data',
+  'containerSummary.checkInSuccess': 'Check-in Successful',
+  'containerSummary.containerSuccess': 'Container Pickup Successful',
+  'containerSummary.containerPhoto': 'Empty Container Photo',
+  
+  // Delivery SOP Page
+  'deliverySop.error': 'Error',
+  'deliverySop.loadError': 'Unable to load job data',
+  'deliverySop.title': 'Delivery Point',
+  'deliverySop.checkInSuccess': 'Check-in Successful',
+  'deliverySop.uploadPhoto': 'Upload Product Photo',
+  'deliverySop.clickToTake': 'Click to take or select<br />product photo',
+  'deliverySop.confirmSOP': 'Confirm SOP',
+  'deliverySop.photoRequired': 'Please upload photo',
+  'deliverySop.photoRequiredMessage': 'You must upload product photo before confirming SOP',
+  'deliverySop.sopSuccess': 'SOP Confirmed Successfully',
+  'deliverySop.sopSuccessMessage': 'Data saved successfully',
+  'deliverySop.saveError': 'Unable to save data. Please try again',
+  'deliverySop.confirmTitle': 'Confirm Status',
+  'deliverySop.confirmMessage': 'Do you want to confirm product with scan file<br />Scan of Package (SOP)?',
+  'deliverySop.cancel': 'Cancel',
+  'deliverySop.confirm': 'Confirm',
+  'deliverySop.saving': 'Saving...',
+  'deliverySop.selectSource': 'Select Photo Source',
+  'deliverySop.takePhoto': 'Take Photo',
+  'deliverySop.selectFromGallery': 'Select from Gallery',
   
   // Container Check-in Page
   'container.title': 'Empty Container Point',

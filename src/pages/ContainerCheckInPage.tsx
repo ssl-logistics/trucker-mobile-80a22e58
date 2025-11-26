@@ -231,7 +231,7 @@ export default function ContainerCheckInPage() {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center">
               {t('container.confirmMessage1')}<br />
-              "จุดรับตู้เปล่า ท่าเรือแหลมฉบัง, ประเทศไทย"<br />
+              {t('container.emptyContainerPoint')} {job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย'}<br />
               {t('container.confirmMessage2')}
             </AlertDialogDescription>
           </AlertDialogHeader>

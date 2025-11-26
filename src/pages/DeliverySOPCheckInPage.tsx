@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
@@ -38,6 +39,7 @@ export default function DeliverySOPCheckInPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -63,8 +65,8 @@ export default function DeliverySOPCheckInPage() {
 
     if (error) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('deliverySop.error'),
+        description: t('deliverySop.loadError'),
         variant: 'destructive'
       });
       navigate('/current-jobs');
@@ -101,8 +103,8 @@ export default function DeliverySOPCheckInPage() {
   const handleConfirmClick = () => {
     if (!photoFile) {
       toast({
-        title: 'กรุณาอัปโหลดรูปภาพ',
-        description: 'คุณต้องอัปโหลดรูปสินค้าก่อนยืนยัน SOP',
+        title: t('deliverySop.photoRequired'),
+        description: t('deliverySop.photoRequiredMessage'),
         variant: 'destructive'
       });
       return;
@@ -216,7 +218,7 @@ export default function DeliverySOPCheckInPage() {
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <div className="font-semibold text-green-900">เช็คอินสำเร็จ</div>
+              <div className="font-semibold text-green-900">{t('deliverySop.checkInSuccess')}</div>
               <div className="text-sm text-green-700">
                 {formatDate(job.start_date)} | {formatTime(checkInTime)}
               </div>
@@ -227,7 +229,7 @@ export default function DeliverySOPCheckInPage() {
         {/* Photo Upload Section */}
         <div className="space-y-2">
           <Label className="text-base">
-            อัพโหลดรูปสินค้า <span className="text-red-500">*</span>
+            {t('deliverySop.uploadPhoto')} <span className="text-red-500">*</span>
           </Label>
           
           <button
@@ -245,9 +247,7 @@ export default function DeliverySOPCheckInPage() {
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
                   <Camera className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground text-center px-4">
-                  กดเพื่อถ่ายหรือเลือก<br />รูปสินค้า
-                </p>
+                <p className="text-sm text-muted-foreground text-center px-4" dangerouslySetInnerHTML={{ __html: t('deliverySop.clickToTake') }} />
               </>
             )}
           </button>
@@ -261,7 +261,7 @@ export default function DeliverySOPCheckInPage() {
           onClick={handleConfirmClick}
           disabled={uploading || !photoFile}
         >
-          ยืนยัน SOP
+          {t('deliverySop.confirmSOP')}
         </Button>
       </div>
 
@@ -273,12 +273,9 @@ export default function DeliverySOPCheckInPage() {
               <span className="text-4xl">⚠️</span>
             </div>
             <DialogTitle className="text-xl text-center">
-              แจ้งเตือนการยืนยันสถานะ
+              {t('deliverySop.confirmTitle')}
             </DialogTitle>
-            <DialogDescription className="text-center text-base">
-              คุณต้องการยืนยันการยืนยันสินค้าด้วยไฟล์สแกน<br />
-              Scan of Package (SOP) ใช่หรือไม่?
-            </DialogDescription>
+            <DialogDescription className="text-center text-base" dangerouslySetInnerHTML={{ __html: t('deliverySop.confirmMessage') }} />
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
             <Button
@@ -287,14 +284,14 @@ export default function DeliverySOPCheckInPage() {
               className="flex-1 h-11"
               disabled={uploading}
             >
-              ยกเลิก
+              {t('deliverySop.cancel')}
             </Button>
             <Button
               onClick={handleConfirmSOP}
               className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
               disabled={uploading}
             >
-              {uploading ? 'กำลังบันทึก...' : 'ยืนยัน'}
+              {uploading ? t('deliverySop.saving') : t('deliverySop.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -304,7 +301,7 @@ export default function DeliverySOPCheckInPage() {
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle className="text-center">เลือกแหล่งที่มาของรูปภาพ</DrawerTitle>
+            <DrawerTitle className="text-center">{t('deliverySop.selectSource')}</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-3">
             <Button
@@ -313,7 +310,7 @@ export default function DeliverySOPCheckInPage() {
               onClick={() => handlePhotoSelect('camera')}
             >
               <Camera className="w-6 h-6" />
-              ถ่ายภาพ
+              {t('deliverySop.takePhoto')}
             </Button>
             <Button
               variant="outline"
@@ -321,13 +318,13 @@ export default function DeliverySOPCheckInPage() {
               onClick={() => handlePhotoSelect('gallery')}
             >
               <ImageIcon className="w-6 h-6" />
-              เลือกรูปจากแกลอรี่
+              {t('deliverySop.selectFromGallery')}
             </Button>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
               <Button variant="outline" className="w-full h-12">
-                ยกเลิก
+                {t('deliverySop.cancel')}
               </Button>
             </DrawerClose>
           </DrawerFooter>
