@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 import TermsStep from "@/components/register/TermsStep";
 import GeneralInfoStep from "@/components/register/GeneralInfoStep";
 import VehiclePhotosStep from "@/components/register/VehiclePhotosStep";
@@ -57,6 +58,7 @@ export interface RegistrationData {
 
 const Register = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
   const [registrationData, setRegistrationData] = useState<RegistrationData>({
     firstName: "",
@@ -88,11 +90,11 @@ const Register = () => {
   });
 
   const steps = [
-    { component: TermsStep, title: "เงื่อนไขการใช้บริการและนโยบาย" },
-    { component: GeneralInfoStep, title: "ข้อมูลทั่วไป" },
-    { component: VehiclePhotosStep, title: "อัพโหลดรูปรถ" },
-    { component: VehicleInfoStep, title: "ข้อมูลรถ" },
-    { component: ReviewStep, title: "ตรวจสอบข้อมูล" }
+    { component: TermsStep, title: t('register.steps.terms') },
+    { component: GeneralInfoStep, title: t('register.steps.generalInfo') },
+    { component: VehiclePhotosStep, title: t('register.steps.vehiclePhotos') },
+    { component: VehicleInfoStep, title: t('register.steps.vehicleInfo') },
+    { component: ReviewStep, title: t('register.steps.review') }
   ];
 
   const CurrentStepComponent = steps[currentStep].component;
@@ -134,12 +136,12 @@ const Register = () => {
 
       if (authError) {
         console.error("Error creating user:", authError);
-        alert("ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่อีกครั้ง");
+        alert(t('register.createAccountFailed'));
         return;
       }
 
       if (!authData.user) {
-        alert("ไม่สามารถสร้างบัญชีได้");
+        alert(t('register.createAccountError'));
         return;
       }
 
@@ -202,7 +204,7 @@ const Register = () => {
 
       if (vehicleError) {
         console.error("Error saving vehicle:", vehicleError);
-        alert("บันทึกข้อมูลรถไม่สำเร็จ");
+        alert(t('register.vehicleSaveFailed'));
         return;
       }
 
@@ -273,11 +275,11 @@ const Register = () => {
         }
       }
 
-      alert("สมัครสมาชิกสำเร็จ!");
+      alert(t('register.success'));
       navigate("/");
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      alert(t('register.error'));
     }
   };
 

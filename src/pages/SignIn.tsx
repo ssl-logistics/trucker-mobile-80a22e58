@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import loginBackground from "@/assets/login-background.png";
 const loginSchema = z.object({
   email: z.string().min(1, {
@@ -24,6 +25,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 const SignIn = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const {
     toast
   } = useToast();
@@ -70,7 +72,7 @@ const SignIn = () => {
 
       if (authError) {
         if (authError.message.includes("Invalid login credentials")) {
-          setServerError("อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+          setServerError(t('signIn.invalidCredentials'));
         } else {
           setServerError(authError.message);
         }
@@ -93,13 +95,13 @@ const SignIn = () => {
       }
 
       toast({
-        title: "เข้าสู่ระบบสำเร็จ",
-        description: "ยินดีต้อนรับกลับมา"
+        title: t('signIn.success'),
+        description: t('signIn.welcomeBack')
       });
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
-      setServerError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      setServerError(t('signIn.error'));
     }
   };
   return <div className="min-h-screen bg-background flex flex-col">
@@ -110,13 +112,13 @@ const SignIn = () => {
 
       {/* Login Form */}
       <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white/0">
-        <h1 className="text-2xl font-bold text-center mb-8 mt-5 text-foreground">เข้าสู่ระบบหรือสมัครสมาชิก</h1>
+        <h1 className="text-2xl font-bold text-center mb-8 mt-5 text-foreground">{t('signIn.title')}</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-md mx-auto">
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-foreground">
-              ชื่อผู้ใช้ <span className="text-destructive">*</span>
+              {t('signIn.username')} <span className="text-destructive">*</span>
             </Label>
             <Input id="email" type="email" placeholder="example@email.com" {...register("email")} className={errors.email ? "border-destructive" : ""} />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
@@ -125,7 +127,7 @@ const SignIn = () => {
           {/* Password Field */}
           <div className="space-y-2">
             <Label htmlFor="password" className="text-foreground">
-              รหัสผ่าน <span className="text-destructive">*</span>
+              {t('signIn.password')} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
               <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={`pr-10 ${errors.password || serverError ? "border-destructive" : ""}`} />
@@ -142,21 +144,21 @@ const SignIn = () => {
             <div className="flex items-center space-x-2">
               <Checkbox id="remember" checked={rememberValue} onCheckedChange={checked => setValue("remember", checked as boolean)} />
               <Label htmlFor="remember" className="text-sm font-normal cursor-pointer text-foreground">
-                จดจำฉันในระบบ
+                {t('signIn.rememberMe')}
               </Label>
             </div>
             <button type="button" onClick={() => navigate("/forgot-password")} className="text-sm text-secondary hover:underline">
-              ลืมรหัสผ่านใช่หรือไป?
+              {t('signIn.forgotPassword')}
             </button>
           </div>
 
           {/* Submit Buttons */}
           <div className="space-y-3 pt-4">
             <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium">
-              เข้าสู่ระบบ
+              {t('signIn.signInButton')}
             </Button>
             <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-12 rounded-xl text-base font-medium border-2">
-              ลงทะเบียน
+              {t('signIn.registerButton')}
             </Button>
           </div>
         </form>
