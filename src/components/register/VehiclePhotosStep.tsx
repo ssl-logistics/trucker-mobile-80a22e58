@@ -22,6 +22,7 @@ interface VehiclePhotosStepProps {
 }
 
 const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => {
+  const { t } = useLanguage();
   const [hasTrailer, setHasTrailer] = useState(data.hasTrailer || false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<keyof typeof photoFiles | null>(null);
@@ -98,7 +99,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
         ) : (
           <div className="text-center">
             <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปหรือเลือกรูป</p>
+            <p className="text-sm text-muted-foreground">{t('vehiclePhotosStep.clickToTake')}</p>
           </div>
         )}
       </button>
@@ -124,10 +125,10 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
   return (
     <>
       <div className="space-y-6">
-        <PhotoUploadBox type="front" label="รูปหน้ารถ" />
-        <PhotoUploadBox type="side" label="รูปข้างรถ" />
-        <PhotoUploadBox type="back" label="รูปหลังรถ" />
-        <PhotoUploadBox type="plate" label="รูปป้ายทะเบียน" />
+        <PhotoUploadBox type="front" label={t('vehiclePhotosStep.frontPhoto')} />
+        <PhotoUploadBox type="side" label={t('vehiclePhotosStep.sidePhoto')} />
+        <PhotoUploadBox type="back" label={t('vehiclePhotosStep.backPhoto')} />
+        <PhotoUploadBox type="plate" label={t('vehiclePhotosStep.platePhoto')} />
 
         <div className="flex items-center space-x-2 py-4">
           <Checkbox 
@@ -139,12 +140,12 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
             htmlFor="hasTrailer" 
             className="text-sm font-normal cursor-pointer"
           >
-            มีส่วนของหางลาก
+            {t('vehiclePhotosStep.hasTrailer')}
           </Label>
         </div>
 
         {hasTrailer && (
-          <PhotoUploadBox type="trailerPlate" label="รูปภาพป้ายทะเบียนหางลาก" />
+          <PhotoUploadBox type="trailerPlate" label={t('vehiclePhotosStep.trailerPlatePhoto')} />
         )}
 
         <div className="flex gap-3 pt-4">
@@ -154,14 +155,14 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
             onClick={onBack}
             className="flex-1 rounded-xl h-12 text-base font-medium border-2"
           >
-            ย้อนกลับ
+            {t('vehiclePhotosStep.back')}
           </Button>
           <Button
             type="button"
             onClick={handleSubmit}
             className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium"
           >
-            ต่อไป →
+            {t('vehiclePhotosStep.next')}
           </Button>
         </div>
       </div>
@@ -169,7 +170,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle className="text-center">เพิ่มรูปภาพ</DrawerTitle>
+            <DrawerTitle className="text-center">{t('vehiclePhotosStep.addPhoto')}</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-3">
             <button
@@ -181,7 +182,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
               className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
             >
               <Camera className="w-6 h-6" />
-              <span className="text-base">ถ่ายภาพ</span>
+              <span className="text-base">{t('vehiclePhotosStep.takePhoto')}</span>
             </button>
             <button
               onClick={() => {
@@ -192,13 +193,13 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
               className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
             >
               <Image className="w-6 h-6" />
-              <span className="text-base">เลือกรูปจากแกลลอรี่</span>
+              <span className="text-base">{t('vehiclePhotosStep.selectFromGallery')}</span>
             </button>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
               <Button variant="outline" className="w-full rounded-xl h-12">
-                ยกเลิก
+                {t('vehiclePhotosStep.cancel')}
               </Button>
             </DrawerClose>
           </DrawerFooter>

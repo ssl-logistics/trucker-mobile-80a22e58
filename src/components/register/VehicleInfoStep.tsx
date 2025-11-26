@@ -43,6 +43,7 @@ interface VehicleInfoStepProps {
 }
 
 const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
+  const { t } = useLanguage();
   const [containerTypes, setContainerTypes] = useState<string[]>(data.containerTypes || []);
   const [registrationPhoto, setRegistrationPhoto] = useState<File | null>(data.registrationPhoto || null);
   const [insurancePhoto, setInsurancePhoto] = useState<File | null>(data.insurancePhoto || null);
@@ -119,13 +120,13 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
       >
         {file ? (
           <div className="text-center">
-            <p className="text-sm text-primary font-medium mb-1">✓ เลือกไฟล์แล้ว</p>
+            <p className="text-sm text-primary font-medium mb-1">{t('vehicleInfoStep.fileSelected')}</p>
             <p className="text-xs text-muted-foreground">{file.name}</p>
           </div>
         ) : (
           <>
             <Camera className="w-8 h-8 mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปหรือเลือกรูป</p>
+            <p className="text-sm text-muted-foreground">{t('vehicleInfoStep.clickToTake')}</p>
           </>
         )}
       </button>
@@ -160,7 +161,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
       <div className="space-y-4">
         <div className="space-y-2">
           <Label>
-            หมายเลขทะเบียน (ไม่เว้นวรรคไม่ใส่ขีด) <span className="text-destructive">*</span>
+            {t('vehicleInfoStep.plateNumber')} <span className="text-destructive">*</span>
           </Label>
           <Input {...register("plateNumber")} className={errors.plateNumber ? "border-destructive" : ""} />
           {errors.plateNumber && <p className="text-sm text-destructive">{errors.plateNumber.message}</p>}
@@ -168,11 +169,11 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
         <div className="space-y-2">
           <Label>
-            จังหวัดเลขทะเบียน <span className="text-destructive">*</span>
+            {t('vehicleInfoStep.plateProvince')} <span className="text-destructive">*</span>
           </Label>
           <Select onValueChange={(value) => setValue("plateProvince", value)}>
             <SelectTrigger className={errors.plateProvince ? "border-destructive" : ""}>
-              <SelectValue placeholder="เลือกจังหวัด" />
+              <SelectValue placeholder={t('vehicleInfoStep.selectProvince')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="bangkok">กรุงเทพมหานคร</SelectItem>
@@ -186,13 +187,13 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         {data.hasTrailer && (
           <>
             <div className="space-y-2">
-              <Label>หมายเลขทะเบียนหางลาก (ไม่เว้นวรรคไม่ใส่ขีด) <span className="text-destructive">*</span></Label>
+              <Label>{t('vehicleInfoStep.trailerPlateNumber')} <span className="text-destructive">*</span></Label>
               <Input />
             </div>
             <div className="space-y-2">
-              <Label>จังหวัดเลขทะเบียนหางลาก <span className="text-destructive">*</span></Label>
+              <Label>{t('vehicleInfoStep.trailerPlateProvince')} <span className="text-destructive">*</span></Label>
               <Select>
-                <SelectTrigger><SelectValue placeholder="เลือกจังหวัด" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectProvince')} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="bangkok">กรุงเทพมหานคร</SelectItem>
                 </SelectContent>
@@ -202,10 +203,10 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         )}
 
         <div className="space-y-2">
-          <Label>ยี่ห้อรถยนต์ <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.vehicleBrand')} <span className="text-destructive">*</span></Label>
           <Select onValueChange={(value) => setValue("vehicleBrand", value)}>
             <SelectTrigger className={errors.vehicleBrand ? "border-destructive" : ""}>
-              <SelectValue placeholder="เลือกยี่ห้อ" />
+              <SelectValue placeholder={t('vehicleInfoStep.selectBrand')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="isuzu">Isuzu</SelectItem>
@@ -216,24 +217,24 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label>สีรถยนต์ <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.vehicleColor')} <span className="text-destructive">*</span></Label>
           <Input 
             {...register("vehicleColor")} 
-            placeholder="ระบุสีรถยนต์ (เช่น ขาว, น้ำเงิน)"
+            placeholder={t('vehicleInfoStep.vehicleColorPlaceholder')}
             className={errors.vehicleColor ? "border-destructive" : ""} 
           />
           {errors.vehicleColor && <p className="text-sm text-destructive">{errors.vehicleColor.message}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label>VIN (หมายเลขประจำตัวยานพาหนะ) <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.vin')} <span className="text-destructive">*</span></Label>
           <Input {...register("vin")} className={errors.vin ? "border-destructive" : ""} />
         </div>
 
         <div className="space-y-2">
-          <Label>ประเภทรถยนต์ <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.vehicleType')} <span className="text-destructive">*</span></Label>
           <Select onValueChange={(value) => setValue("vehicleType", value)}>
-            <SelectTrigger><SelectValue placeholder="เลือกประเภท" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectType')} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="10-wheel">10 ล้อ</SelectItem>
               <SelectItem value="6-wheel">6 ล้อ</SelectItem>
@@ -242,9 +243,9 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label>ประเภทเชื้อเพลิง <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.fuelType')} <span className="text-destructive">*</span></Label>
           <Select onValueChange={(value) => setValue("fuelType", value)}>
-            <SelectTrigger><SelectValue placeholder="เลือกเชื้อเพลิง" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectFuel')} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="diesel">ดีเซล</SelectItem>
               <SelectItem value="gasoline">เบนซิน</SelectItem>
@@ -253,21 +254,21 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label>ความจุที่ได้รับ (กิโลกรัม) <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.loadCapacity')} <span className="text-destructive">*</span></Label>
           <Input {...register("loadCapacity")} />
         </div>
 
         <div className="space-y-2">
-          <Label>ขนาดที่บรรทุกได้ (กว้างxยาวxสูง) <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.dimensions')} <span className="text-destructive">*</span></Label>
           <div className="flex gap-2">
-            <Input placeholder="กว้าง" {...register("width")} />
-            <Input placeholder="ยาว" {...register("length")} />
-            <Input placeholder="สูง" {...register("height")} />
+            <Input placeholder={t('vehicleInfoStep.width')} {...register("width")} />
+            <Input placeholder={t('vehicleInfoStep.length')} {...register("length")} />
+            <Input placeholder={t('vehicleInfoStep.height')} {...register("height")} />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label>สามารถรับประเภทตู้คอนเทนเนอร์ <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.containerTypes')} <span className="text-destructive">*</span></Label>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox 
@@ -278,7 +279,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
                   else setContainerTypes(containerTypes.filter(t => t !== "20"));
                 }}
               />
-              <Label htmlFor="container-20" className="font-normal cursor-pointer">แบบสั้น 20'</Label>
+              <Label htmlFor="container-20" className="font-normal cursor-pointer">{t('vehicleInfoStep.container20')}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox 
@@ -289,43 +290,43 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
                   else setContainerTypes(containerTypes.filter(t => t !== "40"));
                 }}
               />
-              <Label htmlFor="container-40" className="font-normal cursor-pointer">แบบยาว 40'</Label>
+              <Label htmlFor="container-40" className="font-normal cursor-pointer">{t('vehicleInfoStep.container40')}</Label>
             </div>
           </div>
         </div>
 
         <PhotoUploadBox 
-          label="รูปรายการจดทะเบียนรถ" 
+          label={t('vehicleInfoStep.registrationDoc')}
           id="registration-doc"
           file={registrationPhoto}
           onChange={(file) => handleFileChange(file, setRegistrationPhoto)}
         />
 
         <div className="space-y-2">
-          <Label>มูลค่าประกันสินค้า (บาท) <span className="text-destructive">*</span></Label>
+          <Label>{t('vehicleInfoStep.insuranceValue')} <span className="text-destructive">*</span></Label>
           <Input {...register("insuranceValue")} />
         </div>
 
         <PhotoUploadBox 
-          label="แนบเอกสารประกัน" 
+          label={t('vehicleInfoStep.insuranceDoc')}
           id="insurance-doc"
           file={insurancePhoto}
           onChange={(file) => handleFileChange(file, setInsurancePhoto)}
         />
         <PhotoUploadBox 
-          label="ใบอนุญาติขับขี่" 
+          label={t('vehicleInfoStep.license')}
           id="license-doc"
           file={licensePhoto}
           onChange={(file) => handleFileChange(file, setLicensePhoto)}
         />
         <PhotoUploadBox 
-          label="บัตรประชาชนผู้ขับ" 
+          label={t('vehicleInfoStep.idCard')}
           id="id-card-doc"
           file={idCardPhoto}
           onChange={(file) => handleFileChange(file, setIdCardPhoto)}
         />
         <PhotoUploadBox 
-          label="สำเนา พรบ." 
+          label={t('vehicleInfoStep.compulsoryInsurance')}
           id="compulsory-insurance-doc"
           file={compulsoryInsurancePhoto}
           onChange={(file) => handleFileChange(file, setCompulsoryInsurancePhoto)}
@@ -339,13 +340,13 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           onClick={onBack}
           className="flex-1 rounded-xl h-12 text-base font-medium border-2"
         >
-          ย้อนกลับ
+          {t('vehicleInfoStep.back')}
         </Button>
         <Button
           type="submit"
           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium"
         >
-          ต่อไป →
+          {t('vehicleInfoStep.next')}
         </Button>
       </div>
       </form>
@@ -353,7 +354,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle className="text-center">เพิ่มรูปภาพ</DrawerTitle>
+            <DrawerTitle className="text-center">{t('vehicleInfoStep.addPhoto')}</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-3">
             <button
@@ -366,7 +367,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
               className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
             >
               <Camera className="w-6 h-6" />
-              <span className="text-base">ถ่ายภาพ</span>
+              <span className="text-base">{t('vehicleInfoStep.takePhoto')}</span>
             </button>
             <button
               type="button"
@@ -378,13 +379,13 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
               className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
             >
               <Image className="w-6 h-6" />
-              <span className="text-base">เลือกรูปจากแกลลอรี่</span>
+              <span className="text-base">{t('vehicleInfoStep.selectFromGallery')}</span>
             </button>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
               <Button variant="outline" className="w-full rounded-xl h-12">
-                ยกเลิก
+                {t('vehicleInfoStep.cancel')}
               </Button>
             </DrawerClose>
           </DrawerFooter>
