@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
@@ -30,6 +31,7 @@ export default function ContainerSummaryPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [application, setApplication] = useState<JobApplication | null>(null);
   const [sopPhoto, setSOPPhoto] = useState<SOPPhoto | null>(null);
@@ -53,8 +55,8 @@ export default function ContainerSummaryPage() {
 
     if (jobError) {
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('containerSummary.error'),
+        description: t('containerSummary.loadError'),
         variant: 'destructive'
       });
       navigate('/current-jobs');
@@ -136,7 +138,7 @@ export default function ContainerSummaryPage() {
                 <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-green-900">เช็คอินสำเร็จ</div>
+                <div className="font-semibold text-green-900">{t('containerSummary.checkInSuccess')}</div>
                 <div className="text-sm text-green-700">
                   {formatDateTime(application.container_checked_in_at)}
                 </div>
@@ -153,7 +155,7 @@ export default function ContainerSummaryPage() {
                 <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-green-900">รับตู้เปล่าสำเร็จ</div>
+                <div className="font-semibold text-green-900">{t('containerSummary.containerSuccess')}</div>
                 <div className="text-sm text-green-700">
                   {formatDateTime(application.container_sop_completed_at)}
                 </div>
@@ -165,7 +167,7 @@ export default function ContainerSummaryPage() {
         {/* SOP Photo */}
         {sopPhoto && (
           <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">รูปภาพตู้เปล่า</div>
+            <div className="text-sm text-muted-foreground">{t('containerSummary.containerPhoto')}</div>
             <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
               <img 
                 src={sopPhoto.photo_url} 
