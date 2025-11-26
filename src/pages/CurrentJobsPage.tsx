@@ -35,7 +35,7 @@ interface JobApplication {
     start_time: string;
     equipment_list: string | null;
     safety_equipment: string | null;
-  };
+  } | null;
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
@@ -131,6 +131,9 @@ export default function CurrentJobsPage() {
   // Filter applications based on selected filters
   const filteredApplications = applications.filter(application => {
     const job = application.jobs;
+    
+    // Skip if job is null
+    if (!job) return false;
 
     // Search filter
     if (searchQuery) {
@@ -209,6 +212,10 @@ export default function CurrentJobsPage() {
           </div> : filteredApplications.length === 0 ? <EmptyState /> : <div className="space-y-4">
             {filteredApplications.map(application => {
           const job = application.jobs;
+          
+          // Guard clause for null jobs
+          if (!job) return null;
+          
           return <Card key={application.job_id} className="p-4 space-y-3 bg-card">
                   <div className="flex items-start justify-between mb-3">
                     <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
