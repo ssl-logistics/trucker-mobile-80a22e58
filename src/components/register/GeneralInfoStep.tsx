@@ -10,23 +10,7 @@ import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { RegistrationData } from "@/pages/Register";
-
-const generalInfoSchema = z.object({
-  firstName: z.string().min(1, "กรุณากรอกชื่อ"),
-  lastName: z.string().min(1, "กรุณากรอกนามสกุล"),
-  phone: z.string().min(10, "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง"),
-  email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง").optional().or(z.literal("")),
-  username: z.string().min(1, "กรุณากรอกชื่อผู้ใช้งาน"),
-  password: z.string().min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร"),
-  confirmPassword: z.string().min(8, "กรุณายืนยันรหัสผ่าน"),
-  priceRangeMin: z.string().min(1, "กรุณากรอกราคาต่ำสุด"),
-  priceRangeMax: z.string().min(1, "กรุณากรอกราคาสูงสุด"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "รหัสผ่านไม่ตรงกัน",
-  path: ["confirmPassword"],
-});
-
-type GeneralInfoFormData = z.infer<typeof generalInfoSchema>;
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface GeneralInfoStepProps {
   data: RegistrationData;
@@ -34,6 +18,25 @@ interface GeneralInfoStepProps {
 }
 
 const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
+  const { t } = useLanguage();
+  
+  const generalInfoSchema = z.object({
+    firstName: z.string().min(1, t('generalInfo.validation.firstNameRequired')),
+    lastName: z.string().min(1, t('generalInfo.validation.lastNameRequired')),
+    phone: z.string().min(10, t('generalInfo.validation.phoneRequired')),
+    email: z.string().email(t('generalInfo.validation.emailFormat')).optional().or(z.literal("")),
+    username: z.string().min(1, t('generalInfo.validation.usernameRequired')),
+    password: z.string().min(8, t('generalInfo.validation.passwordMin')),
+    confirmPassword: z.string().min(8, t('generalInfo.validation.confirmPasswordMin')),
+    priceRangeMin: z.string().min(1, t('generalInfo.validation.priceMinRequired')),
+    priceRangeMax: z.string().min(1, t('generalInfo.validation.priceMaxRequired')),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('generalInfo.validation.passwordMismatch'),
+    path: ["confirmPassword"],
+  });
+
+  type GeneralInfoFormData = z.infer<typeof generalInfoSchema>;
+  
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(data.profilePhoto || null);
@@ -79,7 +82,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Profile Photo */}
       <div className="text-center">
-        <h3 className="font-semibold text-foreground mb-4">รูปภาพผู้ขับขี่</h3>
+        <h3 className="font-semibold text-foreground mb-4">{t('generalInfo.profilePhoto')}</h3>
         <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <DrawerTrigger asChild>
             <div className="relative inline-block cursor-pointer">
@@ -99,14 +102,14 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle className="text-center">เลือกรูปภาพ</DrawerTitle>
+              <DrawerTitle className="text-center">{t('generalInfo.selectPhoto')}</DrawerTitle>
             </DrawerHeader>
             <div className="p-4 space-y-3 pb-8">
               <label htmlFor="camera-capture" className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
                 <Camera className="w-6 h-6 text-primary" />
                 <div className="text-left flex-1">
-                  <p className="font-medium">ถ่ายภาพ</p>
-                  <p className="text-sm text-muted-foreground">เปิดกล้องเพื่อถ่ายภาพ</p>
+                  <p className="font-medium">{t('generalInfo.takePhoto')}</p>
+                  <p className="text-sm text-muted-foreground">{t('generalInfo.takePhotoDesc')}</p>
                 </div>
               </label>
               <input
@@ -121,8 +124,8 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               <label htmlFor="gallery-select" className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
                 <Image className="w-6 h-6 text-primary" />
                 <div className="text-left flex-1">
-                  <p className="font-medium">เลือกจากแกลลอรี่</p>
-                  <p className="text-sm text-muted-foreground">เลือกรูปภาพที่มีอยู่ในเครื่อง</p>
+                  <p className="font-medium">{t('generalInfo.selectFromGallery')}</p>
+                  <p className="text-sm text-muted-foreground">{t('generalInfo.selectFromGalleryDesc')}</p>
                 </div>
               </label>
               <input
@@ -135,16 +138,16 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
             </div>
           </DrawerContent>
         </Drawer>
-        <p className="text-sm text-muted-foreground mt-2">กดเพื่อถ่ายรูปหรือเลือกรูปใบหน้า</p>
+        <p className="text-sm text-muted-foreground mt-2">{t('generalInfo.photoPrompt')}</p>
       </div>
 
       {/* Personal Information */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-foreground">ข้อมูลส่วนตัว</h3>
+        <h3 className="font-semibold text-foreground">{t('generalInfo.personalInfo')}</h3>
         
         <div className="space-y-2">
           <Label htmlFor="firstName">
-            ชื่อ (ระบุชื่อตามบัตรประชาชน) <span className="text-destructive">*</span>
+            {t('generalInfo.firstName')} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="firstName"
@@ -158,7 +161,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
 
         <div className="space-y-2">
           <Label htmlFor="lastName">
-            นามสกุล (ระบุนามสกุลตามบัตรประชาชน) <span className="text-destructive">*</span>
+            {t('generalInfo.lastName')} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="lastName"
@@ -172,7 +175,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
 
         <div className="space-y-2">
           <Label htmlFor="phone">
-            เบอร์โทรศัพท์ <span className="text-destructive">*</span>
+            {t('generalInfo.phone')} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="phone"
@@ -185,7 +188,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">อีเมล</Label>
+          <Label htmlFor="email">{t('generalInfo.email')}</Label>
           <Input
             id="email"
             type="email"
@@ -200,11 +203,11 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
 
       {/* Login Information */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-foreground">ข้อมูลผู้ใช้งาน</h3>
+        <h3 className="font-semibold text-foreground">{t('generalInfo.userInfo')}</h3>
         
         <div className="space-y-2">
           <Label htmlFor="username">
-            ชื่อผู้ใช้ <span className="text-destructive">*</span>
+            {t('generalInfo.username')} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="username"
@@ -218,7 +221,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
 
         <div className="space-y-2">
           <Label htmlFor="password">
-            รหัสผ่าน <span className="text-destructive">*</span>
+            {t('generalInfo.password')} <span className="text-destructive">*</span>
           </Label>
           <div className="relative">
             <Input
@@ -242,7 +245,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
 
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">
-            ยืนยันรหัสผ่าน <span className="text-destructive">*</span>
+            {t('generalInfo.confirmPassword')} <span className="text-destructive">*</span>
           </Label>
           <div className="relative">
             <Input
@@ -267,32 +270,32 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
 
       {/* Work Area */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-foreground">พื้นที่วิ่งงาน</h3>
+        <h3 className="font-semibold text-foreground">{t('generalInfo.workArea')}</h3>
         
         <LocationAutocomplete
           value={selectedLocation}
           onChange={setSelectedLocation}
-          label="อำเภอ หรือ จังหวัด ที่ถนัดหรือวิ่งงานเป็นประจำ"
-          placeholder="ค้นหาอำเภอ/จังหวัด"
+          label={t('generalInfo.workAreaLabel')}
+          placeholder={t('generalInfo.workAreaPlaceholder')}
         />
 
         <div className="space-y-2">
-          <Label>เรทราคาวิ่งงาน (฿)</Label>
+          <Label>{t('generalInfo.priceRange')}</Label>
           <div className="flex items-center gap-2">
             <Input
-              placeholder="ใส่ราคาต่ำสุด"
+              placeholder={t('generalInfo.priceMin')}
               {...register("priceRangeMin")}
               className={errors.priceRangeMin ? "border-destructive" : ""}
             />
             <span className="text-muted-foreground">—</span>
             <Input
-              placeholder="ใส่ราคาสูงสุด"
+              placeholder={t('generalInfo.priceMax')}
               {...register("priceRangeMax")}
               className={errors.priceRangeMax ? "border-destructive" : ""}
             />
           </div>
           {(errors.priceRangeMin || errors.priceRangeMax) && (
-            <p className="text-sm text-destructive">กรุณากรอกช่วงราคา</p>
+            <p className="text-sm text-destructive">{t('generalInfo.validation.priceRange')}</p>
           )}
         </div>
       </div>
@@ -301,7 +304,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
         type="submit"
         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium"
       >
-        ต่อไป →
+        {t('generalInfo.next')}
       </Button>
     </form>
   );

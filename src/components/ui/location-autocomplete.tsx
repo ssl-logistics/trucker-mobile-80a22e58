@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { locations, Location } from "@/data/locations";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LocationAutocompleteProps {
   value: string;
@@ -28,10 +29,12 @@ interface LocationAutocompleteProps {
 export function LocationAutocomplete({
   value = "",
   onChange,
-  placeholder = "ค้นหาอำเภอ/จังหวัด",
+  placeholder,
   label,
   description,
 }: LocationAutocompleteProps) {
+  const { t } = useLanguage();
+  const actualPlaceholder = placeholder || t('autocomplete.searchPlaceholder');
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
@@ -91,7 +94,7 @@ export function LocationAutocomplete({
             className="w-full justify-between h-auto min-h-[2.5rem] px-3 py-2 bg-white border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm"
           >
             <span className={cn("text-sm", !selectedLocation && "text-muted-foreground")}>
-              {selectedLocation ? selectedLocation.displayText : placeholder}
+              {selectedLocation ? selectedLocation.displayText : actualPlaceholder}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -99,14 +102,14 @@ export function LocationAutocomplete({
         <PopoverContent className="w-full p-0 bg-white shadow-lg rounded-lg border border-gray-200" align="start">
           <Command className="rounded-lg">
             <CommandInput
-              placeholder={placeholder}
+              placeholder={actualPlaceholder}
               value={searchQuery}
               onValueChange={setSearchQuery}
               className="border-0 focus:ring-0"
             />
             <CommandList className="max-h-[300px]">
               <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-                ไม่พบข้อมูล
+                {t('autocomplete.noData')}
               </CommandEmpty>
               {Object.entries(groupedLocations).map(([province, provinceLocations]) => (
                 <CommandGroup key={province} heading={province} className="px-2">
