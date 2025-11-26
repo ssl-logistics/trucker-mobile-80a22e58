@@ -24,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ExpenseItem {
   id: string;
@@ -33,19 +34,20 @@ interface ExpenseItem {
   receiptPreview: string | null;
 }
 
-const expenseTypes = [
-  { value: "toll", label: "ค่าทางด่วน" },
-  { value: "port", label: "ค่าเข้าท่าเรือ" },
-  { value: "parking", label: "ค่าที่จอด" },
-];
-
 const AddExpensePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { jobId } = useParams();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
+  
+  const expenseTypes = [
+    { value: "toll", label: t('expense.tollFee') },
+    { value: "port", label: t('expense.portFee') },
+    { value: "parking", label: t('expense.parkingFee') },
+  ];
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     { id: "1", type: "", amount: "", receiptPhoto: null, receiptPreview: null },
   ]);
@@ -92,8 +94,8 @@ const AddExpensePage = () => {
     for (const expense of expenses) {
       if (!expense.type || !expense.amount || !expense.receiptPhoto) {
         toast({
-          title: "กรุณากรอกข้อมูลให้ครบถ้วน",
-          description: "กรุณาเลือกประเภท กรอกราคา และอัพโหลดรูปใบเสร็จ",
+          title: t('expense.fillAllFields'),
+          description: t('expense.fillAllFieldsDesc'),
           variant: "destructive",
         });
         return false;
@@ -167,8 +169,8 @@ const AddExpensePage = () => {
       console.log('All expenses saved successfully');
       
       toast({
-        title: "เพิ่มค่าใช้จ่ายสำเร็จ",
-        description: `บันทึกค่าใช้จ่ายทั้งหมด ${calculateTotal()} บาท`,
+        title: t('expense.success'),
+        description: `${t('expense.successDesc')} ${calculateTotal()} ${t('expense.baht')}`,
       });
       
       console.log('About to navigate back...');
@@ -183,8 +185,8 @@ const AddExpensePage = () => {
     } catch (error) {
       console.error('Error saving expenses:', error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: error instanceof Error ? error.message : "ไม่สามารถบันทึกค่าใช้จ่ายได้",
+        title: t('expense.error'),
+        description: error instanceof Error ? error.message : t('expense.errorDesc'),
         variant: "destructive",
       });
     } finally {
@@ -204,7 +206,7 @@ const AddExpensePage = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-semibold">เพิ่มค่าใช้จ่าย</h1>
+          <h1 className="text-lg font-semibold">{t('expense.title')}</h1>
         </div>
       </header>
 
@@ -212,19 +214,19 @@ const AddExpensePage = () => {
       <div className="px-4 py-4 space-y-6">
         {expenses.map((expense, index) => (
           <div key={expense.id} className="space-y-4">
-            <h3 className="font-medium">ค่าใช้จ่าย {index + 1}</h3>
+            <h3 className="font-medium">{t('expense.expense')} {index + 1}</h3>
 
             {/* Expense Type */}
             <div className="space-y-2">
               <Label htmlFor={`type-${expense.id}`}>
-                ประเภทค่าใช้จ่าย <span className="text-red-500">*</span>
+                {t('expense.type')} <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={expense.type}
                 onValueChange={(value) => handleExpenseChange(expense.id, "type", value)}
               >
                 <SelectTrigger id={`type-${expense.id}`}>
-                  <SelectValue placeholder="ประเภทค่าใช้จ่าย" />
+                  <SelectValue placeholder={t('expense.type')} />
                 </SelectTrigger>
                 <SelectContent>
                   {expenseTypes.map((type) => (
@@ -239,7 +241,7 @@ const AddExpensePage = () => {
             {/* Amount */}
             <div className="space-y-2">
               <Label htmlFor={`amount-${expense.id}`}>
-                ราคา <span className="text-red-500">*</span>
+                {t('expense.price')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id={`amount-${expense.id}`}
@@ -253,7 +255,7 @@ const AddExpensePage = () => {
             {/* Receipt Photo */}
             <div className="space-y-2">
               <Label>
-                อัพโหลดรูปใบเสร็จ <span className="text-red-500">*</span>
+                {t('expense.uploadReceipt')} <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <input
@@ -282,8 +284,8 @@ const AddExpensePage = () => {
                   ) : (
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 transition-colors">
                       <Camera className="w-8 h-8 mb-2" />
-                      <p className="text-sm">กดเพื่อถ่ายหรือเลือก</p>
-                      <p className="text-xs">รูปภาพใบเสร็จ</p>
+                      <p className="text-sm">{t('expense.clickToTake')}</p>
+                      <p className="text-xs">{t('expense.receiptPhoto')}</p>
                     </div>
                   )}
                 </label>
@@ -303,7 +305,7 @@ const AddExpensePage = () => {
           onClick={handleAddExpense}
         >
           <Plus className="w-4 h-4 mr-2" />
-          เพิ่มค่าใช้จ่าย
+          {t('expense.addMore')}
         </Button>
       </div>
 
@@ -314,7 +316,7 @@ const AddExpensePage = () => {
           size="lg"
           onClick={handleSubmit}
         >
-          เพิ่มค่าใช้จ่าย
+          {t('expense.submitButton')}
         </Button>
       </div>
 
@@ -330,28 +332,28 @@ const AddExpensePage = () => {
               </div>
             </div>
             <AlertDialogTitle className="text-center">
-              ยืนยันการเพิ่มค่าใช้จ่าย
+              {t('expense.confirmTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center">
               <div className="space-y-2">
-                <p>ค่าใช้จ่ายทั้งหมด</p>
+                <p>{t('expense.totalAmount')}</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {calculateTotal()} บาท
+                  {calculateTotal()} {t('expense.baht')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  กรุณาตรวจสอบรายละเอียดและเอียดก่อนดำเนินการ
+                  {t('expense.checkDetails')}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 sm:gap-2">
-            <AlertDialogCancel className="flex-1 m-0">ยกเลิก</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 m-0">{t('expense.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="flex-1 m-0"
               onClick={handleConfirm}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'กำลังบันทึก...' : 'ยืนยัน'}
+              {isSubmitting ? t('expense.saving') : t('expense.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
