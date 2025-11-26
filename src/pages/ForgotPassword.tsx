@@ -8,37 +8,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import loginBackground from "@/assets/login-background.png";
-const phoneSchema = z.object({
-  phone: z.string().regex(/^[0-9]{10}$/, {
-    message: "กรุณากรอกเบอร์โทรศัพท์ 10 หลัก"
-  })
-});
-type PhoneFormData = z.infer<typeof phoneSchema>;
+
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const { t } = useLanguage();
   const [serverError, setServerError] = useState<string>("");
+  
+  const phoneSchema = z.object({
+    phone: z.string().regex(/^[0-9]{10}$/, {
+      message: t('forgotPassword.phoneFormat')
+    })
+  });
+  
+  type PhoneFormData = z.infer<typeof phoneSchema>;
+
   const {
     register,
     handleSubmit,
-    formState: {
-      errors
-    },
+    formState: { errors },
     getValues
   } = useForm<PhoneFormData>({
     resolver: zodResolver(phoneSchema)
   });
+
   const onSubmit = async (data: PhoneFormData) => {
     try {
       setServerError("");
 
       // Skip OTP verification temporarily - go directly to password reset
       toast({
-        title: "ยืนยันเบอร์โทรศัพท์",
-        description: "กรุณาสร้างรหัสผ่านใหม่"
+        title: t('forgotPassword.phoneVerified'),
+        description: t('forgotPassword.phoneVerifiedDesc')
       });
       
       navigate("/create-new-password", {
@@ -48,10 +51,12 @@ const ForgotPassword = () => {
       });
     } catch (error) {
       console.error("Error:", error);
-      setServerError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      setServerError(t('forgotPassword.error'));
     }
   };
-  return <div className="min-h-screen bg-background flex flex-col">
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section */}
       <div className="relative h-[40vh]">
         <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill" />
@@ -63,39 +68,55 @@ const ForgotPassword = () => {
           {/* Back Button */}
           <button onClick={() => navigate("/")} className="mb-6 flex items-center text-foreground/60 hover:text-foreground">
             <ArrowLeft className="w-5 h-5 mr-2" />
-            <span>ย้อนกลับ</span>
+            <span>{t('forgotPassword.backButton')}</span>
           </button>
 
           <h1 className="text-2xl font-bold text-center mb-2 text-foreground">
-            ลืมรหัสผ่าน?
+            {t('forgotPassword.title')}
           </h1>
           <p className="text-center text-muted-foreground mb-8">
-            กรอกเบอร์โทรศัพท์ที่ลงทะเบียนไว้
+            {t('forgotPassword.subtitle')}
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Phone Field */}
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-foreground">
-                เบอร์โทรศัพท์ <span className="text-destructive">*</span>
+                {t('forgotPassword.phone')} <span className="text-destructive">*</span>
               </Label>
-              <Input id="phone" type="tel" placeholder="081 234 5679" {...register("phone")} className={errors.phone || serverError ? "border-destructive" : ""} />
+              <Input 
+                id="phone" 
+                type="tel" 
+                placeholder={t('forgotPassword.phonePlaceholder')} 
+                {...register("phone")} 
+                className={errors.phone || serverError ? "border-destructive" : ""} 
+              />
               {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
               {serverError && <p className="text-sm text-destructive">{serverError}</p>}
             </div>
 
             {/* Submit Button */}
             <div className="space-y-3 pt-4">
-              <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium">
-                ยืนยัน
+              <Button 
+                type="submit" 
+                className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium"
+              >
+                {t('forgotPassword.confirmButton')}
               </Button>
-              <Button type="button" variant="outline" onClick={() => navigate("/")} className="w-full h-12 rounded-xl text-base font-medium border-2">
-                เข้าสู่ระบบ
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => navigate("/")} 
+                className="w-full h-12 rounded-xl text-base font-medium border-2"
+              >
+                {t('forgotPassword.signInButton')}
               </Button>
             </div>
           </form>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ForgotPassword;

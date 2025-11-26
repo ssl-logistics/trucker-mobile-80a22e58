@@ -833,6 +833,19 @@ const thTranslations: Record<string, string> = {
   'changePassword.errorDesc': 'ไม่สามารถเปลี่ยนรหัสผ่านได้',
   'changePassword.invalidData': 'ข้อมูลไม่ถูกต้อง',
   'changePassword.minLength': 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+  
+  // Forgot Password Page
+  'forgotPassword.title': 'ลืมรหัสผ่าน?',
+  'forgotPassword.subtitle': 'กรอกเบอร์โทรศัพท์ที่ลงทะเบียนไว้',
+  'forgotPassword.phone': 'เบอร์โทรศัพท์',
+  'forgotPassword.phonePlaceholder': '081 234 5679',
+  'forgotPassword.phoneFormat': 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก',
+  'forgotPassword.confirmButton': 'ยืนยัน',
+  'forgotPassword.signInButton': 'เข้าสู่ระบบ',
+  'forgotPassword.backButton': 'ย้อนกลับ',
+  'forgotPassword.phoneVerified': 'ยืนยันเบอร์โทรศัพท์',
+  'forgotPassword.phoneVerifiedDesc': 'กรุณาสร้างรหัสผ่านใหม่',
+  'forgotPassword.error': 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
 };
 
 // English translations
@@ -1627,4 +1640,17 @@ const enTranslations: Record<string, string> = {
   'changePassword.errorDesc': 'Unable to change password',
   'changePassword.invalidData': 'Invalid data',
   'changePassword.minLength': 'Password must be at least 6 characters',
+  
+  // Forgot Password Page
+  'forgotPassword.title': 'Forgot Password?',
+  'forgotPassword.subtitle': 'Enter your registered phone number',
+  'forgotPassword.phone': 'Phone Number',
+  'forgotPassword.phonePlaceholder': '081 234 5679',
+  'forgotPassword.phoneFormat': 'Please enter a valid 10-digit phone number',
+  'forgotPassword.confirmButton': 'Confirm',
+  'forgotPassword.signInButton': 'Sign In',
+  'forgotPassword.backButton': 'Back',
+  'forgotPassword.phoneVerified': 'Phone Verified',
+  'forgotPassword.phoneVerifiedDesc': 'Please create a new password',
+  'forgotPassword.error': 'An error occurred. Please try again.',
 };
