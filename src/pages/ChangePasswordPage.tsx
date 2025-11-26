@@ -2,21 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Eye, EyeOff, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
-const passwordSchema = z.object({
-  newPassword: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "รหัสผ่านไม่ตรงกัน",
-  path: ["confirmPassword"],
-});
-
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -30,12 +24,20 @@ export default function ChangePasswordPage() {
   const handleSubmit = async () => {
     if (!isValid) return;
 
+    const passwordSchema = z.object({
+      newPassword: z.string().min(6, t('changePassword.minLength')),
+      confirmPassword: z.string(),
+    }).refine((data) => data.newPassword === data.confirmPassword, {
+      message: t('changePassword.passwordMismatch'),
+      path: ["confirmPassword"],
+    });
+
     try {
       passwordSchema.parse({ newPassword, confirmPassword });
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
-          title: "ข้อมูลไม่ถูกต้อง",
+          title: t('changePassword.invalidData'),
           description: error.errors[0].message,
           variant: "destructive",
         });
@@ -53,8 +55,8 @@ export default function ChangePasswordPage() {
       if (error) throw error;
 
       toast({
-        title: "เปลี่ยนรหัสผ่านสำเร็จ",
-        description: "กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่",
+        title: t('changePassword.success'),
+        description: t('changePassword.successDesc'),
       });
 
       // Sign out and redirect to login
@@ -62,8 +64,8 @@ export default function ChangePasswordPage() {
       navigate('/', { replace: true });
     } catch (error: any) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: error.message || "ไม่สามารถเปลี่ยนรหัสผ่านได้",
+        title: t('changePassword.error'),
+        description: error.message || t('changePassword.errorDesc'),
         variant: "destructive",
       });
     } finally {
@@ -79,7 +81,7 @@ export default function ChangePasswordPage() {
           <button onClick={() => navigate('/account')} className="absolute left-0">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">เปลี่ยนรหัสผ่าน</h1>
+          <h1 className="text-xl font-semibold">{t('changePassword.title')}</h1>
         </div>
       </header>
 
@@ -87,7 +89,7 @@ export default function ChangePasswordPage() {
       <div className="p-4 space-y-4">
         {/* New Password Field */}
         <div className="space-y-2">
-          <label className="text-sm text-muted-foreground">รหัสผ่านใหม่</label>
+          <label className="text-sm text-muted-foreground">{t('changePassword.newPassword')}</label>
           <div className="relative">
             <Input
               type={showNewPassword ? 'text' : 'password'}
@@ -121,7 +123,7 @@ export default function ChangePasswordPage() {
 
         {/* Confirm Password Field */}
         <div className="space-y-2">
-          <label className="text-sm text-muted-foreground">ยืนยันรหัสผ่าน</label>
+          <label className="text-sm text-muted-foreground">{t('changePassword.confirmPassword')}</label>
           <div className="relative">
             <Input
               type={showConfirmPassword ? 'text' : 'password'}
@@ -156,7 +158,7 @@ export default function ChangePasswordPage() {
         {/* Password Match Status */}
         {confirmPassword && (
           <p className={`text-sm ${passwordsMatch ? 'text-green-600' : 'text-destructive'}`}>
-            {passwordsMatch ? 'รหัสผ่านตรงกันแล้ว' : 'รหัสผ่านไม่ตรงกัน'}
+            {passwordsMatch ? t('changePassword.passwordMatch') : t('changePassword.passwordMismatch')}
           </p>
         )}
 
@@ -167,7 +169,7 @@ export default function ChangePasswordPage() {
             disabled={!isValid || isSubmitting}
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
           >
-            {isSubmitting ? 'กำลังเปลี่ยนรหัสผ่าน...' : 'ใช้รหัสผ่านนี้'}
+            {isSubmitting ? t('changePassword.changing') : t('changePassword.usePassword')}
           </Button>
         </div>
       </div>
