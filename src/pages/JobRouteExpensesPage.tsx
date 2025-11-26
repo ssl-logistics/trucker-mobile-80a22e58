@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 
 interface JobDetail {
@@ -47,6 +48,7 @@ export default function JobRouteExpensesPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -95,8 +97,8 @@ export default function JobRouteExpensesPage() {
     } catch (error) {
       console.error('Error loading job data:', error);
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลงานได้',
+        title: t('jobRoute.error'),
+        description: t('jobRoute.loadError'),
         variant: 'destructive'
       });
     } finally {
@@ -116,7 +118,7 @@ export default function JobRouteExpensesPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="text-center">
-          <p className="text-muted-foreground">ไม่พบข้อมูลงานนี้</p>
+          <p className="text-muted-foreground">{t('jobRoute.noData')}</p>
         </div>
       </div>
     );
@@ -140,8 +142,8 @@ export default function JobRouteExpensesPage() {
       <div className="px-4 pt-6">
         <Tabs defaultValue="route" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="route">เส้นทาง</TabsTrigger>
-            <TabsTrigger value="expenses">ค่าใช้จ่าย</TabsTrigger>
+            <TabsTrigger value="route">{t('jobRoute.route')}</TabsTrigger>
+            <TabsTrigger value="expenses">{t('jobRoute.expenses')}</TabsTrigger>
           </TabsList>
 
           {/* Route Tab */}
@@ -154,11 +156,11 @@ export default function JobRouteExpensesPage() {
               </Card>
               <Card className="p-3 text-center bg-muted/50">
                 <MapPin className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
-                <div className="text-sm font-medium text-muted-foreground">จุดรับ/ส่ง: {pickupPoints}</div>
+                <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.pickupDelivery')}: {pickupPoints}</div>
               </Card>
               <Card className="p-3 text-center bg-muted/50">
                 <Package className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
-                <div className="text-sm font-medium text-muted-foreground">สินค้าร่วม: {totalItems}</div>
+                <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.itemsCount')}: {totalItems}</div>
               </Card>
             </div>
 
@@ -166,14 +168,14 @@ export default function JobRouteExpensesPage() {
             {jobApplication.payment_completed_at && (
               <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-center justify-center">
                 <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
-                <span className="text-green-700 dark:text-green-400 font-medium">ชำระแล้ว</span>
+                <span className="text-green-700 dark:text-green-400 font-medium">{t('jobRoute.paid')}</span>
               </div>
             )}
 
             {/* Route Details */}
             <div className="space-y-4">
               <div className="text-base font-semibold text-foreground">
-                ผู้จ้าง : {job.employer_name}
+                {t('jobRoute.employer')} : {job.employer_name}
               </div>
 
               {/* Pickup Point */}
@@ -188,37 +190,37 @@ export default function JobRouteExpensesPage() {
 
                 <Card className="p-4 mb-4">
                   <div className="flex items-start justify-between mb-2">
-                    <div className="font-semibold">จุดรับสินค้า {job.origin_contact_person || 'Factory1'}</div>
+                    <div className="font-semibold">{t('jobRoute.pickupPoint')} {job.origin_contact_person || 'Factory1'}</div>
                     {jobApplication.sop_completed_at && (
                       <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                         <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
-                        SOP สำเร็จ
+                        {t('jobRoute.sopSuccess')}
                       </Badge>
                     )}
                   </div>
                   <div className="space-y-1 text-sm">
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">ชื่อผู้ติดต่อ</span>
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.contactName')}</span>
                       <span className="text-foreground">: {job.origin_contact_person || '-'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">เลขที่ใบ</span>
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.billNumber')}</span>
                       <span className="text-foreground">: {job.origin_bill_of_lading || job.order_code}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">ปลายทาง</span>
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.destination')}</span>
                       <span className="text-foreground">: {job.origin_location}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.productType')}</span>
                       <span className="text-foreground">: {job.transport_type}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
                       <span className="text-foreground">: {new Date(job.start_date).toLocaleDateString('th-TH')} | {job.start_time}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.remarks')}</span>
                       <span className="text-foreground">: {job.origin_remarks || '-'}</span>
                     </div>
                   </div>
@@ -236,37 +238,37 @@ export default function JobRouteExpensesPage() {
 
                   <Card className="p-4">
                     <div className="flex items-start justify-between mb-2">
-                      <div className="font-semibold">จุดส่ง {job.destination_contact_person || job.destination_location.split(' ')[0]}</div>
+                      <div className="font-semibold">{t('jobRoute.deliveryPoint')} {job.destination_contact_person || job.destination_location.split(' ')[0]}</div>
                       {jobApplication.delivery_sop_completed_at && (
                         <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                           <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
-                          POD สำเร็จ
+                          {t('jobRoute.podSuccess')}
                         </Badge>
                       )}
                     </div>
                     <div className="space-y-1 text-sm">
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">ชื่อผู้ติดต่อ</span>
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.contactName')}</span>
                         <span className="text-foreground">: {job.destination_contact_person || '-'}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">เลขที่ใบ</span>
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.billNumber')}</span>
                         <span className="text-foreground">: {job.destination_bill_of_lading || job.order_code}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">ปลายทาง</span>
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.destination')}</span>
                         <span className="text-foreground">: {job.destination_location}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">ประเภทสินค้า</span>
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.productType')}</span>
                         <span className="text-foreground">: {job.transport_type}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">เข้ารับสินค้า</span>
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
                         <span className="text-foreground">: {new Date(job.start_date).toLocaleDateString('th-TH')} | {job.start_time}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">หมายเหตุ</span>
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.remarks')}</span>
                         <span className="text-foreground">: {job.destination_remarks || '-'}</span>
                       </div>
                     </div>
@@ -280,12 +282,12 @@ export default function JobRouteExpensesPage() {
           <TabsContent value="expenses" className="space-y-4">
             {expenses.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">ยังไม่มีข้อมูลค่าใช้จ่าย</p>
+                <p className="text-muted-foreground mb-4">{t('jobRoute.noExpenses')}</p>
                 <button
                   onClick={() => navigate(`/job/${jobId}/add-expense`)}
                   className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
                 >
-                  เพิ่มค่าใช้จ่าย
+                  {t('jobRoute.addExpense')}
                 </button>
               </div>
             ) : (
@@ -311,7 +313,7 @@ export default function JobRouteExpensesPage() {
                     <div className="relative rounded-lg overflow-hidden bg-muted">
                       <img 
                         src={expense.receipt_photo_url} 
-                        alt={`ใบเสร็จ ${expense.expense_type}`}
+                        alt={`${t('jobRoute.receipt')} ${expense.expense_type}`}
                         className="w-full h-auto object-cover"
                       />
                       <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/90 flex items-center justify-center shadow-md">
@@ -326,7 +328,7 @@ export default function JobRouteExpensesPage() {
                   onClick={() => navigate(`/job/${jobId}/add-expense`)}
                   className="w-full px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
                 >
-                  เพิ่มค่าใช้จ่าย
+                  {t('jobRoute.addExpense')}
                 </button>
               </div>
             )}
