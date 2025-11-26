@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
@@ -11,6 +12,7 @@ export default function EditFieldPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { field, value: initialValue, fullName } = location.state || {};
   
   const [value, setValue] = useState(initialValue || '');
@@ -31,10 +33,10 @@ export default function EditFieldPage() {
         .eq('id', user.id);
 
       if (!error) {
-        toast({ title: 'สำเร็จ', description: 'อัพเดทข้อมูลแล้ว' });
+        toast({ title: t('editField.success'), description: t('editField.updated') });
         navigate(-1);
       } else {
-        toast({ title: 'เกิดข้อผิดพลาด', description: 'ไม่สามารถอัพเดทข้อมูลได้', variant: 'destructive' });
+        toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
       }
     } else if (field === 'นามสกุล') {
       const nameParts = fullName?.split(' ') || [];
@@ -46,10 +48,10 @@ export default function EditFieldPage() {
         .eq('id', user.id);
 
       if (!error) {
-        toast({ title: 'สำเร็จ', description: 'อัพเดทข้อมูลแล้ว' });
+        toast({ title: t('editField.success'), description: t('editField.updated') });
         navigate(-1);
       } else {
-        toast({ title: 'เกิดข้อผิดพลาด', description: 'ไม่สามารถอัพเดทข้อมูลได้', variant: 'destructive' });
+        toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
       }
     } else if (field === 'เบอร์โทรศัพท์') {
       const { error } = await supabase
@@ -58,10 +60,10 @@ export default function EditFieldPage() {
         .eq('id', user.id);
 
       if (!error) {
-        toast({ title: 'สำเร็จ', description: 'อัพเดทข้อมูลแล้ว' });
+        toast({ title: t('editField.success'), description: t('editField.updated') });
         navigate(-1);
       } else {
-        toast({ title: 'เกิดข้อผิดพลาด', description: 'ไม่สามารถอัพเดทข้อมูลได้', variant: 'destructive' });
+        toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
       }
     }
 
@@ -80,7 +82,7 @@ export default function EditFieldPage() {
           <button onClick={() => navigate(-1)} className="absolute left-0">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">โปรไฟล์</h1>
+          <h1 className="text-xl font-semibold">{t('editField.profile')}</h1>
         </div>
       </header>
 
@@ -112,7 +114,7 @@ export default function EditFieldPage() {
           disabled={loading || !value.trim()}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-base"
         >
-          บันทึก
+          {t('editField.save')}
         </Button>
       </div>
     </div>
