@@ -44,14 +44,21 @@ Content-Type: application/json
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
 | `order_code` | string | รหัสงาน (ต้องไม่ซ้ำ) | "ORD-2024-001" |
-| `employer_name` | string | ชื่อนายจ้าง/บริษัท | "บริษัท ABC จำกัด" |
+| `employer_name` | string | **⚠️ ชื่อนายจ้าง/บริษัท (ไม่ใช่ที่อยู่)** | "บริษัท ABC จำกัด" |
 | `job_type` | string | ประเภทงาน | "urgent", "daily", "contract" |
 | `transport_type` | string | ประเภทการขนส่ง | "single", "multi", "import", "export" |
-| `origin_location` | string | จุดรับสินค้า | "โรงงานกรุงเทพ" |
-| `destination_location` | string | จุดส่งสินค้า | "คลังสินค้าชลบุรี" |
+| `origin_location` | string | จุดรับสินค้า | "BKK001-ลาดพร้าว/กรุงเทพ" |
+| `destination_location` | string | จุดส่งสินค้า | "CBI001-เมืองชลบุรี/ชลบุรี" |
 | `price` | number | ราคางาน (บาท) | 15000 |
 | `start_date` | string | วันที่เริ่มงาน (YYYY-MM-DD) | "2024-02-01" |
 | `start_time` | string | เวลาเริ่มงาน (HH:MM:SS) | "08:00:00" |
+
+**⚠️ CRITICAL: Field Validation**
+- `employer_name`: ต้องเป็น**ชื่อผู้จ้าง/บริษัท** เท่านั้น ห้ามใส่ข้อมูล location หรือที่อยู่
+  - ✅ ถูกต้อง: "บริษัท ABC จำกัด", "โรงงาน XYZ", "คุณสมชาย"
+  - ❌ ผิด: "BKK001กทมพรั้ว/กรุงเทพ", "ถนนพระราม 9"
+- ข้อมูลภาษาไทยต้องใช้ encoding UTF-8 ที่ถูกต้อง
+- ตรวจสอบตัวอักษรไทยก่อนส่งข้อมูล (ไม่มีตัวอักษรผิดเพี้ยน)
 
 ### 🔹 Optional Fields (ฟิลด์เสริม)
 
@@ -135,18 +142,22 @@ Content-Type: application/json
 ```json
 {
   "order_code": "FL-2024-001",
-  "employer_name": "บริษัท XYZ จำกัด",
+  "employer_name": "บริษัท XYZ จำกัด",  // ✅ ชื่อนายจ้าง ไม่ใช่ location
   "job_type": "daily",
   "transport_type": "single",
-  "origin_location": "โรงงานกรุงเทพ ถนนพระราม 9",
-  "destination_location": "คลังสินค้าชลบุรี นิคมอมตะ",
+  "origin_location": "BKK001-ลาดพร้าว/กรุงเทพ",  // รูปแบบ: CODE-ตำแหน่ง/จังหวัด
+  "destination_location": "CBI001-นิคมอมตะ/ชลบุรี",
   "price": 8000,
   "start_date": "2024-02-01",
   "start_time": "08:00:00",
-  "equipment_list": "รถกระบะ",
-  "safety_equipment": "เสื้อสะท้อนแสง",
+  "equipment_list": "รถกระบะ 6 ล้อ",
+  "safety_equipment": "เสื้อสะท้อนแสง, หมวกนิรภัย",
   "province": "กรุงเทพมหานคร",
-  "district": "ห้วยขวาง"
+  "district": "ห้วยขวาง",
+  "origin_latitude": 13.7563,
+  "origin_longitude": 100.5018,
+  "destination_latitude": 13.2345,
+  "destination_longitude": 100.9876
 }
 ```
 
@@ -154,11 +165,11 @@ Content-Type: application/json
 ```json
 {
   "order_code": "COMP-2024-001",
-  "employer_name": "บริษัท ABC Logistics จำกัด",
+  "employer_name": "บริษัท ABC Logistics จำกัด",  // ✅ ชื่อนายจ้างที่ชัดเจน
   "job_type": "contract",
   "transport_type": "import",
-  "origin_location": "ท่าเรือแหลมฉบัง",
-  "destination_location": "โรงงานชลบุรี",
+  "origin_location": "THLCH-ท่าเรือแหลมฉบัง/ชลบุรี",
+  "destination_location": "CBI002-โรงงานศรีราชา/ชลบุรี",
   "price": 25000,
   "start_date": "2024-02-05",
   "start_time": "06:00:00",
@@ -167,13 +178,15 @@ Content-Type: application/json
   "seal_number": "SEAL-12345",
   "container_checkpoint": "ด่านศุลกากรแหลมฉบัง",
   "container_checkpoint_code": "THLCH",
+  "container_checkpoint_latitude": 13.0827,
+  "container_checkpoint_longitude": 100.9200,
   "empty_container_date": "2024-02-04",
   "destination_time": "14:00:00",
-  "origin_contact_person": "คุณสมชาย",
+  "origin_contact_person": "คุณสมชาย (เจ้าหน้าที่ท่าเรือ)",  // ✅ ภาษาไทยถูกต้อง
   "origin_goods_type": "เครื่องจักร",
   "origin_goods_quantity": "1 ตู้ 40 ฟุต",
-  "destination_contact_person": "คุณสมหญิง",
-  "destination_remarks": "แจ้งล่วงหน้า 1 ชั่วโมง"
+  "destination_contact_person": "คุณสมหญิง (ฝ่ายรับสินค้า)",
+  "destination_remarks": "แจ้งล่วงหน้า 1 ชั่วโมง ก่อนถึง"  // ✅ ภาษาไทยถูกต้อง
 }
 ```
 
@@ -181,17 +194,19 @@ Content-Type: application/json
 ```json
 {
   "order_code": "FAC-2024-001",
-  "employer_name": "โรงงาน DEF",
+  "employer_name": "โรงงาน DEF อุตสาหกรรม",  // ✅ ชื่อโรงงาน
   "job_type": "urgent",
   "transport_type": "multi",
-  "origin_location": "โรงงานสมุทรปราการ",
-  "destination_location": "ลูกค้า 3 แห่ง (กรุงเทพ, นนทบุรี, ปทุมธานี)",
+  "origin_location": "SAM001-โรงงานบางปู/สมุทรปราการ",
+  "destination_location": "หลายจุด: BKK001-กรุงเทพ, NBI001-นนทบุรี, PTM001-ปทุมธานี",
   "price": 12000,
   "start_date": "2024-02-01",
   "start_time": "05:00:00",
   "assigned_role": "factory",
-  "equipment_list": "รถ 6 ล้อ, ผ้าใบคลุม",
-  "safety_equipment": "เสื้อสะท้อนแสง, รองเท้าเซฟตี้, ถุงมือ"
+  "equipment_list": "รถ 6 ล้อ, ผ้าใบคลุมสินค้า",
+  "safety_equipment": "เสื้อสะท้อนแสง, รองเท้านิรภัย, ถุงมือ",
+  "origin_latitude": 13.5333,
+  "origin_longitude": 100.7167
 }
 ```
 
@@ -326,6 +341,64 @@ curl -X POST 'https://yhzurkotubkkaokhtmsb.supabase.co/functions/v1/receive-comp
 5. **CORS:** API รองรับ CORS สำหรับการเรียกใช้จาก Web Browser
 
 6. **Upsert Behavior:** หาก `order_code` มีอยู่แล้ว ระบบจะอัปเดตข้อมูล ไม่ใช่สร้างใหม่
+
+---
+
+## ⚠️ Common Mistakes & Best Practices
+
+### 1. ❌ ผิด: ส่ง location ในฟิลด์ employer_name
+```json
+{
+  "employer_name": "BKK001กทมพรั้ว/กรุงเทพ",  // ❌ ผิด! นี่คือ location ไม่ใช่ชื่อนายจ้าง
+  "origin_location": "BKK001กทมพรั้ว/กรุงเทพ"
+}
+```
+
+### ✅ ถูก: แยก employer_name และ location ให้ชัดเจน
+```json
+{
+  "employer_name": "บริษัท ABC จำกัด",  // ✅ ถูก! ชื่อนายจ้างที่ชัดเจน
+  "origin_location": "BKK001-ลาดพร้าว/กรุงเทพ"
+}
+```
+
+### 2. ❌ ผิด: ตัวอักษรไทยผิดเพี้ยน (Encoding ผิด)
+```json
+{
+  "origin_contact_person": "คุณสุพดี (ฝ่ายหัสดถิคสิดค้า)",  // ❌ "หัสดถิคสิดค้า" ผิด
+  "origin_remarks": "ถอาดพรั้ว 101 นอยดตองท์",  // ❌ "ถอาดพรั้ว" ผิด
+  "destination_remarks": "รถบรรทุกโรงงานเบะก้าคเวเง"  // ❌ "เบะก้าคเวเง" ผิด
+}
+```
+
+### ✅ ถูก: ใช้ภาษาไทยที่ถูกต้อง (UTF-8)
+```json
+{
+  "origin_contact_person": "คุณสุพดี (ฝ่ายจัดหาสินค้า)",  // ✅ ถูกต้อง
+  "origin_remarks": "ถนนพร้าว 101 ไทยทาวเวอร์ กรุงเทพฯ",  // ✅ ถูกต้อง
+  "destination_remarks": "รถบรรทุกโรงงาน เตรียมของล่วงหน้า"  // ✅ ถูกต้อง
+}
+```
+
+### 3. 🔍 Data Validation Checklist
+ก่อนส่งข้อมูล กรุณาตรวจสอบ:
+- [ ] `employer_name` เป็นชื่อนายจ้าง/บริษัท ไม่ใช่ location
+- [ ] ข้อมูลภาษาไทยแสดงผลถูกต้อง (ไม่มีตัวอักษรแปลก)
+- [ ] `origin_location` และ `destination_location` อยู่ในรูปแบบที่ถูกต้อง
+- [ ] วันที่และเวลาอยู่ในรูปแบบ ISO (YYYY-MM-DD, HH:MM:SS)
+- [ ] ราคาเป็นตัวเลข ไม่ใช่ string
+- [ ] GPS coordinates (ถ้ามี) เป็น latitude/longitude ที่ถูกต้อง
+
+### 4. 📍 GPS Coordinates (แนะนำ)
+แนะนำให้ส่ง GPS coordinates เพื่อแสดงงานบนแผนที่:
+```json
+{
+  "origin_latitude": 13.7563,
+  "origin_longitude": 100.5018,
+  "destination_latitude": 13.2345,
+  "destination_longitude": 100.9876
+}
+```
 
 ---
 
