@@ -25,7 +25,7 @@ interface JobApplication {
     start_date: string;
     start_time: string;
     job_type: string;
-  };
+  } | null;
 }
 export default function JobHistoryPage() {
   const navigate = useNavigate();
@@ -110,7 +110,8 @@ export default function JobHistoryPage() {
       </div>;
   };
   const filterApplications = (apps: JobApplication[]) => {
-    let filtered = apps;
+    // First filter out applications with null jobs
+    let filtered = apps.filter(app => app.jobs !== null);
 
     // Filter by tab
     if (activeTab === "in-progress") {
@@ -181,7 +182,11 @@ export default function JobHistoryPage() {
 
         <TabsContent value={activeTab} className="m-0">
           <div className="p-4 space-y-4">
-            {loading ? <div className="text-center py-8 text-gray-500">{t('jobHistory.loading')}</div> : filteredApplications.length === 0 ? <div className="text-center py-8 text-gray-500">{t('jobHistory.noData')}</div> : filteredApplications.map(app => <Card key={app.id} className="p-4 space-y-3 bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/job/${app.jobs.id}`)}>
+            {loading ? <div className="text-center py-8 text-gray-500">{t('jobHistory.loading')}</div> : filteredApplications.length === 0 ? <div className="text-center py-8 text-gray-500">{t('jobHistory.noData')}</div> : filteredApplications.map(app => {
+              // Guard clause for null jobs
+              if (!app.jobs) return null;
+              
+              return <Card key={app.id} className="p-4 space-y-3 bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/job/${app.jobs!.id}`)}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
                       {t('job.order_code')} {app.jobs.order_code}
@@ -244,7 +249,8 @@ export default function JobHistoryPage() {
                       {getStatusBadge(app)}
                     </div>
                   </div>
-                </Card>)}
+                </Card>;
+            })}
           </div>
         </TabsContent>
       </Tabs>
