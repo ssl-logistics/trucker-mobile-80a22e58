@@ -43,7 +43,11 @@ export default function ContactPage() {
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
-        <button onClick={() => navigate(-1)} className="p-1">
+        <button 
+          onClick={() => navigate('/settings')} 
+          className="p-2 hover:bg-header-foreground/10 rounded-lg transition-colors active:scale-95"
+          aria-label="Back to settings"
+        >
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="text-xl font-semibold">{t('contact.title')}</h1>
