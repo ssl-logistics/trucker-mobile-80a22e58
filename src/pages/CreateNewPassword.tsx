@@ -100,25 +100,21 @@ const CreateNewPassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Hero Section with Title Overlay */}
+      {/* Hero Section */}
       <div className="relative h-[40vh]">
         <img 
           src={loginBackground} 
           alt="The Truckers" 
           className="absolute inset-0 w-full h-full object-fill"
         />
-        {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/20" />
-        
-        {/* Title on top of image */}
-        <h1 className="absolute bottom-8 left-0 right-0 text-3xl font-bold text-center text-white px-6 drop-shadow-lg z-10">
-          {t('createPassword.title')}
-        </h1>
       </div>
 
       {/* Form Section */}
-      <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white relative z-20">
+      <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
         <div className="max-w-md mx-auto">
+          <h1 className="text-2xl font-bold text-center mb-8 text-foreground">
+            {t('createPassword.title')}
+          </h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* New Password Field */}
