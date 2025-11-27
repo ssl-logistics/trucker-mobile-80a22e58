@@ -32,6 +32,12 @@ interface Conversation {
   type: string;
   avatar_url: string | null;
 }
+interface ExternalChatInfo {
+  external_project_id: string;
+  target_user_id: string;
+  target_url: string;
+}
+
 export default function ChatRoomPage() {
   const {
     conversationId
@@ -53,6 +59,7 @@ export default function ChatRoomPage() {
   const [showManageGroup, setShowManageGroup] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [externalChatInfo, setExternalChatInfo] = useState<ExternalChatInfo | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -78,6 +85,52 @@ export default function ChatRoomPage() {
     } = await supabase.from('conversations').select('*').eq('id', conversationId).single();
     if (data) {
       setConversation(data);
+      
+      // If external/individual type, load external chat info for replies
+      if (data.type === 'external' || data.type === 'individual') {
+        await loadExternalChatInfo();
+      }
+    }
+  };
+
+  const loadExternalChatInfo = async () => {
+    // Get the external message to find the source project and sender
+    const { data: extMessages } = await supabase
+      .from('external_chat_messages')
+      .select('external_project_id, sender_mapping_id')
+      .eq('conversation_id', conversationId)
+      .limit(1);
+
+    if (extMessages && extMessages.length > 0) {
+      const extMsg = extMessages[0];
+      
+      // Get external project config
+      const { data: projectConfig } = await supabase
+        .from('external_chat_config')
+        .select('id, target_url, project_id')
+        .eq('id', extMsg.external_project_id)
+        .maybeSingle();
+
+      if (projectConfig) {
+        // Get the sender mapping to find the external user ID (this is the target for replies)
+        const { data: senderMapping } = await supabase
+          .from('external_user_mapping')
+          .select('external_user_id')
+          .eq('id', extMsg.sender_mapping_id)
+          .maybeSingle();
+
+        if (senderMapping) {
+          setExternalChatInfo({
+            external_project_id: projectConfig.id,
+            target_user_id: senderMapping.external_user_id,
+            target_url: projectConfig.target_url
+          });
+          console.log('Loaded external chat info:', {
+            external_project_id: projectConfig.id,
+            target_user_id: senderMapping.external_user_id
+          });
+        }
+      }
     }
   };
   const loadMessages = async () => {
@@ -295,7 +348,9 @@ export default function ChatRoomPage() {
       created_at: new Date().toISOString()
     };
     setMessages(prev => [...prev, tempMessage]);
+    
     const {
+      data: insertedMessage,
       error
     } = await supabase.from('messages').insert({
       conversation_id: conversationId,
@@ -304,7 +359,8 @@ export default function ChatRoomPage() {
       sender_avatar: profile?.avatar_url,
       content: messageContent,
       message_type: 'text'
-    });
+    }).select('id').single();
+    
     if (error) {
       // Remove optimistic message on error
       setMessages(prev => prev.filter(m => m.id !== tempMessage.id));
@@ -314,6 +370,37 @@ export default function ChatRoomPage() {
         description: t('chat.sendError'),
         variant: 'destructive'
       });
+      return;
+    }
+
+    // If this is an external conversation, also send to external project
+    if (externalChatInfo && insertedMessage) {
+      try {
+        const { error: sendError } = await supabase.functions.invoke('send-chat-message', {
+          body: {
+            conversation_id: conversationId,
+            external_project_id: externalChatInfo.external_project_id,
+            target_user_id: externalChatInfo.target_user_id,
+            message: {
+              id: insertedMessage.id,
+              sender_id: user.id,
+              sender_name: profile?.full_name || 'User',
+              sender_avatar: profile?.avatar_url,
+              text: messageContent,
+              timestamp: new Date().toISOString()
+            }
+          }
+        });
+        
+        if (sendError) {
+          console.error('Failed to send to external project:', sendError);
+          // Don't show error toast since local message was saved successfully
+        } else {
+          console.log('Message sent to external project successfully');
+        }
+      } catch (err) {
+        console.error('Error invoking send-chat-message:', err);
+      }
     }
   };
   const handleEmojiClick = (emojiData: EmojiClickData) => {
