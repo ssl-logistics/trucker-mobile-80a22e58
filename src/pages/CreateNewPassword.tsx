@@ -99,7 +99,7 @@ const CreateNewPassword = () => {
 
       {/* Form Section */}
       <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
-        <div className="max-w-md mx-auto pt-10">
+        <div className="max-w-md mx-auto pt-4">
           <h1 className="text-2xl font-bold text-center mb-8 text-foreground z-20">{t("createPassword.title")}</h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
