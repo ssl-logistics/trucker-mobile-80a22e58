@@ -284,6 +284,9 @@ const thTranslations: Record<string, string> = {
   'profile.error_update': 'ไม่สามารถอัพเดทโปรไฟล์ได้',
   'profile.success': 'สำเร็จ',
   'profile.success_desc': 'อัพเดทรูปโปรไฟล์แล้ว',
+  'profile.select_photo_source': 'เลือกแหล่งที่มาของรูปภาพ',
+  'profile.take_photo': 'ถ่ายรูป',
+  'profile.select_from_gallery': 'เลือกจากแกลเลอรี่',
   
   // Account Page
   'account.title': 'บัญชี',
@@ -1330,6 +1333,9 @@ const enTranslations: Record<string, string> = {
   'profile.error_update': 'Unable to update profile',
   'profile.success': 'Success',
   'profile.success_desc': 'Profile picture updated',
+  'profile.select_photo_source': 'Select Photo Source',
+  'profile.take_photo': 'Take Photo',
+  'profile.select_from_gallery': 'Select from Gallery',
   
   // Account Page
   'account.title': 'Account',
@@ -2316,6 +2322,9 @@ const koTranslations: Record<string, string> = {
   'profile.error_update': '프로필을 업데이트할 수 없습니다',
   'profile.success': '성공',
   'profile.success_desc': '프로필 사진이 업데이트되었습니다',
+  'profile.select_photo_source': '사진 소스 선택',
+  'profile.take_photo': '사진 찍기',
+  'profile.select_from_gallery': '갤러리에서 선택',
   
   // Account Page
   'account.title': '계정',
