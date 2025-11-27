@@ -2905,6 +2905,7 @@ const koTranslations: Record<string, string> = {
   'createPassword.special': '특수문자 최소 1개',
   'createPassword.createButton': '새 비밀번호 생성',
   'createPassword.submit': '새 비밀번호 생성',
+  'createPassword.login': '로그인',
   'createPassword.signInButton': '로그인',
   'createPassword.homeButton': '홈',
   'createPassword.getStartedButton': '시작하기',
