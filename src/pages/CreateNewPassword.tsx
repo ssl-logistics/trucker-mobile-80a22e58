@@ -95,14 +95,12 @@ const CreateNewPassword = () => {
       {/* Hero Section */}
       <div className="relative h-[40vh] z-10">
         <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill z-10" />
-        <div className="absolute inset-x-0 bottom-0 z-20 pb-8">
-          <h1 className="text-2xl font-bold text-center text-white drop-shadow-lg">{t("createPassword.title")}</h1>
-        </div>
       </div>
 
       {/* Form Section */}
       <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
         <div className="max-w-md mx-auto">
+          <h1 className="text-2xl font-bold text-center mb-8 text-foreground z-20">{t("createPassword.title")}</h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* New Password Field */}
