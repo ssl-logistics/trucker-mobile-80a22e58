@@ -35,6 +35,3 @@ verify_jwt = false
 
 [functions.receive-company-factory]
 verify_jwt = false
-
-[functions.lookup-user]
-verify_jwt = false
