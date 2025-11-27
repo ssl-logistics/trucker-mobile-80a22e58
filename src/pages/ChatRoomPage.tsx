@@ -24,6 +24,7 @@ interface Message {
   file_url?: string | null;
   file_name?: string | null;
   file_size?: number | null;
+  is_external?: boolean; // Flag for external messages
 }
 interface Conversation {
   id: string;
@@ -80,32 +81,111 @@ export default function ChatRoomPage() {
     }
   };
   const loadMessages = async () => {
-    const {
-      data
-    } = await supabase.from('messages').select('*').eq('conversation_id', conversationId).order('created_at', {
-      ascending: true
-    });
-    if (data) {
-      setMessages(data);
+    // Load regular messages
+    const { data: regularMessages } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+
+    // Load external messages
+    const { data: externalMessages } = await supabase
+      .from('external_chat_messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+
+    // Combine and sort all messages
+    const allMessages: Message[] = [];
+    
+    if (regularMessages) {
+      allMessages.push(...regularMessages.map(msg => ({
+        ...msg,
+        is_external: false
+      })));
     }
+    
+    if (externalMessages) {
+      allMessages.push(...externalMessages.map(msg => ({
+        id: msg.id,
+        content: msg.message_text || '',
+        sender_id: msg.sender_mapping_id || '',
+        sender_name: msg.sender_name,
+        sender_avatar: msg.sender_avatar,
+        is_read: true,
+        created_at: msg.created_at,
+        message_type: 'text',
+        is_external: true
+      })));
+    }
+
+    // Sort by created_at
+    allMessages.sort((a, b) => 
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+    
+    setMessages(allMessages);
   };
   const subscribeToMessages = () => {
-    const channel = supabase.channel(`messages_${conversationId}`).on('postgres_changes', {
-      event: 'INSERT',
-      schema: 'public',
-      table: 'messages',
-      filter: `conversation_id=eq.${conversationId}`
-    }, payload => {
-      const newMsg = payload.new as Message;
-      // Only add if not already in messages (avoid duplicates from optimistic updates)
-      setMessages(prev => {
-        const exists = prev.some(m => m.id === newMsg.id || m.sender_id === newMsg.sender_id && m.content === newMsg.content && Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 1000);
-        if (exists) {
-          return prev.map(m => m.id.startsWith('temp-') && m.content === newMsg.content ? newMsg : m);
-        }
-        return [...prev, newMsg];
-      });
-    }).subscribe();
+    const channel = supabase
+      .channel(`messages_${conversationId}`)
+      // Subscribe to regular messages
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${conversationId}`
+      }, payload => {
+        const newMsg = payload.new as Message;
+        newMsg.is_external = false;
+        // Only add if not already in messages (avoid duplicates from optimistic updates)
+        setMessages(prev => {
+          const exists = prev.some(m => 
+            m.id === newMsg.id || 
+            (m.sender_id === newMsg.sender_id && 
+             m.content === newMsg.content && 
+             Math.abs(new Date(m.created_at).getTime() - new Date(newMsg.created_at).getTime()) < 1000)
+          );
+          if (exists) {
+            return prev.map(m => 
+              m.id.startsWith('temp-') && m.content === newMsg.content ? newMsg : m
+            );
+          }
+          return [...prev, newMsg].sort((a, b) => 
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+        });
+      })
+      // Subscribe to external messages
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'external_chat_messages',
+        filter: `conversation_id=eq.${conversationId}`
+      }, payload => {
+        const extMsg = payload.new as any;
+        const newMsg: Message = {
+          id: extMsg.id,
+          content: extMsg.message_text || '',
+          sender_id: extMsg.sender_mapping_id || '',
+          sender_name: extMsg.sender_name,
+          sender_avatar: extMsg.sender_avatar,
+          is_read: true,
+          created_at: extMsg.created_at,
+          message_type: 'text',
+          is_external: true
+        };
+        
+        setMessages(prev => {
+          const exists = prev.some(m => m.id === newMsg.id);
+          if (exists) return prev;
+          return [...prev, newMsg].sort((a, b) => 
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+        });
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
@@ -340,7 +420,7 @@ export default function ChatRoomPage() {
           </div>}
 
         {messages.map(message => {
-        const isOwn = message.sender_id === user?.id;
+        const isOwn = message.sender_id === user?.id && !message.is_external;
         return <div key={message.id} className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
               {!isOwn && <Avatar className="w-8 h-8 flex-shrink-0">
                   <AvatarImage src={message.sender_avatar || ''} />

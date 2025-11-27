@@ -196,6 +196,135 @@ export type Database = {
         }
         Relationships: []
       }
+      external_chat_config: {
+        Row: {
+          api_key: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          project_id: string | null
+          project_name: string
+          target_url: string
+          updated_at: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          project_id?: string | null
+          project_name: string
+          target_url: string
+          updated_at?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          project_id?: string | null
+          project_name?: string
+          target_url?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      external_chat_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string | null
+          external_message_id: string
+          external_project_id: string | null
+          id: string
+          message_text: string | null
+          sender_avatar: string | null
+          sender_mapping_id: string | null
+          sender_name: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string | null
+          external_message_id: string
+          external_project_id?: string | null
+          id?: string
+          message_text?: string | null
+          sender_avatar?: string | null
+          sender_mapping_id?: string | null
+          sender_name: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string | null
+          external_message_id?: string
+          external_project_id?: string | null
+          id?: string
+          message_text?: string | null
+          sender_avatar?: string | null
+          sender_mapping_id?: string | null
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_chat_messages_external_project_id_fkey"
+            columns: ["external_project_id"]
+            isOneToOne: false
+            referencedRelation: "external_chat_config"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_chat_messages_sender_mapping_id_fkey"
+            columns: ["sender_mapping_id"]
+            isOneToOne: false
+            referencedRelation: "external_user_mapping"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_user_mapping: {
+        Row: {
+          created_at: string | null
+          external_project_id: string | null
+          external_user_avatar: string | null
+          external_user_id: string
+          external_user_name: string | null
+          id: string
+          local_user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          external_project_id?: string | null
+          external_user_avatar?: string | null
+          external_user_id: string
+          external_user_name?: string | null
+          id?: string
+          local_user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          external_project_id?: string | null
+          external_user_avatar?: string | null
+          external_user_id?: string
+          external_user_name?: string | null
+          id?: string
+          local_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_user_mapping_external_project_id_fkey"
+            columns: ["external_project_id"]
+            isOneToOne: false
+            referencedRelation: "external_chat_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           applied_at: string
