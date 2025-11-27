@@ -99,8 +99,8 @@ export default function SettingsPage() {
         // Check if notifications are supported
         if (!('Notification' in window)) {
           toast({
-            title: "ไม่รองรับ",
-            description: "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน",
+            title: t('toast.notSupported'),
+            description: t('toast.browserNotSupported'),
             variant: "destructive",
           });
           return;
@@ -119,13 +119,13 @@ export default function SettingsPage() {
           setNotificationsEnabled(true);
           
           toast({
-            title: "เปิดการแจ้งเตือนสำเร็จ",
-            description: "คุณจะได้รับการแจ้งเตือนจากระบบแล้ว",
+            title: t('toast.notificationEnabled'),
+            description: t('toast.notificationEnabledDesc'),
           });
         } else if (permission === 'denied') {
           toast({
-            title: "ไม่สามารถเปิดการแจ้งเตือนได้",
-            description: "กรุณาอนุญาตการแจ้งเตือนในการตั้งค่าเบราว์เซอร์",
+            title: t('toast.cannotEnableNotification'),
+            description: t('toast.allowNotificationInBrowser'),
             variant: "destructive",
           });
         }
@@ -135,15 +135,15 @@ export default function SettingsPage() {
         setNotificationsEnabled(false);
         
         toast({
-          title: "ปิดการแจ้งเตือนสำเร็จ",
-          description: "คุณจะไม่ได้รับการแจ้งเตือนอีกต่อไป",
+          title: t('toast.notificationDisabled'),
+          description: t('toast.notificationDisabledDesc'),
         });
       }
     } catch (error) {
       console.error('Failed to toggle notifications:', error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถเปลี่ยนการตั้งค่าได้ กรุณาลองใหม่อีกครั้ง",
+        title: t('toast.error'),
+        description: t('toast.cannotChangeSettings'),
         variant: "destructive",
       });
     } finally {
