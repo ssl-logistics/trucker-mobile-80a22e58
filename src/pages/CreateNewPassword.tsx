@@ -21,17 +21,20 @@ import loginBackground from "@/assets/login-background.png";
 
 // Note: Schema validation messages are currently in Thai
 // These would need to be dynamically set based on language context
-const passwordSchema = z.object({
-  password: z.string()
-    .min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")
-    .regex(/[A-Z]/, "ต้องมีตัวอักษรพิมพ์ใหญ่")
-    .regex(/[a-z]/, "ต้องมีตัวอักษรพิมพ์เล็ก")
-    .regex(/[0-9]/, "ต้องมีตัวเลข"),
-  confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "รหัสผ่านไม่ตรงกัน",
-  path: ["confirmPassword"],
-});
+const passwordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")
+      .regex(/[A-Z]/, "ต้องมีตัวอักษรพิมพ์ใหญ่")
+      .regex(/[a-z]/, "ต้องมีตัวอักษรพิมพ์เล็ก")
+      .regex(/[0-9]/, "ต้องมีตัวเลข"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "รหัสผ่านไม่ตรงกัน",
+    path: ["confirmPassword"],
+  });
 
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
@@ -50,10 +53,10 @@ const CreateNewPassword = () => {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
   } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
-    mode: "onChange"
+    mode: "onChange",
   });
 
   const password = watch("password", "");
@@ -68,27 +71,27 @@ const CreateNewPassword = () => {
   const onSubmit = async (data: PasswordFormData) => {
     try {
       const { supabase } = await import("@/integrations/supabase/client");
-      
+
       const { data: resetData, error } = await supabase.functions.invoke("reset-password", {
-        body: { phone, password: data.password }
+        body: { phone, password: data.password },
       });
 
       if (error || !resetData?.success) {
         toast({
-          title: t('createPassword.error'),
-          description: resetData?.error || t('createPassword.errorDesc'),
-          variant: "destructive"
+          title: t("createPassword.error"),
+          description: resetData?.error || t("createPassword.errorDesc"),
+          variant: "destructive",
         });
         return;
       }
-      
+
       setShowSuccess(true);
     } catch (error) {
       console.error("Error resetting password:", error);
       toast({
-        title: t('createPassword.error'),
-        description: t('createPassword.tryAgain'),
-        variant: "destructive"
+        title: t("createPassword.error"),
+        description: t("createPassword.tryAgain"),
+        variant: "destructive",
       });
     }
   };
@@ -102,25 +105,19 @@ const CreateNewPassword = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section */}
       <div className="relative h-[40vh]">
-        <img 
-          src={loginBackground} 
-          alt="The Truckers" 
-          className="absolute inset-0 w-full h-full object-fill"
-        />
+        <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill" />
       </div>
 
       {/* Form Section */}
       <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
         <div className="max-w-md mx-auto">
-          <h1 className="text-2xl font-bold text-center mb-8 text-foreground">
-            {t('createPassword.title')}
-          </h1>
+          <h1 className="text-2xl font-bold text-center mb-8 text-foreground z-20">{t("createPassword.title")}</h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* New Password Field */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-foreground">
-                {t('createPassword.newPassword')} <span className="text-destructive">*</span>
+                {t("createPassword.newPassword")} <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -144,26 +141,28 @@ const CreateNewPassword = () => {
             <div className="space-y-2 text-sm">
               <div className={`flex items-center gap-2 ${hasMinLength ? "text-green-600" : "text-muted-foreground"}`}>
                 <Check className={`w-4 h-4 ${hasMinLength ? "" : "invisible"}`} />
-                <span>{t('createPassword.minLength')}</span>
+                <span>{t("createPassword.minLength")}</span>
               </div>
-              <div className={`flex items-center gap-2 ${hasUpperCase && hasLowerCase ? "text-green-600" : "text-muted-foreground"}`}>
+              <div
+                className={`flex items-center gap-2 ${hasUpperCase && hasLowerCase ? "text-green-600" : "text-muted-foreground"}`}
+              >
                 <Check className={`w-4 h-4 ${hasUpperCase && hasLowerCase ? "" : "invisible"}`} />
-                <span>{t('createPassword.upperLower')}</span>
+                <span>{t("createPassword.upperLower")}</span>
               </div>
               <div className={`flex items-center gap-2 ${hasNumber ? "text-green-600" : "text-muted-foreground"}`}>
                 <Check className={`w-4 h-4 ${hasNumber ? "" : "invisible"}`} />
-                <span>{t('createPassword.number')}</span>
+                <span>{t("createPassword.number")}</span>
               </div>
               <div className={`flex items-center gap-2 ${hasSpecialChar ? "text-green-600" : "text-muted-foreground"}`}>
                 <Check className={`w-4 h-4 ${hasSpecialChar ? "" : "invisible"}`} />
-                <span>{t('createPassword.special')}</span>
+                <span>{t("createPassword.special")}</span>
               </div>
             </div>
 
             {/* Confirm Password Field */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-foreground">
-                {t('createPassword.confirmPassword')} <span className="text-destructive">*</span>
+                {t("createPassword.confirmPassword")} <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -181,9 +180,7 @@ const CreateNewPassword = () => {
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
-              )}
+              {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
             </div>
 
             {/* Submit Buttons */}
@@ -193,7 +190,7 @@ const CreateNewPassword = () => {
                 disabled={!isValid}
                 className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium disabled:opacity-50"
               >
-                {t('createPassword.submit')}
+                {t("createPassword.submit")}
               </Button>
               <Button
                 type="button"
@@ -201,7 +198,7 @@ const CreateNewPassword = () => {
                 onClick={() => navigate("/")}
                 className="w-full h-12 rounded-xl text-base font-medium border-2"
               >
-                {t('createPassword.login')}
+                {t("createPassword.login")}
               </Button>
             </div>
           </form>
@@ -215,12 +212,8 @@ const CreateNewPassword = () => {
             <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
               <Check className="w-8 h-8 text-green-600" />
             </div>
-            <DialogTitle className="text-center text-xl">
-              {t('createPassword.successTitle')}
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              {t('createPassword.successDesc')}
-            </DialogDescription>
+            <DialogTitle className="text-center text-xl">{t("createPassword.successTitle")}</DialogTitle>
+            <DialogDescription className="text-center">{t("createPassword.successDesc")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2 sm:gap-2">
             <Button
@@ -231,13 +224,10 @@ const CreateNewPassword = () => {
               }}
               className="flex-1"
             >
-              {t('createPassword.home')}
+              {t("createPassword.home")}
             </Button>
-            <Button
-              onClick={handleSuccess}
-              className="flex-1 bg-secondary hover:bg-secondary/90"
-            >
-              {t('createPassword.getStarted')}
+            <Button onClick={handleSuccess} className="flex-1 bg-secondary hover:bg-secondary/90">
+              {t("createPassword.getStarted")}
             </Button>
           </DialogFooter>
         </DialogContent>
