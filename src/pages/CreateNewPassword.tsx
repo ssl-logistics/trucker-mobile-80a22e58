@@ -98,9 +98,9 @@ const CreateNewPassword = () => {
       </div>
 
       {/* Form Section */}
-      <div className="relative z-20 flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
+      <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
         <div className="max-w-md mx-auto">
-          <h1 className="text-2xl font-bold text-center mb-8 text-foreground z-50">{t("createPassword.title")}</h1>
+          <h1 className="text-2xl font-bold text-center mb-8 text-foreground z-20">{t("createPassword.title")}</h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* New Password Field */}
