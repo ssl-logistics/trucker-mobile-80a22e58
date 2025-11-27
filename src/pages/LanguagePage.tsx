@@ -30,7 +30,10 @@ export default function LanguagePage() {
         <RadioGroup value={language} onValueChange={handleLanguageChange}>
           <div className="divide-y">
             {/* Thai */}
-            <div className="flex items-center justify-between px-4 py-4">
+            <div 
+              className="flex items-center justify-between px-4 py-4 cursor-pointer"
+              onClick={() => handleLanguageChange('th')}
+            >
               <div className="flex items-center gap-3">
                 <img 
                   src={flagTh} 
@@ -45,7 +48,10 @@ export default function LanguagePage() {
             </div>
 
             {/* English */}
-            <div className="flex items-center justify-between px-4 py-4">
+            <div 
+              className="flex items-center justify-between px-4 py-4 cursor-pointer"
+              onClick={() => handleLanguageChange('en')}
+            >
               <div className="flex items-center gap-3">
                 <img 
                   src={flagEn} 
@@ -60,7 +66,10 @@ export default function LanguagePage() {
             </div>
 
             {/* Korean */}
-            <div className="flex items-center justify-between px-4 py-4">
+            <div 
+              className="flex items-center justify-between px-4 py-4 cursor-pointer"
+              onClick={() => handleLanguageChange('ko')}
+            >
               <div className="flex items-center gap-3">
                 <img 
                   src={flagKo} 
