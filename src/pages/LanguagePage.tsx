@@ -5,13 +5,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import flagTh from '@/assets/flag-th.png';
 import flagEn from '@/assets/flag-en.png';
+import flagKo from '@/assets/flag-ko.png';
 
 export default function LanguagePage() {
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
 
   const handleLanguageChange = (value: string) => {
-    setLanguage(value as 'th' | 'en');
+    setLanguage(value as 'th' | 'en' | 'ko');
   };
 
   return (
@@ -56,6 +57,21 @@ export default function LanguagePage() {
                 </Label>
               </div>
               <RadioGroupItem value="en" id="english" className="border-2" />
+            </div>
+
+            {/* Korean */}
+            <div className="flex items-center justify-between px-4 py-4">
+              <div className="flex items-center gap-3">
+                <img 
+                  src={flagKo} 
+                  alt="Korean flag" 
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                />
+                <Label htmlFor="korean" className="text-base font-normal cursor-pointer">
+                  {t('language.korean')}
+                </Label>
+              </div>
+              <RadioGroupItem value="ko" id="korean" className="border-2" />
             </div>
           </div>
         </RadioGroup>

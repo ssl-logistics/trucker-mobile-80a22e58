@@ -1,10 +1,10 @@
 import { formatInTimeZone } from 'date-fns-tz';
-import { th, enUS } from 'date-fns/locale';
+import { th, enUS, ko } from 'date-fns/locale';
 
 const THAILAND_TIMEZONE = 'Asia/Bangkok';
 
-export const formatDate = (date: string | Date, language: 'th' | 'en' = 'th'): string => {
-  const locale = language === 'th' ? th : enUS;
+export const formatDate = (date: string | Date, language: 'th' | 'en' | 'ko' = 'th'): string => {
+  const locale = language === 'th' ? th : language === 'ko' ? ko : enUS;
   return formatInTimeZone(
     new Date(date),
     THAILAND_TIMEZONE,
@@ -13,8 +13,8 @@ export const formatDate = (date: string | Date, language: 'th' | 'en' = 'th'): s
   );
 };
 
-export const formatDateTime = (date: string | Date, language: 'th' | 'en' = 'th'): string => {
-  const locale = language === 'th' ? th : enUS;
+export const formatDateTime = (date: string | Date, language: 'th' | 'en' | 'ko' = 'th'): string => {
+  const locale = language === 'th' ? th : language === 'ko' ? ko : enUS;
   return formatInTimeZone(
     new Date(date),
     THAILAND_TIMEZONE,
@@ -31,8 +31,8 @@ export const formatTime = (date: string | Date): string => {
   );
 };
 
-export const formatFullDate = (date: string | Date, language: 'th' | 'en' = 'th'): string => {
-  const locale = language === 'th' ? th : enUS;
+export const formatFullDate = (date: string | Date, language: 'th' | 'en' | 'ko' = 'th'): string => {
+  const locale = language === 'th' ? th : language === 'ko' ? ko : enUS;
   return formatInTimeZone(
     new Date(date),
     THAILAND_TIMEZONE,
