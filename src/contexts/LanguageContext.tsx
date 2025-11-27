@@ -2713,6 +2713,18 @@ const koTranslations: Record<string, string> = {
   'notifications.jobUpdate': '작업 업데이트',
   'notifications.payment': '결제',
   'notifications.system': '시스템',
+  'notifications.january': '1월',
+  'notifications.february': '2월',
+  'notifications.march': '3월',
+  'notifications.april': '4월',
+  'notifications.may': '5월',
+  'notifications.june': '6월',
+  'notifications.july': '7월',
+  'notifications.august': '8월',
+  'notifications.september': '9월',
+  'notifications.october': '10월',
+  'notifications.november': '11월',
+  'notifications.december': '12월',
   
   // Notification Detail Page
   'notificationDetail.title': '알림 세부정보',

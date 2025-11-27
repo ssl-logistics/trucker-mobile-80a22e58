@@ -72,9 +72,13 @@ export default function NotificationsPage() {
 
   const getNotificationDate = () => {
     const today = new Date();
-    const monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-                       'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-    return `${today.getDate()} ${monthNames[today.getMonth()]}`;
+    const monthKey = [
+      'notifications.january', 'notifications.february', 'notifications.march',
+      'notifications.april', 'notifications.may', 'notifications.june',
+      'notifications.july', 'notifications.august', 'notifications.september',
+      'notifications.october', 'notifications.november', 'notifications.december'
+    ];
+    return `${today.getDate()} ${t(monthKey[today.getMonth()])}`;
   };
 
   return (
