@@ -2474,6 +2474,16 @@ const koTranslations: Record<string, string> = {
   'sop.success': '성공',
   'sop.successMessage': 'SOP 체크인이 완료되었습니다',
   'sop.errorMessage': 'SOP 체크인 중 오류가 발생했습니다',
+  
+  // Pickup Summary translations
+  'pickupSummary.checkInSuccess': '체크인 완료',
+  'pickupSummary.sopSuccess': 'SOP 완료',
+  'pickupSummary.productPhoto': '제품 사진',
+  'pickupSummary.title': '픽업 요약',
+  'pickupSummary.jobSummary': '작업 요약',
+  'pickupSummary.routeDetails': '경로 세부정보',
+  'pickupSummary.startJob': '작업 시작',
+  'pickupSummary.completePickup': '픽업 완료',
   'review.plateNumber': '번호판',
   'review.plateProvince': '등록 지역',
   'review.vehicleBrand': '차량 브랜드',
