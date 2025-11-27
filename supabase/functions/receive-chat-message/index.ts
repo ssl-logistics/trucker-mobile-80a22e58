@@ -47,10 +47,76 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const payload: IncomingMessage = await req.json();
+    const body = await req.json();
+    const { action, chat_id } = body;
+    
+    // Handle delete action
+    if (action === 'delete_chat') {
+      console.log('🗑️ Processing delete chat request for chat_id:', chat_id);
+      
+      if (!chat_id) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Missing required field: chat_id' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Delete messages from this conversation
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', chat_id);
+      
+      if (messagesError) {
+        console.log('Error deleting messages (may not exist):', messagesError.message);
+      }
+
+      // Delete conversation participants
+      const { error: participantsError } = await supabase
+        .from('conversation_participants')
+        .delete()
+        .eq('conversation_id', chat_id);
+      
+      if (participantsError) {
+        console.log('Error deleting participants (may not exist):', participantsError.message);
+      }
+
+      // Delete external chat messages
+      const { error: externalMessagesError } = await supabase
+        .from('external_chat_messages')
+        .delete()
+        .eq('conversation_id', chat_id);
+      
+      if (externalMessagesError) {
+        console.log('Error deleting external messages (may not exist):', externalMessagesError.message);
+      }
+
+      // Delete the conversation itself
+      const { error: conversationError } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', chat_id);
+      
+      if (conversationError) {
+        console.error('Error deleting conversation:', conversationError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to delete conversation' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('✅ Chat deleted successfully:', chat_id);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Chat deleted successfully' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Regular message handling
+    const payload: IncomingMessage = body;
     console.log('Received message payload:', payload);
 
-    // Validate required fields
+    // Validate required fields for message
     if (!payload.chat_id || !payload.message || !payload.source_project) {
       return new Response(
         JSON.stringify({ 
