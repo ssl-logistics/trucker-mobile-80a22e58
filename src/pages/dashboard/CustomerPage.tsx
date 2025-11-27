@@ -22,7 +22,12 @@ export default function CustomerPage() {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const months = language === 'th' ? thaiMonths : englishMonths;
+  const koreanMonths = [
+    '1월', '2월', '3월', '4월', '5월', '6월',
+    '7월', '8월', '9월', '10월', '11월', '12월'
+  ];
+
+  const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : englishMonths;
 
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
