@@ -47,22 +47,47 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if conversation exists
-    const { data: conversation, error: convError } = await supabase
+    // Check if conversation exists, create if not
+    let conversationId = payload.chat_id;
+    const { data: existingConversation } = await supabase
       .from('conversations')
       .select('id')
       .eq('id', payload.chat_id)
-      .single();
+      .maybeSingle();
 
-    if (convError || !conversation) {
-      console.error('Conversation not found:', convError);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Conversation not found' 
-        }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!existingConversation) {
+      console.log('Conversation not found, creating new one...');
+      
+      // Create new conversation for external chat
+      const conversationName = payload.source_project.name 
+        ? `Chat from ${payload.source_project.name}` 
+        : `External Chat - ${payload.message.sender_name}`;
+      
+      const { data: newConversation, error: createConvError } = await supabase
+        .from('conversations')
+        .insert({
+          id: payload.chat_id, // Use the same ID from external project
+          name: conversationName,
+          type: 'external',
+        })
+        .select('id')
+        .single();
+
+      if (createConvError) {
+        console.error('Failed to create conversation:', createConvError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Failed to create conversation' 
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      conversationId = newConversation.id;
+      console.log('Created new conversation:', conversationId);
+    } else {
+      console.log('Found existing conversation:', existingConversation.id);
     }
 
     // Create or get external_chat_config
@@ -150,7 +175,7 @@ Deno.serve(async (req) => {
     const { data: insertedMessage, error: messageError } = await supabase
       .from('external_chat_messages')
       .insert({
-        conversation_id: payload.chat_id,
+        conversation_id: conversationId,
         external_project_id: externalConfigId,
         external_message_id: payload.message.id,
         sender_mapping_id: userMappingId,
