@@ -1011,6 +1011,34 @@ const thTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': 'ยืนยันเบอร์โทรศัพท์',
   'forgotPassword.phoneVerifiedDesc': 'กรุณาสร้างรหัสผ่านใหม่',
   'forgotPassword.error': 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+  
+  // Notifications Page
+  'notifications.title': 'การแจ้งเตือน',
+  'notifications.all': 'ทั้งหมด',
+  'notifications.unread': 'ยังไม่ได้อ่าน',
+  'notifications.markAllRead': 'อ่านทั้งหมด',
+  'notifications.noNotifications': 'ไม่มีการแจ้งเตือน',
+  'notifications.newJob': 'งานใหม่',
+  'notifications.jobUpdate': 'อัปเดตงาน',
+  'notifications.payment': 'การชำระเงิน',
+  'notifications.system': 'ระบบ',
+  'notifications.january': 'มกราคม',
+  'notifications.february': 'กุมภาพันธ์',
+  'notifications.march': 'มีนาคม',
+  'notifications.april': 'เมษายน',
+  'notifications.may': 'พฤษภาคม',
+  'notifications.june': 'มิถุนายน',
+  'notifications.july': 'กรกฎาคม',
+  'notifications.august': 'สิงหาคม',
+  'notifications.september': 'กันยายน',
+  'notifications.october': 'ตุลาคม',
+  'notifications.november': 'พฤศจิกายน',
+  'notifications.december': 'ธันวาคม',
+  
+  // Notification Detail Page
+  'notificationDetail.title': 'รายละเอียดการแจ้งเตือน',
+  'notificationDetail.markAsRead': 'ทำเครื่องหมายว่าอ่านแล้ว',
+  'notificationDetail.delete': 'ลบ',
 };
 
 // English translations
@@ -1983,6 +2011,34 @@ const enTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': 'Phone Verified',
   'forgotPassword.phoneVerifiedDesc': 'Please create a new password',
   'forgotPassword.error': 'An error occurred. Please try again.',
+  
+  // Notifications Page
+  'notifications.title': 'Notifications',
+  'notifications.all': 'All',
+  'notifications.unread': 'Unread',
+  'notifications.markAllRead': 'Mark All as Read',
+  'notifications.noNotifications': 'No notifications',
+  'notifications.newJob': 'New Job',
+  'notifications.jobUpdate': 'Job Update',
+  'notifications.payment': 'Payment',
+  'notifications.system': 'System',
+  'notifications.january': 'January',
+  'notifications.february': 'February',
+  'notifications.march': 'March',
+  'notifications.april': 'April',
+  'notifications.may': 'May',
+  'notifications.june': 'June',
+  'notifications.july': 'July',
+  'notifications.august': 'August',
+  'notifications.september': 'September',
+  'notifications.october': 'October',
+  'notifications.november': 'November',
+  'notifications.december': 'December',
+  
+  // Notification Detail Page
+  'notificationDetail.title': 'Notification Details',
+  'notificationDetail.markAsRead': 'Mark as Read',
+  'notificationDetail.delete': 'Delete',
 };
 
 // Korean translations
