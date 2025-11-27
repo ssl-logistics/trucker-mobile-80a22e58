@@ -107,7 +107,7 @@ export default function PickupDetailPage() {
     if (!job?.origin_latitude || !job?.origin_longitude) {
       toast({
         title: t('pickup.error'),
-        description: 'ไม่พบข้อมูลพิกัดสถานที่',
+        description: t('pickup.noCoordinates'),
         variant: 'destructive'
       });
       return;
