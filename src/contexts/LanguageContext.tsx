@@ -2730,8 +2730,11 @@ const koTranslations: Record<string, string> = {
   'editField.saving': '저장 중...',
   'editField.success': '저장 완료',
   'editField.successDesc': '정보가 업데이트되었습니다',
+  'editField.updated': '데이터가 업데이트되었습니다',
   'editField.error': '오류',
   'editField.errorDesc': '정보를 업데이트할 수 없습니다',
+  'editField.updateError': '데이터를 업데이트할 수 없습니다',
+  'editField.profile': '프로필',
   
   // Edit Vehicle Field Page
   'editVehicle.title': '차량 정보 편집',
