@@ -7,6 +7,12 @@ const corsHeaders = {
 
 interface IncomingMessage {
   chat_id: string;
+  auto_create?: boolean;
+  chat_info?: {
+    name?: string;
+    avatar_url?: string;
+    type?: string;
+  };
   message: {
     id: string;
     sender_id: string;
@@ -14,6 +20,13 @@ interface IncomingMessage {
     sender_avatar?: string;
     text: string;
     timestamp: string;
+  };
+  sender_info?: {
+    local_user_id?: string;
+    external_user_id: string;
+    name: string;
+    avatar_url?: string;
+    email?: string;
   };
   source_project: {
     id: string;
@@ -49,6 +62,8 @@ Deno.serve(async (req) => {
 
     // Check if conversation exists, create if not
     let conversationId = payload.chat_id;
+    let isNewConversation = false;
+    
     const { data: existingConversation } = await supabase
       .from('conversations')
       .select('id')
@@ -57,18 +72,23 @@ Deno.serve(async (req) => {
 
     if (!existingConversation) {
       console.log('Conversation not found, creating new one...');
+      isNewConversation = true;
       
-      // Create new conversation for external chat
-      const conversationName = payload.source_project.name 
+      // Use chat_info if provided, otherwise use defaults
+      const conversationName = payload.chat_info?.name 
+        || payload.source_project.name 
         ? `Chat from ${payload.source_project.name}` 
         : `External Chat - ${payload.message.sender_name}`;
+      
+      const conversationType = payload.chat_info?.type || 'external';
       
       const { data: newConversation, error: createConvError } = await supabase
         .from('conversations')
         .insert({
-          id: payload.chat_id, // Use the same ID from external project
+          id: payload.chat_id,
           name: conversationName,
-          type: 'external',
+          type: conversationType,
+          avatar_url: payload.chat_info?.avatar_url,
         })
         .select('id')
         .single();
@@ -86,6 +106,22 @@ Deno.serve(async (req) => {
       
       conversationId = newConversation.id;
       console.log('Created new conversation:', conversationId);
+      
+      // Add local user as participant if provided
+      if (payload.sender_info?.local_user_id) {
+        const { error: participantError } = await supabase
+          .from('conversation_participants')
+          .insert({
+            conversation_id: conversationId,
+            user_id: payload.sender_info.local_user_id,
+          });
+        
+        if (participantError) {
+          console.error('Failed to add participant:', participantError);
+        } else {
+          console.log('Added participant:', payload.sender_info.local_user_id);
+        }
+      }
     } else {
       console.log('Found existing conversation:', existingConversation.id);
     }
@@ -96,7 +132,7 @@ Deno.serve(async (req) => {
       .from('external_chat_config')
       .select('id')
       .eq('project_id', payload.source_project.id)
-      .single();
+      .maybeSingle();
 
     if (existingConfig) {
       externalConfigId = existingConfig.id;
@@ -126,12 +162,14 @@ Deno.serve(async (req) => {
 
     // Create or get external_user_mapping
     let userMappingId: string | null = null;
+    const externalUserId = payload.sender_info?.external_user_id || payload.message.sender_id;
+    
     const { data: existingMapping } = await supabase
       .from('external_user_mapping')
       .select('id')
       .eq('external_project_id', externalConfigId)
-      .eq('external_user_id', payload.message.sender_id)
-      .single();
+      .eq('external_user_id', externalUserId)
+      .maybeSingle();
 
     if (existingMapping) {
       userMappingId = existingMapping.id;
@@ -140,9 +178,10 @@ Deno.serve(async (req) => {
         .from('external_user_mapping')
         .insert({
           external_project_id: externalConfigId,
-          external_user_id: payload.message.sender_id,
-          external_user_name: payload.message.sender_name,
-          external_user_avatar: payload.message.sender_avatar,
+          external_user_id: externalUserId,
+          external_user_name: payload.sender_info?.name || payload.message.sender_name,
+          external_user_avatar: payload.sender_info?.avatar_url || payload.message.sender_avatar,
+          local_user_id: payload.sender_info?.local_user_id,
         })
         .select('id')
         .single();
@@ -158,7 +197,7 @@ Deno.serve(async (req) => {
       .select('id')
       .eq('external_project_id', externalConfigId)
       .eq('external_message_id', payload.message.id)
-      .single();
+      .maybeSingle();
 
     if (existingMessage) {
       console.log('Message already exists, skipping insert');
@@ -204,7 +243,9 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         message: 'Message received',
-        message_id: insertedMessage.id
+        message_id: insertedMessage.id,
+        conversation_id: conversationId,
+        is_new_conversation: isNewConversation
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
