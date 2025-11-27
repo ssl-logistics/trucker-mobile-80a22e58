@@ -124,14 +124,14 @@ export default function ChatRoomPage() {
     if (file.size > 10485760) {
       toast({
         title: t('chat.error'),
-        description: 'ไฟล์มีขนาดใหญ่เกิน 10MB',
+        description: t('toast.fileTooLarge'),
         variant: 'destructive'
       });
       return;
     }
     setIsUploading(true);
     toast({
-      title: 'กำลังอัพโหลดไฟล์...',
+      title: t('toast.uploadingFile'),
       description: file.name
     });
     try {
@@ -176,7 +176,7 @@ export default function ChatRoomPage() {
         throw error;
       }
       toast({
-        title: 'ส่งไฟล์สำเร็จ',
+        title: t('toast.fileSentSuccess'),
         description: file.name
       });
 
@@ -187,8 +187,8 @@ export default function ChatRoomPage() {
     } catch (error) {
       console.error('File upload failed:', error);
       toast({
-        title: 'ส่งไฟล์ล้มเหลว',
-        description: 'กรุณาลองใหม่อีกครั้ง',
+        title: t('toast.fileSentError'),
+        description: t('toast.tryAgain'),
         variant: 'destructive'
       });
     } finally {

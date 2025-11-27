@@ -1058,6 +1058,13 @@ const thTranslations: Record<string, string> = {
   'notificationDetail.title': 'รายละเอียดการแจ้งเตือน',
   'notificationDetail.markAsRead': 'ทำเครื่องหมายว่าอ่านแล้ว',
   'notificationDetail.delete': 'ลบ',
+  
+  // Toast Messages
+  'toast.fileTooLarge': 'ไฟล์มีขนาดใหญ่เกิน 10MB',
+  'toast.uploadingFile': 'กำลังอัพโหลดไฟล์...',
+  'toast.fileSentSuccess': 'ส่งไฟล์สำเร็จ',
+  'toast.fileSentError': 'ส่งไฟล์ล้มเหลว',
+  'toast.tryAgain': 'กรุณาลองใหม่อีกครั้ง',
 };
 
 // English translations
@@ -2077,6 +2084,13 @@ const enTranslations: Record<string, string> = {
   'notificationDetail.title': 'Notification Details',
   'notificationDetail.markAsRead': 'Mark as Read',
   'notificationDetail.delete': 'Delete',
+  
+  // Toast Messages
+  'toast.fileTooLarge': 'File size exceeds 10MB',
+  'toast.uploadingFile': 'Uploading file...',
+  'toast.fileSentSuccess': 'File sent successfully',
+  'toast.fileSentError': 'Failed to send file',
+  'toast.tryAgain': 'Please try again',
 };
 
 // Korean translations
@@ -2844,6 +2858,13 @@ const koTranslations: Record<string, string> = {
   'notificationDetail.title': '알림 세부정보',
   'notificationDetail.markAsRead': '읽음으로 표시',
   'notificationDetail.delete': '삭제',
+  
+  // Toast Messages
+  'toast.fileTooLarge': '파일 크기가 10MB를 초과합니다',
+  'toast.uploadingFile': '파일 업로드 중...',
+  'toast.fileSentSuccess': '파일 전송 성공',
+  'toast.fileSentError': '파일 전송 실패',
+  'toast.tryAgain': '다시 시도해주세요',
   
   // Edit Field Page
   'editField.title': '편집',
