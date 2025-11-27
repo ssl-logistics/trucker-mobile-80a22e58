@@ -7,58 +7,46 @@ import { Eye, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import loginBackground from "@/assets/login-background.png";
 
 // Note: Schema validation messages are currently in Thai
 // These would need to be dynamically set based on language context
-const passwordSchema = z
-  .object({
-    password: z
-      .string()
-      .min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")
-      .regex(/[A-Z]/, "ต้องมีตัวอักษรพิมพ์ใหญ่")
-      .regex(/[a-z]/, "ต้องมีตัวอักษรพิมพ์เล็ก")
-      .regex(/[0-9]/, "ต้องมีตัวเลข"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "รหัสผ่านไม่ตรงกัน",
-    path: ["confirmPassword"],
-  });
-
+const passwordSchema = z.object({
+  password: z.string().min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร").regex(/[A-Z]/, "ต้องมีตัวอักษรพิมพ์ใหญ่").regex(/[a-z]/, "ต้องมีตัวอักษรพิมพ์เล็ก").regex(/[0-9]/, "ต้องมีตัวเลข"),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+  message: "รหัสผ่านไม่ตรงกัน",
+  path: ["confirmPassword"]
+});
 type PasswordFormData = z.infer<typeof passwordSchema>;
-
 const CreateNewPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-  const { t } = useLanguage();
+  const {
+    toast
+  } = useToast();
+  const {
+    t
+  } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-
   const phone = location.state?.phone || "";
-
   const {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isValid },
+    formState: {
+      errors,
+      isValid
+    }
   } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
-    mode: "onChange",
+    mode: "onChange"
   });
-
   const password = watch("password", "");
 
   // Password validation checks
@@ -67,45 +55,46 @@ const CreateNewPassword = () => {
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
   const onSubmit = async (data: PasswordFormData) => {
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
-
-      const { data: resetData, error } = await supabase.functions.invoke("reset-password", {
-        body: { phone, password: data.password },
+      const {
+        supabase
+      } = await import("@/integrations/supabase/client");
+      const {
+        data: resetData,
+        error
+      } = await supabase.functions.invoke("reset-password", {
+        body: {
+          phone,
+          password: data.password
+        }
       });
-
       if (error || !resetData?.success) {
         toast({
           title: t("createPassword.error"),
           description: resetData?.error || t("createPassword.errorDesc"),
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       setShowSuccess(true);
     } catch (error) {
       console.error("Error resetting password:", error);
       toast({
         title: t("createPassword.error"),
         description: t("createPassword.tryAgain"),
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleSuccess = () => {
     setShowSuccess(false);
     navigate("/");
   };
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section */}
       <div className="relative h-[40vh] z-10">
-        <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill" />
+        <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill z-10" />
       </div>
 
       {/* Form Section */}
@@ -120,18 +109,8 @@ const CreateNewPassword = () => {
                 {t("createPassword.newPassword")} <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••••"
-                  {...register("password")}
-                  className={errors.password ? "border-destructive pr-10" : "pr-10"}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={errors.password ? "border-destructive pr-10" : "pr-10"} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
@@ -143,9 +122,7 @@ const CreateNewPassword = () => {
                 <Check className={`w-4 h-4 ${hasMinLength ? "" : "invisible"}`} />
                 <span>{t("createPassword.minLength")}</span>
               </div>
-              <div
-                className={`flex items-center gap-2 ${hasUpperCase && hasLowerCase ? "text-green-600" : "text-muted-foreground"}`}
-              >
+              <div className={`flex items-center gap-2 ${hasUpperCase && hasLowerCase ? "text-green-600" : "text-muted-foreground"}`}>
                 <Check className={`w-4 h-4 ${hasUpperCase && hasLowerCase ? "" : "invisible"}`} />
                 <span>{t("createPassword.upperLower")}</span>
               </div>
@@ -165,18 +142,8 @@ const CreateNewPassword = () => {
                 {t("createPassword.confirmPassword")} <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••••"
-                  {...register("confirmPassword")}
-                  className={errors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
+                <Input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="••••••••••" {...register("confirmPassword")} className={errors.confirmPassword ? "border-destructive pr-10" : "pr-10"} />
+                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
@@ -185,19 +152,10 @@ const CreateNewPassword = () => {
 
             {/* Submit Buttons */}
             <div className="space-y-3 pt-4">
-              <Button
-                type="submit"
-                disabled={!isValid}
-                className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium disabled:opacity-50"
-              >
+              <Button type="submit" disabled={!isValid} className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium disabled:opacity-50">
                 {t("createPassword.submit")}
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/")}
-                className="w-full h-12 rounded-xl text-base font-medium border-2"
-              >
+              <Button type="button" variant="outline" onClick={() => navigate("/")} className="w-full h-12 rounded-xl text-base font-medium border-2">
                 {t("createPassword.login")}
               </Button>
             </div>
@@ -216,14 +174,10 @@ const CreateNewPassword = () => {
             <DialogDescription className="text-center">{t("createPassword.successDesc")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2 sm:gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowSuccess(false);
-                navigate("/");
-              }}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={() => {
+            setShowSuccess(false);
+            navigate("/");
+          }} className="flex-1">
               {t("createPassword.home")}
             </Button>
             <Button onClick={handleSuccess} className="flex-1 bg-secondary hover:bg-secondary/90">
@@ -232,8 +186,6 @@ const CreateNewPassword = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default CreateNewPassword;
