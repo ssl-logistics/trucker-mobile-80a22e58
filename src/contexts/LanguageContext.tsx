@@ -659,6 +659,7 @@ const thTranslations: Record<string, string> = {
   'pickup.error': 'เกิดข้อผิดพลาด',
   'pickup.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
   'pickup.checkInError': 'ไม่สามารถบันทึกการเช็คอินได้',
+  'pickup.noCoordinates': 'ไม่พบข้อมูลพิกัดสถานที่',
   
   // API Test Page
   'apiTest.title': 'ทดสอบ API Receive',
@@ -1660,6 +1661,7 @@ const enTranslations: Record<string, string> = {
   'pickup.error': 'Error',
   'pickup.loadError': 'Unable to load job data',
   'pickup.checkInError': 'Unable to save check-in',
+  'pickup.noCoordinates': 'Location coordinates not found',
   
   // Delivery Detail Page
   'delivery.title': 'Delivery Point',
@@ -2321,6 +2323,34 @@ const koTranslations: Record<string, string> = {
   'chat.groupCreated': '🎉 그룹이 생성되었습니다',
   'chat.groupCreatedSuccess': '그룹이 성공적으로 생성되었습니다',
   'chat.groupCreatedError': '그룹을 생성할 수 없습니다',
+  
+  // Pickup Detail Page
+  'pickup.title': '픽업 지점',
+  'pickup.contactName': '담당자 이름',
+  'pickup.routeNumber': '경로 번호',
+  'pickup.address': '주소',
+  'pickup.map': '지도',
+  'pickup.productType': '상품 유형',
+  'pickup.pickupTime': '픽업 시간',
+  'pickup.note': '비고',
+  'pickup.call': '전화',
+  'pickup.route': '경로',
+  'pickup.checkIn': '체크인',
+  'pickup.confirmTitle': '상태 확인',
+  'pickup.confirmMessage': '"픽업 지점 Factory1"에서 체크인하시겠습니까?',
+  'pickup.cancel': '취소',
+  'pickup.confirmButton': '확인',
+  'pickup.checkInSuccess': '체크인 완료',
+  'pickup.checkInSuccessMessage': '픽업 지점에서 체크인했습니다',
+  'pickup.error': '오류',
+  'pickup.loadError': '작업 데이터를 불러올 수 없습니다',
+  'pickup.checkInError': '체크인을 저장할 수 없습니다',
+  'pickup.noCoordinates': '위치 좌표를 찾을 수 없습니다',
+  
+  // Job Action Buttons
+  'jobActions.viewExpenses': '비용 보기',
+  'jobActions.addExpense': '비용 추가',
+  'jobActions.reportProblem': '문제 신고',
   
   // Sign In Page
   'signIn.title': '로그인 또는 회원가입',
