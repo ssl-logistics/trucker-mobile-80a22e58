@@ -31,7 +31,7 @@ export default function LanguagePage() {
           <div className="divide-y">
             {/* Thai */}
             <div 
-              className="flex items-center justify-between px-4 py-4 cursor-pointer"
+              className="flex items-center justify-between px-4 py-4 cursor-pointer hover:bg-accent/50 transition-colors duration-200"
               onClick={() => handleLanguageChange('th')}
             >
               <div className="flex items-center gap-3">
@@ -49,7 +49,7 @@ export default function LanguagePage() {
 
             {/* English */}
             <div 
-              className="flex items-center justify-between px-4 py-4 cursor-pointer"
+              className="flex items-center justify-between px-4 py-4 cursor-pointer hover:bg-accent/50 transition-colors duration-200"
               onClick={() => handleLanguageChange('en')}
             >
               <div className="flex items-center gap-3">
@@ -67,7 +67,7 @@ export default function LanguagePage() {
 
             {/* Korean */}
             <div 
-              className="flex items-center justify-between px-4 py-4 cursor-pointer"
+              className="flex items-center justify-between px-4 py-4 cursor-pointer hover:bg-accent/50 transition-colors duration-200"
               onClick={() => handleLanguageChange('ko')}
             >
               <div className="flex items-center gap-3">
