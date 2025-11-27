@@ -61,6 +61,38 @@ Deno.serve(async (req) => {
       );
     }
 
+    // IMPORTANT: Validate target_user_id is required for new conversations
+    if (!payload.target_user_id) {
+      console.error('No target_user_id provided - this is required to create conversation');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'target_user_id is required to identify the recipient' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate that target_user_id exists in profiles table
+    const { data: targetProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', payload.target_user_id)
+      .maybeSingle();
+
+    if (profileError || !targetProfile) {
+      console.error('Target user not found:', payload.target_user_id, profileError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Target user not found in this project' 
+        }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Validated target user exists:', payload.target_user_id);
+
     // Check if conversation exists, create if not
     let conversationId = payload.chat_id;
     let isNewConversation = false;
@@ -77,9 +109,9 @@ Deno.serve(async (req) => {
       
       // Use chat_info if provided, otherwise use defaults
       const conversationName = payload.chat_info?.name 
-        || payload.source_project.name 
-        ? `Chat from ${payload.source_project.name}` 
-        : `External Chat - ${payload.message.sender_name}`;
+        || (payload.source_project.name 
+          ? `Chat from ${payload.source_project.name}` 
+          : `External Chat - ${payload.message.sender_name}`);
       
       const conversationType = payload.chat_info?.type || 'external';
       
@@ -109,49 +141,42 @@ Deno.serve(async (req) => {
       console.log('Created new conversation:', conversationId);
       
       // Add TARGET user as participant (the recipient in THIS project)
-      if (payload.target_user_id) {
-        const { error: participantError } = await supabase
-          .from('conversation_participants')
-          .insert({
-            conversation_id: conversationId,
-            user_id: payload.target_user_id,
-          });
-        
-        if (participantError) {
-          console.error('Failed to add target participant:', participantError);
-        } else {
-          console.log('Added target participant:', payload.target_user_id);
-        }
+      const { error: participantError } = await supabase
+        .from('conversation_participants')
+        .insert({
+          conversation_id: conversationId,
+          user_id: payload.target_user_id,
+        });
+      
+      if (participantError) {
+        console.error('Failed to add target participant:', participantError);
       } else {
-        console.warn('No target_user_id provided, recipient cannot see this conversation');
+        console.log('Added target participant:', payload.target_user_id);
       }
     } else {
       console.log('Found existing conversation:', existingConversation.id);
       
-      // For existing conversations, ensure target_user_id is a participant
-      if (payload.target_user_id) {
-        const { data: existingParticipant } = await supabase
-          .from('conversation_participants')
-          .select('id')
-          .eq('conversation_id', existingConversation.id)
-          .eq('user_id', payload.target_user_id)
-          .maybeSingle();
-        
-        if (!existingParticipant) {
-          const { error: addParticipantError } = await supabase
-            .from('conversation_participants')
-            .insert({
-              conversation_id: existingConversation.id,
-              user_id: payload.target_user_id,
-            });
-          
-          if (addParticipantError) {
-            console.error('Failed to add target participant to existing conversation:', addParticipantError);
-          } else {
-            console.log('Added target participant to existing conversation:', payload.target_user_id);
-          }
-        }
+      // For existing conversations, verify target_user_id is already a participant
+      // DO NOT add new participants to existing conversations - this prevents unauthorized access
+      const { data: existingParticipant } = await supabase
+        .from('conversation_participants')
+        .select('id')
+        .eq('conversation_id', existingConversation.id)
+        .eq('user_id', payload.target_user_id)
+        .maybeSingle();
+      
+      if (!existingParticipant) {
+        console.error('Target user is not a participant in this conversation:', payload.target_user_id);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Target user is not authorized for this conversation' 
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
+      
+      console.log('Verified target user is participant:', payload.target_user_id);
     }
 
     // Create or get external_chat_config
