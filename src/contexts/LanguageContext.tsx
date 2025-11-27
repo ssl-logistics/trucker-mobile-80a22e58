@@ -2150,7 +2150,7 @@ const koTranslations: Record<string, string> = {
   'finance.expenses': '비용',
   'finance.total_income': '총 수입',
   'finance.compare_year': '연도 비교: 2023',
-  'finance.buddhist_era': '',
+  'finance.buddhist_era': '년',
   'finance.income': '수입',
   'finance.pending_payments': '미지급 수입',
   'finance.companies': '회사',
