@@ -22,6 +22,11 @@ export default function FinancePage() {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
+  const koreanMonths = [
+    '1월', '2월', '3월', '4월', '5월', '6월',
+    '7월', '8월', '9월', '10월', '11월', '12월'
+  ];
+
   const thaiMonthsShort = [
     'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
     'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
@@ -32,8 +37,13 @@ export default function FinancePage() {
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-  const months = language === 'th' ? thaiMonths : englishMonths;
-  const monthsShort = language === 'th' ? thaiMonthsShort : englishMonthsShort;
+  const koreanMonthsShort = [
+    '1월', '2월', '3월', '4월', '5월', '6월',
+    '7월', '8월', '9월', '10월', '11월', '12월'
+  ];
+
+  const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : englishMonths;
+  const monthsShort = language === 'th' ? thaiMonthsShort : language === 'ko' ? koreanMonthsShort : englishMonthsShort;
 
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
