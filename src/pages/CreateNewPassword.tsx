@@ -16,8 +16,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import loginBackground from "@/assets/login-background.png";
 
+// Note: Schema validation messages are currently in Thai
+// These would need to be dynamically set based on language context
 const passwordSchema = z.object({
   password: z.string()
     .min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")
@@ -36,6 +39,7 @@ const CreateNewPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -71,8 +75,8 @@ const CreateNewPassword = () => {
 
       if (error || !resetData?.success) {
         toast({
-          title: "เกิดข้อผิดพลาด",
-          description: resetData?.error || "ไม่สามารถตั้งรหัสผ่านใหม่ได้",
+          title: t('createPassword.error'),
+          description: resetData?.error || t('createPassword.errorDesc'),
           variant: "destructive"
         });
         return;
@@ -82,8 +86,8 @@ const CreateNewPassword = () => {
     } catch (error) {
       console.error("Error resetting password:", error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "กรุณาลองใหม่อีกครั้ง",
+        title: t('createPassword.error'),
+        description: t('createPassword.tryAgain'),
         variant: "destructive"
       });
     }
@@ -109,14 +113,14 @@ const CreateNewPassword = () => {
       <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-8 pb-6 bg-white">
         <div className="max-w-md mx-auto">
           <h1 className="text-2xl font-bold text-center mb-8 text-foreground">
-            สร้างรหัสผ่านใหม่
+            {t('createPassword.title')}
           </h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* New Password Field */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-foreground">
-                รหัสผ่านใหม่ <span className="text-destructive">*</span>
+                {t('createPassword.newPassword')} <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -140,26 +144,26 @@ const CreateNewPassword = () => {
             <div className="space-y-2 text-sm">
               <div className={`flex items-center gap-2 ${hasMinLength ? "text-green-600" : "text-muted-foreground"}`}>
                 <Check className={`w-4 h-4 ${hasMinLength ? "" : "invisible"}`} />
-                <span>ความยาวอย่างน้อย 8 ตัวอักษร ขึ้นไป</span>
+                <span>{t('createPassword.minLength')}</span>
               </div>
               <div className={`flex items-center gap-2 ${hasUpperCase && hasLowerCase ? "text-green-600" : "text-muted-foreground"}`}>
                 <Check className={`w-4 h-4 ${hasUpperCase && hasLowerCase ? "" : "invisible"}`} />
-                <span>ต้องประกอบด้วย ตัวอักษรพิมพ์ใหญ่ (A-Z), (a-z)</span>
+                <span>{t('createPassword.upperLower')}</span>
               </div>
               <div className={`flex items-center gap-2 ${hasNumber ? "text-green-600" : "text-muted-foreground"}`}>
                 <Check className={`w-4 h-4 ${hasNumber ? "" : "invisible"}`} />
-                <span>ตัวเลข (0-9) อย่างน้อย 1</span>
+                <span>{t('createPassword.number')}</span>
               </div>
               <div className={`flex items-center gap-2 ${hasSpecialChar ? "text-green-600" : "text-muted-foreground"}`}>
                 <Check className={`w-4 h-4 ${hasSpecialChar ? "" : "invisible"}`} />
-                <span>รหัสผ่านควรประกอบด้วย ตัวอักษรพิเศษ อย่างน้อย 1</span>
+                <span>{t('createPassword.special')}</span>
               </div>
             </div>
 
             {/* Confirm Password Field */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-foreground">
-                ยืนยันรหัสผ่าน <span className="text-destructive">*</span>
+                {t('createPassword.confirmPassword')} <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -189,7 +193,7 @@ const CreateNewPassword = () => {
                 disabled={!isValid}
                 className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium disabled:opacity-50"
               >
-                สร้างรหัสผ่านใหม่
+                {t('createPassword.submit')}
               </Button>
               <Button
                 type="button"
@@ -197,7 +201,7 @@ const CreateNewPassword = () => {
                 onClick={() => navigate("/")}
                 className="w-full h-12 rounded-xl text-base font-medium border-2"
               >
-                เข้าสู่ระบบ
+                {t('createPassword.login')}
               </Button>
             </div>
           </form>
@@ -212,10 +216,10 @@ const CreateNewPassword = () => {
               <Check className="w-8 h-8 text-green-600" />
             </div>
             <DialogTitle className="text-center text-xl">
-              สร้างรหัสผ่านใหม่สำเร็จ!
+              {t('createPassword.successTitle')}
             </DialogTitle>
             <DialogDescription className="text-center">
-              คุณได้ทำการตั้งรหัสผ่านใหม่เรียบร้อยแล้ว!
+              {t('createPassword.successDesc')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2 sm:gap-2">
@@ -227,13 +231,13 @@ const CreateNewPassword = () => {
               }}
               className="flex-1"
             >
-              หน้าหลัก
+              {t('createPassword.home')}
             </Button>
             <Button
               onClick={handleSuccess}
               className="flex-1 bg-secondary hover:bg-secondary/90"
             >
-              เริ่มต้นใช้งาน
+              {t('createPassword.getStarted')}
             </Button>
           </DialogFooter>
         </DialogContent>
