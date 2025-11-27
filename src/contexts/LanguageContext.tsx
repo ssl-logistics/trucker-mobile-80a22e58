@@ -304,6 +304,22 @@ const thTranslations: Record<string, string> = {
   'account.delete_error': 'เกิดข้อผิดพลาด',
   'account.delete_error_desc': 'ไม่สามารถลบบัญชีได้ กรุณาลองใหม่อีกครั้ง',
   
+  // Contact Page
+  'contact.title': 'ติดต่อศูนย์',
+  'contact.welcome': 'ยินดีต้อนรับ',
+  'contact.welcomeMessage': 'เรายินดีให้บริการและช่วยเหลือคุณ ติดต่อเราผ่านช่องทางด้านล่าง',
+  'contact.methods': 'ช่องทางการติดต่อ',
+  'contact.phone': 'โทรศัพท์',
+  'contact.line': 'LINE',
+  'contact.email': 'อีเมล',
+  'contact.officeInfo': 'ข้อมูลสำนักงาน',
+  'contact.address': 'ที่อยู่',
+  'contact.hours': 'เวลาทำการ',
+  'contact.hoursValue': 'จันทร์-ศุกร์ 8:00-17:00 น.',
+  'contact.emergency': 'ติดต่อฉุกเฉิน',
+  'contact.emergencyMessage': 'สำหรับกรณีฉุกเฉินนอกเวลาทำการ',
+  'contact.callNow': 'โทรเลย',
+  
   // Terms Page
   'terms.title': 'เงื่อนไขการใช้บริการและนโยบาย',
   'terms.heading': 'Truckers  นโยบายความเป็นส่วนตัวของผู้ขับรถ',
@@ -1334,6 +1350,22 @@ const enTranslations: Record<string, string> = {
   'account.delete_error': 'Error',
   'account.delete_error_desc': 'Unable to delete account. Please try again.',
   
+  // Contact Page
+  'contact.title': 'Contact Center',
+  'contact.welcome': 'Welcome',
+  'contact.welcomeMessage': 'We are happy to serve and help you. Contact us through the channels below',
+  'contact.methods': 'Contact Methods',
+  'contact.phone': 'Phone',
+  'contact.line': 'LINE',
+  'contact.email': 'Email',
+  'contact.officeInfo': 'Office Information',
+  'contact.address': 'Address',
+  'contact.hours': 'Business Hours',
+  'contact.hoursValue': 'Monday-Friday 8:00-17:00',
+  'contact.emergency': 'Emergency Contact',
+  'contact.emergencyMessage': 'For urgent cases outside business hours',
+  'contact.callNow': 'Call Now',
+  
   // Terms Page
   'terms.title': 'Terms of Service and Policy',
   'terms.heading': 'Truckers  Privacy Policy for Drivers',
@@ -2303,6 +2335,22 @@ const koTranslations: Record<string, string> = {
   'account.delete_success_desc': '계정이 성공적으로 삭제되었습니다',
   'account.delete_error': '오류 발생',
   'account.delete_error_desc': '계정을 삭제할 수 없습니다. 다시 시도해 주세요.',
+  
+  // Contact Page
+  'contact.title': '고객센터',
+  'contact.welcome': '환영합니다',
+  'contact.welcomeMessage': '저희는 귀하를 도와드리게 되어 기쁩니다. 아래 채널을 통해 연락하세요',
+  'contact.methods': '연락 방법',
+  'contact.phone': '전화',
+  'contact.line': 'LINE',
+  'contact.email': '이메일',
+  'contact.officeInfo': '사무실 정보',
+  'contact.address': '주소',
+  'contact.hours': '영업 시간',
+  'contact.hoursValue': '월요일-금요일 8:00-17:00',
+  'contact.emergency': '긴급 연락',
+  'contact.emergencyMessage': '영업 시간 외 긴급 상황',
+  'contact.callNow': '지금 전화하기',
   
   // Terms Page
   'terms.title': '이용약관 및 정책',
