@@ -9,6 +9,11 @@ interface OutgoingMessage {
   conversation_id: string;
   external_project_id: string;
   target_user_id?: string; // Target user ID in the external project
+  chat_info?: {
+    name?: string;
+    avatar_url?: string;
+    type?: string;
+  };
   message: {
     id: string;
     sender_id: string;
@@ -43,6 +48,35 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Validate target_user_id is required
+    if (!payload.target_user_id) {
+      console.error('target_user_id is required for sending to external project');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'target_user_id is required to identify the recipient in the external project' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get conversation info for chat_info
+    const { data: conversation } = await supabase
+      .from('conversations')
+      .select('name, avatar_url, type')
+      .eq('id', payload.conversation_id)
+      .maybeSingle();
+
+    // Get sender profile for sender_info
+    const { data: senderProfile } = await supabase
+      .from('profiles')
+      .select('full_name, avatar_url, phone_number')
+      .eq('id', payload.message.sender_id)
+      .maybeSingle();
+
+    // Get sender's email from auth (using service role)
+    const { data: { user: senderUser } } = await supabase.auth.admin.getUserById(payload.message.sender_id);
 
     // Get external project config
     const { data: externalConfig, error: configError } = await supabase
@@ -85,7 +119,13 @@ Deno.serve(async (req) => {
     // Prepare payload for external project
     const externalPayload = {
       chat_id: payload.conversation_id,
-      target_user_id: payload.target_user_id, // Include target user ID for the external project
+      target_user_id: payload.target_user_id,
+      auto_create: true,
+      chat_info: payload.chat_info || {
+        name: senderProfile?.full_name || payload.message.sender_name,
+        avatar_url: senderProfile?.avatar_url || payload.message.sender_avatar,
+        type: conversation?.type || 'individual',
+      },
       message: {
         id: payload.message.id,
         sender_id: payload.message.sender_id,
@@ -94,6 +134,13 @@ Deno.serve(async (req) => {
         text: payload.message.text,
         timestamp: payload.message.timestamp,
       },
+      sender_info: {
+        user_id: payload.message.sender_id,
+        name: senderProfile?.full_name || payload.message.sender_name,
+        avatar_url: senderProfile?.avatar_url || payload.message.sender_avatar,
+        email: senderUser?.email,
+        phone: senderProfile?.phone_number,
+      },
       source_project: {
         id: supabaseUrl.split('//')[1].split('.')[0], // Extract project ID from URL
         name: 'Trucker Platform',
@@ -101,7 +148,7 @@ Deno.serve(async (req) => {
       },
     };
 
-    console.log('Sending external payload with target_user_id:', payload.target_user_id);
+    console.log('Sending external payload:', JSON.stringify(externalPayload, null, 2));
 
     // Send message to external project
     const headers: HeadersInit = {
