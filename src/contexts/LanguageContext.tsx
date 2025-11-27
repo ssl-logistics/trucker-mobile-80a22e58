@@ -2466,6 +2466,14 @@ const koTranslations: Record<string, string> = {
   'expense.cancel': '취소',
   'expense.saving': '저장 중...',
   'expense.confirm': '확인',
+  
+  // Additional SOP translations
+  'sop.uploadPhoto': '사진 업로드',
+  'sop.confirmSOP': 'SOP 확인',
+  'sop.retakePhoto': '다시 촬영',
+  'sop.success': '성공',
+  'sop.successMessage': 'SOP 체크인이 완료되었습니다',
+  'sop.errorMessage': 'SOP 체크인 중 오류가 발생했습니다',
   'review.plateNumber': '번호판',
   'review.plateProvince': '등록 지역',
   'review.vehicleBrand': '차량 브랜드',
