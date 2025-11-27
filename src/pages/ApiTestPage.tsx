@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const ApiTestPage = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [jsonData, setJsonData] = useState(`{
   "order_code": "ORO0006",
   "employer_name": "บริษัททดสอบ จำกัด",
@@ -45,13 +47,13 @@ const ApiTestPage = () => {
 
       setResponse(result);
       toast({
-        title: "สำเร็จ",
-        description: "ส่งข้อมูลไปยัง API สำเร็จ"
+        title: t('apiTest.success'),
+        description: t('apiTest.successDesc')
       });
     } catch (error: any) {
       console.error('Error:', error);
       toast({
-        title: "เกิดข้อผิดพลาด",
+        title: t('apiTest.error'),
         description: error.message,
         variant: "destructive"
       });
@@ -65,9 +67,9 @@ const ApiTestPage = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">ทดสอบ API Receive</h1>
+          <h1 className="text-3xl font-bold">{t('apiTest.title')}</h1>
           <p className="text-muted-foreground mt-2">
-            ส่งข้อมูล JSON ไปยัง edge function เพื่อทดสอบการรับข้อมูล
+            {t('apiTest.description')}
           </p>
         </div>
 
@@ -75,7 +77,7 @@ const ApiTestPage = () => {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                JSON Data (แก้ไขได้)
+                {t('apiTest.jsonLabel')}
               </label>
               <Textarea
                 value={jsonData}
@@ -89,14 +91,14 @@ const ApiTestPage = () => {
               disabled={loading}
               className="w-full"
             >
-              {loading ? 'กำลังส่ง...' : 'ส่งข้อมูลทดสอบ'}
+              {loading ? t('apiTest.sending') : t('apiTest.sendButton')}
             </Button>
           </div>
         </Card>
 
         {response && (
           <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">ผลลัพธ์</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('apiTest.result')}</h2>
             <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm">
               {JSON.stringify(response, null, 2)}
             </pre>
@@ -115,7 +117,7 @@ const ApiTestPage = () => {
         </Card>
 
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-2">ตัวอย่างการเรียกใช้จาก cURL</h2>
+          <h2 className="text-lg font-semibold mb-2">{t('apiTest.curlExample')}</h2>
           <pre className="bg-muted p-4 rounded-lg overflow-auto text-xs">
 {`curl -X POST \\
   https://yhzurkotubkkaokhtmsb.supabase.co/functions/v1/receive \\

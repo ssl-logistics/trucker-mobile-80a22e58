@@ -659,6 +659,36 @@ const thTranslations: Record<string, string> = {
   'pickup.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
   'pickup.checkInError': 'ไม่สามารถบันทึกการเช็คอินได้',
   
+  // API Test Page
+  'apiTest.title': 'ทดสอบ API Receive',
+  'apiTest.description': 'ส่งข้อมูล JSON ไปยัง edge function เพื่อทดสอบการรับข้อมูล',
+  'apiTest.jsonLabel': 'JSON Data (แก้ไขได้)',
+  'apiTest.sending': 'กำลังส่ง...',
+  'apiTest.sendButton': 'ส่งข้อมูลทดสอบ',
+  'apiTest.result': 'ผลลัพธ์',
+  'apiTest.curlExample': 'ตัวอย่างการเรียกใช้จาก cURL',
+  'apiTest.success': 'สำเร็จ',
+  'apiTest.successDesc': 'ส่งข้อมูลไปยัง API สำเร็จ',
+  'apiTest.error': 'เกิดข้อผิดพลาด',
+  
+  // Create Password Page
+  'createPassword.title': 'สร้างรหัสผ่านใหม่',
+  'createPassword.newPassword': 'รหัสผ่านใหม่',
+  'createPassword.confirmPassword': 'ยืนยันรหัสผ่าน',
+  'createPassword.minLength': 'ความยาวอย่างน้อย 8 ตัวอักษร ขึ้นไป',
+  'createPassword.upperLower': 'ต้องประกอบด้วย ตัวอักษรพิมพ์ใหญ่ (A-Z), (a-z)',
+  'createPassword.number': 'ตัวเลข (0-9) อย่างน้อย 1',
+  'createPassword.special': 'รหัสผ่านควรประกอบด้วย ตัวอักษรพิเศษ อย่างน้อย 1',
+  'createPassword.submit': 'สร้างรหัสผ่านใหม่',
+  'createPassword.login': 'เข้าสู่ระบบ',
+  'createPassword.error': 'เกิดข้อผิดพลาด',
+  'createPassword.errorDesc': 'ไม่สามารถตั้งรหัสผ่านใหม่ได้',
+  'createPassword.tryAgain': 'กรุณาลองใหม่อีกครั้ง',
+  'createPassword.successTitle': 'สร้างรหัสผ่านใหม่สำเร็จ!',
+  'createPassword.successDesc': 'คุณได้ทำการตั้งรหัสผ่านใหม่เรียบร้อยแล้ว!',
+  'createPassword.home': 'หน้าหลัก',
+  'createPassword.getStarted': 'เริ่มต้นใช้งาน',
+  
   // Delivery Detail Page
   'delivery.title': 'จุดส่ง',
   'delivery.checkInSuccess': 'เช็คอินสำเร็จ',
@@ -1183,6 +1213,36 @@ const enTranslations: Record<string, string> = {
   'product.product_types': 'Product Types',
   'product.top_5': 'Top 5',
   'product.jobs': 'jobs',
+  
+  // API Test Page
+  'apiTest.title': 'Test API Receive',
+  'apiTest.description': 'Send JSON data to edge function to test data reception',
+  'apiTest.jsonLabel': 'JSON Data (editable)',
+  'apiTest.sending': 'Sending...',
+  'apiTest.sendButton': 'Send Test Data',
+  'apiTest.result': 'Result',
+  'apiTest.curlExample': 'cURL Usage Example',
+  'apiTest.success': 'Success',
+  'apiTest.successDesc': 'Data sent to API successfully',
+  'apiTest.error': 'Error',
+  
+  // Create Password Page
+  'createPassword.title': 'Create New Password',
+  'createPassword.newPassword': 'New Password',
+  'createPassword.confirmPassword': 'Confirm Password',
+  'createPassword.minLength': 'Minimum 8 characters',
+  'createPassword.upperLower': 'Must contain uppercase (A-Z) and lowercase (a-z)',
+  'createPassword.number': 'At least 1 number (0-9)',
+  'createPassword.special': 'Should contain at least 1 special character',
+  'createPassword.submit': 'Create New Password',
+  'createPassword.login': 'Login',
+  'createPassword.error': 'Error',
+  'createPassword.errorDesc': 'Unable to set new password',
+  'createPassword.tryAgain': 'Please try again',
+  'createPassword.successTitle': 'Password Created Successfully!',
+  'createPassword.successDesc': 'You have successfully set a new password!',
+  'createPassword.home': 'Home',
+  'createPassword.getStarted': 'Get Started',
   
   // Search Page
   'search.title': 'Search',
