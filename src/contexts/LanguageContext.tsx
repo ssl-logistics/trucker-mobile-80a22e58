@@ -1065,6 +1065,16 @@ const thTranslations: Record<string, string> = {
   'toast.fileSentSuccess': 'ส่งไฟล์สำเร็จ',
   'toast.fileSentError': 'ส่งไฟล์ล้มเหลว',
   'toast.tryAgain': 'กรุณาลองใหม่อีกครั้ง',
+  'toast.notSupported': 'ไม่รองรับ',
+  'toast.browserNotSupported': 'เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน',
+  'toast.notificationEnabled': 'เปิดการแจ้งเตือนสำเร็จ',
+  'toast.notificationEnabledDesc': 'คุณจะได้รับการแจ้งเตือนจากระบบแล้ว',
+  'toast.cannotEnableNotification': 'ไม่สามารถเปิดการแจ้งเตือนได้',
+  'toast.allowNotificationInBrowser': 'กรุณาอนุญาตการแจ้งเตือนในการตั้งค่าเบราว์เซอร์',
+  'toast.notificationDisabled': 'ปิดการแจ้งเตือนสำเร็จ',
+  'toast.notificationDisabledDesc': 'คุณจะไม่ได้รับการแจ้งเตือนอีกต่อไป',
+  'toast.error': 'เกิดข้อผิดพลาด',
+  'toast.cannotChangeSettings': 'ไม่สามารถเปลี่ยนการตั้งค่าได้ กรุณาลองใหม่อีกครั้ง',
 };
 
 // English translations
@@ -2091,6 +2101,16 @@ const enTranslations: Record<string, string> = {
   'toast.fileSentSuccess': 'File sent successfully',
   'toast.fileSentError': 'Failed to send file',
   'toast.tryAgain': 'Please try again',
+  'toast.notSupported': 'Not Supported',
+  'toast.browserNotSupported': 'This browser does not support notifications',
+  'toast.notificationEnabled': 'Notifications Enabled',
+  'toast.notificationEnabledDesc': 'You will now receive system notifications',
+  'toast.cannotEnableNotification': 'Cannot Enable Notifications',
+  'toast.allowNotificationInBrowser': 'Please allow notifications in browser settings',
+  'toast.notificationDisabled': 'Notifications Disabled',
+  'toast.notificationDisabledDesc': 'You will no longer receive notifications',
+  'toast.error': 'Error',
+  'toast.cannotChangeSettings': 'Cannot change settings. Please try again',
 };
 
 // Korean translations
@@ -2865,6 +2885,16 @@ const koTranslations: Record<string, string> = {
   'toast.fileSentSuccess': '파일 전송 성공',
   'toast.fileSentError': '파일 전송 실패',
   'toast.tryAgain': '다시 시도해주세요',
+  'toast.notSupported': '지원되지 않음',
+  'toast.browserNotSupported': '이 브라우저는 알림을 지원하지 않습니다',
+  'toast.notificationEnabled': '알림 활성화 성공',
+  'toast.notificationEnabledDesc': '이제 시스템 알림을 받을 수 있습니다',
+  'toast.cannotEnableNotification': '알림을 활성화할 수 없습니다',
+  'toast.allowNotificationInBrowser': '브라우저 설정에서 알림을 허용해주세요',
+  'toast.notificationDisabled': '알림 비활성화 성공',
+  'toast.notificationDisabledDesc': '더 이상 알림을 받지 않습니다',
+  'toast.error': '오류',
+  'toast.cannotChangeSettings': '설정을 변경할 수 없습니다. 다시 시도해주세요',
   
   // Edit Field Page
   'editField.title': '편집',
