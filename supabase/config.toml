@@ -3,6 +3,12 @@ project_id = "yhzurkotubkkaokhtmsb"
 [functions.send-otp]
 verify_jwt = false
 
+[functions.search-users]
+verify_jwt = false
+
+[functions.search-external-users]
+verify_jwt = false
+
 [functions.receive-chat-message]
 verify_jwt = false
 
