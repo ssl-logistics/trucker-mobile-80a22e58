@@ -2705,6 +2705,8 @@ const koTranslations: Record<string, string> = {
   
   // Notifications Page
   'notifications.title': '알림',
+  'notifications.all': '전체',
+  'notifications.unread': '읽지 않음',
   'notifications.markAllRead': '모두 읽음으로 표시',
   'notifications.noNotifications': '알림이 없습니다',
   'notifications.newJob': '새 작업',

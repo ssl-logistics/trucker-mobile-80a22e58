@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Notification {
   id: string;
@@ -57,6 +58,7 @@ const mockNotifications: Notification[] = [
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [notifications] = useState<Notification[]>(mockNotifications);
   const [activeTab, setActiveTab] = useState('all');
 
@@ -83,7 +85,7 @@ export default function NotificationsPage() {
           <button onClick={() => navigate('/home')} className="absolute left-0 p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">แจ้งเตือน</h1>
+          <h1 className="text-lg font-semibold">{t('notifications.title')}</h1>
         </div>
       </header>
 
@@ -91,10 +93,10 @@ export default function NotificationsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full rounded-none border-b bg-white h-12">
           <TabsTrigger value="all" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
-            ทั้งหมด
+            {t('notifications.all')}
           </TabsTrigger>
           <TabsTrigger value="unread" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
-            ยังไม่ได้อ่าน
+            {t('notifications.unread')}
           </TabsTrigger>
         </TabsList>
 
@@ -103,7 +105,7 @@ export default function NotificationsPage() {
           <div className="flex items-center justify-between px-4 py-3 bg-white border-b">
             <span className="text-sm text-muted-foreground">{getNotificationDate()}</span>
             <button onClick={markAllAsRead} className="text-sm text-blue-600 font-medium">
-              อ่านทั้งหมด
+              {t('notifications.markAllRead')}
             </button>
           </div>
 
