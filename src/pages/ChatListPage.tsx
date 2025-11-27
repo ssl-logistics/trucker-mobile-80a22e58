@@ -60,37 +60,85 @@ export default function ChatListPage() {
       data: conversationData
     } = await supabase.from('conversations').select('id, name, type, avatar_url, updated_at').in('id', conversationIds);
     if (conversationData) {
-      // Get last messages and unread counts
+      // Get last messages and unread counts (including external messages)
       const conversationsWithData = await Promise.all(conversationData.map(async (conv: any) => {
+        // Get regular messages
         const {
           data: messages
-        } = await supabase.from('messages').select('content, is_read, sender_id').eq('conversation_id', conv.id).order('created_at', {
+        } = await supabase.from('messages').select('content, is_read, sender_id, created_at').eq('conversation_id', conv.id).order('created_at', {
           ascending: false
         }).limit(1);
+        
+        // Get external messages
+        const {
+          data: externalMessages
+        } = await supabase.from('external_chat_messages').select('message_text, created_at, sender_name').eq('conversation_id', conv.id).order('created_at', {
+          ascending: false
+        }).limit(1);
+        
+        // Determine last message (from regular or external)
+        let lastMessage = '';
+        let lastMessageTime = conv.updated_at;
+        
+        if (messages?.[0] && externalMessages?.[0]) {
+          const msgTime = new Date(messages[0].created_at).getTime();
+          const extTime = new Date(externalMessages[0].created_at).getTime();
+          if (extTime > msgTime) {
+            lastMessage = externalMessages[0].message_text || '';
+            lastMessageTime = externalMessages[0].created_at;
+          } else {
+            lastMessage = messages[0].content || '';
+            lastMessageTime = messages[0].created_at;
+          }
+        } else if (externalMessages?.[0]) {
+          lastMessage = externalMessages[0].message_text || '';
+          lastMessageTime = externalMessages[0].created_at;
+        } else if (messages?.[0]) {
+          lastMessage = messages[0].content || '';
+          lastMessageTime = messages[0].created_at;
+        }
+        
         const {
           count: unreadCount
         } = await supabase.from('messages').select('*', {
           count: 'exact',
           head: true
         }).eq('conversation_id', conv.id).eq('is_read', false).neq('sender_id', user.id);
+        
         return {
           ...conv,
-          last_message: messages?.[0]?.content || '',
+          last_message: lastMessage,
           unread_count: unreadCount || 0,
-          is_online: Math.random() > 0.5 // Mock online status
+          updated_at: lastMessageTime,
+          is_online: false
         };
       }));
+      
+      // Sort by updated_at descending
+      conversationsWithData.sort((a, b) => 
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+      
       setConversations(conversationsWithData);
     }
   };
   const subscribeToConversations = () => {
-    const channel = supabase.channel('conversations_channel').on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'messages'
-    }, () => {
-      loadConversations();
-    }).subscribe();
+    const channel = supabase.channel('conversations_channel')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'messages'
+      }, () => {
+        loadConversations();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'external_chat_messages'
+      }, () => {
+        loadConversations();
+      })
+      .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
@@ -102,8 +150,8 @@ export default function ChatListPage() {
     }));
   };
   const filteredConversations = conversations.filter(conv => conv.name?.toLowerCase().includes(searchQuery.toLowerCase()));
-  const companyChats = filteredConversations.filter(c => c.type === 'company');
-  const friendChats = filteredConversations.filter(c => c.type === 'private');
+  const companyChats = filteredConversations.filter(c => c.type === 'company' || c.type === 'external');
+  const friendChats = filteredConversations.filter(c => c.type === 'private' || c.type === 'individual');
   const groupChats = filteredConversations.filter(c => c.type === 'group');
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
