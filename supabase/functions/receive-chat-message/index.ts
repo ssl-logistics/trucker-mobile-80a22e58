@@ -7,6 +7,7 @@ const corsHeaders = {
 
 interface IncomingMessage {
   chat_id: string;
+  target_user_id?: string; // Target user ID in THIS project (recipient)
   auto_create?: boolean;
   chat_info?: {
     name?: string;
@@ -107,23 +108,50 @@ Deno.serve(async (req) => {
       conversationId = newConversation.id;
       console.log('Created new conversation:', conversationId);
       
-      // Add local user as participant if provided
-      if (payload.sender_info?.local_user_id) {
+      // Add TARGET user as participant (the recipient in THIS project)
+      if (payload.target_user_id) {
         const { error: participantError } = await supabase
           .from('conversation_participants')
           .insert({
             conversation_id: conversationId,
-            user_id: payload.sender_info.local_user_id,
+            user_id: payload.target_user_id,
           });
         
         if (participantError) {
-          console.error('Failed to add participant:', participantError);
+          console.error('Failed to add target participant:', participantError);
         } else {
-          console.log('Added participant:', payload.sender_info.local_user_id);
+          console.log('Added target participant:', payload.target_user_id);
         }
+      } else {
+        console.warn('No target_user_id provided, recipient cannot see this conversation');
       }
     } else {
       console.log('Found existing conversation:', existingConversation.id);
+      
+      // For existing conversations, ensure target_user_id is a participant
+      if (payload.target_user_id) {
+        const { data: existingParticipant } = await supabase
+          .from('conversation_participants')
+          .select('id')
+          .eq('conversation_id', existingConversation.id)
+          .eq('user_id', payload.target_user_id)
+          .maybeSingle();
+        
+        if (!existingParticipant) {
+          const { error: addParticipantError } = await supabase
+            .from('conversation_participants')
+            .insert({
+              conversation_id: existingConversation.id,
+              user_id: payload.target_user_id,
+            });
+          
+          if (addParticipantError) {
+            console.error('Failed to add target participant to existing conversation:', addParticipantError);
+          } else {
+            console.log('Added target participant to existing conversation:', payload.target_user_id);
+          }
+        }
+      }
     }
 
     // Create or get external_chat_config
