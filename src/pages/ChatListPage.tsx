@@ -45,20 +45,31 @@ export default function ChatListPage() {
   const loadConversations = async () => {
     if (!user) return;
 
+    console.log('Loading conversations for user:', user.id);
+
     // First get conversation IDs for the user
     const {
-      data: participantData
+      data: participantData,
+      error: participantError
     } = await supabase.from('conversation_participants').select('conversation_id').eq('user_id', user.id);
+    
+    console.log('Participant data:', participantData, 'Error:', participantError);
+    
     if (!participantData || participantData.length === 0) {
+      console.log('No conversations found for user');
       setConversations([]);
       return;
     }
     const conversationIds = participantData.map(p => p.conversation_id);
+    console.log('Conversation IDs:', conversationIds);
 
     // Then get conversation details
     const {
-      data: conversationData
+      data: conversationData,
+      error: convError
     } = await supabase.from('conversations').select('id, name, type, avatar_url, updated_at').in('id', conversationIds);
+    
+    console.log('Conversation data:', conversationData, 'Error:', convError);
     if (conversationData) {
       // Get last messages and unread counts (including external messages)
       const conversationsWithData = await Promise.all(conversationData.map(async (conv: any) => {
