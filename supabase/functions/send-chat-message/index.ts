@@ -8,6 +8,7 @@ const corsHeaders = {
 interface OutgoingMessage {
   conversation_id: string;
   external_project_id: string;
+  target_user_id?: string; // Target user ID in the external project
   message: {
     id: string;
     sender_id: string;
@@ -84,6 +85,7 @@ Deno.serve(async (req) => {
     // Prepare payload for external project
     const externalPayload = {
       chat_id: payload.conversation_id,
+      target_user_id: payload.target_user_id, // Include target user ID for the external project
       message: {
         id: payload.message.id,
         sender_id: payload.message.sender_id,
@@ -98,6 +100,8 @@ Deno.serve(async (req) => {
         callback_url: `${supabaseUrl}/functions/v1/receive-chat-message`,
       },
     };
+
+    console.log('Sending external payload with target_user_id:', payload.target_user_id);
 
     // Send message to external project
     const headers: HeadersInit = {
