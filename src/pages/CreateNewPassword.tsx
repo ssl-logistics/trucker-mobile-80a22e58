@@ -96,7 +96,7 @@ const CreateNewPassword = () => {
       <div className="relative h-[40vh] z-10">
         <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill z-10" />
         <div className="absolute inset-x-0 bottom-0 z-20 pb-8">
-          <h1 className="text-2xl font-bold text-center text-white drop-shadow-lg mt-10">{t("createPassword.title")}</h1>
+          <h1 className="text-2xl font-bold text-center text-white drop-shadow-lg ">{t("createPassword.title")}</h1>
         </div>
       </div>
 
