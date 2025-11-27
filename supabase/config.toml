@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.receive-company-factory]
 verify_jwt = false
+
+[functions.get-conversation-participant]
+verify_jwt = false
