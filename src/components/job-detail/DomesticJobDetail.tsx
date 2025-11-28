@@ -234,7 +234,7 @@ export default function DomesticJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.pickupTime')}</span>
-                      <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
+                      <span>: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
@@ -296,7 +296,7 @@ export default function DomesticJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
-                      <span>: {formatDate(job.start_date)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
+                      <span>: {formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
