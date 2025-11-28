@@ -14,7 +14,9 @@ interface JobDetail {
   employer_name: string;
   transport_type: string;
   origin_location: string;
+  origin_address: string | null;
   destination_location: string;
+  destination_address: string | null;
   price: number;
   start_date: string;
   start_time: string;
