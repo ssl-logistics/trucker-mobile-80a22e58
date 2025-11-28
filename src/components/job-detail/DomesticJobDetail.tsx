@@ -207,7 +207,7 @@ export default function DomesticJobDetail({
               {/* Pickup Point Card */}
               <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : 'border-teal-500 bg-white'}`}>
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-1">
                     <h3 className="font-semibold text-sm">{t('jobDetail.pickupPoint')}</h3>
                     <span className={`text-xs font-medium ${jobApplication?.sop_completed_at ? 'text-green-600' : jobApplication?.checked_in_at ? 'text-orange-500' : 'text-orange-500'}`}>
                       • {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
@@ -268,7 +268,7 @@ export default function DomesticJobDetail({
               {/* Delivery Point Card */}
               <Card ref={card2Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-1">
                     <h3 className="font-semibold text-sm">{t('jobDetail.deliveryPoint')}</h3>
                     {jobApplication?.job_started_at && <span className={`text-xs font-medium ${jobApplication?.delivery_sop_completed_at ? 'text-green-600' : 'text-orange-500'}`}>
                         • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
