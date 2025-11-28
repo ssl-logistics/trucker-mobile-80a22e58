@@ -49,6 +49,7 @@ export default function IncomePage() {
             id,
             order_code,
             employer_name,
+            destination_company_name,
             price,
             start_date
           )
@@ -70,8 +71,8 @@ export default function IncomePage() {
         const job: IncomeJob = {
           id: app.id,
           jobId: app.job_id,
-          jobTitle: app.jobs.employer_name,
-          employer: app.jobs.employer_name,
+          jobTitle: app.jobs.destination_company_name || app.jobs.employer_name,
+          employer: app.jobs.destination_company_name || app.jobs.employer_name,
           amount: app.jobs.price,
           status: app.payment_completed_at ? "paid" : "pending",
           date: new Date(app.jobs.start_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),

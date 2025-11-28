@@ -140,7 +140,7 @@ export default function CurrentJobsPage() {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      const matchesSearch = job.order_code.toLowerCase().includes(query) || job.employer_name.toLowerCase().includes(query) || job.origin_location.toLowerCase().includes(query) || job.destination_location.toLowerCase().includes(query);
+      const matchesSearch = job.order_code.toLowerCase().includes(query) || job.employer_name.toLowerCase().includes(query) || (job.destination_company_name && job.destination_company_name.toLowerCase().includes(query)) || job.origin_location.toLowerCase().includes(query) || job.destination_location.toLowerCase().includes(query);
       if (!matchesSearch) return false;
     }
 

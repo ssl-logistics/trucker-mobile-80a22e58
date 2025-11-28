@@ -18,6 +18,7 @@ interface JobDetail {
   transport_type: string;
   origin_location: string;
   destination_location: string;
+  destination_company_name: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -176,7 +177,7 @@ export default function InternationalJobDetail({
               {t('jobDetail.booking')} : {job.order_code}
             </h2>
             <p className="text-base font-medium text-foreground">
-              {t('jobDetail.employer')} : {job.employer_name}
+              {t('jobDetail.employer')} : {job.destination_company_name || job.employer_name}
             </p>
           </div>
 

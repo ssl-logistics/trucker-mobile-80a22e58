@@ -18,6 +18,7 @@ interface JobApplication {
     id: string;
     order_code: string;
     employer_name: string;
+    destination_company_name: string | null;
     transport_type: string;
     origin_location: string;
     destination_location: string;
@@ -55,6 +56,7 @@ export default function JobHistoryPage() {
             id,
             order_code,
             employer_name,
+            destination_company_name,
             transport_type,
             origin_location,
             destination_location,
@@ -200,7 +202,7 @@ export default function JobHistoryPage() {
                   <div className="space-y-2">
                     <div className="text-sm">
                       <span className="text-muted-foreground">{t('job.employer')} : </span>
-                      <span className="font-medium">{app.jobs.employer_name}</span>
+                      <span className="font-medium">{app.jobs.destination_company_name || app.jobs.employer_name}</span>
                     </div>
                     
                     <div className="flex items-center gap-2">

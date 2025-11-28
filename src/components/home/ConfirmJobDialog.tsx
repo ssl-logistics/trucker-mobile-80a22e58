@@ -18,6 +18,7 @@ interface ConfirmJobDialogProps {
   job: {
     order_code: string;
     employer_name: string;
+    destination_company_name: string | null;
   } | null;
 }
 
@@ -39,7 +40,7 @@ export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job }: Confirm
               <strong>{t('confirm.order_code')} :</strong> {job?.order_code}
             </div>
             <div>
-              <strong>{t('confirm.employer')} :</strong> {job?.employer_name}
+              <strong>{t('confirm.employer')} :</strong> {job?.destination_company_name || job?.employer_name}
             </div>
             <div className="pt-2 text-xs">
               {t('confirm.message')}
