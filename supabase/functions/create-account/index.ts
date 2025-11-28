@@ -220,14 +220,15 @@ serve(async (req) => {
     console.log('Profile created/updated successfully');
 
     // Assign role - use role field first, then companyType, default to freelance
+    // Each user can only have 1 role, so use upsert
     const userRole = data.role || data.companyType || 'freelance';
     console.log(`Assigning ${userRole} role... (from role: ${data.role}, companyType: ${data.companyType})`);
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
-      .insert({
+      .upsert({
         user_id: userId,
         role: userRole
-      });
+      }, { onConflict: 'user_id' });
 
     if (roleError) {
       console.error('Role assignment error:', roleError);
