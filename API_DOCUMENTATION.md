@@ -93,6 +93,8 @@ Content-Type: application/json
 | `destination_goods_type` | string | ประเภทสินค้าจุดส่ง | "อิเล็กทรอนิกส์" | |
 | `destination_goods_quantity` | string | จำนวนสินค้าจุดส่ง | "100 กล่อง" | |
 | `destination_remarks` | string | หมายเหตุจุดส่ง | "แจ้งก่อนถึง 30 นาที" | |
+| `origin_address` | string | ที่อยู่จุดรับ | "123 ถนนพระราม 9 เขตห้วยขวาง กรุงเทพฯ 10310" | |
+| `destination_address` | string | ที่อยู่จุดส่ง | "456 ถนนสุขุมวิท เขตคลองเตย กรุงเทพฯ 10110" | |
 
 ---
 

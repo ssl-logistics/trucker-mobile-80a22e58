@@ -173,12 +173,14 @@ serve(async (req) => {
       origin_goods_type: data.origin_goods_type || null,
       origin_goods_quantity: data.origin_goods_quantity || null,
       origin_remarks: data.origin_remarks || null,
+      origin_address: data.origin_address || null,
       // Delivery details
       destination_contact_person: data.destination_contact_person || null,
       destination_bill_of_lading: data.destination_bill_of_lading || null,
       destination_goods_type: data.destination_goods_type || null,
       destination_goods_quantity: data.destination_goods_quantity || null,
       destination_remarks: data.destination_remarks || null,
+      destination_address: data.destination_address || null,
     };
 
     // Upsert job into database (insert or update if order_code exists)
