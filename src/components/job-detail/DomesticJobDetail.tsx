@@ -18,8 +18,10 @@ interface JobDetail {
   transport_type: string;
   origin_location: string;
   origin_address: string | null;
+  origin_company_name: string | null;
   destination_location: string;
   destination_address: string | null;
+  destination_company_name: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -212,6 +214,10 @@ export default function DomesticJobDetail({
                     </span>
                   </div>
 
+                  {job.origin_company_name && (
+                    <h4 className="font-semibold text-base mb-2">{job.origin_company_name}</h4>
+                  )}
+
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
@@ -268,6 +274,10 @@ export default function DomesticJobDetail({
                         • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
+
+                  {job.destination_company_name && (
+                    <h4 className="font-semibold text-base mb-2">{job.destination_company_name}</h4>
+                  )}
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
