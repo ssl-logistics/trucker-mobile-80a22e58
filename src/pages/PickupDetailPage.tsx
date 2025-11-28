@@ -32,6 +32,7 @@ interface JobDetail {
   origin_goods_quantity?: string | null;
   origin_remarks?: string | null;
   origin_address?: string | null;
+  origin_company_name?: string | null;
 }
 
 export default function PickupDetailPage() {
@@ -53,7 +54,7 @@ export default function PickupDetailPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('jobs')
-      .select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude, origin_contact_person, origin_contact_role, origin_goods_type, origin_goods_quantity, origin_remarks, origin_address')
+      .select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude, origin_contact_person, origin_contact_role, origin_goods_type, origin_goods_quantity, origin_remarks, origin_address, origin_company_name')
       .eq('id', jobId)
       .single();
 
@@ -136,7 +137,7 @@ export default function PickupDetailPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('pickup.title')} Factory1</h1>
+          <h1 className="text-lg font-semibold">{t('pickup.title')} {job.origin_company_name || ''}</h1>
           <div className="w-6" />
         </div>
       </header>
