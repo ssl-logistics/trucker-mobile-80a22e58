@@ -35,6 +35,7 @@ interface JobDetail {
   destination_goods_quantity: string | null;
   destination_remarks: string | null;
   destination_time: string | null;
+  destination_date: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -296,7 +297,7 @@ export default function DomesticJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
-                      <span>: {formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
+                      <span>: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>

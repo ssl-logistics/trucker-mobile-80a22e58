@@ -40,6 +40,7 @@ interface JobDetail {
   destination_goods_type: string | null;
   destination_goods_quantity: string | null;
   destination_time: string | null;
+  destination_date: string | null;
   destination_remarks: string | null;
 }
 
