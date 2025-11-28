@@ -119,7 +119,7 @@ export default function PickupSummaryPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('pickupSummary.title')}</h1>
+          <h1 className="text-lg font-semibold">{t('pickupSummary.title')} {job.employer_name || ''}</h1>
           <div className="w-6" />
         </div>
       </header>

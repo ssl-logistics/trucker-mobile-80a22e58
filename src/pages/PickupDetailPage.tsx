@@ -232,7 +232,7 @@ export default function PickupDetailPage() {
               {t('pickup.confirmTitle')}
             </DialogTitle>
             <DialogDescription className="text-center text-base">
-              {t('pickup.confirmMessage')}
+              {t('pickup.confirmMessage').replace('{location}', job.origin_company_name || job.origin_location || '')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
