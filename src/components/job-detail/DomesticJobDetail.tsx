@@ -223,10 +223,6 @@ export default function DomesticJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
-                      <span>: {job.origin_contact_role || '-'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.route')}</span>
                       <span>: {job.origin_address || '-'}</span>
                     </div>
                     <div className="flex">
@@ -287,7 +283,7 @@ export default function DomesticJobDetail({
                       <span>: {job.destination_contact_person || '-'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.route')}</span>
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
                       <span>: {job.destination_address || '-'}</span>
                     </div>
                     <div className="flex">
