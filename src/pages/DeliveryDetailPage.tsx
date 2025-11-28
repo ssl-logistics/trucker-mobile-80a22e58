@@ -33,8 +33,15 @@ interface JobDetail {
   destination_location: string;
   start_date: string;
   start_time: string;
-  latitude?: number;
-  longitude?: number;
+  destination_latitude?: number;
+  destination_longitude?: number;
+  destination_contact_person?: string | null;
+  destination_address?: string | null;
+  destination_goods_type?: string | null;
+  destination_goods_quantity?: string | null;
+  destination_remarks?: string | null;
+  destination_time?: string | null;
+  destination_company_name?: string | null;
 }
 
 interface JobApplication {
@@ -71,7 +78,7 @@ export default function DeliveryDetailPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("jobs")
-      .select("id, order_code, employer_name, destination_location, start_date, start_time")
+      .select("id, order_code, employer_name, destination_location, start_date, start_time, destination_latitude, destination_longitude, destination_contact_person, destination_address, destination_goods_type, destination_goods_quantity, destination_remarks, destination_time, destination_company_name")
       .eq("id", jobId)
       .single();
 
@@ -83,21 +90,7 @@ export default function DeliveryDetailPage() {
       });
       navigate("/current-jobs");
     } else {
-      // Mock latitude/longitude for delivery locations
-      const mockCoordinates = {
-        'SAM001': { lat: 13.5990, lng: 100.5998 }, // Samut Prakan
-        'BKK002': { lat: 13.7878, lng: 100.5332 }, // Chatuchak
-        'BKK003': { lat: 13.7245, lng: 100.4930 }, // Silom
-      };
-      
-      const coords = mockCoordinates['SAM001' as keyof typeof mockCoordinates] || 
-                     { lat: 13.5990, lng: 100.5998 };
-      
-      setJob({
-        ...data,
-        latitude: coords.lat,
-        longitude: coords.lng
-      });
+      setJob(data);
     }
 
     // Load job application status
@@ -278,7 +271,7 @@ export default function DeliveryDetailPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('delivery.deliveryTo')} {t('delivery.employerName')}</h1>
+          <h1 className="text-lg font-semibold">{t('delivery.deliveryTo')} {job.destination_company_name || ''}</h1>
           <div className="w-6" />
         </div>
       </header>
@@ -391,26 +384,26 @@ export default function DeliveryDetailPage() {
         {/* Contact Name */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.contactName')}</div>
-          <div className="text-base">{t('delivery.contactPersonData')}</div>
+          <div className="text-base">{job.destination_contact_person || '-'}</div>
         </div>
 
         {/* Route Number */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.routeNumber')}</div>
-          <div className="text-base">{t('delivery.routeData')}</div>
+          <div className="text-base">{job.destination_location || '-'}</div>
         </div>
 
         {/* Address */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.address')}</div>
-          <div className="text-base">{t('delivery.addressData')}</div>
+          <div className="text-base">{job.destination_address || job.destination_location || '-'}</div>
         </div>
 
         {/* Map */}
-        {job.latitude && job.longitude ? (
+        {job.destination_latitude && job.destination_longitude ? (
           <Map 
-            latitude={job.latitude} 
-            longitude={job.longitude}
+            latitude={job.destination_latitude} 
+            longitude={job.destination_longitude}
             markerLabel={job.destination_location}
           />
         ) : (
@@ -425,19 +418,22 @@ export default function DeliveryDetailPage() {
         {/* Product Type */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.productType')}</div>
-          <div className="text-base">{t('delivery.productData')}</div>
+          <div className="text-base">
+            {job.destination_goods_type || '-'}
+            {job.destination_goods_quantity && ` (${job.destination_goods_quantity})`}
+          </div>
         </div>
 
         {/* Delivery Time */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.pickupTime')}</div>
-          <div className="text-base">{formatDate(job.start_date)} | 10.00</div>
+          <div className="text-base">{formatDate(job.start_date)} | {job.destination_time || job.start_time || '-'}</div>
         </div>
 
         {/* Note */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.remarks')}</div>
-          <div className="text-base">-</div>
+          <div className="text-base">{job.destination_remarks || '-'}</div>
         </div>
 
         {/* Action Buttons in Blue Frame */}
