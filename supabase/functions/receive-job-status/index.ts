@@ -51,12 +51,19 @@ serve(async (req) => {
     console.log('- Driver Name:', payload.driver_name);
     console.log('- Driver Phone:', payload.driver_phone);
 
-    // TODO: Forward to external system if needed
-    // const externalResponse = await fetch('https://external-api.com/job-status', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(payload)
-    // });
+    // Forward to external system
+    const externalUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/receive-job-status';
+    console.log('Forwarding to external system:', externalUrl);
+    
+    const externalResponse = await fetch(externalUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const externalResult = await externalResponse.text();
+    console.log('External response status:', externalResponse.status);
+    console.log('External response body:', externalResult);
 
     console.log('Job status update processed successfully');
     console.log('================================');
