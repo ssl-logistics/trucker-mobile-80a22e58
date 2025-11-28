@@ -376,7 +376,7 @@ const thTranslations: Record<string, string> = {
   'jobDetail.podSuccess': 'POD สำเร็จ',
   'jobDetail.waitingPod': 'รอ POD',
   'jobDetail.contactPerson': 'ชื่อผู้ติดต่อ',
-  'jobDetail.position': 'ตำแหน่ง',
+  'jobDetail.position': 'เส้นทาง',
   'jobDetail.goodsType': 'ประเภทสินค้า',
   'jobDetail.pickupTime': 'เข้ารับสินค้า',
   'jobDetail.deliveryTime': 'ส่งสินค้า',
