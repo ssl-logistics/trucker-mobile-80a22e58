@@ -27,8 +27,8 @@ serve(async (req) => {
     console.log('Timestamp:', new Date().toISOString());
     console.log('Payload:', JSON.stringify(payload, null, 2));
 
-    // Validate required fields
-    const requiredFields = ['external_job_id', 'status', 'driver_name', 'driver_phone', 'license_plate'];
+    // Validate required fields (license_plate is optional)
+    const requiredFields = ['external_job_id', 'status', 'driver_name', 'driver_phone'];
     const missingFields = requiredFields.filter(field => !payload[field as keyof JobStatusPayload]);
     
     if (missingFields.length > 0) {
