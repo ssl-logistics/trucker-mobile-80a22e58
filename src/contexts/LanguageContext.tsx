@@ -725,7 +725,7 @@ const thTranslations: Record<string, string> = {
   'delivery.waybill': 'เอกสาร (ใบขนส่ง)',
   'delivery.podSuccess': 'POD สำเร็จ',
   'delivery.contactName': 'ชื่อผู้ติดต่อ',
-  'delivery.routeNumber': 'เลขทาง',
+  'delivery.routeNumber': 'เส้นทาง',
   'delivery.address': 'ที่อยู่',
   'delivery.deliveryTime': 'เข้ารับสินค้า',
   'delivery.productType': 'ประเภทสินค้า',
