@@ -445,6 +445,7 @@ export type Database = {
           destination_bill_of_lading: string | null
           destination_company_name: string | null
           destination_contact_person: string | null
+          destination_date: string | null
           destination_goods_quantity: string | null
           destination_goods_type: string | null
           destination_latitude: number | null
@@ -492,6 +493,7 @@ export type Database = {
           destination_bill_of_lading?: string | null
           destination_company_name?: string | null
           destination_contact_person?: string | null
+          destination_date?: string | null
           destination_goods_quantity?: string | null
           destination_goods_type?: string | null
           destination_latitude?: number | null
@@ -539,6 +541,7 @@ export type Database = {
           destination_bill_of_lading?: string | null
           destination_company_name?: string | null
           destination_contact_person?: string | null
+          destination_date?: string | null
           destination_goods_quantity?: string | null
           destination_goods_type?: string | null
           destination_latitude?: number | null
