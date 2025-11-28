@@ -11,7 +11,6 @@ interface JobStatusPayload {
   status: string;
   driver_name: string;
   driver_phone: string;
-  license_plate: string;
 }
 
 serve(async (req) => {
@@ -51,7 +50,6 @@ serve(async (req) => {
     console.log('- Status:', payload.status);
     console.log('- Driver Name:', payload.driver_name);
     console.log('- Driver Phone:', payload.driver_phone);
-    console.log('- License Plate:', payload.license_plate);
 
     // TODO: Forward to external system if needed
     // const externalResponse = await fetch('https://external-api.com/job-status', {

@@ -205,22 +205,14 @@ export default function Home() {
       .eq('id', user.id)
       .single();
 
-    // Get vehicle license plate
-    const { data: vehicleData } = await supabase
-      .from('vehicles')
-      .select('plate_number')
-      .eq('driver_id', user.id)
-      .single();
-
     // Send job status to external system
     try {
       const { data: statusResponse, error: statusError } = await supabase.functions.invoke('receive-job-status', {
         body: {
-          external_job_id: selectedJob.id,
+          external_job_id: selectedJob.order_code,
           status: 'accepted',
           driver_name: profileData?.full_name || '',
-          driver_phone: profileData?.phone_number || '',
-          license_plate: vehicleData?.plate_number || ''
+          driver_phone: profileData?.phone_number || ''
         }
       });
 
