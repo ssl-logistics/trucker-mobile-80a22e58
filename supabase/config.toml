@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.get-conversation-participant]
 verify_jwt = false
+
+[functions.receive-job-status]
+verify_jwt = false
