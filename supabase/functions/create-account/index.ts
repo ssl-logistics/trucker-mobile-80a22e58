@@ -19,6 +19,7 @@ interface CreateAccountRequest {
   bankAccountName?: string;
   bankAccountNumber?: string;
   role?: 'freelance' | 'company' | 'factory';
+  companyType?: 'freelance' | 'company' | 'factory'; // Support both role and companyType
 }
 
 const normalizePhoneNumber = (phone: string): string => {
@@ -218,9 +219,9 @@ serve(async (req) => {
 
     console.log('Profile created/updated successfully');
 
-    // Assign role (default to company if not specified)
-    const userRole = data.role || 'company';
-    console.log(`Assigning ${userRole} role...`);
+    // Assign role - use role field first, then companyType, default to freelance
+    const userRole = data.role || data.companyType || 'freelance';
+    console.log(`Assigning ${userRole} role... (from role: ${data.role}, companyType: ${data.companyType})`);
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
