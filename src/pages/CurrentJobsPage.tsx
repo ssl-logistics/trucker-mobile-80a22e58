@@ -30,6 +30,7 @@ interface JobApplication {
     transport_type: string;
     origin_location: string;
     destination_location: string;
+    destination_company_name: string | null;
     price: number;
     start_date: string;
     start_time: string;
@@ -94,6 +95,7 @@ export default function CurrentJobsPage() {
           transport_type,
           origin_location,
           destination_location,
+          destination_company_name,
           price,
           start_date,
           start_time,
@@ -230,7 +232,7 @@ export default function CurrentJobsPage() {
           <div className="space-y-2">
             <div className="text-sm">
               <span className="text-muted-foreground">{t('job.employer')} : </span>
-              <span className="font-medium">{job.employer_name}</span>
+              <span className="font-medium">{job.destination_company_name || job.employer_name}</span>
             </div>
             <div className="flex items-center gap-2">
               {(job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่')) && <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
