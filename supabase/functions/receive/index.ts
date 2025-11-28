@@ -181,6 +181,9 @@ serve(async (req) => {
       destination_goods_quantity: data.destination_goods_quantity || null,
       destination_remarks: data.destination_remarks || null,
       destination_address: data.destination_address || null,
+      // Company names
+      origin_company_name: data.origin_company_name || null,
+      destination_company_name: data.destination_company_name || null,
     };
 
     // Upsert job into database (insert or update if order_code exists)
