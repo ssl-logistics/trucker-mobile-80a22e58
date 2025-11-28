@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import loginBackground from "@/assets/login-background.png";
+import flagTh from "@/assets/flag-th.png";
+import flagEn from "@/assets/flag-en.png";
+import flagKo from "@/assets/flag-ko.png";
 const loginSchema = z.object({
   email: z.string().min(1, {
     message: "กรุณากรอกชื่อผู้ใช้"
@@ -23,14 +26,23 @@ const loginSchema = z.object({
   remember: z.boolean().optional()
 });
 type LoginFormData = z.infer<typeof loginSchema>;
+const languageOptions = [
+  { code: 'en' as const, label: 'EN', flag: flagEn },
+  { code: 'th' as const, label: 'TH', flag: flagTh },
+  { code: 'ko' as const, label: 'KO', flag: flagKo },
+];
+
 const SignIn = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const {
     toast
   } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string>("");
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  const currentLang = languageOptions.find(l => l.code === language) || languageOptions[0];
   const {
     register,
     handleSubmit,
@@ -105,6 +117,40 @@ const SignIn = () => {
     }
   };
   return <div className="min-h-screen bg-background flex flex-col">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-50">
+        <div className="relative">
+          <button
+            onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+            className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-md hover:bg-white transition-colors"
+          >
+            <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-5 rounded-full object-cover" />
+            <span className="text-sm font-medium">{currentLang.label}</span>
+            <Globe className="w-4 h-4 text-muted-foreground" />
+          </button>
+          
+          {showLanguageMenu && (
+            <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-lg border overflow-hidden min-w-[120px]">
+              {languageOptions.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setShowLanguageMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-muted transition-colors ${
+                    language === lang.code ? 'bg-muted' : ''
+                  }`}
+                >
+                  <img src={lang.flag} alt={lang.label} className="w-5 h-5 rounded-full object-cover" />
+                  <span className="text-sm">{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Hero Section with Truck Image */}
       <div className="relative h-[40vh]">
         <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill " />

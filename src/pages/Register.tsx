@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,9 @@ import GeneralInfoStep from "@/components/register/GeneralInfoStep";
 import VehiclePhotosStep from "@/components/register/VehiclePhotosStep";
 import VehicleInfoStep from "@/components/register/VehicleInfoStep";
 import ReviewStep from "@/components/register/ReviewStep";
+import flagTh from "@/assets/flag-th.png";
+import flagEn from "@/assets/flag-en.png";
+import flagKo from "@/assets/flag-ko.png";
 
 export interface RegistrationData {
   // General Info
@@ -59,7 +62,7 @@ export interface RegistrationData {
 
 const Register = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [registrationData, setRegistrationData] = useState<RegistrationData>({
@@ -88,8 +91,18 @@ const Register = () => {
       height: ""
     },
     containerTypes: [],
-    insuranceValue: ""
+  insuranceValue: ""
   });
+
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  const languageOptions = [
+    { code: 'en' as const, label: 'EN', flag: flagEn },
+    { code: 'th' as const, label: 'TH', flag: flagTh },
+    { code: 'ko' as const, label: 'KO', flag: flagKo },
+  ];
+
+  const currentLang = languageOptions.find(l => l.code === language) || languageOptions[0];
 
   const steps = [
     { component: TermsStep, title: t('register.steps.terms') },
@@ -310,11 +323,44 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground p-4 flex items-center">
-        <button onClick={handleBack} className="mr-4">
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <h1 className="text-lg font-semibold">{steps[currentStep].title}</h1>
+      <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <button onClick={handleBack} className="mr-4">
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h1 className="text-lg font-semibold">{steps[currentStep].title}</h1>
+        </div>
+        
+        {/* Language Switcher */}
+        <div className="relative">
+          <button
+            onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+            className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full hover:bg-white/30 transition-colors"
+          >
+            <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-5 rounded-full object-cover" />
+            <span className="text-sm font-medium">{currentLang.label}</span>
+          </button>
+          
+          {showLanguageMenu && (
+            <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-lg border overflow-hidden min-w-[120px] z-50">
+              {languageOptions.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setShowLanguageMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-muted transition-colors text-foreground ${
+                    language === lang.code ? 'bg-muted' : ''
+                  }`}
+                >
+                  <img src={lang.flag} alt={lang.label} className="w-5 h-5 rounded-full object-cover" />
+                  <span className="text-sm">{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Progress Indicator */}
