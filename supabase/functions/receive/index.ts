@@ -161,6 +161,7 @@ serve(async (req) => {
       container_checkpoint_longitude: data.container_checkpoint_longitude || null,
       // International job fields
       empty_container_date: data.empty_container_date || null,
+      destination_date: data.destination_date || null,
       destination_time: data.destination_time || null,
       container_number: data.container_number || null,
       seal_number: data.seal_number || null,
