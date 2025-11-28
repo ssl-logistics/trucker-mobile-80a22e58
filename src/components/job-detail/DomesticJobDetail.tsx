@@ -17,9 +17,7 @@ interface JobDetail {
   employer_name: string;
   transport_type: string;
   origin_location: string;
-  origin_address: string | null;
   destination_location: string;
-  destination_address: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -154,7 +152,7 @@ export default function DomesticJobDetail({
 
         {/* Route Info */}
         <div>
-          <div className="mb-4">
+          <div className="mb-3">
             <h2 className="text-lg font-semibold">
               {t('jobDetail.booking')} : {job.order_code}
             </h2>
@@ -162,41 +160,6 @@ export default function DomesticJobDetail({
               {t('jobDetail.employer')} : {job.employer_name}
             </p>
           </div>
-
-          {/* Route Summary */}
-          <Card className="p-4 mb-4 bg-blue-50 border-blue-200">
-            <h3 className="font-semibold text-sm text-blue-800 mb-3">{t('jobDetail.route')}</h3>
-            <div className="space-y-3">
-              {/* Origin */}
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">A</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{job.origin_location}</p>
-                  {job.origin_address && (
-                    <p className="text-xs text-muted-foreground mt-0.5">{job.origin_address}</p>
-                  )}
-                </div>
-              </div>
-              
-              {/* Connector Line */}
-              <div className="ml-3 border-l-2 border-dashed border-gray-300 h-2"></div>
-              
-              {/* Destination */}
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">B</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{job.destination_location}</p>
-                  {job.destination_address && (
-                    <p className="text-xs text-muted-foreground mt-0.5">{job.destination_address}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </Card>
 
           {/* Step Tracker + Content Wrapper */}
           <div className="relative flex gap-3">
@@ -250,10 +213,6 @@ export default function DomesticJobDetail({
                   <h4 className="font-semibold text-base mb-2">
                     {job.origin_location}
                   </h4>
-                  
-                  {job.origin_address && (
-                    <p className="text-sm text-muted-foreground mb-3">{job.origin_address}</p>
-                  )}
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
@@ -315,10 +274,6 @@ export default function DomesticJobDetail({
                   <h4 className="font-semibold text-base mb-2">
                     {job.destination_location}
                   </h4>
-                  
-                  {job.destination_address && (
-                    <p className="text-sm text-muted-foreground mb-3">{job.destination_address}</p>
-                  )}
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
