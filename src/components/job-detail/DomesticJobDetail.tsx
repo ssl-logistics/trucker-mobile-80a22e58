@@ -17,7 +17,9 @@ interface JobDetail {
   employer_name: string;
   transport_type: string;
   origin_location: string;
+  origin_address: string | null;
   destination_location: string;
+  destination_address: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -210,9 +212,12 @@ export default function DomesticJobDetail({
                     </span>
                   </div>
 
-                  <h4 className="font-semibold text-base mb-2">
+                  <h4 className="font-semibold text-base mb-1">
                     {job.origin_location}
                   </h4>
+                  {job.origin_address && (
+                    <p className="text-sm text-muted-foreground mb-2">{job.origin_address}</p>
+                  )}
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
@@ -271,9 +276,12 @@ export default function DomesticJobDetail({
                       </span>}
                   </div>
 
-                  <h4 className="font-semibold text-base mb-2">
+                  <h4 className="font-semibold text-base mb-1">
                     {job.destination_location}
                   </h4>
+                  {job.destination_address && (
+                    <p className="text-sm text-muted-foreground mb-2">{job.destination_address}</p>
+                  )}
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
