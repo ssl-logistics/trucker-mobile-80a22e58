@@ -181,27 +181,64 @@ export default function Home() {
   };
   const confirmJobAcceptance = async () => {
     if (!selectedJob || !user) return;
-    const {
-      error
-    } = await supabase.from('job_applications').insert({
+    
+    // Insert job application
+    const { error } = await supabase.from('job_applications').insert({
       job_id: selectedJob.id,
       driver_id: user.id,
       status: 'pending'
     });
+    
     if (error) {
       toast({
         title: t('home.error_load'),
         description: t('home.error_accept'),
         variant: 'destructive'
       });
-    } else {
-      toast({
-        title: t('home.accept_success'),
-        description: `${t('home.accept_success_desc')} ${selectedJob.order_code} แล้ว`
-      });
-      setConfirmDialogOpen(false);
-      loadJobs();
+      return;
     }
+
+    // Get driver profile info
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('full_name, phone_number')
+      .eq('id', user.id)
+      .single();
+
+    // Get vehicle license plate
+    const { data: vehicleData } = await supabase
+      .from('vehicles')
+      .select('plate_number')
+      .eq('driver_id', user.id)
+      .single();
+
+    // Send job status to external system
+    try {
+      const { data: statusResponse, error: statusError } = await supabase.functions.invoke('receive-job-status', {
+        body: {
+          external_job_id: selectedJob.id,
+          status: 'accepted',
+          driver_name: profileData?.full_name || '',
+          driver_phone: profileData?.phone_number || '',
+          license_plate: vehicleData?.plate_number || ''
+        }
+      });
+
+      if (statusError) {
+        console.error('Error sending job status:', statusError);
+      } else {
+        console.log('Job status sent successfully:', statusResponse);
+      }
+    } catch (err) {
+      console.error('Failed to send job status:', err);
+    }
+
+    toast({
+      title: t('home.accept_success'),
+      description: `${t('home.accept_success_desc')} ${selectedJob.order_code} แล้ว`
+    });
+    setConfirmDialogOpen(false);
+    loadJobs();
   };
   const handleSignOut = async () => {
     await supabase.auth.signOut();
