@@ -223,7 +223,7 @@ export default function DomesticJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
-                      <span>: {job.origin_address || '-'}</span>
+                      <span>: {job.origin_location || '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
