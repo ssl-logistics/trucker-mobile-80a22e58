@@ -660,7 +660,7 @@ const thTranslations: Record<string, string> = {
   // Pickup Detail Page
   'pickup.title': 'จุดรับสินค้า',
   'pickup.contactName': 'ชื่อผู้ติดต่อ',
-  'pickup.routeNumber': 'เลขทาง',
+  'pickup.routeNumber': 'เส้นทาง',
   'pickup.address': 'ที่อยู่',
   'pickup.map': 'แผนที่',
   'pickup.productType': 'ประเภทสินค้า',
