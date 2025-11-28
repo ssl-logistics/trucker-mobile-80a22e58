@@ -153,7 +153,7 @@ export default function PickupDetailPage() {
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.routeNumber')}</div>
-          <div className="text-base">BKK001 ลาดพร้าว/กรุงเทพมหานคร</div>
+          <div className="text-base">{job.order_code} {job.origin_location}</div>
         </div>
 
         <div>
