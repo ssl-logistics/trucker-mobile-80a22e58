@@ -212,10 +212,6 @@ export default function DomesticJobDetail({
                     </span>
                   </div>
 
-                  <h4 className="font-semibold text-base mb-2">
-                    {job.origin_location}
-                  </h4>
-
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
@@ -272,10 +268,6 @@ export default function DomesticJobDetail({
                         • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
-
-                  <h4 className="font-semibold text-base mb-2">
-                    {job.destination_location}
-                  </h4>
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
