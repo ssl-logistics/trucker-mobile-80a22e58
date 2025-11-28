@@ -56,6 +56,26 @@ serve(async (req) => {
       'ขนส่งขาออก': 'ขนส่งขาออก'
     };
 
+    // Mapping for status (convert external status to valid internal status)
+    const statusMapping: Record<string, string> = {
+      'pending': 'available',
+      'waiting': 'available',
+      'รอการตอบรับ': 'available',
+      'รอดำเนินการ': 'available',
+      'in_progress': 'assigned',
+      'กำลังดำเนินการ': 'assigned',
+      'done': 'completed',
+      'finished': 'completed',
+      'เสร็จสิ้น': 'completed',
+      'canceled': 'cancelled',
+      'ยกเลิก': 'cancelled',
+      // Valid values pass through
+      'available': 'available',
+      'assigned': 'assigned',
+      'completed': 'completed',
+      'cancelled': 'cancelled'
+    };
+
     // Auto-convert job_type if provided
     if (data.job_type) {
       const mappedJobType = jobTypeMapping[data.job_type.toLowerCase()];
@@ -71,6 +91,19 @@ serve(async (req) => {
       if (mappedTransportType) {
         console.log(`Mapped transport_type: ${data.transport_type} -> ${mappedTransportType}`);
         data.transport_type = mappedTransportType;
+      }
+    }
+
+    // Auto-convert status if provided
+    if (data.status) {
+      const mappedStatus = statusMapping[data.status.toLowerCase()] || statusMapping[data.status];
+      if (mappedStatus) {
+        console.log(`Mapped status: ${data.status} -> ${mappedStatus}`);
+        data.status = mappedStatus;
+      } else {
+        // Default to 'available' for unknown status values
+        console.log(`Unknown status: ${data.status}, defaulting to 'available'`);
+        data.status = 'available';
       }
     }
 
