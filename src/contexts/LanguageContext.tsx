@@ -670,7 +670,7 @@ const thTranslations: Record<string, string> = {
   'pickup.route': 'เส้นทาง',
   'pickup.checkIn': 'เช็คอิน',
   'pickup.confirmTitle': 'แจ้งเตือนการยืนยันสถานะ',
-  'pickup.confirmMessage': 'คุณต้องการเช็คอินที่ "จุดรับสินค้า Factory1" ใช่หรือไม่?',
+  'pickup.confirmMessage': 'คุณต้องการเช็คอินที่ "จุดรับสินค้า {location}" ใช่หรือไม่?',
   'pickup.cancel': 'ยกเลิก',
   'pickup.confirmButton': 'ยืนยัน',
   'pickup.checkInSuccess': 'เช็คอินสำเร็จ',
@@ -897,7 +897,7 @@ const thTranslations: Record<string, string> = {
   'delivery.confirmPodMessage': 'คุณต้องการยืนยันการยืนยันอัพโหลดรูปสินค้า POD ใช่หรือไม่?',
   
   // Pickup Summary Page
-  'pickupSummary.title': 'จุดรับสินค้า Factory1',
+  'pickupSummary.title': 'จุดรับสินค้า',
   'pickupSummary.error': 'เกิดข้อผิดพลาด',
   'pickupSummary.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
   'pickupSummary.checkInSuccess': 'เช็คอินสำเร็จ',
