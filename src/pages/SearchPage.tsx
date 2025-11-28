@@ -123,6 +123,7 @@ export default function SearchPage() {
       filtered = filtered.filter(job => {
         const fields = [
           job.employer_name,
+          job.destination_company_name,
           job.origin_location,
           job.destination_location,
           job.transport_type,

@@ -13,6 +13,7 @@ interface JobDetail {
   id: string;
   order_code: string;
   employer_name: string;
+  destination_company_name: string | null;
   price: number;
   transport_type: string;
   origin_location: string;
@@ -135,7 +136,7 @@ export default function JobRouteExpensesPage() {
           <button onClick={() => navigate('/income')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">{job.employer_name}</h1>
+          <h1 className="text-xl font-semibold">{job.destination_company_name || job.employer_name}</h1>
         </div>
       </header>
 
@@ -175,7 +176,7 @@ export default function JobRouteExpensesPage() {
             {/* Route Details */}
             <div className="space-y-4">
               <div className="text-base font-semibold text-foreground">
-                {t('jobRoute.employer')} : {job.employer_name}
+                {t('jobRoute.employer')} : {job.destination_company_name || job.employer_name}
               </div>
 
               {/* Pickup Point */}

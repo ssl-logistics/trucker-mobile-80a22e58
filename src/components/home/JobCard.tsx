@@ -13,6 +13,7 @@ interface Job {
   transport_type: string;
   origin_location: string;
   destination_location: string;
+  destination_company_name: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -50,7 +51,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
       <div className="space-y-2">
         <div className="text-sm">
           <span className="text-muted-foreground">{t('job.employer')} : </span>
-          <span className="font-medium">{job.employer_name}</span>
+          <span className="font-medium">{job.destination_company_name || job.employer_name}</span>
         </div>
         <div className="flex items-center gap-2">
           {isDomestic && (

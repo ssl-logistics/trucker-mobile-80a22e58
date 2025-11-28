@@ -19,6 +19,7 @@ interface Job {
   transport_type: string;
   origin_location: string;
   destination_location: string;
+  destination_company_name: string | null;
   price: number;
   start_date: string;
   start_time: string;

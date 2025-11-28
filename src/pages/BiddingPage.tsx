@@ -139,7 +139,7 @@ export default function BiddingPage() {
                 <div className="space-y-2">
                   <div className="text-sm">
                     <span className="text-muted-foreground">{t('job.employer')} : </span>
-                    <span className="font-medium">{job.employer_name}</span>
+                    <span className="font-medium">{job.destination_company_name || job.employer_name}</span>
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {job.transport_type}
@@ -220,7 +220,7 @@ export default function BiddingPage() {
                     <div className="space-y-2">
                       <div className="text-sm">
                         <span className="text-muted-foreground">{t('job.employer')} : </span>
-                        <span className="font-medium">{bid.jobs.employer_name}</span>
+                        <span className="font-medium">{bid.jobs.destination_company_name || bid.jobs.employer_name}</span>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {bid.jobs.transport_type}
