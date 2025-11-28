@@ -17,7 +17,9 @@ interface JobDetail {
   employer_name: string;
   transport_type: string;
   origin_location: string;
+  origin_address: string | null;
   destination_location: string;
+  destination_address: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -224,6 +226,10 @@ export default function DomesticJobDetail({
                       <span>: {job.origin_contact_role || '-'}</span>
                     </div>
                     <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.route')}</span>
+                      <span>: {job.origin_address || '-'}</span>
+                    </div>
+                    <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
                       <span>: {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
                     </div>
@@ -279,6 +285,10 @@ export default function DomesticJobDetail({
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
                       <span>: {job.destination_contact_person || '-'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.route')}</span>
+                      <span>: {job.destination_address || '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
