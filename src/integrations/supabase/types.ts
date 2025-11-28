@@ -443,6 +443,7 @@ export type Database = {
           created_at: string
           destination_address: string | null
           destination_bill_of_lading: string | null
+          destination_company_name: string | null
           destination_contact_person: string | null
           destination_goods_quantity: string | null
           destination_goods_type: string | null
@@ -460,6 +461,7 @@ export type Database = {
           order_code: string
           origin_address: string | null
           origin_bill_of_lading: string | null
+          origin_company_name: string | null
           origin_contact_person: string | null
           origin_contact_role: string | null
           origin_goods_quantity: string | null
@@ -488,6 +490,7 @@ export type Database = {
           created_at?: string
           destination_address?: string | null
           destination_bill_of_lading?: string | null
+          destination_company_name?: string | null
           destination_contact_person?: string | null
           destination_goods_quantity?: string | null
           destination_goods_type?: string | null
@@ -505,6 +508,7 @@ export type Database = {
           order_code: string
           origin_address?: string | null
           origin_bill_of_lading?: string | null
+          origin_company_name?: string | null
           origin_contact_person?: string | null
           origin_contact_role?: string | null
           origin_goods_quantity?: string | null
@@ -533,6 +537,7 @@ export type Database = {
           created_at?: string
           destination_address?: string | null
           destination_bill_of_lading?: string | null
+          destination_company_name?: string | null
           destination_contact_person?: string | null
           destination_goods_quantity?: string | null
           destination_goods_type?: string | null
@@ -550,6 +555,7 @@ export type Database = {
           order_code?: string
           origin_address?: string | null
           origin_bill_of_lading?: string | null
+          origin_company_name?: string | null
           origin_contact_person?: string | null
           origin_contact_role?: string | null
           origin_goods_quantity?: string | null

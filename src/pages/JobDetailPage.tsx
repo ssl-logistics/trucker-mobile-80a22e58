@@ -15,8 +15,10 @@ interface JobDetail {
   transport_type: string;
   origin_location: string;
   origin_address: string | null;
+  origin_company_name: string | null;
   destination_location: string;
   destination_address: string | null;
+  destination_company_name: string | null;
   price: number;
   start_date: string;
   start_time: string;
