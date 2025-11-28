@@ -31,6 +31,7 @@ interface JobDetail {
   origin_goods_type?: string | null;
   origin_goods_quantity?: string | null;
   origin_remarks?: string | null;
+  origin_address?: string | null;
 }
 
 export default function PickupDetailPage() {
@@ -52,7 +53,7 @@ export default function PickupDetailPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('jobs')
-      .select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude, origin_contact_person, origin_contact_role, origin_goods_type, origin_goods_quantity, origin_remarks')
+      .select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude, origin_contact_person, origin_contact_role, origin_goods_type, origin_goods_quantity, origin_remarks, origin_address')
       .eq('id', jobId)
       .single();
 
@@ -158,7 +159,7 @@ export default function PickupDetailPage() {
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.address')}</div>
-          <div className="text-base">{job.origin_location || '-'}</div>
+          <div className="text-base">{job.origin_address || job.origin_location || '-'}</div>
         </div>
 
         {job.origin_latitude && job.origin_longitude ? (
