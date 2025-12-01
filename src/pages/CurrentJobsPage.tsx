@@ -232,7 +232,7 @@ export default function CurrentJobsPage() {
           <div className="space-y-2">
             <div className="text-sm">
               <span className="text-muted-foreground">{t('job.employer')} : </span>
-              <span className="font-medium">{job.destination_company_name || job.employer_name}</span>
+              <span className="font-medium">{job.employer_name}</span>
             </div>
             <div className="flex items-center gap-2">
               {(job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่')) && <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
