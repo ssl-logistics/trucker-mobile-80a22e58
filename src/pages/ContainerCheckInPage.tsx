@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { sendJobStatus } from '@/lib/jobStatusService';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -54,7 +55,7 @@ export default function ContainerCheckInPage() {
   };
   
   const handleCheckIn = async () => {
-    if (!user || !jobId) return;
+    if (!user || !jobId || !job) return;
     
     const { error } = await supabase
       .from('job_applications')
@@ -72,6 +73,14 @@ export default function ContainerCheckInPage() {
         variant: 'destructive'
       });
     } else {
+      // Send job status update
+      await sendJobStatus({
+        jobId,
+        orderCode: job.order_code,
+        userId: user.id,
+        status: 'container_checked_in'
+      });
+
       toast({
         title: t('container.checkInSuccess'),
         description: t('container.checkInSuccessMessage')

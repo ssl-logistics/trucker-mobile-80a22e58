@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
+import { sendJobStatus } from '@/lib/jobStatusService';
 import {
   Dialog,
   DialogContent,
@@ -155,6 +156,14 @@ const ContainerSOPPage = () => {
         .eq('driver_id', user.id);
 
       if (updateError) throw updateError;
+
+      // Send job status update
+      await sendJobStatus({
+        jobId,
+        orderCode: jobDetail.order_code,
+        userId: user.id,
+        status: 'container_sop_completed'
+      });
 
       toast({
         title: t('containerSop.success'),
