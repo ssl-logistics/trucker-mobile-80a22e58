@@ -409,8 +409,8 @@ export default function InternationalJobDetail({
                           <span>: {job.destination_date ? formatDate(job.destination_date) : '-'} | {job.destination_time || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.guarantor')}</span>
-                          <span>: {job.employer_name || '-'}</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerPacker')}</span>
+                          <span>: {job.origin_company_name || job.origin_contact_person || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.remarks')}</span>
@@ -418,16 +418,16 @@ export default function InternationalJobDetail({
                         </div>
                       </> : <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.returnDate')}</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.fullReturnDate')}</span>
                           <span>: {job.destination_date ? formatDate(job.destination_date) : formatDate(job.start_date)} | {job.destination_time || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.guarantor')}</span>
-                          <span>: {job.employer_name}</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerPacker')}</span>
+                          <span>: {job.origin_company_name || job.origin_contact_person || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.remarks')}</span>
-                          <span>: {job.destination_remarks || '-'}</span>
+                          <span>: {job.origin_remarks || '-'}</span>
                         </div>
                       </>}
                   </div>
