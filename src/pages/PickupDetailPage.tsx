@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import Map from '@/components/Map';
+import { sendJobStatus } from '@/lib/jobStatusService';
 import {
   Dialog,
   DialogContent,
@@ -91,6 +92,14 @@ export default function PickupDetailPage() {
       });
       return;
     }
+
+    // Send job status update
+    await sendJobStatus({
+      jobId: job.id,
+      orderCode: job.order_code,
+      userId: user.id,
+      status: 'pickup_checked_in'
+    });
 
     toast({
       title: t('pickup.checkInSuccess'),

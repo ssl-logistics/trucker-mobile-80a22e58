@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import Map from "@/components/Map";
+import { sendJobStatus } from '@/lib/jobStatusService';
 import {
   Dialog,
   DialogContent,
@@ -153,40 +154,6 @@ export default function DeliveryDetailPage() {
     }
   };
 
-  const sendJobStatusUpdate = async (orderCode: string, status: string) => {
-    try {
-      // Get driver profile info
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, phone_number')
-        .eq('id', user!.id)
-        .single();
-
-      if (!profile) {
-        console.error('Could not get driver profile for status update');
-        return;
-      }
-
-      // Send status update to receive-job-status edge function
-      const { error } = await supabase.functions.invoke('receive-job-status', {
-        body: {
-          external_job_id: orderCode,
-          status: status,
-          driver_name: profile.full_name,
-          driver_phone: profile.phone_number,
-        }
-      });
-
-      if (error) {
-        console.error('Error sending job status update:', error);
-      } else {
-        console.log('Job status update sent successfully:', { orderCode, status });
-      }
-    } catch (err) {
-      console.error('Failed to send job status update:', err);
-    }
-  };
-
   const handlePodConfirm = async () => {
     if (!job || !user) return;
 
@@ -236,7 +203,12 @@ export default function DeliveryDetailPage() {
     }
 
     // Send job status update to external API
-    await sendJobStatusUpdate(job.order_code, 'completed');
+    await sendJobStatus({
+      jobId: job.id,
+      orderCode: job.order_code,
+      userId: user.id,
+      status: 'delivery_sop_completed'
+    });
 
     toast({
       title: t('delivery.podSuccess'),
@@ -267,6 +239,14 @@ export default function DeliveryDetailPage() {
       });
       return;
     }
+
+    // Send job status update
+    await sendJobStatus({
+      jobId: job.id,
+      orderCode: job.order_code,
+      userId: user.id,
+      status: 'delivery_checked_in'
+    });
 
     toast({
       title: t('delivery.checkInSuccess'),

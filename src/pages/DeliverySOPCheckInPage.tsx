@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
+import { sendJobStatus } from '@/lib/jobStatusService';
 import {
   Dialog,
   DialogContent,
@@ -154,6 +155,14 @@ export default function DeliverySOPCheckInPage() {
         .eq('driver_id', user.id);
 
       if (updateError) throw updateError;
+
+      // Send job status update
+      await sendJobStatus({
+        jobId: job.id,
+        orderCode: job.order_code,
+        userId: user.id,
+        status: 'delivery_sop_completed'
+      });
 
       toast({
         title: 'ยืนยัน SOP สำเร็จ',
