@@ -328,7 +328,7 @@ export default function InternationalJobDetail({
                 <div className={`${!jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm">
-                      {isInbound ? t('jobDetail.unloadingPoint') : t('jobDetail.loadingPoint')}
+                      {isInbound ? t('jobDetail.unloadingPoint') : t('jobDetail.emptyContainerPickup')}
                     </h3>
                     {jobApplication?.container_sop_completed_at && <span className={`text-xs font-medium ${jobApplication?.sop_completed_at ? 'text-green-600' : jobApplication?.checked_in_at ? 'text-blue-600' : 'text-orange-500'}`}>
                         • {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
