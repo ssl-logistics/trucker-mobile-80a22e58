@@ -24,6 +24,8 @@ interface JobDetail {
   start_time: string;
   container_checkpoint: string | null;
   container_checkpoint_code: string | null;
+  container_number: string | null;
+  seal_number: string | null;
   empty_container_date: string | null;
   destination_time: string | null;
 }
@@ -246,22 +248,45 @@ export default function InternationalJobDetail({
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.startDateTime')}</span>
-                      <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
-                      <span>: {formatDate(mockContainerData.emptyDate)}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.receiver')}</span>
-                      <span>: {isInbound ? 'บริษัท โซเดคซ์ จำกัด' : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerDate')}</span>
-                      <span>: {isInbound ? 'FCL 2 x 40 HC' : mockContainerData.checkpointCode}</span>
-                    </div>
+                    {isInbound ? (
+                      <>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.startDateTime')}</span>
+                          <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
+                          <span>: {formatDate(mockContainerData.emptyDate)}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.receiver')}</span>
+                          <span>: บริษัท โซเดคซ์ จำกัด</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerDate')}</span>
+                          <span>: FCL 2 x 40 HC</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">จุดรับตู้เปล่า</span>
+                          <span>: {job.container_checkpoint || mockContainerData.checkpoint}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">วันเริ่มเข้ารับตู้เปล่า</span>
+                          <span>: {formatDate(job.start_date)}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">เลขตู้คอนเทนเนอร์</span>
+                          <span>: {job.container_number || mockContainerData.containers[0]?.number || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">เลขซีล</span>
+                          <span>: {job.seal_number || mockContainerData.containers[0]?.seal || '-'}</span>
+                        </div>
+                      </>
+                    )}
                     
                     {/* Container Pairs - Only for Inbound */}
                     {isInbound && <>
