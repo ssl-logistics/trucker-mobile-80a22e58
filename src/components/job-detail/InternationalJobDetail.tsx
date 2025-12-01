@@ -342,34 +342,24 @@ export default function InternationalJobDetail({
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.billOfLading') : t('jobDetail.contactPerson')}</span>
-                      <span>: {isInbound ? (job.destination_bill_of_lading || '-') : (job.origin_contact_person || '-')}</span>
+                      <span>: {isInbound ? (job.destination_bill_of_lading || '-') : (job.destination_contact_person || '-')}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.contactPoint') : t('jobDetail.position')}</span>
-                      <span>: {isInbound ? (job.destination_contact_person || '-') : (job.origin_contact_role || '-')}</span>
+                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.contactPoint') : t('jobDetail.deliveryRoute')}</span>
+                      <span>: {isInbound ? (job.destination_contact_person || '-') : (job.destination_address || '-')}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryRoute') : t('jobDetail.routeCode')}</span>
-                      <span>: {isInbound ? (job.origin_bill_of_lading || '-') : (job.origin_bill_of_lading || '-')}</span>
+                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryRoute') : t('jobDetail.goodsType')}</span>
+                      <span>: {isInbound ? (job.origin_bill_of_lading || '-') : `${job.destination_goods_type || '-'} ${job.destination_goods_quantity ? `(${job.destination_goods_quantity})` : ''}`}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryTime') : t('jobDetail.goodsType')}</span>
-                      <span>: {isInbound ? `${formatDate(job.start_date)} | ${job.start_time.substring(0, 5)}` : `${job.origin_goods_type || '-'} ${job.origin_goods_quantity ? `(${job.origin_goods_quantity})` : ''}`}</span>
+                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryTime') : t('jobDetail.pickupTime')}</span>
+                      <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
                     </div>
-                    {isInbound && <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                        <span>: {job.destination_remarks || '-'}</span>
-                      </div>}
-                    {!isInbound && <>
-                        <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.pickupTime')}</span>
-                          <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                          <span>: {job.origin_remarks || '-'}</span>
-                        </div>
-                      </>}
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
+                      <span>: {isInbound ? (job.destination_remarks || '-') : (job.destination_remarks || '-')}</span>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
