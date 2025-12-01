@@ -254,7 +254,7 @@ export default function InternationalJobDetail({
                   </div>
 
                   <h4 className="font-semibold text-base mb-2">
-                    {containerData.checkpoint}
+                    {isOutbound ? job.origin_location : containerData.checkpoint}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
@@ -336,7 +336,7 @@ export default function InternationalJobDetail({
                   </div>
 
                   <h4 className="font-semibold text-base mb-2">
-                    {isInbound ? (job.destination_location || '-') : job.origin_location}
+                    {isInbound ? (job.destination_location || '-') : job.destination_location}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
@@ -409,7 +409,7 @@ export default function InternationalJobDetail({
                   </div>
 
                   <h4 className="font-semibold text-base mb-2">
-                    {isInbound ? (job.origin_location || '-') : job.destination_location}
+                    {isInbound ? (job.origin_location || '-') : job.origin_location}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
