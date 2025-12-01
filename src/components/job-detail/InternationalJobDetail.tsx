@@ -17,8 +17,24 @@ interface JobDetail {
   employer_name: string;
   transport_type: string;
   origin_location: string;
+  origin_address: string | null;
+  origin_company_name: string | null;
+  origin_contact_person: string | null;
+  origin_contact_role: string | null;
+  origin_bill_of_lading: string | null;
+  origin_goods_type: string | null;
+  origin_goods_quantity: string | null;
+  origin_remarks: string | null;
   destination_location: string;
+  destination_address: string | null;
   destination_company_name: string | null;
+  destination_contact_person: string | null;
+  destination_bill_of_lading: string | null;
+  destination_goods_type: string | null;
+  destination_goods_quantity: string | null;
+  destination_remarks: string | null;
+  destination_date: string | null;
+  destination_time: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -27,7 +43,6 @@ interface JobDetail {
   container_number: string | null;
   seal_number: string | null;
   empty_container_date: string | null;
-  destination_time: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -95,17 +110,12 @@ export default function InternationalJobDetail({
       onUpdate();
     }
   };
-  const mockContainerData = {
-    checkpoint: job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย',
-    checkpointCode: job.container_checkpoint_code || 'LCB B1',
-    emptyDate: job.empty_container_date || '2023-11-02',
-    containers: [{
-      number: 'TGHU4455667',
-      seal: 'SEAL556677'
-    }, {
-      number: 'CAIU9988776',
-      seal: 'SEAL112233'
-    }]
+  const containerData = {
+    checkpoint: job.container_checkpoint || '-',
+    checkpointCode: job.container_checkpoint_code || '-',
+    emptyDate: job.empty_container_date,
+    containerNumber: job.container_number || '-',
+    sealNumber: job.seal_number || '-'
   };
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
@@ -244,7 +254,7 @@ export default function InternationalJobDetail({
                   </div>
 
                   <h4 className="font-semibold text-base mb-2">
-                    {mockContainerData.checkpoint}
+                    {containerData.checkpoint}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
@@ -256,22 +266,26 @@ export default function InternationalJobDetail({
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
-                          <span>: {formatDate(mockContainerData.emptyDate)}</span>
+                          <span>: {containerData.emptyDate ? formatDate(containerData.emptyDate) : '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.receiver')}</span>
-                          <span>: บริษัท โซเดคซ์ จำกัด</span>
+                          <span>: {job.destination_company_name || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerDate')}</span>
-                          <span>: FCL 2 x 40 HC</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerNumber')}</span>
+                          <span>: {containerData.containerNumber}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.sealNumber')}</span>
+                          <span>: {containerData.sealNumber}</span>
                         </div>
                       </>
                     ) : (
                       <>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">จุดรับตู้เปล่า</span>
-                          <span>: {job.container_checkpoint || mockContainerData.checkpoint}</span>
+                          <span>: {containerData.checkpoint}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">วันเริ่มเข้ารับตู้เปล่า</span>
@@ -279,53 +293,14 @@ export default function InternationalJobDetail({
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">เลขตู้คอนเทนเนอร์</span>
-                          <span>: {job.container_number || mockContainerData.containers[0]?.number || '-'}</span>
+                          <span>: {containerData.containerNumber}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">เลขซีล</span>
-                          <span>: {job.seal_number || mockContainerData.containers[0]?.seal || '-'}</span>
+                          <span>: {containerData.sealNumber}</span>
                         </div>
                       </>
                     )}
-                    
-                    {/* Container Pairs - Only for Inbound */}
-                    {isInbound && <>
-                        <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 mt-2">
-                          <div className="flex items-start gap-2">
-                            <div className="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                              1
-                            </div>
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-start">
-                                <span className="text-muted-foreground text-xs min-w-[130px]">{t('jobDetail.containerNumber')}</span>
-                                <span className="text-xs font-medium">: {mockContainerData.containers[0].number}</span>
-                              </div>
-                              <div className="flex items-start">
-                                <span className="text-muted-foreground text-xs min-w-[130px]">{t('jobDetail.sealNumber')}</span>
-                                <span className="text-xs font-medium">: {mockContainerData.containers[0].seal}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-teal-50 border border-teal-200 rounded-lg p-3">
-                          <div className="flex items-start gap-2">
-                            <div className="bg-teal-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                              2
-                            </div>
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-start">
-                                <span className="text-muted-foreground text-xs min-w-[130px]">{t('jobDetail.containerNumber')}</span>
-                                <span className="text-xs font-medium">: {mockContainerData.containers[1].number}</span>
-                              </div>
-                              <div className="flex items-start">
-                                <span className="text-muted-foreground text-xs min-w-[130px]">{t('jobDetail.sealNumber')}</span>
-                                <span className="text-xs font-medium">: {mockContainerData.containers[1].seal}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </>}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -361,29 +336,29 @@ export default function InternationalJobDetail({
                   </div>
 
                   <h4 className="font-semibold text-base mb-2">
-                    {isInbound ? 'คลังสินค้าทางบก, สมุทรปราการ' : job.origin_location}
+                    {isInbound ? (job.destination_location || '-') : job.origin_location}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.billOfLading') : t('jobDetail.contactPerson')}</span>
-                      <span>: {isInbound ? '123456789012345' : 'คุณณัฏฐพงศ์'}</span>
+                      <span>: {isInbound ? (job.destination_bill_of_lading || '-') : (job.origin_contact_person || '-')}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.contactPoint') : t('jobDetail.position')}</span>
-                      <span>: {isInbound ? 'คลังภัฏฐพงศ์ (เจ้าหน้าที่คลังสินค้า)' : 'เจ้าหน้าที่คลังสินค้า'}</span>
+                      <span>: {isInbound ? (job.destination_contact_person || '-') : (job.origin_contact_role || '-')}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryRoute') : t('jobDetail.routeCode')}</span>
-                      <span>: {isInbound ? 'SAM001 ลาดพร้าว, กรุงเทพมหานคร' : 'BKK001 ลาดพร้าว/กรุงเทพมหานคร'}</span>
+                      <span>: {isInbound ? (job.origin_bill_of_lading || '-') : (job.origin_bill_of_lading || '-')}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryTime') : t('jobDetail.goodsType')}</span>
-                      <span>: {isInbound ? `${formatDate(job.start_date)} | 20:00` : 'น้ำตาล (10 กล่อง)'}</span>
+                      <span>: {isInbound ? `${formatDate(job.start_date)} | ${job.start_time.substring(0, 5)}` : `${job.origin_goods_type || '-'} ${job.origin_goods_quantity ? `(${job.origin_goods_quantity})` : ''}`}</span>
                     </div>
                     {isInbound && <div className="flex">
                         <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                        <span>: เข้าสถานที่ต้องแสดงบัตรชิด</span>
+                        <span>: {job.destination_remarks || '-'}</span>
                       </div>}
                     {!isInbound && <>
                         <div className="flex">
@@ -392,7 +367,7 @@ export default function InternationalJobDetail({
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                          <span>: เข้าสถานที่ต้องแสดงบัตรชิด</span>
+                          <span>: {job.origin_remarks || '-'}</span>
                         </div>
                       </>}
                   </div>
@@ -434,31 +409,35 @@ export default function InternationalJobDetail({
                   </div>
 
                   <h4 className="font-semibold text-base mb-2">
-                    {isInbound ? 'ICD ลาดกระบัง' : job.destination_location}
+                    {isInbound ? (job.origin_location || '-') : job.destination_location}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
                     {isInbound ? <>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.returnDeadline')}</span>
-                          <span>: 03/11/2025 | 20:00</span>
+                          <span>: {job.destination_date ? formatDate(job.destination_date) : '-'} | {job.destination_time || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.guarantor')}</span>
-                          <span>: บริษัท เอราวา เอรารา จำกัด</span>
+                          <span>: {job.employer_name || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.remarks')}</span>
-                          <span>: ต้องคืนตู้ก่อนนัดต้องถูดมา Detention</span>
+                          <span>: {job.origin_remarks || '-'}</span>
                         </div>
                       </> : <>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.returnDate')}</span>
-                          <span>: {formatDate(job.start_date)} | {job.destination_time || '20:00'}</span>
+                          <span>: {job.destination_date ? formatDate(job.destination_date) : formatDate(job.start_date)} | {job.destination_time || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.guarantor')}</span>
                           <span>: {job.employer_name}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.remarks')}</span>
+                          <span>: {job.destination_remarks || '-'}</span>
                         </div>
                       </>}
                   </div>
