@@ -3389,6 +3389,18 @@ const zhTranslations: Record<string, string> = {
   'currentJobs.no_jobs': '暂无当前工作',
   'currentJobs.in_progress': '进行中',
   'currentJobs.upcoming': '即将到来',
+  'currentJobs.empty': '暂无当前工作',
+  'currentJobs.search': '搜索订单编号、雇主、地点...',
+  'currentJobs.viewDetails': '查看详情',
+  'currentJobs.filter': '筛选',
+  'currentJobs.dateRange': '日期范围',
+  'currentJobs.startDate': '开始日期',
+  'currentJobs.endDate': '结束日期',
+  'currentJobs.clearFilter': '清除筛选',
+  'currentJobs.applyFilter': '应用筛选',
+  'currentJobs.errorLoad': '加载错误',
+  'currentJobs.errorLoadDesc': '无法加载当前工作',
+  'currentJobs.startJobDate': '开始日期',
   
   // Job History Page
   'jobHistory.title': '工作历史',
