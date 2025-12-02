@@ -11,7 +11,8 @@ const mockNotificationsData = [
     title: {
       th: 'ปิดสถานีแนวโน้ม "ราคาน้ำมันด้อนตัว"',
       en: 'Station Closure: "Oil Price Stagnation" Trend',
-      ko: '주유소 폐쇄: "유가 정체" 동향'
+      ko: '주유소 폐쇄: "유가 정체" 동향',
+      zh: '加油站关闭："油价停滞"趋势'
     },
     imageUrl: '/placeholder.svg',
     fullContent: {
@@ -50,7 +51,19 @@ will remain at 70-80 dollars per barrel in 2568.`,
 작년과 같은 수준인 배럴당 70-80달러를 유지할 것으로 보입니다.
 다양한 요인으로 인해 연중 안정적입니다.
 기업들은 유가가
-2568년에 배럴당 70-80달러를 유지할 것으로 추정합니다.`
+2568년에 배럴당 70-80달러를 유지할 것으로 추정합니다.`,
+      zh: `预计2568-2569年油价将保持稳定
+由于政府勘探政策的变化。
+
+国内石油钻探和勘探，包括技术改进
+以及国内地区勘探和钻探的法规。
+预计油价将保持稳定，不会大幅波动。
+
+根据行业分析师的说法，2568年的油价
+可能会保持在与去年相同的水平，约每桶70-80美元。
+由于各种因素，全年保持稳定。
+各公司估计油价
+将在2568年保持在每桶70-80美元。`
     }
   },
   {
@@ -60,12 +73,14 @@ will remain at 70-80 dollars per barrel in 2568.`,
     title: {
       th: 'คอมเหรียญได้รับการอนุมัติ',
       en: 'Coin Commission Approved',
-      ko: '코인 수수료 승인됨'
+      ko: '코인 수수료 승인됨',
+      zh: '代币佣金已批准'
     },
     fullContent: {
       th: 'การถอนเหรียญของคุณได้รับการอนุมัติและจะถูกโอนเข้าบัญชีของคุณภายใน 24 ชั่วโมง',
       en: 'Your coin withdrawal has been approved and will be transferred to your account within 24 hours',
-      ko: '코인 출금이 승인되었으며 24시간 이내에 계정으로 이체됩니다'
+      ko: '코인 출금이 승인되었으며 24시간 이내에 계정으로 이체됩니다',
+      zh: '您的代币提取已获批准，将在24小时内转入您的账户'
     }
   },
   {
@@ -75,12 +90,14 @@ will remain at 70-80 dollars per barrel in 2568.`,
     title: {
       th: 'เงื่อไขและข้อกำหนด',
       en: 'Terms and Conditions',
-      ko: '이용약관'
+      ko: '이용약관',
+      zh: '条款和条件'
     },
     fullContent: {
       th: 'Truckers ขอเรียนแจ้งการเปลี่ยนแปลงข้อกำหนดและเงื่อนไขการใช้บริการของระบบ ดังรายละเอียดในแนบนึงท็อไกการใช้บริการและผนโยบาย',
       en: 'Truckers would like to inform you of changes to the terms and conditions of service. Please refer to the attached service agreement and policy for details.',
-      ko: 'Truckers는 서비스 이용약관 변경 사항을 알려드립니다. 자세한 내용은 첨부된 서비스 계약 및 정책을 참조하시기 바랍니다.'
+      ko: 'Truckers는 서비스 이용약관 변경 사항을 알려드립니다. 자세한 내용은 첨부된 서비스 계약 및 정책을 참조하시기 바랍니다.',
+      zh: 'Truckers谨此通知您服务条款和条件的变更。详情请参阅附加的服务协议和政策。'
     }
   }
 ];
@@ -93,7 +110,7 @@ export default function NotificationDetailPage() {
   const notification = mockNotificationsData.find(n => n.id === id);
   
   // Get localized content
-  const getLocalizedContent = (content: { th: string; en: string; ko: string }) => {
+  const getLocalizedContent = (content: { th: string; en: string; ko: string; zh: string }) => {
     return content[language as keyof typeof content] || content.th;
   };
 
