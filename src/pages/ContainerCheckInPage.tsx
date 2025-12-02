@@ -154,23 +154,12 @@ export default function ContainerCheckInPage() {
 
         {/* Interactive Map */}
         <div className="rounded-lg overflow-hidden border border-border">
-          {job.container_checkpoint_latitude && job.container_checkpoint_longitude ? (
-            <Map 
-              latitude={job.container_checkpoint_latitude}
-              longitude={job.container_checkpoint_longitude}
-              markerLabel={job.container_checkpoint || 'Container Checkpoint'}
-              showRoute={false}
-            />
-          ) : (
-            <Card className="h-48 bg-blue-100 flex items-center justify-center relative overflow-hidden">
-              <MapPin className="w-12 h-12 text-red-600 absolute" style={{
-                top: '40%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)'
-              }} />
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-200/30 to-blue-400/30"></div>
-            </Card>
-          )}
+          <Map 
+            latitude={job.container_checkpoint_latitude || 13.0827}
+            longitude={job.container_checkpoint_longitude || 100.8833}
+            markerLabel={job.container_checkpoint || 'ท่าเรือแหลมฉบัง'}
+            showRoute={false}
+          />
         </div>
 
         <div className="space-y-4">
