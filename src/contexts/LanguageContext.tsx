@@ -3591,6 +3591,19 @@ const zhTranslations: Record<string, string> = {
   'placeBid.submitting': '提交中...',
   'placeBid.confirm': '确认',
   
+  // Income Page
+  'income.title': '我的收入',
+  'income.all': '全部',
+  'income.paid': '已付款',
+  'income.unpaid': '未付款',
+  'income.selectMonth': '选择月份',
+  'income.viewDetails': '查看工作详情',
+  'income.noData': '暂无收入数据',
+  'income.noPaid': '暂无已付款工作',
+  'income.noUnpaid': '暂无未付款工作',
+  'income.errorLoad': '错误',
+  'income.errorLoadDesc': '无法加载收入数据',
+  
   // Chat Page
   'chat.title': '聊天',
   'chat.search': '搜索对话',
@@ -3608,25 +3621,6 @@ const zhTranslations: Record<string, string> = {
   'chat.new_message': '新消息',
   'chat.type_message': '输入消息...',
   'chat.send': '发送',
-  
-  // Income Page
-  'income.title': '收入',
-  'income.all': '全部',
-  'income.paid': '已支付',
-  'income.unpaid': '未支付',
-  'income.selectMonth': '选择月份',
-  'income.viewDetails': '查看工作详情',
-  'income.noData': '无收入数据',
-  'income.noPaid': '无已支付工作',
-  'income.noUnpaid': '无未支付工作',
-  'income.errorLoad': '发生错误',
-  'income.errorLoadDesc': '无法加载收入数据',
-  'income.total': '总收入',
-  'income.this_month': '本月',
-  'income.this_week': '本周',
-  'income.today': '今天',
-  'income.transactions': '交易',
-  'income.no_transactions': '暂无交易',
   
   // Dashboard Page
   'dashboard.title': '仪表盘',
