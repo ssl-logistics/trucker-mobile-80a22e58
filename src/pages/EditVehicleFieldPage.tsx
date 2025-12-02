@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, X } from 'lucide-react';
+import { ChevronLeft, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -354,7 +354,7 @@ export default function EditVehicleFieldPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 flex items-center justify-center relative">
         <button onClick={() => navigate(-1)} className="absolute left-0">
-          <ArrowLeft className="w-6 h-6" />
+          <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-xl font-semibold">{displayFieldName}</h1>
       </header>

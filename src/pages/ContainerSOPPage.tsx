@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Camera, CheckCircle2, Image } from "lucide-react";
+import { ChevronLeft, Camera, CheckCircle2, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -217,7 +217,7 @@ const ContainerSOPPage = () => {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#245D9E] text-white p-4 flex items-center gap-3">
         <button onClick={() => navigate(`/job/${jobId}`)}>
-          <ArrowLeft className="w-6 h-6" />
+          <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-lg font-semibold text-center flex-1">
           {t('containerSop.title')} {jobDetail.container_checkpoint}

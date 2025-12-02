@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Globe } from "lucide-react";
+import { ChevronLeft, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -326,7 +326,7 @@ const Register = () => {
       <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
         <div className="flex items-center">
           <button onClick={handleBack} className="mr-4">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{steps[currentStep].title}</h1>
         </div>

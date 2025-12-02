@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -188,7 +188,7 @@ export default function CurrentJobsPage() {
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50 rounded-b-xl ">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate('/home')} className="absolute left-0 p-1">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-semibold">{t('currentJobs.title')}</h1>
         </div>
