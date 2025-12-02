@@ -2931,6 +2931,15 @@ const koTranslations: Record<string, string> = {
   'placeBid.errorDesc': '입찰을 제출할 수 없습니다',
   'placeBid.validation.required': '입찰 금액을 입력하세요',
   'placeBid.validation.positive': '입찰 금액은 0보다 커야 합니다',
+  'placeBid.pleaseEnterPrice': '가격을 입력하세요',
+  'placeBid.enterPriceDescription': '입찰 가격을 입력해 주세요',
+  'placeBid.invalidPrice': '잘못된 가격',
+  'placeBid.enterValidPrice': '유효한 가격을 입력하세요',
+  'placeBid.submitError': '입찰을 제출할 수 없습니다',
+  'placeBid.successMessage': '귀하의 입찰이 성공적으로 제출되었습니다. "기록"에서 확인하세요',
+  'placeBid.loading': '로딩 중...',
+  'placeBid.priceLabel': '입찰 금액',
+  'placeBid.confirm': '확인',
   
   // Notifications Page
   'notifications.title': '알림',
