@@ -353,7 +353,7 @@ export default function EditVehicleFieldPage() {
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 flex items-center justify-center relative">
-        <button onClick={() => navigate(-1)} className="absolute left-0">
+        <button onClick={() => navigate(-1)} className="absolute left-0 p-1">
           <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-xl font-semibold">{displayFieldName}</h1>
