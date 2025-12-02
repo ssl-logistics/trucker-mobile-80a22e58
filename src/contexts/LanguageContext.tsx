@@ -3488,6 +3488,34 @@ const zhTranslations: Record<string, string> = {
   'reportProblem.confirm': '确认',
   'reportProblem.fillAllFields': '请填写所有必填字段',
   
+  // Job Action Buttons
+  'jobActions.viewExpenses': '查看费用',
+  'jobActions.addExpense': '添加费用',
+  'jobActions.reportProblem': '报告问题',
+  
+  // Pickup Detail Page
+  'pickup.title': '取货点',
+  'pickup.contactName': '联系人姓名',
+  'pickup.routeNumber': '路线编号',
+  'pickup.address': '地址',
+  'pickup.map': '地图',
+  'pickup.productType': '产品类型',
+  'pickup.pickupTime': '取货时间',
+  'pickup.note': '备注',
+  'pickup.call': '致电',
+  'pickup.route': '路线',
+  'pickup.checkIn': '签到',
+  'pickup.confirmTitle': '确认状态',
+  'pickup.confirmMessage': '您确定要在 {location} 签到吗？',
+  'pickup.cancel': '取消',
+  'pickup.confirmButton': '确认',
+  'pickup.checkInSuccess': '签到成功',
+  'pickup.checkInSuccessMessage': '您已在取货点签到',
+  'pickup.error': '错误',
+  'pickup.loadError': '无法加载工作数据',
+  'pickup.checkInError': '无法保存签到',
+  'pickup.noCoordinates': '找不到位置坐标',
+  
   // Container Check-In Page
   'container.title': '空集装箱取货点',
   'container.viewExpenses': '查看费用',
