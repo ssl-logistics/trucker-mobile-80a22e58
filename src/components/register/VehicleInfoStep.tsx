@@ -19,23 +19,6 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
-const vehicleInfoSchema = z.object({
-  plateNumber: z.string().min(1, "กรุณากรอกหมายเลขทะเบียน"),
-  plateProvince: z.string().min(1, "กรุณาเลือกจังหวัด"),
-  vehicleBrand: z.string().min(1, "กรุณาเลือกยี่ห้อรถยนต์"),
-  vehicleColor: z.string().min(1, "กรุณาเลือกสีรถยนต์"),
-  vin: z.string().min(1, "กรุณากรอก VIN"),
-  vehicleType: z.string().min(1, "กรุณาเลือกประเภทรถยนต์"),
-  fuelType: z.string().min(1, "กรุณาเลือกประเภทเชื้อเพลิง"),
-  loadCapacity: z.string().min(1, "กรุณากรอกความจุที่ได้รับ"),
-  width: z.string().min(1, "กรุณากรอกความกว้าง"),
-  length: z.string().min(1, "กรุณากรอกความยาว"),
-  height: z.string().min(1, "กรุณากรอกความสูง"),
-  insuranceValue: z.string().min(1, "กรุณากรอกมูลค่าประกันสินค้า"),
-});
-
-type VehicleInfoFormData = z.infer<typeof vehicleInfoSchema>;
-
 interface VehicleInfoStepProps {
   data: RegistrationData;
   onNext: (data: Partial<RegistrationData>) => void;
@@ -44,6 +27,23 @@ interface VehicleInfoStepProps {
 
 const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const { t } = useLanguage();
+
+  const vehicleInfoSchema = z.object({
+    plateNumber: z.string().min(1, t('validation.plateNumberRequired')),
+    plateProvince: z.string().min(1, t('validation.plateProvinceRequired')),
+    vehicleBrand: z.string().min(1, t('validation.vehicleBrandRequired')),
+    vehicleColor: z.string().min(1, t('validation.vehicleColorRequired')),
+    vin: z.string().min(1, t('validation.vinRequired')),
+    vehicleType: z.string().min(1, t('validation.vehicleTypeRequired')),
+    fuelType: z.string().min(1, t('validation.fuelTypeRequired')),
+    loadCapacity: z.string().min(1, t('validation.loadCapacityRequired')),
+    width: z.string().min(1, t('validation.widthRequired')),
+    length: z.string().min(1, t('validation.lengthRequired')),
+    height: z.string().min(1, t('validation.heightRequired')),
+    insuranceValue: z.string().min(1, t('validation.insuranceValueRequired')),
+  });
+
+  type VehicleInfoFormData = z.infer<typeof vehicleInfoSchema>;
   const [containerTypes, setContainerTypes] = useState<string[]>(data.containerTypes || []);
   const [registrationPhoto, setRegistrationPhoto] = useState<File | null>(data.registrationPhoto || null);
   const [insurancePhoto, setInsurancePhoto] = useState<File | null>(data.insurancePhoto || null);

@@ -12,16 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import loginBackground from "@/assets/login-background.png";
 
-// Note: Schema validation messages are currently in Thai
-// These would need to be dynamically set based on language context
-const passwordSchema = z.object({
-  password: z.string().min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร").regex(/[A-Z]/, "ต้องมีตัวอักษรพิมพ์ใหญ่").regex(/[a-z]/, "ต้องมีตัวอักษรพิมพ์เล็ก").regex(/[0-9]/, "ต้องมีตัวเลข"),
-  confirmPassword: z.string()
-}).refine(data => data.password === data.confirmPassword, {
-  message: "รหัสผ่านไม่ตรงกัน",
-  path: ["confirmPassword"]
-});
-type PasswordFormData = z.infer<typeof passwordSchema>;
 const CreateNewPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,6 +21,20 @@ const CreateNewPassword = () => {
   const {
     t
   } = useLanguage();
+
+  const passwordSchema = z.object({
+    password: z.string()
+      .min(8, t('validation.passwordMin'))
+      .regex(/[A-Z]/, t('validation.passwordUpperCase'))
+      .regex(/[a-z]/, t('validation.passwordLowerCase'))
+      .regex(/[0-9]/, t('validation.passwordNumber')),
+    confirmPassword: z.string()
+  }).refine(data => data.password === data.confirmPassword, {
+    message: t('validation.passwordMismatch'),
+    path: ["confirmPassword"]
+  });
+
+  type PasswordFormData = z.infer<typeof passwordSchema>;
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

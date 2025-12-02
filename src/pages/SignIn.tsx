@@ -15,18 +15,7 @@ import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
-const loginSchema = z.object({
-  email: z.string().min(1, {
-    message: "กรุณากรอกชื่อผู้ใช้"
-  }).email({
-    message: "รูปแบบอีเมลไม่ถูกต้อง"
-  }),
-  password: z.string().min(8, {
-    message: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร"
-  }),
-  remember: z.boolean().optional()
-});
-type LoginFormData = z.infer<typeof loginSchema>;
+
 const languageOptions = [
   { code: 'en' as const, label: 'EN', flag: flagEn },
   { code: 'th' as const, label: 'TH', flag: flagTh },
@@ -40,6 +29,20 @@ const SignIn = () => {
   const {
     toast
   } = useToast();
+
+  const loginSchema = z.object({
+    email: z.string().min(1, {
+      message: t('validation.usernameRequired')
+    }).email({
+      message: t('validation.emailFormat')
+    }),
+    password: z.string().min(8, {
+      message: t('validation.passwordMin')
+    }),
+    remember: z.boolean().optional()
+  });
+  
+  type LoginFormData = z.infer<typeof loginSchema>;
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string>("");
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
