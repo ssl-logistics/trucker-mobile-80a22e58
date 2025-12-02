@@ -3583,6 +3583,7 @@ const zhTranslations: Record<string, string> = {
   
   // Sign In Page
   'signIn.title': '登录',
+  'signIn.username': '用户名',
   'signIn.email': '电子邮件',
   'signIn.password': '密码',
   'signIn.rememberMe': '记住我',
@@ -3590,6 +3591,7 @@ const zhTranslations: Record<string, string> = {
   'signIn.signInButton': '登录',
   'signIn.noAccount': '还没有账户？',
   'signIn.registerButton': '注册',
+  'signIn.success': '登录成功',
   'signIn.welcomeBack': '欢迎回来',
   'signIn.error': '发生错误，请重试',
   'signIn.invalidCredentials': '电子邮件或密码不正确，请重试',
