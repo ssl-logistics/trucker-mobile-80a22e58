@@ -561,6 +561,20 @@ const thTranslations: Record<string, string> = {
   'generalInfo.validation.priceMaxRequired': 'กรุณากรอกราคาสูงสุด',
   'generalInfo.validation.priceRange': 'กรุณากรอกช่วงราคา',
   
+  // Vehicle Info Validation
+  'validation.plateNumberRequired': 'กรุณากรอกหมายเลขทะเบียน',
+  'validation.plateProvinceRequired': 'กรุณาเลือกจังหวัดเลขทะเบียน',
+  'validation.vehicleBrandRequired': 'กรุณาเลือกยี่ห้อรถยนต์',
+  'validation.vehicleColorRequired': 'กรุณากรอกสีรถยนต์',
+  'validation.vinRequired': 'กรุณากรอก VIN',
+  'validation.vehicleTypeRequired': 'กรุณาเลือกประเภทรถยนต์',
+  'validation.fuelTypeRequired': 'กรุณาเลือกประเภทเชื้อเพลิง',
+  'validation.loadCapacityRequired': 'กรุณากรอกความจุที่ได้รับ',
+  'validation.widthRequired': 'กรุณากรอกความกว้าง',
+  'validation.lengthRequired': 'กรุณากรอกความยาว',
+  'validation.heightRequired': 'กรุณากรอกความสูง',
+  'validation.insuranceValueRequired': 'กรุณากรอกมูลค่าประกันสินค้า',
+  
   // Vehicle Photos Step
   'vehiclePhotosStep.frontPhoto': 'รูปหน้ารถ',
   'vehiclePhotosStep.sidePhoto': 'รูปข้างรถ',
@@ -1641,6 +1655,20 @@ const enTranslations: Record<string, string> = {
   'generalInfo.validation.priceMaxRequired': 'Please enter maximum price',
   'generalInfo.validation.priceRange': 'Please enter price range',
   
+  // Vehicle Info Validation
+  'validation.plateNumberRequired': 'Please enter plate number',
+  'validation.plateProvinceRequired': 'Please select plate province',
+  'validation.vehicleBrandRequired': 'Please select vehicle brand',
+  'validation.vehicleColorRequired': 'Please enter vehicle color',
+  'validation.vinRequired': 'Please enter VIN',
+  'validation.vehicleTypeRequired': 'Please select vehicle type',
+  'validation.fuelTypeRequired': 'Please select fuel type',
+  'validation.loadCapacityRequired': 'Please enter load capacity',
+  'validation.widthRequired': 'Please enter width',
+  'validation.lengthRequired': 'Please enter length',
+  'validation.heightRequired': 'Please enter height',
+  'validation.insuranceValueRequired': 'Please enter insurance value',
+  
   // Vehicle Photos Step
   'vehiclePhotosStep.frontPhoto': 'Front Photo',
   'vehiclePhotosStep.sidePhoto': 'Side Photo',
@@ -2530,6 +2558,20 @@ const koTranslations: Record<string, string> = {
   'generalInfo.validation.priceMinRequired': '최소 가격을 입력하세요',
   'generalInfo.validation.priceMaxRequired': '최대 가격을 입력하세요',
   'generalInfo.validation.priceRange': '가격 범위를 입력하세요',
+  
+  // Vehicle Info Validation
+  'validation.plateNumberRequired': '차량 번호를 입력하세요',
+  'validation.plateProvinceRequired': '차량 번호 지역을 선택하세요',
+  'validation.vehicleBrandRequired': '차량 브랜드를 선택하세요',
+  'validation.vehicleColorRequired': '차량 색상을 입력하세요',
+  'validation.vinRequired': 'VIN을 입력하세요',
+  'validation.vehicleTypeRequired': '차량 유형을 선택하세요',
+  'validation.fuelTypeRequired': '연료 유형을 선택하세요',
+  'validation.loadCapacityRequired': '적재 용량을 입력하세요',
+  'validation.widthRequired': '폭을 입력하세요',
+  'validation.lengthRequired': '길이를 입력하세요',
+  'validation.heightRequired': '높이를 입력하세요',
+  'validation.insuranceValueRequired': '보험 가치를 입력하세요',
   
   // Vehicle Photos Step
   'vehiclePhotosStep.frontPhoto': '차량 앞면 사진',
