@@ -3410,15 +3410,6 @@ const zhTranslations: Record<string, string> = {
   'jobHistory.completed': '已完成',
   'jobHistory.cancelled': '已取消',
   
-  // Bidding Page
-  'bidding.title': '竞标',
-  'bidding.no_jobs': '暂无竞标工作',
-  'bidding.place_bid': '出价',
-  'bidding.your_bid': '您的出价',
-  'bidding.min_bid': '最低出价',
-  'bidding.submit': '提交',
-  'bidding.cancel': '取消',
-  
   // Job Detail Page
   'jobDetail.error': '错误',
   'jobDetail.errorLoadDesc': '无法加载工作数据',
@@ -3571,6 +3562,33 @@ const zhTranslations: Record<string, string> = {
   'jobRoute.error': '错误',
   'jobRoute.loadError': '无法加载工作数据',
   'jobRoute.noData': '未找到工作数据',
+  
+  // Bidding Page
+  'bidding.title': '竞标',
+  'bidding.biddingTab': '竞标',
+  'bidding.historyTab': '历史',
+  'bidding.noJobs': '暂无可竞标的工作',
+  'bidding.placeBid': '出价',
+  'bidding.monthLabel': '月份',
+  'bidding.noHistory': '暂无竞标历史',
+  'bidding.bidAt': '竞标时间',
+  'bidding.statusPending': '待处理',
+  'bidding.statusAccepted': '已接受',
+  'bidding.statusRejected': '已拒绝',
+  
+  // Place Bid Page
+  'placeBid.pleaseEnterPrice': '请输入价格',
+  'placeBid.enterPriceDescription': '请输入您的竞标价格',
+  'placeBid.invalidPrice': '无效价格',
+  'placeBid.enterValidPrice': '请输入有效的价格',
+  'placeBid.error': '错误',
+  'placeBid.submitError': '提交竞标时出错',
+  'placeBid.success': '成功',
+  'placeBid.successMessage': '您的竞标已成功提交',
+  'placeBid.loading': '加载中...',
+  'placeBid.priceLabel': '价格',
+  'placeBid.submitting': '提交中...',
+  'placeBid.confirm': '确认',
   
   // Chat Page
   'chat.title': '聊天',
