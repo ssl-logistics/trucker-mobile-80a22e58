@@ -153,6 +153,22 @@ Deno.serve(async (req) => {
       } else {
         console.log('Added target participant:', payload.target_user_id);
       }
+
+      // Add SENDER as participant if local_user_id is provided
+      if (payload.sender_info?.local_user_id) {
+        const { error: senderParticipantError } = await supabase
+          .from('conversation_participants')
+          .insert({
+            conversation_id: conversationId,
+            user_id: payload.sender_info.local_user_id,
+          });
+        
+        if (senderParticipantError) {
+          console.error('Failed to add sender participant:', senderParticipantError);
+        } else {
+          console.log('Added sender participant:', payload.sender_info.local_user_id);
+        }
+      }
     } else {
       console.log('Found existing conversation:', existingConversation.id);
       
