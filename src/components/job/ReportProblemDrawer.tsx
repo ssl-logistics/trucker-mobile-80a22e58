@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Camera, Download } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 import {
   Drawer,
   DrawerClose,
@@ -27,13 +28,18 @@ export default function ReportProblemDrawer({
   jobId,
 }: ReportProblemDrawerProps) {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [selectedType, setSelectedType] = useState<ProblemType | "">("");
   const [reason, setReason] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
 
   const handleSubmit = () => {
     if (!selectedType || !reason) {
-      alert(t('reportProblem.fillAllFields'));
+      toast({
+        title: t('reportProblem.error'),
+        description: t('reportProblem.fillAllFields'),
+        variant: 'destructive',
+      });
       return;
     }
 

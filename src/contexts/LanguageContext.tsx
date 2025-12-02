@@ -3443,6 +3443,34 @@ const zhTranslations: Record<string, string> = {
   'jobHistory.november': '十一月',
   'jobHistory.december': '十二月',
   
+  // Validation Messages
+  'validation.emailRequired': '请输入邮箱',
+  'validation.emailFormat': '邮箱格式不正确',
+  'validation.passwordMin': '密码至少需要8个字符',
+  'validation.passwordUpperCase': '必须包含大写字母',
+  'validation.passwordLowerCase': '必须包含小写字母',
+  'validation.passwordNumber': '必须包含数字',
+  'validation.passwordMismatch': '密码不一致',
+  'validation.usernameRequired': '请输入用户名',
+  
+  // Vehicle Validation
+  'validation.plateNumberRequired': '请输入车牌号码',
+  'validation.plateProvinceRequired': '请选择省份',
+  'validation.vehicleBrandRequired': '请选择车辆品牌',
+  'validation.vehicleColorRequired': '请选择车辆颜色',
+  'validation.vinRequired': '请输入车架号',
+  'validation.vehicleTypeRequired': '请选择车辆类型',
+  'validation.fuelTypeRequired': '请选择燃料类型',
+  'validation.loadCapacityRequired': '请输入载重量',
+  'validation.widthRequired': '请输入宽度',
+  'validation.lengthRequired': '请输入长度',
+  'validation.heightRequired': '请输入高度',
+  'validation.insuranceValueRequired': '请输入保险金额',
+  
+  // Report Problem
+  'reportProblem.error': '错误',
+  'reportProblem.fillAllFields': '请填写所有必填项',
+  
   // Job Detail Page
   'jobDetail.error': '错误',
   'jobDetail.errorLoadDesc': '无法加载工作数据',
@@ -3518,7 +3546,6 @@ const zhTranslations: Record<string, string> = {
   'reportProblem.reportIssue': '报告问题',
   'reportProblem.downloadVehicleChange': '下载换车文件',
   'reportProblem.confirm': '确认',
-  'reportProblem.fillAllFields': '请填写所有必填字段',
   
   // Job Action Buttons
   'jobActions.viewExpenses': '查看费用',
