@@ -161,7 +161,8 @@ export default function DeliverySOPCheckInPage() {
         jobId: job.id,
         orderCode: job.order_code,
         userId: user.id,
-        status: 'delivery_sop_completed'
+        status: 'delivery_sop_completed',
+        sequenceNumber: 3 // Delivery point
       });
 
       toast({

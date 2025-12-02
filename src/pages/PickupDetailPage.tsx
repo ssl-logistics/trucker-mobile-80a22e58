@@ -98,7 +98,8 @@ export default function PickupDetailPage() {
       jobId: job.id,
       orderCode: job.order_code,
       userId: user.id,
-      status: 'pickup_checked_in'
+      status: 'pickup_checked_in',
+      sequenceNumber: 2 // Pickup point
     });
 
     toast({

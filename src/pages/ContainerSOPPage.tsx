@@ -162,7 +162,8 @@ const ContainerSOPPage = () => {
         jobId,
         orderCode: jobDetail.order_code,
         userId: user.id,
-        status: 'container_sop_completed'
+        status: 'container_sop_completed',
+        sequenceNumber: 1 // Container checkpoint
       });
 
       toast({

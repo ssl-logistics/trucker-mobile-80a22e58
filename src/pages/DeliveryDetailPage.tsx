@@ -207,7 +207,8 @@ export default function DeliveryDetailPage() {
       jobId: job.id,
       orderCode: job.order_code,
       userId: user.id,
-      status: 'delivery_sop_completed'
+      status: 'delivery_sop_completed',
+      sequenceNumber: 3 // Delivery point
     });
 
     toast({
@@ -245,7 +246,8 @@ export default function DeliveryDetailPage() {
       jobId: job.id,
       orderCode: job.order_code,
       userId: user.id,
-      status: 'delivery_checked_in'
+      status: 'delivery_checked_in',
+      sequenceNumber: 3 // Delivery point
     });
 
     toast({

@@ -81,7 +81,8 @@ export default function ContainerCheckInPage() {
         jobId,
         orderCode: job.order_code,
         userId: user.id,
-        status: 'container_checked_in'
+        status: 'container_checked_in',
+        sequenceNumber: 1 // Container checkpoint
       });
 
       toast({

@@ -22,13 +22,17 @@ interface SendJobStatusParams {
   orderCode: string;
   userId: string;
   status: JobStatusType;
+  sequenceNumber?: number;
+  destinationId?: string;
 }
 
 export async function sendJobStatus({ 
   jobId, 
   orderCode, 
   userId, 
-  status 
+  status,
+  sequenceNumber,
+  destinationId
 }: SendJobStatusParams): Promise<boolean> {
   try {
     // Get driver profile info
@@ -43,12 +47,20 @@ export async function sendJobStatus({
       return false;
     }
 
-    const payload = {
+    const payload: any = {
       external_job_id: orderCode,
       status: STATUS_LABELS[status],
       driver_name: profile.full_name,
       driver_phone: profile.phone_number,
     };
+
+    // Add destination_id or sequence_number if provided
+    if (destinationId) {
+      payload.destination_id = destinationId;
+    }
+    if (sequenceNumber !== undefined) {
+      payload.sequence_number = sequenceNumber;
+    }
 
     console.log('Sending job status update:', payload);
 
