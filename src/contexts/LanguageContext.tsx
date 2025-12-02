@@ -3479,6 +3479,23 @@ const zhTranslations: Record<string, string> = {
   'jobDetail.returnDate': '集装箱归还日期',
   'jobDetail.startJobDesc': '您现在可以开始检查空集装箱',
   
+  // Report Problem
+  'reportProblem.title': '报告问题',
+  'reportProblem.problemAccident': '问题/事故',
+  'reportProblem.partialDelivery': '部分送货',
+  'reportProblem.specifyTime': '请说明时间',
+  'reportProblem.reasonPlaceholder': '请输入原因...',
+  'reportProblem.uploadPhoto': '上传照片',
+  'reportProblem.clickToTake': '点击拍照',
+  'reportProblem.productPhoto': '或选择产品照片',
+  'reportProblem.fileSelected': '文件已选择',
+  'reportProblem.pauseWork': '暂停工作',
+  'reportProblem.specifyReason': '请说明原因',
+  'reportProblem.reportIssue': '报告问题',
+  'reportProblem.downloadVehicleChange': '下载换车文件',
+  'reportProblem.confirm': '确认',
+  'reportProblem.fillAllFields': '请填写所有必填字段',
+  
   // Chat Page
   'chat.title': '聊天',
   'chat.search': '搜索对话',
