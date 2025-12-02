@@ -3442,6 +3442,8 @@ const zhTranslations: Record<string, string> = {
   'jobHistory.october': '十月',
   'jobHistory.november': '十一月',
   'jobHistory.december': '十二月',
+  'jobHistory.loading': '加载中...',
+  'jobHistory.noData': '未找到工作历史',
   'jobHistory.statusCompleted': '已完成',
   'jobHistory.statusDelivering': '运输中',
   'jobHistory.statusAccepted': '已接受',
