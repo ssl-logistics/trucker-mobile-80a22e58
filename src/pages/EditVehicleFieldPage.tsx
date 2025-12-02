@@ -27,6 +27,25 @@ export default function EditVehicleFieldPage() {
   const [dimensions, setDimensions] = useState({ width: '', length: '', height: '' });
   const [containerTypes, setContainerTypes] = useState<string[]>([]);
 
+  const getFieldTranslationKey = (fieldName: string | null): string => {
+    if (!fieldName) return '';
+    const fieldMap: { [key: string]: string } = {
+      'หมายเลขทะเบียนรถ': 'editVehicle.fieldPlateNumber',
+      'จังหวัดจดทะเบียนรถ': 'editVehicle.fieldPlateProvince',
+      'ยี่ห้อรถยนต์': 'editVehicle.fieldVehicleBrand',
+      'สีรถยนต์': 'editVehicle.fieldVehicleColor',
+      'VIN': 'editVehicle.fieldVIN',
+      'ประเภทรถยนต์': 'editVehicle.fieldVehicleType',
+      'ประเภทเชื้อเพลิง': 'editVehicle.fieldFuelType',
+      'น้ำหนักบรรทุก': 'editVehicle.fieldLoadCapacity',
+      'ขนาดรถ': 'editVehicle.fieldVehicleSize',
+      'ประเภทตู้คอนเทนเนอร์': 'editVehicle.fieldContainerTypes',
+    };
+    return fieldMap[fieldName] || '';
+  };
+
+  const displayFieldName = getFieldTranslationKey(field) ? t(getFieldTranslationKey(field)) : field;
+
   const fuelTypes = [t('editVehicle.diesel'), t('editVehicle.gasoline'), t('editVehicle.electric'), t('editVehicle.hybrid')];
   const containerTypeOptions = [
     { value: '20ft', label: t('editVehicle.container20ft') },
@@ -308,7 +327,7 @@ export default function EditVehicleFieldPage() {
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder={`${t('editVehicle.enter')}${field}`}
+              placeholder={`${t('editVehicle.enter')}${displayFieldName}`}
             />
             {value && (
               <button onClick={handleClear} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -337,12 +356,12 @@ export default function EditVehicleFieldPage() {
         <button onClick={() => navigate(-1)} className="absolute left-0">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-semibold">{field}</h1>
+        <h1 className="text-xl font-semibold">{displayFieldName}</h1>
       </header>
 
       <div className="p-4 space-y-6">
         <div>
-          <Label className="text-sm text-muted-foreground mb-2 block">{field}</Label>
+          <Label className="text-sm text-muted-foreground mb-2 block">{displayFieldName}</Label>
           {renderInput()}
         </div>
 
