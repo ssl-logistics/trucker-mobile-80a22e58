@@ -13,11 +13,14 @@ import { toast } from '@/hooks/use-toast';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { sendJobStatus } from '@/lib/jobStatusService';
+import Map from '@/components/Map';
 interface JobDetail {
   id: string;
   order_code: string;
   container_checkpoint: string | null;
   container_checkpoint_code: string | null;
+  container_checkpoint_latitude: number | null;
+  container_checkpoint_longitude: number | null;
   empty_container_date: string | null;
   container_number: string | null;
   seal_number: string | null;
@@ -149,15 +152,26 @@ export default function ContainerCheckInPage() {
           <p className="text-base">{mockContainerData.checkpoint}</p>
         </div>
 
-        {/* Map Placeholder */}
-        <Card className="h-48 bg-blue-100 flex items-center justify-center relative overflow-hidden">
-          <MapPin className="w-12 h-12 text-red-600 absolute" style={{
-          top: '40%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)'
-        }} />
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-200/30 to-blue-400/30"></div>
-        </Card>
+        {/* Interactive Map */}
+        <div className="rounded-lg overflow-hidden border border-border">
+          {job.container_checkpoint_latitude && job.container_checkpoint_longitude ? (
+            <Map 
+              latitude={job.container_checkpoint_latitude}
+              longitude={job.container_checkpoint_longitude}
+              markerLabel={job.container_checkpoint || 'Container Checkpoint'}
+              showRoute={false}
+            />
+          ) : (
+            <Card className="h-48 bg-blue-100 flex items-center justify-center relative overflow-hidden">
+              <MapPin className="w-12 h-12 text-red-600 absolute" style={{
+                top: '40%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }} />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-200/30 to-blue-400/30"></div>
+            </Card>
+          )}
+        </div>
 
         <div className="space-y-4">
           <div>
