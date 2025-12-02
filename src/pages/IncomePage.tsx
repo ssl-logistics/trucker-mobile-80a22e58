@@ -145,12 +145,21 @@ export default function IncomePage() {
             <SelectTrigger className="w-full mb-4">
               <SelectValue placeholder={t('income.selectMonth')} />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('jobHistory.allMonths')}</SelectItem>
-              <SelectItem value="jan">{t('jobHistory.january')}</SelectItem>
-              <SelectItem value="feb">{t('jobHistory.february')}</SelectItem>
-              <SelectItem value="mar">{t('jobHistory.march')}</SelectItem>
-            </SelectContent>
+          <SelectContent>
+            <SelectItem value="all">{t('jobHistory.allMonths')}</SelectItem>
+            <SelectItem value="jan">{t('jobHistory.january')}</SelectItem>
+            <SelectItem value="feb">{t('jobHistory.february')}</SelectItem>
+            <SelectItem value="mar">{t('jobHistory.march')}</SelectItem>
+            <SelectItem value="apr">{t('jobHistory.april')}</SelectItem>
+            <SelectItem value="may">{t('jobHistory.may')}</SelectItem>
+            <SelectItem value="jun">{t('jobHistory.june')}</SelectItem>
+            <SelectItem value="jul">{t('jobHistory.july')}</SelectItem>
+            <SelectItem value="aug">{t('jobHistory.august')}</SelectItem>
+            <SelectItem value="sep">{t('jobHistory.september')}</SelectItem>
+            <SelectItem value="oct">{t('jobHistory.october')}</SelectItem>
+            <SelectItem value="nov">{t('jobHistory.november')}</SelectItem>
+            <SelectItem value="dec">{t('jobHistory.december')}</SelectItem>
+          </SelectContent>
           </Select>
 
           {/* All Tab */}
