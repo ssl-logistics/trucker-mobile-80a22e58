@@ -74,11 +74,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Resolve target_user_id from email if needed
-    let targetUserId = payload.target_user_id;
+    // PRIORITY: Use target_user_email as the primary method to identify recipient
+    let targetUserId: string;
     
-    if (!targetUserId && payload.target_user_email) {
-      console.log('Resolving user_id from email:', payload.target_user_email);
+    if (payload.target_user_email) {
+      console.log('Primary method: Resolving user_id from email:', payload.target_user_email);
       
       // Query auth.users to get user_id from email
       const { data: authUser, error: authError } = await supabase.auth.admin.listUsers();
@@ -109,6 +109,32 @@ Deno.serve(async (req) => {
       
       targetUserId = matchedUser.id;
       console.log('Resolved user_id from email:', targetUserId);
+      
+      // CRITICAL SECURITY CHECK: If both email and user_id are provided, verify they match
+      if (payload.target_user_id && payload.target_user_id !== targetUserId) {
+        console.error('Security violation: target_user_id does not match target_user_email');
+        console.error(`Provided user_id: ${payload.target_user_id}, Email resolves to: ${targetUserId}`);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Security error: target_user_id and target_user_email do not match the same user. Please use target_user_email only.' 
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (payload.target_user_id) {
+      // Fallback: Use target_user_id directly (backward compatibility)
+      console.log('Fallback method: Using target_user_id directly:', payload.target_user_id);
+      targetUserId = payload.target_user_id;
+    } else {
+      // This should never happen due to earlier validation, but keeping for safety
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'No valid user identifier provided' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Validate that target_user_id exists in profiles table
