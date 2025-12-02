@@ -67,6 +67,7 @@ const thTranslations: Record<string, string> = {
   'language.thai': 'ภาษาไทย',
   'language.english': 'English',
   'language.korean': '한국어',
+  'language.chinese': '中文',
   
   // Bottom Navigation
   'nav.home': 'หน้าแรก',
@@ -1106,6 +1107,7 @@ const enTranslations: Record<string, string> = {
   'language.thai': 'ภาษาไทย',
   'language.english': 'English',
   'language.korean': '한국어',
+  'language.chinese': '中文',
   
   // Bottom Navigation
   'nav.home': 'Home',
@@ -2145,6 +2147,7 @@ const koTranslations: Record<string, string> = {
   'language.thai': 'ภาษาไทย',
   'language.english': 'English',
   'language.korean': '한국어',
+  'language.chinese': '中文',
   
   // Bottom Navigation
   'nav.home': '홈',
