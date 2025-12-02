@@ -172,8 +172,9 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
     };
 
+    // Use external project's API key as `apikey` header (for Supabase Functions or custom APIs)
     if (externalConfig.api_key) {
-      headers['Authorization'] = `Bearer ${externalConfig.api_key}`;
+      headers['apikey'] = externalConfig.api_key;
     }
 
     const response = await fetch(externalConfig.target_url, {
