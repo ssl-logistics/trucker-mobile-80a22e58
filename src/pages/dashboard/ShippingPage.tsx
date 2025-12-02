@@ -28,7 +28,15 @@ export default function ShippingPage() {
     '7월', '8월', '9월', '10월', '11월', '12월'
   ];
 
-  const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : englishMonths;
+  const chineseMonths = [
+    '一月', '二月', '三月', '四月', '五月', '六月',
+    '七月', '八月', '九月', '十月', '十一月', '十二月'
+  ];
+
+  const months = language === 'th' ? thaiMonths 
+    : language === 'ko' ? koreanMonths 
+    : language === 'zh' ? chineseMonths 
+    : englishMonths;
 
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
