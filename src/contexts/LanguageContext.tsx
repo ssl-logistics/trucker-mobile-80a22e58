@@ -504,6 +504,11 @@ const thTranslations: Record<string, string> = {
   'signIn.validation.emailFormat': 'รูปแบบอีเมลไม่ถูกต้อง',
   'signIn.validation.passwordMin': 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
   
+  // General Validation Messages
+  'validation.usernameRequired': 'กรุณากรอกชื่อผู้ใช้',
+  'validation.emailFormat': 'รูปแบบอีเมลไม่ถูกต้อง',
+  'validation.passwordMin': 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
+  
   // Register Page
   'register.steps.terms': 'เงื่อนไขการใช้บริการและนโยบาย',
   'register.steps.generalInfo': 'ข้อมูลทั่วไป',
@@ -1597,6 +1602,11 @@ const enTranslations: Record<string, string> = {
   'signIn.validation.emailRequired': 'Please enter username',
   'signIn.validation.emailFormat': 'Invalid email format',
   'signIn.validation.passwordMin': 'Password must be at least 8 characters',
+  
+  // General Validation Messages
+  'validation.usernameRequired': 'Please enter username',
+  'validation.emailFormat': 'Invalid email format',
+  'validation.passwordMin': 'Password must be at least 8 characters',
   
   // Register Page
   'register.steps.terms': 'Terms of Service and Policy',
@@ -3274,6 +3284,14 @@ const koTranslations: Record<string, string> = {
   'signIn.welcomeBack': '다시 오신 것을 환영합니다',
   'signIn.error': '오류가 발생했습니다. 다시 시도해 주세요.',
   'signIn.invalidCredentials': '이메일 또는 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.',
+  'signIn.validation.emailRequired': '사용자 이름을 입력하세요',
+  'signIn.validation.emailFormat': '올바른 이메일 형식이 아닙니다',
+  'signIn.validation.passwordMin': '비밀번호는 최소 8자 이상이어야 합니다',
+  
+  // General Validation Messages
+  'validation.usernameRequired': '사용자 이름을 입력하세요',
+  'validation.emailFormat': '올바른 이메일 형식이 아닙니다',
+  'validation.passwordMin': '비밀번호는 최소 8자 이상이어야 합니다',
   
   // Forgot Password Page
   'forgotPassword.title': '비밀번호 찾기',
