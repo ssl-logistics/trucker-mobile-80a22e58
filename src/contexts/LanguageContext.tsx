@@ -3409,6 +3409,7 @@ const zhTranslations: Record<string, string> = {
   'jobHistory.all': '全部',
   'jobHistory.completed': '已完成',
   'jobHistory.cancelled': '已取消',
+  'jobHistory.allMonths': '所有月份',
   
   // Job Detail Page
   'jobDetail.error': '错误',
