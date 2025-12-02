@@ -3604,6 +3604,24 @@ const zhTranslations: Record<string, string> = {
   'income.errorLoad': '错误',
   'income.errorLoadDesc': '无法加载收入数据',
   
+  // Notifications Page
+  'notifications.title': '通知',
+  'notifications.all': '全部',
+  'notifications.unread': '未读',
+  'notifications.markAllRead': '全部标记为已读',
+  'notifications.january': '一月',
+  'notifications.february': '二月',
+  'notifications.march': '三月',
+  'notifications.april': '四月',
+  'notifications.may': '五月',
+  'notifications.june': '六月',
+  'notifications.july': '七月',
+  'notifications.august': '八月',
+  'notifications.september': '九月',
+  'notifications.october': '十月',
+  'notifications.november': '十一月',
+  'notifications.december': '十二月',
+  
   // Chat Page
   'chat.title': '聊天',
   'chat.search': '搜索对话',
@@ -3725,14 +3743,6 @@ const zhTranslations: Record<string, string> = {
   'common.clear': '清除',
   'common.apply': '应用',
   'common.reset': '重置',
-  
-  // Notifications
-  'notifications.title': '通知',
-  'notifications.no_notifications': '暂无通知',
-  'notifications.mark_read': '标记为已读',
-  'notifications.mark_unread': '标记为未读',
-  'notifications.delete': '删除',
-  'notifications.new': '新',
   
   // Contact Page
   'contact.title': '联系我们',
