@@ -34,7 +34,7 @@ export default function EditFieldPage() {
 
       if (!error) {
         toast({ title: t('editField.success'), description: t('editField.updated') });
-        navigate(-1);
+        navigate('/profile');
       } else {
         toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
       }
@@ -49,7 +49,7 @@ export default function EditFieldPage() {
 
       if (!error) {
         toast({ title: t('editField.success'), description: t('editField.updated') });
-        navigate(-1);
+        navigate('/profile');
       } else {
         toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
       }
@@ -61,7 +61,7 @@ export default function EditFieldPage() {
 
       if (!error) {
         toast({ title: t('editField.success'), description: t('editField.updated') });
-        navigate(-1);
+        navigate('/profile');
       } else {
         toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
       }
@@ -80,7 +80,7 @@ export default function EditFieldPage() {
       <header className="bg-header text-header-foreground px-4 py-4">
         <div className="flex items-center justify-center relative">
           <button 
-            onClick={() => navigate(-1)} 
+            onClick={() => navigate('/profile')} 
             className="absolute left-0 p-2 -m-2 hover:opacity-70 active:opacity-50 transition-opacity"
             aria-label="Go back"
           >
