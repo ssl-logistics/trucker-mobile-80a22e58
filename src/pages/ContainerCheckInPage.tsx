@@ -126,7 +126,7 @@ export default function ContainerCheckInPage() {
           <button onClick={() => navigate(`/job/${jobId}`)} className="absolute left-0 p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold text-center">{t('container.title')} ท่าเรือแหลมฉบัง, ประเทศไทย</h1>
+          <h1 className="text-lg font-semibold text-center">{t('container.title')} {job.container_checkpoint || ''}</h1>
         </div>
       </header>
 

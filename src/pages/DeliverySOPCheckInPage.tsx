@@ -32,6 +32,7 @@ interface JobDetail {
   order_code: string;
   employer_name: string;
   destination_location: string;
+  destination_company_name?: string | null;
   start_date: string;
   start_time: string;
 }
@@ -60,7 +61,7 @@ export default function DeliverySOPCheckInPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('jobs')
-      .select('id, order_code, employer_name, destination_location, start_date, start_time')
+      .select('id, order_code, employer_name, destination_location, destination_company_name, start_date, start_time')
       .eq('id', jobId)
       .single();
 
@@ -211,7 +212,7 @@ export default function DeliverySOPCheckInPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">จุดส่ง คศน.ชัยนาต</h1>
+          <h1 className="text-lg font-semibold">{t('deliverySop.title')} {job.destination_company_name || ''}</h1>
           <div className="w-6" />
         </div>
       </header>
