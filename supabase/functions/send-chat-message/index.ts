@@ -21,6 +21,12 @@ interface OutgoingMessage {
     sender_avatar?: string;
     text: string;
     timestamp: string;
+    // Optional file attachment info
+    message_type?: string; // 'text' | 'image' | 'file'
+    file_url?: string;
+    file_name?: string;
+    file_size?: number;
+    file_type?: string; // MIME type, e.g. image/png
   };
 }
 
@@ -116,7 +122,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Prepare payload for external project
     const externalPayload = {
       chat_id: payload.conversation_id,
       target_user_id: payload.target_user_id,
@@ -133,6 +138,18 @@ Deno.serve(async (req) => {
         sender_avatar: payload.message.sender_avatar,
         text: payload.message.text,
         timestamp: payload.message.timestamp,
+        // Pass through attachment information when available
+        message_type: payload.message.message_type,
+        attachments: payload.message.file_url
+          ? [
+              {
+                file_url: payload.message.file_url,
+                file_name: payload.message.file_name || payload.message.text,
+                file_type: payload.message.file_type,
+                file_size: payload.message.file_size ?? 0,
+              },
+            ]
+          : undefined,
       },
       sender_info: {
         user_id: payload.message.sender_id,

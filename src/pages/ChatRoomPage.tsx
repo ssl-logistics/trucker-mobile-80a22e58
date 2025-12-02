@@ -297,9 +297,7 @@ export default function ChatRoomPage() {
       } = supabase.storage.from('chat-attachments').getPublicUrl(fileName);
 
       // Send message with file attachment
-      const {
-        error
-      } = await supabase.from('messages').insert({
+      const { data: insertedMessage, error } = await supabase.from('messages').insert({
         conversation_id: conversationId,
         sender_id: user.id,
         sender_name: profile?.full_name || 'User',
@@ -309,8 +307,8 @@ export default function ChatRoomPage() {
         file_url: publicUrl,
         file_name: file.name,
         file_size: file.size
-      });
-      if (error) {
+      }).select('id').single();
+      if (error || !insertedMessage) {
         console.error('Message insert error:', error);
         throw error;
       }
@@ -318,6 +316,40 @@ export default function ChatRoomPage() {
         title: t('toast.fileSentSuccess'),
         description: file.name
       });
+
+      // If this is an external conversation, also send file to external project
+      if (externalChatInfo) {
+        try {
+          const { error: sendError } = await supabase.functions.invoke('send-chat-message', {
+            body: {
+              conversation_id: conversationId,
+              external_project_id: externalChatInfo.external_project_id,
+              target_user_id: externalChatInfo.target_user_id,
+              message: {
+                id: insertedMessage.id,
+                sender_id: user.id,
+                sender_name: profile?.full_name || 'User',
+                sender_avatar: profile?.avatar_url,
+                text: file.name,
+                timestamp: new Date().toISOString(),
+                message_type: file.type.startsWith('image/') ? 'image' : 'file',
+                file_url: publicUrl,
+                file_name: file.name,
+                file_size: file.size,
+                file_type: file.type,
+              },
+            },
+          });
+
+          if (sendError) {
+            console.error('Failed to send file to external project:', sendError);
+          } else {
+            console.log('File sent to external project successfully');
+          }
+        } catch (err) {
+          console.error('Error invoking send-chat-message for file:', err);
+        }
+      }
 
       // Reset file input
       if (fileInputRef.current) {
