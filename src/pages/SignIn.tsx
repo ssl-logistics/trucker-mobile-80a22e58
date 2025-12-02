@@ -14,6 +14,7 @@ import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
+import flagCn from "@/assets/flag-cn.png";
 const loginSchema = z.object({
   email: z.string().min(1, {
     message: "กรุณากรอกชื่อผู้ใช้"
@@ -30,6 +31,7 @@ const languageOptions = [
   { code: 'en' as const, label: 'EN', flag: flagEn },
   { code: 'th' as const, label: 'TH', flag: flagTh },
   { code: 'ko' as const, label: 'KO', flag: flagKo },
+  { code: 'zh' as const, label: 'ZH', flag: flagCn },
 ];
 
 const SignIn = () => {

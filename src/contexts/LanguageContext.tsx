@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type Language = 'th' | 'en' | 'ko';
+type Language = 'th' | 'en' | 'ko' | 'zh';
 
 interface LanguageContextType {
   language: Language;
@@ -22,7 +22,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: string): string => {
-    const translations = language === 'th' ? thTranslations : language === 'ko' ? koTranslations : enTranslations;
+    const translations = language === 'th' ? thTranslations : language === 'ko' ? koTranslations : language === 'zh' ? zhTranslations : enTranslations;
     return translations[key] || key;
   };
 
@@ -3193,4 +3193,279 @@ const koTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': '전화번호 확인됨',
   'forgotPassword.phoneVerifiedDesc': '새 비밀번호를 생성해 주세요',
   'forgotPassword.error': '오류가 발생했습니다. 다시 시도해 주세요.',
+};
+
+// Chinese translations
+const zhTranslations: Record<string, string> = {
+  // Settings Page
+  'settings.title': '设置',
+  'settings.profile': '个人资料',
+  'settings.personal_info': '个人信息',
+  'settings.account': '账户',
+  'settings.vehicle': '车辆信息',
+  'settings.language': '语言',
+  'settings.terms': '条款和条件',
+  'settings.contact': '联系我们',
+  'settings.logout': '退出登录',
+  'settings.logout_confirm': '确定要退出登录吗？',
+  'settings.cancel': '取消',
+  
+  // Language Page
+  'language.title': '语言',
+  'language.thai': '泰语',
+  'language.english': '英语',
+  'language.korean': '韩语',
+  'language.chinese': '中文',
+  
+  // Profile Page
+  'profile.title': '个人资料',
+  'profile.edit': '编辑个人资料',
+  'profile.full_name': '全名',
+  'profile.phone': '电话号码',
+  'profile.email': '电子邮件',
+  'profile.change_password': '更改密码',
+  'profile.save': '保存',
+  'profile.cancel': '取消',
+  'profile.upload_photo': '上传照片',
+  'profile.change_photo': '更改照片',
+  
+  // Vehicle Info Page
+  'vehicle.title': '车辆信息',
+  'vehicle.edit': '编辑车辆信息',
+  'vehicle.type': '车辆类型',
+  'vehicle.brand': '品牌',
+  'vehicle.color': '颜色',
+  'vehicle.plate_number': '车牌号',
+  'vehicle.plate_province': '车牌省份',
+  'vehicle.load_capacity': '载重量',
+  'vehicle.fuel_type': '燃料类型',
+  'vehicle.has_trailer': '有拖车',
+  'vehicle.trailer_plate': '拖车车牌',
+  'vehicle.photos': '车辆照片',
+  'vehicle.vin': 'VIN码',
+  'vehicle.dimensions': '尺寸',
+  'vehicle.length': '长度',
+  'vehicle.width': '宽度',
+  'vehicle.height': '高度',
+  
+  // Account Page
+  'account.title': '账户',
+  'account.email': '电子邮件',
+  'account.phone': '电话号码',
+  'account.change_password': '更改密码',
+  'account.delete_account': '删除账户',
+  'account.delete_confirm': '确定要删除账户吗？此操作无法撤销。',
+  
+  // Change Password Page
+  'password.title': '更改密码',
+  'password.current': '当前密码',
+  'password.new': '新密码',
+  'password.confirm': '确认新密码',
+  'password.save': '保存',
+  'password.cancel': '取消',
+  'password.error': '密码不匹配',
+  'password.success': '密码已更改',
+  
+  // Home Page
+  'home.title': '主页',
+  'home.welcome': '欢迎',
+  'home.available_jobs': '可用工作',
+  'home.no_jobs': '暂无可用工作',
+  'home.search': '搜索工作',
+  'home.filter': '筛选',
+  'home.sort': '排序',
+  
+  // Job Card
+  'job.route': '路线',
+  'job.employer': '雇主',
+  'job.origin': '起点',
+  'job.destination': '终点',
+  'job.price': '价格',
+  'job.date': '日期',
+  'job.time': '时间',
+  'job.transport_type': '运输类型',
+  'job.status': '状态',
+  'job.details': '详情',
+  'job.apply': '申请',
+  'job.accept': '接受',
+  'job.reject': '拒绝',
+  'job.start': '开始',
+  'job.complete': '完成',
+  'job.order_code': '订单编号',
+  
+  // Job Status
+  'status.pending': '待处理',
+  'status.accepted': '已接受',
+  'status.in_progress': '进行中',
+  'status.completed': '已完成',
+  'status.cancelled': '已取消',
+  'status.available': '可用',
+  
+  // Current Jobs Page
+  'currentJobs.title': '当前工作',
+  'currentJobs.no_jobs': '暂无当前工作',
+  'currentJobs.in_progress': '进行中',
+  'currentJobs.upcoming': '即将到来',
+  
+  // Job History Page
+  'jobHistory.title': '工作历史',
+  'jobHistory.no_history': '暂无工作历史',
+  'jobHistory.filter': '筛选',
+  'jobHistory.all': '全部',
+  'jobHistory.completed': '已完成',
+  'jobHistory.cancelled': '已取消',
+  
+  // Bidding Page
+  'bidding.title': '竞标',
+  'bidding.no_jobs': '暂无竞标工作',
+  'bidding.place_bid': '出价',
+  'bidding.your_bid': '您的出价',
+  'bidding.min_bid': '最低出价',
+  'bidding.submit': '提交',
+  'bidding.cancel': '取消',
+  
+  // Chat Page
+  'chat.title': '聊天',
+  'chat.no_conversations': '暂无对话',
+  'chat.new_message': '新消息',
+  'chat.type_message': '输入消息...',
+  'chat.send': '发送',
+  'chat.online': '在线',
+  'chat.offline': '离线',
+  
+  // Income Page
+  'income.title': '收入',
+  'income.total': '总收入',
+  'income.this_month': '本月',
+  'income.this_week': '本周',
+  'income.today': '今天',
+  'income.transactions': '交易',
+  'income.no_transactions': '暂无交易',
+  
+  // Dashboard Page
+  'dashboard.title': '仪表盘',
+  'dashboard.overview': '概览',
+  'dashboard.finance': '财务',
+  'dashboard.shipping': '运输',
+  'dashboard.customer': '客户',
+  'dashboard.product': '产品',
+  
+  // Navigation
+  'nav.home': '主页',
+  'nav.chat': '聊天',
+  'nav.current_jobs': '当前工作',
+  'nav.dashboard': '仪表盘',
+  'nav.settings': '设置',
+  'nav.bidding': '竞标',
+  'nav.income': '收入',
+  'nav.job_history': '工作历史',
+  'nav.notifications': '通知',
+  
+  // Common
+  'common.save': '保存',
+  'common.cancel': '取消',
+  'common.delete': '删除',
+  'common.edit': '编辑',
+  'common.confirm': '确认',
+  'common.back': '返回',
+  'common.next': '下一步',
+  'common.previous': '上一步',
+  'common.submit': '提交',
+  'common.search': '搜索',
+  'common.filter': '筛选',
+  'common.sort': '排序',
+  'common.loading': '加载中...',
+  'common.error': '错误',
+  'common.success': '成功',
+  'common.yes': '是',
+  'common.no': '否',
+  'common.all': '全部',
+  'common.date': '日期',
+  'common.time': '时间',
+  'common.price': '价格',
+  'common.status': '状态',
+  'common.details': '详情',
+  'common.close': '关闭',
+  'common.open': '打开',
+  'common.view': '查看',
+  'common.download': '下载',
+  'common.upload': '上传',
+  'common.select': '选择',
+  'common.clear': '清除',
+  'common.apply': '应用',
+  'common.reset': '重置',
+  
+  // Notifications
+  'notifications.title': '通知',
+  'notifications.no_notifications': '暂无通知',
+  'notifications.mark_read': '标记为已读',
+  'notifications.mark_unread': '标记为未读',
+  'notifications.delete': '删除',
+  'notifications.new': '新',
+  
+  // Contact Page
+  'contact.title': '联系我们',
+  'contact.description': '有问题或反馈？请联系我们。',
+  'contact.email': '电子邮件',
+  'contact.phone': '电话',
+  'contact.address': '地址',
+  'contact.send_message': '发送消息',
+  'contact.message': '消息',
+  'contact.name': '姓名',
+  'contact.subject': '主题',
+  
+  // Terms Page
+  'terms.title': '条款和条件',
+  'terms.updated': '更新日期',
+  'terms.data_collection': '数据收集',
+  'terms.data_usage': '数据使用',
+  'terms.data_sharing': '数据共享',
+  'terms.accept': '接受',
+  'terms.decline': '拒绝',
+  
+  // Register Page
+  'register.title': '注册',
+  'register.subtitle': '创建新账户',
+  'register.full_name': '全名',
+  'register.phone': '电话号码',
+  'register.email': '电子邮件',
+  'register.password': '密码',
+  'register.confirm_password': '确认密码',
+  'register.agree_terms': '我同意条款和条件',
+  'register.submit': '注册',
+  'register.already_have_account': '已有账户？',
+  'register.sign_in': '登录',
+  'register.error': '注册失败，请重试',
+  'register.success': '注册成功',
+  'register.step1': '一般信息',
+  'register.step2': '车辆信息',
+  'register.step3': '车辆照片',
+  'register.step4': '审核',
+  'register.step5': '条款',
+  
+  // Sign In Page
+  'signIn.title': '登录',
+  'signIn.email': '电子邮件',
+  'signIn.password': '密码',
+  'signIn.rememberMe': '记住我',
+  'signIn.forgotPassword': '忘记密码？',
+  'signIn.signInButton': '登录',
+  'signIn.noAccount': '还没有账户？',
+  'signIn.registerButton': '注册',
+  'signIn.welcomeBack': '欢迎回来',
+  'signIn.error': '发生错误，请重试',
+  'signIn.invalidCredentials': '电子邮件或密码不正确，请重试',
+  
+  // Forgot Password Page
+  'forgotPassword.title': '忘记密码',
+  'forgotPassword.subtitle': '输入您的注册电话号码',
+  'forgotPassword.phone': '电话号码',
+  'forgotPassword.phonePlaceholder': '010 1234 5678',
+  'forgotPassword.phoneFormat': '请输入有效的10位电话号码',
+  'forgotPassword.confirmButton': '确认',
+  'forgotPassword.signInButton': '登录',
+  'forgotPassword.backButton': '返回',
+  'forgotPassword.phoneVerified': '电话号码已验证',
+  'forgotPassword.phoneVerifiedDesc': '请创建新密码',
+  'forgotPassword.error': '发生错误，请重试',
 };
