@@ -3311,6 +3311,24 @@ const zhTranslations: Record<string, string> = {
   'changePassword.minLength': '密码至少需要6个字符',
   'changePassword.invalidData': '无效数据',
   
+  // Create Password Page
+  'createPassword.title': '创建新密码',
+  'createPassword.newPassword': '新密码',
+  'createPassword.confirmPassword': '确认密码',
+  'createPassword.minLength': '至少8个字符',
+  'createPassword.upperLower': '必须包含大写（A-Z）和小写（a-z）字母',
+  'createPassword.number': '至少包含1个数字（0-9）',
+  'createPassword.special': '应至少包含1个特殊字符',
+  'createPassword.submit': '创建新密码',
+  'createPassword.login': '登录',
+  'createPassword.error': '错误',
+  'createPassword.errorDesc': '无法创建新密码',
+  'createPassword.tryAgain': '请重试',
+  'createPassword.successTitle': '新密码创建成功！',
+  'createPassword.successDesc': '您已成功设置新密码！',
+  'createPassword.home': '主页',
+  'createPassword.getStarted': '开始使用',
+  
   // Home Page
   'home.title': '主页',
   'home.search': '搜索',
@@ -3815,6 +3833,42 @@ const zhTranslations: Record<string, string> = {
   'product.top_5': '前5名',
   'product.jobs': '工作',
   
+  // API Test Page
+  'apiTest.title': '测试接收 API',
+  'apiTest.description': '向边缘函数发送 JSON 数据以测试数据接收',
+  'apiTest.jsonLabel': 'JSON 数据（可编辑）',
+  'apiTest.sending': '发送中...',
+  'apiTest.sendButton': '发送测试数据',
+  'apiTest.result': '结果',
+  'apiTest.curlExample': 'cURL 使用示例',
+  'apiTest.success': '成功',
+  'apiTest.successDesc': '数据已成功发送到 API',
+  'apiTest.error': '错误',
+  'apiTest.errorDesc': '无法发送数据',
+  
+  // Pickup Summary Page
+  'pickupSummary.title': '取货点',
+  'pickupSummary.error': '错误',
+  'pickupSummary.loadError': '无法加载工作数据',
+  'pickupSummary.checkInSuccess': '签到成功',
+  'pickupSummary.sopSuccess': 'SOP 成功',
+  'pickupSummary.productPhoto': '产品照片',
+  'pickupSummary.jobSummary': '工作摘要',
+  'pickupSummary.routeDetails': '路线详情',
+  'pickupSummary.startJob': '开始工作',
+  'pickupSummary.completePickup': '完成取货',
+  
+  // Container Summary Page
+  'containerSummary.error': '错误',
+  'containerSummary.loadError': '无法加载工作数据',
+  'containerSummary.checkInSuccess': '签到成功',
+  'containerSummary.sopSuccess': 'SOP 成功',
+  'containerSummary.containerPhoto': '集装箱照片',
+  'containerSummary.jobSummary': '工作摘要',
+  'containerSummary.routeDetails': '路线详情',
+  'containerSummary.startJob': '开始工作',
+  'containerSummary.completeContainer': '完成集装箱',
+  
   // Common
   'common.save': '保存',
   'common.cancel': '取消',
@@ -4052,8 +4106,8 @@ const zhTranslations: Record<string, string> = {
   'review.baht': '泰铢',
   'review.cancel': '取消',
   'review.createAccount': '创建账户',
-  'review.failedTitle': '失败',
-  'review.failedMessage': '您确定要取消注册吗？',
+  'review.failedTitle': '注册失败',
+  'review.failedMessage': '抱歉，注册过程中发生错误。请检查您的信息后重试。',
   'review.tryAgain': '重试',
   
   // Terms Step
@@ -4064,7 +4118,7 @@ const zhTranslations: Record<string, string> = {
   'termsStep.scrollMessage': '请滚动到底部以启用接受按钮',
   
   // Sign In Page
-  'signIn.title': '登录',
+  'signIn.title': '登录或注册',
   'signIn.username': '用户名',
   'signIn.email': '电子邮件',
   'signIn.password': '密码',
@@ -4076,13 +4130,13 @@ const zhTranslations: Record<string, string> = {
   'signIn.success': '登录成功',
   'signIn.welcomeBack': '欢迎回来',
   'signIn.error': '发生错误，请重试',
-  'signIn.invalidCredentials': '电子邮件或密码不正确，请重试',
+  'signIn.invalidCredentials': '用户名或密码不正确，请重试',
   
   // Forgot Password Page
-  'forgotPassword.title': '忘记密码',
-  'forgotPassword.subtitle': '输入您的注册电话号码',
+  'forgotPassword.title': '忘记密码？',
+  'forgotPassword.subtitle': '输入您注册时使用的电话号码',
   'forgotPassword.phone': '电话号码',
-  'forgotPassword.phonePlaceholder': '010 1234 5678',
+  'forgotPassword.phonePlaceholder': '081 234 5679',
   'forgotPassword.phoneFormat': '请输入有效的10位电话号码',
   'forgotPassword.confirmButton': '确认',
   'forgotPassword.signInButton': '登录',
