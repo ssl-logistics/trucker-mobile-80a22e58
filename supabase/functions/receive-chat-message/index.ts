@@ -22,10 +22,16 @@ interface IncomingMessage {
     sender_avatar?: string;
     text: string;
     timestamp: string;
-    file_url?: string; // URL to attached file
-    file_name?: string; // Original file name
-    file_size?: number; // File size in bytes
+    file_url?: string; // URL to attached file (direct format)
+    file_name?: string; // Original file name (direct format)
+    file_size?: number; // File size in bytes (direct format)
     message_type?: string; // 'text', 'image', 'file'
+    attachments?: Array<{ // Alternative format: array of attachments
+      file_url: string;
+      file_name: string;
+      file_type?: string;
+      file_size: number;
+    }>;
   };
   sender_info?: {
     local_user_id?: string;
@@ -347,6 +353,31 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Handle file attachments - support both direct format and attachments array
+    let fileUrl = payload.message.file_url;
+    let fileName = payload.message.file_name;
+    let fileSize = payload.message.file_size;
+    let messageType = payload.message.message_type || 'text';
+
+    // If attachments array exists, use the first attachment
+    if (payload.message.attachments && payload.message.attachments.length > 0) {
+      const firstAttachment = payload.message.attachments[0];
+      fileUrl = firstAttachment.file_url;
+      fileName = firstAttachment.file_name;
+      fileSize = firstAttachment.file_size;
+      
+      // Determine message type from file_type if not explicitly set
+      if (!payload.message.message_type && firstAttachment.file_type) {
+        if (firstAttachment.file_type.startsWith('image/')) {
+          messageType = 'image';
+        } else {
+          messageType = 'file';
+        }
+      }
+      
+      console.log('Processing attachment:', { fileUrl, fileName, fileSize, messageType });
+    }
+
     // Insert external_chat_message with file support
     const { data: insertedMessage, error: messageError } = await supabase
       .from('external_chat_messages')
@@ -358,10 +389,10 @@ Deno.serve(async (req) => {
         message_text: payload.message.text,
         sender_name: payload.message.sender_name,
         sender_avatar: payload.message.sender_avatar,
-        file_url: payload.message.file_url,
-        file_name: payload.message.file_name,
-        file_size: payload.message.file_size,
-        message_type: payload.message.message_type || 'text',
+        file_url: fileUrl,
+        file_name: fileName,
+        file_size: fileSize,
+        message_type: messageType,
         created_at: payload.message.timestamp,
       })
       .select()
