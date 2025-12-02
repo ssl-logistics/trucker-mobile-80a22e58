@@ -4256,4 +4256,21 @@ const zhTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': '电话号码已验证',
   'forgotPassword.phoneVerifiedDesc': '请创建新密码',
   'forgotPassword.error': '发生错误，请重试',
+  
+  // Toast Messages
+  'toast.fileTooLarge': '文件大小超过10MB',
+  'toast.uploadingFile': '上传文件中...',
+  'toast.fileSentSuccess': '文件发送成功',
+  'toast.fileSentError': '文件发送失败',
+  'toast.tryAgain': '请重试',
+  'toast.notSupported': '不支持',
+  'toast.browserNotSupported': '此浏览器不支持通知',
+  'toast.notificationEnabled': '通知已启用',
+  'toast.notificationEnabledDesc': '您现在将收到系统通知',
+  'toast.cannotEnableNotification': '无法启用通知',
+  'toast.allowNotificationInBrowser': '请在浏览器设置中允许通知',
+  'toast.notificationDisabled': '通知已禁用',
+  'toast.notificationDisabledDesc': '您将不再收到通知',
+  'toast.error': '错误',
+  'toast.cannotChangeSettings': '无法更改设置，请重试',
 };
