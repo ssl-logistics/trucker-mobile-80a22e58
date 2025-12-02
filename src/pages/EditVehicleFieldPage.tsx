@@ -349,11 +349,16 @@ export default function EditVehicleFieldPage() {
     return value.trim() !== '';
   };
 
+  const handleBack = () => {
+    console.log('EditVehicleFieldPage back clicked');
+    navigate('/vehicle-info');
+  };
+
   return (
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 flex items-center justify-center relative">
-        <button onClick={() => navigate(-1)} className="absolute left-0 p-1">
+        <button onClick={handleBack} className="absolute left-0 p-1">
           <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-xl font-semibold">{displayFieldName}</h1>
