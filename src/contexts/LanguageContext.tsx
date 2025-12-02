@@ -3277,14 +3277,19 @@ const zhTranslations: Record<string, string> = {
   'account.delete_error_desc': '无法删除账户，请重试',
   
   // Change Password Page
-  'password.title': '更改密码',
-  'password.current': '当前密码',
-  'password.new': '新密码',
-  'password.confirm': '确认新密码',
-  'password.save': '保存',
-  'password.cancel': '取消',
-  'password.error': '密码不匹配',
-  'password.success': '密码已更改',
+  'changePassword.title': '更改密码',
+  'changePassword.newPassword': '新密码',
+  'changePassword.confirmPassword': '确认密码',
+  'changePassword.passwordMatch': '密码匹配',
+  'changePassword.passwordMismatch': '密码不匹配',
+  'changePassword.usePassword': '使用此密码',
+  'changePassword.changing': '正在更改密码...',
+  'changePassword.success': '密码更改成功',
+  'changePassword.successDesc': '请使用新密码登录',
+  'changePassword.error': '发生错误',
+  'changePassword.errorDesc': '无法更改密码',
+  'changePassword.minLength': '密码至少需要6个字符',
+  'changePassword.invalidData': '无效数据',
   
   // Home Page
   'home.title': '主页',
