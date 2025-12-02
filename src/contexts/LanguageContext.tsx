@@ -3371,12 +3371,21 @@ const zhTranslations: Record<string, string> = {
   
   // Chat Page
   'chat.title': '聊天',
+  'chat.search': '搜索对话',
+  'chat.company': '公司',
+  'chat.friends': '朋友',
+  'chat.groups': '群组',
+  'chat.online': '在线',
+  'chat.offline': '离线',
+  'chat.typeMessage': '输入消息',
+  'chat.welcomeGroup': '欢迎来到与朋友的群组聊天！',
+  'chat.addMembers': '添加成员',
+  'chat.memberList': '成员列表',
+  'chat.filesMedia': '文件和媒体',
   'chat.no_conversations': '暂无对话',
   'chat.new_message': '新消息',
   'chat.type_message': '输入消息...',
   'chat.send': '发送',
-  'chat.online': '在线',
-  'chat.offline': '离线',
   
   // Income Page
   'income.title': '收入',
