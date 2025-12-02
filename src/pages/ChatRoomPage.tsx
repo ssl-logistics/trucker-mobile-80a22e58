@@ -586,7 +586,7 @@ export default function ChatRoomPage() {
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-background border-t border-border">
+      <div className="sticky bottom-0 p-4 bg-background border-t border-border shadow-lg">
         <div className="flex items-center gap-2">
           <Input type="text" placeholder={t('chat.typeMessage')} value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSendMessage()} disabled={isUploading} className="flex-1 bg-gray/30 border  rounded-full" />
           <input ref={fileInputRef} type="file" onChange={handleFileSelect} className="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
