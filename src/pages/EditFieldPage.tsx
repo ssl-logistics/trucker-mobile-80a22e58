@@ -79,7 +79,11 @@ export default function EditFieldPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4">
         <div className="flex items-center justify-center relative">
-          <button onClick={() => navigate(-1)} className="absolute left-0">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="absolute left-0 p-2 -m-2 hover:opacity-70 active:opacity-50 transition-opacity"
+            aria-label="Go back"
+          >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-semibold">{t('editField.profile')}</h1>
