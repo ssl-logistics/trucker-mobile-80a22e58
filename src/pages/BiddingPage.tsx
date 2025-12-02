@@ -24,20 +24,31 @@ export default function BiddingPage() {
   const [activeTab, setActiveTab] = useState('bidding');
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
 
+  const getMonthLabel = (monthValue: string) => {
+    const monthNames = {
+      th: ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'],
+      en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+      cn: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+      ko: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+    };
+    const index = parseInt(monthValue);
+    return monthNames[language as keyof typeof monthNames]?.[index] || monthNames.en[index];
+  };
+
   const months = [
     { value: 'all', label: t('jobHistory.allMonths') },
-    { value: '0', label: language === 'th' ? 'มกราคม' : 'January' },
-    { value: '1', label: language === 'th' ? 'กุมภาพันธ์' : 'February' },
-    { value: '2', label: language === 'th' ? 'มีนาคม' : 'March' },
-    { value: '3', label: language === 'th' ? 'เมษายน' : 'April' },
-    { value: '4', label: language === 'th' ? 'พฤษภาคม' : 'May' },
-    { value: '5', label: language === 'th' ? 'มิถุนายน' : 'June' },
-    { value: '6', label: language === 'th' ? 'กรกฎาคม' : 'July' },
-    { value: '7', label: language === 'th' ? 'สิงหาคม' : 'August' },
-    { value: '8', label: language === 'th' ? 'กันยายน' : 'September' },
-    { value: '9', label: language === 'th' ? 'ตุลาคม' : 'October' },
-    { value: '10', label: language === 'th' ? 'พฤศจิกายน' : 'November' },
-    { value: '11', label: language === 'th' ? 'ธันวาคม' : 'December' },
+    { value: '0', label: getMonthLabel('0') },
+    { value: '1', label: getMonthLabel('1') },
+    { value: '2', label: getMonthLabel('2') },
+    { value: '3', label: getMonthLabel('3') },
+    { value: '4', label: getMonthLabel('4') },
+    { value: '5', label: getMonthLabel('5') },
+    { value: '6', label: getMonthLabel('6') },
+    { value: '7', label: getMonthLabel('7') },
+    { value: '8', label: getMonthLabel('8') },
+    { value: '9', label: getMonthLabel('9') },
+    { value: '10', label: getMonthLabel('10') },
+    { value: '11', label: getMonthLabel('11') },
   ];
 
   const filteredBids = selectedMonth === 'all' 
