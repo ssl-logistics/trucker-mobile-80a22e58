@@ -3360,6 +3360,21 @@ const zhTranslations: Record<string, string> = {
   'job.start': '开始',
   'job.complete': '完成',
   'job.order_code': '订单编号',
+  'job.domestic': '国内运输',
+  'job.international': '国际运输',
+  'job.inbound': '入境',
+  'job.outbound': '出境',
+  'job.equipment': '车辆设备',
+  'job.safety': '安全设备',
+  'job.accepted': '已接受此工作',
+  
+  // Confirm Job Dialog
+  'confirm.title': '确认接受工作',
+  'confirm.order_code': '订单编号',
+  'confirm.employer': '雇主',
+  'confirm.message': '如果您要接受此工作，请点击"确认"',
+  'confirm.cancel': '取消',
+  'confirm.confirm': '确认',
   
   // Job Status
   'status.pending': '待处理',
