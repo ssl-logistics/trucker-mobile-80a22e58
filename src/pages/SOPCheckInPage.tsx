@@ -211,7 +211,7 @@ export default function SOPCheckInPage() {
           <button onClick={() => navigate(`/job/${job.id}/pickup`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('sop.title')} Factory1</h1>
+          <h1 className="text-lg font-semibold">{t('sop.title')} {job.origin_location}</h1>
           <div className="w-6" />
         </div>
       </header>
