@@ -3937,6 +3937,14 @@ const zhTranslations: Record<string, string> = {
   'product.top_5': '前5名',
   'product.jobs': '工作',
   
+  // Edit Field Page
+  'editField.success': '成功',
+  'editField.updated': '数据已更新',
+  'editField.error': '错误',
+  'editField.updateError': '无法更新数据',
+  'editField.profile': '个人资料',
+  'editField.save': '保存',
+  
   // API Test Page
   'apiTest.title': '测试接收 API',
   'apiTest.description': '向边缘函数发送 JSON 数据以测试数据接收',
