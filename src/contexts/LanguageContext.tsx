@@ -3259,11 +3259,22 @@ const zhTranslations: Record<string, string> = {
   
   // Account Page
   'account.title': '账户',
-  'account.email': '电子邮件',
-  'account.phone': '电话号码',
-  'account.change_password': '更改密码',
-  'account.delete_account': '删除账户',
-  'account.delete_confirm': '确定要删除账户吗？此操作无法撤销。',
+  'account.username': '用户名',
+  'account.no_data': '无数据',
+  'account.password': '密码',
+  'account.delete': '删除账户',
+  'account.delete_confirm': '确定要删除账户吗？',
+  'account.delete_desc': '删除此账户将删除所有数据',
+  'account.delete_personal': '个人信息',
+  'account.delete_history': '使用历史',
+  'account.delete_transactions': '所有交易数据',
+  'account.delete_warning': '账户删除后无法恢复',
+  'account.deleting': '正在删除...',
+  'account.cancel': '取消',
+  'account.delete_success': '删除成功',
+  'account.delete_success_desc': '您的账户已被成功删除',
+  'account.delete_error': '发生错误',
+  'account.delete_error_desc': '无法删除账户，请重试',
   
   // Change Password Page
   'password.title': '更改密码',
