@@ -167,7 +167,10 @@ export default function ChatRoomPage() {
         sender_avatar: msg.sender_avatar,
         is_read: true,
         created_at: msg.created_at,
-        message_type: 'text',
+        message_type: msg.message_type || 'text',
+        file_url: msg.file_url,
+        file_name: msg.file_name,
+        file_size: msg.file_size,
         is_external: true
       })));
     }
@@ -225,7 +228,10 @@ export default function ChatRoomPage() {
           sender_avatar: extMsg.sender_avatar,
           is_read: true,
           created_at: extMsg.created_at,
-          message_type: 'text',
+          message_type: extMsg.message_type || 'text',
+          file_url: extMsg.file_url,
+          file_name: extMsg.file_name,
+          file_size: extMsg.file_size,
           is_external: true
         };
         
