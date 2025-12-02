@@ -3442,6 +3442,9 @@ const zhTranslations: Record<string, string> = {
   'jobHistory.october': '十月',
   'jobHistory.november': '十一月',
   'jobHistory.december': '十二月',
+  'jobHistory.statusCompleted': '已完成',
+  'jobHistory.statusDelivering': '运输中',
+  'jobHistory.statusAccepted': '已接受',
   
   // Validation Messages
   'validation.emailRequired': '请输入邮箱',
