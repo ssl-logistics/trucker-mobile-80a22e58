@@ -4017,13 +4017,19 @@ const zhTranslations: Record<string, string> = {
   
   // Contact Page
   'contact.title': '联系我们',
-  'contact.description': '有问题或反馈？请联系我们。',
-  'contact.email': '电子邮件',
+  'contact.welcome': '欢迎',
+  'contact.welcomeMessage': '我们很高兴为您服务并提供帮助。请通过以下渠道联系我们',
+  'contact.methods': '联系方式',
   'contact.phone': '电话',
+  'contact.line': 'LINE',
+  'contact.email': '电子邮件',
+  'contact.officeInfo': '办公室信息',
   'contact.address': '地址',
-  'contact.send_message': '发送消息',
-  'contact.message': '消息',
-  'contact.name': '姓名',
+  'contact.hours': '营业时间',
+  'contact.hoursValue': '周一至周五 8:00-17:00',
+  'contact.emergency': '紧急联系',
+  'contact.emergencyMessage': '营业时间外的紧急情况',
+  'contact.callNow': '立即致电',
   'contact.subject': '主题',
   
   // Terms Page
