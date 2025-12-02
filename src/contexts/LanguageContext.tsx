@@ -3453,6 +3453,52 @@ const zhTranslations: Record<string, string> = {
   'nav.job_history': '工作历史',
   'nav.notifications': '通知',
   
+  // Finance Page
+  'finance.title': '财务',
+  'finance.day': '天',
+  'finance.month': '月',
+  'finance.year': '年',
+  'finance.profit': '利润',
+  'finance.expenses': '支出',
+  'finance.total_income': '总收入',
+  'finance.compare_year': '对比年份：2023',
+  'finance.buddhist_era': '年',
+  'finance.income': '收入',
+  'finance.pending_payments': '待支付收入',
+  'finance.companies': '公司',
+  
+  // Shipping Page
+  'shipping.title': '运输',
+  'shipping.all_types': '所有运输类型',
+  'shipping.tractor': '牵引车',
+  'shipping.12wheels': '12轮',
+  'shipping.10wheels': '10轮',
+  'shipping.6wheels': '6轮',
+  'shipping.4wheels': '4轮',
+  'shipping.job_data': '运输工作数据',
+  'shipping.all_jobs': '所有工作',
+  'shipping.success': '成功',
+  'shipping.in_delivery': '运输中',
+  'shipping.cancelled': '已取消',
+  'shipping.by_region': '按地区运输',
+  'shipping.north': '北部',
+  'shipping.central': '中部',
+  'shipping.northeast': '东北部',
+  'shipping.east': '东部',
+  'shipping.west': '西部',
+  'shipping.south': '南部',
+  
+  // Customer Page
+  'customer.title': '客户',
+  'customer.top_5': '前5名',
+  'customer.jobs': '工作',
+  
+  // Product Page
+  'product.title': '产品',
+  'product.product_types': '产品类型',
+  'product.top_5': '前5名',
+  'product.jobs': '工作',
+  
   // Common
   'common.save': '保存',
   'common.cancel': '取消',
