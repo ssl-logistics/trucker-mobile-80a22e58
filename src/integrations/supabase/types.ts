@@ -235,8 +235,12 @@ export type Database = {
           created_at: string | null
           external_message_id: string
           external_project_id: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
           id: string
           message_text: string | null
+          message_type: string | null
           sender_avatar: string | null
           sender_mapping_id: string | null
           sender_name: string
@@ -246,8 +250,12 @@ export type Database = {
           created_at?: string | null
           external_message_id: string
           external_project_id?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           message_text?: string | null
+          message_type?: string | null
           sender_avatar?: string | null
           sender_mapping_id?: string | null
           sender_name: string
@@ -257,8 +265,12 @@ export type Database = {
           created_at?: string | null
           external_message_id?: string
           external_project_id?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           message_text?: string | null
+          message_type?: string | null
           sender_avatar?: string | null
           sender_mapping_id?: string | null
           sender_name?: string

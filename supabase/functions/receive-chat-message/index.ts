@@ -22,6 +22,10 @@ interface IncomingMessage {
     sender_avatar?: string;
     text: string;
     timestamp: string;
+    file_url?: string; // URL to attached file
+    file_name?: string; // Original file name
+    file_size?: number; // File size in bytes
+    message_type?: string; // 'text', 'image', 'file'
   };
   sender_info?: {
     local_user_id?: string;
@@ -343,7 +347,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert external_chat_message
+    // Insert external_chat_message with file support
     const { data: insertedMessage, error: messageError } = await supabase
       .from('external_chat_messages')
       .insert({
@@ -354,6 +358,10 @@ Deno.serve(async (req) => {
         message_text: payload.message.text,
         sender_name: payload.message.sender_name,
         sender_avatar: payload.message.sender_avatar,
+        file_url: payload.message.file_url,
+        file_name: payload.message.file_name,
+        file_size: payload.message.file_size,
+        message_type: payload.message.message_type || 'text',
         created_at: payload.message.timestamp,
       })
       .select()
