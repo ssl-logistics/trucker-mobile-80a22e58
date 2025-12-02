@@ -8,6 +8,7 @@ const corsHeaders = {
 interface IncomingMessage {
   chat_id: string;
   target_user_id?: string; // Target user ID in THIS project (recipient)
+  target_user_email?: string; // Target user EMAIL in THIS project (alternative to target_user_id)
   auto_create?: boolean;
   chat_info?: {
     name?: string;
@@ -61,27 +62,64 @@ Deno.serve(async (req) => {
       );
     }
 
-    // IMPORTANT: Validate target_user_id is required for new conversations
-    if (!payload.target_user_id) {
-      console.error('No target_user_id provided - this is required to create conversation');
+    // IMPORTANT: Validate either target_user_id OR target_user_email is provided
+    if (!payload.target_user_id && !payload.target_user_email) {
+      console.error('Neither target_user_id nor target_user_email provided');
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'target_user_id is required to identify the recipient' 
+          error: 'Either target_user_id or target_user_email is required to identify the recipient' 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Resolve target_user_id from email if needed
+    let targetUserId = payload.target_user_id;
+    
+    if (!targetUserId && payload.target_user_email) {
+      console.log('Resolving user_id from email:', payload.target_user_email);
+      
+      // Query auth.users to get user_id from email
+      const { data: authUser, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error('Error fetching users:', authError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Failed to resolve user from email' 
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const matchedUser = authUser.users.find(u => u.email === payload.target_user_email);
+      
+      if (!matchedUser) {
+        console.error('No user found with email:', payload.target_user_email);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: `No user found with email: ${payload.target_user_email}` 
+          }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      targetUserId = matchedUser.id;
+      console.log('Resolved user_id from email:', targetUserId);
     }
 
     // Validate that target_user_id exists in profiles table
     const { data: targetProfile, error: profileError } = await supabase
       .from('profiles')
       .select('id')
-      .eq('id', payload.target_user_id)
+      .eq('id', targetUserId)
       .maybeSingle();
 
     if (profileError || !targetProfile) {
-      console.error('Target user not found:', payload.target_user_id, profileError);
+      console.error('Target user not found:', targetUserId, profileError);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -91,7 +129,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Validated target user exists:', payload.target_user_id);
+    console.log('Validated target user exists:', targetUserId);
 
     // Check if conversation exists, create if not
     let conversationId = payload.chat_id;
@@ -145,13 +183,13 @@ Deno.serve(async (req) => {
         .from('conversation_participants')
         .insert({
           conversation_id: conversationId,
-          user_id: payload.target_user_id,
+          user_id: targetUserId,
         });
       
       if (participantError) {
         console.error('Failed to add target participant:', participantError);
       } else {
-        console.log('Added target participant:', payload.target_user_id);
+        console.log('Added target participant:', targetUserId);
       }
 
       // Add SENDER as participant if local_user_id is provided
@@ -178,11 +216,11 @@ Deno.serve(async (req) => {
         .from('conversation_participants')
         .select('id')
         .eq('conversation_id', existingConversation.id)
-        .eq('user_id', payload.target_user_id)
+        .eq('user_id', targetUserId)
         .maybeSingle();
       
       if (!existingParticipant) {
-        console.error('Target user is not a participant in this conversation:', payload.target_user_id);
+        console.error('Target user is not a participant in this conversation:', targetUserId);
         return new Response(
           JSON.stringify({ 
             success: false, 
@@ -192,7 +230,7 @@ Deno.serve(async (req) => {
         );
       }
       
-      console.log('Verified target user is participant:', payload.target_user_id);
+      console.log('Verified target user is participant:', targetUserId);
     }
 
     // Create or get external_chat_config
