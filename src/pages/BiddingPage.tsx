@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, MapPin, CircleDot } from 'lucide-react';
+import { ChevronLeft, Clock, MapPin, CircleDot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -112,7 +112,7 @@ export default function BiddingPage() {
       <header className="sticky top-0 z-50 bg-background border-b">
         <div className="flex items-center justify-center px-4 py-4 bg-[#DDEDFF] rounded-b-xl relative">
           <button onClick={() => navigate('/home')} className="absolute left-4">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('bidding.title')}</h1>
         </div>

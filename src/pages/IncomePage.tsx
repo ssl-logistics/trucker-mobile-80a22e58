@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Wallet, Receipt } from "lucide-react";
+import { ChevronLeft, Wallet, Receipt } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -126,7 +126,7 @@ export default function IncomePage() {
       <header className="bg-header text-header-foreground px-4 py-4 rounded-b-xl  shadow-lg">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate("/home")} className="absolute left-0 p-2 hover:bg-white/10 rounded-full">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-semibold">{t('income.title')}</h1>
         </div>

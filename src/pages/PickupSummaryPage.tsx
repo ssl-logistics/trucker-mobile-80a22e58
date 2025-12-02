@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { ChevronLeft, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -117,7 +117,7 @@ export default function PickupSummaryPage() {
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('pickupSummary.title')} {job.employer_name || ''}</h1>
           <div className="w-6" />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, CircleDot, MapPin } from "lucide-react";
+import { ChevronLeft, Clock, CircleDot, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -138,7 +138,7 @@ export default function JobHistoryPage() {
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="px-4 py-4 flex items-center justify-center bg-[#DDEDFF] rounded-b-xl relative">
           <button onClick={() => navigate("/home")} className="absolute left-4 p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <ArrowLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-semibold">{t('jobHistory.title')}</h1>
         </div>

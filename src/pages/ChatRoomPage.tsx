@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Phone, MoreVertical, Send, Paperclip, Smile, Check, CheckCheck, Settings } from 'lucide-react';
+import { ChevronLeft, Phone, MoreVertical, Send, Paperclip, Smile, Check, CheckCheck, Settings } from 'lucide-react';
 import { ManageGroupSheet } from '@/components/chat/ManageGroupSheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -448,7 +448,7 @@ export default function ChatRoomPage() {
       <div className="bg-[#153860] text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
           <button onClick={() => navigate('/chat')} className="p-1">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           
           <div className="relative">

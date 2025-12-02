@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Filter } from 'lucide-react';
+import { ChevronLeft, Filter } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { JobCard } from '@/components/home/JobCard';
 import { Input } from '@/components/ui/input';
@@ -197,7 +197,7 @@ export default function SearchPage() {
       <header className="bg-blue-50 px-4 py-4 border-b">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/home')} className="p-1">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold flex-1 text-center">{t('search.title')}</h1>
           <div className="w-6" />

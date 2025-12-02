@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Navigation, MapPin } from 'lucide-react';
+import { ChevronLeft, Navigation, MapPin } from 'lucide-react';
 import expenseViewIcon from '@/assets/expense-view-icon.svg';
 import expenseAddIcon from '@/assets/expense-add-icon.svg';
 import reportProblemIcon from '@/assets/report-problem-icon.svg';
@@ -120,7 +120,7 @@ export default function ContainerCheckInPage() {
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate(`/job/${jobId}`)} className="absolute left-0 p-1">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold text-center">{t('container.title')} ท่าเรือแหลมฉบัง, ประเทศไทย</h1>
         </div>

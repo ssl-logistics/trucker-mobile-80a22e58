@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Mail, MapPin, MessageCircle, Clock } from 'lucide-react';
+import { ChevronLeft, Phone, Mail, MapPin, MessageCircle, Clock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -48,7 +48,7 @@ export default function ContactPage() {
           className="p-2 hover:bg-header-foreground/10 rounded-lg transition-colors active:scale-95"
           aria-label="Back to settings"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-xl font-semibold">{t('contact.title')}</h1>
       </header>

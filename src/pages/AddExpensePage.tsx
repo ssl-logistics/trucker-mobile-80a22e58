@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Camera, Pencil, Plus } from "lucide-react";
+import { ChevronLeft, Camera, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -204,7 +204,7 @@ const AddExpensePage = () => {
             onClick={() => navigate(returnPath)}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-semibold">{t('expense.title')}</h1>
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Truck, MapPin, Package, CheckCircle2, Fuel } from 'lucide-react';
+import { ChevronLeft, Truck, MapPin, Package, CheckCircle2, Fuel } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -134,7 +134,7 @@ export default function JobRouteExpensesPage() {
       <header className="bg-header text-header-foreground px-4 py-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center justify-center relative mb-4">
           <button onClick={() => navigate('/income')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-semibold">{job.destination_company_name || job.employer_name}</h1>
         </div>

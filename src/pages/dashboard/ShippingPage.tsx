@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp } from 'lucide-react';
+import { ChevronLeft, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -124,7 +124,7 @@ export default function ShippingPage() {
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-10 shadow-md">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate('/dashboard')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full transition-colors">
-            <ArrowLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-bold">{t('shipping.title')}</h1>
         </div>
