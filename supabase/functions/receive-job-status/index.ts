@@ -11,6 +11,8 @@ interface JobStatusPayload {
   status: string;
   driver_name: string;
   driver_phone: string;
+  destination_id?: string;
+  sequence_number?: number;
 }
 
 serve(async (req) => {
@@ -50,6 +52,12 @@ serve(async (req) => {
     console.log('- Status:', payload.status);
     console.log('- Driver Name:', payload.driver_name);
     console.log('- Driver Phone:', payload.driver_phone);
+    if (payload.destination_id) {
+      console.log('- Destination ID:', payload.destination_id);
+    }
+    if (payload.sequence_number !== undefined) {
+      console.log('- Sequence Number:', payload.sequence_number);
+    }
 
     // Forward to external system
     const externalUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/receive-job-status';

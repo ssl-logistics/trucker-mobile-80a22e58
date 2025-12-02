@@ -161,7 +161,8 @@ export default function SOPCheckInPage() {
         jobId: job.id,
         orderCode: job.order_code,
         userId: user.id,
-        status: 'pickup_sop_completed'
+        status: 'pickup_sop_completed',
+        sequenceNumber: 2 // Pickup point
       });
 
       toast({
