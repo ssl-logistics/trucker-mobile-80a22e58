@@ -29,6 +29,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface ExpenseItem {
   id: string;
   type: string;
+  customType: string;
   amount: string;
   receiptPhoto: File | null;
   receiptPreview: string | null;
@@ -47,9 +48,10 @@ const AddExpensePage = () => {
     { value: "toll", label: t('expense.tollFee') },
     { value: "port", label: t('expense.portFee') },
     { value: "parking", label: t('expense.parkingFee') },
+    { value: "other", label: t('expense.other') || 'อื่นๆ' },
   ];
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
-    { id: "1", type: "", amount: "", receiptPhoto: null, receiptPreview: null },
+    { id: "1", type: "", customType: "", amount: "", receiptPhoto: null, receiptPreview: null },
   ]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +60,7 @@ const AddExpensePage = () => {
     const newExpense: ExpenseItem = {
       id: String(expenses.length + 1),
       type: "",
+      customType: "",
       amount: "",
       receiptPhoto: null,
       receiptPreview: null,
@@ -96,6 +99,15 @@ const AddExpensePage = () => {
         toast({
           title: t('expense.fillAllFields'),
           description: t('expense.fillAllFieldsDesc'),
+          variant: "destructive",
+        });
+        return false;
+      }
+      // Validate custom type if "other" is selected
+      if (expense.type === "other" && !expense.customType.trim()) {
+        toast({
+          title: t('expense.fillAllFields'),
+          description: t('expense.enterCustomType') || 'กรุณาระบุประเภทค่าใช้จ่าย',
           variant: "destructive",
         });
         return false;
@@ -148,12 +160,15 @@ const AddExpensePage = () => {
         console.log('Public URL:', publicUrl);
         
         // Save expense to database
+        // Use custom type if "other" is selected
+        const expenseType = expense.type === "other" ? expense.customType : expense.type;
+        
         const { error: insertError } = await supabase
           .from('expenses')
           .insert({
             job_id: jobId,
             driver_id: user.id,
-            expense_type: expense.type,
+            expense_type: expenseType,
             amount: parseFloat(expense.amount),
             receipt_photo_url: publicUrl
           });
@@ -223,7 +238,13 @@ const AddExpensePage = () => {
               </Label>
               <Select
                 value={expense.type}
-                onValueChange={(value) => handleExpenseChange(expense.id, "type", value)}
+                onValueChange={(value) => {
+                  handleExpenseChange(expense.id, "type", value);
+                  // Clear custom type if not "other"
+                  if (value !== "other") {
+                    handleExpenseChange(expense.id, "customType", "");
+                  }
+                }}
               >
                 <SelectTrigger id={`type-${expense.id}`}>
                   <SelectValue placeholder={t('expense.type')} />
@@ -237,6 +258,22 @@ const AddExpensePage = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Custom Type Input - shown when "other" is selected */}
+            {expense.type === "other" && (
+              <div className="space-y-2">
+                <Label htmlFor={`custom-type-${expense.id}`}>
+                  {t('expense.customTypeName') || 'ระบุประเภทค่าใช้จ่าย'} <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`custom-type-${expense.id}`}
+                  type="text"
+                  placeholder={t('expense.customTypePlaceholder') || 'เช่น ค่าน้ำมัน, ค่าอาหาร'}
+                  value={expense.customType}
+                  onChange={(e) => handleExpenseChange(expense.id, "customType", e.target.value)}
+                />
+              </div>
+            )}
 
             {/* Amount */}
             <div className="space-y-2">
