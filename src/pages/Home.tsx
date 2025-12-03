@@ -228,7 +228,7 @@ export default function Home() {
 
     toast({
       title: t('home.accept_success'),
-      description: `${t('home.accept_success_desc')} ${selectedJob.order_code} แล้ว`
+      description: `${t('home.accept_success_desc')} ${selectedJob.order_code}`
     });
     setConfirmDialogOpen(false);
     loadJobs();
