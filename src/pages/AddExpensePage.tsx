@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, Pencil, Plus } from "lucide-react";
+import { ChevronLeft, Camera, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -58,7 +58,7 @@ const AddExpensePage = () => {
 
   const handleAddExpense = () => {
     const newExpense: ExpenseItem = {
-      id: String(expenses.length + 1),
+      id: String(Date.now()),
       type: "",
       customType: "",
       amount: "",
@@ -66,6 +66,12 @@ const AddExpensePage = () => {
       receiptPreview: null,
     };
     setExpenses([...expenses, newExpense]);
+  };
+
+  const handleRemoveExpense = (id: string) => {
+    if (expenses.length > 1) {
+      setExpenses(expenses.filter(exp => exp.id !== id));
+    }
   };
 
   const handleExpenseChange = (id: string, field: keyof ExpenseItem, value: any) => {
@@ -229,7 +235,19 @@ const AddExpensePage = () => {
       <div className="px-4 py-4 space-y-6">
         {expenses.map((expense, index) => (
           <div key={expense.id} className="space-y-4">
-            <h3 className="font-medium">{t('expense.expense')} {index + 1}</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium">{t('expense.expense')} {index + 1}</h3>
+              {expenses.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveExpense(expense.id)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                  aria-label={t('expense.delete') || 'ลบ'}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
 
             {/* Expense Type */}
             <div className="space-y-2">
