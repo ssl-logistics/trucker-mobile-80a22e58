@@ -444,6 +444,77 @@ export type Database = {
           },
         ]
       }
+      job_destinations: {
+        Row: {
+          address: string | null
+          checked_in_at: string | null
+          company_name: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          delivery_date: string | null
+          delivery_time: string | null
+          district: string | null
+          id: string
+          job_id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          province: string | null
+          sequence_number: number
+          sop_completed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          checked_in_at?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          delivery_date?: string | null
+          delivery_time?: string | null
+          district?: string | null
+          id?: string
+          job_id: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          province?: string | null
+          sequence_number?: number
+          sop_completed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          checked_in_at?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          delivery_date?: string | null
+          delivery_time?: string | null
+          district?: string | null
+          id?: string
+          job_id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          province?: string | null
+          sequence_number?: number
+          sop_completed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_destinations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           assigned_role: Database["public"]["Enums"]["app_role"] | null
