@@ -898,6 +898,10 @@ const thTranslations: Record<string, string> = {
   'expense.tollFee': 'ค่าทางด่วน',
   'expense.portFee': 'ค่าเข้าท่าเรือ',
   'expense.parkingFee': 'ค่าที่จอด',
+  'expense.other': 'อื่นๆ',
+  'expense.customTypeName': 'ระบุประเภทค่าใช้จ่าย',
+  'expense.customTypePlaceholder': 'เช่น ค่าน้ำมัน, ค่าอาหาร',
+  'expense.enterCustomType': 'กรุณาระบุประเภทค่าใช้จ่าย',
   
   // Delivery Detail Page - Additional Keys
   'delivery.deliveryTo': 'ส่งของถึง',
@@ -2104,6 +2108,10 @@ const enTranslations: Record<string, string> = {
   'expense.tollFee': 'Toll Fee',
   'expense.portFee': 'Port Fee',
   'expense.parkingFee': 'Parking Fee',
+  'expense.other': 'Other',
+  'expense.customTypeName': 'Specify expense type',
+  'expense.customTypePlaceholder': 'e.g. Fuel, Food',
+  'expense.enterCustomType': 'Please specify expense type',
   
   // Change Password Page
   'changePassword.title': 'Change Password',
@@ -2695,6 +2703,10 @@ const koTranslations: Record<string, string> = {
   'expense.tollFee': '통행료',
   'expense.portFee': '항만 요금',
   'expense.parkingFee': '주차 요금',
+  'expense.other': '기타',
+  'expense.customTypeName': '비용 유형 지정',
+  'expense.customTypePlaceholder': '예: 연료, 음식',
+  'expense.enterCustomType': '비용 유형을 지정해주세요',
   
   // Additional SOP translations
   'sop.uploadPhoto': '사진 업로드',
@@ -3835,6 +3847,10 @@ const zhTranslations: Record<string, string> = {
   'expense.tollFee': '过路费',
   'expense.portFee': '港口费',
   'expense.parkingFee': '停车费',
+  'expense.other': '其他',
+  'expense.customTypeName': '指定费用类型',
+  'expense.customTypePlaceholder': '例如：油费、餐费',
+  'expense.enterCustomType': '请指定费用类型',
   
   // Job Route and Expenses Page
   'jobRoute.route': '路线',
