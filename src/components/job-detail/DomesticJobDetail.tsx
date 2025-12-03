@@ -239,9 +239,9 @@ export default function DomesticJobDetail({
                 marginBottom: index < (destinations.length > 0 ? destinations.length - 1 : 0) ? '12px' : '0'
               }}>
                   <div className="absolute top-0">
-                    {jobApplication?.delivery_sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                    {dest.sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
                         <CheckCircle className="w-4 h-4 text-white" />
-                      </div> : jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
+                      </div> : dest.checked_in_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
                   </div>
                 </div>
               ))}
