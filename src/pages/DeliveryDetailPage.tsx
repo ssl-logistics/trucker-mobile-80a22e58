@@ -576,7 +576,7 @@ export default function DeliveryDetailPage() {
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
             onClick={() => navigate(`/job/${jobId}/delivery-sop/${destinationId}`)}
           >
-            {t('delivery.confirmSOP') || 'ยืนยัน SOP'}
+            {t('deliverySop.confirmSOP')}
           </Button>
         </div>
       )}
