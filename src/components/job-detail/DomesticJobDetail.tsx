@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { formatDate } from '@/lib/dateUtils';
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -37,6 +38,7 @@ interface JobDetail {
   destination_time: string | null;
   destination_date: string | null;
 }
+
 interface JobApplication {
   checked_in_at: string | null;
   sop_completed_at: string | null;
@@ -45,12 +47,32 @@ interface JobApplication {
   delivery_sop_completed_at: string | null;
   status: string;
 }
+
+interface JobDestination {
+  id: string;
+  sequence_number: number;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  province: string | null;
+  district: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  delivery_date: string | null;
+  delivery_time: string | null;
+  notes: string | null;
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+}
+
 interface DomesticJobDetailProps {
   job: JobDetail;
   jobApplication: JobApplication | null;
   userId: string;
   onUpdate: () => void;
 }
+
 export default function DomesticJobDetail({
   job,
   jobApplication,
@@ -60,21 +82,41 @@ export default function DomesticJobDetail({
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const card1Ref = useRef<HTMLDivElement>(null);
-  const card2Ref = useRef<HTMLDivElement>(null);
   const [cardHeights, setCardHeights] = useState({
     card1: 0,
     card2: 0
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  const [destinations, setDestinations] = useState<JobDestination[]>([]);
+
   useEffect(() => {
     // Calculate card heights for step positioning
-    if (card1Ref.current && card2Ref.current) {
+    if (card1Ref.current) {
       setCardHeights({
         card1: card1Ref.current.offsetHeight,
-        card2: card2Ref.current.offsetHeight
+        card2: 200
       });
     }
-  }, [jobApplication]);
+  }, [jobApplication, destinations]);
+
+  // Fetch destinations from job_destinations table
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      const { data, error } = await supabase
+        .from('job_destinations')
+        .select('*')
+        .eq('job_id', job.id)
+        .order('sequence_number', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching destinations:', error);
+      } else if (data && data.length > 0) {
+        setDestinations(data);
+      }
+    };
+
+    fetchDestinations();
+  }, [job.id]);
   const handleStartJob = async () => {
     const {
       error
@@ -137,7 +179,7 @@ export default function DomesticJobDetail({
                 </svg>
               </div>
             </div>
-            <div className="text-base text-gray-700">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">2</span></div>
+            <div className="text-base text-gray-700">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{destinations.length > 0 ? destinations.length + 1 : 2}</span></div>
           </Card>
         </div>
 
@@ -174,10 +216,9 @@ export default function DomesticJobDetail({
             paddingTop: '8px'
           }}>
               {/* Continuous Vertical Line */}
-              <div className="absolute left-1/2 -translate-x-1/2 w-0.5" style={{
+              <div className="absolute left-1/2 -translate-x-1/2 w-0.5 bg-gray-300" style={{
               top: '8px',
-              height: `calc(100% - 16px)`,
-              background: jobApplication?.delivery_sop_completed_at ? '#ef4444' : jobApplication?.sop_completed_at ? `linear-gradient(to bottom, #ef4444 0%, #ef4444 ${cardHeights.card1 > 0 ? cardHeights.card1 / 2 / (cardHeights.card1 + 12 + cardHeights.card2) * 100 : 50}%, #d1d5db ${cardHeights.card1 > 0 ? cardHeights.card1 / 2 / (cardHeights.card1 + 12 + cardHeights.card2) * 100 : 50}%, #d1d5db 100%)` : '#d1d5db'
+              height: `calc(100% - 16px)`
             }} />
               
               {/* Step 1 Circle - Pickup Point */}
@@ -191,16 +232,19 @@ export default function DomesticJobDetail({
                 </div>
               </div>
 
-              {/* Step 2 Circle - Delivery Point */}
-              <div className="relative flex justify-center" style={{
-              height: `${cardHeights.card2 || 200}px`
-            }}>
-                <div className="absolute top-0">
-                  {jobApplication?.delivery_sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    </div> : jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
+              {/* Delivery Point Circles */}
+              {(destinations.length > 0 ? destinations : [{ id: 'fallback', sequence_number: 1 }]).map((dest, index) => (
+                <div key={dest.id} className="relative flex justify-center" style={{
+                height: '200px',
+                marginBottom: index < (destinations.length > 0 ? destinations.length - 1 : 0) ? '12px' : '0'
+              }}>
+                  <div className="absolute top-0">
+                    {jobApplication?.delivery_sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                        <CheckCircle className="w-4 h-4 text-white" />
+                      </div> : jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
 
             {/* Right Content Column */}
@@ -267,59 +311,113 @@ export default function DomesticJobDetail({
                 </div>
               </Card>
 
-              {/* Delivery Point Card */}
-              <Card ref={card2Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
-                <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm">{t('jobDetail.deliveryPoint')}</h3>
-                      {job.destination_company_name && (
-                        <span className="text-sm font-medium text-muted-foreground">: {job.destination_company_name}</span>
-                      )}
-                    </div>
-                    {jobApplication?.job_started_at && <span className={`text-xs font-medium ${jobApplication?.delivery_sop_completed_at ? 'text-green-600' : 'text-orange-500'}`}>
-                        • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
-                      </span>}
-                  </div>
+              {/* Delivery Point Cards - Multiple destinations */}
+              {destinations.length > 0 ? (
+                destinations.map((dest, index) => (
+                  <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${dest.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+                    <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-sm">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
+                          {dest.company_name && (
+                            <span className="text-sm font-medium text-muted-foreground">: {dest.company_name}</span>
+                          )}
+                        </div>
+                        {jobApplication?.job_started_at && <span className={`text-xs font-medium ${dest.sop_completed_at ? 'text-green-600' : 'text-orange-500'}`}>
+                            • {dest.sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
+                          </span>}
+                      </div>
 
-                  <div className="space-y-1 text-sm mb-3">
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                      <span>: {job.destination_contact_person || '-'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
-                      <span>: {job.destination_location || '-'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                      <span>: {job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
-                      <span>: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                      <span>: {job.destination_remarks || '-'}</span>
-                    </div>
-                  </div>
+                      <div className="space-y-1 text-sm mb-3">
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
+                          <span>: {dest.contact_name || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
+                          <span>: {dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
+                          <span>: {dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
+                          <span>: {dest.notes || '-'}</span>
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
-                      <Phone className="w-4 h-4" />
-                      {t('jobDetail.call')}
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
-                      <Navigation className="w-4 h-4" />
-                      {t('jobDetail.route')}
-                    </Button>
-                    <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.job_started_at}>
-                      {jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
-                    </Button>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
+                          <Phone className="w-4 h-4" />
+                          {t('jobDetail.call')}
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
+                          <Navigation className="w-4 h-4" />
+                          {t('jobDetail.route')}
+                        </Button>
+                        <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery/${dest.id}`)} disabled={!jobApplication?.job_started_at}>
+                          {dest.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                // Fallback to original single destination from jobs table
+                <Card className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+                  <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-sm">{t('jobDetail.deliveryPoint')}</h3>
+                        {job.destination_company_name && (
+                          <span className="text-sm font-medium text-muted-foreground">: {job.destination_company_name}</span>
+                        )}
+                      </div>
+                      {jobApplication?.job_started_at && <span className={`text-xs font-medium ${jobApplication?.delivery_sop_completed_at ? 'text-green-600' : 'text-orange-500'}`}>
+                          • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
+                        </span>}
+                    </div>
+
+                    <div className="space-y-1 text-sm mb-3">
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
+                        <span>: {job.destination_contact_person || '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
+                        <span>: {job.destination_location || '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
+                        <span>: {job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
+                        <span>: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
+                        <span>: {job.destination_remarks || '-'}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
+                        <Phone className="w-4 h-4" />
+                        {t('jobDetail.call')}
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
+                        <Navigation className="w-4 h-4" />
+                        {t('jobDetail.route')}
+                      </Button>
+                      <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.job_started_at}>
+                        {jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              )}
             </div>
           </div>
         </div>
