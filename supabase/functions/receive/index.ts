@@ -246,6 +246,52 @@ serve(async (req) => {
     }
 
     console.log('Successfully upserted job:', upsertedJob.id);
+
+    // Handle multiple destinations if provided
+    let destinationsInserted = 0;
+    if (data.destinations && Array.isArray(data.destinations) && data.destinations.length > 0) {
+      console.log(`Processing ${data.destinations.length} destinations...`);
+      
+      // First, delete existing destinations for this job (for upsert behavior)
+      const { error: deleteError } = await supabase
+        .from('job_destinations')
+        .delete()
+        .eq('job_id', upsertedJob.id);
+      
+      if (deleteError) {
+        console.error('Error deleting old destinations:', deleteError);
+      }
+      
+      // Insert new destinations
+      const destinationsData = data.destinations.map((dest: any) => ({
+        job_id: upsertedJob.id,
+        sequence_number: dest.sequence_number || 1,
+        company_name: dest.company_name || null,
+        contact_name: dest.contact_name || null,
+        contact_phone: dest.contact_phone || null,
+        address: dest.address || null,
+        province: dest.province || null,
+        district: dest.district || null,
+        latitude: dest.latitude || null,
+        longitude: dest.longitude || null,
+        delivery_date: dest.delivery_date || null,
+        delivery_time: dest.delivery_time || null,
+        notes: dest.notes || null,
+      }));
+      
+      const { data: insertedDestinations, error: destError } = await supabase
+        .from('job_destinations')
+        .insert(destinationsData)
+        .select();
+      
+      if (destError) {
+        console.error('Error inserting destinations:', destError);
+      } else {
+        destinationsInserted = insertedDestinations?.length || 0;
+        console.log(`Successfully inserted ${destinationsInserted} destinations`);
+      }
+    }
+    
     console.log('================================');
 
     // Return success response
@@ -255,6 +301,7 @@ serve(async (req) => {
         message: 'Job created successfully',
         job_id: upsertedJob.id,
         order_code: upsertedJob.order_code,
+        destinations_count: destinationsInserted,
         timestamp: new Date().toISOString()
       }),
       {
