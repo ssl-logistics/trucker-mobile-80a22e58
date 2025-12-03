@@ -38,7 +38,7 @@ const ReviewStep = ({ data, onBack, onSubmit, onEditStep }: ReviewStepProps) => 
           <div className="flex justify-center mb-6">
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
               {data.profilePhoto ? (
-                <img src={URL.createObjectURL(data.profilePhoto)} alt="รูปโปรไฟล์" className="w-full h-full object-cover" />
+                <img src={URL.createObjectURL(data.profilePhoto)} alt={t('alt.profilePhoto')} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-2xl">👤</span>
               )}

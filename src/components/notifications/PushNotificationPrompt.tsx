@@ -75,15 +75,15 @@ export const PushNotificationPrompt = () => {
         await savePushSubscription(subscription);
         
         toast({
-          title: "เปิดการแจ้งเตือนสำเร็จ",
-          description: "คุณจะได้รับการแจ้งเตือนจากระบบแล้ว",
+          title: t('toast.notificationEnabled'),
+          description: t('toast.notificationEnabledDesc'),
         });
         
         setShowPrompt(false);
       } else if (permission === 'denied') {
         toast({
-          title: "ไม่สามารถเปิดการแจ้งเตือนได้",
-          description: "กรุณาอนุญาตการแจ้งเตือนในการตั้งค่าเบราว์เซอร์",
+          title: t('toast.cannotEnableNotification'),
+          description: t('toast.allowNotificationInBrowser'),
           variant: "destructive",
         });
       }
@@ -93,8 +93,8 @@ export const PushNotificationPrompt = () => {
     } catch (error) {
       console.error('Failed to enable push notifications:', error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถเปิดการแจ้งเตือนได้ กรุณาลองใหม่อีกครั้ง",
+        title: t('toast.error'),
+        description: t('toast.cannotChangeSettings'),
         variant: "destructive",
       });
     } finally {

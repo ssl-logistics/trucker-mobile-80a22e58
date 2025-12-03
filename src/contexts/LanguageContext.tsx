@@ -1112,6 +1112,26 @@ const thTranslations: Record<string, string> = {
   'toast.notificationDisabledDesc': 'คุณจะไม่ได้รับการแจ้งเตือนอีกต่อไป',
   'toast.error': 'เกิดข้อผิดพลาด',
   'toast.cannotChangeSettings': 'ไม่สามารถเปลี่ยนการตั้งค่าได้ กรุณาลองใหม่อีกครั้ง',
+  
+  // Map Component
+  'map.yourLocation': 'ตำแหน่งของคุณ',
+  
+  // Province Names
+  'province.bangkok': 'กรุงเทพมหานคร',
+  'province.nonthaburi': 'นนทบุรี',
+  'province.samutprakan': 'สมุทรปราการ',
+  
+  // Vehicle Types
+  'vehicleType.10wheel': '10 ล้อ',
+  'vehicleType.6wheel': '6 ล้อ',
+  
+  // Fuel Types
+  'fuelType.diesel': 'ดีเซล',
+  'fuelType.gasoline': 'เบนซิน',
+  
+  // Alt Texts
+  'alt.profilePhoto': 'รูปโปรไฟล์',
+  'alt.vehicleRegistration': 'ทะเบียนรถ',
 };
 
 // English translations
@@ -2185,6 +2205,26 @@ const enTranslations: Record<string, string> = {
   'toast.notificationDisabledDesc': 'You will no longer receive notifications',
   'toast.error': 'Error',
   'toast.cannotChangeSettings': 'Cannot change settings. Please try again',
+  
+  // Map Component
+  'map.yourLocation': 'Your Location',
+  
+  // Province Names
+  'province.bangkok': 'Bangkok',
+  'province.nonthaburi': 'Nonthaburi',
+  'province.samutprakan': 'Samut Prakan',
+  
+  // Vehicle Types
+  'vehicleType.10wheel': '10 Wheels',
+  'vehicleType.6wheel': '6 Wheels',
+  
+  // Fuel Types
+  'fuelType.diesel': 'Diesel',
+  'fuelType.gasoline': 'Gasoline',
+  
+  // Alt Texts
+  'alt.profilePhoto': 'Profile Photo',
+  'alt.vehicleRegistration': 'Vehicle Registration',
 };
 
 // Korean translations
@@ -3326,6 +3366,26 @@ const koTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': '전화번호 확인됨',
   'forgotPassword.phoneVerifiedDesc': '새 비밀번호를 생성해 주세요',
   'forgotPassword.error': '오류가 발생했습니다. 다시 시도해 주세요.',
+  
+  // Map Component
+  'map.yourLocation': '내 위치',
+  
+  // Province Names
+  'province.bangkok': '방콕',
+  'province.nonthaburi': '논타부리',
+  'province.samutprakan': '사뭇프라칸',
+  
+  // Vehicle Types
+  'vehicleType.10wheel': '10륜',
+  'vehicleType.6wheel': '6륜',
+  
+  // Fuel Types
+  'fuelType.diesel': '디젤',
+  'fuelType.gasoline': '휘발유',
+  
+  // Alt Texts
+  'alt.profilePhoto': '프로필 사진',
+  'alt.vehicleRegistration': '차량 등록',
 };
 
 // Chinese translations
@@ -4434,4 +4494,24 @@ const zhTranslations: Record<string, string> = {
   'toast.notificationDisabledDesc': '您将不再收到通知',
   'toast.error': '错误',
   'toast.cannotChangeSettings': '无法更改设置，请重试',
+  
+  // Map Component
+  'map.yourLocation': '您的位置',
+  
+  // Province Names
+  'province.bangkok': '曼谷',
+  'province.nonthaburi': '暖武里',
+  'province.samutprakan': '北榄',
+  
+  // Vehicle Types
+  'vehicleType.10wheel': '10轮',
+  'vehicleType.6wheel': '6轮',
+  
+  // Fuel Types
+  'fuelType.diesel': '柴油',
+  'fuelType.gasoline': '汽油',
+  
+  // Alt Texts
+  'alt.profilePhoto': '个人照片',
+  'alt.vehicleRegistration': '车辆登记',
 };

@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import 'leaflet-routing-machine';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MapProps {
   latitude: number;
@@ -17,6 +18,7 @@ const Map: React.FC<MapProps> = ({ latitude, longitude, markerLabel, showRoute =
   const routingControl = useRef<any>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const { t } = useLanguage();
 
   // Initialize map first
   useEffect(() => {
@@ -94,7 +96,7 @@ const Map: React.FC<MapProps> = ({ latitude, longitude, markerLabel, showRoute =
 
     L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
       .addTo(map.current)
-      .bindPopup('<div class="p-2 font-medium">ตำแหน่งของคุณ</div>');
+      .bindPopup(`<div class="p-2 font-medium">${t('map.yourLocation')}</div>`);
 
     try {
       routingControl.current = (L as any).Routing.control({
