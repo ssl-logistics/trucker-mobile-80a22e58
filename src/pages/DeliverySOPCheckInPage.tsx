@@ -37,12 +37,23 @@ interface JobDetail {
   start_time: string;
 }
 
+interface JobDestination {
+  id: string;
+  job_id: string;
+  sequence_number: number;
+  company_name: string | null;
+  contact_name: string | null;
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+}
+
 export default function DeliverySOPCheckInPage() {
   const navigate = useNavigate();
-  const { jobId } = useParams();
+  const { jobId, destinationId } = useParams();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
+  const [destination, setDestination] = useState<JobDestination | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
@@ -53,7 +64,7 @@ export default function DeliverySOPCheckInPage() {
 
   useEffect(() => {
     loadJobDetail();
-  }, [jobId, user]);
+  }, [jobId, destinationId, user]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
@@ -72,9 +83,32 @@ export default function DeliverySOPCheckInPage() {
         variant: 'destructive'
       });
       navigate('/current-jobs');
-    } else {
-      setJob(data);
+      return;
     }
+    
+    setJob(data);
+
+    // If destinationId is provided, load destination info
+    if (destinationId) {
+      const { data: destData, error: destError } = await supabase
+        .from('job_destinations')
+        .select('id, job_id, sequence_number, company_name, contact_name, checked_in_at, sop_completed_at')
+        .eq('id', destinationId)
+        .single();
+
+      if (destError) {
+        toast({
+          title: t('deliverySop.error'),
+          description: t('deliverySop.loadError'),
+          variant: 'destructive'
+        });
+        navigate(`/job/${jobId}`);
+        return;
+      }
+      
+      setDestination(destData);
+    }
+
     setLoading(false);
   };
 
@@ -134,7 +168,7 @@ export default function DeliverySOPCheckInPage() {
         .from('vehicle-photos')
         .getPublicUrl(fileName);
 
-      // Save SOP photo record (reusing pickup_sop_photos table or could create delivery_sop_photos)
+      // Save SOP photo record
       const { error: insertError } = await supabase
         .from('pickup_sop_photos')
         .insert({
@@ -145,26 +179,48 @@ export default function DeliverySOPCheckInPage() {
 
       if (insertError) throw insertError;
 
-      // Update job application status
-      const { error: updateError } = await supabase
-        .from('job_applications')
-        .update({ 
-          delivery_sop_completed_at: new Date().toISOString(),
-          status: 'delivery_sop_completed'
-        })
-        .eq('job_id', job.id)
-        .eq('driver_id', user.id);
+      // If we have a specific destination, update job_destinations table
+      if (destination && destinationId) {
+        const { error: updateError } = await supabase
+          .from('job_destinations')
+          .update({ 
+            sop_completed_at: new Date().toISOString()
+          })
+          .eq('id', destinationId);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
 
-      // Send job status update
-      await sendJobStatus({
-        jobId: job.id,
-        orderCode: job.order_code,
-        userId: user.id,
-        status: 'delivery_sop_completed',
-        sequenceNumber: 3 // Delivery point
-      });
+        // Send job status update
+        await sendJobStatus({
+          jobId: job.id,
+          orderCode: job.order_code,
+          userId: user.id,
+          status: 'delivery_sop_completed',
+          sequenceNumber: destination.sequence_number,
+          destinationId: destinationId
+        });
+      } else {
+        // Fallback to old behavior for legacy routes
+        const { error: updateError } = await supabase
+          .from('job_applications')
+          .update({ 
+            delivery_sop_completed_at: new Date().toISOString(),
+            status: 'delivery_sop_completed'
+          })
+          .eq('job_id', job.id)
+          .eq('driver_id', user.id);
+
+        if (updateError) throw updateError;
+
+        // Send job status update
+        await sendJobStatus({
+          jobId: job.id,
+          orderCode: job.order_code,
+          userId: user.id,
+          status: 'delivery_sop_completed',
+          sequenceNumber: 3
+        });
+      }
 
       toast({
         title: 'ยืนยัน SOP สำเร็จ',
@@ -184,6 +240,9 @@ export default function DeliverySOPCheckInPage() {
       setShowConfirmDialog(false);
     }
   };
+
+  // Display values
+  const displayCompanyName = destination?.company_name || job?.destination_company_name || '';
 
   const formatDate = (date: string) => {
     const d = new Date(date);
@@ -212,7 +271,7 @@ export default function DeliverySOPCheckInPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('deliverySop.title')} {job.destination_company_name || ''}</h1>
+          <h1 className="text-lg font-semibold">{t('deliverySop.title')} {displayCompanyName}</h1>
           <div className="w-6" />
         </div>
       </header>
