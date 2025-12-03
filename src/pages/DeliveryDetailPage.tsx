@@ -45,24 +45,6 @@ interface JobDetail {
   destination_company_name?: string | null;
 }
 
-interface JobDestination {
-  id: string;
-  sequence_number: number;
-  company_name: string | null;
-  contact_name: string | null;
-  contact_phone: string | null;
-  address: string | null;
-  province: string | null;
-  district: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  delivery_date: string | null;
-  delivery_time: string | null;
-  notes: string | null;
-  checked_in_at: string | null;
-  sop_completed_at: string | null;
-}
-
 interface JobApplication {
   delivery_checked_in_at: string | null;
   payment_completed_at: string | null;
@@ -73,11 +55,10 @@ interface JobApplication {
 
 export default function DeliveryDetailPage() {
   const navigate = useNavigate();
-  const { jobId, destinationId } = useParams();
+  const { jobId } = useParams();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
-  const [destination, setDestination] = useState<JobDestination | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -90,7 +71,7 @@ export default function DeliveryDetailPage() {
 
   useEffect(() => {
     loadJobDetail();
-  }, [jobId, destinationId, user]);
+  }, [jobId, user]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
@@ -109,24 +90,8 @@ export default function DeliveryDetailPage() {
         variant: "destructive",
       });
       navigate("/current-jobs");
-      return;
-    }
-    
-    setJob(data);
-
-    // If destinationId is provided, load destination from job_destinations
-    if (destinationId) {
-      const { data: destData, error: destError } = await supabase
-        .from("job_destinations")
-        .select("*")
-        .eq("id", destinationId)
-        .single();
-
-      if (destError) {
-        console.error('Error loading destination:', destError);
-      } else {
-        setDestination(destData);
-      }
+    } else {
+      setJob(data);
     }
 
     // Load job application status
@@ -135,10 +100,11 @@ export default function DeliveryDetailPage() {
       .select("delivery_checked_in_at, payment_completed_at, payment_method, pod_photo_url, delivery_sop_completed_at")
       .eq("job_id", jobId)
       .eq("driver_id", user.id)
-      .maybeSingle();
+      .single();
 
     if (appData) {
       setJobApplication(appData);
+      // Load existing POD photo preview if available
       if (appData.pod_photo_url) {
         setPodPhotoPreview(appData.pod_photo_url);
       }
@@ -146,47 +112,6 @@ export default function DeliveryDetailPage() {
 
     setLoading(false);
   };
-
-  // Get display values - prefer destination data if available
-  const getDisplayData = () => {
-    if (destination) {
-      return {
-        companyName: destination.company_name,
-        contactPerson: destination.contact_name,
-        location: destination.district && destination.province ? `${destination.district}, ${destination.province}` : destination.province,
-        address: destination.address,
-        latitude: destination.latitude,
-        longitude: destination.longitude,
-        deliveryDate: destination.delivery_date,
-        deliveryTime: destination.delivery_time,
-        remarks: destination.notes,
-        isCheckedIn: destination.checked_in_at !== null,
-        checkedInAt: destination.checked_in_at,
-        isSopCompleted: destination.sop_completed_at !== null,
-        sopCompletedAt: destination.sop_completed_at,
-        sequenceNumber: destination.sequence_number + 2 // +2 because: 1=container, 2=pickup, 3+=deliveries
-      };
-    }
-    // Fallback to job data for backward compatibility
-    return {
-      companyName: job?.destination_company_name,
-      contactPerson: job?.destination_contact_person,
-      location: job?.destination_location,
-      address: job?.destination_address || job?.destination_location,
-      latitude: job?.destination_latitude,
-      longitude: job?.destination_longitude,
-      deliveryDate: job?.start_date,
-      deliveryTime: job?.destination_time || job?.start_time,
-      remarks: job?.destination_remarks,
-      isCheckedIn: jobApplication?.delivery_checked_in_at !== null,
-      checkedInAt: jobApplication?.delivery_checked_in_at,
-      isSopCompleted: jobApplication?.delivery_sop_completed_at !== null,
-      sopCompletedAt: jobApplication?.delivery_sop_completed_at,
-      sequenceNumber: 3
-    };
-  };
-
-  const displayData = job ? getDisplayData() : null;
 
   const handlePaymentConfirm = async () => {
     if (!job || !user) return;
@@ -230,14 +155,14 @@ export default function DeliveryDetailPage() {
   };
 
   const handlePodConfirm = async () => {
-    if (!job || !user || !displayData) return;
+    if (!job || !user) return;
 
     let photoUrl = jobApplication?.pod_photo_url;
 
     // Upload photo if new one is selected
     if (podPhoto) {
       const fileExt = podPhoto.name.split(".").pop();
-      const fileName = `${user.id}-${job.id}-${destinationId || 'main'}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}-${job.id}-${Date.now()}.${fileExt}`;
       const filePath = `pod-documents/${fileName}`;
 
       const { error: uploadError } = await supabase.storage.from("driver-documents").upload(filePath, podPhoto);
@@ -258,47 +183,32 @@ export default function DeliveryDetailPage() {
       photoUrl = publicUrl;
     }
 
-    // Update destination-specific status if destinationId is provided
-    if (destinationId) {
-      const { error: destError } = await supabase
-        .from("job_destinations")
-        .update({
-          sop_completed_at: new Date().toISOString(),
-        })
-        .eq("id", destinationId);
+    // Update job application with POD completion
+    const { error } = await supabase
+      .from("job_applications")
+      .update({
+        delivery_sop_completed_at: new Date().toISOString(),
+        pod_photo_url: photoUrl,
+      })
+      .eq("job_id", job.id)
+      .eq("driver_id", user.id);
 
-      if (destError) {
-        console.error('Error updating destination SOP:', destError);
-      }
-    } else {
-      // Update job application for backward compatibility
-      const { error } = await supabase
-        .from("job_applications")
-        .update({
-          delivery_sop_completed_at: new Date().toISOString(),
-          pod_photo_url: photoUrl,
-        })
-        .eq("job_id", job.id)
-        .eq("driver_id", user.id);
-
-      if (error) {
-        toast({
-          title: t('delivery.error'),
-          description: t('delivery.podError'),
-          variant: "destructive",
-        });
-        return;
-      }
+    if (error) {
+      toast({
+        title: t('delivery.error'),
+        description: t('delivery.podError'),
+        variant: "destructive",
+      });
+      return;
     }
 
-    // Send job status update to external API with correct sequence number
+    // Send job status update to external API
     await sendJobStatus({
       jobId: job.id,
       orderCode: job.order_code,
       userId: user.id,
       status: 'delivery_sop_completed',
-      sequenceNumber: displayData.sequenceNumber,
-      destinationId: destinationId
+      sequenceNumber: 3 // Delivery point
     });
 
     toast({
@@ -310,54 +220,34 @@ export default function DeliveryDetailPage() {
   };
 
   const handleCheckIn = async () => {
-    if (!job || !user || !displayData) return;
+    if (!job || !user) return;
 
-    // Update destination-specific check-in if destinationId is provided
-    if (destinationId) {
-      const { error: destError } = await supabase
-        .from("job_destinations")
-        .update({
-          checked_in_at: new Date().toISOString(),
-        })
-        .eq("id", destinationId);
+    // Update job application with delivery check-in timestamp
+    const { error } = await supabase
+      .from("job_applications")
+      .update({
+        delivery_checked_in_at: new Date().toISOString(),
+        status: "delivery_checked_in",
+      })
+      .eq("job_id", job.id)
+      .eq("driver_id", user.id);
 
-      if (destError) {
-        toast({
-          title: t('delivery.error'),
-          description: t('pickup.checkInError'),
-          variant: "destructive",
-        });
-        return;
-      }
-    } else {
-      // Update job application for backward compatibility
-      const { error } = await supabase
-        .from("job_applications")
-        .update({
-          delivery_checked_in_at: new Date().toISOString(),
-          status: "delivery_checked_in",
-        })
-        .eq("job_id", job.id)
-        .eq("driver_id", user.id);
-
-      if (error) {
-        toast({
-          title: t('delivery.error'),
-          description: t('pickup.checkInError'),
-          variant: "destructive",
-        });
-        return;
-      }
+    if (error) {
+      toast({
+        title: t('delivery.error'),
+        description: t('pickup.checkInError'),
+        variant: "destructive",
+      });
+      return;
     }
 
-    // Send job status update with correct sequence number
+    // Send job status update
     await sendJobStatus({
       jobId: job.id,
       orderCode: job.order_code,
       userId: user.id,
       status: 'delivery_checked_in',
-      sequenceNumber: displayData.sequenceNumber,
-      destinationId: destinationId
+      sequenceNumber: 3 // Delivery point
     });
 
     toast({
@@ -390,7 +280,7 @@ export default function DeliveryDetailPage() {
     );
   }
 
-  if (!job || !displayData) return null;
+  if (!job) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
@@ -400,7 +290,7 @@ export default function DeliveryDetailPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('delivery.deliveryTo')} {displayData.companyName || ''}</h1>
+          <h1 className="text-lg font-semibold">{t('delivery.deliveryTo')} {job.destination_company_name || ''}</h1>
           <div className="w-6" />
         </div>
       </header>
@@ -409,7 +299,7 @@ export default function DeliveryDetailPage() {
         <div className="bg-white rounded-xl p-4">
           <JobActionButtons jobId={jobId} />
         </div>
-        {displayData.isCheckedIn && displayData.checkedInAt && (
+        {jobApplication?.delivery_checked_in_at && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -421,7 +311,7 @@ export default function DeliveryDetailPage() {
                 <span className="font-semibold text-lg">{t('delivery.checkInSuccess')}</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
-                {formatDateTime(displayData.checkedInAt)}
+                {formatDateTime(jobApplication.delivery_checked_in_at)}
               </span>
             </div>
           </div>
@@ -484,7 +374,7 @@ export default function DeliveryDetailPage() {
         )}
 
         {/* POD Success - Show after POD completed */}
-        {displayData.isSopCompleted && displayData.sopCompletedAt && (
+        {jobApplication?.delivery_sop_completed_at && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -494,11 +384,11 @@ export default function DeliveryDetailPage() {
                 <span className="font-semibold text-lg">{t('delivery.podCompleted')}</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
-                {formatDateTime(displayData.sopCompletedAt)}
+                {formatDateTime(jobApplication.delivery_sop_completed_at)}
               </span>
             </div>
 
-            {jobApplication?.pod_photo_url && (
+            {jobApplication.pod_photo_url && (
               <div className="mt-4">
                 <img
                   src={jobApplication.pod_photo_url}
@@ -513,27 +403,27 @@ export default function DeliveryDetailPage() {
         {/* Contact Name */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.contactName')}</div>
-          <div className="text-base">{displayData.contactPerson || '-'}</div>
+          <div className="text-base">{job.destination_contact_person || '-'}</div>
         </div>
 
         {/* Route Number */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.routeNumber')}</div>
-          <div className="text-base">{displayData.location || '-'}</div>
+          <div className="text-base">{job.destination_location || '-'}</div>
         </div>
 
         {/* Address */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.address')}</div>
-          <div className="text-base">{displayData.address || '-'}</div>
+          <div className="text-base">{job.destination_address || job.destination_location || '-'}</div>
         </div>
 
         {/* Map */}
-        {displayData.latitude && displayData.longitude ? (
+        {job.destination_latitude && job.destination_longitude ? (
           <Map 
-            latitude={displayData.latitude} 
-            longitude={displayData.longitude}
-            markerLabel={displayData.location || ''}
+            latitude={job.destination_latitude} 
+            longitude={job.destination_longitude}
+            markerLabel={job.destination_location}
           />
         ) : (
           <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
@@ -544,27 +434,25 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
-        {/* Product Type - only show for backward compatibility */}
-        {!destinationId && (
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">{t('delivery.productType')}</div>
-            <div className="text-base">
-              {job.destination_goods_type || '-'}
-              {job.destination_goods_quantity && ` (${job.destination_goods_quantity})`}
-            </div>
+        {/* Product Type */}
+        <div>
+          <div className="text-sm text-muted-foreground mb-1">{t('delivery.productType')}</div>
+          <div className="text-base">
+            {job.destination_goods_type || '-'}
+            {job.destination_goods_quantity && ` (${job.destination_goods_quantity})`}
           </div>
-        )}
+        </div>
 
         {/* Delivery Time */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.pickupTime')}</div>
-          <div className="text-base">{displayData.deliveryDate ? formatDate(displayData.deliveryDate) : '-'} | {displayData.deliveryTime || '-'}</div>
+          <div className="text-base">{formatDate(job.start_date)} | {job.destination_time || job.start_time || '-'}</div>
         </div>
 
         {/* Note */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.remarks')}</div>
-          <div className="text-base">{displayData.remarks || '-'}</div>
+          <div className="text-base">{job.destination_remarks || '-'}</div>
         </div>
 
         {/* Action Buttons in Blue Frame */}
@@ -581,7 +469,7 @@ export default function DeliveryDetailPage() {
       </div>
 
       {/* Check-in Button - Hide after check-in */}
-      {!displayData.isCheckedIn && (
+      {!jobApplication?.delivery_checked_in_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -593,8 +481,8 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* Payment Button - Show after check-in, hide after payment (only for legacy single destination) */}
-      {!destinationId && displayData.isCheckedIn && !jobApplication?.payment_completed_at && (
+      {/* Payment Button - Show after check-in, hide after payment */}
+      {jobApplication?.delivery_checked_in_at && !jobApplication?.payment_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -605,9 +493,8 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* POD Confirm Button - Show after check-in for multi-destination, or after payment for legacy */}
-      {((destinationId && displayData.isCheckedIn && !displayData.isSopCompleted) || 
-        (!destinationId && jobApplication?.payment_completed_at && !displayData.isSopCompleted)) && (
+      {/* POD Confirm Button - Show after payment, hide after POD completed */}
+      {jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
