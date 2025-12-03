@@ -116,6 +116,29 @@ export default function DomesticJobDetail({
     };
 
     fetchDestinations();
+
+    // Set up real-time subscription for job_destinations
+    const channel = supabase
+      .channel(`job_destinations_${job.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'job_destinations',
+          filter: `job_id=eq.${job.id}`
+        },
+        (payload) => {
+          console.log('Job destination updated:', payload);
+          // Refetch destinations when any change occurs
+          fetchDestinations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [job.id]);
   const handleStartJob = async () => {
     const {
