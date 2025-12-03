@@ -176,9 +176,9 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
               <SelectValue placeholder={t('vehicleInfoStep.selectProvince')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="bangkok">กรุงเทพมหานคร</SelectItem>
-              <SelectItem value="nonthaburi">นนทบุรี</SelectItem>
-              <SelectItem value="samutprakan">สมุทรปราการ</SelectItem>
+              <SelectItem value="bangkok">{t('province.bangkok')}</SelectItem>
+              <SelectItem value="nonthaburi">{t('province.nonthaburi')}</SelectItem>
+              <SelectItem value="samutprakan">{t('province.samutprakan')}</SelectItem>
             </SelectContent>
           </Select>
           {errors.plateProvince && <p className="text-sm text-destructive">{errors.plateProvince.message}</p>}
@@ -195,7 +195,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
               <Select>
                 <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectProvince')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bangkok">กรุงเทพมหานคร</SelectItem>
+                  <SelectItem value="bangkok">{t('province.bangkok')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -236,8 +236,8 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           <Select onValueChange={(value) => setValue("vehicleType", value)}>
             <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectType')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="10-wheel">10 ล้อ</SelectItem>
-              <SelectItem value="6-wheel">6 ล้อ</SelectItem>
+              <SelectItem value="10-wheel">{t('vehicleType.10wheel')}</SelectItem>
+              <SelectItem value="6-wheel">{t('vehicleType.6wheel')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -247,8 +247,8 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           <Select onValueChange={(value) => setValue("fuelType", value)}>
             <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectFuel')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="diesel">ดีเซล</SelectItem>
-              <SelectItem value="gasoline">เบนซิน</SelectItem>
+              <SelectItem value="diesel">{t('fuelType.diesel')}</SelectItem>
+              <SelectItem value="gasoline">{t('fuelType.gasoline')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

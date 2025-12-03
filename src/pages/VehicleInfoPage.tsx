@@ -333,7 +333,7 @@ export default function VehicleInfoPage() {
             {registrationPhoto ? (
               <img 
                 src={`${registrationPhoto}?t=${photoTimestamp}`}
-                alt="ทะเบียนรถ" 
+                alt={t('alt.vehicleRegistration')} 
                 className="w-full h-full object-cover"
                 key={`registration-${photoTimestamp}`}
               />

@@ -284,19 +284,19 @@ export default function InternationalJobDetail({
                     ) : (
                       <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">จุดรับตู้เปล่า</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerPickup')}</span>
                           <span>: {containerData.checkpoint}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">วันเริ่มเข้ารับตู้เปล่า</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
                           <span>: {formatDate(job.start_date)}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">เลขตู้คอนเทนเนอร์</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerNumber')}</span>
                           <span>: {containerData.containerNumber}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">เลขซีล</span>
+                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.sealNumber')}</span>
                           <span>: {containerData.sealNumber}</span>
                         </div>
                       </>

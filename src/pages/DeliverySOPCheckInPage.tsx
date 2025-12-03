@@ -223,16 +223,16 @@ export default function DeliverySOPCheckInPage() {
       }
 
       toast({
-        title: 'ยืนยัน SOP สำเร็จ',
-        description: 'บันทึกข้อมูลเรียบร้อยแล้ว',
+        title: t('deliverySop.sopSuccess'),
+        description: t('deliverySop.sopSuccessMessage'),
       });
 
       navigate(`/job/${job.id}`);
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+        title: t('deliverySop.error'),
+        description: t('deliverySop.saveError'),
         variant: 'destructive'
       });
     } finally {
