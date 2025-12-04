@@ -168,6 +168,15 @@ serve(async (req) => {
       );
     }
 
+    // Helper function to convert array to comma-separated string
+    const arrayToString = (value: any): string | null => {
+      if (!value) return null;
+      if (Array.isArray(value)) {
+        return value.join(', ');
+      }
+      return String(value);
+    };
+
     // Prepare job data for insertion
     const jobData = {
       order_code: data.order_code,
@@ -179,8 +188,8 @@ serve(async (req) => {
       price: data.price,
       start_date: data.start_date,
       start_time: data.start_time,
-      equipment_list: data.equipment_list || null,
-      safety_equipment: data.safety_equipment || null,
+      equipment_list: arrayToString(data.equipment_list),
+      safety_equipment: arrayToString(data.safety_equipment),
       province: data.province || null,
       district: data.district || null,
       assigned_role: data.assigned_role || 'freelance', // Default to freelance if not specified
