@@ -7,7 +7,8 @@ const corsHeaders = {
 
 interface SearchExternalUsersRequest {
   external_project_id: string;
-  query: string;
+  query?: string;
+  email?: string;
   limit?: number;
 }
 
@@ -25,11 +26,11 @@ Deno.serve(async (req) => {
     const payload: SearchExternalUsersRequest = await req.json();
     console.log('Search external users request:', payload);
 
-    if (!payload.external_project_id || !payload.query) {
+    if (!payload.external_project_id || (!payload.query && !payload.email)) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'External project ID and query are required' 
+          error: 'External project ID and either query or email are required' 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -83,6 +84,7 @@ Deno.serve(async (req) => {
       headers,
       body: JSON.stringify({
         query: payload.query,
+        email: payload.email,
         limit
       }),
     });

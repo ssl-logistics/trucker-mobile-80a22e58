@@ -6,7 +6,8 @@ const corsHeaders = {
 };
 
 interface SearchUsersRequest {
-  query: string;
+  query?: string;
+  email?: string;
   limit?: number;
 }
 
@@ -24,42 +25,82 @@ Deno.serve(async (req) => {
     const payload: SearchUsersRequest = await req.json();
     console.log('Search users request:', payload);
 
-    if (!payload.query) {
+    if (!payload.query && !payload.email) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Query is required' 
+          error: 'Query or email is required' 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const limit = payload.limit || 10;
-    
-    // Search for users by full_name or phone_number
-    const { data: users, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, phone_number, avatar_url')
-      .or(`full_name.ilike.%${payload.query}%,phone_number.ilike.%${payload.query}%`)
-      .limit(limit);
+    let users: any[] = [];
 
-    if (error) {
-      console.error('Error searching users:', error);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Failed to search users' 
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // If email is provided, search by email using admin API
+    if (payload.email) {
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers({
+        perPage: limit,
+      });
+
+      if (authError) {
+        console.error('Error searching auth users:', authError);
+      } else if (authUsers?.users) {
+        // Filter users by email match
+        const matchingAuthUsers = authUsers.users.filter(u => 
+          u.email?.toLowerCase().includes(payload.email!.toLowerCase())
+        );
+
+        // Get profiles for matching auth users
+        if (matchingAuthUsers.length > 0) {
+          const userIds = matchingAuthUsers.map(u => u.id);
+          const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, full_name, phone_number, avatar_url')
+            .in('id', userIds)
+            .limit(limit);
+
+          if (!profileError && profiles) {
+            // Add email to each profile from auth users
+            users = profiles.map(profile => {
+              const authUser = matchingAuthUsers.find(u => u.id === profile.id);
+              return {
+                ...profile,
+                email: authUser?.email || null
+              };
+            });
+          }
+        }
+      }
+    }
+    
+    // If query is provided, also search by name/phone
+    if (payload.query) {
+      const { data: profileUsers, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone_number, avatar_url')
+        .or(`full_name.ilike.%${payload.query}%,phone_number.ilike.%${payload.query}%`)
+        .limit(limit);
+
+      if (error) {
+        console.error('Error searching users by query:', error);
+      } else if (profileUsers) {
+        // Merge with existing users, avoiding duplicates
+        for (const profile of profileUsers) {
+          if (!users.find(u => u.id === profile.id)) {
+            users.push(profile);
+          }
+        }
+      }
     }
 
-    console.log(`Found ${users?.length || 0} users`);
+    console.log(`Found ${users.length} users`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        users: users || []
+        users: users.slice(0, limit)
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
