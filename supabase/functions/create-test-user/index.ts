@@ -6,6 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface CreateTestUserRequest {
+  email: string;
+  password: string;
+  fullName: string;
+  phoneNumber: string;
+  role?: 'freelance' | 'company' | 'factory';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -17,43 +25,76 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // สร้าง test user
-    const testEmail = 'test@truckers.app';
-    const testPassword = 'Test1234!';
-    const testPhone = '0999999999';
+    // Parse request body
+    const body: CreateTestUserRequest = await req.json();
+    
+    const testEmail = body.email || 'test@truckers.app';
+    const testPassword = body.password || 'Test1234!';
+    const testPhone = body.phoneNumber || '0999999999';
+    const fullName = body.fullName || 'Test User';
+    const role = body.role || 'freelance';
 
-    // ลบ user เก่าถ้ามี
+    // Check if user already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const existingUser = existingUsers?.users?.find(u => u.email === testEmail);
     
     if (existingUser) {
-      await supabaseAdmin.auth.admin.deleteUser(existingUser.id);
+      // User already exists, return their info
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: 'User already exists',
+          credentials: {
+            email: testEmail,
+            userId: existingUser.id
+          }
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      );
     }
 
-    // สร้าง user ใหม่
+    // Create new user
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: testEmail,
       password: testPassword,
       email_confirm: true,
       user_metadata: {
-        firstName: 'Test',
-        lastName: 'User',
+        fullName: fullName,
         phone: testPhone
       }
     });
 
     if (authError) throw authError;
 
-    // สร้าง profile
+    // Create profile
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .upsert({
         id: authData.user.id,
-        full_name: 'Test User',
+        full_name: fullName,
         phone_number: testPhone
       });
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      console.error('Profile error:', profileError);
+      throw profileError;
+    }
+
+    // Create user role
+    const { error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .upsert({
+        user_id: authData.user.id,
+        role: role
+      });
+
+    if (roleError) {
+      console.error('Role error:', roleError);
+      throw roleError;
+    }
 
     return new Response(
       JSON.stringify({ 
@@ -61,7 +102,9 @@ serve(async (req) => {
         credentials: {
           email: testEmail,
           password: testPassword,
-          phone: testPhone
+          phone: testPhone,
+          userId: authData.user.id,
+          role: role
         },
         message: 'Test user created successfully'
       }),
