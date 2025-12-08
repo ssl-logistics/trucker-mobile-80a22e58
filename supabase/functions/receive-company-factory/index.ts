@@ -64,6 +64,25 @@ serve(async (req) => {
       'โรงงาน': 'factory'
     };
 
+    // Mapping for status (convert external status to valid internal status)
+    const statusMapping: Record<string, string> = {
+      'pending': 'available',
+      'waiting': 'available',
+      'รอการตอบรับ': 'available',
+      'รอดำเนินการ': 'available',
+      'in_progress': 'assigned',
+      'กำลังดำเนินการ': 'assigned',
+      'done': 'completed',
+      'finished': 'completed',
+      'เสร็จสิ้น': 'completed',
+      'canceled': 'cancelled',
+      'ยกเลิก': 'cancelled',
+      'available': 'available',
+      'assigned': 'assigned',
+      'completed': 'completed',
+      'cancelled': 'cancelled'
+    };
+
     // Auto-convert job_type if provided
     if (data.job_type) {
       const mappedJobType = jobTypeMapping[data.job_type.toLowerCase()];
@@ -91,6 +110,18 @@ serve(async (req) => {
         assignedRole = mappedRole;
       } else {
         assignedRole = data.assigned_role;
+      }
+    }
+
+    // Auto-convert status if provided
+    if (data.status) {
+      const mappedStatus = statusMapping[data.status.toLowerCase()] || statusMapping[data.status];
+      if (mappedStatus) {
+        console.log(`Mapped status: ${data.status} -> ${mappedStatus}`);
+        data.status = mappedStatus;
+      } else {
+        console.log(`Unknown status: ${data.status}, defaulting to 'available'`);
+        data.status = 'available';
       }
     }
 
@@ -175,6 +206,15 @@ serve(async (req) => {
       );
     }
 
+    // Helper function to convert array to comma-separated string
+    const arrayToString = (value: any): string | null => {
+      if (!value) return null;
+      if (Array.isArray(value)) {
+        return value.join(', ');
+      }
+      return String(value);
+    };
+
     // Prepare job data for insertion
     const jobData = {
       order_code: data.order_code,
@@ -186,8 +226,8 @@ serve(async (req) => {
       price: data.price,
       start_date: data.start_date,
       start_time: data.start_time,
-      equipment_list: data.equipment_list || null,
-      safety_equipment: data.safety_equipment || null,
+      equipment_list: arrayToString(data.equipment_list),
+      safety_equipment: arrayToString(data.safety_equipment),
       province: data.province || null,
       district: data.district || null,
       assigned_role: assignedRole,
@@ -201,6 +241,7 @@ serve(async (req) => {
       container_checkpoint_longitude: data.container_checkpoint_longitude || null,
       // International job fields
       empty_container_date: data.empty_container_date || null,
+      destination_date: data.destination_date || null,
       destination_time: data.destination_time || null,
       container_number: data.container_number || null,
       seal_number: data.seal_number || null,
@@ -221,6 +262,9 @@ serve(async (req) => {
       destination_goods_quantity: data.destination_goods_quantity || null,
       destination_remarks: data.destination_remarks || null,
       destination_address: data.destination_address || null,
+      // Company names
+      origin_company_name: data.origin_company_name || null,
+      destination_company_name: data.destination_company_name || null,
     };
 
     // Upsert job into database (insert or update if order_code exists)
@@ -250,6 +294,52 @@ serve(async (req) => {
 
     console.log('Successfully upserted company/factory job:', upsertedJob.id);
     console.log('Assigned Role:', upsertedJob.assigned_role);
+
+    // Handle multiple destinations if provided
+    let destinationsInserted = 0;
+    if (data.destinations && Array.isArray(data.destinations) && data.destinations.length > 0) {
+      console.log(`Processing ${data.destinations.length} destinations...`);
+      
+      // First, delete existing destinations for this job (for upsert behavior)
+      const { error: deleteError } = await supabase
+        .from('job_destinations')
+        .delete()
+        .eq('job_id', upsertedJob.id);
+      
+      if (deleteError) {
+        console.error('Error deleting old destinations:', deleteError);
+      }
+      
+      // Insert new destinations
+      const destinationsData = data.destinations.map((dest: any) => ({
+        job_id: upsertedJob.id,
+        sequence_number: dest.sequence_number || 1,
+        company_name: dest.company_name || null,
+        contact_name: dest.contact_name || null,
+        contact_phone: dest.contact_phone || null,
+        address: dest.address || null,
+        province: dest.province || null,
+        district: dest.district || null,
+        latitude: dest.latitude || null,
+        longitude: dest.longitude || null,
+        delivery_date: dest.delivery_date || null,
+        delivery_time: dest.delivery_time || null,
+        notes: dest.notes || null,
+      }));
+      
+      const { data: insertedDestinations, error: destError } = await supabase
+        .from('job_destinations')
+        .insert(destinationsData)
+        .select();
+      
+      if (destError) {
+        console.error('Error inserting destinations:', destError);
+      } else {
+        destinationsInserted = insertedDestinations?.length || 0;
+        console.log(`Successfully inserted ${destinationsInserted} destinations`);
+      }
+    }
+
     console.log('================================');
 
     // Return success response
@@ -260,6 +350,7 @@ serve(async (req) => {
         job_id: upsertedJob.id,
         order_code: upsertedJob.order_code,
         assigned_role: upsertedJob.assigned_role,
+        destinations_count: destinationsInserted,
         timestamp: new Date().toISOString()
       }),
       {
