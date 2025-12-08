@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -268,11 +269,15 @@ const AddExpensePage = () => {
                   <SelectValue placeholder={t('expense.type')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {expenseTypes.map((type) => (
+                  {expenseTypes.filter(type => type.value !== "other").map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
                     </SelectItem>
                   ))}
+                  <Separator className="my-1" />
+                  <SelectItem value="other">
+                    {t('expense.other') || 'อื่นๆ'}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
