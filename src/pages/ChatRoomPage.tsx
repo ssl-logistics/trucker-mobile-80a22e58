@@ -97,8 +97,9 @@ export default function ChatRoomPage() {
     // Get the external message to find the source project and sender
     const { data: extMessages } = await supabase
       .from('external_chat_messages')
-      .select('external_project_id, sender_mapping_id')
+      .select('external_project_id, sender_mapping_id, sender_name')
       .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: false })
       .limit(1);
 
     if (extMessages && extMessages.length > 0) {
@@ -112,23 +113,47 @@ export default function ChatRoomPage() {
         .maybeSingle();
 
       if (projectConfig) {
-        // Get the sender mapping to find the external user ID (this is the target for replies)
-        const { data: senderMapping } = await supabase
-          .from('external_user_mapping')
-          .select('external_user_id')
-          .eq('id', extMsg.sender_mapping_id)
-          .maybeSingle();
+        let targetUserId: string | null = null;
+        
+        // Try to get target from sender_mapping_id first
+        if (extMsg.sender_mapping_id) {
+          const { data: senderMapping } = await supabase
+            .from('external_user_mapping')
+            .select('external_user_id')
+            .eq('id', extMsg.sender_mapping_id)
+            .maybeSingle();
+          
+          if (senderMapping) {
+            targetUserId = senderMapping.external_user_id;
+          }
+        }
+        
+        // If no sender_mapping_id, find other participant in conversation (not the current user)
+        if (!targetUserId) {
+          const { data: participants } = await supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', user?.id);
+          
+          if (participants && participants.length > 0) {
+            // The other participant is the target for replies
+            targetUserId = participants[0].user_id;
+          }
+        }
 
-        if (senderMapping) {
+        if (targetUserId) {
           setExternalChatInfo({
             external_project_id: projectConfig.id,
-            target_user_id: senderMapping.external_user_id,
+            target_user_id: targetUserId,
             target_url: projectConfig.target_url
           });
           console.log('Loaded external chat info:', {
             external_project_id: projectConfig.id,
-            target_user_id: senderMapping.external_user_id
+            target_user_id: targetUserId
           });
+        } else {
+          console.log('Could not find target user for external chat');
         }
       }
     }
