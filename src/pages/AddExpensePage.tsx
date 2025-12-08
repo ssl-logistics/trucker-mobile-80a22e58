@@ -2,14 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Camera, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -250,36 +243,30 @@ const AddExpensePage = () => {
               )}
             </div>
 
-            {/* Expense Type */}
+            {/* Expense Type - Radio Buttons */}
             <div className="space-y-2">
-              <Label htmlFor={`type-${expense.id}`}>
+              <Label>
                 {t('expense.type')} <span className="text-red-500">*</span>
               </Label>
-              <Select
+              <RadioGroup
                 value={expense.type}
                 onValueChange={(value) => {
                   handleExpenseChange(expense.id, "type", value);
-                  // Clear custom type if not "other"
                   if (value !== "other") {
                     handleExpenseChange(expense.id, "customType", "");
                   }
                 }}
+                className="grid grid-cols-2 gap-2"
               >
-                <SelectTrigger id={`type-${expense.id}`}>
-                  <SelectValue placeholder={t('expense.type')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseTypes.filter(type => type.value !== "other").map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
+                {expenseTypes.map((type) => (
+                  <div key={type.value} className="flex items-center space-x-2">
+                    <RadioGroupItem value={type.value} id={`${expense.id}-${type.value}`} />
+                    <Label htmlFor={`${expense.id}-${type.value}`} className="font-normal cursor-pointer">
                       {type.label}
-                    </SelectItem>
-                  ))}
-                  <Separator className="my-1" />
-                  <SelectItem value="other">
-                    {t('expense.other') || 'อื่นๆ'}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
 
             {/* Custom Type Input - shown when "other" is selected */}
