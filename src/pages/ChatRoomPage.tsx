@@ -97,7 +97,7 @@ export default function ChatRoomPage() {
     // Get the external message to find the source project and sender
     const { data: extMessages } = await supabase
       .from('external_chat_messages')
-      .select('external_project_id, sender_mapping_id, sender_name')
+      .select('external_project_id, sender_mapping_id, sender_name, external_message_id')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
       .limit(1);
@@ -128,17 +128,31 @@ export default function ChatRoomPage() {
           }
         }
         
-        // If no sender_mapping_id, find other participant in conversation (not the current user)
-        if (!targetUserId) {
-          const { data: participants } = await supabase
-            .from('conversation_participants')
-            .select('user_id')
-            .eq('conversation_id', conversationId)
-            .neq('user_id', user?.id);
+        // If no sender_mapping_id, try to find by external_user_name from the mapping table
+        if (!targetUserId && extMsg.sender_name) {
+          const { data: mappingByName } = await supabase
+            .from('external_user_mapping')
+            .select('external_user_id')
+            .eq('external_project_id', extMsg.external_project_id)
+            .eq('external_user_name', extMsg.sender_name)
+            .maybeSingle();
           
-          if (participants && participants.length > 0) {
-            // The other participant is the target for replies
-            targetUserId = participants[0].user_id;
+          if (mappingByName) {
+            targetUserId = mappingByName.external_user_id;
+          }
+        }
+        
+        // Last resort: get any user from the external project mapping
+        if (!targetUserId) {
+          const { data: anyMapping } = await supabase
+            .from('external_user_mapping')
+            .select('external_user_id')
+            .eq('external_project_id', extMsg.external_project_id)
+            .limit(1)
+            .maybeSingle();
+          
+          if (anyMapping) {
+            targetUserId = anyMapping.external_user_id;
           }
         }
 
