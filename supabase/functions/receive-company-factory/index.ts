@@ -215,14 +215,39 @@ serve(async (req) => {
       return String(value);
     };
 
+    // Build short location from district + province if available
+    const buildShortLocation = (district: string | null, province: string | null, fallback: string): string => {
+      if (district && province) {
+        return `${district}, ${province}`;
+      } else if (province) {
+        return province;
+      }
+      return fallback;
+    };
+
+    const originLocation = buildShortLocation(
+      data.origin_district || null,
+      data.origin_province || data.province || null,
+      data.origin_location
+    );
+
+    const destinationLocation = buildShortLocation(
+      data.destination_district || null,
+      data.destination_province || null,
+      data.destination_location
+    );
+
+    console.log(`Built origin_location: ${originLocation}`);
+    console.log(`Built destination_location: ${destinationLocation}`);
+
     // Prepare job data for insertion
     const jobData = {
       order_code: data.order_code,
       employer_name: data.employer_name,
       job_type: data.job_type,
       transport_type: data.transport_type,
-      origin_location: data.origin_location,
-      destination_location: data.destination_location,
+      origin_location: originLocation,
+      destination_location: destinationLocation,
       price: data.price,
       start_date: data.start_date,
       start_time: data.start_time,
