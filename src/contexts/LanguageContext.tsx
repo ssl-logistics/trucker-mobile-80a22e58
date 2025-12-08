@@ -1134,6 +1134,20 @@ const thTranslations: Record<string, string> = {
   // Alt Texts
   'alt.profilePhoto': 'รูปโปรไฟล์',
   'alt.vehicleRegistration': 'ทะเบียนรถ',
+  
+  // Expenses Page
+  'expenses.title': 'ค่าใช้จ่าย',
+  'expenses.error': 'เกิดข้อผิดพลาด',
+  'expenses.loadError': 'ไม่สามารถโหลดข้อมูลค่าใช้จ่ายได้',
+  'expenses.noData': 'ไม่มีค่าใช้จ่าย',
+  'expenses.receipt': 'ใบเสร็จ',
+  'expenses.clickToView': 'กดที่นี่เพื่อดูรูป',
+  'expenses.types.fuel': 'ค่าน้ำมัน',
+  'expenses.types.toll': 'ค่าทางด่วน',
+  'expenses.types.port': 'ค่าใช้จ่ายท่าเรือ',
+  'expenses.types.food': 'ค่าอาหาร',
+  'expenses.types.maintenance': 'ค่าซ่อมบำรุง',
+  'expenses.types.other': 'อื่นๆ',
 };
 
 // English translations
@@ -2229,6 +2243,20 @@ const enTranslations: Record<string, string> = {
   // Alt Texts
   'alt.profilePhoto': 'Profile Photo',
   'alt.vehicleRegistration': 'Vehicle Registration',
+  
+  // Expenses Page
+  'expenses.title': 'Expenses',
+  'expenses.error': 'Error',
+  'expenses.loadError': 'Unable to load expenses',
+  'expenses.noData': 'No expenses',
+  'expenses.receipt': 'Receipt',
+  'expenses.clickToView': 'Click here to view',
+  'expenses.types.fuel': 'Fuel',
+  'expenses.types.toll': 'Toll',
+  'expenses.types.port': 'Port Fee',
+  'expenses.types.food': 'Food',
+  'expenses.types.maintenance': 'Maintenance',
+  'expenses.types.other': 'Other',
 };
 
 // Korean translations
@@ -3392,6 +3420,20 @@ const koTranslations: Record<string, string> = {
   // Alt Texts
   'alt.profilePhoto': '프로필 사진',
   'alt.vehicleRegistration': '차량 등록',
+  
+  // Expenses Page
+  'expenses.title': '비용',
+  'expenses.error': '오류',
+  'expenses.loadError': '비용을 불러올 수 없습니다',
+  'expenses.noData': '비용 없음',
+  'expenses.receipt': '영수증',
+  'expenses.clickToView': '클릭하여 보기',
+  'expenses.types.fuel': '연료비',
+  'expenses.types.toll': '통행료',
+  'expenses.types.port': '항구비',
+  'expenses.types.food': '식비',
+  'expenses.types.maintenance': '유지보수',
+  'expenses.types.other': '기타',
 };
 
 // Chinese translations
@@ -4522,4 +4564,18 @@ const zhTranslations: Record<string, string> = {
   // Alt Texts
   'alt.profilePhoto': '个人照片',
   'alt.vehicleRegistration': '车辆登记',
+  
+  // Expenses Page
+  'expenses.title': '费用',
+  'expenses.error': '错误',
+  'expenses.loadError': '无法加载费用',
+  'expenses.noData': '暂无费用',
+  'expenses.receipt': '收据',
+  'expenses.clickToView': '点击查看',
+  'expenses.types.fuel': '燃料费',
+  'expenses.types.toll': '过路费',
+  'expenses.types.port': '港口费',
+  'expenses.types.food': '餐饮费',
+  'expenses.types.maintenance': '维修费',
+  'expenses.types.other': '其他',
 };

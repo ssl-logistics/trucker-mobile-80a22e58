@@ -21,7 +21,7 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
       <div className="grid grid-cols-3 gap-3">
         <button 
           className="flex flex-col items-center gap-1 text-[#0A8778]"
-          onClick={() => navigate(`/job/${jobId}/route-expenses`)}
+          onClick={() => navigate(`/job/${jobId}/expenses`)}
         >
           <img src={expenseViewIcon} alt="" className="w-8 h-8" />
           <span className="text-xs font-medium">{t('jobActions.viewExpenses')}</span>
