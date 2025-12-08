@@ -304,33 +304,46 @@ Deno.serve(async (req) => {
     }
 
     // Create or get external_user_mapping
+    // IMPORTANT: We store the sender's local_user_id (their ID in their project) as external_user_id
+    // This is the ID we need to use when sending messages back to that user
     let userMappingId: string | null = null;
-    const externalUserId = payload.sender_info?.external_user_id || payload.message.sender_id;
+    
+    // Priority: Use local_user_id (sender's ID in their project) for replies
+    // Fallback to external_user_id or message.sender_id
+    const senderIdInExternalProject = payload.sender_info?.local_user_id 
+      || payload.sender_info?.external_user_id 
+      || payload.message.sender_id;
+    
+    console.log('Storing sender ID for replies:', senderIdInExternalProject);
     
     const { data: existingMapping } = await supabase
       .from('external_user_mapping')
-      .select('id')
+      .select('id, external_user_id')
       .eq('external_project_id', externalConfigId)
-      .eq('external_user_id', externalUserId)
+      .eq('external_user_id', senderIdInExternalProject)
       .maybeSingle();
 
     if (existingMapping) {
       userMappingId = existingMapping.id;
+      console.log('Found existing mapping:', existingMapping.id);
     } else {
-      const { data: newMapping } = await supabase
+      const { data: newMapping, error: mappingError } = await supabase
         .from('external_user_mapping')
         .insert({
           external_project_id: externalConfigId,
-          external_user_id: externalUserId,
+          external_user_id: senderIdInExternalProject, // This is the ID to use when replying
           external_user_name: payload.sender_info?.name || payload.message.sender_name,
           external_user_avatar: payload.sender_info?.avatar_url || payload.message.sender_avatar,
-          local_user_id: payload.sender_info?.local_user_id,
+          local_user_id: null, // This would be for linking to a local user if needed
         })
         .select('id')
         .single();
 
       if (newMapping) {
         userMappingId = newMapping.id;
+        console.log('Created new mapping:', userMappingId, 'for external user:', senderIdInExternalProject);
+      } else {
+        console.error('Failed to create mapping:', mappingError);
       }
     }
 
