@@ -266,9 +266,9 @@ const AddExpensePage = () => {
                 <SelectTrigger className="w-full bg-background">
                   <SelectValue placeholder={t('expense.selectType') || 'เลือกประเภทค่าใช้จ่าย'} />
                 </SelectTrigger>
-                <SelectContent className="bg-background">
+                <SelectContent className="bg-background z-50">
                   {expenseTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
+                    <SelectItem key={type.value} value={type.value} className="cursor-pointer">
                       {type.label}
                     </SelectItem>
                   ))}
