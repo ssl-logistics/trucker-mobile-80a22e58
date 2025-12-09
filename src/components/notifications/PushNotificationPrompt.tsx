@@ -121,10 +121,10 @@ export const PushNotificationPrompt = () => {
           
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm mb-1">
-              เปิดการแจ้งเตือน
+              {t('notification.enableTitle')}
             </h3>
             <p className="text-xs text-muted-foreground mb-3">
-              รับการแจ้งเตือนเมื่อมีงานใหม่, ข้อความ หรืออัพเดทสำคัญ
+              {t('notification.enableDesc')}
             </p>
             
             <div className="flex gap-2">
@@ -134,7 +134,7 @@ export const PushNotificationPrompt = () => {
                 disabled={isLoading}
                 className="flex-1"
               >
-                {isLoading ? 'กำลังเปิด...' : 'เปิดการแจ้งเตือน'}
+                {isLoading ? t('notification.enabling') : t('notification.enableButton')}
               </Button>
               <Button
                 size="sm"
@@ -142,7 +142,7 @@ export const PushNotificationPrompt = () => {
                 onClick={handleDismiss}
                 disabled={isLoading}
               >
-                ภายหลัง
+                {t('notification.later')}
               </Button>
             </div>
           </div>
