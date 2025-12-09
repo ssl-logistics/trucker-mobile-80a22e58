@@ -100,8 +100,20 @@ const AddExpensePage = () => {
   };
 
   const validateForm = () => {
+    console.log('Validating expenses:', expenses);
     for (const expense of expenses) {
+      console.log('Checking expense:', { 
+        id: expense.id, 
+        type: expense.type, 
+        amount: expense.amount, 
+        hasPhoto: !!expense.receiptPhoto 
+      });
       if (!expense.type || !expense.amount || !expense.receiptPhoto) {
+        console.log('Validation failed - missing:', {
+          missingType: !expense.type,
+          missingAmount: !expense.amount,
+          missingPhoto: !expense.receiptPhoto
+        });
         toast({
           title: t('expense.fillAllFields'),
           description: t('expense.fillAllFieldsDesc'),
