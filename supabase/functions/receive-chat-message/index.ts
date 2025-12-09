@@ -424,6 +424,85 @@ Deno.serve(async (req) => {
 
     console.log('Message inserted successfully:', insertedMessage.id);
 
+    // Send push notification to target user
+    try {
+      console.log('Attempting to send push notification to user:', targetUserId);
+      
+      // Get push subscriptions for the target user
+      const { data: subscriptions, error: subError } = await supabase
+        .from('push_subscriptions')
+        .select('*')
+        .eq('user_id', targetUserId);
+
+      if (subError) {
+        console.error('Error fetching push subscriptions:', subError);
+      } else if (subscriptions && subscriptions.length > 0) {
+        console.log(`Found ${subscriptions.length} push subscriptions for user`);
+        
+        // Get the conversation name for notification
+        const { data: convData } = await supabase
+          .from('conversations')
+          .select('name')
+          .eq('id', conversationId)
+          .maybeSingle();
+        
+        const notificationTitle = convData?.name || payload.message.sender_name || 'ข้อความใหม่';
+        const notificationBody = payload.message.text.length > 100 
+          ? payload.message.text.substring(0, 100) + '...' 
+          : payload.message.text;
+
+        // Send push notification using web-push protocol
+        for (const sub of subscriptions) {
+          try {
+            const notificationPayload = JSON.stringify({
+              title: notificationTitle,
+              body: notificationBody,
+              url: `/chat/${conversationId}`,
+              tag: `chat-${conversationId}`,
+              data: {
+                conversationId,
+                senderId: payload.message.sender_id,
+                senderName: payload.message.sender_name,
+              }
+            });
+
+            // Note: For proper web-push, you need VAPID keys and web-push library
+            // This is a simplified approach that works with service workers
+            const pushResponse = await fetch(sub.endpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'TTL': '86400',
+              },
+              body: notificationPayload,
+            });
+
+            if (pushResponse.ok) {
+              console.log('Push notification sent successfully to subscription:', sub.id);
+            } else {
+              console.error('Failed to send push notification:', pushResponse.status, await pushResponse.text());
+              
+              // If subscription is invalid (410 Gone), remove it
+              if (pushResponse.status === 410) {
+                console.log('Removing invalid subscription:', sub.id);
+                await supabase
+                  .from('push_subscriptions')
+                  .delete()
+                  .eq('id', sub.id);
+              }
+            }
+          } catch (pushError) {
+            console.error('Error sending push notification:', pushError);
+          }
+        }
+      } else {
+        console.log('No push subscriptions found for user:', targetUserId);
+      }
+    } catch (notifError) {
+      console.error('Error in push notification process:', notifError);
+      // Don't fail the message insertion if notification fails
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
