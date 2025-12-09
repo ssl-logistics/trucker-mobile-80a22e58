@@ -255,7 +255,7 @@ const AddExpensePage = () => {
                 {t('expense.type')} <span className="text-red-500">*</span>
               </Label>
               <Select
-                value={expense.type || undefined}
+                value={expense.type}
                 onValueChange={(value) => {
                   handleExpenseChange(expense.id, "type", value);
                   if (value !== "other") {
@@ -264,7 +264,7 @@ const AddExpensePage = () => {
                 }}
               >
                 <SelectTrigger className="w-full bg-background">
-                  <SelectValue placeholder={t('expense.selectType') || 'เลือกประเภทค่าใช้จ่าย'} />
+                  <SelectValue placeholder={t('expense.selectType')} />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50" position="popper" sideOffset={4}>
                   {expenseTypes.map((type) => (
