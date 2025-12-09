@@ -2,8 +2,14 @@ import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Camera, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
@@ -243,12 +249,12 @@ const AddExpensePage = () => {
               )}
             </div>
 
-            {/* Expense Type - Radio Buttons */}
+            {/* Expense Type - Select */}
             <div className="space-y-2">
               <Label>
                 {t('expense.type')} <span className="text-red-500">*</span>
               </Label>
-              <RadioGroup
+              <Select
                 value={expense.type}
                 onValueChange={(value) => {
                   handleExpenseChange(expense.id, "type", value);
@@ -256,17 +262,18 @@ const AddExpensePage = () => {
                     handleExpenseChange(expense.id, "customType", "");
                   }
                 }}
-                className="grid grid-cols-2 gap-2"
               >
-                {expenseTypes.map((type) => (
-                  <div key={type.value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={type.value} id={`${expense.id}-${type.value}`} />
-                    <Label htmlFor={`${expense.id}-${type.value}`} className="font-normal cursor-pointer">
+                <SelectTrigger className="w-full bg-background">
+                  <SelectValue placeholder={t('expense.selectType') || 'เลือกประเภทค่าใช้จ่าย'} />
+                </SelectTrigger>
+                <SelectContent className="bg-background">
+                  {expenseTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
                       {type.label}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Custom Type Input - shown when "other" is selected */}
