@@ -8,7 +8,7 @@ const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
     // Force reload when new content is available
-    if (confirm('มีเวอร์ชันใหม่! กดตกลงเพื่ออัพเดท')) {
+    if (confirm('New version available! Click OK to update')) {
       updateSW(true);
     }
   },

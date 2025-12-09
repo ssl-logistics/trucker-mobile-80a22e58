@@ -1149,6 +1149,19 @@ const thTranslations: Record<string, string> = {
   'expenses.types.food': 'ค่าอาหาร',
   'expenses.types.maintenance': 'ค่าซ่อมบำรุง',
   'expenses.types.other': 'อื่นๆ',
+  
+  // Push Notification Prompt
+  'notification.enableTitle': 'เปิดการแจ้งเตือน',
+  'notification.enableDesc': 'รับการแจ้งเตือนเมื่อมีงานใหม่, ข้อความ หรืออัพเดทสำคัญ',
+  'notification.enabling': 'กำลังเปิด...',
+  'notification.enableButton': 'เปิดการแจ้งเตือน',
+  'notification.later': 'ภายหลัง',
+  
+  // App Update
+  'app.newVersion': 'มีเวอร์ชันใหม่! กดตกลงเพื่ออัพเดท',
+  
+  // Contact Address
+  'contact.addressValue': '123 ถนนพระราม 4 แขวงคลองเตย\nเขตคลองเตย กรุงเทพฯ 10110',
 };
 
 // English translations
@@ -2259,6 +2272,19 @@ const enTranslations: Record<string, string> = {
   'expenses.types.food': 'Food',
   'expenses.types.maintenance': 'Maintenance',
   'expenses.types.other': 'Other',
+  
+  // Push Notification Prompt
+  'notification.enableTitle': 'Enable Notifications',
+  'notification.enableDesc': 'Receive notifications for new jobs, messages or important updates',
+  'notification.enabling': 'Enabling...',
+  'notification.enableButton': 'Enable Notifications',
+  'notification.later': 'Later',
+  
+  // App Update
+  'app.newVersion': 'New version available! Click OK to update',
+  
+  // Contact Address
+  'contact.addressValue': '123 Rama 4 Road, Khlong Toei\nKhlong Toei, Bangkok 10110',
 };
 
 // Korean translations
@@ -3437,6 +3463,19 @@ const koTranslations: Record<string, string> = {
   'expenses.types.food': '식비',
   'expenses.types.maintenance': '유지보수',
   'expenses.types.other': '기타',
+  
+  // Push Notification Prompt
+  'notification.enableTitle': '알림 활성화',
+  'notification.enableDesc': '새 작업, 메시지 또는 중요한 업데이트에 대한 알림을 받으세요',
+  'notification.enabling': '활성화 중...',
+  'notification.enableButton': '알림 활성화',
+  'notification.later': '나중에',
+  
+  // App Update
+  'app.newVersion': '새 버전이 있습니다! 업데이트하려면 확인을 클릭하세요',
+  
+  // Contact Address
+  'contact.addressValue': '123 라마 4 로드, 클롱 토이\n클롱 토이, 방콕 10110',
 };
 
 // Chinese translations
@@ -4582,4 +4621,17 @@ const zhTranslations: Record<string, string> = {
   'expenses.types.food': '餐饮费',
   'expenses.types.maintenance': '维修费',
   'expenses.types.other': '其他',
+  
+  // Push Notification Prompt
+  'notification.enableTitle': '启用通知',
+  'notification.enableDesc': '接收新工作、消息或重要更新的通知',
+  'notification.enabling': '正在启用...',
+  'notification.enableButton': '启用通知',
+  'notification.later': '稍后',
+  
+  // App Update
+  'app.newVersion': '有新版本！点击确定以更新',
+  
+  // Contact Address
+  'contact.addressValue': '123 拉玛四路，孔堤\n孔堤区，曼谷 10110',
 };

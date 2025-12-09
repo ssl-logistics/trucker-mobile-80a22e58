@@ -101,9 +101,8 @@ export default function ContactPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">{t('contact.address')}</p>
-                <p className="text-sm text-foreground leading-relaxed">
-                  123 ถนนพระราม 4 แขวงคลองเตย<br />
-                  เขตคลองเตย กรุงเทพฯ 10110
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
+                  {t('contact.addressValue')}
                 </p>
               </div>
             </div>
