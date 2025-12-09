@@ -28,7 +28,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ExpenseItem {
   id: string;
-  type: string;
+  type: string | undefined;
   customType: string;
   amount: string;
   receiptPhoto: File | null;
@@ -51,7 +51,7 @@ const AddExpensePage = () => {
     { value: "other", label: t('expense.other') || 'อื่นๆ' },
   ];
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
-    { id: "1", type: "", customType: "", amount: "", receiptPhoto: null, receiptPreview: null },
+    { id: "1", type: undefined, customType: "", amount: "", receiptPhoto: null, receiptPreview: null },
   ]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +59,7 @@ const AddExpensePage = () => {
   const handleAddExpense = () => {
     const newExpense: ExpenseItem = {
       id: String(Date.now()),
-      type: "",
+      type: undefined,
       customType: "",
       amount: "",
       receiptPhoto: null,
