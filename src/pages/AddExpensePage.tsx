@@ -75,7 +75,7 @@ const AddExpensePage = () => {
   };
 
   const handleExpenseChange = (id: string, field: keyof ExpenseItem, value: any) => {
-    setExpenses(expenses.map(exp => 
+    setExpenses(prev => prev.map(exp => 
       exp.id === id ? { ...exp, [field]: value } : exp
     ));
   };
@@ -85,7 +85,7 @@ const AddExpensePage = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setExpenses(expenses.map(exp => 
+        setExpenses(prev => prev.map(exp => 
           exp.id === id 
             ? { ...exp, receiptPhoto: file, receiptPreview: reader.result as string } 
             : exp
