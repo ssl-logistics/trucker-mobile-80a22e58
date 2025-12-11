@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
+import { formatDate, formatTime } from '@/lib/dateUtils';
 import {
   Dialog,
   DialogContent,
@@ -41,7 +42,7 @@ export default function SOPCheckInPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -185,14 +186,6 @@ export default function SOPCheckInPage() {
     }
   };
 
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
-  };
 
   if (loading) {
     return (
@@ -228,7 +221,7 @@ export default function SOPCheckInPage() {
             <div className="flex-1">
               <div className="font-semibold text-green-900">{t('sop.checkInSuccess')}</div>
               <div className="text-sm text-green-700">
-                {formatDate(job.start_date)} | {formatTime(checkInTime)}
+                {formatDate(job.start_date, language)} | {formatTime(checkInTime)}
               </div>
             </div>
           </div>

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import { formatDate } from '@/lib/dateUtils';
 
 interface JobDetail {
   id: string;
@@ -49,7 +50,7 @@ export default function JobRouteExpensesPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -218,7 +219,7 @@ export default function JobRouteExpensesPage() {
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
-                      <span className="text-foreground">: {new Date(job.start_date).toLocaleDateString('th-TH')} | {job.start_time}</span>
+                      <span className="text-foreground">: {formatDate(job.start_date, language)} | {job.start_time}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.remarks')}</span>
@@ -266,7 +267,7 @@ export default function JobRouteExpensesPage() {
                       </div>
                       <div className="flex">
                         <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
-                        <span className="text-foreground">: {new Date(job.start_date).toLocaleDateString('th-TH')} | {job.start_time}</span>
+                        <span className="text-foreground">: {formatDate(job.start_date, language)} | {job.start_time}</span>
                       </div>
                       <div className="flex">
                         <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.remarks')}</span>

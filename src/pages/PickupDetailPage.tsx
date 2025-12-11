@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import Map from '@/components/Map';
 import { sendJobStatus } from '@/lib/jobStatusService';
+import { formatDate } from '@/lib/dateUtils';
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,7 @@ export default function PickupDetailPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -110,10 +111,6 @@ export default function PickupDetailPage() {
     navigate(`/job/${job.id}`);
   };
 
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
 
   const openGoogleMaps = () => {
     if (!job?.origin_latitude || !job?.origin_longitude) {
@@ -198,7 +195,7 @@ export default function PickupDetailPage() {
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.pickupTime')}</div>
-          <div className="text-base">{formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</div>
+          <div className="text-base">{formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</div>
         </div>
 
         <div>

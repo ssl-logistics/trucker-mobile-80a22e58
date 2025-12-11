@@ -24,8 +24,9 @@ export const formatDateTime = (date: string | Date, language: 'th' | 'en' | 'ko'
 };
 
 export const formatTime = (date: string | Date): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   return formatInTimeZone(
-    new Date(date),
+    dateObj,
     THAILAND_TIMEZONE,
     'HH:mm'
   );

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatDate } from '@/lib/dateUtils';
 interface JobApplication {
   id: string;
   applied_at: string;
@@ -75,15 +76,6 @@ export default function JobHistoryPage() {
     } finally {
       setLoading(false);
     }
-  };
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const locale = language === 'th' ? 'th-TH' : 'en-US';
-    return date.toLocaleDateString(locale, {
-      day: "numeric",
-      month: "short",
-      year: "2-digit"
-    });
   };
   const formatTime = (timeString: string) => {
     return timeString.slice(0, 5);
@@ -195,7 +187,7 @@ export default function JobHistoryPage() {
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" />
-                      {formatDate(app.jobs.start_date)} | {formatTime(app.jobs.start_time)}
+                      {formatDate(app.jobs.start_date, language)} | {formatTime(app.jobs.start_time)}
                     </div>
                   </div>
 

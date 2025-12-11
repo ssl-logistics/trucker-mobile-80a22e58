@@ -14,6 +14,7 @@ import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import Map from '@/components/Map';
+import { formatDate } from '@/lib/dateUtils';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -29,7 +30,7 @@ export default function ContainerCheckInPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -92,14 +93,6 @@ export default function ContainerCheckInPage() {
       setShowConfirmDialog(false);
       navigate(`/job/${jobId}`);
     }
-  };
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('th-TH', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
   };
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-background">
@@ -166,7 +159,7 @@ export default function ContainerCheckInPage() {
         <div className="space-y-4">
           <div>
             <p className="text-sm text-gray-600 mb-1">{t('container.startTime')}</p>
-            <p className="font-medium">{formatDate(job.empty_container_date || '2023-11-18')} | 09.00</p>
+            <p className="font-medium">{formatDate(job.empty_container_date || '2023-11-18', language)} | 09.00</p>
           </div>
 
           <div>
@@ -176,7 +169,7 @@ export default function ContainerCheckInPage() {
 
           <div>
             <p className="text-sm text-gray-600 mb-1">{t('container.firstDatePickup')}</p>
-            <p className="font-medium">{formatDate(mockContainerData.emptyDate)}</p>
+            <p className="font-medium">{formatDate(mockContainerData.emptyDate, language)}</p>
           </div>
 
           <Card className="p-4 bg-white border-2 border-gray-200">

@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
+import { formatDate, formatTime } from '@/lib/dateUtils';
 import {
   Dialog,
   DialogContent,
@@ -51,7 +52,7 @@ export default function DeliverySOPCheckInPage() {
   const navigate = useNavigate();
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [destination, setDestination] = useState<JobDestination | null>(null);
   const [loading, setLoading] = useState(true);
@@ -244,15 +245,6 @@ export default function DeliverySOPCheckInPage() {
   // Display values
   const displayCompanyName = destination?.company_name || job?.destination_company_name || '';
 
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -290,7 +282,7 @@ export default function DeliverySOPCheckInPage() {
             <div className="flex-1">
               <div className="font-semibold text-green-900">{t('deliverySop.checkInSuccess')}</div>
               <div className="text-sm text-green-700">
-                {formatDate(job.start_date)} | {formatTime(checkInTime)}
+                {formatDate(job.start_date, language)} | {formatTime(checkInTime)}
               </div>
             </div>
           </div>
