@@ -37,8 +37,9 @@ export default function SearchPage() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [allJobs, setAllJobs] = useState<any[]>([]);
 
-  const recentSearches = ['กรุงเทพ', 'สมุทรปราการ'];
-  const popularSearches = ['กรุงเทพมหานคร', 'คลังสินค้า', 'ขนส่ง', 'ชิปปิ้ง'];
+  // Use translation keys for search suggestions
+  const getRecentSearches = () => [t('search.recentBangkok'), t('search.recentSamutprakan')];
+  const getPopularSearches = () => [t('search.popularBangkok'), t('search.popularWarehouse'), t('search.popularTransport'), t('search.popularShipping')];
 
   useEffect(() => {
     loadJobs();
@@ -75,10 +76,24 @@ export default function SearchPage() {
     }
   };
 
-  const domesticTypes = ['ขนส่งเที่ยวเดียว', 'ขนส่งหลายที่'];
-  const internationalTypes = ['ขนส่งขาเข้า', 'ขนส่งขาออก'];
+  // Filter type values for filtering (internal use)
+  const domesticTypeValues = ['เที่ยวเดียว', 'หลายที่'];
+  const internationalTypeValues = ['ขาเข้า', 'ขาออก'];
 
-  const provinces = [
+  // Display labels for filter buttons
+  const getDomesticTypeLabel = (value: string) => {
+    if (value === 'เที่ยวเดียว') return t('job.single_trip');
+    if (value === 'หลายที่') return t('job.multiple_locations');
+    return value;
+  };
+  
+  const getInternationalTypeLabel = (value: string) => {
+    if (value === 'ขาเข้า') return t('job.inbound');
+    if (value === 'ขาออก') return t('job.outbound');
+    return value;
+  };
+
+  const provinceValues = [
     'กรุงเทพมหานคร',
     'นนทบุรี',
     'ปทุมธานี',
@@ -253,7 +268,7 @@ export default function SearchPage() {
           <div>
             <h3 className="text-sm font-semibold mb-3">{t('search.recent')}</h3>
             <div className="flex flex-wrap gap-2">
-              {recentSearches.map((term) => (
+              {getRecentSearches().map((term) => (
                 <button
                   key={term}
                   onClick={() => handleSearchTermClick(term)}
@@ -268,7 +283,7 @@ export default function SearchPage() {
           <div>
             <h3 className="text-sm font-semibold mb-3">{t('search.popular')}</h3>
             <div className="flex flex-wrap gap-2">
-              {popularSearches.map((term) => (
+              {getPopularSearches().map((term) => (
                 <button
                   key={term}
                   onClick={() => handleSearchTermClick(term)}
@@ -299,7 +314,7 @@ export default function SearchPage() {
                 {t('search.domestic')}
               </label>
               <div className="flex flex-wrap gap-2">
-                {domesticTypes.map((type) => (
+                {domesticTypeValues.map((type) => (
                   <button
                     key={type}
                     onClick={() =>
@@ -311,7 +326,7 @@ export default function SearchPage() {
                         : 'border-gray-300'
                     }`}
                   >
-                    {type}
+                    {getDomesticTypeLabel(type)}
                   </button>
                 ))}
               </div>
@@ -323,7 +338,7 @@ export default function SearchPage() {
                 {t('search.international')}
               </label>
               <div className="flex flex-wrap gap-2">
-                {internationalTypes.map((type) => (
+                {internationalTypeValues.map((type) => (
                   <button
                     key={type}
                     onClick={() =>
@@ -335,7 +350,7 @@ export default function SearchPage() {
                         : 'border-gray-300'
                     }`}
                   >
-                    {type}
+                    {getInternationalTypeLabel(type)}
                   </button>
                 ))}
               </div>
@@ -349,7 +364,7 @@ export default function SearchPage() {
                   <SelectValue placeholder={t('search.select_province')} />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
-                  {provinces.map((prov) => (
+                  {provinceValues.map((prov) => (
                     <SelectItem key={prov} value={prov}>
                       {prov}
                     </SelectItem>

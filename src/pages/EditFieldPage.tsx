@@ -23,7 +23,7 @@ export default function EditFieldPage() {
 
     setLoading(true);
 
-    if (field === 'ชื่อ') {
+    if (field === 'firstName') {
       const nameParts = fullName?.split(' ') || [];
       const newFullName = `${value} ${nameParts.slice(1).join(' ')}`;
       
@@ -38,7 +38,7 @@ export default function EditFieldPage() {
       } else {
         toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
       }
-    } else if (field === 'นามสกุล') {
+    } else if (field === 'lastName') {
       const nameParts = fullName?.split(' ') || [];
       const newFullName = `${nameParts[0]} ${value}`;
       
@@ -53,7 +53,7 @@ export default function EditFieldPage() {
       } else {
         toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
       }
-    } else if (field === 'เบอร์โทรศัพท์') {
+    } else if (field === 'phone') {
       const { error } = await supabase
         .from('profiles')
         .update({ phone_number: value })
@@ -68,6 +68,16 @@ export default function EditFieldPage() {
     }
 
     setLoading(false);
+  };
+  
+  // Get display label for field
+  const getFieldLabel = () => {
+    switch (field) {
+      case 'firstName': return t('profile.first_name');
+      case 'lastName': return t('profile.last_name');
+      case 'phone': return t('profile.phone');
+      default: return field;
+    }
   };
 
   const handleClear = () => {
@@ -93,13 +103,13 @@ export default function EditFieldPage() {
       {/* Edit Form */}
       <div className="p-4">
         <div className="mb-6">
-          <div className="text-sm text-muted-foreground mb-2">{field}</div>
+          <div className="text-sm text-muted-foreground mb-2">{getFieldLabel()}</div>
           <div className="relative">
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
               className="border-b border-gray-300 rounded-none px-0 pb-2 focus-visible:ring-0 focus-visible:border-blue-600 text-lg"
-              placeholder={field}
+              placeholder={getFieldLabel()}
               autoFocus
             />
             {value && (

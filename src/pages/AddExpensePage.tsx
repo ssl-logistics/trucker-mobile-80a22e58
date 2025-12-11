@@ -165,7 +165,7 @@ const AddExpensePage = () => {
         
         if (uploadError) {
           console.error('Upload error:', uploadError);
-          throw new Error(`เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ: ${uploadError.message}`);
+          throw new Error(`${t('expense.uploadError')}: ${uploadError.message}`);
         }
         
         console.log('Upload success:', uploadData);
@@ -193,7 +193,7 @@ const AddExpensePage = () => {
         
         if (insertError) {
           console.error('Insert error:', insertError);
-          throw new Error(`เกิดข้อผิดพลาดในการบันทึกค่าใช้จ่าย: ${insertError.message}`);
+          throw new Error(`${t('expense.saveError')}: ${insertError.message}`);
         }
         
         console.log('Expense saved successfully');

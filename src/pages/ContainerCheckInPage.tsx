@@ -64,7 +64,7 @@ export default function ContainerCheckInPage() {
       .from('job_applications')
       .update({
         container_checked_in_at: new Date().toISOString(),
-        status: 'รอรับตู้เปล่า'
+        status: 'waiting_container'
       })
       .eq('job_id', jobId)
       .eq('driver_id', user.id);
@@ -108,7 +108,7 @@ export default function ContainerCheckInPage() {
   }
   if (!job) return null;
   const mockContainerData = {
-    checkpoint: job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย',
+    checkpoint: job.container_checkpoint || t('container.defaultCheckpoint'),
     checkpointCode: job.container_checkpoint_code || 'LCB B1',
     emptyDate: job.empty_container_date || '2023-11-02',
     containers: [{
@@ -158,7 +158,7 @@ export default function ContainerCheckInPage() {
           <Map 
             latitude={job.container_checkpoint_latitude || 13.0827}
             longitude={job.container_checkpoint_longitude || 100.8833}
-            markerLabel={job.container_checkpoint || 'ท่าเรือแหลมฉบัง'}
+            markerLabel={job.container_checkpoint || t('container.defaultCheckpoint')}
             showRoute={false}
           />
         </div>
@@ -244,7 +244,7 @@ export default function ContainerCheckInPage() {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center">
               {t('container.confirmMessage1')}<br />
-              {t('container.emptyContainerPoint')} {job.container_checkpoint || 'ท่าเรือแหลมฉบัง, ประเทศไทย'}<br />
+              {t('container.emptyContainerPoint')} {job.container_checkpoint || t('container.defaultCheckpoint')}<br />
               {t('container.confirmMessage2')}
             </AlertDialogDescription>
           </AlertDialogHeader>
