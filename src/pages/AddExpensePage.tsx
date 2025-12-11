@@ -48,7 +48,7 @@ const AddExpensePage = () => {
     { value: "toll", label: t('expense.tollFee') },
     { value: "port", label: t('expense.portFee') },
     { value: "parking", label: t('expense.parkingFee') },
-    { value: "other", label: t('expense.other') || 'อื่นๆ' },
+    { value: "other", label: t('expense.other') },
   ];
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     { id: "1", type: undefined, customType: "", amount: "", receiptPhoto: null, receiptPreview: null },
@@ -125,7 +125,7 @@ const AddExpensePage = () => {
       if (expense.type === "other" && !expense.customType.trim()) {
         toast({
           title: t('expense.fillAllFields'),
-          description: t('expense.enterCustomType') || 'กรุณาระบุประเภทค่าใช้จ่าย',
+          description: t('expense.enterCustomType'),
           variant: "destructive",
         });
         return false;
@@ -254,7 +254,7 @@ const AddExpensePage = () => {
                   type="button"
                   onClick={() => handleRemoveExpense(expense.id)}
                   className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                  aria-label={t('expense.delete') || 'ลบ'}
+                  aria-label={t('expense.delete')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -292,12 +292,12 @@ const AddExpensePage = () => {
             {expense.type === "other" && (
               <div className="space-y-2">
                 <Label htmlFor={`custom-type-${expense.id}`}>
-                  {t('expense.customTypeName') || 'ระบุประเภทค่าใช้จ่าย'} <span className="text-red-500">*</span>
+                  {t('expense.customTypeName')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id={`custom-type-${expense.id}`}
                   type="text"
-                  placeholder={t('expense.customTypePlaceholder') || 'เช่น ค่าน้ำมัน, ค่าอาหาร'}
+                  placeholder={t('expense.customTypePlaceholder')}
                   value={expense.customType}
                   onChange={(e) => handleExpenseChange(expense.id, "customType", e.target.value)}
                 />

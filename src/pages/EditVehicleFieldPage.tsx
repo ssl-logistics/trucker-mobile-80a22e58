@@ -13,12 +13,11 @@ import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
 
 const vehicleBrands = ['Isuzu', 'Hino', 'Mitsubishi', 'Nissan', 'Mercedes-Benz', 'Volvo', 'Scania'];
-const vehicleTypes = ['รถหัวลาก', 'รถกระบะ', 'รถบรรทุก 6 ล้อ', 'รถบรรทุก 10 ล้อ'];
 
 export default function EditVehicleFieldPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const field = searchParams.get('field');
   const [value, setValue] = useState('');
@@ -27,26 +26,35 @@ export default function EditVehicleFieldPage() {
   const [dimensions, setDimensions] = useState({ width: '', length: '', height: '' });
   const [containerTypes, setContainerTypes] = useState<string[]>([]);
 
-  const getFieldTranslationKey = (fieldName: string | null): string => {
-    if (!fieldName) return '';
-    const fieldMap: { [key: string]: string } = {
-      'หมายเลขทะเบียนรถ': 'editVehicle.fieldPlateNumber',
-      'จังหวัดจดทะเบียนรถ': 'editVehicle.fieldPlateProvince',
-      'ยี่ห้อรถยนต์': 'editVehicle.fieldVehicleBrand',
-      'สีรถยนต์': 'editVehicle.fieldVehicleColor',
-      'VIN': 'editVehicle.fieldVIN',
-      'ประเภทรถยนต์': 'editVehicle.fieldVehicleType',
-      'ประเภทเชื้อเพลิง': 'editVehicle.fieldFuelType',
-      'น้ำหนักบรรทุก': 'editVehicle.fieldLoadCapacity',
-      'ขนาดรถ': 'editVehicle.fieldVehicleSize',
-      'ประเภทตู้คอนเทนเนอร์': 'editVehicle.fieldContainerTypes',
-    };
-    return fieldMap[fieldName] || '';
+  const fieldTranslationMap: { [key: string]: string } = {
+    'plate_number': 'editVehicle.fieldPlateNumber',
+    'plate_province': 'editVehicle.fieldPlateProvince',
+    'vehicle_brand': 'editVehicle.fieldVehicleBrand',
+    'vehicle_color': 'editVehicle.fieldVehicleColor',
+    'vin': 'editVehicle.fieldVIN',
+    'vehicle_type': 'editVehicle.fieldVehicleType',
+    'fuel_type': 'editVehicle.fieldFuelType',
+    'load_capacity': 'editVehicle.fieldLoadCapacity',
+    'dimensions': 'editVehicle.fieldVehicleSize',
+    'container_types': 'editVehicle.fieldContainerTypes',
   };
 
-  const displayFieldName = getFieldTranslationKey(field) ? t(getFieldTranslationKey(field)) : field;
+  const displayFieldName = field && fieldTranslationMap[field] ? t(fieldTranslationMap[field]) : field || '';
 
-  const fuelTypes = [t('editVehicle.diesel'), t('editVehicle.gasoline'), t('editVehicle.electric'), t('editVehicle.hybrid')];
+  const fuelTypes = [
+    { value: t('editVehicle.diesel'), label: t('editVehicle.diesel') },
+    { value: t('editVehicle.gasoline'), label: t('editVehicle.gasoline') },
+    { value: t('editVehicle.electric'), label: t('editVehicle.electric') },
+    { value: t('editVehicle.hybrid'), label: t('editVehicle.hybrid') },
+  ];
+
+  const vehicleTypes = [
+    { value: t('editVehicle.tractorHead'), label: t('editVehicle.tractorHead') },
+    { value: t('editVehicle.pickup'), label: t('editVehicle.pickup') },
+    { value: t('editVehicle.truck6Wheel'), label: t('editVehicle.truck6Wheel') },
+    { value: t('editVehicle.truck10Wheel'), label: t('editVehicle.truck10Wheel') },
+  ];
+
   const containerTypeOptions = [
     { value: '20ft', label: t('editVehicle.container20ft') },
     { value: '40ft', label: t('editVehicle.container40ft') },
@@ -76,38 +84,38 @@ export default function EditVehicleFieldPage() {
       setVehicleId(data.id);
 
       switch (field) {
-        case 'หมายเลขทะเบียนรถ':
+        case 'plate_number':
           setValue(data.plate_number);
           break;
-        case 'จังหวัดจดทะเบียนรถ':
+        case 'plate_province':
           setValue(data.plate_province);
           break;
-        case 'ยี่ห้อรถยนต์':
+        case 'vehicle_brand':
           setValue(data.vehicle_brand);
           break;
-        case 'สีรถยนต์':
+        case 'vehicle_color':
           setValue(data.vehicle_color);
           break;
-        case 'VIN':
+        case 'vin':
           setValue(data.vin);
           break;
-        case 'ประเภทรถยนต์':
+        case 'vehicle_type':
           setValue(data.vehicle_type);
           break;
-        case 'ประเภทเชื้อเพลิง':
+        case 'fuel_type':
           setValue(data.fuel_type);
           break;
-        case 'น้ำหนักบรรทุก':
+        case 'load_capacity':
           setValue(data.load_capacity?.toString() || '');
           break;
-        case 'ขนาดรถ':
+        case 'dimensions':
           setDimensions({
             width: data.width?.toString() || '',
             length: data.length?.toString() || '',
             height: data.height?.toString() || '',
           });
           break;
-        case 'ประเภทตู้คอนเทนเนอร์':
+        case 'container_types':
           setContainerTypes(data.container_types || []);
           break;
       }
@@ -124,38 +132,38 @@ export default function EditVehicleFieldPage() {
       let updateData: any = {};
 
       switch (field) {
-        case 'หมายเลขทะเบียนรถ':
+        case 'plate_number':
           updateData = { plate_number: value };
           break;
-        case 'จังหวัดจดทะเบียนรถ':
+        case 'plate_province':
           updateData = { plate_province: value };
           break;
-        case 'ยี่ห้อรถยนต์':
+        case 'vehicle_brand':
           updateData = { vehicle_brand: value };
           break;
-        case 'สีรถยนต์':
+        case 'vehicle_color':
           updateData = { vehicle_color: value };
           break;
-        case 'VIN':
+        case 'vin':
           updateData = { vin: value };
           break;
-        case 'ประเภทรถยนต์':
+        case 'vehicle_type':
           updateData = { vehicle_type: value };
           break;
-        case 'ประเภทเชื้อเพลิง':
+        case 'fuel_type':
           updateData = { fuel_type: value };
           break;
-        case 'น้ำหนักบรรทุก':
+        case 'load_capacity':
           updateData = { load_capacity: parseFloat(value) };
           break;
-        case 'ขนาดรถ':
+        case 'dimensions':
           updateData = {
             width: dimensions.width ? parseFloat(dimensions.width) : null,
             length: dimensions.length ? parseFloat(dimensions.length) : null,
             height: dimensions.height ? parseFloat(dimensions.height) : null,
           };
           break;
-        case 'ประเภทตู้คอนเทนเนอร์':
+        case 'container_types':
           updateData = { container_types: containerTypes };
           break;
       }
@@ -190,7 +198,7 @@ export default function EditVehicleFieldPage() {
 
   const renderInput = () => {
     switch (field) {
-      case 'จังหวัดจดทะเบียนรถ':
+      case 'plate_province':
         return (
           <Select value={value} onValueChange={setValue}>
             <SelectTrigger>
@@ -205,7 +213,7 @@ export default function EditVehicleFieldPage() {
             </SelectContent>
           </Select>
         );
-      case 'ยี่ห้อรถยนต์':
+      case 'vehicle_brand':
         return (
           <Select value={value} onValueChange={setValue}>
             <SelectTrigger>
@@ -220,7 +228,7 @@ export default function EditVehicleFieldPage() {
             </SelectContent>
           </Select>
         );
-      case 'ประเภทรถยนต์':
+      case 'vehicle_type':
         return (
           <Select value={value} onValueChange={setValue}>
             <SelectTrigger>
@@ -228,14 +236,14 @@ export default function EditVehicleFieldPage() {
             </SelectTrigger>
             <SelectContent>
               {vehicleTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         );
-      case 'ประเภทเชื้อเพลิง':
+      case 'fuel_type':
         return (
           <Select value={value} onValueChange={setValue}>
             <SelectTrigger>
@@ -243,14 +251,14 @@ export default function EditVehicleFieldPage() {
             </SelectTrigger>
             <SelectContent>
               {fuelTypes.map((fuel) => (
-                <SelectItem key={fuel} value={fuel}>
-                  {fuel}
+                <SelectItem key={fuel.value} value={fuel.value}>
+                  {fuel.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         );
-      case 'น้ำหนักบรรทุก':
+      case 'load_capacity':
         return (
           <div className="relative">
             <Input
@@ -266,7 +274,7 @@ export default function EditVehicleFieldPage() {
             )}
           </div>
         );
-      case 'ขนาดรถ':
+      case 'dimensions':
         return (
           <div className="space-y-4">
             <div>
@@ -298,7 +306,7 @@ export default function EditVehicleFieldPage() {
             </div>
           </div>
         );
-      case 'ประเภทตู้คอนเทนเนอร์':
+      case 'container_types':
         return (
           <div className="space-y-3">
             {containerTypeOptions.map((option) => (
@@ -340,10 +348,10 @@ export default function EditVehicleFieldPage() {
   };
 
   const isValid = () => {
-    if (field === 'ขนาดรถ') {
+    if (field === 'dimensions') {
       return dimensions.width || dimensions.length || dimensions.height;
     }
-    if (field === 'ประเภทตู้คอนเทนเนอร์') {
+    if (field === 'container_types') {
       return containerTypes.length > 0;
     }
     return value.trim() !== '';
