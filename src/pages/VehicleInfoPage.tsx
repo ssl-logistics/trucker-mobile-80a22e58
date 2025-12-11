@@ -39,16 +39,7 @@ interface VehiclePhoto {
   photo_url: string;
 }
 
-const containerTypeOptions = [
-  { value: '20ft', label: '20 ฟุต' },
-  { value: '40ft', label: '40 ฟุต' },
-  { value: '40ft_hc', label: '40 ฟุต High Cube' },
-  { value: 'reefer', label: 'ตู้เย็น (Reefer)' },
-];
-
 const vehicleBrands = ['Isuzu', 'Hino', 'Mitsubishi', 'Nissan', 'Mercedes-Benz', 'Volvo', 'Scania'];
-const fuelTypes = ['ดีเซล', 'เบนซิน', 'ไฟฟ้า', 'ไฮบริด'];
-const vehicleTypes = ['รถหัวลาก', 'รถกระบะ', 'รถบรรทุก 6 ล้อ', 'รถบรรทุก 10 ล้อ'];
 
 export default function VehicleInfoPage() {
   const navigate = useNavigate();
@@ -63,6 +54,13 @@ export default function VehicleInfoPage() {
   const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
   const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
+
+  const containerTypeOptions = [
+    { value: '20ft', label: t('editVehicle.container20ft') },
+    { value: '40ft', label: t('editVehicle.container40ft') },
+    { value: '40ft_hc', label: t('editVehicle.container40ftHC') },
+    { value: 'reefer', label: t('editVehicle.containerReefer') },
+  ];
 
   const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
 
@@ -361,7 +359,7 @@ export default function VehicleInfoPage() {
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=หมายเลขทะเบียนรถ')}
+                onClick={() => navigate('/edit-vehicle-field?field=plate_number')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -376,7 +374,7 @@ export default function VehicleInfoPage() {
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=จังหวัดจดทะเบียนรถ')}
+                onClick={() => navigate('/edit-vehicle-field?field=plate_province')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -391,7 +389,7 @@ export default function VehicleInfoPage() {
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=ยี่ห้อรถยนต์')}
+                onClick={() => navigate('/edit-vehicle-field?field=vehicle_brand')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -406,7 +404,7 @@ export default function VehicleInfoPage() {
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=สีรถยนต์')}
+                onClick={() => navigate('/edit-vehicle-field?field=vehicle_color')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -421,7 +419,7 @@ export default function VehicleInfoPage() {
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=VIN')}
+                onClick={() => navigate('/edit-vehicle-field?field=vin')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -436,7 +434,7 @@ export default function VehicleInfoPage() {
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=ประเภทรถยนต์')}
+                onClick={() => navigate('/edit-vehicle-field?field=vehicle_type')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -451,7 +449,7 @@ export default function VehicleInfoPage() {
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=ประเภทเชื้อเพลิง')}
+                onClick={() => navigate('/edit-vehicle-field?field=fuel_type')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -466,7 +464,7 @@ export default function VehicleInfoPage() {
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=น้ำหนักบรรทุก')}
+                onClick={() => navigate('/edit-vehicle-field?field=load_capacity')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -477,15 +475,15 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.dimensions')}</Label>
                 <p className="text-base font-medium mt-1">
                   {vehicleData.width && vehicleData.length && vehicleData.height
-                    ? `${t('vehicle.width')} ${vehicleData.width} ${t('vehicle.length')} ${vehicleData.length} ${t('vehicle.height')} ${vehicleData.height} ม.`
-                    : 'ไม่ระบุ'}
+                    ? `${t('vehicle.width')} ${vehicleData.width} ${t('vehicle.length')} ${vehicleData.length} ${t('vehicle.height')} ${vehicleData.height} ${t('vehicle.meter')}`
+                    : t('vehicle.notSpecified')}
                 </p>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=ขนาดรถ')}
+                onClick={() => navigate('/edit-vehicle-field?field=dimensions')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
@@ -499,14 +497,14 @@ export default function VehicleInfoPage() {
                     ? vehicleData.container_types
                         .map((type) => containerTypeOptions.find((opt) => opt.value === type)?.label || type)
                         .join(', ')
-                    : 'ไม่ระบุ'}
+                    : t('vehicle.notSpecified')}
                 </p>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=ประเภทตู้คอนเทนเนอร์')}
+                onClick={() => navigate('/edit-vehicle-field?field=container_types')}
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>

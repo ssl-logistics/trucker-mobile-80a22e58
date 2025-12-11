@@ -1042,6 +1042,12 @@ const thTranslations: Record<string, string> = {
   'editVehicle.fieldLoadCapacity': 'น้ำหนักบรรทุก',
   'editVehicle.fieldVehicleSize': 'ขนาดรถ',
   'editVehicle.fieldContainerTypes': 'ประเภทตู้คอนเทนเนอร์',
+  'editVehicle.tractorHead': 'รถหัวลาก',
+  'editVehicle.pickup': 'รถกระบะ',
+  'editVehicle.truck6Wheel': 'รถบรรทุก 6 ล้อ',
+  'editVehicle.truck10Wheel': 'รถบรรทุก 10 ล้อ',
+  'vehicle.notSpecified': 'ไม่ระบุ',
+  'vehicle.meter': 'ม.',
   
   // Change Password Page
   'changePassword.title': 'เปลี่ยนรหัสผ่าน',
@@ -2031,6 +2037,12 @@ const enTranslations: Record<string, string> = {
   'editVehicle.fieldLoadCapacity': 'Load Capacity',
   'editVehicle.fieldVehicleSize': 'Vehicle Size',
   'editVehicle.fieldContainerTypes': 'Container Types',
+  'editVehicle.tractorHead': 'Tractor Head',
+  'editVehicle.pickup': 'Pickup Truck',
+  'editVehicle.truck6Wheel': '6 Wheel Truck',
+  'editVehicle.truck10Wheel': '10 Wheel Truck',
+  'vehicle.notSpecified': 'Not specified',
+  'vehicle.meter': 'm',
   
   // Container Check-in Page
   'container.title': 'Empty Container Point',
@@ -3156,6 +3168,12 @@ const koTranslations: Record<string, string> = {
   'editVehicle.fieldLoadCapacity': '적재 용량',
   'editVehicle.fieldVehicleSize': '차량 크기',
   'editVehicle.fieldContainerTypes': '컨테이너 유형',
+  'editVehicle.tractorHead': '트랙터 헤드',
+  'editVehicle.pickup': '픽업 트럭',
+  'editVehicle.truck6Wheel': '6륜 트럭',
+  'editVehicle.truck10Wheel': '10륜 트럭',
+  'vehicle.notSpecified': '미지정',
+  'vehicle.meter': 'm',
   
   // Change Password Page
   'changePassword.title': '비밀번호 변경',
@@ -4542,6 +4560,12 @@ const zhTranslations: Record<string, string> = {
   'editVehicle.fieldLoadCapacity': '载重量',
   'editVehicle.fieldVehicleSize': '车辆尺寸',
   'editVehicle.fieldContainerTypes': '集装箱类型',
+  'editVehicle.tractorHead': '牵引车头',
+  'editVehicle.pickup': '皮卡',
+  'editVehicle.truck6Wheel': '6轮卡车',
+  'editVehicle.truck10Wheel': '10轮卡车',
+  'vehicle.notSpecified': '未指定',
+  'vehicle.meter': '米',
   
   // Sign In Page
   'signIn.title': '登录或注册',
