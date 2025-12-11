@@ -218,7 +218,7 @@ export default function ProfilePage() {
             <button
               onClick={() => navigate('/profile/edit', { 
                 state: { 
-                  field: t('profile.first_name'), 
+                  field: 'firstName', 
                   value: firstName, 
                   fullName: profile?.full_name 
                 } 
@@ -237,7 +237,7 @@ export default function ProfilePage() {
             <button
               onClick={() => navigate('/profile/edit', { 
                 state: { 
-                  field: t('profile.last_name'), 
+                  field: 'lastName', 
                   value: lastName, 
                   fullName: profile?.full_name 
                 } 
@@ -256,7 +256,7 @@ export default function ProfilePage() {
             <button
               onClick={() => navigate('/profile/edit', { 
                 state: { 
-                  field: t('profile.phone'), 
+                  field: 'phone', 
                   value: profile?.phone_number || '' 
                 } 
               })}

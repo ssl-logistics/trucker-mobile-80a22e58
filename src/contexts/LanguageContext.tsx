@@ -269,6 +269,12 @@ const thTranslations: Record<string, string> = {
   'search.max_price': 'ใส่ราคาสูงสุด',
   'search.clear': 'ล้างค่า',
   'search.apply': 'ค้นหา',
+  'search.recentBangkok': 'กรุงเทพ',
+  'search.recentSamutprakan': 'สมุทรปราการ',
+  'search.popularBangkok': 'กรุงเทพมหานคร',
+  'search.popularWarehouse': 'คลังสินค้า',
+  'search.popularTransport': 'ขนส่ง',
+  'search.popularShipping': 'ชิปปิ้ง',
   
   // Profile Page
   'profile.title': 'โปรไฟล์',
@@ -796,6 +802,7 @@ const thTranslations: Record<string, string> = {
   'container.checkInError': 'ไม่สามารถเช็คอินได้',
   'container.error': 'เกิดข้อผิดพลาด',
   'container.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
+  'container.defaultCheckpoint': 'ท่าเรือแหลมฉบัง, ประเทศไทย',
   
   // SOP Check-in Page
   'sop.title': 'จุดรับสินค้า',
@@ -897,6 +904,8 @@ const thTranslations: Record<string, string> = {
   'expense.successDesc': 'บันทึกค่าใช้จ่ายทั้งหมด',
   'expense.error': 'เกิดข้อผิดพลาด',
   'expense.errorDesc': 'ไม่สามารถบันทึกค่าใช้จ่ายได้',
+  'expense.uploadError': 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ',
+  'expense.saveError': 'เกิดข้อผิดพลาดในการบันทึกค่าใช้จ่าย',
   'expense.tollFee': 'ค่าทางด่วน',
   'expense.portFee': 'ค่าเข้าท่าเรือ',
   'expense.parkingFee': 'ค่าที่จอด',
@@ -1428,6 +1437,12 @@ const enTranslations: Record<string, string> = {
   'search.max_price': 'Enter maximum price',
   'search.clear': 'Clear',
   'search.apply': 'Search',
+  'search.recentBangkok': 'Bangkok',
+  'search.recentSamutprakan': 'Samut Prakan',
+  'search.popularBangkok': 'Bangkok',
+  'search.popularWarehouse': 'Warehouse',
+  'search.popularTransport': 'Transport',
+  'search.popularShipping': 'Shipping',
   
   // Profile Page
   'profile.title': 'Profile',
@@ -2068,6 +2083,7 @@ const enTranslations: Record<string, string> = {
   'container.checkInError': 'Unable to check in',
   'container.error': 'Error',
   'container.loadError': 'Unable to load job data',
+  'container.defaultCheckpoint': 'Laem Chabang Port, Thailand',
   
   // SOP Check-in Page
   'sop.title': 'Pickup Point',
@@ -2169,6 +2185,8 @@ const enTranslations: Record<string, string> = {
   'expense.successDesc': 'Saved all expenses',
   'expense.error': 'Error',
   'expense.errorDesc': 'Unable to save expense',
+  'expense.uploadError': 'Error uploading image',
+  'expense.saveError': 'Error saving expense',
   'expense.tollFee': 'Toll Fee',
   'expense.portFee': 'Port Fee',
   'expense.parkingFee': 'Parking Fee',
@@ -2527,6 +2545,12 @@ const koTranslations: Record<string, string> = {
   'search.max_price': '최대 가격 입력',
   'search.clear': '초기화',
   'search.apply': '검색',
+  'search.recentBangkok': '방콕',
+  'search.recentSamutprakan': '사뭇프라칸',
+  'search.popularBangkok': '방콕',
+  'search.popularWarehouse': '창고',
+  'search.popularTransport': '운송',
+  'search.popularShipping': '배송',
   
   // Profile Page
   'profile.title': '프로필',
@@ -2814,6 +2838,8 @@ const koTranslations: Record<string, string> = {
   'expense.successDesc': '모든 비용이 저장되었습니다',
   'expense.error': '오류',
   'expense.errorDesc': '비용을 저장할 수 없습니다',
+  'expense.uploadError': '이미지 업로드 오류',
+  'expense.saveError': '비용 저장 오류',
   'expense.tollFee': '통행료',
   'expense.portFee': '항만 요금',
   'expense.parkingFee': '주차 요금',
@@ -2906,6 +2932,7 @@ const koTranslations: Record<string, string> = {
   'container.confirmTitle': '체크인 확인',
   'container.confirmMessage1': '다음 위치에서 체크인하시겠습니까?',
   'container.confirmMessage2': '계속하시겠습니까?',
+  'container.defaultCheckpoint': '램차방 항구, 태국',
   
   // Additional JobDetail translations
   'jobDetail.containerCheckpoint': '컨테이너 체크포인트',
@@ -3861,6 +3888,34 @@ const zhTranslations: Record<string, string> = {
   'reportProblem.downloadVehicleChange': '下载换车文件',
   'reportProblem.confirm': '确认',
   
+  // Search Page
+  'search.title': '搜索',
+  'search.search': '搜索',
+  'search.results': '搜索结果',
+  'search.no_results': '未找到结果',
+  'search.recent': '最近搜索',
+  'search.popular': '热门搜索',
+  'search.filter': '筛选',
+  'search.filter_desc': '筛选搜索结果',
+  'search.domestic': '国内运输',
+  'search.international': '国际运输',
+  'search.province': '省份',
+  'search.district': '区县',
+  'search.select_province': '选择省份',
+  'search.select_district': '选择区县',
+  'search.select_district_first': '请先选择省份',
+  'search.price_range': '价格范围 (฿)',
+  'search.min_price': '输入最低价格',
+  'search.max_price': '输入最高价格',
+  'search.clear': '清除',
+  'search.apply': '搜索',
+  'search.recentBangkok': '曼谷',
+  'search.recentSamutprakan': '沙没巴干',
+  'search.popularBangkok': '曼谷',
+  'search.popularWarehouse': '仓库',
+  'search.popularTransport': '运输',
+  'search.popularShipping': '物流',
+  
   // Job Action Buttons
   'jobActions.viewExpenses': '查看费用',
   'jobActions.addExpense': '添加费用',
@@ -3990,6 +4045,7 @@ const zhTranslations: Record<string, string> = {
   'container.checkInError': '无法签到',
   'container.error': '错误',
   'container.loadError': '无法加载工作数据',
+  'container.defaultCheckpoint': '林查班港, 泰国',
   
   // Add Expense Page
   'expense.title': '添加费用',
@@ -4014,6 +4070,8 @@ const zhTranslations: Record<string, string> = {
   'expense.successDesc': '费用已成功保存，总金额',
   'expense.error': '错误',
   'expense.errorDesc': '保存费用时出错',
+  'expense.uploadError': '上传图片时出错',
+  'expense.saveError': '保存费用时出错',
   'expense.tollFee': '过路费',
   'expense.portFee': '港口费',
   'expense.parkingFee': '停车费',
