@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
+import { formatDateTime } from '@/lib/dateUtils';
 
 interface JobDetail {
   id: string;
@@ -31,7 +32,7 @@ export default function ContainerSummaryPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [application, setApplication] = useState<JobApplication | null>(null);
   const [sopPhoto, setSOPPhoto] = useState<SOPPhoto | null>(null);
@@ -95,12 +96,6 @@ export default function ContainerSummaryPage() {
     setLoading(false);
   };
 
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const dateStr = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-    const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
-    return `${dateStr} | ${timeStr}`;
-  };
 
   if (loading) {
     return (
@@ -140,7 +135,7 @@ export default function ContainerSummaryPage() {
               <div className="flex-1">
                 <div className="font-semibold text-green-900">{t('containerSummary.checkInSuccess')}</div>
                 <div className="text-sm text-green-700">
-                  {formatDateTime(application.container_checked_in_at)}
+                  {formatDateTime(application.container_checked_in_at, language)}
                 </div>
               </div>
             </div>
@@ -157,7 +152,7 @@ export default function ContainerSummaryPage() {
               <div className="flex-1">
                 <div className="font-semibold text-green-900">{t('containerSummary.containerSuccess')}</div>
                 <div className="text-sm text-green-700">
-                  {formatDateTime(application.container_sop_completed_at)}
+                  {formatDateTime(application.container_sop_completed_at, language)}
                 </div>
               </div>
             </div>

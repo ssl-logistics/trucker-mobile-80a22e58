@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
+import { formatDateTime } from "@/lib/dateUtils";
 
 interface JobDetail {
   id: string;
@@ -31,7 +32,7 @@ export default function PickupSummaryPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [application, setApplication] = useState<JobApplication | null>(null);
   const [sopPhoto, setSOPPhoto] = useState<SOPPhoto | null>(null);
@@ -94,12 +95,6 @@ export default function PickupSummaryPage() {
     setLoading(false);
   };
 
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const dateStr = date.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
-    const timeStr = date.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", hour12: false });
-    return `${dateStr} | ${timeStr}`;
-  };
 
   if (loading) {
     return (
@@ -139,7 +134,7 @@ export default function PickupSummaryPage() {
               </div>
               <div className="flex-1">
                 <div className="font-semibold text-green-900">{t('pickupSummary.checkInSuccess')}</div>
-                <div className="text-sm text-green-700">{formatDateTime(application.checked_in_at)}</div>
+                <div className="text-sm text-green-700">{formatDateTime(application.checked_in_at, language)}</div>
               </div>
             </div>
           </Card>
@@ -154,7 +149,7 @@ export default function PickupSummaryPage() {
               </div>
               <div className="flex-1">
                 <div className="font-semibold text-green-900">{t('pickupSummary.sopSuccess')}</div>
-                <div className="text-sm text-green-700">{formatDateTime(application.sop_completed_at)}</div>
+                <div className="text-sm text-green-700">{formatDateTime(application.sop_completed_at, language)}</div>
               </div>
             </div>
           </Card>

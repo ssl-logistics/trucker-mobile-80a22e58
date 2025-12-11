@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import { sendJobStatus } from '@/lib/jobStatusService';
+import { formatDate, formatTime } from '@/lib/dateUtils';
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,7 @@ const ContainerSOPPage = () => {
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -185,17 +186,6 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  };
-
-  const formatTime = (time: string) => {
-    return time || '';
-  };
 
   if (loading) {
     return (
@@ -233,7 +223,7 @@ const ContainerSOPPage = () => {
           <div className="flex-1">
             <div className="font-medium text-[#2E7D32]">{t('sop.checkInSuccess')}</div>
             <div className="text-sm text-[#2E7D32]">
-              {formatDate(jobDetail.start_date)} | {formatTime(jobDetail.start_time)}
+              {formatDate(jobDetail.start_date, language)} | {jobDetail.start_time?.substring(0, 5) || ''}
             </div>
           </div>
         </div>

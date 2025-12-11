@@ -262,11 +262,11 @@ export default function InternationalJobDetail({
                       <>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.startDateTime')}</span>
-                          <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
+                          <span>: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
-                          <span>: {containerData.emptyDate ? formatDate(containerData.emptyDate) : '-'}</span>
+                          <span>: {containerData.emptyDate ? formatDate(containerData.emptyDate, language) : '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.receiver')}</span>
@@ -289,7 +289,7 @@ export default function InternationalJobDetail({
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
-                          <span>: {formatDate(job.start_date)}</span>
+                          <span>: {formatDate(job.start_date, language)}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerNumber')}</span>
@@ -354,7 +354,7 @@ export default function InternationalJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryTime') : t('jobDetail.pickupTime')}</span>
-                      <span>: {formatDate(job.start_date)} | {job.start_time.substring(0, 5)}</span>
+                      <span>: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
@@ -406,7 +406,7 @@ export default function InternationalJobDetail({
                     {isInbound ? <>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.returnDeadline')}</span>
-                          <span>: {job.destination_date ? formatDate(job.destination_date) : '-'} | {job.destination_time || '-'}</span>
+                          <span>: {job.destination_date ? formatDate(job.destination_date, language) : '-'} | {job.destination_time || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerPacker')}</span>
@@ -419,7 +419,7 @@ export default function InternationalJobDetail({
                       </> : <>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.fullReturnDate')}</span>
-                          <span>: {job.destination_date ? formatDate(job.destination_date) : formatDate(job.start_date)} | {job.destination_time || '-'}</span>
+                          <span>: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerPacker')}</span>

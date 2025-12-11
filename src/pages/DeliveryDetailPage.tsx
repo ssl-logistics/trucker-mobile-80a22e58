@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import Map from "@/components/Map";
+import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import {
   Dialog,
@@ -76,7 +77,7 @@ export default function DeliveryDetailPage() {
   const navigate = useNavigate();
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [destination, setDestination] = useState<JobDestination | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
@@ -348,17 +349,6 @@ export default function DeliveryDetailPage() {
   const displayDeliveryTime = destination?.delivery_time || job?.destination_time || job?.start_time || '-';
   const displayNotes = destination?.notes || job?.destination_remarks || '-';
 
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
-  };
-
-  const formatDateTime = (dateTime: string) => {
-    const d = new Date(dateTime);
-    const date = d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
-    const time = d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", hour12: false });
-    return `${date} | ${time}`;
-  };
 
   if (loading) {
     return (
@@ -399,7 +389,7 @@ export default function DeliveryDetailPage() {
                 <span className="font-semibold text-lg">{t('delivery.checkInSuccess')}</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
-                {formatDateTime(checkedInAt)}
+                {formatDateTime(checkedInAt, language)}
               </span>
             </div>
           </div>
@@ -415,7 +405,7 @@ export default function DeliveryDetailPage() {
                 <span className="font-semibold text-lg">{t('delivery.paymentSuccess')}</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
-                {formatDateTime(jobApplication.payment_completed_at)}
+                {formatDateTime(jobApplication.payment_completed_at, language)}
               </span>
             </div>
 
@@ -472,7 +462,7 @@ export default function DeliveryDetailPage() {
                 <span className="font-semibold text-lg">{t('delivery.podCompleted')}</span>
               </div>
               <span className="text-sm text-gray-600 font-medium">
-                {formatDateTime(jobApplication.delivery_sop_completed_at)}
+                {formatDateTime(jobApplication.delivery_sop_completed_at, language)}
               </span>
             </div>
 
@@ -534,7 +524,7 @@ export default function DeliveryDetailPage() {
         {/* Delivery Time */}
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.pickupTime')}</div>
-          <div className="text-base">{displayDeliveryDate ? formatDate(displayDeliveryDate) : '-'} | {displayDeliveryTime}</div>
+          <div className="text-base">{displayDeliveryDate ? formatDate(displayDeliveryDate, language) : '-'} | {displayDeliveryTime}</div>
         </div>
 
         {/* Note */}
