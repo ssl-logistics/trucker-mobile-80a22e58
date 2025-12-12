@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.receive-job-status]
 verify_jwt = false
+
+[functions.send-bid]
+verify_jwt = false
