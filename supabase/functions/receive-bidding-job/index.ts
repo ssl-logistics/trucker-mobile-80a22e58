@@ -30,6 +30,7 @@ serve(async (req) => {
       'daily': 'งานรายวัน',
       'contract': 'งานสัญญาจ้าง',
       'domestic': 'งานรายวัน',
+      'bidding': 'งานสัญญาจ้าง', // bidding jobs map to contract type
       'งานด่วน': 'งานด่วน',
       'งานรายวัน': 'งานรายวัน',
       'งานสัญญาจ้าง': 'งานสัญญาจ้าง'
@@ -41,8 +42,10 @@ serve(async (req) => {
       'single_trip': 'ขนส่งเที่ยวเดียว',
       'one_way': 'ขนส่งเที่ยวเดียว',
       'round_trip': 'ขนส่งเที่ยวเดียว',
+      'contract': 'ขนส่งเที่ยวเดียว', // contract transport type maps to single trip
       'multi': 'ขนส่งหลายที่',
       'multiple': 'ขนส่งหลายที่',
+      'multi_stop': 'ขนส่งหลายที่',
       'import': 'ขนส่งขาเข้า',
       'inbound': 'ขนส่งขาเข้า',
       'export': 'ขนส่งขาออก',
