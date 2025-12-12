@@ -60,57 +60,34 @@ export default function PlaceBidPage() {
 
     setIsSubmitting(true);
 
-    const { data: bidData, error } = await supabase
+    const { error } = await supabase
       .from('job_bids')
       .insert({
         job_id: jobId,
         driver_id: user.id,
         bid_amount: amount,
         status: 'pending'
-      })
-      .select()
-      .single();
+      });
+
+    setIsSubmitting(false);
 
     if (error) {
-      setIsSubmitting(false);
       toast({
         title: t('placeBid.error'),
         description: t('placeBid.submitError'),
         variant: 'destructive'
       });
-      return;
-    }
-
-    // Send bid to external project
-    try {
-      const { error: sendError } = await supabase.functions.invoke('send-bid', {
-        body: {
-          bid_id: bidData.id,
-          job_id: jobId,
-          driver_id: user.id,
-          bid_amount: amount
-        }
+    } else {
+      toast({
+        title: t('placeBid.success'),
+        description: t('placeBid.successMessage')
       });
-
-      if (sendError) {
-        console.error('Error sending bid to external project:', sendError);
-        // Still show success since bid was saved locally
-      }
-    } catch (sendErr) {
-      console.error('Failed to send bid to external project:', sendErr);
+      
+      // Navigate back to bidding page with history tab
+      setTimeout(() => {
+        navigate('/bidding');
+      }, 1500);
     }
-
-    setIsSubmitting(false);
-    
-    toast({
-      title: t('placeBid.success'),
-      description: t('placeBid.successMessage')
-    });
-    
-    // Navigate back to bidding page with history tab
-    setTimeout(() => {
-      navigate('/bidding');
-    }, 1500);
   };
 
   return (
