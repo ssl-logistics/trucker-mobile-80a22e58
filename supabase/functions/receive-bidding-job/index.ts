@@ -139,7 +139,7 @@ serve(async (req) => {
       return String(value);
     };
 
-    // Prepare job data - bidding jobs have status 'available' and price can be 0 (driver will bid)
+    // Prepare job data - bidding jobs have status 'open_for_bidding' and price can be 0 (driver will bid)
     const jobData = {
       order_code: data.order_code,
       employer_name: data.employer_name,
@@ -155,7 +155,7 @@ serve(async (req) => {
       province: data.province || null,
       district: data.district || null,
       assigned_role: data.assigned_role || 'freelance',
-      status: 'available', // Always available for bidding
+      status: 'open_for_bidding', // Bidding jobs use this status
       origin_latitude: data.origin_latitude || null,
       origin_longitude: data.origin_longitude || null,
       destination_latitude: data.destination_latitude || null,
