@@ -121,7 +121,7 @@ serve(async (req) => {
     const externalPayload = {
       order_code: job.order_code,
       bid_id: savedBid.id,
-      bid_amount: payload.bid_amount,
+      bid_price: payload.bid_amount,
       driver_id: user.id,
       driver_name: profile.full_name,
       driver_phone: profile.phone_number,
