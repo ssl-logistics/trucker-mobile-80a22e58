@@ -60,33 +60,56 @@ export default function PlaceBidPage() {
 
     setIsSubmitting(true);
 
-    const { error } = await supabase
-      .from('job_bids')
-      .insert({
-        job_id: jobId,
-        driver_id: user.id,
-        bid_amount: amount,
-        status: 'pending'
+    try {
+      // Get session for auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: t('placeBid.error'),
+          description: t('placeBid.sessionExpired'),
+          variant: 'destructive'
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Call send-bid edge function to save and forward bid
+      const { data, error } = await supabase.functions.invoke('send-bid', {
+        body: {
+          job_id: jobId,
+          bid_amount: amount
+        }
       });
 
-    setIsSubmitting(false);
+      setIsSubmitting(false);
 
-    if (error) {
+      if (error) {
+        console.error('Error submitting bid:', error);
+        toast({
+          title: t('placeBid.error'),
+          description: t('placeBid.submitError'),
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: t('placeBid.success'),
+          description: t('placeBid.successMessage')
+        });
+        
+        // Navigate back to bidding page
+        setTimeout(() => {
+          navigate('/bidding');
+        }, 1500);
+      }
+    } catch (err) {
+      console.error('Error in handleSubmitBid:', err);
+      setIsSubmitting(false);
       toast({
         title: t('placeBid.error'),
         description: t('placeBid.submitError'),
         variant: 'destructive'
       });
-    } else {
-      toast({
-        title: t('placeBid.success'),
-        description: t('placeBid.successMessage')
-      });
-      
-      // Navigate back to bidding page with history tab
-      setTimeout(() => {
-        navigate('/bidding');
-      }, 1500);
     }
   };
 
