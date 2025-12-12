@@ -67,7 +67,7 @@ export default function BiddingPage() {
     const {
       data,
       error
-    } = await supabase.from('jobs').select('*').eq('status', 'available').order('created_at', {
+    } = await supabase.from('jobs').select('*').eq('status', 'open_for_bidding').order('created_at', {
       ascending: false
     });
     if (!error && data) {
