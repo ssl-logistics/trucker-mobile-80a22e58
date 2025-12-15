@@ -28,7 +28,9 @@ interface JobDetail {
   container_checkpoint_code: string | null;
   empty_container_date: string | null;
   container_number: string | null;
+  container_number_2: string | null;
   seal_number: string | null;
+  seal_number_2: string | null;
   origin_contact_person: string | null;
   origin_contact_role: string | null;
   origin_bill_of_lading: string | null;
