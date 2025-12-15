@@ -27,6 +27,7 @@ interface JobDetail {
   seal_number: string | null;
   container_number_2: string | null;
   seal_number_2: string | null;
+  origin_location: string | null;
 }
 export default function ContainerCheckInPage() {
   const navigate = useNavigate();
@@ -145,7 +146,7 @@ export default function ContainerCheckInPage() {
       <div className="px-4 py-4 space-y-4">
         <div>
           <h2 className="text-base font-semibold mb-2">{t('container.emptyContainerPoint')}</h2>
-          <p className="text-base">{containerData.checkpoint}</p>
+          <p className="text-base">{job.origin_location || containerData.checkpoint}</p>
         </div>
 
         {/* Interactive Map */}
