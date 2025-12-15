@@ -256,7 +256,7 @@ export default function InternationalJobDetail({
                   </div>
 
                   <h4 className="font-semibold text-base text-[#0369a1] mb-2">
-                    {isInbound ? (containerData.checkpoint || job.origin_location) : job.origin_location}
+                    {job.origin_location || '-'}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
