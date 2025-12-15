@@ -42,6 +42,8 @@ interface JobDetail {
   container_checkpoint_code: string | null;
   container_number: string | null;
   seal_number: string | null;
+  container_number_2: string | null;
+  seal_number_2: string | null;
   empty_container_date: string | null;
 }
 interface JobApplication {
@@ -253,32 +255,28 @@ export default function InternationalJobDetail({
                       </span>}
                   </div>
 
-                  <h4 className="font-semibold text-base mb-2">
-                    {isOutbound ? job.origin_location : containerData.checkpoint}
+                  <h4 className="font-semibold text-base text-[#0369a1] mb-2">
+                    {isInbound ? (containerData.checkpoint || job.origin_location) : job.origin_location}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
                     {isInbound ? (
                       <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.startDateTime')}</span>
+                          <span className="text-muted-foreground min-w-[160px]">{t('jobDetail.shipArrivalDateTime')}</span>
                           <span>: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
+                          <span className="text-muted-foreground min-w-[160px]">{t('jobDetail.emptyContainerPickupDate')}</span>
                           <span>: {containerData.emptyDate ? formatDate(containerData.emptyDate, language) : '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.receiver')}</span>
+                          <span className="text-muted-foreground min-w-[160px]">{t('jobDetail.receiver')}</span>
                           <span>: {job.destination_company_name || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerNumber')}</span>
-                          <span>: {containerData.containerNumber}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.sealNumber')}</span>
-                          <span>: {containerData.sealNumber}</span>
+                          <span className="text-muted-foreground min-w-[160px]">{t('jobDetail.containerTypeQty')}</span>
+                          <span>: {job.origin_goods_quantity || '-'}</span>
                         </div>
                       </>
                     ) : (
@@ -302,6 +300,32 @@ export default function InternationalJobDetail({
                       </>
                     )}
                   </div>
+
+                  {/* Container boxes for inbound - show 2 containers */}
+                  {isInbound && (
+                    <div className="space-y-2 mb-3">
+                      <div className="bg-[#E8F5F4] rounded-lg p-3 border border-[#0A8778]/20">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="w-5 h-5 rounded-full bg-[#0A8778] text-white text-xs flex items-center justify-center font-semibold">1</span>
+                          <span className="text-sm font-medium">{t('jobDetail.containerNumber')}: <span className="font-semibold">{containerData.containerNumber}</span></span>
+                        </div>
+                        <div className="text-sm pl-7">
+                          <span className="text-muted-foreground">{t('jobDetail.sealNumber')}</span>: <span className="font-medium">{containerData.sealNumber}</span>
+                        </div>
+                      </div>
+                      {job.container_number_2 && (
+                        <div className="bg-[#E8F5F4] rounded-lg p-3 border border-[#0A8778]/20">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="w-5 h-5 rounded-full bg-[#0A8778] text-white text-xs flex items-center justify-center font-semibold">2</span>
+                            <span className="text-sm font-medium">{t('jobDetail.containerNumber')}: <span className="font-semibold">{job.container_number_2}</span></span>
+                          </div>
+                          <div className="text-sm pl-7">
+                            <span className="text-muted-foreground">{t('jobDetail.sealNumber')}</span>: <span className="font-medium">{job.seal_number_2 || '-'}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-2">
                     <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}>
