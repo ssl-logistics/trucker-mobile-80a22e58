@@ -61,8 +61,8 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <PushNotificationPrompt />
             <BrowserRouter>
+              <PushNotificationPrompt />
               <Routes>
             <Route path="/" element={<SignIn />} />
             <Route path="/register" element={<Register />} />
