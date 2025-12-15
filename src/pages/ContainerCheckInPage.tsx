@@ -166,7 +166,7 @@ export default function ContainerCheckInPage() {
 
           <div>
             <p className="text-sm text-gray-600 mb-1">{t('container.checkpoint')}</p>
-            <p className="font-medium">{containerData.checkpointCode}</p>
+            <p className="font-medium">{job.container_checkpoint || '-'}</p>
           </div>
 
           <div>
