@@ -85,8 +85,21 @@ serve(async (req) => {
       }
     }
 
-    // Auto-convert transport_type if provided
-    if (data.transport_type) {
+    // Check if transport_category is international - use transport_direction to determine type
+    if (data.transport_category && data.transport_category.toLowerCase() === 'international') {
+      console.log('Detected international transport_category');
+      if (data.transport_direction) {
+        const direction = data.transport_direction.toLowerCase();
+        if (direction === 'import' || direction === 'inbound') {
+          data.transport_type = 'ขนส่งขาเข้า';
+          console.log(`Mapped transport_direction: ${data.transport_direction} -> ขนส่งขาเข้า`);
+        } else if (direction === 'export' || direction === 'outbound') {
+          data.transport_type = 'ขนส่งขาออก';
+          console.log(`Mapped transport_direction: ${data.transport_direction} -> ขนส่งขาออก`);
+        }
+      }
+    } else if (data.transport_type) {
+      // Auto-convert transport_type if provided (for non-international)
       const mappedTransportType = transportTypeMapping[data.transport_type.toLowerCase()];
       if (mappedTransportType) {
         console.log(`Mapped transport_type: ${data.transport_type} -> ${mappedTransportType}`);
