@@ -566,6 +566,7 @@ export type Database = {
           start_date: string
           start_time: string
           status: string
+          tax_id: string | null
           transport_type: string
           updated_at: string
         }
@@ -619,6 +620,7 @@ export type Database = {
           start_date: string
           start_time: string
           status?: string
+          tax_id?: string | null
           transport_type: string
           updated_at?: string
         }
@@ -672,6 +674,7 @@ export type Database = {
           start_date?: string
           start_time?: string
           status?: string
+          tax_id?: string | null
           transport_type?: string
           updated_at?: string
         }
