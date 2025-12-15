@@ -3,10 +3,14 @@ import { th, enUS, ko, zhCN } from 'date-fns/locale';
 
 const THAILAND_TIMEZONE = 'Asia/Bangkok';
 
-export const formatDate = (date: string | Date, language: 'th' | 'en' | 'ko' | 'zh' = 'th'): string => {
+export const formatDate = (date: string | Date | null | undefined, language: 'th' | 'en' | 'ko' | 'zh' = 'th'): string => {
+  if (!date || date === '-') return '-';
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) return '-';
+  
   const locale = language === 'th' ? th : language === 'ko' ? ko : language === 'zh' ? zhCN : enUS;
   return formatInTimeZone(
-    new Date(date),
+    parsedDate,
     THAILAND_TIMEZONE,
     'd MMM yy',
     { locale }
