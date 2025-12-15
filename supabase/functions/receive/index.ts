@@ -232,6 +232,9 @@ serve(async (req) => {
       // Second container
       container_number_2: data.container_number_2 || null,
       seal_number_2: data.seal_number_2 || null,
+      // Return full container fields
+      return_full_container_location: data.return_full_container_location || null,
+      return_full_container_date: data.return_full_container_date || null,
     };
 
     // Upsert job into database (insert or update if order_code exists)
