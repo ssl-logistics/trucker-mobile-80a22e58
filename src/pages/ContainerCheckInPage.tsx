@@ -27,6 +27,8 @@ interface JobDetail {
   seal_number: string | null;
   container_number_2: string | null;
   seal_number_2: string | null;
+  return_full_container_location: string | null;
+  return_full_container_date: string | null;
 }
 export default function ContainerCheckInPage() {
   const navigate = useNavigate();
@@ -172,6 +174,16 @@ export default function ContainerCheckInPage() {
           <div>
             <p className="text-sm text-gray-600 mb-1">{t('container.firstDatePickup')}</p>
             <p className="font-medium">{formatDate(containerData.emptyDate, language)}</p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600 mb-1">{t('container.returnFullContainerAt')}</p>
+            <p className="font-medium">{job.return_full_container_location || '-'}</p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600 mb-1">{t('container.returnDate')}</p>
+            <p className="font-medium">{formatDate(job.return_full_container_date, language)}</p>
           </div>
 
           <Card className="p-4 bg-white border-2 border-gray-200">
