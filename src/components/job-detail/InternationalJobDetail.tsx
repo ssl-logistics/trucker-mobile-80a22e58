@@ -346,7 +346,7 @@ export default function InternationalJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.contactPoint') : t('jobDetail.deliveryRoute')}</span>
-                      <span>: {isInbound ? (job.destination_contact_person || '-') : (job.destination_address || '-')}</span>
+                      <span>: {isInbound ? (job.destination_contact_person || '-') : (job.destination_location || '-')}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryRoute') : t('jobDetail.goodsType')}</span>
