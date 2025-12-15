@@ -786,7 +786,7 @@ const thTranslations: Record<string, string> = {
   'container.emptyContainerPoint': 'จุดรับตู้เปล่า',
   'container.startTime': 'วัน/เวลาเริ่มต้น',
   'container.checkpoint': 'จุดรับตู้เปล่า (CY EMPTY / CFS CONTAINER AT)',
-  'container.firstDatePickup': 'วันรับเข้าช่างต้นต้น (FIRST DATE PICK UP CTNR)',
+  'container.firstDatePickup': 'วันเริ่มรับตู้เปล่า (FIRST DATE PICK UP CTNR)',
   'container.pair': 'ตู้ที่',
   'container.containerNo': 'เลขตู้คอนเทนเนอร์ (Container No.)',
   'container.sealNo': 'เลขซีล (Seal No.)',
