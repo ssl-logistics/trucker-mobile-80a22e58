@@ -24,6 +24,10 @@ interface SendJobStatusParams {
   status: JobStatusType;
   sequenceNumber?: number;
   destinationId?: string;
+  containerNumber?: string;
+  sealNumber?: string;
+  containerNumber2?: string;
+  sealNumber2?: string;
 }
 
 export async function sendJobStatus({ 
@@ -32,7 +36,11 @@ export async function sendJobStatus({
   userId, 
   status,
   sequenceNumber,
-  destinationId
+  destinationId,
+  containerNumber,
+  sealNumber,
+  containerNumber2,
+  sealNumber2
 }: SendJobStatusParams): Promise<boolean> {
   try {
     // Get driver profile info
@@ -60,6 +68,19 @@ export async function sendJobStatus({
     }
     if (sequenceNumber !== undefined) {
       payload.sequence_number = sequenceNumber;
+    }
+    // Add container info if provided (for inbound jobs)
+    if (containerNumber) {
+      payload.container_number = containerNumber;
+    }
+    if (sealNumber) {
+      payload.seal_number = sealNumber;
+    }
+    if (containerNumber2) {
+      payload.container_number_2 = containerNumber2;
+    }
+    if (sealNumber2) {
+      payload.seal_number_2 = sealNumber2;
     }
 
     console.log('Sending job status update:', payload);
