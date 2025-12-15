@@ -558,6 +558,7 @@ export type Database = {
           province: string | null
           safety_equipment: string | null
           seal_number: string | null
+          shipper_load: string | null
           start_date: string
           start_time: string
           status: string
@@ -606,6 +607,7 @@ export type Database = {
           province?: string | null
           safety_equipment?: string | null
           seal_number?: string | null
+          shipper_load?: string | null
           start_date: string
           start_time: string
           status?: string
@@ -654,6 +656,7 @@ export type Database = {
           province?: string | null
           safety_equipment?: string | null
           seal_number?: string | null
+          shipper_load?: string | null
           start_date?: string
           start_time?: string
           status?: string

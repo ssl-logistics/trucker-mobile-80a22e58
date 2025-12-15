@@ -423,7 +423,7 @@ export default function InternationalJobDetail({
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerPacker')}</span>
-                          <span>: {job.origin_company_name || job.origin_contact_person || '-'}</span>
+                          <span>: {(job as any).shipper_load || job.origin_company_name || job.origin_contact_person || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.remarks')}</span>
