@@ -557,6 +557,8 @@ export type Database = {
           origin_remarks: string | null
           price: number
           province: string | null
+          return_full_container_date: string | null
+          return_full_container_location: string | null
           safety_equipment: string | null
           seal_number: string | null
           seal_number_2: string | null
@@ -608,6 +610,8 @@ export type Database = {
           origin_remarks?: string | null
           price: number
           province?: string | null
+          return_full_container_date?: string | null
+          return_full_container_location?: string | null
           safety_equipment?: string | null
           seal_number?: string | null
           seal_number_2?: string | null
@@ -659,6 +663,8 @@ export type Database = {
           origin_remarks?: string | null
           price?: number
           province?: string | null
+          return_full_container_date?: string | null
+          return_full_container_location?: string | null
           safety_equipment?: string | null
           seal_number?: string | null
           seal_number_2?: string | null
