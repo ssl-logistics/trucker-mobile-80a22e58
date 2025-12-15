@@ -249,6 +249,8 @@ serve(async (req) => {
       // Second container
       container_number_2: data.container_number_2 || null,
       seal_number_2: data.seal_number_2 || null,
+      // Tax ID
+      tax_id: data.tax_id || null,
     };
 
     // Upsert job into database (insert or update if order_code exists)

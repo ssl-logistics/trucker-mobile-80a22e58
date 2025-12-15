@@ -45,6 +45,7 @@ interface JobDetail {
   container_number_2: string | null;
   seal_number_2: string | null;
   empty_container_date: string | null;
+  tax_id: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -366,7 +367,7 @@ export default function InternationalJobDetail({
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.billOfLading') : t('jobDetail.contactPerson')}</span>
-                      <span>: {isInbound ? (job.destination_bill_of_lading || '-') : (job.destination_contact_person || '-')}</span>
+                      <span>: {isInbound ? (job.tax_id || '-') : (job.destination_contact_person || '-')}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.contactPoint') : t('jobDetail.deliveryRoute')}</span>

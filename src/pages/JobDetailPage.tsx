@@ -44,6 +44,7 @@ interface JobDetail {
   destination_time: string | null;
   destination_date: string | null;
   destination_remarks: string | null;
+  tax_id: string | null;
 }
 
 interface JobApplication {
