@@ -415,7 +415,7 @@ const thTranslations: Record<string, string> = {
   'jobDetail.loadingPoint': 'จุดรับสินค้า',
   'jobDetail.unloadingPoint': 'จุดส่งสินค้า',
   'jobDetail.emptyContainerPickup': 'จุดรับตู้เปล่า',
-  'jobDetail.billOfLading': 'เลขที่เอียด',
+  'jobDetail.billOfLading': 'เลขที่เสียภาษี',
   'jobDetail.contactPoint': 'ชื่อจุดติดต่อ',
   'jobDetail.routeCode': 'เลขทาง',
   'jobDetail.deliveryRoute': 'เส้นทาง',
