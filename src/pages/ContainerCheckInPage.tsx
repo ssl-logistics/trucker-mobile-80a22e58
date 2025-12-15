@@ -25,6 +25,8 @@ interface JobDetail {
   empty_container_date: string | null;
   container_number: string | null;
   seal_number: string | null;
+  container_number_2: string | null;
+  seal_number_2: string | null;
 }
 export default function ContainerCheckInPage() {
   const navigate = useNavigate();
@@ -100,16 +102,16 @@ export default function ContainerCheckInPage() {
       </div>;
   }
   if (!job) return null;
-  const mockContainerData = {
+  const containerData = {
     checkpoint: job.container_checkpoint || t('container.defaultCheckpoint'),
-    checkpointCode: job.container_checkpoint_code || 'LCB B1',
-    emptyDate: job.empty_container_date || '2023-11-02',
+    checkpointCode: job.container_checkpoint_code || '-',
+    emptyDate: job.empty_container_date || '-',
     containers: [{
-      number: 'TGHU4455667',
-      seal: 'SEAL556677'
+      number: job.container_number || '-',
+      seal: job.seal_number || '-'
     }, {
-      number: 'CAIU9988776',
-      seal: 'SEAL112233'
+      number: job.container_number_2 || '-',
+      seal: job.seal_number_2 || '-'
     }]
   };
   return <div className="min-h-screen bg-background pb-24">
@@ -143,7 +145,7 @@ export default function ContainerCheckInPage() {
       <div className="px-4 py-4 space-y-4">
         <div>
           <h2 className="text-base font-semibold mb-2">{t('container.emptyContainerPoint')}</h2>
-          <p className="text-base">{mockContainerData.checkpoint}</p>
+          <p className="text-base">{containerData.checkpoint}</p>
         </div>
 
         {/* Interactive Map */}
@@ -164,12 +166,12 @@ export default function ContainerCheckInPage() {
 
           <div>
             <p className="text-sm text-gray-600 mb-1">{t('container.checkpoint')}</p>
-            <p className="font-medium">{mockContainerData.checkpointCode}</p>
+            <p className="font-medium">{containerData.checkpointCode}</p>
           </div>
 
           <div>
             <p className="text-sm text-gray-600 mb-1">{t('container.firstDatePickup')}</p>
-            <p className="font-medium">{formatDate(mockContainerData.emptyDate, language)}</p>
+            <p className="font-medium">{formatDate(containerData.emptyDate, language)}</p>
           </div>
 
           <Card className="p-4 bg-white border-2 border-gray-200">
@@ -182,11 +184,11 @@ export default function ContainerCheckInPage() {
             <div className="space-y-2">
               <div>
                 <p className="text-sm text-muted-foreground">{t('container.containerNo')}</p>
-                <p className="font-medium">{mockContainerData.containers[0].number}</p>
+                <p className="font-medium">{containerData.containers[0].number}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{t('container.sealNo')}</p>
-                <p className="font-medium">{mockContainerData.containers[0].seal}</p>
+                <p className="font-medium">{containerData.containers[0].seal}</p>
               </div>
             </div>
           </Card>
@@ -201,11 +203,11 @@ export default function ContainerCheckInPage() {
             <div className="space-y-2">
               <div>
                 <p className="text-sm text-muted-foreground">{t('container.containerNo')}</p>
-                <p className="font-medium">{mockContainerData.containers[1].number}</p>
+                <p className="font-medium">{containerData.containers[1].number}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{t('container.sealNo')}</p>
-                <p className="font-medium">{mockContainerData.containers[1].seal}</p>
+                <p className="font-medium">{containerData.containers[1].seal}</p>
               </div>
             </div>
           </Card>
