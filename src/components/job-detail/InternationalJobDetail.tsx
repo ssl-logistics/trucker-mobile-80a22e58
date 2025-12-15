@@ -285,7 +285,7 @@ export default function InternationalJobDetail({
                       <>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerPickup')}</span>
-                          <span>: {containerData.checkpoint}</span>
+                          <span>: {job.origin_location || '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
