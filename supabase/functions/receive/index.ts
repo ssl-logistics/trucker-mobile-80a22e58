@@ -229,6 +229,9 @@ serve(async (req) => {
       destination_company_name: data.destination_company_name || null,
       // Shipper load
       shipper_load: data.shipper_load || null,
+      // Second container
+      container_number_2: data.container_number_2 || null,
+      seal_number_2: data.seal_number_2 || null,
     };
 
     // Upsert job into database (insert or update if order_code exists)

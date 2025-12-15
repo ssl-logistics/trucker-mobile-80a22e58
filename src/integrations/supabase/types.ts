@@ -523,6 +523,7 @@ export type Database = {
           container_checkpoint_latitude: number | null
           container_checkpoint_longitude: number | null
           container_number: string | null
+          container_number_2: string | null
           created_at: string
           destination_address: string | null
           destination_bill_of_lading: string | null
@@ -558,6 +559,7 @@ export type Database = {
           province: string | null
           safety_equipment: string | null
           seal_number: string | null
+          seal_number_2: string | null
           shipper_load: string | null
           start_date: string
           start_time: string
@@ -572,6 +574,7 @@ export type Database = {
           container_checkpoint_latitude?: number | null
           container_checkpoint_longitude?: number | null
           container_number?: string | null
+          container_number_2?: string | null
           created_at?: string
           destination_address?: string | null
           destination_bill_of_lading?: string | null
@@ -607,6 +610,7 @@ export type Database = {
           province?: string | null
           safety_equipment?: string | null
           seal_number?: string | null
+          seal_number_2?: string | null
           shipper_load?: string | null
           start_date: string
           start_time: string
@@ -621,6 +625,7 @@ export type Database = {
           container_checkpoint_latitude?: number | null
           container_checkpoint_longitude?: number | null
           container_number?: string | null
+          container_number_2?: string | null
           created_at?: string
           destination_address?: string | null
           destination_bill_of_lading?: string | null
@@ -656,6 +661,7 @@ export type Database = {
           province?: string | null
           safety_equipment?: string | null
           seal_number?: string | null
+          seal_number_2?: string | null
           shipper_load?: string | null
           start_date?: string
           start_time?: string
