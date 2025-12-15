@@ -202,12 +202,16 @@ serve(async (req) => {
       container_checkpoint_latitude: data.container_checkpoint_latitude || null,
       container_checkpoint_longitude: data.container_checkpoint_longitude || null,
       // International job fields
-      empty_container_date: data.empty_container_date || null,
+      // Map cy_empty_container -> container_checkpoint, first_pickup_date -> empty_container_date
+      container_checkpoint: data.container_checkpoint || data.cy_empty_container || null,
+      empty_container_date: data.empty_container_date || data.first_pickup_date || null,
+      // Map return_container_at -> return_full_container_location, return_date -> return_full_container_date
+      return_full_container_location: data.return_full_container_location || data.return_container_at || null,
+      return_full_container_date: data.return_full_container_date || data.return_date || null,
       destination_date: data.destination_date || null,
       destination_time: data.destination_time || null,
       container_number: data.container_number || null,
       seal_number: data.seal_number || null,
-      container_checkpoint: data.container_checkpoint || null,
       container_checkpoint_code: data.container_checkpoint_code || null,
       // Pickup details
       origin_contact_person: data.origin_contact_person || null,
