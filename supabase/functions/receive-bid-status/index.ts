@@ -9,9 +9,13 @@ const corsHeaders = {
 interface BidStatusPayload {
   bid_id?: string;
   order_code?: string;
+  post_code?: string;  // Alternative field name from external system
+  bidder_id?: string;  // Driver ID from external system
   status: 'accepted' | 'rejected' | 'won' | 'lost' | 'pending';
   message?: string;
   updated_at?: string;
+  selected_bidder_name?: string;
+  selected_price?: number;
 }
 
 serve(async (req) => {
@@ -40,11 +44,14 @@ serve(async (req) => {
       );
     }
 
-    // Need either bid_id or order_code to find the bid
-    if (!payload.bid_id && !payload.order_code) {
-      console.error('Missing identifier: need either bid_id or order_code');
+    // Support both order_code and post_code
+    const orderCode = payload.order_code || payload.post_code;
+
+    // Need either bid_id or order_code/post_code to find the bid
+    if (!payload.bid_id && !orderCode) {
+      console.error('Missing identifier: need either bid_id or order_code/post_code');
       return new Response(
-        JSON.stringify({ error: 'Missing identifier: need either bid_id or order_code' }),
+        JSON.stringify({ error: 'Missing identifier: need either bid_id or order_code/post_code' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -61,29 +68,35 @@ serve(async (req) => {
 
     let bidId = payload.bid_id;
 
-    // If order_code is provided, find the bid(s) for that job
-    if (!bidId && payload.order_code) {
+    // If order_code/post_code is provided, find the bid(s) for that job
+    if (!bidId && orderCode) {
       // First find the job
       const { data: job, error: jobError } = await supabase
         .from('jobs')
         .select('id')
-        .eq('order_code', payload.order_code)
-        .single();
+        .eq('order_code', orderCode)
+        .maybeSingle();
 
       if (jobError || !job) {
-        console.error('Job not found for order_code:', payload.order_code);
+        console.error('Job not found for order_code:', orderCode);
         return new Response(
-          JSON.stringify({ error: `Job not found for order_code: ${payload.order_code}` }),
+          JSON.stringify({ error: `Job not found for order_code: ${orderCode}` }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Find the most recent pending bid for this job
-      const { data: bids, error: bidsError } = await supabase
+      // If bidder_id is provided, find that specific driver's bid
+      let bidQuery = supabase
         .from('job_bids')
         .select('id')
         .eq('job_id', job.id)
-        .eq('status', 'pending')
+        .eq('status', 'pending');
+
+      if (payload.bidder_id) {
+        bidQuery = bidQuery.eq('driver_id', payload.bidder_id);
+      }
+
+      const { data: bids, error: bidsError } = await bidQuery
         .order('created_at', { ascending: false })
         .limit(1);
 
