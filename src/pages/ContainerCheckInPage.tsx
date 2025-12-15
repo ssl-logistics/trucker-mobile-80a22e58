@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -18,6 +19,7 @@ import { formatDate } from '@/lib/dateUtils';
 interface JobDetail {
   id: string;
   order_code: string;
+  transport_type: string | null;
   container_checkpoint: string | null;
   container_checkpoint_code: string | null;
   container_checkpoint_latitude: number | null;
@@ -38,9 +40,28 @@ export default function ContainerCheckInPage() {
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  
+  // Editable container fields for inbound
+  const [container1Number, setContainer1Number] = useState('');
+  const [container1Seal, setContainer1Seal] = useState('');
+  const [container2Number, setContainer2Number] = useState('');
+  const [container2Seal, setContainer2Seal] = useState('');
+  
+  const isInbound = job?.transport_type?.includes('ขาเข้า');
+  
   useEffect(() => {
     loadJobDetail();
   }, [jobId, user]);
+
+  useEffect(() => {
+    if (job) {
+      setContainer1Number(job.container_number || '');
+      setContainer1Seal(job.seal_number || '');
+      setContainer2Number(job.container_number_2 || '');
+      setContainer2Seal(job.seal_number_2 || '');
+    }
+  }, [job]);
+
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
     setLoading(true);
@@ -86,7 +107,11 @@ export default function ContainerCheckInPage() {
         orderCode: job.order_code,
         userId: user.id,
         status: 'container_checked_in',
-        sequenceNumber: 1 // Container checkpoint
+        sequenceNumber: 1, // Container checkpoint
+        containerNumber: container1Number,
+        sealNumber: container1Seal,
+        containerNumber2: container2Number,
+        sealNumber2: container2Seal
       });
 
       toast({
@@ -106,14 +131,7 @@ export default function ContainerCheckInPage() {
   const containerData = {
     checkpoint: job.container_checkpoint || t('container.defaultCheckpoint'),
     checkpointCode: job.container_checkpoint_code || '-',
-    emptyDate: job.empty_container_date || '-',
-    containers: [{
-      number: job.container_number || '-',
-      seal: job.seal_number || '-'
-    }, {
-      number: job.container_number_2 || '-',
-      seal: job.seal_number_2 || '-'
-    }]
+    emptyDate: job.empty_container_date || '-'
   };
   return <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -182,14 +200,32 @@ export default function ContainerCheckInPage() {
               </div>
               <h3 className="font-semibold text-base">{t('container.pair')} 1</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div>
-                <p className="text-sm text-muted-foreground">{t('container.containerNo')}</p>
-                <p className="font-medium">{containerData.containers[0].number}</p>
+                <p className="text-sm text-muted-foreground mb-1">{t('container.containerNo')}</p>
+                {isInbound ? (
+                  <Input 
+                    value={container1Number} 
+                    onChange={(e) => setContainer1Number(e.target.value)}
+                    placeholder={t('container.enterContainerNo')}
+                    className="h-10"
+                  />
+                ) : (
+                  <p className="font-medium">{job.container_number || '-'}</p>
+                )}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{t('container.sealNo')}</p>
-                <p className="font-medium">{containerData.containers[0].seal}</p>
+                <p className="text-sm text-muted-foreground mb-1">{t('container.sealNo')}</p>
+                {isInbound ? (
+                  <Input 
+                    value={container1Seal} 
+                    onChange={(e) => setContainer1Seal(e.target.value)}
+                    placeholder={t('container.enterSealNo')}
+                    className="h-10"
+                  />
+                ) : (
+                  <p className="font-medium">{job.seal_number || '-'}</p>
+                )}
               </div>
             </div>
           </Card>
@@ -201,14 +237,32 @@ export default function ContainerCheckInPage() {
               </div>
               <h3 className="font-semibold text-base">{t('container.pair')} 2</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div>
-                <p className="text-sm text-muted-foreground">{t('container.containerNo')}</p>
-                <p className="font-medium">{containerData.containers[1].number}</p>
+                <p className="text-sm text-muted-foreground mb-1">{t('container.containerNo')}</p>
+                {isInbound ? (
+                  <Input 
+                    value={container2Number} 
+                    onChange={(e) => setContainer2Number(e.target.value)}
+                    placeholder={t('container.enterContainerNo')}
+                    className="h-10"
+                  />
+                ) : (
+                  <p className="font-medium">{job.container_number_2 || '-'}</p>
+                )}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{t('container.sealNo')}</p>
-                <p className="font-medium">{containerData.containers[1].seal}</p>
+                <p className="text-sm text-muted-foreground mb-1">{t('container.sealNo')}</p>
+                {isInbound ? (
+                  <Input 
+                    value={container2Seal} 
+                    onChange={(e) => setContainer2Seal(e.target.value)}
+                    placeholder={t('container.enterSealNo')}
+                    className="h-10"
+                  />
+                ) : (
+                  <p className="font-medium">{job.seal_number_2 || '-'}</p>
+                )}
               </div>
             </div>
           </Card>
