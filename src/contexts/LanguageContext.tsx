@@ -326,6 +326,7 @@ const thTranslations: Record<string, string> = {
   'contact.email': 'อีเมล',
   'contact.officeInfo': 'ข้อมูลสำนักงาน',
   'contact.address': 'ที่อยู่',
+  'contact.addressValue': '1/9 ซอย ศรีนครินทร์ 42 แขวงหนองบอน\nเขตประเวศ กรุงเทพมหานคร 10250',
   'contact.hours': 'เวลาทำการ',
   'contact.hoursValue': 'จันทร์-ศุกร์ 8:00-17:00 น.',
   'contact.emergency': 'ติดต่อฉุกเฉิน',
@@ -1179,10 +1180,8 @@ const thTranslations: Record<string, string> = {
   
   // App Update
   'app.newVersion': 'มีเวอร์ชันใหม่! กดตกลงเพื่ออัพเดท',
-  
-  // Contact Address
-  'contact.addressValue': '123 ถนนพระราม 4 แขวงคลองเตย\nเขตคลองเตย กรุงเทพฯ 10110',
 };
+
 
 // English translations
 const enTranslations: Record<string, string> = {
@@ -1499,6 +1498,7 @@ const enTranslations: Record<string, string> = {
   'contact.email': 'Email',
   'contact.officeInfo': 'Office Information',
   'contact.address': 'Address',
+  'contact.addressValue': '1/9 Soi Srinakarin 42, Nong Bon\nPrawet, Bangkok 10250',
   'contact.hours': 'Business Hours',
   'contact.hoursValue': 'Monday-Friday 8:00-17:00',
   'contact.emergency': 'Emergency Contact',
@@ -2322,10 +2322,8 @@ const enTranslations: Record<string, string> = {
   
   // App Update
   'app.newVersion': 'New version available! Click OK to update',
-  
-  // Contact Address
-  'contact.addressValue': '123 Rama 4 Road, Khlong Toei\nKhlong Toei, Bangkok 10110',
 };
+
 
 // Korean translations
 const koTranslations: Record<string, string> = {
@@ -2612,6 +2610,7 @@ const koTranslations: Record<string, string> = {
   'contact.email': '이메일',
   'contact.officeInfo': '사무실 정보',
   'contact.address': '주소',
+  'contact.addressValue': '1/9 소이 스리나카린 42, 농본\n프라웻, 방콕 10250',
   'contact.hours': '영업 시간',
   'contact.hoursValue': '월요일-금요일 8:00-17:00',
   'contact.emergency': '긴급 연락',
@@ -3533,10 +3532,8 @@ const koTranslations: Record<string, string> = {
   
   // App Update
   'app.newVersion': '새 버전이 있습니다! 업데이트하려면 확인을 클릭하세요',
-  
-  // Contact Address
-  'contact.addressValue': '123 라마 4 로드, 클롱 토이\n클롱 토이, 방콕 10110',
 };
+
 
 // Chinese translations
 const zhTranslations: Record<string, string> = {
@@ -4394,6 +4391,7 @@ const zhTranslations: Record<string, string> = {
   'contact.email': '电子邮件',
   'contact.officeInfo': '办公室信息',
   'contact.address': '地址',
+  'contact.addressValue': '1/9 Soi Srinakarin 42, Nong Bon\nPrawet, 曼谷 10250',
   'contact.hours': '营业时间',
   'contact.hoursValue': '周一至周五 8:00-17:00',
   'contact.emergency': '紧急联系',
@@ -4733,7 +4731,4 @@ const zhTranslations: Record<string, string> = {
   
   // App Update
   'app.newVersion': '有新版本！点击确定以更新',
-  
-  // Contact Address
-  'contact.addressValue': '123 拉玛四路，孔堤\n孔堤区，曼谷 10110',
 };
