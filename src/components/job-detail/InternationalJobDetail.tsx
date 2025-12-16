@@ -256,7 +256,7 @@ export default function InternationalJobDetail({
                       </span>}
                   </div>
 
-                  <h4 className="font-semibold text-base text-[#0369a1] mb-2">
+                  <h4 className="font-semibold text-base text-foreground mb-2">
                     {job.origin_location || '-'}
                   </h4>
 
