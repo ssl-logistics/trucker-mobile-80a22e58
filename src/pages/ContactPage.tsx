@@ -12,8 +12,8 @@ export default function ContactPage() {
     {
       icon: Phone,
       label: t('contact.phone'),
-      value: '02-123-4567',
-      action: 'tel:021234567',
+      value: '+66 2 330 9312',
+      action: 'tel:+6623309312',
       bgColor: 'bg-blue-50',
       iconColor: 'text-blue-600',
     },
