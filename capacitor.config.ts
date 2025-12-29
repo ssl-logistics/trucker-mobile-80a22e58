@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.58dbc0b4f7db4735aa152391efc8b797',
+  appId: 'com.trucker.mobile',
   appName: 'trucker-mobile',
   webDir: 'dist',
   server: {
