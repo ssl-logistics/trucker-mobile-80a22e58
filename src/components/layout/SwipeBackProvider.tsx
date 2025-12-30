@@ -12,72 +12,27 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   
-  const startX = useRef<number | null>(null);
-  const startY = useRef<number | null>(null);
-  const isEdgeSwipe = useRef(false);
-  const isMouseDown = useRef(false);
-  const hasStartedSwipe = useRef(false);
+  const startX = useRef<number>(0);
+  const startY = useRef<number>(0);
+  const isTracking = useRef(false);
+  const hasMoved = useRef(false);
   
-  // Increased edge threshold for better detection on iOS
-  const edgeThreshold = 80;
-  const swipeThreshold = 60;
+  const edgeThreshold = 50; // ลดลงเพื่อให้จับง่ายขึ้น
+  const swipeThreshold = 80;
   const maxSwipeDistance = 200;
 
-  const handleStart = useCallback((clientX: number, clientY: number) => {
-    // Don't enable on root/home page
-    if (location.pathname === '/' || location.pathname === '') return;
-    
-    console.log('[SwipeBack] Touch start at X:', clientX);
-    
-    if (clientX <= edgeThreshold) {
-      startX.current = clientX;
-      startY.current = clientY;
-      isEdgeSwipe.current = true;
-      hasStartedSwipe.current = false;
-      console.log('[SwipeBack] Edge swipe initiated');
-    } else {
-      isEdgeSwipe.current = false;
-    }
+  // Reset state when location changes
+  useEffect(() => {
+    setSwipeProgress(0);
+    setIsAnimating(false);
+    isTracking.current = false;
+    hasMoved.current = false;
   }, [location.pathname]);
 
-  const handleMove = useCallback((clientX: number, clientY: number) => {
-    if (!isEdgeSwipe.current || startX.current === null || startY.current === null) return;
+  const handleSwipeEnd = useCallback((deltaX: number, deltaY: number) => {
+    console.log('[SwipeBack] End - deltaX:', deltaX, 'deltaY:', deltaY);
     
-    const deltaX = clientX - startX.current;
-    const deltaY = Math.abs(clientY - startY.current);
-    
-    // Determine swipe direction on first significant movement
-    if (!hasStartedSwipe.current && (Math.abs(deltaX) > 10 || deltaY > 10)) {
-      hasStartedSwipe.current = true;
-      // Cancel if vertical swipe is dominant
-      if (deltaY > Math.abs(deltaX)) {
-        isEdgeSwipe.current = false;
-        setSwipeProgress(0);
-        return;
-      }
-    }
-    
-    // Only track horizontal swipes to the right
-    if (deltaX > 0 && deltaX > deltaY) {
-      const progress = Math.min(deltaX / maxSwipeDistance, 1);
-      setSwipeProgress(progress);
-      console.log('[SwipeBack] Progress:', progress.toFixed(2));
-    }
-  }, []);
-
-  const handleEnd = useCallback((clientX: number, clientY: number) => {
-    if (!isEdgeSwipe.current || startX.current === null || startY.current === null) {
-      setSwipeProgress(0);
-      return;
-    }
-
-    const deltaX = clientX - startX.current;
-    const deltaY = Math.abs(clientY - startY.current);
-
-    console.log('[SwipeBack] End - deltaX:', deltaX, 'threshold:', swipeThreshold);
-
-    if (deltaX > swipeThreshold && deltaX > deltaY * 1.2) {
-      // Animate out then navigate
+    if (deltaX > swipeThreshold && Math.abs(deltaY) < deltaX * 0.5) {
       setIsAnimating(true);
       setSwipeProgress(1);
       console.log('[SwipeBack] Navigating back!');
@@ -88,93 +43,90 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
         setIsAnimating(false);
       }, 200);
     } else {
-      // Reset with animation
       setSwipeProgress(0);
     }
-
-    startX.current = null;
-    startY.current = null;
-    isEdgeSwipe.current = false;
-    hasStartedSwipe.current = false;
+    
+    isTracking.current = false;
+    hasMoved.current = false;
   }, [navigate]);
-
-  // Reset state when location changes to prevent stuck overlay
-  useEffect(() => {
-    setSwipeProgress(0);
-    setIsAnimating(false);
-    startX.current = null;
-    startY.current = null;
-    isEdgeSwipe.current = false;
-    hasStartedSwipe.current = false;
-  }, [location.pathname]);
 
   useEffect(() => {
     if (!enabled) return;
 
-    // Touch events - use capture phase for iOS
     const handleTouchStart = (e: TouchEvent) => {
+      // Don't enable on root/home page
+      if (location.pathname === '/' || location.pathname === '') return;
+      
       const touch = e.touches[0];
-      handleStart(touch.clientX, touch.clientY);
+      console.log('[SwipeBack] TouchStart at X:', touch.clientX);
+      
+      if (touch.clientX <= edgeThreshold) {
+        startX.current = touch.clientX;
+        startY.current = touch.clientY;
+        isTracking.current = true;
+        hasMoved.current = false;
+        console.log('[SwipeBack] Edge swipe started');
+      }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isEdgeSwipe.current) return;
+      if (!isTracking.current) return;
+      
       const touch = e.touches[0];
-      handleMove(touch.clientX, touch.clientY);
+      const deltaX = touch.clientX - startX.current;
+      const deltaY = touch.clientY - startY.current;
+      
+      // First move - check if horizontal
+      if (!hasMoved.current) {
+        hasMoved.current = true;
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          // Vertical scroll, cancel swipe
+          isTracking.current = false;
+          setSwipeProgress(0);
+          console.log('[SwipeBack] Cancelled - vertical scroll');
+          return;
+        }
+      }
+      
+      if (deltaX > 0) {
+        const progress = Math.min(deltaX / maxSwipeDistance, 1);
+        setSwipeProgress(progress);
+        console.log('[SwipeBack] Progress:', progress.toFixed(2));
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      if (!isEdgeSwipe.current) return;
+      if (!isTracking.current) return;
+      
       const touch = e.changedTouches[0];
-      handleEnd(touch.clientX, touch.clientY);
+      const deltaX = touch.clientX - startX.current;
+      const deltaY = touch.clientY - startY.current;
+      
+      handleSwipeEnd(deltaX, deltaY);
     };
 
     const handleTouchCancel = () => {
+      console.log('[SwipeBack] Touch cancelled');
       setSwipeProgress(0);
-      startX.current = null;
-      startY.current = null;
-      isEdgeSwipe.current = false;
-      hasStartedSwipe.current = false;
+      isTracking.current = false;
+      hasMoved.current = false;
     };
 
-    // Mouse events for desktop testing
-    const handleMouseDown = (e: MouseEvent) => {
-      isMouseDown.current = true;
-      handleStart(e.clientX, e.clientY);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isMouseDown.current) {
-        handleMove(e.clientX, e.clientY);
-      }
-    };
-
-    const handleMouseUp = (e: MouseEvent) => {
-      if (isMouseDown.current) {
-        handleEnd(e.clientX, e.clientY);
-        isMouseDown.current = false;
-      }
-    };
-
-    // Use capture phase and non-passive for better iOS support
-    document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
-    document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: true });
-    document.addEventListener('touchcancel', handleTouchCancel, { capture: true, passive: true });
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    // Add listeners with passive: false to allow preventDefault if needed
+    const options = { passive: true };
+    
+    document.addEventListener('touchstart', handleTouchStart, options);
+    document.addEventListener('touchmove', handleTouchMove, options);
+    document.addEventListener('touchend', handleTouchEnd, options);
+    document.addEventListener('touchcancel', handleTouchCancel, options);
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart, { capture: true });
-      document.removeEventListener('touchmove', handleTouchMove, { capture: true });
-      document.removeEventListener('touchend', handleTouchEnd, { capture: true });
-      document.removeEventListener('touchcancel', handleTouchCancel, { capture: true });
-      document.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchCancel);
     };
-  }, [enabled, handleStart, handleMove, handleEnd]);
+  }, [enabled, location.pathname, handleSwipeEnd]);
 
   const showOverlay = swipeProgress > 0;
   const translateX = swipeProgress * 100;
@@ -182,7 +134,7 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
 
   return (
     <>
-      {/* Dark overlay that appears during swipe */}
+      {/* Dark overlay */}
       {showOverlay && (
         <div 
           className="fixed inset-0 bg-black pointer-events-none z-40"
@@ -206,7 +158,7 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
         />
       )}
       
-      {/* Back arrow indicator */}
+      {/* Back arrow */}
       {swipeProgress > 0.2 && (
         <div 
           className="fixed left-4 top-1/2 -translate-y-1/2 z-50 pointer-events-none"
@@ -234,7 +186,7 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
         </div>
       )}
       
-      {/* Main content with slide effect */}
+      {/* Main content */}
       <div 
         style={{ 
           transform: `translateX(${translateX * 0.3}px)`,
