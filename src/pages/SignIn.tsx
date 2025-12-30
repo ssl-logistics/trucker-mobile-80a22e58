@@ -135,10 +135,6 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
       }
 
-      toast({
-        title: t('signIn.success'),
-        description: t('signIn.welcomeBack')
-      });
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
