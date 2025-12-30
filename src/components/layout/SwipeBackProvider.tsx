@@ -16,18 +16,25 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
   const startY = useRef<number | null>(null);
   const isEdgeSwipe = useRef(false);
   const isMouseDown = useRef(false);
+  const hasStartedSwipe = useRef(false);
   
-  const edgeThreshold = 50;
-  const swipeThreshold = 80;
+  // Increased edge threshold for better detection on iOS
+  const edgeThreshold = 80;
+  const swipeThreshold = 60;
   const maxSwipeDistance = 200;
 
   const handleStart = useCallback((clientX: number, clientY: number) => {
+    // Don't enable on root/home page
     if (location.pathname === '/' || location.pathname === '') return;
+    
+    console.log('[SwipeBack] Touch start at X:', clientX);
     
     if (clientX <= edgeThreshold) {
       startX.current = clientX;
       startY.current = clientY;
       isEdgeSwipe.current = true;
+      hasStartedSwipe.current = false;
+      console.log('[SwipeBack] Edge swipe initiated');
     } else {
       isEdgeSwipe.current = false;
     }
@@ -39,10 +46,22 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
     const deltaX = clientX - startX.current;
     const deltaY = Math.abs(clientY - startY.current);
     
-    // Only track horizontal swipes
+    // Determine swipe direction on first significant movement
+    if (!hasStartedSwipe.current && (Math.abs(deltaX) > 10 || deltaY > 10)) {
+      hasStartedSwipe.current = true;
+      // Cancel if vertical swipe is dominant
+      if (deltaY > Math.abs(deltaX)) {
+        isEdgeSwipe.current = false;
+        setSwipeProgress(0);
+        return;
+      }
+    }
+    
+    // Only track horizontal swipes to the right
     if (deltaX > 0 && deltaX > deltaY) {
       const progress = Math.min(deltaX / maxSwipeDistance, 1);
       setSwipeProgress(progress);
+      console.log('[SwipeBack] Progress:', progress.toFixed(2));
     }
   }, []);
 
@@ -55,10 +74,13 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
     const deltaX = clientX - startX.current;
     const deltaY = Math.abs(clientY - startY.current);
 
-    if (deltaX > swipeThreshold && deltaX > deltaY * 1.5) {
+    console.log('[SwipeBack] End - deltaX:', deltaX, 'threshold:', swipeThreshold);
+
+    if (deltaX > swipeThreshold && deltaX > deltaY * 1.2) {
       // Animate out then navigate
       setIsAnimating(true);
       setSwipeProgress(1);
+      console.log('[SwipeBack] Navigating back!');
       
       setTimeout(() => {
         navigate(-1);
@@ -73,25 +95,36 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
     startX.current = null;
     startY.current = null;
     isEdgeSwipe.current = false;
-  }, [navigate, swipeThreshold]);
+    hasStartedSwipe.current = false;
+  }, [navigate]);
 
   useEffect(() => {
     if (!enabled) return;
 
-    // Touch events
+    // Touch events - use capture phase for iOS
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0];
       handleStart(touch.clientX, touch.clientY);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (!isEdgeSwipe.current) return;
       const touch = e.touches[0];
       handleMove(touch.clientX, touch.clientY);
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
+      if (!isEdgeSwipe.current) return;
       const touch = e.changedTouches[0];
       handleEnd(touch.clientX, touch.clientY);
+    };
+
+    const handleTouchCancel = () => {
+      setSwipeProgress(0);
+      startX.current = null;
+      startY.current = null;
+      isEdgeSwipe.current = false;
+      hasStartedSwipe.current = false;
     };
 
     // Mouse events for desktop testing
@@ -113,17 +146,20 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
       }
     };
 
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: true });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    // Use capture phase and non-passive for better iOS support
+    document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: true });
+    document.addEventListener('touchcancel', handleTouchCancel, { capture: true, passive: true });
     document.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchstart', handleTouchStart, { capture: true });
+      document.removeEventListener('touchmove', handleTouchMove, { capture: true });
+      document.removeEventListener('touchend', handleTouchEnd, { capture: true });
+      document.removeEventListener('touchcancel', handleTouchCancel, { capture: true });
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
