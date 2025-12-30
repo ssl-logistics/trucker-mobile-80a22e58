@@ -35,7 +35,7 @@ interface ProfileData {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile: authProfile, refreshProfile } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -48,27 +48,30 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      loadProfile();
+      loadProfileDetails();
     }
-  }, [user]);
+  }, [user, authProfile]);
 
-  const loadProfile = async () => {
+  const loadProfileDetails = async () => {
     if (!user) return;
-
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('full_name, phone_number, avatar_url')
-      .eq('id', user.id)
-      .single();
 
     const { data: workPrefs } = await supabase
       .from('driver_work_preferences')
       .select('work_areas, price_range_min, price_range_max')
       .eq('driver_id', user.id)
-      .single();
+      .maybeSingle();
+
+    // Get phone number from profiles table
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('phone_number')
+      .eq('id', user.id)
+      .maybeSingle();
 
     setProfile({
-      ...profileData,
+      full_name: authProfile?.full_name || '',
+      phone_number: profileData?.phone_number || '',
+      avatar_url: authProfile?.avatar_url || undefined,
       email: user.email,
       work_areas: workPrefs?.work_areas || [],
       price_range_min: workPrefs?.price_range_min,
@@ -133,6 +136,8 @@ export default function ProfilePage() {
 
     if (!updateError) {
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      // Refresh the global profile cache
+      await refreshProfile();
       toast({ title: t('profile.success'), description: t('profile.success_desc') });
     } else {
       toast({ title: t('home.error_load'), description: t('profile.error_update'), variant: 'destructive' });

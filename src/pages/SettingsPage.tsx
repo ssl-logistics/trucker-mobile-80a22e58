@@ -4,6 +4,7 @@ import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power } from 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -27,24 +28,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface Profile {
-  full_name: string;
-  avatar_url?: string;
-  vehicle_photo_url?: string;
-}
-
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useLanguage();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { vehiclePhoto } = useVehiclePhoto();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
-      loadProfile();
       checkNotificationStatus();
     }
   }, [user]);
@@ -56,39 +50,6 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Failed to check notification status:', error);
     }
-  };
-
-  const loadProfile = async () => {
-    if (!user) return;
-    
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('full_name, avatar_url')
-      .eq('id', user.id)
-      .single();
-    
-    const { data: vehicleData } = await supabase
-      .from('vehicles')
-      .select('id')
-      .eq('driver_id', user.id)
-      .single();
-    
-    let vehiclePhotoUrl: string | undefined;
-    if (vehicleData) {
-      const { data: photoData } = await supabase
-        .from('vehicle_photos')
-        .select('photo_url')
-        .eq('vehicle_id', vehicleData.id)
-        .eq('photo_type', 'front')
-        .single();
-      
-      vehiclePhotoUrl = photoData?.photo_url;
-    }
-    
-    setProfile({
-      ...profileData,
-      vehicle_photo_url: vehiclePhotoUrl
-    });
   };
 
   const handleNotificationToggle = async (enabled: boolean) => {
@@ -195,7 +156,7 @@ export default function SettingsPage() {
         >
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12">
-              <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
+              <AvatarImage src={profile?.avatar_url || vehiclePhoto || undefined} alt={profile?.full_name} />
               <AvatarFallback className="bg-primary/10 text-primary">
                 {profile?.full_name?.charAt(0) || "👤"}
               </AvatarFallback>

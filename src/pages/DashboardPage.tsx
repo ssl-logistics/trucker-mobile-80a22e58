@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, Truck, Users, Package } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVehiclePhoto } from "@/hooks/useVehiclePhoto";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -11,33 +11,13 @@ import financeBg from "@/assets/finance-bg-new.png";
 import shippingBg from "@/assets/shipping-bg.png";
 import customerBg from "@/assets/customer-bg.png";
 import productBg from "@/assets/product-bg.png";
-interface Profile {
-  full_name: string;
-  avatar_url?: string;
-}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const {
-    t
-  } = useLanguage();
-  const {
-    user
-  } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-    }
-  }, [user]);
-  const loadProfile = async () => {
-    if (!user) return;
-    const {
-      data: profileData
-    } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).single();
-    if (profileData) {
-      setProfile(profileData);
-    }
-  };
+  const { t } = useLanguage();
+  const { profile } = useAuth();
+  const { vehiclePhoto } = useVehiclePhoto();
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -80,7 +60,7 @@ export default function DashboardPage() {
     imageSrc: productBg
   }];
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
-      <AppHeader userName={profile?.full_name} profilePhoto={profile?.avatar_url} onSignOut={handleSignOut} />
+      <AppHeader userName={profile?.full_name} profilePhoto={profile?.avatar_url || vehiclePhoto || undefined} onSignOut={handleSignOut} />
 
       {/* Dashboard Grid */}
       <div className="px-4 py-6 space-y-8">

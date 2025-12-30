@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Edit, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,38 +17,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface Profile {
-  full_name: string;
-  phone_number: string;
-}
-
 export default function AccountPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-    }
-  }, [user]);
-
-  const loadProfile = async () => {
-    if (!user) return;
-    
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('full_name, phone_number')
-      .eq('id', user.id)
-      .single();
-    
-    if (profileData) {
-      setProfile(profileData);
-    }
-  };
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
