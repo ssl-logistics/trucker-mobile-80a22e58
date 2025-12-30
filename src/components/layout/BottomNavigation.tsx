@@ -3,6 +3,7 @@ import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { createPortal } from "react-dom";
+import { useState, useEffect } from "react";
 import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
 import DashboardIcon from "@/assets/dashboard-icon.svg";
@@ -17,19 +18,26 @@ export function BottomNavigation() {
   const location = useLocation();
   const { t } = useLanguage();
   const { isFreelance } = useUserRole();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
   const isActive = (path: string) => location.pathname === path;
   
   const navContent = (
     <nav
-      className="text-white px-6 py-3 shadow-lg"
       style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: 9999,
+        zIndex: 99999,
         backgroundColor: "#153860",
+        padding: "12px 24px",
         paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+        boxShadow: "0 -4px 6px -1px rgba(0, 0, 0, 0.1)",
       }}
     >
       <div className="flex justify-around items-center max-w-lg mx-auto">
@@ -93,6 +101,8 @@ export function BottomNavigation() {
       </div>
     </nav>
   );
+  
+  if (!mounted) return null;
   
   return createPortal(navContent, document.body);
 }
