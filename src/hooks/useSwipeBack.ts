@@ -24,11 +24,13 @@ export function useSwipeBack(options: SwipeBackOptions = {}) {
 
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0];
+      console.log('[SwipeBack] Touch start at X:', touch.clientX, 'Edge threshold:', edgeThreshold);
       // Only activate if touch starts near left edge
       if (touch.clientX <= edgeThreshold) {
         touchStartX.current = touch.clientX;
         touchStartY.current = touch.clientY;
         isEdgeSwipe.current = true;
+        console.log('[SwipeBack] Edge swipe started');
       } else {
         isEdgeSwipe.current = false;
       }
@@ -36,15 +38,19 @@ export function useSwipeBack(options: SwipeBackOptions = {}) {
 
     const handleTouchEnd = (e: TouchEvent) => {
       if (!isEdgeSwipe.current || touchStartX.current === null || touchStartY.current === null) {
+        console.log('[SwipeBack] Touch end ignored - not edge swipe');
         return;
       }
 
       const touch = e.changedTouches[0];
       const deltaX = touch.clientX - touchStartX.current;
       const deltaY = Math.abs(touch.clientY - touchStartY.current);
+      
+      console.log('[SwipeBack] Swipe detected - deltaX:', deltaX, 'deltaY:', deltaY, 'threshold:', swipeThreshold);
 
       // Check if horizontal swipe is dominant and exceeds threshold
       if (deltaX > swipeThreshold && deltaX > deltaY * 1.5) {
+        console.log('[SwipeBack] Navigating back!');
         navigate(-1);
       }
 
