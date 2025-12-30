@@ -214,6 +214,11 @@ const SignIn = () => {
           </div>
         </form>
       </div>
+      
+      {/* App Version */}
+      <div className="fixed bottom-4 right-4 text-xs text-muted-foreground/60">
+        v1.0.0
+      </div>
     </div>;
 };
 export default SignIn;
