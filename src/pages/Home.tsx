@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
@@ -27,58 +28,16 @@ interface Job {
   safety_equipment: string | null;
   isAccepted?: boolean;
 }
-interface LocalProfile {
-  full_name: string;
-  avatar_url?: string | null;
-  vehicle_photo_url?: string;
-  avatar_timestamp?: number;
-}
+
 export default function Home() {
   const navigate = useNavigate();
-  const { user, profile: authProfile } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useLanguage();
   const { role } = useUserRole();
+  const { vehiclePhoto } = useVehiclePhoto();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [localProfile, setLocalProfile] = useState<LocalProfile | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-
-  // Sync authProfile with localProfile and load vehicle photo
-  useEffect(() => {
-    if (authProfile) {
-      loadVehiclePhoto();
-    }
-  }, [authProfile, user]);
-
-  const loadVehiclePhoto = async () => {
-    if (!user) return;
-    
-    // Load vehicle photo (front photo as driver photo)
-    const { data: vehicleData } = await supabase
-      .from('vehicles')
-      .select('id')
-      .eq('driver_id', user.id)
-      .maybeSingle();
-    
-    let vehiclePhotoUrl: string | undefined;
-    if (vehicleData) {
-      const { data: photoData } = await supabase
-        .from('vehicle_photos')
-        .select('photo_url')
-        .eq('vehicle_id', vehicleData.id)
-        .eq('photo_type', 'front')
-        .maybeSingle();
-      
-      vehiclePhotoUrl = photoData?.photo_url;
-    }
-    
-    setLocalProfile({
-      full_name: authProfile?.full_name || '',
-      avatar_url: authProfile?.avatar_url,
-      vehicle_photo_url: vehiclePhotoUrl,
-      avatar_timestamp: Date.now()
-    });
-  };
 
   useEffect(() => {
     if (user) {
@@ -217,12 +176,8 @@ export default function Home() {
       {/* Header and Search Bar - Sticky Together */}
       <div className="sticky top-0 z-50">
         <AppHeader 
-          userName={localProfile?.full_name} 
-          profilePhoto={
-            localProfile?.avatar_url || localProfile?.vehicle_photo_url
-              ? `${localProfile?.avatar_url || localProfile?.vehicle_photo_url}?t=${localProfile?.avatar_timestamp || Date.now()}`
-              : undefined
-          } 
+          userName={profile?.full_name} 
+          profilePhoto={profile?.avatar_url || vehiclePhoto || undefined} 
           onSignOut={handleSignOut} 
           showQuickMenu={true} 
         />
