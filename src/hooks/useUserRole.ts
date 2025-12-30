@@ -6,6 +6,13 @@ export type UserRole = 'freelance' | 'company' | 'factory' | null;
 
 // Cache role globally to prevent flickering during navigation
 let cachedRole: UserRole = null;
+let cachedUserId: string | null = null;
+
+// Export function to clear role cache (called on logout)
+export const clearRoleCache = () => {
+  cachedRole = null;
+  cachedUserId = null;
+};
 
 export const useUserRole = () => {
   const { user } = useAuth();
@@ -15,14 +22,19 @@ export const useUserRole = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       if (!user) {
-        cachedRole = null;
+        clearRoleCache();
         setRole(null);
         setLoading(false);
         return;
       }
 
-      // Skip fetch if we already have the cached role
-      if (cachedRole !== null) {
+      // If user changed, clear cache
+      if (cachedUserId && cachedUserId !== user.id) {
+        clearRoleCache();
+      }
+
+      // Skip fetch if we already have the cached role for this user
+      if (cachedRole !== null && cachedUserId === user.id) {
         setRole(cachedRole);
         setLoading(false);
         return;
@@ -41,6 +53,7 @@ export const useUserRole = () => {
           setRole(null);
         } else {
           cachedRole = data?.role as UserRole;
+          cachedUserId = user.id;
           setRole(cachedRole);
         }
       } catch (error) {
