@@ -148,7 +148,7 @@ const SignIn = () => {
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-10 pb-2 bg-white overflow-y-auto">
+      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-14 pb-2 bg-white overflow-y-auto">
         <h1 className="text-xl font-bold text-center mb-5 text-foreground">{t('signIn.title')}</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
