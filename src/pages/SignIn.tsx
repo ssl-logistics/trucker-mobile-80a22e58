@@ -148,10 +148,10 @@ const SignIn = () => {
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-6 pb-2 bg-white/0 overflow-y-auto">
-        <h1 className="text-xl font-bold text-center mb-6 mt-3 text-foreground px-2">{t('signIn.title')}</h1>
+      <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-10 pb-2 bg-white overflow-y-auto">
+        <h1 className="text-xl font-bold text-center mb-5 text-foreground">{t('signIn.title')}</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-md mx-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-foreground">
@@ -190,11 +190,11 @@ const SignIn = () => {
           </div>
 
           {/* Submit Buttons */}
-          <div className="space-y-3">
-            <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium">
+          <div className="space-y-2">
+            <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-white h-10 rounded-xl text-sm font-medium">
               {t('signIn.signInButton')}
             </Button>
-            <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-12 rounded-xl text-base font-medium border-2">
+            <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-10 rounded-xl text-sm font-medium border-2">
               {t('signIn.registerButton')}
             </Button>
           </div>
@@ -205,10 +205,11 @@ const SignIn = () => {
               <button
                 type="button"
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="flex items-center gap-2 bg-muted/50 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-muted transition-colors"
+                className="flex items-center gap-1.5 bg-muted/50 backdrop-blur-sm px-3 py-1.5 rounded-full hover:bg-muted transition-colors"
               >
-                <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-5 rounded-full object-cover" />
-                <span className="text-sm font-medium">{currentLang.label}</span>
+                <img src={currentLang.flag} alt={currentLang.label} className="w-4 h-4 rounded-full object-cover" />
+                <span className="text-xs font-medium">{currentLang.label}</span>
+                <Globe className="w-3 h-3 text-muted-foreground" />
                 <Globe className="w-4 h-4 text-muted-foreground" />
               </button>
               
