@@ -41,25 +41,25 @@ export function AppHeader({
     return t(dayKeys[new Date().getDay()]);
   };
   return <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden">
-      <div className="relative overflow-hidden h-28">
+      <div className="relative overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url(${coverHeader})`
       }} />
-        <div className="relative z-10 p-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className="relative z-10 px-4 pt-2 pb-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Avatar className="w-12 h-12 border-2 border-white/20">
+              <Avatar className="w-11 h-11 border-2 border-white/20">
                 <AvatarImage src={profilePhoto} alt={userName} key={profilePhoto} />
                 <AvatarFallback className="bg-white/20 text-white text-lg">
                   {userName?.charAt(0) || "👤"}
                 </AvatarFallback>
               </Avatar>
-              <div className="min-w-fit h-14 rounded-xl bg-slate-100 px-3 py-2">
-                <div className="text-sm opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
-                <div className="font-semibold text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</div>
+              <div className="min-w-fit h-12 rounded-xl bg-slate-100 px-3 py-1.5">
+                <div className="text-xs opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
+                <div className="font-semibold text-sm text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <button onClick={() => navigate("/notifications")} className="relative p-2 hover:bg-white/10 rounded-full transition-colors">
                 <Bell className="w-5 h-5 text-[#153860]" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
