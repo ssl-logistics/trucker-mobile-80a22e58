@@ -116,6 +116,10 @@ All colors MUST be HSL.
     padding-top: calc(env(safe-area-inset-top, 0px) + 44px);
   }
   
+  .pt-safe-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
   .mt-safe {
     margin-top: calc(env(safe-area-inset-top, 0px) + 44px);
   }
@@ -133,4 +137,9 @@ All colors MUST be HSL.
   right: 0 !important;
   -webkit-transform: translate3d(0, 0, 0) !important;
   transform: translate3d(0, 0, 0) !important;
+}
+
+/* Page header with safe area */
+.page-header-safe {
+  padding-top: env(safe-area-inset-top, 0px);
 }

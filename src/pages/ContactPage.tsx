@@ -42,7 +42,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
+      <header className="bg-header text-header-foreground px-4 py-3 flex items-center gap-3 sticky top-0 z-10 page-header-safe">
         <button 
           onClick={() => navigate('/settings')} 
           className="p-2 hover:bg-header-foreground/10 rounded-lg transition-colors active:scale-95"
