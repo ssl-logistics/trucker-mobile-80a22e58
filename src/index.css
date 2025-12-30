@@ -124,3 +124,13 @@ All colors MUST be HSL.
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
   }
 }
+
+/* Fixed bottom navigation - force it to stay fixed on iOS */
+#bottom-navigation {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  -webkit-transform: translate3d(0, 0, 0) !important;
+  transform: translate3d(0, 0, 0) !important;
+}

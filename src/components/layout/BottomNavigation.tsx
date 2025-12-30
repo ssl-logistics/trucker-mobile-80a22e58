@@ -26,76 +26,105 @@ export function BottomNavigation() {
   
   const isActive = (path: string) => location.pathname === path;
   
+  const navItems = [
+    {
+      icon: Home,
+      label: t("nav.home"),
+      path: "/home",
+      customIcon: HomeIcon,
+      customActiveIcon: HomeIconActive,
+    },
+    {
+      icon: LayoutGrid,
+      label: t("nav.dashboard"),
+      path: "/dashboard",
+      customIcon: DashboardIcon,
+      customActiveIcon: DashboardIconActive,
+      showForFreelanceOnly: true,
+    },
+    {
+      icon: MessageCircle,
+      label: t("nav.chat"),
+      path: "/chat",
+      customIcon: ChatIcon,
+      customActiveIcon: ChatIconActive,
+    },
+    {
+      icon: Settings,
+      label: t("nav.settings"),
+      path: "/settings",
+      customIcon: SettingsIcon,
+      customActiveIcon: SettingsIconActive,
+    },
+  ].filter((item) => !item.showForFreelanceOnly || isFreelance);
+  
   const navContent = (
     <nav
+      id="bottom-navigation"
       style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: 99999,
+        zIndex: 2147483647,
         backgroundColor: "#153860",
         padding: "12px 24px",
         paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
         boxShadow: "0 -4px 6px -1px rgba(0, 0, 0, 0.1)",
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+        willChange: "transform",
       }}
     >
-      <div className="flex justify-around items-center max-w-lg mx-auto">
-        {[
-          {
-            icon: Home,
-            label: t("nav.home"),
-            path: "/home",
-            customIcon: HomeIcon,
-            customActiveIcon: HomeIconActive,
-          },
-          {
-            icon: LayoutGrid,
-            label: t("nav.dashboard"),
-            path: "/dashboard",
-            customIcon: DashboardIcon,
-            customActiveIcon: DashboardIconActive,
-            showForFreelanceOnly: true,
-          },
-          {
-            icon: MessageCircle,
-            label: t("nav.chat"),
-            path: "/chat",
-            customIcon: ChatIcon,
-            customActiveIcon: ChatIconActive,
-          },
-          {
-            icon: Settings,
-            label: t("nav.settings"),
-            path: "/settings",
-            customIcon: SettingsIcon,
-            customActiveIcon: SettingsIconActive,
-          },
-        ]
-        .filter((item) => !item.showForFreelanceOnly || isFreelance)
-        .map((item) => (
+      <div style={{ 
+        display: "flex", 
+        justifyContent: "space-around", 
+        alignItems: "center", 
+        maxWidth: "32rem", 
+        margin: "0 auto" 
+      }}>
+        {navItems.map((item) => (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="flex flex-col items-center gap-1 transition-colors"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "4px",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
           >
             <div
-              className={`p-1 px-4 rounded-full transition-all ${
-                isActive(item.path) ? "bg-gradient-to-r from-[#00C188] to-[#23B9E9]" : ""
-              }`}
+              style={{
+                padding: "4px 16px",
+                borderRadius: "9999px",
+                transition: "all 0.2s",
+                background: isActive(item.path) 
+                  ? "linear-gradient(to right, #00C188, #23B9E9)" 
+                  : "transparent",
+              }}
             >
               {item.customIcon ? (
                 <img 
                   src={isActive(item.path) && item.customActiveIcon ? item.customActiveIcon : item.customIcon} 
                   alt={item.label}
-                  className="w-6 h-6"
-                  style={{ filter: 'brightness(0) saturate(100%) invert(93%) sepia(8%) saturate(437%) hue-rotate(83deg) brightness(103%) contrast(101%)' }}
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    filter: "brightness(0) saturate(100%) invert(93%) sepia(8%) saturate(437%) hue-rotate(83deg) brightness(103%) contrast(101%)",
+                  }}
                 />
               ) : (
-                <item.icon className="w-6 h-6 text-[#E0FFEA]" />
+                <item.icon style={{ width: "24px", height: "24px", color: "#E0FFEA" }} />
               )}
             </div>
-            <span className="text-xs text-[#E2F8FF]">{item.label}</span>
+            <span style={{ fontSize: "12px", color: "#E2F8FF" }}>{item.label}</span>
           </button>
         ))}
       </div>
