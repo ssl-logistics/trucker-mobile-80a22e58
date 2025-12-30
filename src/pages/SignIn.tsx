@@ -205,12 +205,9 @@ const SignIn = () => {
               <button
                 type="button"
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="flex items-center gap-1.5 bg-muted/50 backdrop-blur-sm px-3 py-1.5 rounded-full hover:bg-muted transition-colors"
+                className="p-2 rounded-full hover:bg-muted transition-colors"
               >
-                <img src={currentLang.flag} alt={currentLang.label} className="w-4 h-4 rounded-full object-cover" />
-                <span className="text-xs font-medium">{currentLang.label}</span>
-                <Globe className="w-3 h-3 text-muted-foreground" />
-                <Globe className="w-4 h-4 text-muted-foreground" />
+                <Globe className="w-5 h-5 text-muted-foreground" />
               </button>
               
               {showLanguageMenu && (
