@@ -45,27 +45,27 @@ export function AppHeader({
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url(${coverHeader})`
       }} />
-        <div className="relative z-10 px-4 pt-2 pb-3">
+        <div className="relative z-10 px-4 pt-1 pb-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar className="w-11 h-11 border-2 border-white/20">
+            <div className="flex items-center gap-2">
+              <Avatar className="w-10 h-10 border-2 border-white/20">
                 <AvatarImage src={profilePhoto} alt={userName} key={profilePhoto} />
-                <AvatarFallback className="bg-white/20 text-white text-lg">
+                <AvatarFallback className="bg-white/20 text-white text-base">
                   {userName?.charAt(0) || "👤"}
                 </AvatarFallback>
               </Avatar>
-              <div className="min-w-fit h-12 rounded-xl bg-slate-100 px-3 py-1.5">
-                <div className="text-xs opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
-                <div className="font-semibold text-sm text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</div>
+              <div className="min-w-fit h-10 rounded-xl bg-slate-100 px-2.5 py-1">
+                <div className="text-[10px] opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
+                <div className="font-semibold text-xs text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</div>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => navigate("/notifications")} className="relative p-2 hover:bg-white/10 rounded-full transition-colors">
-                <Bell className="w-5 h-5 text-[#153860]" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              <button onClick={() => navigate("/notifications")} className="relative p-1.5 hover:bg-white/10 rounded-full transition-colors">
+                <Bell className="w-4 h-4 text-[#153860]" />
+                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
               </button>
-              <button onClick={() => setShowSignOutDialog(true)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                <Power className="w-5 h-5 text-[#153860]" />
+              <button onClick={() => setShowSignOutDialog(true)} className="p-1.5 hover:bg-white/10 rounded-full transition-colors">
+                <Power className="w-4 h-4 text-[#153860]" />
               </button>
             </div>
           </div>
