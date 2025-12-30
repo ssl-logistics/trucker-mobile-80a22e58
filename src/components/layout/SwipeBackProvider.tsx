@@ -98,6 +98,16 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
     hasStartedSwipe.current = false;
   }, [navigate]);
 
+  // Reset state when location changes to prevent stuck overlay
+  useEffect(() => {
+    setSwipeProgress(0);
+    setIsAnimating(false);
+    startX.current = null;
+    startY.current = null;
+    isEdgeSwipe.current = false;
+    hasStartedSwipe.current = false;
+  }, [location.pathname]);
+
   useEffect(() => {
     if (!enabled) return;
 
