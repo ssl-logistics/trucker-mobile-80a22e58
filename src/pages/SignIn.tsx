@@ -143,37 +143,37 @@ const SignIn = () => {
   };
   return <div className="h-screen bg-background flex flex-col overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       {/* Hero Section with Truck Image */}
-      <div className="relative h-[28vh] flex-shrink-0">
+      <div className="relative h-[40vh] flex-shrink-0">
         <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill " />
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[2rem] -mt-8 px-5 pt-4 pb-4 bg-white/0 overflow-y-auto">
-        <h1 className="text-xl font-bold text-center mb-4 text-foreground">{t('signIn.title')}</h1>
+      <div className="flex-1 rounded-t-[3rem] -mt-12 px-6 pt-6 pb-2 bg-white/0 overflow-y-auto">
+        <h1 className="text-2xl font-bold text-center mb-6 mt-3 text-foreground">{t('signIn.title')}</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-md mx-auto">
           {/* Email Field */}
-          <div className="space-y-1">
-            <Label htmlFor="email" className="text-foreground text-sm">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-foreground">
               {t('signIn.username')} <span className="text-destructive">*</span>
             </Label>
-            <Input id="email" type="email" placeholder="example@email.com" {...register("email")} className={`h-10 ${errors.email ? "border-destructive" : ""}`} />
-            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+            <Input id="email" type="email" placeholder="example@email.com" {...register("email")} className={errors.email ? "border-destructive" : ""} />
+            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
 
           {/* Password Field */}
-          <div className="space-y-1">
-            <Label htmlFor="password" className="text-foreground text-sm">
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-foreground">
               {t('signIn.password')} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
-              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={`h-10 pr-10 ${errors.password || serverError ? "border-destructive" : ""}`} />
+              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={`pr-10 ${errors.password || serverError ? "border-destructive" : ""}`} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
-            {serverError && <p className="text-xs text-destructive">{serverError}</p>}
+            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+            {serverError && <p className="text-sm text-destructive">{serverError}</p>}
           </div>
 
           {/* Remember Me & Forgot Password */}
@@ -190,17 +190,17 @@ const SignIn = () => {
           </div>
 
           {/* Submit Buttons */}
-          <div className="space-y-2 pt-2">
-            <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-white h-10 rounded-xl text-sm font-medium">
+          <div className="space-y-3">
+            <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium">
               {t('signIn.signInButton')}
             </Button>
-            <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-10 rounded-xl text-sm font-medium border-2">
+            <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-12 rounded-xl text-base font-medium border-2">
               {t('signIn.registerButton')}
             </Button>
           </div>
 
           {/* Language Switcher */}
-          <div className="flex justify-center pt-1">
+          <div className="flex justify-center">
             <div className="relative">
               <button
                 type="button"
@@ -238,7 +238,7 @@ const SignIn = () => {
       </div>
       
       {/* App Version */}
-      <div className="fixed bottom-4 right-4 text-xs text-muted-foreground/60">
+      <div className="absolute bottom-2 right-4 text-xs text-muted-foreground/60">
         v{appVersion}
       </div>
     </div>;
