@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 
 interface SwipeBackProviderProps {
   children: React.ReactNode;
@@ -17,9 +18,10 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
   const isTracking = useRef(false);
   const hasMoved = useRef(false);
   
-  const edgeThreshold = 50; // ลดลงเพื่อให้จับง่ายขึ้น
-  const swipeThreshold = 80;
-  const maxSwipeDistance = 200;
+  // ขยาย edge zone สำหรับ iOS
+  const edgeThreshold = 35;
+  const swipeThreshold = 100;
+  const maxSwipeDistance = 250;
 
   // Reset state when location changes
   useEffect(() => {
@@ -30,20 +32,19 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
   }, [location.pathname]);
 
   const handleSwipeEnd = useCallback((deltaX: number, deltaY: number) => {
-    console.log('[SwipeBack] End - deltaX:', deltaX, 'deltaY:', deltaY);
-    
-    if (deltaX > swipeThreshold && Math.abs(deltaY) < deltaX * 0.5) {
+    if (deltaX > swipeThreshold && Math.abs(deltaY) < deltaX * 0.7) {
       setIsAnimating(true);
       setSwipeProgress(1);
-      console.log('[SwipeBack] Navigating back!');
       
       setTimeout(() => {
         navigate(-1);
         setSwipeProgress(0);
         setIsAnimating(false);
-      }, 200);
+      }, 250);
     } else {
+      setIsAnimating(true);
       setSwipeProgress(0);
+      setTimeout(() => setIsAnimating(false), 200);
     }
     
     isTracking.current = false;
@@ -53,19 +54,18 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
   useEffect(() => {
     if (!enabled) return;
 
+    // Pages ที่ไม่ต้อง swipe back
+    const noSwipePages = ['/', '', '/sign-in', '/register'];
+    if (noSwipePages.includes(location.pathname)) return;
+
     const handleTouchStart = (e: TouchEvent) => {
-      // Don't enable on root/home page
-      if (location.pathname === '/' || location.pathname === '') return;
-      
       const touch = e.touches[0];
-      console.log('[SwipeBack] TouchStart at X:', touch.clientX);
       
       if (touch.clientX <= edgeThreshold) {
         startX.current = touch.clientX;
         startY.current = touch.clientY;
         isTracking.current = true;
         hasMoved.current = false;
-        console.log('[SwipeBack] Edge swipe started');
       }
     };
 
@@ -79,11 +79,10 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
       // First move - check if horizontal
       if (!hasMoved.current) {
         hasMoved.current = true;
-        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        if (Math.abs(deltaY) > Math.abs(deltaX) * 1.2) {
           // Vertical scroll, cancel swipe
           isTracking.current = false;
           setSwipeProgress(0);
-          console.log('[SwipeBack] Cancelled - vertical scroll');
           return;
         }
       }
@@ -91,7 +90,11 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
       if (deltaX > 0) {
         const progress = Math.min(deltaX / maxSwipeDistance, 1);
         setSwipeProgress(progress);
-        console.log('[SwipeBack] Progress:', progress.toFixed(2));
+        
+        // Prevent scroll when swiping
+        if (progress > 0.1) {
+          e.preventDefault();
+        }
       }
     };
 
@@ -106,19 +109,15 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
     };
 
     const handleTouchCancel = () => {
-      console.log('[SwipeBack] Touch cancelled');
       setSwipeProgress(0);
       isTracking.current = false;
       hasMoved.current = false;
     };
 
-    // Add listeners with passive: false to allow preventDefault if needed
-    const options = { passive: true };
-    
-    document.addEventListener('touchstart', handleTouchStart, options);
-    document.addEventListener('touchmove', handleTouchMove, options);
-    document.addEventListener('touchend', handleTouchEnd, options);
-    document.addEventListener('touchcancel', handleTouchCancel, options);
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', handleTouchCancel, { passive: true });
 
     return () => {
       document.removeEventListener('touchstart', handleTouchStart);
@@ -130,67 +129,67 @@ export function SwipeBackProvider({ children, enabled = true }: SwipeBackProvide
 
   const showOverlay = swipeProgress > 0;
   const translateX = swipeProgress * 100;
-  const overlayOpacity = swipeProgress * 0.3;
+  const overlayOpacity = swipeProgress * 0.4;
+  const isComplete = swipeProgress > 0.4;
 
   return (
     <>
       {/* Dark overlay */}
       {showOverlay && (
         <div 
-          className="fixed inset-0 bg-black pointer-events-none z-40"
+          className="fixed inset-0 bg-black pointer-events-none z-[100]"
           style={{ 
             opacity: overlayOpacity,
-            transition: isAnimating ? 'opacity 0.2s ease-out' : 'none'
+            transition: isAnimating ? 'opacity 0.25s ease-out' : 'none'
           }}
         />
       )}
       
-      {/* Edge indicator */}
+      {/* Edge indicator line */}
       {showOverlay && (
         <div 
-          className="fixed left-0 top-0 bottom-0 w-1 bg-primary z-50 pointer-events-none"
+          className="fixed left-0 top-0 bottom-0 w-1 bg-primary z-[101] pointer-events-none rounded-r-full"
           style={{ 
-            opacity: swipeProgress,
-            transform: `scaleX(${1 + swipeProgress * 3})`,
+            opacity: Math.min(swipeProgress * 2, 1),
+            transform: `scaleX(${1 + swipeProgress * 2})`,
             transformOrigin: 'left',
-            transition: isAnimating ? 'all 0.2s ease-out' : 'none'
+            transition: isAnimating ? 'all 0.25s ease-out' : 'none'
           }}
         />
       )}
       
-      {/* Back arrow */}
-      {swipeProgress > 0.2 && (
+      {/* Back arrow circle - iOS style */}
+      {swipeProgress > 0.15 && (
         <div 
-          className="fixed left-4 top-1/2 -translate-y-1/2 z-50 pointer-events-none"
+          className="fixed z-[102] pointer-events-none"
           style={{ 
-            opacity: Math.min((swipeProgress - 0.2) * 2, 1),
-            transform: `translateX(${swipeProgress * 20}px) translateY(-50%)`,
-            transition: isAnimating ? 'all 0.2s ease-out' : 'none'
+            left: `${16 + swipeProgress * 40}px`,
+            top: '50%',
+            opacity: Math.min((swipeProgress - 0.15) * 3, 1),
+            transform: `translateY(-50%) scale(${0.8 + swipeProgress * 0.3})`,
+            transition: isAnimating ? 'all 0.25s ease-out' : 'none'
           }}
         >
-          <div className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center">
-            <svg 
-              className="w-5 h-5 text-primary" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M15 19l-7-7 7-7" 
-              />
-            </svg>
+          <div 
+            className={`w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-colors duration-150 ${
+              isComplete ? 'bg-primary' : 'bg-white'
+            }`}
+          >
+            <ChevronLeft 
+              className={`w-6 h-6 transition-colors duration-150 ${
+                isComplete ? 'text-white' : 'text-primary'
+              }`}
+            />
           </div>
         </div>
       )}
       
-      {/* Main content */}
+      {/* Main content with slide effect */}
       <div 
+        className="min-h-screen"
         style={{ 
-          transform: `translateX(${translateX * 0.3}px)`,
-          transition: isAnimating || swipeProgress === 0 ? 'transform 0.2s ease-out' : 'none'
+          transform: `translateX(${translateX * 0.4}px)`,
+          transition: isAnimating ? 'transform 0.25s ease-out' : 'none'
         }}
       >
         {children}
