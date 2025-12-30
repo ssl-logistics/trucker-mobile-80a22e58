@@ -18,7 +18,7 @@ export function BottomNavigation() {
   const isActive = (path: string) => location.pathname === path;
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 text-white px-6 py-3 shadow-lg"
+      className="fixed bottom-0 left-0 right-0 z-50 text-white px-6 py-3 pb-safe shadow-lg"
       style={{
         backgroundColor: "#153860",
       }}
