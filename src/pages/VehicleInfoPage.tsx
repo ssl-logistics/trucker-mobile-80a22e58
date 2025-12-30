@@ -303,11 +303,13 @@ export default function VehicleInfoPage() {
   return (
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-3 flex items-center justify-center relative page-header-safe">
-        <button onClick={() => navigate('/settings')} className="absolute left-0">
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <h1 className="text-xl font-semibold">{t('vehicle.title')}</h1>
+      <header className="bg-header text-header-foreground page-header-safe">
+        <div className="flex items-center justify-center px-4 py-3 relative">
+          <button onClick={() => navigate('/settings')} className="absolute left-0">
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <h1 className="text-xl font-semibold">{t('vehicle.title')}</h1>
+        </div>
       </header>
 
       {/* Tabs */}

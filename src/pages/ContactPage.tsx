@@ -42,15 +42,17 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-3 flex items-center gap-3 sticky top-0 z-10 page-header-safe">
-        <button 
-          onClick={() => navigate('/settings')} 
-          className="p-2 hover:bg-header-foreground/10 rounded-lg transition-colors active:scale-95"
-          aria-label="Back to settings"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <h1 className="text-xl font-semibold">{t('contact.title')}</h1>
+      <header className="bg-header text-header-foreground sticky top-0 z-10 page-header-safe">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button 
+            onClick={() => navigate('/settings')} 
+            className="p-2 hover:bg-header-foreground/10 rounded-lg transition-colors active:scale-95"
+            aria-label="Back to settings"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <h1 className="text-xl font-semibold">{t('contact.title')}</h1>
+        </div>
       </header>
 
       <div className="px-4 py-6 space-y-6">

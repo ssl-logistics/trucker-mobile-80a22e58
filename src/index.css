@@ -142,4 +142,8 @@ All colors MUST be HSL.
 /* Page header with safe area */
 .page-header-safe {
   padding-top: env(safe-area-inset-top, 0px);
+  min-height: 85px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }

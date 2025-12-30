@@ -522,54 +522,56 @@ export default function ChatRoomPage() {
   }
   return <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#153860] text-white p-4 flex items-center justify-between shadow-md page-header-safe">
-        <div className="flex items-center gap-3 flex-1">
-          <button onClick={() => navigate('/chat')} className="p-1">
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          
-          <div className="relative">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src={conversation.avatar_url || ''} />
-              <AvatarFallback className="bg-white/20">
-                {conversation.name?.[0]?.toUpperCase() || '?'}
-              </AvatarFallback>
-            </Avatar>
-            {isOnline && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#153860]"></div>}
+      <div className="sticky top-0 z-10 bg-[#153860] text-white shadow-md page-header-safe">
+        <div className="flex items-center justify-between p-3">
+          <div className="flex items-center gap-3 flex-1">
+            <button onClick={() => navigate('/chat')} className="p-1">
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            
+            <div className="relative">
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={conversation.avatar_url || ''} />
+                <AvatarFallback className="bg-white/20">
+                  {conversation.name?.[0]?.toUpperCase() || '?'}
+                </AvatarFallback>
+              </Avatar>
+              {isOnline && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#153860]"></div>}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <h2 className="font-semibold truncate">{conversation.name}</h2>
+              <p className="text-xs text-white/70">
+                {isOnline ? t('chat.online') : t('chat.offline')}
+              </p>
+            </div>
           </div>
-          
-          <div className="flex-1 min-w-0">
-            <h2 className="font-semibold truncate">{conversation.name}</h2>
-            <p className="text-xs text-white/70">
-              {isOnline ? t('chat.online') : t('chat.offline')}
-            </p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <button className="p-2">
-            <Phone className="w-5 h-5" />
-          </button>
-          
-          {conversation?.type === 'group' && <button className="p-2" onClick={() => setShowManageGroup(true)}>
-              <Settings className="w-5 h-5" />
-            </button>}
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="p-2">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleMuteConversation}>
-                {t('chat.muteNotifications')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDeleteConversation} className="text-destructive">
-                {t('chat.deleteConversation')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-3">
+            <button className="p-2">
+              <Phone className="w-5 h-5" />
+            </button>
+            
+            {conversation?.type === 'group' && <button className="p-2" onClick={() => setShowManageGroup(true)}>
+                <Settings className="w-5 h-5" />
+              </button>}
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2">
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleMuteConversation}>
+                  {t('chat.muteNotifications')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDeleteConversation} className="text-destructive">
+                  {t('chat.deleteConversation')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 

@@ -8,11 +8,13 @@ export default function TermsPage() {
   } = useLanguage();
   return <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-3 flex items-center justify-center relative sticky top-0 z-10 page-header-safe">
-        <button onClick={() => navigate("/settings")} className="absolute left-0 p-1">
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <h1 className="font-semibold text-sm">{t("terms.title")}</h1>
+      <header className="bg-header text-header-foreground sticky top-0 z-10 page-header-safe">
+        <div className="flex items-center justify-center px-4 py-3 relative">
+          <button onClick={() => navigate("/settings")} className="absolute left-0 p-1">
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <h1 className="font-semibold text-sm">{t("terms.title")}</h1>
+        </div>
       </header>
 
       {/* Content */}
