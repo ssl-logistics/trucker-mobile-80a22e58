@@ -6,10 +6,16 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   plugins: {
     Camera: {
-      // Android permissions are handled in AndroidManifest.xml
-      // These settings help with camera behavior
       presentationStyle: 'fullscreen'
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
     }
+  },
+  ios: {
+    // iOS specific configurations
+    // These will be used when running `npx cap sync`
+    // The actual Info.plist entries need to be added manually or via Xcode
   }
 };
 
