@@ -23,7 +23,7 @@ export function BackButton({ className = "" }: BackButtonProps) {
       onClick={() => navigate(-1)}
       className={`fixed top-0 left-0 z-[60] w-10 h-10 rounded-full bg-white/90 shadow-md backdrop-blur-sm hover:bg-white ${className}`}
       style={{ 
-        top: 'calc(env(safe-area-inset-top) + 8px)',
+        top: 'calc(env(safe-area-inset-top) + 52px)',
         left: '8px'
       }}
     >
