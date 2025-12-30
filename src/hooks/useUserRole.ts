@@ -4,15 +4,26 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export type UserRole = 'freelance' | 'company' | 'factory' | null;
 
+// Cache role globally to prevent flickering during navigation
+let cachedRole: UserRole = null;
+
 export const useUserRole = () => {
   const { user } = useAuth();
-  const [role, setRole] = useState<UserRole>(null);
-  const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<UserRole>(cachedRole);
+  const [loading, setLoading] = useState(cachedRole === null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
       if (!user) {
+        cachedRole = null;
         setRole(null);
+        setLoading(false);
+        return;
+      }
+
+      // Skip fetch if we already have the cached role
+      if (cachedRole !== null) {
+        setRole(cachedRole);
         setLoading(false);
         return;
       }
@@ -26,12 +37,15 @@ export const useUserRole = () => {
 
         if (error) {
           console.error('Error fetching user role:', error);
+          cachedRole = null;
           setRole(null);
         } else {
-          setRole(data?.role as UserRole);
+          cachedRole = data?.role as UserRole;
+          setRole(cachedRole);
         }
       } catch (error) {
         console.error('Error in fetchUserRole:', error);
+        cachedRole = null;
         setRole(null);
       } finally {
         setLoading(false);
