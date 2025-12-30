@@ -49,36 +49,25 @@ const SignIn = () => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("");
 
-  // Get app version from native app with retry for iOS
+  // Get app version from native app - immediate fallback for web
   useEffect(() => {
-    let retryCount = 0;
-    const maxRetries = 3;
+    // Set fallback immediately so version is always visible
+    setAppVersion("1.0.0");
     
+    // Then try to get native version
     const getAppVersion = async () => {
       try {
         const info = await App.getInfo();
-        if (info.version) {
-          setAppVersion(`${info.version} (${info.build})`);
-          return true;
+        if (info?.version) {
+          setAppVersion(`${info.version}${info.build ? ` (${info.build})` : ''}`);
         }
-        return false;
       } catch {
-        return false;
+        // Keep fallback version
       }
     };
 
-    const attemptGetVersion = async () => {
-      const success = await getAppVersion();
-      if (!success && retryCount < maxRetries) {
-        retryCount++;
-        setTimeout(attemptGetVersion, 500); // Retry after 500ms
-      } else if (!success) {
-        setAppVersion("1.0.0"); // Final fallback
-      }
-    };
-
-    // Delay initial attempt to ensure Capacitor is ready on iOS
-    const timer = setTimeout(attemptGetVersion, 100);
+    // Delay for iOS Capacitor initialization
+    const timer = setTimeout(getAppVersion, 300);
     return () => clearTimeout(timer);
   }, []);
 
