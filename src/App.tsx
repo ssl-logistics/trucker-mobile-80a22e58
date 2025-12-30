@@ -6,6 +6,7 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
+import { SwipeBackProvider } from "@/components/layout/SwipeBackProvider";
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -62,6 +63,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <HashRouter>
+              <SwipeBackProvider>
               <PushNotificationPrompt />
               <Routes>
             <Route path="/" element={<SignIn />} />
@@ -112,6 +114,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+              </SwipeBackProvider>
         </HashRouter>
       </TooltipProvider>
       </LanguageProvider>
