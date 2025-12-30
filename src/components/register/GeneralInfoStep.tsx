@@ -11,6 +11,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { RegistrationData } from "@/pages/Register";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
 
 interface GeneralInfoStepProps {
   data: RegistrationData;
@@ -19,6 +20,7 @@ interface GeneralInfoStepProps {
 
 const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const { t } = useLanguage();
+  const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
   
   const generalInfoSchema = z.object({
     firstName: z.string().min(1, t('generalInfo.validation.firstNameRequired')),
@@ -70,6 +72,19 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     }
   };
 
+  const handleNativePhoto = async (source: 'camera' | 'gallery') => {
+    try {
+      const file = source === 'camera' ? await takePhoto() : await selectFromGallery();
+      if (file) {
+        setProfilePhotoFile(file);
+        setProfilePreview(URL.createObjectURL(file));
+        setIsDrawerOpen(false);
+      }
+    } catch (error) {
+      console.error('Error capturing photo:', error);
+    }
+  };
+
   const onSubmit = (formData: GeneralInfoFormData) => {
     onNext({
       ...formData,
@@ -105,36 +120,65 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               <DrawerTitle className="text-center">{t('generalInfo.selectPhoto')}</DrawerTitle>
             </DrawerHeader>
             <div className="p-4 space-y-3 pb-8">
-              <label htmlFor="camera-capture" className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
-                <Camera className="w-6 h-6 text-primary" />
-                <div className="text-left flex-1">
-                  <p className="font-medium">{t('generalInfo.takePhoto')}</p>
-                  <p className="text-sm text-muted-foreground">{t('generalInfo.takePhotoDesc')}</p>
-                </div>
-              </label>
-              <input
-                id="camera-capture"
-                type="file"
-                accept="image/*"
-                capture
-                className="hidden"
-                onChange={handleProfilePhotoChange}
-              />
-              
-              <label htmlFor="gallery-select" className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
-                <Image className="w-6 h-6 text-primary" />
-                <div className="text-left flex-1">
-                  <p className="font-medium">{t('generalInfo.selectFromGallery')}</p>
-                  <p className="text-sm text-muted-foreground">{t('generalInfo.selectFromGalleryDesc')}</p>
-                </div>
-              </label>
-              <input
-                id="gallery-select"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleProfilePhotoChange}
-              />
+              {isNative ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleNativePhoto('camera')}
+                    className="w-full flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                  >
+                    <Camera className="w-6 h-6 text-primary" />
+                    <div className="text-left flex-1">
+                      <p className="font-medium">{t('generalInfo.takePhoto')}</p>
+                      <p className="text-sm text-muted-foreground">{t('generalInfo.takePhotoDesc')}</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNativePhoto('gallery')}
+                    className="w-full flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                  >
+                    <Image className="w-6 h-6 text-primary" />
+                    <div className="text-left flex-1">
+                      <p className="font-medium">{t('generalInfo.selectFromGallery')}</p>
+                      <p className="text-sm text-muted-foreground">{t('generalInfo.selectFromGalleryDesc')}</p>
+                    </div>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <label htmlFor="camera-capture" className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
+                    <Camera className="w-6 h-6 text-primary" />
+                    <div className="text-left flex-1">
+                      <p className="font-medium">{t('generalInfo.takePhoto')}</p>
+                      <p className="text-sm text-muted-foreground">{t('generalInfo.takePhotoDesc')}</p>
+                    </div>
+                  </label>
+                  <input
+                    id="camera-capture"
+                    type="file"
+                    accept="image/*"
+                    capture
+                    className="hidden"
+                    onChange={handleProfilePhotoChange}
+                  />
+                  
+                  <label htmlFor="gallery-select" className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
+                    <Image className="w-6 h-6 text-primary" />
+                    <div className="text-left flex-1">
+                      <p className="font-medium">{t('generalInfo.selectFromGallery')}</p>
+                      <p className="text-sm text-muted-foreground">{t('generalInfo.selectFromGalleryDesc')}</p>
+                    </div>
+                  </label>
+                  <input
+                    id="gallery-select"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleProfilePhotoChange}
+                  />
+                </>
+              )}
             </div>
           </DrawerContent>
         </Drawer>
