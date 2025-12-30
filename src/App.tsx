@@ -65,7 +65,7 @@ const App = () => (
             <Sonner />
             <HashRouter>
               <SwipeBackProvider>
-              <div className="pt-safe min-h-screen">
+              <div className="min-h-screen">
               
               <PushNotificationPrompt />
               <Routes>
