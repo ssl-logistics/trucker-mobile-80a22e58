@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
 import { SwipeBackProvider } from "@/components/layout/SwipeBackProvider";
-import { BackButton } from "@/components/layout/BackButton";
+
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -66,7 +66,7 @@ const App = () => (
             <HashRouter>
               <SwipeBackProvider>
               <div className="pt-safe min-h-screen">
-              <BackButton />
+              
               <PushNotificationPrompt />
               <Routes>
             <Route path="/" element={<SignIn />} />
