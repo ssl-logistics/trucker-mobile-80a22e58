@@ -18,9 +18,15 @@ export function BottomNavigation() {
   const isActive = (path: string) => location.pathname === path;
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 text-white px-6 py-3 pb-safe shadow-lg"
+      className="text-white px-6 py-3 shadow-lg"
       style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999,
         backgroundColor: "#153860",
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
       }}
     >
       <div className="flex justify-around items-center max-w-lg mx-auto">
