@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Eye, EyeOff, Globe } from "lucide-react";
+import { App } from "@capacitor/app";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -46,6 +47,21 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string>("");
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [appVersion, setAppVersion] = useState<string>("1.0.0");
+
+  // Get app version from native app
+  useEffect(() => {
+    const getAppVersion = async () => {
+      try {
+        const info = await App.getInfo();
+        setAppVersion(`${info.version} (${info.build})`);
+      } catch {
+        // Fallback for web browser
+        setAppVersion("1.0.0");
+      }
+    };
+    getAppVersion();
+  }, []);
 
   const currentLang = languageOptions.find(l => l.code === language) || languageOptions[0];
   const {
@@ -217,7 +233,7 @@ const SignIn = () => {
       
       {/* App Version */}
       <div className="fixed bottom-4 right-4 text-xs text-muted-foreground/60">
-        v1.0.0
+        v{appVersion}
       </div>
     </div>;
 };
