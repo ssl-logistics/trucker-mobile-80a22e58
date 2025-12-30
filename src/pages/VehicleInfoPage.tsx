@@ -303,7 +303,7 @@ export default function VehicleInfoPage() {
   return (
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-4 flex items-center justify-center relative">
+      <header className="bg-header text-header-foreground px-4 py-3 flex items-center justify-center relative page-header-safe">
         <button onClick={() => navigate('/settings')} className="absolute left-0">
           <ChevronLeft className="w-6 h-6" />
         </button>

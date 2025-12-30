@@ -209,7 +209,7 @@ export default function ChatListPage() {
     </div>;
   return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-[#DDEDFF] text-white p-4 shadow-lg">
+      <div className="bg-[#DDEDFF] text-white p-4 shadow-lg page-header-safe">
         <h1 className="text-xl font-semibold text-[#153860] text-center">{t('chat.title')}</h1>
       </div>
       

@@ -183,7 +183,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-6 text-center">
+      <header className="bg-header text-header-foreground px-4 py-4 text-center page-header-safe">
         <h1 className="text-xl font-semibold">{t('settings.title')}</h1>
       </header>
 
