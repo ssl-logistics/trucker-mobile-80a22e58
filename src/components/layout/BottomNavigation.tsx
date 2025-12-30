@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { createPortal } from "react-dom";
 import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
 import DashboardIcon from "@/assets/dashboard-icon.svg";
@@ -10,13 +11,15 @@ import ChatIcon from "@/assets/chat-icon.svg";
 import ChatIconActive from "@/assets/chat-icon-active.svg";
 import SettingsIcon from "@/assets/settings-icon.svg";
 import SettingsIconActive from "@/assets/settings-icon-active.svg";
+
 export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
   const { isFreelance } = useUserRole();
   const isActive = (path: string) => location.pathname === path;
-  return (
+  
+  const navContent = (
     <nav
       className="text-white px-6 py-3 shadow-lg"
       style={{
@@ -90,4 +93,6 @@ export function BottomNavigation() {
       </div>
     </nav>
   );
+  
+  return createPortal(navContent, document.body);
 }
