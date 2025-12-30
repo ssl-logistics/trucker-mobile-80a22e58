@@ -27,51 +27,62 @@ interface Job {
   safety_equipment: string | null;
   isAccepted?: boolean;
 }
-interface Profile {
+interface LocalProfile {
   full_name: string;
-  avatar_url?: string;
+  avatar_url?: string | null;
   vehicle_photo_url?: string;
   avatar_timestamp?: number;
 }
 export default function Home() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile: authProfile } = useAuth();
   const { t } = useLanguage();
   const { role } = useUserRole();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [localProfile, setLocalProfile] = useState<LocalProfile | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  // Sync authProfile with localProfile and load vehicle photo
   useEffect(() => {
-    if (user) {
-      loadJobs();
+    if (authProfile) {
+      loadVehiclePhoto();
     }
-  }, [user]);
+  }, [authProfile, user]);
+
+  const loadVehiclePhoto = async () => {
+    if (!user) return;
+    
+    // Load vehicle photo (front photo as driver photo)
+    const { data: vehicleData } = await supabase
+      .from('vehicles')
+      .select('id')
+      .eq('driver_id', user.id)
+      .maybeSingle();
+    
+    let vehiclePhotoUrl: string | undefined;
+    if (vehicleData) {
+      const { data: photoData } = await supabase
+        .from('vehicle_photos')
+        .select('photo_url')
+        .eq('vehicle_id', vehicleData.id)
+        .eq('photo_type', 'front')
+        .maybeSingle();
+      
+      vehiclePhotoUrl = photoData?.photo_url;
+    }
+    
+    setLocalProfile({
+      full_name: authProfile?.full_name || '',
+      avatar_url: authProfile?.avatar_url,
+      vehicle_photo_url: vehiclePhotoUrl,
+      avatar_timestamp: Date.now()
+    });
+  };
 
   useEffect(() => {
     if (user) {
-      loadProfile();
-      
-      // Subscribe to profile changes for real-time updates
-      const channel = supabase
-        .channel('profile-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          () => {
-            loadProfile();
-          }
-        )
-        .subscribe();
-      
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      loadJobs();
     }
   }, [user]);
 
@@ -141,41 +152,6 @@ export default function Home() {
       }
     }
   };
-  const loadProfile = async () => {
-    if (!user) return;
-    
-    // Load profile data
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('full_name, avatar_url')
-      .eq('id', user.id)
-      .single();
-    
-    // Load vehicle photo (front photo as driver photo)
-    const { data: vehicleData } = await supabase
-      .from('vehicles')
-      .select('id')
-      .eq('driver_id', user.id)
-      .single();
-    
-    let vehiclePhotoUrl: string | undefined;
-    if (vehicleData) {
-      const { data: photoData } = await supabase
-        .from('vehicle_photos')
-        .select('photo_url')
-        .eq('vehicle_id', vehicleData.id)
-        .eq('photo_type', 'front')
-        .single();
-      
-      vehiclePhotoUrl = photoData?.photo_url;
-    }
-    
-    setProfile({
-      ...profileData,
-      vehicle_photo_url: vehiclePhotoUrl,
-      avatar_timestamp: Date.now()
-    });
-  };
   const handleAcceptJob = (job: Job) => {
     setSelectedJob(job);
     setConfirmDialogOpen(true);
@@ -241,10 +217,10 @@ export default function Home() {
       {/* Header and Search Bar - Sticky Together */}
       <div className="sticky top-0 z-50">
         <AppHeader 
-          userName={profile?.full_name} 
+          userName={localProfile?.full_name} 
           profilePhoto={
-            profile?.avatar_url || profile?.vehicle_photo_url
-              ? `${profile?.avatar_url || profile?.vehicle_photo_url}?t=${profile?.avatar_timestamp || Date.now()}`
+            localProfile?.avatar_url || localProfile?.vehicle_photo_url
+              ? `${localProfile?.avatar_url || localProfile?.vehicle_photo_url}?t=${localProfile?.avatar_timestamp || Date.now()}`
               : undefined
           } 
           onSignOut={handleSignOut} 
