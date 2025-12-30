@@ -47,20 +47,39 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string>("");
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [appVersion, setAppVersion] = useState<string>("1.0.0");
+  const [appVersion, setAppVersion] = useState<string>("");
 
-  // Get app version from native app
+  // Get app version from native app with retry for iOS
   useEffect(() => {
+    let retryCount = 0;
+    const maxRetries = 3;
+    
     const getAppVersion = async () => {
       try {
         const info = await App.getInfo();
-        setAppVersion(`${info.version} (${info.build})`);
+        if (info.version) {
+          setAppVersion(`${info.version} (${info.build})`);
+          return true;
+        }
+        return false;
       } catch {
-        // Fallback for web browser
-        setAppVersion("1.0.0");
+        return false;
       }
     };
-    getAppVersion();
+
+    const attemptGetVersion = async () => {
+      const success = await getAppVersion();
+      if (!success && retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(attemptGetVersion, 500); // Retry after 500ms
+      } else if (!success) {
+        setAppVersion("1.0.0"); // Final fallback
+      }
+    };
+
+    // Delay initial attempt to ensure Capacitor is ready on iOS
+    const timer = setTimeout(attemptGetVersion, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const currentLang = languageOptions.find(l => l.code === language) || languageOptions[0];
