@@ -141,41 +141,7 @@ const SignIn = () => {
       setServerError(t('signIn.error'));
     }
   };
-  return <div className="min-h-screen bg-background flex flex-col">
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4 z-50">
-        <div className="relative">
-          <button
-            onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-            className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-md hover:bg-white transition-colors"
-          >
-            <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-5 rounded-full object-cover" />
-            <span className="text-sm font-medium">{currentLang.label}</span>
-            <Globe className="w-4 h-4 text-muted-foreground" />
-          </button>
-          
-          {showLanguageMenu && (
-            <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-lg border overflow-hidden min-w-[120px]">
-              {languageOptions.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => {
-                    setLanguage(lang.code);
-                    setShowLanguageMenu(false);
-                  }}
-                  className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-muted transition-colors ${
-                    language === lang.code ? 'bg-muted' : ''
-                  }`}
-                >
-                  <img src={lang.flag} alt={lang.label} className="w-5 h-5 rounded-full object-cover" />
-                  <span className="text-sm">{lang.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
+  return <div className="min-h-screen bg-background flex flex-col" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       {/* Hero Section with Truck Image */}
       <div className="relative h-[40vh]">
         <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill " />
@@ -231,6 +197,42 @@ const SignIn = () => {
             <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-12 rounded-xl text-base font-medium border-2">
               {t('signIn.registerButton')}
             </Button>
+          </div>
+
+          {/* Language Switcher */}
+          <div className="flex justify-center pt-2">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                className="flex items-center gap-2 bg-muted/50 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-muted transition-colors"
+              >
+                <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-5 rounded-full object-cover" />
+                <span className="text-sm font-medium">{currentLang.label}</span>
+                <Globe className="w-4 h-4 text-muted-foreground" />
+              </button>
+              
+              {showLanguageMenu && (
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-white rounded-xl shadow-lg border overflow-hidden min-w-[120px]">
+                  {languageOptions.map((lang) => (
+                    <button
+                      type="button"
+                      key={lang.code}
+                      onClick={() => {
+                        setLanguage(lang.code);
+                        setShowLanguageMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-muted transition-colors ${
+                        language === lang.code ? 'bg-muted' : ''
+                      }`}
+                    >
+                      <img src={lang.flag} alt={lang.label} className="w-5 h-5 rounded-full object-cover" />
+                      <span className="text-sm">{lang.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </form>
       </div>
