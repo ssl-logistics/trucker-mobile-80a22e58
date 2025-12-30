@@ -40,7 +40,7 @@ export function AppHeader({
     const dayKeys = ['home.sunday', 'home.monday', 'home.tuesday', 'home.wednesday', 'home.thursday', 'home.friday', 'home.saturday'];
     return t(dayKeys[new Date().getDay()]);
   };
-  return <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 44px)' }}>
+  return <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden">
       <div className="relative overflow-hidden h-28">
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url(${coverHeader})`

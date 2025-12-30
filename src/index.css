@@ -109,3 +109,18 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Safe area utilities for iOS */
+@layer utilities {
+  .pt-safe {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 44px);
+  }
+  
+  .mt-safe {
+    margin-top: calc(env(safe-area-inset-top, 0px) + 44px);
+  }
+  
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  }
+}

@@ -65,6 +65,7 @@ const App = () => (
             <Sonner />
             <HashRouter>
               <SwipeBackProvider>
+              <div className="pt-safe min-h-screen">
               <BackButton />
               <PushNotificationPrompt />
               <Routes>
@@ -116,6 +117,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+              </div>
               </SwipeBackProvider>
         </HashRouter>
       </TooltipProvider>
