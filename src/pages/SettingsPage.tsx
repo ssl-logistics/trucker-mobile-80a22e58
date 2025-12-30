@@ -11,12 +11,12 @@ import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
 import {
-  requestNotificationPermission,
-  subscribeToPushNotifications,
-  savePushSubscription,
-  unsubscribeFromPushNotifications,
-  checkPushSubscriptionStatus,
-} from '@/utils/pushNotifications';
+  isPushSupported,
+  isPushEnabled,
+  enablePushNotifications,
+  disablePushNotifications,
+  getPlatformName,
+} from '@/utils/unifiedPushNotifications';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +45,7 @@ export default function SettingsPage() {
 
   const checkNotificationStatus = async () => {
     try {
-      const isSubscribed = await checkPushSubscriptionStatus();
+      const isSubscribed = await isPushEnabled();
       setNotificationsEnabled(isSubscribed);
     } catch (error) {
       console.error('Failed to check notification status:', error);
@@ -58,7 +58,7 @@ export default function SettingsPage() {
     try {
       if (enabled) {
         // Check if notifications are supported
-        if (!('Notification' in window)) {
+        if (!isPushSupported()) {
           toast({
             title: t('toast.notSupported'),
             description: t('toast.browserNotSupported'),
@@ -67,32 +67,27 @@ export default function SettingsPage() {
           return;
         }
 
-        // Request permission
-        const permission = await requestNotificationPermission();
+        const success = await enablePushNotifications();
         
-        if (permission === 'granted') {
-          // Subscribe to push notifications
-          const subscription = await subscribeToPushNotifications();
-          
-          // Save subscription to database
-          await savePushSubscription(subscription);
-          
+        if (success) {
           setNotificationsEnabled(true);
-          
           toast({
             title: t('toast.notificationEnabled'),
             description: t('toast.notificationEnabledDesc'),
           });
-        } else if (permission === 'denied') {
+        } else {
+          const platform = getPlatformName();
           toast({
             title: t('toast.cannotEnableNotification'),
-            description: t('toast.allowNotificationInBrowser'),
+            description: platform === 'Web' 
+              ? t('toast.allowNotificationInBrowser')
+              : `Please enable notifications in your ${platform} settings`,
             variant: "destructive",
           });
         }
       } else {
         // Unsubscribe from push notifications
-        await unsubscribeFromPushNotifications();
+        await disablePushNotifications();
         setNotificationsEnabled(false);
         
         toast({

@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import {
-  requestNotificationPermission,
-  subscribeToPushNotifications,
-  savePushSubscription,
-  checkPushSubscriptionStatus,
-} from '@/utils/pushNotifications';
+  isPushSupported,
+  getPushPermissionStatus,
+  enablePushNotifications,
+  isPushEnabled,
+  getPlatformName,
+  initializePushNotifications,
+} from '@/utils/unifiedPushNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export const PushNotificationPrompt = () => {
@@ -17,18 +19,19 @@ export const PushNotificationPrompt = () => {
   const { t } = useLanguage();
 
   useEffect(() => {
+    // Initialize push notification listeners
+    initializePushNotifications();
+
     const checkPermission = async () => {
       // Check if notifications are supported
-      if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      if (!isPushSupported()) {
         return;
       }
 
-      // Check if already granted or denied
-      if (Notification.permission === 'granted') {
-        return;
-      }
-
-      if (Notification.permission === 'denied') {
+      // Check current permission status
+      const status = await getPushPermissionStatus();
+      
+      if (status === 'granted' || status === 'denied' || status === 'unsupported') {
         return;
       }
 
@@ -46,7 +49,7 @@ export const PushNotificationPrompt = () => {
       }
 
       // Check if already subscribed
-      const isSubscribed = await checkPushSubscriptionStatus();
+      const isSubscribed = await isPushEnabled();
       if (isSubscribed) {
         return;
       }
@@ -64,26 +67,21 @@ export const PushNotificationPrompt = () => {
     setIsLoading(true);
     
     try {
-      // Request permission
-      const permission = await requestNotificationPermission();
+      const success = await enablePushNotifications();
       
-      if (permission === 'granted') {
-        // Subscribe to push notifications
-        const subscription = await subscribeToPushNotifications();
-        
-        // Save subscription to database
-        await savePushSubscription(subscription);
-        
+      if (success) {
         toast({
           title: t('toast.notificationEnabled'),
           description: t('toast.notificationEnabledDesc'),
         });
-        
         setShowPrompt(false);
-      } else if (permission === 'denied') {
+      } else {
+        const platform = getPlatformName();
         toast({
           title: t('toast.cannotEnableNotification'),
-          description: t('toast.allowNotificationInBrowser'),
+          description: platform === 'Web' 
+            ? t('toast.allowNotificationInBrowser')
+            : `Please enable notifications in your ${platform} settings`,
           variant: "destructive",
         });
       }
