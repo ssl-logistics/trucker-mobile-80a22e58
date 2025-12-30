@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { Camera, Image } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RegistrationData } from "@/pages/Register";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
 import {
   Drawer,
   DrawerClose,
@@ -23,6 +23,7 @@ interface VehiclePhotosStepProps {
 
 const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => {
   const { t } = useLanguage();
+  const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
   const [hasTrailer, setHasTrailer] = useState(data.hasTrailer || false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<keyof typeof photoFiles | null>(null);
@@ -57,6 +58,19 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
       setPhotoFiles(prev => ({ ...prev, [type]: file }));
       setPhotos(prev => ({ ...prev, [type]: URL.createObjectURL(file) }));
       setDrawerOpen(false);
+    }
+  };
+
+  const handleNativePhoto = async (type: keyof typeof photoFiles, source: 'camera' | 'gallery') => {
+    try {
+      const file = source === 'camera' ? await takePhoto() : await selectFromGallery();
+      if (file) {
+        setPhotoFiles(prev => ({ ...prev, [type]: file }));
+        setPhotos(prev => ({ ...prev, [type]: URL.createObjectURL(file) }));
+        setDrawerOpen(false);
+      }
+    } catch (error) {
+      console.error('Error capturing photo:', error);
     }
   };
 
@@ -176,7 +190,11 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
             <button
               onClick={() => {
                 if (currentPhotoType) {
-                  document.getElementById(`photo-camera-${currentPhotoType}`)?.click();
+                  if (isNative) {
+                    handleNativePhoto(currentPhotoType, 'camera');
+                  } else {
+                    document.getElementById(`photo-camera-${currentPhotoType}`)?.click();
+                  }
                 }
               }}
               className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
@@ -187,7 +205,11 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
             <button
               onClick={() => {
                 if (currentPhotoType) {
-                  document.getElementById(`photo-gallery-${currentPhotoType}`)?.click();
+                  if (isNative) {
+                    handleNativePhoto(currentPhotoType, 'gallery');
+                  } else {
+                    document.getElementById(`photo-gallery-${currentPhotoType}`)?.click();
+                  }
                 }
               }}
               className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
