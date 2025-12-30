@@ -205,8 +205,9 @@ const SignIn = () => {
               <button
                 type="button"
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
+                <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-4 object-cover rounded-sm" />
                 {currentLang.label}
               </button>
               
