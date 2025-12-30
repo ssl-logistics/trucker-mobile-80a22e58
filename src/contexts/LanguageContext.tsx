@@ -505,7 +505,7 @@ const thTranslations: Record<string, string> = {
   'signIn.username': 'ชื่อผู้ใช้',
   'signIn.password': 'รหัสผ่าน',
   'signIn.rememberMe': 'จดจำฉันในระบบ',
-  'signIn.forgotPassword': 'ลืมรหัสผ่านใช่หรือไป?',
+  'signIn.forgotPassword': 'ลืมรหัสผ่าน?',
   'signIn.signInButton': 'เข้าสู่ระบบ',
   'signIn.registerButton': 'ลงทะเบียน',
   'signIn.success': 'เข้าสู่ระบบสำเร็จ',
