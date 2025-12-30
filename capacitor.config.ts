@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.trucker.mobile',
+  appId: 'com.thetroob.mobile',
   appName: 'The Troob - Mobile',
   webDir: 'dist'
 };
