@@ -48,7 +48,7 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
   }
 };
 
-// Save native push token to database
+// Save native push token to database (FCM format for Firebase)
 export const saveNativePushToken = async (token: string): Promise<void> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -59,13 +59,14 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
 
     const platform = Capacitor.getPlatform(); // 'ios' or 'android'
 
+    // Use fcm:// prefix so backend can identify FCM tokens
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert({
         user_id: user.id,
-        endpoint: `native://${platform}/${token}`,
+        endpoint: `fcm://${token}`,
         p256dh: platform, // Store platform type
-        auth: token, // Store the actual token in auth field
+        auth: token, // Store the actual token
       }, {
         onConflict: 'user_id,endpoint'
       });
@@ -74,9 +75,9 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
       throw error;
     }
 
-    console.log('Native push token saved to database');
+    console.log('FCM push token saved to database for platform:', platform);
   } catch (error) {
-    console.error('Failed to save native push token:', error);
+    console.error('Failed to save FCM push token:', error);
     throw error;
   }
 };
@@ -115,22 +116,20 @@ export const unregisterNativePushNotifications = async (): Promise<void> => {
   try {
     await PushNotifications.removeAllListeners();
     
-    // Remove from database
+    // Remove FCM tokens from database
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user) {
-      const platform = Capacitor.getPlatform();
-      
       await supabase
         .from('push_subscriptions')
         .delete()
         .eq('user_id', user.id)
-        .like('endpoint', `native://${platform}/%`);
+        .like('endpoint', 'fcm://%');
     }
     
-    console.log('Unregistered from native push notifications');
+    console.log('Unregistered from FCM push notifications');
   } catch (error) {
-    console.error('Failed to unregister native push notifications:', error);
+    console.error('Failed to unregister FCM push notifications:', error);
     throw error;
   }
 };
