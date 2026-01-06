@@ -4,6 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.thetroob.mobile',
   appName: 'The Troob Mobile',
   webDir: 'dist',
+  // Use HTTPS origin (https://localhost) inside Android WebView.
+  // This avoids auth/CORS allow-list issues that reject non-https origins.
+  server: {
+    androidScheme: 'https'
+  },
   plugins: {
     Camera: {
       presentationStyle: 'fullscreen'
