@@ -134,6 +134,7 @@ const Register = () => {
       console.log("Registration data:", registrationData);
       
       const { supabase } = await import("@/integrations/supabase/client");
+      const redirectUrl = `${window.location.origin}/`;
       
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -141,6 +142,7 @@ const Register = () => {
         password: registrationData.password,
         phone: registrationData.phone,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             phone: registrationData.phone,
             username: registrationData.username,
