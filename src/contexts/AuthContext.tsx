@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event: AuthChangeEvent, currentSession: Session | null) => {
+      async (event: AuthChangeEvent, currentSession: Session | null) => {
         console.log('Auth event:', event, 'Session:', currentSession ? 'exists' : 'null');
         
         if (!mounted) return;
