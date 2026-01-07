@@ -221,7 +221,7 @@ export default function CurrentJobsPage() {
           
           return <Card key={application.job_id} className="overflow-hidden bg-card">
                   <div className="flex items-center justify-between px-3 py-2 bg-gray-50">
-                    <div className="text-green-600 text-sm font-medium">
+                    <div className="bg-[#E0FFEA] text-green-600 text-sm font-medium px-3 py-1 rounded-full -ml-3 -mt-2">
                       {t('job.order_code')} {job.order_code}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
