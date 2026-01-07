@@ -154,8 +154,8 @@ export default function CustomerPage() {
                   data={pieData} 
                   cx="50%" 
                   cy="50%" 
-                  innerRadius={45} 
-                  outerRadius={75} 
+                  innerRadius={35} 
+                  outerRadius={75}
                   paddingAngle={2} 
                   dataKey="value" 
                   label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
