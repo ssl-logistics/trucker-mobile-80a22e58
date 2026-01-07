@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RegistrationData } from "@/pages/Register";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
+import { toast } from "@/hooks/use-toast";
 import {
   Drawer,
   DrawerClose,
@@ -89,6 +90,14 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
   };
 
   const handleSubmit = () => {
+    if (!isFormValid()) {
+      toast({
+        title: t('vehiclePhotosStep.uploadRequired'),
+        description: t('vehiclePhotosStep.uploadRequiredDesc'),
+        variant: "destructive",
+      });
+      return;
+    }
     onNext({ 
       hasTrailer,
       frontPhoto: photoFiles.front || undefined,
@@ -183,7 +192,6 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={!isFormValid()}
             className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium"
           >
             {t('vehiclePhotosStep.next')}
