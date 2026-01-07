@@ -203,7 +203,7 @@ const SignIn = () => {
 
           {/* Submit Buttons */}
           <div className="space-y-2">
-            <Button type="submit" className="w-full text-white h-10 rounded-xl text-sm font-medium bg-[#235a9a] hover:bg-[#235A99]">
+            <Button type="submit" className="w-full text-white h-10 rounded-xl text-sm font-medium bg-primary">
               {t('signIn.signInButton')}
             </Button>
             <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-10 rounded-xl text-sm font-medium border-2 hover:bg-[#235A99] hover:text-white">
