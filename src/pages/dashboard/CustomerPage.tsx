@@ -61,35 +61,35 @@ export default function CustomerPage() {
     const dateVariation = 1 + dateHash / 100;
     const finalMultiplier = timeMultiplier * dateVariation;
     const baseCustomers = [{
-      name: 'ปริกเก่า วงศ์ชัย',
+      name: 'ธนพัฒน์ ศรีรัตน์',
+      baseJobs: 25,
+      baseAmount: 25000,
+      avatar: '👤',
+      color: '#14b8a6'
+    }, {
+      name: 'อรนุช วิชัย',
+      baseJobs: 20,
+      baseAmount: 20000,
+      avatar: '👤',
+      color: '#3b82f6'
+    }, {
+      name: 'พิชิตชัย สุขดี',
+      baseJobs: 15,
+      baseAmount: 15000,
+      avatar: '👤',
+      color: '#8b5cf6'
+    }, {
+      name: 'ชนาธิป สุขเสมอ',
+      baseJobs: 10,
+      baseAmount: 10000,
+      avatar: '👤',
+      color: '#9ca3af'
+    }, {
+      name: 'ปวีณา วงศ์ชัย',
       baseJobs: 30,
       baseAmount: 30000,
       avatar: '👤',
-      color: '#10b981'
-    }, {
-      name: 'ธนพันธ์ ศรีธัต',
-      baseJobs: 25,
-      baseAmount: 20000,
-      avatar: '👤',
-      color: '#1e40af'
-    }, {
-      name: 'อรษมุ วิชัย',
-      baseJobs: 20,
-      baseAmount: 15000,
-      avatar: '👤',
-      color: '#7c3aed'
-    }, {
-      name: 'พีชัยชัย สุนกี',
-      baseJobs: 15,
-      baseAmount: 5000,
-      avatar: '👤',
-      color: '#06b6d4'
-    }, {
-      name: 'ขนมริป สุนเสอง',
-      baseJobs: 10,
-      baseAmount: 3000,
-      avatar: '👤',
-      color: '#f59e0b'
+      color: '#eab308'
     }];
     const pieData = baseCustomers.map(c => ({
       name: c.name,
@@ -147,15 +147,42 @@ export default function CustomerPage() {
             <h3 className="font-bold text-gray-800">{t('customer.title')}</h3>
             <span className="text-sm text-gray-500">{t('customer.top_5')}</span>
           </div>
-          <div className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={250}>
+          <div className="flex items-center">
+            <ResponsiveContainer width="60%" height={180}>
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value" label={entry => entry.value}>
+                <Pie 
+                  data={pieData} 
+                  cx="50%" 
+                  cy="50%" 
+                  innerRadius={45} 
+                  outerRadius={75} 
+                  paddingAngle={2} 
+                  dataKey="value" 
+                  label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
+                    const RADIAN = Math.PI / 180;
+                    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                    return (
+                      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight="bold">
+                        {value}
+                      </text>
+                    );
+                  }}
+                  labelLine={false}
+                >
                   {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                 </Pie>
-                <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" formatter={(value, entry: any) => <span className="text-xs text-gray-700">{value}</span>} />
               </PieChart>
             </ResponsiveContainer>
+            <div className="flex-1 space-y-2">
+              {pieData.map((entry, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                  <span className="text-xs text-gray-700">{entry.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </Card>
 
