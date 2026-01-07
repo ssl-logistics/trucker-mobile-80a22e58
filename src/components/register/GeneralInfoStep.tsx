@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Camera, Eye, EyeOff, Image } from "lucide-react";
+import { Camera, Eye, EyeOff, Image, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from 
 import { RegistrationData } from "@/pages/Register";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GeneralInfoStepProps {
   data: RegistrationData;
@@ -48,6 +49,8 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [selectedLocation, setSelectedLocation] = useState<string>(data.location || "");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showPhotoError, setShowPhotoError] = useState(false);
+  const [usernameError, setUsernameError] = useState<string>("");
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<GeneralInfoFormData>({
@@ -101,10 +104,34 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     }
   };
 
-  const onSubmit = (formData: GeneralInfoFormData) => {
+  const checkUsernameExists = async (username: string): Promise<boolean> => {
+    if (!username) return false;
+    setCheckingUsername(true);
+    try {
+      const { data, error } = await supabase.rpc('check_username_exists', {
+        check_username: username
+      });
+      return data === true;
+    } catch (error) {
+      console.error('Error checking username:', error);
+      return false;
+    } finally {
+      setCheckingUsername(false);
+    }
+  };
+
+  const onSubmit = async (formData: GeneralInfoFormData) => {
     setShowPhotoError(true);
+    setUsernameError("");
     
     if (!profilePhotoFile) {
+      return;
+    }
+    
+    // Check if username already exists
+    const usernameExists = await checkUsernameExists(formData.username);
+    if (usernameExists) {
+      setUsernameError(t('generalInfo.validation.usernameExists'));
       return;
     }
     
@@ -280,13 +307,27 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
           <Label htmlFor="username">
             {t('generalInfo.username')} <span className="text-destructive">*</span>
           </Label>
-          <Input
-            id="username"
-            {...register("username")}
-            className={errors.username ? "border-destructive" : ""}
-          />
+          <div className="relative">
+            <Input
+              id="username"
+              {...register("username")}
+              className={errors.username || usernameError ? "border-destructive pr-10" : "pr-10"}
+              onChange={(e) => {
+                register("username").onChange(e);
+                setUsernameError("");
+              }}
+            />
+            {checkingUsername && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
           {errors.username && (
             <p className="text-sm text-destructive">{errors.username.message}</p>
+          )}
+          {usernameError && (
+            <p className="text-sm text-destructive">{usernameError}</p>
           )}
         </div>
 
