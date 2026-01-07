@@ -37,6 +37,7 @@ interface JobApplication {
     start_time: string;
     equipment_list: string | null;
     safety_equipment: string | null;
+    origin_goods_type: string | null;
   } | null;
 }
 export default function CurrentJobsPage() {
@@ -100,7 +101,8 @@ export default function CurrentJobsPage() {
           start_date,
           start_time,
           equipment_list,
-          safety_equipment
+          safety_equipment,
+          origin_goods_type
         )
       `).eq('driver_id', user.id).is('payment_completed_at', null).order('applied_at', {
       ascending: false
@@ -289,6 +291,10 @@ export default function CurrentJobsPage() {
                     </div>
 
                     <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">{t('job.goodsType')} : </span>
+                        <span>{job.origin_goods_type || '-'}</span>
+                      </div>
                       <div>
                         <span className="text-muted-foreground">{t('job.equipment')} : </span>
                         <span>{job.equipment_list || '-'}</span>
