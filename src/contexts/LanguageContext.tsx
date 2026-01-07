@@ -216,7 +216,7 @@ const thTranslations: Record<string, string> = {
   'dashboard.customer_desc': 'ดูข้อมูลลูกค้าของคุณ',
   'dashboard.product': 'สินค้า',
   'dashboard.product_desc': 'ดูข้อมูลประเภทสินค้า',
-  'dashboard.view': 'ดู',
+  'dashboard.view': 'ดูการเงิน',
 
   // Finance Page
   'finance.title': 'การเงิน',
