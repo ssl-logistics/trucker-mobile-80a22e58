@@ -177,7 +177,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, () => setShowPhotoErrors(true))} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
           <Label>
