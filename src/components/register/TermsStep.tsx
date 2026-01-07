@@ -95,26 +95,17 @@ const TermsStep = ({
       {/* Sticky bottom section */}
       <div className="flex-shrink-0 pt-4 space-y-3">
         {/* Scroll indicator bar */}
-        <div className="flex items-center gap-3 bg-[#F5F5F5] rounded-lg p-3 border border-gray-200">
-          <p className="flex-1 text-sm text-gray-600">
+        <div className="flex items-center rounded-lg p-3 border border-gray-200 gap-[12px] bg-[#292929]">
+          <p className="flex-1 text-sm text-primary-foreground">
             {t('termsStep.scrollMessage')}
           </p>
-          <Button 
-            onClick={handleAccept} 
-            disabled={!canAccept} 
-            variant="outline"
-            className="px-5 h-9 rounded-lg text-sm font-medium border-2 border-[#48BB78] text-[#48BB78] bg-white hover:bg-[#48BB78] hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:bg-gray-100"
-          >
+          <Button onClick={handleAccept} disabled={!canAccept} variant="outline" className="px-5 h-9 rounded-lg text-sm font-medium border-2 border-[#48BB78] text-[#48BB78] bg-white hover:bg-[#48BB78] hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:bg-gray-100">
             {t('termsStep.ok')}
           </Button>
         </div>
         
         {/* Accept button */}
-        <Button 
-          onClick={handleAccept} 
-          disabled={!canAccept} 
-          className="w-full text-white rounded-xl h-12 text-base font-medium bg-[#153860] hover:bg-[#235A99] disabled:bg-gray-300 disabled:text-gray-500"
-        >
+        <Button onClick={handleAccept} disabled={!canAccept} className="w-full text-white rounded-xl h-12 text-base font-medium bg-[#153860] hover:bg-[#235A99] disabled:bg-gray-300 disabled:text-gray-500">
           {t('termsStep.accept')}
         </Button>
       </div>
