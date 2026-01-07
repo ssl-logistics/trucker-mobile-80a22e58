@@ -193,7 +193,7 @@ export default function FinancePage() {
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div className="flex flex-wrap items-center gap-1 min-w-0">
               <p className="text-xs text-gray-600">{t('finance.total_income')}</p>
-              <p className="text-lg font-bold text-cyan-500">{profit.toLocaleString()}</p>
+              <p className="text-lg font-bold text-[#0a8576]">{profit.toLocaleString()}</p>
               <span className="text-xs font-medium text-[#118841]">
                 ▲{profitPercentage}%
               </span>
