@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-
 interface TermsStepProps {
   onNext: (data: any) => void;
 }
-
-const TermsStep = ({ onNext }: TermsStepProps) => {
-  const { t } = useLanguage();
+const TermsStep = ({
+  onNext
+}: TermsStepProps) => {
+  const {
+    t
+  } = useLanguage();
   const handleAccept = () => {
     onNext({});
   };
   const [canAccept, setCanAccept] = useState(false);
-
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
     const isAtBottom = element.scrollHeight - element.scrollTop <= element.clientHeight + 50;
@@ -20,9 +21,7 @@ const TermsStep = ({ onNext }: TermsStepProps) => {
       setCanAccept(true);
     }
   };
-
-  return (
-    <div className="flex flex-col max-h-[calc(100vh-200px)]">
+  return <div className="flex flex-col max-h-[calc(100vh-200px)]">
       <div className="text-center mb-6 flex-shrink-0">
         <h2 className="text-xl font-bold text-foreground mb-2">
           {t('termsStep.title')}
@@ -32,11 +31,9 @@ const TermsStep = ({ onNext }: TermsStepProps) => {
         </p>
       </div>
 
-      <div 
-        className="flex-1 overflow-y-auto space-y-6 text-sm text-foreground mb-6 pr-2"
-        onScroll={handleScroll}
-        style={{ maxHeight: 'calc(100vh - 350px)' }}
-      >
+      <div className="flex-1 overflow-y-auto space-y-6 text-sm text-foreground mb-6 pr-2" onScroll={handleScroll} style={{
+      maxHeight: 'calc(100vh - 350px)'
+    }}>
         <section>
           <h3 className="font-semibold mb-2">{t('terms.collection_title')}</h3>
           <p className="mb-2">
@@ -96,21 +93,13 @@ const TermsStep = ({ onNext }: TermsStepProps) => {
       </div>
 
       <div className="flex-shrink-0 pt-4 border-t border-border">
-        <Button
-          onClick={handleAccept}
-          disabled={!canAccept}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium disabled:bg-muted disabled:text-muted-foreground"
-        >
+        <Button onClick={handleAccept} disabled={!canAccept} className="w-full text-primary-foreground rounded-xl h-12 text-base font-medium disabled:text-muted-foreground bg-[#153860]">
           {canAccept ? t('termsStep.accept') : t('termsStep.scrollToAccept')}
         </Button>
-        {!canAccept && (
-          <p className="text-xs text-muted-foreground text-center mt-2">
+        {!canAccept && <p className="text-xs text-muted-foreground text-center mt-2">
             {t('termsStep.scrollMessage')}
-          </p>
-        )}
+          </p>}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default TermsStep;
