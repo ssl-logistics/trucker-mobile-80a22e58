@@ -28,6 +28,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
   const [hasTrailer, setHasTrailer] = useState(data.hasTrailer || false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<keyof typeof photoFiles | null>(null);
+  const [showErrors, setShowErrors] = useState(false);
   
   // Store actual File objects
   const [photoFiles, setPhotoFiles] = useState<{
@@ -89,8 +90,15 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
     return requiredPhotos;
   };
 
+  // Check if a specific photo has error
+  const hasError = (type: keyof typeof photoFiles, required: boolean = true) => {
+    if (!showErrors || !required) return false;
+    return !photoFiles[type];
+  };
+
   const handleSubmit = () => {
     if (!isFormValid()) {
+      setShowErrors(true);
       toast({
         title: t('vehiclePhotosStep.uploadRequired'),
         description: t('vehiclePhotosStep.uploadRequiredDesc'),
@@ -116,43 +124,56 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
     type: keyof typeof photoFiles; 
     label: string; 
     required?: boolean;
-  }) => (
-    <div className="space-y-2">
-      <Label>
-        {label} {required && <span className="text-destructive">*</span>}
-      </Label>
-      <button 
-        type="button"
-        onClick={() => openPhotoDrawer(type)}
-        className="flex flex-col items-center justify-center border-2 border-dashed border-input rounded-lg h-32 cursor-pointer hover:border-primary transition-colors w-full"
-      >
-        {photos[type] ? (
-          <img src={photos[type]} alt={label} className="w-full h-full object-cover rounded-lg" />
-        ) : (
-          <div className="text-center">
-            <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{t('vehiclePhotosStep.clickToTake')}</p>
-          </div>
+  }) => {
+    const isError = hasError(type, required);
+    
+    return (
+      <div className="space-y-2">
+        <Label className={isError ? "text-destructive" : ""}>
+          {label} {required && <span className="text-destructive">*</span>}
+        </Label>
+        <button 
+          type="button"
+          onClick={() => openPhotoDrawer(type)}
+          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg h-32 cursor-pointer transition-colors w-full ${
+            isError 
+              ? "border-destructive bg-destructive/5" 
+              : "border-input hover:border-primary"
+          }`}
+        >
+          {photos[type] ? (
+            <img src={photos[type]} alt={label} className="w-full h-full object-cover rounded-lg" />
+          ) : (
+            <div className="text-center">
+              <Camera className={`w-8 h-8 mx-auto mb-2 ${isError ? "text-destructive" : "text-muted-foreground"}`} />
+              <p className={`text-sm ${isError ? "text-destructive" : "text-muted-foreground"}`}>
+                {t('vehiclePhotosStep.clickToTake')}
+              </p>
+            </div>
+          )}
+        </button>
+        {isError && (
+          <p className="text-sm text-destructive">{t('vehiclePhotosStep.photoRequired')}</p>
         )}
-      </button>
-      {/* Hidden inputs for camera and gallery */}
-      <input
-        id={`photo-camera-${type}`}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => handlePhotoChange(type, e)}
-      />
-      <input
-        id={`photo-gallery-${type}`}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handlePhotoChange(type, e)}
-      />
-    </div>
-  );
+        {/* Hidden inputs for camera and gallery */}
+        <input
+          id={`photo-camera-${type}`}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => handlePhotoChange(type, e)}
+        />
+        <input
+          id={`photo-gallery-${type}`}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handlePhotoChange(type, e)}
+        />
+      </div>
+    );
+  };
 
   return (
     <>
