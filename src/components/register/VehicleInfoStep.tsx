@@ -234,6 +234,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
               <SelectItem value="mitsubishi">Mitsubishi</SelectItem>
             </SelectContent>
           </Select>
+          {errors.vehicleBrand && <p className="text-sm text-destructive">{errors.vehicleBrand.message}</p>}
         </div>
 
         <div className="space-y-2">
@@ -249,42 +250,47 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.vin')} <span className="text-destructive">*</span></Label>
           <Input {...register("vin")} className={errors.vin ? "border-destructive" : ""} />
+          {errors.vin && <p className="text-sm text-destructive">{errors.vin.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.vehicleType')} <span className="text-destructive">*</span></Label>
           <Select onValueChange={(value) => setValue("vehicleType", value)}>
-            <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectType')} /></SelectTrigger>
+            <SelectTrigger className={errors.vehicleType ? "border-destructive" : ""}><SelectValue placeholder={t('vehicleInfoStep.selectType')} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="10-wheel">{t('vehicleType.10wheel')}</SelectItem>
               <SelectItem value="6-wheel">{t('vehicleType.6wheel')}</SelectItem>
             </SelectContent>
           </Select>
+          {errors.vehicleType && <p className="text-sm text-destructive">{errors.vehicleType.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.fuelType')} <span className="text-destructive">*</span></Label>
           <Select onValueChange={(value) => setValue("fuelType", value)}>
-            <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectFuel')} /></SelectTrigger>
+            <SelectTrigger className={errors.fuelType ? "border-destructive" : ""}><SelectValue placeholder={t('vehicleInfoStep.selectFuel')} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="diesel">{t('fuelType.diesel')}</SelectItem>
               <SelectItem value="gasoline">{t('fuelType.gasoline')}</SelectItem>
             </SelectContent>
           </Select>
+          {errors.fuelType && <p className="text-sm text-destructive">{errors.fuelType.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.loadCapacity')} <span className="text-destructive">*</span></Label>
-          <Input {...register("loadCapacity")} />
+          <Input {...register("loadCapacity")} className={errors.loadCapacity ? "border-destructive" : ""} />
+          {errors.loadCapacity && <p className="text-sm text-destructive">{errors.loadCapacity.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.dimensions')} <span className="text-destructive">*</span></Label>
           <div className="flex gap-2">
-            <Input placeholder={t('vehicleInfoStep.width')} {...register("width")} />
-            <Input placeholder={t('vehicleInfoStep.length')} {...register("length")} />
-            <Input placeholder={t('vehicleInfoStep.height')} {...register("height")} />
+            <Input placeholder={t('vehicleInfoStep.width')} {...register("width")} className={errors.width ? "border-destructive" : ""} />
+            <Input placeholder={t('vehicleInfoStep.length')} {...register("length")} className={errors.length ? "border-destructive" : ""} />
+            <Input placeholder={t('vehicleInfoStep.height')} {...register("height")} className={errors.height ? "border-destructive" : ""} />
           </div>
+          {(errors.width || errors.length || errors.height) && <p className="text-sm text-destructive">{errors.width?.message || errors.length?.message || errors.height?.message}</p>}
         </div>
 
         <div className="space-y-2">
@@ -325,7 +331,8 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.insuranceValue')} <span className="text-destructive">*</span></Label>
-          <Input {...register("insuranceValue")} />
+          <Input {...register("insuranceValue")} className={errors.insuranceValue ? "border-destructive" : ""} />
+          {errors.insuranceValue && <p className="text-sm text-destructive">{errors.insuranceValue.message}</p>}
         </div>
 
         <PhotoUploadBox 
