@@ -48,7 +48,7 @@ export function ProvinceSelect({
           aria-expanded={open}
           disabled={disabled || isLoading}
           className={cn(
-            "w-full justify-between font-normal",
+            "w-full justify-between font-normal hover:bg-transparent",
             !value && "text-muted-foreground",
             hasError && "border-destructive"
           )}
