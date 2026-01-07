@@ -16,21 +16,33 @@ import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
-
-const languageOptions = [
-  { code: 'en' as const, label: 'EN', flag: flagEn },
-  { code: 'th' as const, label: 'TH', flag: flagTh },
-  { code: 'ko' as const, label: 'KO', flag: flagKo },
-  { code: 'zh' as const, label: 'ZH', flag: flagCn },
-];
-
+const languageOptions = [{
+  code: 'en' as const,
+  label: 'EN',
+  flag: flagEn
+}, {
+  code: 'th' as const,
+  label: 'TH',
+  flag: flagTh
+}, {
+  code: 'ko' as const,
+  label: 'KO',
+  flag: flagKo
+}, {
+  code: 'zh' as const,
+  label: 'ZH',
+  flag: flagCn
+}];
 const SignIn = () => {
   const navigate = useNavigate();
-  const { t, language, setLanguage } = useLanguage();
+  const {
+    t,
+    language,
+    setLanguage
+  } = useLanguage();
   const {
     toast
   } = useToast();
-
   const loginSchema = z.object({
     email: z.string().min(1, {
       message: t('validation.usernameRequired')
@@ -42,7 +54,6 @@ const SignIn = () => {
     }),
     remember: z.boolean().optional()
   });
-  
   type LoginFormData = z.infer<typeof loginSchema>;
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string>("");
@@ -53,7 +64,7 @@ const SignIn = () => {
   useEffect(() => {
     // Set fallback immediately so version is always visible
     setAppVersion("1.0.0");
-    
+
     // Then try to get native version
     const getAppVersion = async () => {
       try {
@@ -70,7 +81,6 @@ const SignIn = () => {
     const timer = setTimeout(getAppVersion, 300);
     return () => clearTimeout(timer);
   }, []);
-
   const currentLang = languageOptions.find(l => l.code === language) || languageOptions[0];
   const {
     register,
@@ -93,24 +103,25 @@ const SignIn = () => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedPassword = localStorage.getItem("rememberedPassword");
     const savedRemember = localStorage.getItem("rememberedUser");
-    
     if (savedRemember === "true" && savedEmail && savedPassword) {
       setValue("email", savedEmail);
       setValue("password", savedPassword);
       setValue("remember", true);
     }
   }, [setValue]);
-
   const onSubmit = async (data: LoginFormData) => {
     try {
       setServerError("");
-      const { supabase } = await import("@/integrations/supabase/client");
-
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const {
+        supabase
+      } = await import("@/integrations/supabase/client");
+      const {
+        data: authData,
+        error: authError
+      } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
       });
-
       if (authError) {
         if (authError.message.includes("Invalid login credentials")) {
           setServerError(t('signIn.invalidCredentials'));
@@ -134,14 +145,15 @@ const SignIn = () => {
         localStorage.removeItem("rememberedPassword");
         localStorage.removeItem("rememberedUser");
       }
-
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
       setServerError(t('signIn.error'));
     }
   };
-  return <div className="h-screen bg-background flex flex-col overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+  return <div className="h-screen bg-background flex flex-col overflow-hidden" style={{
+    paddingTop: "env(safe-area-inset-top, 0px)"
+  }}>
       {/* Hero Section with Truck Image */}
       <div className="relative h-[40vh] flex-shrink-0">
         <img src={loginBackground} alt="The Truckers" className="absolute inset-0 w-full h-full object-fill " />
@@ -191,7 +203,7 @@ const SignIn = () => {
 
           {/* Submit Buttons */}
           <div className="space-y-2">
-            <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90 text-white h-10 rounded-xl text-sm font-medium">
+            <Button type="submit" className="w-full text-white h-10 rounded-xl text-sm font-medium bg-[#235a9a]">
               {t('signIn.signInButton')}
             </Button>
             <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-10 rounded-xl text-sm font-medium border-2">
@@ -202,35 +214,20 @@ const SignIn = () => {
           {/* Language Switcher */}
           <div className="flex justify-center">
             <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button type="button" onClick={() => setShowLanguageMenu(!showLanguageMenu)} className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-4 object-cover rounded-sm" />
                 {currentLang.label}
               </button>
               
-              {showLanguageMenu && (
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-white rounded-xl shadow-lg border overflow-hidden min-w-[120px]">
-                  {languageOptions.map((lang) => (
-                    <button
-                      type="button"
-                      key={lang.code}
-                      onClick={() => {
-                        setLanguage(lang.code);
-                        setShowLanguageMenu(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-muted transition-colors ${
-                        language === lang.code ? 'bg-muted' : ''
-                      }`}
-                    >
+              {showLanguageMenu && <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-white rounded-xl shadow-lg border overflow-hidden min-w-[120px]">
+                  {languageOptions.map(lang => <button type="button" key={lang.code} onClick={() => {
+                setLanguage(lang.code);
+                setShowLanguageMenu(false);
+              }} className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-muted transition-colors ${language === lang.code ? 'bg-muted' : ''}`}>
                       <img src={lang.flag} alt={lang.label} className="w-5 h-5 rounded-full object-cover" />
                       <span className="text-sm">{lang.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+                    </button>)}
+                </div>}
             </div>
           </div>
         </form>
