@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, TrendingDown } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import profitIcon from '@/assets/profit-icon.png';
+import expensesIcon from '@/assets/expenses-icon.png';
 export default function FinancePage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
@@ -201,9 +202,7 @@ export default function FinancePage() {
 
           <Card className="p-4 bg-gradient-to-br from-red-50 to-red-100 border-red-200">
             <div className="flex items-start gap-2 mb-2">
-              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-                <TrendingDown className="w-5 h-5 text-white" />
-              </div>
+              <img src={expensesIcon} alt="Expenses" className="w-10 h-10" />
               <div className="flex-1">
                 <p className="text-xs text-gray-600">{t('finance.expenses')}</p>
                 <p className="text-2xl font-bold text-red-600">{totalExpense.toLocaleString()}</p>
