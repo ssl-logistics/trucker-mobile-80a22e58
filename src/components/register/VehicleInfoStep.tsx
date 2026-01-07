@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { RegistrationData } from "@/pages/Register";
 import { ProvinceSelect } from "@/components/ui/province-select";
+import { VehicleBrandSelect } from "@/components/ui/vehicle-brand-select";
 import {
   Drawer,
   DrawerClose,
@@ -229,29 +230,11 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.vehicleBrand')} <span className="text-destructive">*</span></Label>
-          <Select onValueChange={(value) => setValue("vehicleBrand", value)}>
-            <SelectTrigger className={errors.vehicleBrand ? "border-destructive" : ""}>
-              <SelectValue placeholder={t('vehicleInfoStep.selectBrand')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="isuzu">Isuzu</SelectItem>
-              <SelectItem value="hino">Hino</SelectItem>
-              <SelectItem value="mitsubishi">Mitsubishi Fuso</SelectItem>
-              <SelectItem value="ud">UD Trucks</SelectItem>
-              <SelectItem value="volvo">Volvo</SelectItem>
-              <SelectItem value="scania">Scania</SelectItem>
-              <SelectItem value="mercedes">Mercedes-Benz</SelectItem>
-              <SelectItem value="man">MAN</SelectItem>
-              <SelectItem value="daf">DAF</SelectItem>
-              <SelectItem value="iveco">Iveco</SelectItem>
-              <SelectItem value="foton">Foton</SelectItem>
-              <SelectItem value="sinotruk">Sinotruk</SelectItem>
-              <SelectItem value="dongfeng">Dongfeng</SelectItem>
-              <SelectItem value="faw">FAW</SelectItem>
-              <SelectItem value="tata">Tata</SelectItem>
-              <SelectItem value="other">อื่นๆ</SelectItem>
-            </SelectContent>
-          </Select>
+          <VehicleBrandSelect
+            value={watch("vehicleBrand")}
+            onValueChange={(value) => setValue("vehicleBrand", value)}
+            hasError={!!errors.vehicleBrand}
+          />
           {errors.vehicleBrand && <p className="text-sm text-destructive">{errors.vehicleBrand.message}</p>}
         </div>
 
