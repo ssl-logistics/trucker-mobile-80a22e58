@@ -156,7 +156,7 @@ export default function CustomerPage() {
                   cy="50%" 
                   innerRadius={25} 
                   outerRadius={75}
-                  paddingAngle={2} 
+                  paddingAngle={0} 
                   dataKey="value" 
                   label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
                     const RADIAN = Math.PI / 180;
