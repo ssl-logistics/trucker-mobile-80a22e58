@@ -220,7 +220,7 @@ export default function CurrentJobsPage() {
           if (!job) return null;
           
           return <Card key={application.job_id} className="p-4 space-y-3 bg-card">
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
                       {t('job.order_code')} {job.order_code}
                     </div>
