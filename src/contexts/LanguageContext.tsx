@@ -540,7 +540,9 @@ const thTranslations: Record<string, string> = {
   'termsStep.effectiveDate': 'มีผลบังคับเมื่อวันที่ 15 มกราคม 2567',
   'termsStep.accept': 'ยอมรับ',
   'termsStep.scrollToAccept': 'เลื่อนลงจนสุดเพื่อดำเนินการต่อ',
-  'termsStep.scrollMessage': 'กรุณาเลื่อนอ่านข้อกำหนดจนจบเพื่อดำเนินการต่อ',
+  'termsStep.scrollMessage': 'เลื่อนลงจนสุดเพื่อดำเนินการต่อ',
+  'termsStep.ok': 'ตกลง',
+  'termsStep.readyToAccept': 'คุณพร้อมที่จะยอมรับข้อกำหนดแล้ว',
   
   // General Info Step
   'generalInfo.profilePhoto': 'รูปภาพผู้ขับขี่',
@@ -1712,7 +1714,9 @@ const enTranslations: Record<string, string> = {
   'termsStep.effectiveDate': 'Effective Date: January 15, 2024',
   'termsStep.accept': 'Accept',
   'termsStep.scrollToAccept': 'Scroll down to continue',
-  'termsStep.scrollMessage': 'Please scroll through the terms to continue',
+  'termsStep.scrollMessage': 'Scroll down to continue',
+  'termsStep.ok': 'OK',
+  'termsStep.readyToAccept': 'You are ready to accept the terms',
   
   // General Info Step
   'generalInfo.profilePhoto': 'Driver Photo',
@@ -2686,7 +2690,9 @@ const koTranslations: Record<string, string> = {
   'termsStep.effectiveDate': '2024년 1월 15일부터 유효',
   'termsStep.accept': '동의',
   'termsStep.scrollToAccept': '계속하려면 끝까지 스크롤하세요',
-  'termsStep.scrollMessage': '계속하려면 약관을 끝까지 읽어주세요',
+  'termsStep.scrollMessage': '계속하려면 끝까지 스크롤하세요',
+  'termsStep.ok': '확인',
+  'termsStep.readyToAccept': '약관에 동의할 준비가 되었습니다',
   
   // General Info Step
   'generalInfo.profilePhoto': '운전자 사진',
@@ -4601,7 +4607,9 @@ const zhTranslations: Record<string, string> = {
   'termsStep.effectiveDate': '生效日期：2024年1月1日',
   'termsStep.accept': '接受',
   'termsStep.scrollToAccept': '滚动到底部以接受',
-  'termsStep.scrollMessage': '请滚动到底部以启用接受按钮',
+  'termsStep.scrollMessage': '滚动到底部继续',
+  'termsStep.ok': '确定',
+  'termsStep.readyToAccept': '您已准备好接受条款',
   
   // Edit Vehicle Field Page
   'editVehicle.diesel': '柴油',
