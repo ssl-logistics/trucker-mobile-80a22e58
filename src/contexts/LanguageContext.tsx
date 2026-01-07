@@ -34,11 +34,26 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 }
 
+let warnedMissingProvider = false;
+
 export function useLanguage() {
   const context = useContext(LanguageContext);
+
+  // Safety fallback to prevent blank-screen crashes if the provider isn't mounted
+  // (e.g. during cached/stale builds or misconfigured trees).
   if (!context) {
-    throw new Error('useLanguage must be used within LanguageProvider');
+    if (!warnedMissingProvider) {
+      warnedMissingProvider = true;
+      console.warn("useLanguage used without LanguageProvider; falling back to defaults");
+    }
+
+    return {
+      language: "en" as Language,
+      setLanguage: () => {},
+      t: (key: string) => key,
+    } satisfies LanguageContextType;
   }
+
   return context;
 }
 
