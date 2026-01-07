@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -58,7 +58,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const [currentPhotoId, setCurrentPhotoId] = useState<string | null>(null);
   const [showPhotoErrors, setShowPhotoErrors] = useState(false);
   
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<VehicleInfoFormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitted }, setValue, watch } = useForm<VehicleInfoFormData>({
     resolver: zodResolver(vehicleInfoSchema),
     defaultValues: {
       plateNumber: data.plateNumber,
@@ -77,6 +77,40 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
       insuranceValue: data.insuranceValue,
     }
   });
+
+  // Auto-scroll to first error field
+  useEffect(() => {
+    if (isSubmitted && Object.keys(errors).length > 0) {
+      const firstErrorKey = Object.keys(errors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorKey}"]`) || 
+                          document.getElementById(`field-${firstErrorKey}`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [errors, isSubmitted]);
+
+  // Auto-scroll to photo/container errors
+  useEffect(() => {
+    if (showPhotoErrors) {
+      const photoErrors = [
+        { id: 'container-types', hasError: containerTypes.length === 0 },
+        { id: 'registration-doc', hasError: !registrationPhoto },
+        { id: 'insurance-doc', hasError: !insurancePhoto },
+        { id: 'license-doc', hasError: !licensePhoto },
+        { id: 'id-card-doc', hasError: !idCardPhoto },
+        { id: 'compulsory-insurance-doc', hasError: !compulsoryInsurancePhoto },
+      ];
+      
+      const firstPhotoError = photoErrors.find(e => e.hasError);
+      if (firstPhotoError && Object.keys(errors).length === 0) {
+        const errorElement = document.getElementById(`field-${firstPhotoError.id}`);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  }, [showPhotoErrors, containerTypes, registrationPhoto, insurancePhoto, licensePhoto, idCardPhoto, compulsoryInsurancePhoto, errors]);
 
   const onSubmit = (formData: VehicleInfoFormData) => {
     setShowPhotoErrors(true);
@@ -130,7 +164,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
     const hasError = showError && !file;
     
     return (
-      <div className="space-y-2">
+      <div className="space-y-2" id={`field-${id}`}>
         <Label>
           {label} <span className="text-destructive">*</span>
         </Label>
@@ -294,7 +328,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           {(errors.width || errors.length || errors.height) && <p className="text-sm text-destructive">{errors.width?.message || errors.length?.message || errors.height?.message}</p>}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" id="field-container-types">
           <Label>{t('vehicleInfoStep.containerTypes')} <span className="text-destructive">*</span></Label>
           <div className={`space-y-2 p-3 rounded-md border ${showPhotoErrors && containerTypes.length === 0 ? "border-destructive" : "border-transparent"}`}>
             <div className="flex items-center space-x-2">
