@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RegistrationData } from "@/pages/Register";
-import { useProvinces } from "@/hooks/useProvinces";
+import { ProvinceSelect } from "@/components/ui/province-select";
 import {
   Drawer,
   DrawerClose,
@@ -28,7 +28,6 @@ interface VehicleInfoStepProps {
 
 const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const { t } = useLanguage();
-  const { provinces, isLoading: isLoadingProvinces } = useProvinces();
 
   const vehicleInfoSchema = z.object({
     plateNumber: z.string().min(1, t('validation.plateNumberRequired')),
@@ -198,18 +197,11 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           <Label>
             {t('vehicleInfoStep.plateProvince')} <span className="text-destructive">*</span>
           </Label>
-          <Select onValueChange={(value) => setValue("plateProvince", value)} disabled={isLoadingProvinces}>
-            <SelectTrigger className={errors.plateProvince ? "border-destructive" : ""}>
-              <SelectValue placeholder={isLoadingProvinces ? "กำลังโหลด..." : t('vehicleInfoStep.selectProvince')} />
-            </SelectTrigger>
-            <SelectContent>
-              {provinces.map((province) => (
-                <SelectItem key={province.id} value={province.name_th}>
-                  {province.name_th}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ProvinceSelect
+            value={watch("plateProvince")}
+            onValueChange={(value) => setValue("plateProvince", value)}
+            hasError={!!errors.plateProvince}
+          />
           {errors.plateProvince && <p className="text-sm text-destructive">{errors.plateProvince.message}</p>}
         </div>
 
@@ -225,18 +217,11 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
             </div>
             <div className="space-y-2">
               <Label>{t('vehicleInfoStep.trailerPlateProvince')} <span className="text-destructive">*</span></Label>
-              <Select onValueChange={(value) => setValue("trailerPlateProvince", value)} disabled={isLoadingProvinces}>
-                <SelectTrigger className={errors.trailerPlateProvince ? "border-destructive" : ""}>
-                  <SelectValue placeholder={isLoadingProvinces ? "กำลังโหลด..." : t('vehicleInfoStep.selectProvince')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {provinces.map((province) => (
-                    <SelectItem key={province.id} value={province.name_th}>
-                      {province.name_th}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ProvinceSelect
+                value={watch("trailerPlateProvince")}
+                onValueChange={(value) => setValue("trailerPlateProvince", value)}
+                hasError={!!errors.trailerPlateProvince}
+              />
               {errors.trailerPlateProvince && <p className="text-sm text-destructive">{errors.trailerPlateProvince.message}</p>}
             </div>
           </>
