@@ -9,48 +9,24 @@ import profitIcon from '@/assets/profit-icon.png';
 import expensesIcon from '@/assets/expenses-icon.png';
 export default function FinancePage() {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const {
+    t,
+    language
+  } = useLanguage();
   const [timePeriod, setTimePeriod] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
-
-  const thaiMonths = [
-    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-  ];
-
-  const englishMonths = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
-  const koreanMonths = [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월'
-  ];
-
-  const thaiMonthsShort = [
-    'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-  ];
-
-  const englishMonthsShort = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-  ];
-
-  const koreanMonthsShort = [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월'
-  ];
-
+  const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+  const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const koreanMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+  const thaiMonthsShort = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  const englishMonthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const koreanMonthsShort = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : englishMonths;
   const monthsShort = language === 'th' ? thaiMonthsShort : language === 'ko' ? koreanMonthsShort : englishMonthsShort;
-
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
     const month = months[selectedDate.getMonth()];
     const year = language === 'th' ? selectedDate.getFullYear() + 543 : selectedDate.getFullYear();
-
     if (timePeriod === 'day') {
       return `${day} ${month} ${year}`;
     } else if (timePeriod === 'month') {
@@ -59,10 +35,8 @@ export default function FinancePage() {
       return `${t('finance.buddhist_era')} ${year}`;
     }
   };
-
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);
-    
     if (timePeriod === 'day') {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
     } else if (timePeriod === 'month') {
@@ -70,20 +44,24 @@ export default function FinancePage() {
     } else {
       newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
     }
-    
     setSelectedDate(newDate);
   };
 
   // Dynamic data based on filters
-  const { chartData, totalIncome, totalExpense, profit, profitPercentage, pendingPayments } = useMemo(() => {
+  const {
+    chartData,
+    totalIncome,
+    totalExpense,
+    profit,
+    profitPercentage,
+    pendingPayments
+  } = useMemo(() => {
     // Date-based variation
     const dateHash = selectedDate.getTime() % 100;
-    const dateVariation = 1 + (dateHash / 100);
-
+    const dateVariation = 1 + dateHash / 100;
     let chartData: any[] = [];
     let totalIncome = 0;
     let totalExpense = 0;
-
     if (timePeriod === 'day') {
       // Generate hourly data for a day
       const hours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
@@ -117,23 +95,30 @@ export default function FinancePage() {
       totalIncome = Math.round(700000 * dateVariation);
       totalExpense = Math.round(300000 * dateVariation);
     }
-
     const profit = totalIncome - totalExpense;
     const profitPercentage = Math.round(2 * dateVariation);
-
-    const basePendingPayments = [
-      { id: 1, company: 'ช่องตรวม', baseAmount: 13000 },
-      { id: 2, company: 'ไอเดียพลัส จำกัดมหาชน', baseAmount: 5000 },
-      { id: 3, company: 'ไทยพีเอ็ม มารเก็ตเดอร์ จำกัด', baseAmount: 3000 },
-      { id: 4, company: 'สเซริเดกในไอเอ จำกัด', baseAmount: 5000 },
-    ];
-
+    const basePendingPayments = [{
+      id: 1,
+      company: 'ช่องตรวม',
+      baseAmount: 13000
+    }, {
+      id: 2,
+      company: 'ไอเดียพลัส จำกัดมหาชน',
+      baseAmount: 5000
+    }, {
+      id: 3,
+      company: 'ไทยพีเอ็ม มารเก็ตเดอร์ จำกัด',
+      baseAmount: 3000
+    }, {
+      id: 4,
+      company: 'สเซริเดกในไอเอ จำกัด',
+      baseAmount: 5000
+    }];
     const pendingPayments = basePendingPayments.map(p => ({
       id: p.id,
       company: p.company,
       amount: Math.round(p.baseAmount * dateVariation)
     }));
-
     return {
       chartData,
       totalIncome,
@@ -143,9 +128,7 @@ export default function FinancePage() {
       pendingPayments
     };
   }, [selectedDate, timePeriod, monthsShort]);
-
-  return (
-    <div className="min-h-screen bg-background pb-20">
+  return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-10 shadow-md">
         <div className="flex items-center justify-center relative">
@@ -168,22 +151,13 @@ export default function FinancePage() {
 
         {/* Date Navigation */}
         <div className="flex items-center justify-center gap-4 py-2">
-          <button 
-            onClick={() => navigateDate('prev')}
-            className="p-2 hover:bg-accent rounded-full transition-colors"
-          >
+          <button onClick={() => navigateDate('prev')} className="p-2 hover:bg-accent rounded-full transition-colors">
             <span className="text-2xl">{'<'}</span>
           </button>
-          <span 
-            key={getDisplayDate()} 
-            className="text-xl font-bold text-primary animate-in fade-in duration-300"
-          >
+          <span key={getDisplayDate()} className="text-xl font-bold animate-in fade-in duration-300 text-[#153860]">
             {getDisplayDate()}
           </span>
-          <button 
-            onClick={() => navigateDate('next')}
-            className="p-2 hover:bg-accent rounded-full transition-colors"
-          >
+          <button onClick={() => navigateDate('next')} className="p-2 hover:bg-accent rounded-full transition-colors">
             <span className="text-2xl">{'>'}</span>
           </button>
         </div>
@@ -229,8 +203,12 @@ export default function FinancePage() {
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <XAxis dataKey="month" tick={{
+              fontSize: 12
+            }} />
+              <YAxis tick={{
+              fontSize: 12
+            }} />
               <Tooltip />
               <Legend />
               <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name={t('finance.income')} />
@@ -246,24 +224,16 @@ export default function FinancePage() {
             <span className="text-sm text-gray-500">3 {t('finance.companies')}</span>
           </div>
           <div className="space-y-2">
-            {pendingPayments.map((payment, index) => (
-              <div
-                key={payment.id}
-                className={`flex items-center justify-between p-3 rounded-lg ${
-                  index === 0 ? 'bg-blue-900 text-white' : 'bg-gray-50'
-                }`}
-              >
+            {pendingPayments.map((payment, index) => <div key={payment.id} className={`flex items-center justify-between p-3 rounded-lg ${index === 0 ? 'bg-blue-900 text-white' : 'bg-gray-50'}`}>
                 <span className={`text-sm ${index === 0 ? 'text-white' : 'text-gray-700'}`}>
                   {payment.company}
                 </span>
                 <span className={`font-bold ${index === 0 ? 'text-white' : 'text-gray-900'}`}>
                   ฿ {payment.amount.toLocaleString()}
                 </span>
-              </div>
-            ))}
+              </div>)}
           </div>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
