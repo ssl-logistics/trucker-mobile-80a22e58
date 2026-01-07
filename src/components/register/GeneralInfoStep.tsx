@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -48,6 +48,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [selectedLocation, setSelectedLocation] = useState<string>(data.location || "");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showPhotoError, setShowPhotoError] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<GeneralInfoFormData>({
     resolver: zodResolver(generalInfoSchema),
@@ -63,6 +64,20 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
       priceRangeMax: data.priceRangeMax,
     }
   });
+
+  // Auto-scroll to first error
+  useEffect(() => {
+    if (Object.keys(errors).length > 0 || (showPhotoError && !profilePhotoFile)) {
+      // Find first error element
+      const firstErrorElement = formRef.current?.querySelector('.border-destructive, .ring-destructive');
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (showPhotoError && !profilePhotoFile) {
+        // Scroll to photo section
+        formRef.current?.querySelector('.text-center')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [errors, showPhotoError, profilePhotoFile]);
 
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,7 +116,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit, () => setShowPhotoError(true))} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit, () => setShowPhotoError(true))} className="space-y-6">
       {/* Profile Photo */}
       <div className="text-center">
         <h3 className="font-semibold text-foreground mb-4">
