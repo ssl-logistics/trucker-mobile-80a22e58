@@ -214,20 +214,18 @@ export default function FinancePage() {
           </div>
         </Card>
 
-        {/* Profit Info */}
-        <Card className="p-4 bg-white shadow-sm">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-sm text-gray-600">{t('finance.total_income')}</p>
-            <span className="text-sm font-medium text-green-600 flex items-center gap-1">
-              <span>▲{profitPercentage}%</span>
-            </span>
-          </div>
-          <p className="text-2xl font-bold text-primary">{profit.toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('finance.compare_year')}</p>
-        </Card>
-
-        {/* Chart */}
+        {/* Profit Info + Chart Combined */}
         <Card key={`chart-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-gray-600">{t('finance.total_income')}</p>
+              <p className="text-xl font-bold text-cyan-500">{profit.toLocaleString()}</p>
+              <span className="text-sm font-medium text-green-500 flex items-center gap-1">
+                ▲{profitPercentage}%
+              </span>
+            </div>
+            <p className="text-xs text-gray-500">{t('finance.compare_year')}</p>
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
