@@ -182,7 +182,7 @@ export default function FinancePage() {
               <img src={expensesIcon} alt="Expenses" className="w-12 h-12 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-gray-500 text-xs">{t('finance.expenses')}</p>
-                <p className="text-lg font-bold text-cyan-500 truncate">{totalExpense.toLocaleString()}</p>
+                <p className="text-lg font-bold truncate text-destructive">{totalExpense.toLocaleString()}</p>
               </div>
             </div>
           </div>
