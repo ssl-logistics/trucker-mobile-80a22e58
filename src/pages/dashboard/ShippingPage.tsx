@@ -187,7 +187,7 @@ export default function ShippingPage() {
           <div className="grid grid-cols-2 gap-3">
             {jobStats.map((stat, index) => (
               <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl overflow-hidden">
+                <div className="w-12 h-12 flex items-center justify-center text-2xl">
                   {stat.icon === 'profit' ? (
                     <img src={profitIcon} alt="Profit" className="w-10 h-10" />
                   ) : (
