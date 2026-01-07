@@ -79,9 +79,10 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const onSubmit = (formData: VehicleInfoFormData) => {
     setShowPhotoErrors(true);
     
-    // Check if all required photos are uploaded
+    // Check if all required photos are uploaded and container types selected
     const hasAllPhotos = registrationPhoto && insurancePhoto && licensePhoto && idCardPhoto && compulsoryInsurancePhoto;
-    if (!hasAllPhotos) {
+    const hasContainerType = containerTypes.length > 0;
+    if (!hasAllPhotos || !hasContainerType) {
       return;
     }
     
@@ -308,7 +309,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.containerTypes')} <span className="text-destructive">*</span></Label>
-          <div className="space-y-2">
+          <div className={`space-y-2 p-3 rounded-md border ${showPhotoErrors && containerTypes.length === 0 ? "border-destructive" : "border-transparent"}`}>
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="container-20"
@@ -332,6 +333,9 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
               <Label htmlFor="container-40" className="font-normal cursor-pointer">{t('vehicleInfoStep.container40')}</Label>
             </div>
           </div>
+          {showPhotoErrors && containerTypes.length === 0 && (
+            <p className="text-sm text-destructive">{t('validation.containerTypeRequired')}</p>
+          )}
         </div>
 
         <PhotoUploadBox 
