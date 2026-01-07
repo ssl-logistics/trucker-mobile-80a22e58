@@ -229,9 +229,8 @@ export default function ShippingPage() {
                 <p className="text-sm text-gray-700 mb-1">{stat.region}</p>
                 <div className="flex items-center gap-2">
                   <p className="text-xl font-bold text-primary">{stat.value}</p>
-                  <span className="text-xs text-green-600 flex items-center">
-                    <TrendingUp className="w-3 h-3" />
-                    {stat.change}%
+                  <span className="text-xs text-green-600">
+                    ▲{stat.change}%
                   </span>
                 </div>
               </div>
