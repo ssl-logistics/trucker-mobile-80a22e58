@@ -47,6 +47,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   );
   const [selectedLocation, setSelectedLocation] = useState<string>(data.location || "");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showPhotoError, setShowPhotoError] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<GeneralInfoFormData>({
     resolver: zodResolver(generalInfoSchema),
@@ -86,6 +87,12 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   };
 
   const onSubmit = (formData: GeneralInfoFormData) => {
+    setShowPhotoError(true);
+    
+    if (!profilePhotoFile) {
+      return;
+    }
+    
     onNext({
       ...formData,
       location: selectedLocation,
@@ -94,13 +101,15 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit, () => setShowPhotoError(true))} className="space-y-6">
       {/* Profile Photo */}
       <div className="text-center">
-        <h3 className="font-semibold text-foreground mb-4">{t('generalInfo.profilePhoto')}</h3>
+        <h3 className="font-semibold text-foreground mb-4">
+          {t('generalInfo.profilePhoto')} <span className="text-destructive">*</span>
+        </h3>
         <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <DrawerTrigger asChild>
-            <div className="relative inline-block cursor-pointer">
+            <div className={`relative inline-block cursor-pointer rounded-full ${showPhotoError && !profilePhotoFile ? "ring-2 ring-destructive ring-offset-2" : ""}`}>
               <Avatar className="w-24 h-24 mx-auto">
                 {profilePreview ? (
                   <AvatarImage src={profilePreview} />
@@ -183,6 +192,9 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
           </DrawerContent>
         </Drawer>
         <p className="text-sm text-muted-foreground mt-2">{t('generalInfo.photoPrompt')}</p>
+        {showPhotoError && !profilePhotoFile && (
+          <p className="text-sm text-destructive mt-1">{t('validation.profilePhotoRequired')}</p>
+        )}
       </div>
 
       {/* Personal Information */}
