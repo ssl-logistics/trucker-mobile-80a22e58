@@ -92,13 +92,20 @@ const TermsStep = ({
         <div className="h-20" />
       </div>
 
-      <div className="flex-shrink-0 pt-4 border-t border-border">
-        <Button onClick={handleAccept} disabled={!canAccept} className="w-full text-primary-foreground rounded-xl h-12 text-base font-medium disabled:text-muted-foreground bg-[#153860]">
-          {canAccept ? t('termsStep.accept') : t('termsStep.scrollToAccept')}
-        </Button>
-        {!canAccept && <p className="text-xs text-muted-foreground text-center mt-2">
-            {t('termsStep.scrollMessage')}
-          </p>}
+      {/* Sticky bottom bar */}
+      <div className="flex-shrink-0 pt-4">
+        <div className="flex items-center gap-3 bg-[#2D3748] rounded-xl p-3">
+          <p className="flex-1 text-sm text-white">
+            {canAccept ? t('termsStep.readyToAccept') : t('termsStep.scrollMessage')}
+          </p>
+          <Button 
+            onClick={handleAccept} 
+            disabled={!canAccept} 
+            className="px-6 h-10 rounded-lg text-sm font-medium bg-[#48BB78] hover:bg-[#38A169] text-white disabled:bg-gray-500 disabled:text-gray-300"
+          >
+            {t('termsStep.ok')}
+          </Button>
+        </div>
       </div>
     </div>;
 };
