@@ -97,11 +97,11 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
   };
 
   const handleSubmit = () => {
+    setShowErrors(true);
     if (!isFormValid()) {
-      setShowErrors(true);
       return;
     }
-    onNext({ 
+    onNext({
       hasTrailer,
       frontPhoto: photoFiles.front || undefined,
       sidePhoto: photoFiles.side || undefined,
