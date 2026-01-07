@@ -12,6 +12,7 @@ import ReviewStep from "@/components/register/ReviewStep";
 import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
+import flagCn from "@/assets/flag-cn.png";
 export interface RegistrationData {
   // General Info
   profilePhoto?: File;
@@ -110,6 +111,10 @@ const Register = () => {
     code: 'ko' as const,
     label: 'KO',
     flag: flagKo
+  }, {
+    code: 'zh' as const,
+    label: 'CN',
+    flag: flagCn
   }];
   const currentLang = languageOptions.find(l => l.code === language) || languageOptions[0];
   const steps = [{
