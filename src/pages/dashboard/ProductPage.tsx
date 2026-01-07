@@ -141,15 +141,43 @@ export default function ProductPage() {
             <h3 className="font-bold text-gray-800">{t('product.product_types')}</h3>
             <span className="text-sm text-gray-500">{t('product.top_5')}</span>
           </div>
-          <div className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={250}>
+          <div className="flex items-center">
+            <ResponsiveContainer width="60%" height={180}>
               <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={0} dataKey="value" label={entry => entry.value} stroke="none">
+                <Pie 
+                  data={pieData} 
+                  cx="50%" 
+                  cy="50%" 
+                  innerRadius={25} 
+                  outerRadius={75}
+                  paddingAngle={0} 
+                  dataKey="value"
+                  stroke="none"
+                  label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
+                    const RADIAN = Math.PI / 180;
+                    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                    return (
+                      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight="bold">
+                        {value}
+                      </text>
+                    );
+                  }}
+                  labelLine={false}
+                >
                   {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                 </Pie>
-                <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" formatter={(value, entry: any) => <span className="text-xs text-gray-700">{value}</span>} />
               </PieChart>
             </ResponsiveContainer>
+            <div className="flex-1 space-y-2">
+              {pieData.map((entry, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                  <span className="text-xs text-gray-700">{entry.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </Card>
 
