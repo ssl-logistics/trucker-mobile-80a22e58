@@ -224,7 +224,7 @@ const SignIn = () => {
                 setLanguage(lang.code);
                 setShowLanguageMenu(false);
               }} className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-muted transition-colors ${language === lang.code ? 'bg-muted' : ''}`}>
-                      <img src={lang.flag} alt={lang.label} className="w-5 h-5 rounded-full object-cover" />
+                      <img src={lang.flag} alt={lang.label} className="w-5 h-5 rounded-full object-cover aspect-square" />
                       <span className="text-sm">{lang.label}</span>
                     </button>)}
                 </div>}
