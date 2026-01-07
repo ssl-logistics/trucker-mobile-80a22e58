@@ -219,9 +219,9 @@ export default function CurrentJobsPage() {
           // Guard clause for null jobs
           if (!job) return null;
           
-          return <Card key={application.job_id} className="p-4 space-y-3 bg-card">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
+          return <Card key={application.job_id} className="overflow-hidden bg-card">
+                  <div className="flex items-center justify-between px-3 py-2 bg-gray-50">
+                    <div className="text-green-600 text-sm font-medium">
                       {t('job.order_code')} {job.order_code}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -229,8 +229,7 @@ export default function CurrentJobsPage() {
                       {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
                     </div>
                   </div>
-
-          <div className="space-y-2">
+                  <div className="p-4 space-y-3">
             <div className="text-sm">
               <span className="text-muted-foreground">{t('job.employer')} : </span>
               <span className="font-medium">{job.employer_name}</span>
@@ -302,11 +301,11 @@ export default function CurrentJobsPage() {
                         <span>{job.safety_equipment || '-'}</span>
                       </div>
                     </div>
-                  </div>
 
                   <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => navigate(`/job/${job.id}`)}>
                     {t('currentJobs.viewDetails')}
                   </Button>
+                  </div>
                 </Card>;
         })}
           </div>}
