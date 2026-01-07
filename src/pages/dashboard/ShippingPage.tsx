@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import profitIcon from '@/assets/profit-icon.png';
 import successIcon from '@/assets/success-icon.png';
 import deliveryIcon from '@/assets/delivery-icon.png';
+import cancelIcon from '@/assets/cancel-icon.png';
 
 export default function ShippingPage() {
   const navigate = useNavigate();
@@ -108,7 +109,7 @@ export default function ShippingPage() {
         { label: t('shipping.all_jobs'), value: baseTotal, change: Math.round(2 * dateVariation), icon: 'profit' },
         { label: t('shipping.success'), value: baseSuccess, change: Math.round(2 * dateVariation), icon: 'success' },
         { label: t('shipping.in_delivery'), value: baseInProgress, change: Math.round(1 * dateVariation), icon: 'delivery' },
-        { label: t('shipping.cancelled'), value: baseCancelled, change: Math.round(1 * dateVariation), icon: '❌' },
+        { label: t('shipping.cancelled'), value: baseCancelled, change: Math.round(1 * dateVariation), icon: 'cancel' },
       ],
       regionStats: [
         { region: t('shipping.north'), value: Math.round(baseTotal * 0.18), change: Math.round(2 * dateVariation) },
@@ -196,6 +197,8 @@ export default function ShippingPage() {
                     <img src={successIcon} alt="Success" className="w-10 h-10" />
                   ) : stat.icon === 'delivery' ? (
                     <img src={deliveryIcon} alt="Delivery" className="w-10 h-10" />
+                  ) : stat.icon === 'cancel' ? (
+                    <img src={cancelIcon} alt="Cancel" className="w-10 h-10" />
                   ) : (
                     stat.icon
                   )}
