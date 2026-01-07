@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, TrendingUp, TrendingDown } from 'lucide-react';
+import { ChevronLeft, TrendingDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
-
+import profitIcon from '@/assets/profit-icon.png';
 export default function FinancePage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
@@ -191,9 +191,7 @@ export default function FinancePage() {
         <div key={`${timePeriod}-${selectedDate.getTime()}`} className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <div className="flex items-start gap-2 mb-2">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-white" />
-              </div>
+              <img src={profitIcon} alt="Profit" className="w-10 h-10" />
               <div className="flex-1">
                 <p className="text-xs text-gray-600">{t('finance.profit')}</p>
                 <p className="text-2xl font-bold text-green-600">{profit.toLocaleString()}</p>
