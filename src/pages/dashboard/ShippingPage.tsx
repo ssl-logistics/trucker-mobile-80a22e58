@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import profitIcon from '@/assets/profit-icon.png';
+import successIcon from '@/assets/success-icon.png';
 
 export default function ShippingPage() {
   const navigate = useNavigate();
@@ -104,7 +105,7 @@ export default function ShippingPage() {
     return {
       jobStats: [
         { label: t('shipping.all_jobs'), value: baseTotal, change: Math.round(2 * dateVariation), icon: 'profit' },
-        { label: t('shipping.success'), value: baseSuccess, change: Math.round(2 * dateVariation), icon: '✅' },
+        { label: t('shipping.success'), value: baseSuccess, change: Math.round(2 * dateVariation), icon: 'success' },
         { label: t('shipping.in_delivery'), value: baseInProgress, change: Math.round(1 * dateVariation), icon: '🚚' },
         { label: t('shipping.cancelled'), value: baseCancelled, change: Math.round(1 * dateVariation), icon: '❌' },
       ],
@@ -190,6 +191,8 @@ export default function ShippingPage() {
                 <div className="w-12 h-12 flex items-center justify-center text-2xl">
                   {stat.icon === 'profit' ? (
                     <img src={profitIcon} alt="Profit" className="w-10 h-10" />
+                  ) : stat.icon === 'success' ? (
+                    <img src={successIcon} alt="Success" className="w-10 h-10" />
                   ) : (
                     stat.icon
                   )}
