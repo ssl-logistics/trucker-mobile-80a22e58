@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Filter } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { JobCard } from '@/components/home/JobCard';
+import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Sheet,
   SheetContent,
@@ -25,6 +27,7 @@ import {
 export default function SearchPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [domesticType, setDomesticType] = useState('');
@@ -36,6 +39,8 @@ export default function SearchPage() {
   const [showResults, setShowResults] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [allJobs, setAllJobs] = useState<any[]>([]);
+  const [selectedJob, setSelectedJob] = useState<any | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   // Use translation keys for search suggestions
   const getRecentSearches = () => [t('search.recentBangkok'), t('search.recentSamutprakan')];
@@ -203,7 +208,39 @@ export default function SearchPage() {
   };
 
   const handleAcceptJob = (job: any) => {
-    console.log('Accept job:', job);
+    setSelectedJob(job);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmJobAcceptance = async () => {
+    if (!selectedJob || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('job_applications')
+        .insert({
+          job_id: selectedJob.id,
+          driver_id: user.id,
+          status: 'accepted',
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: t('home.job_accepted'),
+        description: `${t('confirm.order_code')}: ${selectedJob.order_code}`,
+      });
+
+      setConfirmDialogOpen(false);
+      setSelectedJob(null);
+      loadJobs();
+    } catch (error: any) {
+      toast({
+        title: t('home.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -432,6 +469,13 @@ export default function SearchPage() {
           </div>
         </SheetContent>
       </Sheet>
+
+      <ConfirmJobDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        onConfirm={confirmJobAcceptance}
+        job={selectedJob}
+      />
     </div>
   );
 }
