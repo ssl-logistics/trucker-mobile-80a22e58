@@ -254,16 +254,17 @@ export default function CurrentJobsPage() {
             </div>
 
             <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-start gap-2">
-                          <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 flex gap-2">
+                        <div className="flex flex-col items-center">
+                          <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          <div className="w-0.5 flex-1 border-l-2 border-dashed border-gray-300 my-1"></div>
+                          <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
+                        </div>
+                        <div className="flex-1 space-y-2">
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.origin')}</div>
                             <div className="font-medium">{job.origin_location}</div>
                           </div>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.destination')}</div>
                             <div className="font-medium">{job.destination_location}</div>
