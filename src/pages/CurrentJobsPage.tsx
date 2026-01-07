@@ -41,9 +41,16 @@ interface JobApplication {
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { t, language } = useLanguage();
-  const { role } = useUserRole();
+  const {
+    user
+  } = useAuth();
+  const {
+    t,
+    language
+  } = useLanguage();
+  const {
+    role
+  } = useUserRole();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -58,22 +65,14 @@ export default function CurrentJobsPage() {
     loadCurrentJobs();
 
     // Real-time subscription for job applications changes
-    const channel = supabase
-      .channel('job-applications-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'job_applications'
-        },
-        () => {
-          console.log('Job applications changed, reloading...');
-          loadCurrentJobs();
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel('job-applications-changes').on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'job_applications'
+    }, () => {
+      console.log('Job applications changed, reloading...');
+      loadCurrentJobs();
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
@@ -119,7 +118,6 @@ export default function CurrentJobsPage() {
     }
     setLoading(false);
   };
-
   const handleApplyFilter = () => {
     setFilterOpen(false);
     // Filter logic is applied in filteredApplications
@@ -134,14 +132,14 @@ export default function CurrentJobsPage() {
   // Filter applications based on selected filters
   const filteredApplications = applications.filter(application => {
     const job = application.jobs;
-    
+
     // Skip if job is null
     if (!job) return false;
 
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      const matchesSearch = job.order_code.toLowerCase().includes(query) || job.employer_name.toLowerCase().includes(query) || (job.destination_company_name && job.destination_company_name.toLowerCase().includes(query)) || job.origin_location.toLowerCase().includes(query) || job.destination_location.toLowerCase().includes(query);
+      const matchesSearch = job.order_code.toLowerCase().includes(query) || job.employer_name.toLowerCase().includes(query) || job.destination_company_name && job.destination_company_name.toLowerCase().includes(query) || job.origin_location.toLowerCase().includes(query) || job.destination_location.toLowerCase().includes(query);
       if (!matchesSearch) return false;
     }
 
@@ -215,13 +213,12 @@ export default function CurrentJobsPage() {
           </div> : filteredApplications.length === 0 ? <EmptyState /> : <div className="space-y-4">
             {filteredApplications.map(application => {
           const job = application.jobs;
-          
+
           // Guard clause for null jobs
           if (!job) return null;
-          
           return <Card key={application.job_id} className="overflow-hidden bg-card">
                   <div className="flex items-center justify-between px-3 py-2 bg-gray-50">
-                    <div className="bg-[#E0FFEA] text-green-600 text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2">
+                    <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
                       {t('job.order_code')} {job.order_code}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
