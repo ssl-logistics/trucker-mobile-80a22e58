@@ -4,16 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import coverHeader from "@/assets/cover-header.png";
 import currentJobIcon from "@/assets/current-job-icon.svg";
 import biddingIcon from "@/assets/bidding-icon.svg";
@@ -32,16 +23,21 @@ export function AppHeader({
   showQuickMenu = false
 }: AppHeaderProps) {
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const { isFreelance } = useUserRole();
+  const {
+    t
+  } = useLanguage();
+  const {
+    isFreelance
+  } = useUserRole();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
-  
   const getDayName = () => {
     const dayKeys = ['home.sunday', 'home.monday', 'home.tuesday', 'home.wednesday', 'home.thursday', 'home.friday', 'home.saturday'];
     return t(dayKeys[new Date().getDay()]);
   };
   return <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden">
-      <div className="relative overflow-hidden min-h-[85px] flex flex-col justify-end" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div className="relative overflow-hidden min-h-[85px] flex flex-col justify-end" style={{
+      paddingTop: "env(safe-area-inset-top, 0px)"
+    }}>
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url(${coverHeader})`
       }} />
@@ -50,7 +46,7 @@ export function AppHeader({
         {/* Content positioned at bottom */}
         <div className="relative z-10 px-4 pt-1 pb-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-[10px]">
               <Avatar className="w-10 h-10 border-2 border-white/20">
                 <AvatarImage src={profilePhoto} alt={userName} key={profilePhoto} />
                 <AvatarFallback className="bg-white/20 text-white text-base">
@@ -97,9 +93,7 @@ export function AppHeader({
           icon: jobHistoryIcon,
           labelKey: "home.job_history",
           path: "/job-history"
-        }]
-        .filter(item => !item.showForFreelanceOnly || isFreelance)
-        .map(item => <button key={item.labelKey} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
+        }].filter(item => !item.showForFreelanceOnly || isFreelance).map(item => <button key={item.labelKey} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
                 <div className="w-16 h-16 flex items-center justify-center">
                   <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" />
                 </div>
@@ -123,13 +117,10 @@ export function AppHeader({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2">
-            <AlertDialogAction 
-              onClick={() => {
-                setShowSignOutDialog(false);
-                onSignOut?.();
-              }}
-              className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
+            <AlertDialogAction onClick={() => {
+            setShowSignOutDialog(false);
+            onSignOut?.();
+          }} className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90">
               {t('home.sign_out_btn')}
             </AlertDialogAction>
             <AlertDialogCancel className="flex-1 m-0">{t('home.cancel')}</AlertDialogCancel>
