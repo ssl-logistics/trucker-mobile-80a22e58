@@ -189,26 +189,26 @@ export default function FinancePage() {
         </div>
 
         {/* Summary Cards */}
-        <Card key={`${timePeriod}-${selectedDate.getTime()}`} className="p-6 bg-gray-50 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card key={`${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-gray-50 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex items-center">
             {/* Profit Section */}
-            <div className="flex-1 flex items-center gap-4">
-              <img src={profitIcon} alt="Profit" className="w-16 h-16" />
-              <div>
-                <p className="text-gray-500 text-sm">{t('finance.profit')}</p>
-                <p className="text-2xl font-bold text-cyan-500">{profit.toLocaleString()}</p>
+            <div className="flex-1 flex items-center gap-2 min-w-0">
+              <img src={profitIcon} alt="Profit" className="w-12 h-12 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-gray-500 text-xs">{t('finance.profit')}</p>
+                <p className="text-lg font-bold text-cyan-500 truncate">{profit.toLocaleString()}</p>
               </div>
             </div>
             
             {/* Divider */}
-            <div className="w-px h-16 bg-gray-300 mx-4"></div>
+            <div className="w-px h-12 bg-gray-300 mx-2 flex-shrink-0"></div>
             
             {/* Expenses Section */}
-            <div className="flex-1 flex items-center gap-4">
-              <img src={expensesIcon} alt="Expenses" className="w-16 h-16" />
-              <div>
-                <p className="text-gray-500 text-sm">{t('finance.expenses')}</p>
-                <p className="text-2xl font-bold text-cyan-500">{totalExpense.toLocaleString()}</p>
+            <div className="flex-1 flex items-center gap-2 min-w-0">
+              <img src={expensesIcon} alt="Expenses" className="w-12 h-12 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-gray-500 text-xs">{t('finance.expenses')}</p>
+                <p className="text-lg font-bold text-cyan-500 truncate">{totalExpense.toLocaleString()}</p>
               </div>
             </div>
           </div>
