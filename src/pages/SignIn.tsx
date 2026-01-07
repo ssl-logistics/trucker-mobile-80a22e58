@@ -206,7 +206,7 @@ const SignIn = () => {
             <Button type="submit" className="w-full text-white h-10 rounded-xl text-sm font-medium bg-[#235a9a] hover:bg-[#235A99]">
               {t('signIn.signInButton')}
             </Button>
-            <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-10 rounded-xl text-sm font-medium border-2">
+            <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-10 rounded-xl text-sm font-medium border-2 hover:bg-[#235A99] hover:text-white">
               {t('signIn.registerButton')}
             </Button>
           </div>
