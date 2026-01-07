@@ -1,3 +1,4 @@
+// Language Context - provides i18n support for the app
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'th' | 'en' | 'ko' | 'zh';
