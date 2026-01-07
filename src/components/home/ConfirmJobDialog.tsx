@@ -8,8 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import confirmCheckIcon from '@/assets/confirm-check-icon.png';
 
 interface ConfirmJobDialogProps {
   open: boolean;
@@ -29,9 +29,7 @@ export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job }: Confirm
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-[320px] rounded-2xl p-6">
         <AlertDialogHeader className="items-center space-y-3">
-          <div className="w-14 h-14 rounded-xl bg-green-500 flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8 text-white" fill="white" strokeWidth={0} />
-          </div>
+          <img src={confirmCheckIcon} alt="Confirm" className="w-14 h-14" />
           <AlertDialogTitle className="text-center text-lg font-semibold text-foreground">
             {t('confirm.title')}
           </AlertDialogTitle>
