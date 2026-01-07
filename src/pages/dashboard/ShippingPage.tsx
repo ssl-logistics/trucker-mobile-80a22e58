@@ -189,7 +189,7 @@ export default function ShippingPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             {jobStats.map((stat, index) => <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-12 h-12 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl">
                   {stat.icon === 'profit' ? <img src={profitIcon} alt="Profit" className="w-10 h-10" /> : stat.icon === 'success' ? <img src={successIcon} alt="Success" className="w-10 h-10" /> : stat.icon === 'delivery' ? <img src={deliveryIcon} alt="Delivery" className="w-10 h-10" /> : stat.icon === 'cancel' ? <img src={cancelIcon} alt="Cancel" className="w-10 h-10" /> : stat.icon}
                 </div>
                 <div className="flex-1">
