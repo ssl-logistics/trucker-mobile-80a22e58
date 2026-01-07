@@ -143,8 +143,8 @@ export default function ProductPage() {
           </div>
           <div className="flex items-center justify-center">
             <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value" label={entry => entry.value}>
+              <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={0} dataKey="value" label={entry => entry.value} stroke="none">
                   {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                 </Pie>
                 <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" formatter={(value, entry: any) => <span className="text-xs text-gray-700">{value}</span>} />
