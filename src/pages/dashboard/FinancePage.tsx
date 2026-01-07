@@ -220,7 +220,7 @@ export default function FinancePage() {
         {/* Pending Payments */}
         <Card className="p-4 bg-white shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800">{t('finance.pending_payments')}</h3>
+            <h3 className="font-bold text-[#153860]">{t('finance.pending_payments')}</h3>
             <span className="text-sm text-gray-500">3 {t('finance.companies')}</span>
           </div>
           <div className="space-y-2">
