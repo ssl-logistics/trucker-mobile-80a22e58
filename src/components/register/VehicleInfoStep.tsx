@@ -31,6 +31,8 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const vehicleInfoSchema = z.object({
     plateNumber: z.string().min(1, t('validation.plateNumberRequired')),
     plateProvince: z.string().min(1, t('validation.plateProvinceRequired')),
+    trailerPlateNumber: data.hasTrailer ? z.string().min(1, t('validation.trailerPlateNumberRequired')) : z.string().optional(),
+    trailerPlateProvince: data.hasTrailer ? z.string().min(1, t('validation.trailerPlateProvinceRequired')) : z.string().optional(),
     vehicleBrand: z.string().min(1, t('validation.vehicleBrandRequired')),
     vehicleColor: z.string().min(1, t('validation.vehicleColorRequired')),
     vin: z.string().min(1, t('validation.vinRequired')),
@@ -59,6 +61,8 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
     defaultValues: {
       plateNumber: data.plateNumber,
       plateProvince: data.plateProvince,
+      trailerPlateNumber: data.trailerPlateNumber || "",
+      trailerPlateProvince: data.trailerPlateProvince || "",
       vehicleBrand: data.vehicleBrand,
       vehicleColor: data.vehicleColor,
       vin: data.vin,
@@ -208,16 +212,25 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           <>
             <div className="space-y-2">
               <Label>{t('vehicleInfoStep.trailerPlateNumber')} <span className="text-destructive">*</span></Label>
-              <Input />
+              <Input 
+                {...register("trailerPlateNumber")} 
+                className={errors.trailerPlateNumber ? "border-destructive" : ""} 
+              />
+              {errors.trailerPlateNumber && <p className="text-sm text-destructive">{errors.trailerPlateNumber.message}</p>}
             </div>
             <div className="space-y-2">
               <Label>{t('vehicleInfoStep.trailerPlateProvince')} <span className="text-destructive">*</span></Label>
-              <Select>
-                <SelectTrigger><SelectValue placeholder={t('vehicleInfoStep.selectProvince')} /></SelectTrigger>
+              <Select onValueChange={(value) => setValue("trailerPlateProvince", value)}>
+                <SelectTrigger className={errors.trailerPlateProvince ? "border-destructive" : ""}>
+                  <SelectValue placeholder={t('vehicleInfoStep.selectProvince')} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="bangkok">{t('province.bangkok')}</SelectItem>
+                  <SelectItem value="nonthaburi">{t('province.nonthaburi')}</SelectItem>
+                  <SelectItem value="samutprakan">{t('province.samutprakan')}</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.trailerPlateProvince && <p className="text-sm text-destructive">{errors.trailerPlateProvince.message}</p>}
             </div>
           </>
         )}

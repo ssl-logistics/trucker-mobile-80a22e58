@@ -610,6 +610,8 @@ const thTranslations: Record<string, string> = {
   'validation.heightRequired': 'กรุณากรอกความสูง',
   'validation.insuranceValueRequired': 'กรุณากรอกมูลค่าประกันสินค้า',
   'validation.photoRequired': 'กรุณาอัปโหลดรูปภาพ',
+  'validation.trailerPlateNumberRequired': 'กรุณากรอกหมายเลขทะเบียนหางลาก',
+  'validation.trailerPlateProvinceRequired': 'กรุณาเลือกจังหวัดเลขทะเบียนหางลาก',
   
   // Vehicle Photos Step
   'vehiclePhotosStep.frontPhoto': 'รูปหน้ารถ',
@@ -1788,6 +1790,8 @@ const enTranslations: Record<string, string> = {
   'validation.heightRequired': 'Please enter height',
   'validation.insuranceValueRequired': 'Please enter insurance value',
   'validation.photoRequired': 'Please upload a photo',
+  'validation.trailerPlateNumberRequired': 'Please enter trailer plate number',
+  'validation.trailerPlateProvinceRequired': 'Please select trailer plate province',
   
   // Vehicle Photos Step
   'vehiclePhotosStep.frontPhoto': 'Front Photo',
@@ -2768,6 +2772,8 @@ const koTranslations: Record<string, string> = {
   'validation.heightRequired': '높이를 입력하세요',
   'validation.insuranceValueRequired': '보험 가치를 입력하세요',
   'validation.photoRequired': '사진을 업로드하세요',
+  'validation.trailerPlateNumberRequired': '트레일러 번호판 번호를 입력하세요',
+  'validation.trailerPlateProvinceRequired': '트레일러 번호판 도를 선택하세요',
   
   // Vehicle Photos Step
   'vehiclePhotosStep.frontPhoto': '차량 앞면 사진',
@@ -3854,6 +3860,8 @@ const zhTranslations: Record<string, string> = {
   'validation.heightRequired': '请输入高度',
   'validation.insuranceValueRequired': '请输入保险金额',
   'validation.photoRequired': '请上传照片',
+  'validation.trailerPlateNumberRequired': '请输入挂车号牌号码',
+  'validation.trailerPlateProvinceRequired': '请选择挂车号牌省份',
   
   // Report Problem
   'reportProblem.error': '错误',
