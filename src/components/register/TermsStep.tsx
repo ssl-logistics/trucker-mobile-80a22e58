@@ -95,7 +95,7 @@ const TermsStep = ({
       {/* Sticky bottom section */}
       <div className="flex-shrink-0 pt-4 space-y-3">
         {/* Scroll indicator bar */}
-        <div className="flex items-center rounded-lg p-3 border border-gray-200 gap-[12px] bg-[#292929]">
+        <div className="flex items-center rounded-lg p-3 border border-gray-200 gap-[12px] bg-[#292929] py-[6px]">
           <p className="flex-1 text-sm text-primary-foreground">
             {t('termsStep.scrollMessage')}
           </p>
