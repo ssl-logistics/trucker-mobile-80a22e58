@@ -216,15 +216,15 @@ export default function FinancePage() {
 
         {/* Profit Info + Chart Combined */}
         <Card key={`chart-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-gray-600">{t('finance.total_income')}</p>
-              <p className="text-xl font-bold text-cyan-500">{profit.toLocaleString()}</p>
-              <span className="text-sm font-medium text-green-500 flex items-center gap-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-1 min-w-0">
+              <p className="text-xs text-gray-600">{t('finance.total_income')}</p>
+              <p className="text-lg font-bold text-cyan-500">{profit.toLocaleString()}</p>
+              <span className="text-xs font-medium text-green-500">
                 ▲{profitPercentage}%
               </span>
             </div>
-            <p className="text-xs text-gray-500">{t('finance.compare_year')}</p>
+            <p className="text-xs text-gray-500 flex-shrink-0">{t('finance.compare_year')}</p>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
