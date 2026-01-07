@@ -52,6 +52,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const [compulsoryInsurancePhoto, setCompulsoryInsurancePhoto] = useState<File | null>(data.compulsoryInsurancePhoto || null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentPhotoId, setCurrentPhotoId] = useState<string | null>(null);
+  const [showPhotoErrors, setShowPhotoErrors] = useState(false);
   
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<VehicleInfoFormData>({
     resolver: zodResolver(vehicleInfoSchema),
@@ -72,6 +73,14 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   });
 
   const onSubmit = (formData: VehicleInfoFormData) => {
+    setShowPhotoErrors(true);
+    
+    // Check if all required photos are uploaded
+    const hasAllPhotos = registrationPhoto && insurancePhoto && licensePhoto && idCardPhoto && compulsoryInsurancePhoto;
+    if (!hasAllPhotos) {
+      return;
+    }
+    
     onNext({
       ...formData,
       dimensions: {
@@ -102,58 +111,69 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
     label, 
     id, 
     file, 
-    onChange 
+    onChange,
+    showError
   }: { 
     label: string; 
     id: string;
     file: File | null;
     onChange: (file: File | null) => void;
-  }) => (
-    <div className="space-y-2">
-      <Label>
-        {label} <span className="text-destructive">*</span>
-      </Label>
-      <button 
-        type="button"
-        onClick={() => openPhotoDrawer(id)}
-        className="flex flex-col items-center justify-center border-2 border-dashed border-input rounded-lg h-32 cursor-pointer hover:border-primary transition-colors w-full"
-      >
-        {file ? (
-          <div className="text-center">
-            <p className="text-sm text-primary font-medium mb-1">{t('vehicleInfoStep.fileSelected')}</p>
-            <p className="text-xs text-muted-foreground">{file.name}</p>
-          </div>
-        ) : (
-          <>
-            <Camera className="w-8 h-8 mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{t('vehicleInfoStep.clickToTake')}</p>
-          </>
+    showError?: boolean;
+  }) => {
+    const hasError = showError && !file;
+    
+    return (
+      <div className="space-y-2">
+        <Label>
+          {label} <span className="text-destructive">*</span>
+        </Label>
+        <button 
+          type="button"
+          onClick={() => openPhotoDrawer(id)}
+          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg h-32 cursor-pointer hover:border-primary transition-colors w-full ${
+            hasError ? "border-destructive" : "border-input"
+          }`}
+        >
+          {file ? (
+            <div className="text-center">
+              <p className="text-sm text-primary font-medium mb-1">{t('vehicleInfoStep.fileSelected')}</p>
+              <p className="text-xs text-muted-foreground">{file.name}</p>
+            </div>
+          ) : (
+            <>
+              <Camera className="w-8 h-8 mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">{t('vehicleInfoStep.clickToTake')}</p>
+            </>
+          )}
+        </button>
+        {hasError && (
+          <p className="text-sm text-destructive">{t('validation.photoRequired')}</p>
         )}
-      </button>
-      {/* Hidden inputs for camera and gallery */}
-      <input 
-        id={`${id}-camera`}
-        type="file" 
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => {
-          const selectedFile = e.target.files?.[0] || null;
-          onChange(selectedFile);
-        }}
-      />
-      <input 
-        id={`${id}-gallery`}
-        type="file" 
-        accept="image/*" 
-        className="hidden"
-        onChange={(e) => {
-          const selectedFile = e.target.files?.[0] || null;
-          onChange(selectedFile);
-        }}
-      />
-    </div>
-  );
+        {/* Hidden inputs for camera and gallery */}
+        <input 
+          id={`${id}-camera`}
+          type="file" 
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const selectedFile = e.target.files?.[0] || null;
+            onChange(selectedFile);
+          }}
+        />
+        <input 
+          id={`${id}-gallery`}
+          type="file" 
+          accept="image/*" 
+          className="hidden"
+          onChange={(e) => {
+            const selectedFile = e.target.files?.[0] || null;
+            onChange(selectedFile);
+          }}
+        />
+      </div>
+    );
+  };
 
   return (
     <>
@@ -300,6 +320,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           id="registration-doc"
           file={registrationPhoto}
           onChange={(file) => handleFileChange(file, setRegistrationPhoto)}
+          showError={showPhotoErrors}
         />
 
         <div className="space-y-2">
@@ -312,24 +333,28 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           id="insurance-doc"
           file={insurancePhoto}
           onChange={(file) => handleFileChange(file, setInsurancePhoto)}
+          showError={showPhotoErrors}
         />
         <PhotoUploadBox 
           label={t('vehicleInfoStep.license')}
           id="license-doc"
           file={licensePhoto}
           onChange={(file) => handleFileChange(file, setLicensePhoto)}
+          showError={showPhotoErrors}
         />
         <PhotoUploadBox 
           label={t('vehicleInfoStep.idCard')}
           id="id-card-doc"
           file={idCardPhoto}
           onChange={(file) => handleFileChange(file, setIdCardPhoto)}
+          showError={showPhotoErrors}
         />
         <PhotoUploadBox 
           label={t('vehicleInfoStep.compulsoryInsurance')}
           id="compulsory-insurance-doc"
           file={compulsoryInsurancePhoto}
           onChange={(file) => handleFileChange(file, setCompulsoryInsurancePhoto)}
+          showError={showPhotoErrors}
         />
       </div>
 
