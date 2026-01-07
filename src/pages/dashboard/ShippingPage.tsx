@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLanguage } from '@/contexts/LanguageContext';
 import profitIcon from '@/assets/profit-icon.png';
 import successIcon from '@/assets/success-icon.png';
+import deliveryIcon from '@/assets/delivery-icon.png';
 
 export default function ShippingPage() {
   const navigate = useNavigate();
@@ -106,7 +107,7 @@ export default function ShippingPage() {
       jobStats: [
         { label: t('shipping.all_jobs'), value: baseTotal, change: Math.round(2 * dateVariation), icon: 'profit' },
         { label: t('shipping.success'), value: baseSuccess, change: Math.round(2 * dateVariation), icon: 'success' },
-        { label: t('shipping.in_delivery'), value: baseInProgress, change: Math.round(1 * dateVariation), icon: '🚚' },
+        { label: t('shipping.in_delivery'), value: baseInProgress, change: Math.round(1 * dateVariation), icon: 'delivery' },
         { label: t('shipping.cancelled'), value: baseCancelled, change: Math.round(1 * dateVariation), icon: '❌' },
       ],
       regionStats: [
@@ -193,6 +194,8 @@ export default function ShippingPage() {
                     <img src={profitIcon} alt="Profit" className="w-10 h-10" />
                   ) : stat.icon === 'success' ? (
                     <img src={successIcon} alt="Success" className="w-10 h-10" />
+                  ) : stat.icon === 'delivery' ? (
+                    <img src={deliveryIcon} alt="Delivery" className="w-10 h-10" />
                   ) : (
                     stat.icon
                   )}
