@@ -207,7 +207,7 @@ export default function ShippingPage() {
                   <p className="text-xs text-gray-600">{stat.label}</p>
                   <div className="flex items-center gap-2">
                     <p className="text-xl font-bold text-primary">{stat.value}</p>
-                    <span className="text-xs text-green-600">
+                    <span className="text-xs text-green-600 bg-[#E7F6ED] px-2 py-0.5 rounded-full">
                       ▲{stat.change}%
                     </span>
                   </div>
@@ -229,7 +229,7 @@ export default function ShippingPage() {
                 <p className="text-sm text-gray-700 mb-1">{stat.region}</p>
                 <div className="flex items-center gap-2">
                   <p className="text-xl font-bold text-primary">{stat.value}</p>
-                  <span className="text-xs text-green-600">
+                  <span className="text-xs text-green-600 bg-[#E7F6ED] px-2 py-0.5 rounded-full">
                     ▲{stat.change}%
                   </span>
                 </div>
