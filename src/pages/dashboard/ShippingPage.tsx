@@ -192,11 +192,11 @@ export default function ShippingPage() {
                 <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl">
                   {stat.icon === 'profit' ? <img src={profitIcon} alt="Profit" className="w-10 h-10" /> : stat.icon === 'success' ? <img src={successIcon} alt="Success" className="w-10 h-10" /> : stat.icon === 'delivery' ? <img src={deliveryIcon} alt="Delivery" className="w-10 h-10" /> : stat.icon === 'cancel' ? <img src={cancelIcon} alt="Cancel" className="w-10 h-10" /> : stat.icon}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-600">{stat.label}</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 flex-wrap">
                     <p className="text-xl font-bold text-primary">{stat.value}</p>
-                    <span className="text-xs text-green-600 bg-[#E7F6ED] px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-green-600 bg-[#E7F6ED] px-1.5 py-0.5 rounded-full whitespace-nowrap">
                       ▲{stat.change}%
                     </span>
                   </div>
