@@ -99,11 +99,6 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
   const handleSubmit = () => {
     if (!isFormValid()) {
       setShowErrors(true);
-      toast({
-        title: t('vehiclePhotosStep.uploadRequired'),
-        description: t('vehiclePhotosStep.uploadRequiredDesc'),
-        variant: "destructive",
-      });
       return;
     }
     onNext({ 
