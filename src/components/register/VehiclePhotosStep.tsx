@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Camera, Image } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ interface VehiclePhotosStepProps {
 const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => {
   const { t } = useLanguage();
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
+  const formRef = useRef<HTMLDivElement>(null);
   const [hasTrailer, setHasTrailer] = useState(data.hasTrailer || false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<keyof typeof photoFiles | null>(null);
@@ -96,9 +97,20 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
     return !photoFiles[type];
   };
 
+  // Auto-scroll to first error
+  useEffect(() => {
+    if (showErrors && !isFormValid()) {
+      const firstErrorElement = formRef.current?.querySelector('.border-destructive');
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [showErrors, photoFiles, hasTrailer]);
+
   const handleSubmit = () => {
     setShowErrors(true);
     if (!isFormValid()) {
+      // Scroll will happen via useEffect
       return;
     }
     onNext({
@@ -172,7 +184,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
 
   return (
     <>
-      <div className="space-y-6">
+      <div ref={formRef} className="space-y-6">
         <PhotoUploadBox type="front" label={t('vehiclePhotosStep.frontPhoto')} />
         <PhotoUploadBox type="side" label={t('vehiclePhotosStep.sidePhoto')} />
         <PhotoUploadBox type="back" label={t('vehiclePhotosStep.backPhoto')} />
