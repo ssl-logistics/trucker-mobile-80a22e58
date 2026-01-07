@@ -611,6 +611,7 @@ const thTranslations: Record<string, string> = {
   'vehiclePhotosStep.next': 'ต่อไป →',
   'vehiclePhotosStep.uploadRequired': 'กรุณาอัพโหลดรูปภาพ',
   'vehiclePhotosStep.uploadRequiredDesc': 'กรุณาอัพโหลดรูปรถทุกรูปที่จำเป็นก่อนดำเนินการต่อ',
+  'vehiclePhotosStep.photoRequired': 'กรุณาอัพโหลดรูปภาพ',
   
   // Vehicle Info Step
   'vehicleInfoStep.plateNumber': 'หมายเลขทะเบียน (ไม่เว้นวรรคไม่ใส่ขีด)',
@@ -1787,6 +1788,7 @@ const enTranslations: Record<string, string> = {
   'vehiclePhotosStep.next': 'Next →',
   'vehiclePhotosStep.uploadRequired': 'Please upload photos',
   'vehiclePhotosStep.uploadRequiredDesc': 'Please upload all required vehicle photos before proceeding',
+  'vehiclePhotosStep.photoRequired': 'Please upload a photo',
   
   // Vehicle Info Step
   'vehicleInfoStep.plateNumber': 'License Plate Number (no spaces or dashes)',
@@ -2765,6 +2767,7 @@ const koTranslations: Record<string, string> = {
   'vehiclePhotosStep.next': '다음 →',
   'vehiclePhotosStep.uploadRequired': '사진을 업로드해 주세요',
   'vehiclePhotosStep.uploadRequiredDesc': '계속하기 전에 필수 차량 사진을 모두 업로드해 주세요',
+  'vehiclePhotosStep.photoRequired': '사진을 업로드해 주세요',
   
   // Vehicle Info Step
   'vehicleInfoStep.plateNumber': '번호판 번호',
@@ -4532,6 +4535,7 @@ const zhTranslations: Record<string, string> = {
   'vehiclePhotosStep.next': '下一步',
   'vehiclePhotosStep.uploadRequired': '请上传照片',
   'vehiclePhotosStep.uploadRequiredDesc': '请在继续之前上传所有必需的车辆照片',
+  'vehiclePhotosStep.photoRequired': '请上传照片',
   
   // Vehicle Info Step
   'vehicleInfoStep.plateNumber': '车牌号码',
