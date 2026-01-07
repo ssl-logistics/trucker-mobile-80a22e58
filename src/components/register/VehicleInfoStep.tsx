@@ -58,6 +58,15 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
   const [currentPhotoId, setCurrentPhotoId] = useState<string | null>(null);
   const [showPhotoErrors, setShowPhotoErrors] = useState(false);
   
+  // Store preview URLs for display
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({
+    'registration-doc': data.registrationPhoto ? URL.createObjectURL(data.registrationPhoto) : '',
+    'insurance-doc': data.insurancePhoto ? URL.createObjectURL(data.insurancePhoto) : '',
+    'license-doc': data.licensePhoto ? URL.createObjectURL(data.licensePhoto) : '',
+    'id-card-doc': data.idCardPhoto ? URL.createObjectURL(data.idCardPhoto) : '',
+    'compulsory-insurance-doc': data.compulsoryInsurancePhoto ? URL.createObjectURL(data.compulsoryInsurancePhoto) : '',
+  });
+  
   const { register, handleSubmit, formState: { errors, isSubmitted }, setValue, watch } = useForm<VehicleInfoFormData>({
     resolver: zodResolver(vehicleInfoSchema),
     defaultValues: {
@@ -138,8 +147,11 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
     });
   };
 
-  const handleFileChange = (file: File | null, setter: (file: File | null) => void) => {
+  const handleFileChange = (file: File | null, setter: (file: File | null) => void, photoId: string) => {
     setter(file);
+    if (file) {
+      setPreviewUrls(prev => ({ ...prev, [photoId]: URL.createObjectURL(file) }));
+    }
     setDrawerOpen(false);
   };
 
@@ -153,13 +165,15 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
     id, 
     file, 
     onChange,
-    showError
+    showError,
+    previewUrl
   }: { 
     label: string; 
     id: string;
     file: File | null;
     onChange: (file: File | null) => void;
     showError?: boolean;
+    previewUrl?: string;
   }) => {
     const hasError = showError && !file;
     
@@ -175,11 +189,8 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
             hasError ? "border-destructive" : "border-input"
           }`}
         >
-          {file ? (
-            <div className="text-center">
-              <p className="text-sm text-primary font-medium mb-1">{t('vehicleInfoStep.fileSelected')}</p>
-              <p className="text-xs text-muted-foreground">{file.name}</p>
-            </div>
+          {previewUrl ? (
+            <img src={previewUrl} alt={label} className="w-full h-full object-cover rounded-lg" />
           ) : (
             <>
               <Camera className="w-8 h-8 mb-2 text-muted-foreground" />
@@ -363,8 +374,9 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           label={t('vehicleInfoStep.registrationDoc')}
           id="registration-doc"
           file={registrationPhoto}
-          onChange={(file) => handleFileChange(file, setRegistrationPhoto)}
+          onChange={(file) => handleFileChange(file, setRegistrationPhoto, 'registration-doc')}
           showError={showPhotoErrors}
+          previewUrl={previewUrls['registration-doc']}
         />
 
         <div className="space-y-2">
@@ -377,29 +389,33 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
           label={t('vehicleInfoStep.insuranceDoc')}
           id="insurance-doc"
           file={insurancePhoto}
-          onChange={(file) => handleFileChange(file, setInsurancePhoto)}
+          onChange={(file) => handleFileChange(file, setInsurancePhoto, 'insurance-doc')}
           showError={showPhotoErrors}
+          previewUrl={previewUrls['insurance-doc']}
         />
         <PhotoUploadBox 
           label={t('vehicleInfoStep.license')}
           id="license-doc"
           file={licensePhoto}
-          onChange={(file) => handleFileChange(file, setLicensePhoto)}
+          onChange={(file) => handleFileChange(file, setLicensePhoto, 'license-doc')}
           showError={showPhotoErrors}
+          previewUrl={previewUrls['license-doc']}
         />
         <PhotoUploadBox 
           label={t('vehicleInfoStep.idCard')}
           id="id-card-doc"
           file={idCardPhoto}
-          onChange={(file) => handleFileChange(file, setIdCardPhoto)}
+          onChange={(file) => handleFileChange(file, setIdCardPhoto, 'id-card-doc')}
           showError={showPhotoErrors}
+          previewUrl={previewUrls['id-card-doc']}
         />
         <PhotoUploadBox 
           label={t('vehicleInfoStep.compulsoryInsurance')}
           id="compulsory-insurance-doc"
           file={compulsoryInsurancePhoto}
-          onChange={(file) => handleFileChange(file, setCompulsoryInsurancePhoto)}
+          onChange={(file) => handleFileChange(file, setCompulsoryInsurancePhoto, 'compulsory-insurance-doc')}
           showError={showPhotoErrors}
+          previewUrl={previewUrls['compulsory-insurance-doc']}
         />
       </div>
 
