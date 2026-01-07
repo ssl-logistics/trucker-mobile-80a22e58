@@ -46,8 +46,6 @@ const SignIn = () => {
   const loginSchema = z.object({
     email: z.string().min(1, {
       message: t('validation.usernameRequired')
-    }).email({
-      message: t('validation.emailFormat')
     }),
     password: z.string().min(8, {
       message: t('validation.passwordMin')
