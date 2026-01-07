@@ -77,7 +77,24 @@ export default function SearchPage() {
         variant: 'destructive',
       });
     } else {
-      setAllJobs(data || []);
+      // Check which jobs user has already accepted
+      if (user) {
+        const { data: applications } = await supabase
+          .from('job_applications')
+          .select('job_id')
+          .eq('driver_id', user.id);
+
+        const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
+        
+        const jobsWithStatus = (data || []).map(job => ({
+          ...job,
+          isAccepted: acceptedJobIds.has(job.id)
+        }));
+        
+        setAllJobs(jobsWithStatus);
+      } else {
+        setAllJobs(data || []);
+      }
     }
   };
 
