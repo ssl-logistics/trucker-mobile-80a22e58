@@ -170,7 +170,7 @@ export default function FinancePage() {
               <img src={profitIcon} alt="Profit" className="w-12 h-12 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-gray-500 text-xs">{t('finance.profit')}</p>
-                <p className="text-lg font-bold text-cyan-500 truncate">{profit.toLocaleString()}</p>
+                <p className="text-lg font-bold truncate text-[#118841]">{profit.toLocaleString()}</p>
               </div>
             </div>
             
