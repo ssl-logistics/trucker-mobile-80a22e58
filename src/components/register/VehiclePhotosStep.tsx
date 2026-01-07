@@ -184,7 +184,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
             type="button"
             onClick={handleSubmit}
             disabled={!isFormValid()}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium"
           >
             {t('vehiclePhotosStep.next')}
           </Button>
