@@ -113,11 +113,20 @@ const SignIn = () => {
       const {
         supabase
       } = await import("@/integrations/supabase/client");
+      
+      // Lookup email by username
+      const { data: emailData, error: lookupError } = await supabase.rpc('get_email_by_username', {
+        lookup_username: data.email
+      });
+      
+      // If lookup fails or returns null, try using the input directly as email
+      const emailToUse = emailData || data.email;
+      
       const {
         data: authData,
         error: authError
       } = await supabase.auth.signInWithPassword({
-        email: data.email,
+        email: emailToUse,
         password: data.password
       });
       if (authError) {
