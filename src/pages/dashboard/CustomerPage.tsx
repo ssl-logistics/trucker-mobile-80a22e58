@@ -130,13 +130,13 @@ export default function CustomerPage() {
 
         {/* Date Navigation */}
         <div className="flex items-center justify-center gap-4 py-2">
-          <button onClick={() => navigateDate('prev')} className="p-2 hover:bg-accent rounded-full transition-colors">
+          <button onClick={() => navigateDate('prev')} className="p-2 rounded-full transition-colors">
             <span className="text-2xl">{'<'}</span>
           </button>
           <span key={getDisplayDate()} className="text-xl font-bold animate-in fade-in duration-300 text-[#153860]">
             {getDisplayDate()}
           </span>
-          <button onClick={() => navigateDate('next')} className="p-2 hover:bg-accent rounded-full transition-colors">
+          <button onClick={() => navigateDate('next')} className="p-2 rounded-full transition-colors">
             <span className="text-2xl">{'>'}</span>
           </button>
         </div>
