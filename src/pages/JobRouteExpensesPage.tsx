@@ -225,7 +225,7 @@ export default function JobRouteExpensesPage() {
                     <CheckCircle2 className="w-5 h-5 text-white" />
                   </div>
                   {/* Dashed line to next point */}
-                  <div className="absolute left-[13px] top-7 w-0.5 h-[calc(100%+48px)] border-l-2 border-dashed border-muted-foreground"></div>
+                  <div className="absolute left-[13px] top-7 w-0.5 h-[calc(100%+96px)] border-l-2 border-dashed border-muted-foreground"></div>
                 </div>
 
                 <Card className="p-4 mb-4">
@@ -277,7 +277,7 @@ export default function JobRouteExpensesPage() {
                       </div>
                       {/* Dashed line to next point (if not last) */}
                       {index < destinations.length - 1 && (
-                        <div className="absolute left-[13px] top-7 w-0.5 h-[calc(100%+48px)] border-l-2 border-dashed border-muted-foreground"></div>
+                        <div className="absolute left-[13px] top-7 w-0.5 h-[calc(100%+96px)] border-l-2 border-dashed border-muted-foreground"></div>
                       )}
                     </div>
 
