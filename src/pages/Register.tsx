@@ -152,25 +152,35 @@ const Register = () => {
     }
   };
   const uploadFile = async (file: File, bucket: string, path: string): Promise<string | null> => {
-    console.log(`[Upload] Starting upload: bucket=${bucket}, path=${path}, file=${file.name}, size=${file.size}`);
+    console.log(`[Upload] Starting upload via edge function: bucket=${bucket}, path=${path}, file=${file.name}, size=${file.size}`);
     try {
       const { supabase } = await import("@/integrations/supabase/client");
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${path}-${Date.now()}.${fileExt}`;
       
-      console.log(`[Upload] Uploading to ${bucket}/${fileName}...`);
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, file);
+      // Create FormData for the file upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', bucket);
+      formData.append('path', path);
+
+      // Call edge function to upload file
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/upload-registration-file`, {
+        method: 'POST',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
       
-      if (uploadError) {
-        console.error(`[Upload] Error uploading to ${bucket}:`, uploadError);
+      if (!response.ok) {
+        console.error(`[Upload] Error uploading to ${bucket}:`, data.error);
         return null;
       }
       
-      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
-      console.log(`[Upload] Success: ${publicUrl}`);
-      return publicUrl;
+      console.log(`[Upload] Success: ${data.url}`);
+      return data.url;
     } catch (error) {
       console.error('[Upload] Exception:', error);
       return null;

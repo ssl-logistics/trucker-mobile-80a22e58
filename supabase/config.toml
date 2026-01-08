@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.register-driver]
 verify_jwt = false
+
+[functions.upload-registration-file]
+verify_jwt = false
