@@ -201,12 +201,13 @@ const Register = () => {
       let avatarUrl = null;
       if (registrationData.profilePhoto) {
         const fileExt = registrationData.profilePhoto.name.split('.').pop();
-        const fileName = `${userId}-${Date.now()}.${fileExt}`;
-        console.log('Uploading profile photo:', fileName);
+        // Use folder structure: userId/filename - required by RLS policy
+        const filePath = `${userId}/${Date.now()}.${fileExt}`;
+        console.log('Uploading profile photo:', filePath);
         const {
           data: uploadData,
           error: uploadError
-        } = await supabase.storage.from('avatars').upload(fileName, registrationData.profilePhoto);
+        } = await supabase.storage.from('avatars').upload(filePath, registrationData.profilePhoto);
         
         if (uploadError) {
           console.error('Error uploading profile photo:', uploadError);
@@ -216,7 +217,7 @@ const Register = () => {
             data: {
               publicUrl
             }
-          } = supabase.storage.from('avatars').getPublicUrl(fileName);
+          } = supabase.storage.from('avatars').getPublicUrl(filePath);
           avatarUrl = publicUrl;
           console.log('Avatar URL:', avatarUrl);
         }
