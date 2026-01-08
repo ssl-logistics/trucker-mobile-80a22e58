@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.receive-bid-status]
 verify_jwt = false
+
+[functions.register-driver]
+verify_jwt = false

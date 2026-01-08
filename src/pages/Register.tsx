@@ -151,214 +151,143 @@ const Register = () => {
       navigate("/");
     }
   };
+  const uploadFile = async (file: File, bucket: string, path: string): Promise<string | null> => {
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${path}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file);
+      
+      if (uploadError) {
+        console.error(`Error uploading to ${bucket}:`, uploadError);
+        return null;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload error:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      console.log("Registration data:", registrationData);
-      const {
-        supabase
-      } = await import("@/integrations/supabase/client");
-      const redirectUrl = `${window.location.origin}/`;
+      console.log("Starting registration submission...");
+      
+      // Generate a temporary ID for file paths
+      const tempId = `temp-${Date.now()}`;
+      
+      // Upload all files and get URLs
+      const [
+        profilePhotoUrl,
+        frontPhotoUrl,
+        sidePhotoUrl,
+        backPhotoUrl,
+        platePhotoUrl,
+        trailerPlatePhotoUrl,
+        registrationPhotoUrl,
+        insurancePhotoUrl,
+        licensePhotoUrl,
+        idCardPhotoUrl,
+        compulsoryInsurancePhotoUrl
+      ] = await Promise.all([
+        registrationData.profilePhoto ? uploadFile(registrationData.profilePhoto, 'avatars', `${tempId}/profile`) : Promise.resolve(null),
+        registrationData.frontPhoto ? uploadFile(registrationData.frontPhoto, 'vehicle-photos', `${tempId}/front`) : Promise.resolve(null),
+        registrationData.sidePhoto ? uploadFile(registrationData.sidePhoto, 'vehicle-photos', `${tempId}/side`) : Promise.resolve(null),
+        registrationData.backPhoto ? uploadFile(registrationData.backPhoto, 'vehicle-photos', `${tempId}/back`) : Promise.resolve(null),
+        registrationData.platePhoto ? uploadFile(registrationData.platePhoto, 'vehicle-photos', `${tempId}/plate`) : Promise.resolve(null),
+        registrationData.trailerPlatePhoto ? uploadFile(registrationData.trailerPlatePhoto, 'vehicle-photos', `${tempId}/trailer-plate`) : Promise.resolve(null),
+        registrationData.registrationPhoto ? uploadFile(registrationData.registrationPhoto, 'driver-documents', `${tempId}/registration`) : Promise.resolve(null),
+        registrationData.insurancePhoto ? uploadFile(registrationData.insurancePhoto, 'driver-documents', `${tempId}/insurance`) : Promise.resolve(null),
+        registrationData.licensePhoto ? uploadFile(registrationData.licensePhoto, 'driver-documents', `${tempId}/license`) : Promise.resolve(null),
+        registrationData.idCardPhoto ? uploadFile(registrationData.idCardPhoto, 'driver-documents', `${tempId}/id-card`) : Promise.resolve(null),
+        registrationData.compulsoryInsurancePhoto ? uploadFile(registrationData.compulsoryInsurancePhoto, 'driver-documents', `${tempId}/compulsory-insurance`) : Promise.resolve(null),
+      ]);
 
-      // Create auth user
-      const {
-        data: authData,
-        error: authError
-      } = await supabase.auth.signUp({
-        email: registrationData.email,
-        password: registrationData.password,
+      // Build request body for external API
+      const requestBody = {
+        // General Info
+        profilePhoto: profilePhotoUrl || undefined,
+        firstName: registrationData.firstName,
+        lastName: registrationData.lastName,
         phone: registrationData.phone,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            phone: registrationData.phone,
-            username: registrationData.username,
-            full_name: `${registrationData.firstName} ${registrationData.lastName}`
-          }
-        }
-      });
-      if (authError) {
-        console.error("Error creating user:", authError);
-        toast({
-          variant: "destructive",
-          title: t('register.error'),
-          description: authError.message || t('register.createAccountFailed')
-        });
-        return;
-      }
-      if (!authData.user) {
-        toast({
-          variant: "destructive",
-          title: t('register.error'),
-          description: t('register.createAccountError')
-        });
-        return;
-      }
-      const userId = authData.user.id;
+        email: registrationData.email,
+        username: registrationData.username,
+        password: registrationData.password,
+        confirmPassword: registrationData.confirmPassword,
+        location: registrationData.location || undefined,
+        priceRangeMin: registrationData.priceRangeMin ? parseFloat(registrationData.priceRangeMin) : undefined,
+        priceRangeMax: registrationData.priceRangeMax ? parseFloat(registrationData.priceRangeMax) : undefined,
 
-      // Upload profile photo
-      let avatarUrl = null;
-      if (registrationData.profilePhoto) {
-        const fileExt = registrationData.profilePhoto.name.split('.').pop();
-        // Use folder structure: userId/filename - required by RLS policy
-        const filePath = `${userId}/${Date.now()}.${fileExt}`;
-        console.log('Uploading profile photo:', filePath);
-        const {
-          data: uploadData,
-          error: uploadError
-        } = await supabase.storage.from('avatars').upload(filePath, registrationData.profilePhoto);
-        
-        if (uploadError) {
-          console.error('Error uploading profile photo:', uploadError);
-        } else {
-          console.log('Upload success:', uploadData);
-          const {
-            data: {
-              publicUrl
-            }
-          } = supabase.storage.from('avatars').getPublicUrl(filePath);
-          avatarUrl = publicUrl;
-          console.log('Avatar URL:', avatarUrl);
-        }
-      }
+        // Vehicle Photos
+        frontPhoto: frontPhotoUrl || undefined,
+        sidePhoto: sidePhotoUrl || undefined,
+        backPhoto: backPhotoUrl || undefined,
+        platePhoto: platePhotoUrl || undefined,
+        hasTrailer: registrationData.hasTrailer,
+        trailerPlatePhoto: trailerPlatePhotoUrl || undefined,
 
-      // Update profile with avatar URL
-      if (avatarUrl) {
-        const { error: updateError } = await supabase.from('profiles').update({
-          avatar_url: avatarUrl,
-          full_name: `${registrationData.firstName} ${registrationData.lastName}`
-        }).eq('id', userId);
-        
-        if (updateError) {
-          console.error('Error updating profile with avatar:', updateError);
-        } else {
-          console.log('Profile updated with avatar successfully');
-        }
-      }
+        // Vehicle Info
+        plateNumber: registrationData.plateNumber,
+        plateProvince: registrationData.plateProvince || undefined,
+        trailerPlateNumber: registrationData.trailerPlateNumber || undefined,
+        trailerPlateProvince: registrationData.trailerPlateProvince || undefined,
+        vehicleBrand: registrationData.vehicleBrand || undefined,
+        vehicleColor: registrationData.vehicleColor || undefined,
+        vin: registrationData.vin || undefined,
+        vehicleType: registrationData.vehicleType || undefined,
+        fuelType: registrationData.fuelType || undefined,
+        loadCapacity: registrationData.loadCapacity ? parseFloat(registrationData.loadCapacity) : undefined,
+        dimensions: {
+          width: registrationData.dimensions.width ? parseFloat(registrationData.dimensions.width) : undefined,
+          length: registrationData.dimensions.length ? parseFloat(registrationData.dimensions.length) : undefined,
+          height: registrationData.dimensions.height ? parseFloat(registrationData.dimensions.height) : undefined,
+        },
+        containerTypes: registrationData.containerTypes.length > 0 ? registrationData.containerTypes : undefined,
 
-      // Save work preferences
-      await supabase.from('driver_work_preferences').insert({
-        driver_id: userId,
-        work_areas: registrationData.location ? [registrationData.location] : [],
-        price_range_min: registrationData.priceRangeMin ? parseFloat(registrationData.priceRangeMin) : null,
-        price_range_max: registrationData.priceRangeMax ? parseFloat(registrationData.priceRangeMax) : null
+        // Documents
+        registrationPhoto: registrationPhotoUrl || undefined,
+        insurancePhoto: insurancePhotoUrl || undefined,
+        licensePhoto: licensePhotoUrl || undefined,
+        idCardPhoto: idCardPhotoUrl || undefined,
+        compulsoryInsurancePhoto: compulsoryInsurancePhotoUrl || undefined,
+        insuranceValue: registrationData.insuranceValue ? parseFloat(registrationData.insuranceValue) : undefined,
+      };
+
+      // Remove undefined values
+      const cleanBody = JSON.parse(JSON.stringify(requestBody));
+      
+      console.log("Sending registration to API:", cleanBody);
+
+      // Call the edge function
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data, error } = await supabase.functions.invoke('register-driver', {
+        body: cleanBody
       });
 
-      // Save vehicle information
-      const {
-        data: vehicleData,
-        error: vehicleError
-      } = await supabase.from('vehicles').insert({
-        driver_id: userId,
-        plate_number: registrationData.plateNumber,
-        plate_province: registrationData.plateProvince,
-        vehicle_brand: registrationData.vehicleBrand,
-        vehicle_color: registrationData.vehicleColor,
-        vin: registrationData.vin,
-        vehicle_type: registrationData.vehicleType,
-        fuel_type: registrationData.fuelType,
-        load_capacity: parseFloat(registrationData.loadCapacity),
-        width: registrationData.dimensions.width ? parseFloat(registrationData.dimensions.width) : null,
-        length: registrationData.dimensions.length ? parseFloat(registrationData.dimensions.length) : null,
-        height: registrationData.dimensions.height ? parseFloat(registrationData.dimensions.height) : null,
-        container_types: registrationData.containerTypes,
-        has_trailer: registrationData.hasTrailer,
-        trailer_plate_number: registrationData.trailerPlateNumber || null,
-        trailer_plate_province: registrationData.trailerPlateProvince || null
-      }).select().single();
-      if (vehicleError) {
-        console.error("Error saving vehicle:", vehicleError);
+      if (error) {
+        console.error("Registration API error:", error);
         toast({
           variant: "destructive",
           title: t('register.error'),
-          description: t('register.vehicleSaveFailed')
+          description: error.message || t('register.createAccountFailed')
         });
         return;
       }
 
-      // Upload vehicle photos
-      const vehiclePhotos = [{
-        type: 'front',
-        file: registrationData.frontPhoto
-      }, {
-        type: 'side',
-        file: registrationData.sidePhoto
-      }, {
-        type: 'back',
-        file: registrationData.backPhoto
-      }, {
-        type: 'plate',
-        file: registrationData.platePhoto
-      }, {
-        type: 'trailer_plate',
-        file: registrationData.trailerPlatePhoto
-      }];
-      for (const photo of vehiclePhotos) {
-        if (photo.file) {
-          const fileExt = photo.file.name.split('.').pop();
-          const fileName = `${userId}/${vehicleData.id}-${photo.type}-${Date.now()}.${fileExt}`;
-          const {
-            error: uploadError
-          } = await supabase.storage.from('vehicle-photos').upload(fileName, photo.file);
-          if (!uploadError) {
-            const {
-              data: {
-                publicUrl
-              }
-            } = supabase.storage.from('vehicle-photos').getPublicUrl(fileName);
-            await supabase.from('vehicle_photos').insert({
-              vehicle_id: vehicleData.id,
-              photo_type: photo.type,
-              photo_url: publicUrl
-            });
-          }
-        }
-      }
+      console.log("Registration API response:", data);
 
-      // Upload driver documents
-      const documents = [{
-        type: 'registration',
-        file: registrationData.registrationPhoto
-      }, {
-        type: 'insurance',
-        file: registrationData.insurancePhoto
-      }, {
-        type: 'license',
-        file: registrationData.licensePhoto
-      }, {
-        type: 'id_card',
-        file: registrationData.idCardPhoto
-      }, {
-        type: 'compulsory_insurance',
-        file: registrationData.compulsoryInsurancePhoto
-      }];
-      for (const doc of documents) {
-        if (doc.file) {
-          const fileExt = doc.file.name.split('.').pop();
-          const fileName = `${userId}/${doc.type}-${Date.now()}.${fileExt}`;
-          const {
-            error: uploadError
-          } = await supabase.storage.from('driver-documents').upload(fileName, doc.file);
-          if (!uploadError) {
-            const {
-              data: {
-                publicUrl
-              }
-            } = supabase.storage.from('driver-documents').getPublicUrl(fileName);
-            await supabase.from('driver_documents').insert({
-              driver_id: userId,
-              document_type: doc.type,
-              document_url: publicUrl,
-              insurance_value: doc.type === 'insurance' && registrationData.insuranceValue ? parseFloat(registrationData.insuranceValue) : null
-            });
-          }
-        }
-      }
       toast({
         title: t('register.success'),
         description: t('register.successDesc')
       });
+      
       setTimeout(() => {
         navigate("/");
       }, 1000);
