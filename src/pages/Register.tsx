@@ -152,38 +152,72 @@ const Register = () => {
     }
   };
   const uploadFile = async (file: File, bucket: string, path: string): Promise<string | null> => {
+    console.log(`[Upload] Starting upload: bucket=${bucket}, path=${path}, file=${file.name}, size=${file.size}`);
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       const fileExt = file.name.split('.').pop();
       const fileName = `${path}-${Date.now()}.${fileExt}`;
       
+      console.log(`[Upload] Uploading to ${bucket}/${fileName}...`);
       const { error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(fileName, file);
       
       if (uploadError) {
-        console.error(`Error uploading to ${bucket}:`, uploadError);
+        console.error(`[Upload] Error uploading to ${bucket}:`, uploadError);
         return null;
       }
       
       const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      console.log(`[Upload] Success: ${publicUrl}`);
       return publicUrl;
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('[Upload] Exception:', error);
       return null;
     }
   };
 
   const handleSubmit = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting) {
+      console.log("[Register] Already submitting, skipping...");
+      return;
+    }
     setIsSubmitting(true);
+    console.log("========================================");
+    console.log("[Register] Starting registration submission");
+    console.log("[Register] Registration data:", JSON.stringify(registrationData, (key, value) => {
+      if (value instanceof File) {
+        return `[File: ${value.name}, ${value.size} bytes]`;
+      }
+      return value;
+    }, 2));
+    console.log("========================================");
+    
     try {
-      console.log("Starting registration submission...");
-      
       // Generate a temporary ID for file paths
       const tempId = `temp-${Date.now()}`;
+      console.log(`[Register] Temp ID: ${tempId}`);
+      
+      // Count files to upload
+      const filesToUpload = [
+        registrationData.profilePhoto,
+        registrationData.frontPhoto,
+        registrationData.sidePhoto,
+        registrationData.backPhoto,
+        registrationData.platePhoto,
+        registrationData.trailerPlatePhoto,
+        registrationData.registrationPhoto,
+        registrationData.insurancePhoto,
+        registrationData.licensePhoto,
+        registrationData.idCardPhoto,
+        registrationData.compulsoryInsurancePhoto
+      ].filter(Boolean);
+      console.log(`[Register] Files to upload: ${filesToUpload.length}`);
       
       // Upload all files and get URLs
+      console.log("[Register] Starting file uploads...");
+      const uploadStartTime = Date.now();
+      
       const [
         profilePhotoUrl,
         frontPhotoUrl,
@@ -209,6 +243,21 @@ const Register = () => {
         registrationData.idCardPhoto ? uploadFile(registrationData.idCardPhoto, 'driver-documents', `${tempId}/id-card`) : Promise.resolve(null),
         registrationData.compulsoryInsurancePhoto ? uploadFile(registrationData.compulsoryInsurancePhoto, 'driver-documents', `${tempId}/compulsory-insurance`) : Promise.resolve(null),
       ]);
+      
+      console.log(`[Register] File uploads completed in ${Date.now() - uploadStartTime}ms`);
+      console.log("[Register] Upload results:", {
+        profilePhotoUrl,
+        frontPhotoUrl,
+        sidePhotoUrl,
+        backPhotoUrl,
+        platePhotoUrl,
+        trailerPlatePhotoUrl,
+        registrationPhotoUrl,
+        insurancePhotoUrl,
+        licensePhotoUrl,
+        idCardPhotoUrl,
+        compulsoryInsurancePhotoUrl
+      });
 
       // Build request body for external API
       const requestBody = {
@@ -263,16 +312,24 @@ const Register = () => {
       // Remove undefined values
       const cleanBody = JSON.parse(JSON.stringify(requestBody));
       
-      console.log("Sending registration to API:", cleanBody);
+      console.log("========================================");
+      console.log("[Register] Final request body:", JSON.stringify(cleanBody, null, 2));
+      console.log("========================================");
 
       // Call the edge function
+      console.log("[Register] Calling register-driver edge function...");
+      const apiStartTime = Date.now();
+      
       const { supabase } = await import("@/integrations/supabase/client");
       const { data, error } = await supabase.functions.invoke('register-driver', {
         body: cleanBody
       });
+      
+      console.log(`[Register] API call completed in ${Date.now() - apiStartTime}ms`);
 
       if (error) {
-        console.error("Registration API error:", error);
+        console.error("[Register] API Error:", error);
+        console.error("[Register] Error details:", JSON.stringify(error, null, 2));
         toast({
           variant: "destructive",
           title: t('register.error'),
@@ -281,7 +338,7 @@ const Register = () => {
         return;
       }
 
-      console.log("Registration API response:", data);
+      console.log("[Register] API Success! Response:", JSON.stringify(data, null, 2));
 
       toast({
         title: t('register.success'),
