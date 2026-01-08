@@ -33,32 +33,26 @@ serve(async (req) => {
       }
     );
 
-    // Find user by phone number in user_metadata
-    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    // Find user by phone number in profiles table
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('phone_number', phone)
+      .single();
 
-    if (listError) {
-      console.error("Error listing users:", listError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to find user" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-      );
-    }
-
-    // Find user with matching phone number
-    const user = users.users.find(
-      (u) => u.user_metadata?.phone === phone || u.phone === phone
-    );
-
-    if (!user) {
+    if (profileError || !profile) {
+      console.error("Error finding user:", profileError);
       return new Response(
         JSON.stringify({ success: false, error: "User not found" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
       );
     }
 
+    const userId = profile.id;
+
     // Update user password
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
+      userId,
       { password }
     );
 
