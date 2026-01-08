@@ -12,6 +12,7 @@ import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate } from '@/lib/dateUtils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import routeIcon from '@/assets/route-icon-2.png';
+import checkInIcon from '@/assets/check-in-icon.png';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -196,7 +197,7 @@ export default function PickupDetailPage() {
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-              <MapPin className="w-8 h-8 text-green-600" />
+              <img src={checkInIcon} alt="Check in" className="w-10 h-10" />
             </div>
             <DialogTitle className="text-xl text-center">
               {t('pickup.confirmTitle')}
