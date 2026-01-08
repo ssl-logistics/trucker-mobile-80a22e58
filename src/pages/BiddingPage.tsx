@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Clock, MapPin, CircleDot } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide } from 'lucide-react';
+import coinsIcon from '@/assets/coins-icon.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -8,13 +9,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerFooter } from '@/components/ui/drawer';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import type { Database } from '@/integrations/supabase/types';
+
 type BiddingJob = Database['public']['Tables']['jobs']['Row'];
 type JobBid = Database['public']['Tables']['job_bids']['Row'];
+
 interface Bid extends JobBid {
   jobs: BiddingJob;
 }
+
 export default function BiddingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -22,105 +34,310 @@ export default function BiddingPage() {
   const [availableJobs, setAvailableJobs] = useState<BiddingJob[]>([]);
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [activeTab, setActiveTab] = useState('bidding');
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  
+  // Filter states
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
-  const getMonthLabel = (monthValue: string) => {
-    const monthNames = {
-      th: ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'],
-      en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-      zh: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
-      ko: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-    };
-    const index = parseInt(monthValue);
-    return monthNames[language as keyof typeof monthNames]?.[index] || monthNames.en[index];
-  };
-
-  const months = [
-    { value: 'all', label: t('jobHistory.allMonths') },
-    { value: '0', label: getMonthLabel('0') },
-    { value: '1', label: getMonthLabel('1') },
-    { value: '2', label: getMonthLabel('2') },
-    { value: '3', label: getMonthLabel('3') },
-    { value: '4', label: getMonthLabel('4') },
-    { value: '5', label: getMonthLabel('5') },
-    { value: '6', label: getMonthLabel('6') },
-    { value: '7', label: getMonthLabel('7') },
-    { value: '8', label: getMonthLabel('8') },
-    { value: '9', label: getMonthLabel('9') },
-    { value: '10', label: getMonthLabel('10') },
-    { value: '11', label: getMonthLabel('11') },
-  ];
-
-  const filteredBids = selectedMonth === 'all' 
-    ? myBids 
-    : myBids.filter(bid => {
-        const bidMonth = new Date(bid.created_at).getMonth();
-        return bidMonth === parseInt(selectedMonth);
-      });
   useEffect(() => {
     if (user) {
       loadAvailableJobs();
       loadMyBids();
     }
   }, [user]);
+
   const loadAvailableJobs = async () => {
-    const {
-      data,
-      error
-    } = await supabase.from('jobs').select('*').eq('status', 'open_for_bidding').order('created_at', {
-      ascending: false
-    });
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'open_for_bidding')
+      .order('created_at', { ascending: false });
+
     if (!error && data) {
       setAvailableJobs(data);
     }
   };
+
   const loadMyBids = async () => {
     if (!user) return;
-    const {
-      data,
-      error
-    } = await supabase.from('job_bids').select('*, jobs(*)').eq('driver_id', user.id).order('created_at', {
-      ascending: false
-    });
+    const { data, error } = await supabase
+      .from('job_bids')
+      .select('*, jobs(*)')
+      .eq('driver_id', user.id)
+      .order('created_at', { ascending: false });
+
     if (!error && data) {
       setMyBids(data as Bid[]);
     }
   };
+
   const handlePlaceBid = (jobId: string) => {
     navigate(`/bidding/${jobId}`);
   };
+
+  const handleApplyFilter = () => {
+    setFilterOpen(false);
+  };
+
+  const handleResetFilter = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
+
   const getBidStatusBadge = (status: string) => {
     const statusConfig = {
       pending: {
         label: t('bidding.statusPending'),
-        variant: 'secondary' as const
+        className: 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
       },
       accepted: {
         label: t('bidding.statusAccepted'),
-        variant: 'default' as const
+        className: 'bg-green-50 text-green-700 hover:bg-green-100'
       },
       rejected: {
         label: t('bidding.statusRejected'),
-        variant: 'destructive' as const
+        className: 'bg-red-50 text-red-700 hover:bg-red-100'
       }
     };
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <Badge variant="secondary" className={config.className}>{config.label}</Badge>;
   };
-  return <div className="min-h-screen bg-background pb-20">
+
+  // Filter available jobs
+  const filteredAvailableJobs = availableJobs.filter(job => {
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        job.order_code.toLowerCase().includes(query) ||
+        job.employer_name.toLowerCase().includes(query) ||
+        (job.destination_company_name && job.destination_company_name.toLowerCase().includes(query)) ||
+        job.origin_location.toLowerCase().includes(query) ||
+        job.destination_location.toLowerCase().includes(query);
+      if (!matchesSearch) return false;
+    }
+
+    // Date range filter
+    if (startDate || endDate) {
+      const jobDate = new Date(job.start_date);
+      jobDate.setHours(0, 0, 0, 0);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (jobDate < start) return false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (jobDate > end) return false;
+      }
+    }
+    return true;
+  });
+
+  // Filter my bids
+  const filteredBids = myBids.filter(bid => {
+    if (!bid.jobs) return false;
+    
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        bid.jobs.order_code.toLowerCase().includes(query) ||
+        bid.jobs.employer_name.toLowerCase().includes(query) ||
+        (bid.jobs.destination_company_name && bid.jobs.destination_company_name.toLowerCase().includes(query)) ||
+        bid.jobs.origin_location.toLowerCase().includes(query) ||
+        bid.jobs.destination_location.toLowerCase().includes(query);
+      if (!matchesSearch) return false;
+    }
+
+    // Date range filter
+    if (startDate || endDate) {
+      const jobDate = new Date(bid.jobs.start_date);
+      jobDate.setHours(0, 0, 0, 0);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (jobDate < start) return false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (jobDate > end) return false;
+      }
+    }
+    return true;
+  });
+
+  const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-20 px-4">
+      <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center mb-4">
+        <MapPin className="w-16 h-16 text-muted-foreground" />
+      </div>
+      <p className="text-muted-foreground text-center">
+        {activeTab === 'bidding' ? t('bidding.noJobs') : t('bidding.noHistory')}
+      </p>
+    </div>
+  );
+
+  const renderJobCard = (job: BiddingJob, bidAmount?: number, bidStatus?: string, bidCreatedAt?: string) => (
+    <Card key={job.id} className="overflow-hidden bg-card">
+      <div className="flex items-center justify-between px-3 py-2 bg-white">
+        <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
+          {t('job.order_code')} {job.order_code}
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Clock className="w-3.5 h-3.5" />
+          {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+        </div>
+      </div>
+      <div className="p-4 space-y-3">
+        <div className="text-sm">
+          <span className="text-muted-foreground">{t('job.employer')} : </span>
+          <span className="font-medium">{job.employer_name}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {(job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่')) && (
+            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+              {t('job.domestic')}
+            </Badge>
+          )}
+          {(job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก')) && (
+            <>
+              <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+                {t('job.international')}
+              </Badge>
+              {job.transport_type?.includes('ขาเข้า') && (
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                  {t('job.inbound')}
+                </Badge>
+              )}
+              {job.transport_type?.includes('ขาออก') && (
+                <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
+                  {t('job.outbound')}
+                </Badge>
+              )}
+            </>
+          )}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {job.transport_type}
+        </div>
+
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 flex gap-2">
+            <div className="flex flex-col items-center">
+              <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <div className="w-0.5 flex-1 border-l-2 border-dashed border-gray-300 my-1"></div>
+              <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="text-xs">
+                <div className="text-muted-foreground">{t('job.origin')}</div>
+                <div className="font-medium">{job.origin_location}</div>
+              </div>
+              <div className="text-xs">
+                <div className="text-muted-foreground">{t('job.destination')}</div>
+                <div className="font-medium">{job.destination_location}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-right space-y-2">
+            {bidAmount !== undefined ? (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
+                <img src={coinsIcon} alt="coins" className="w-5 h-5" />
+                <span className="text-lg font-bold text-teal-500">฿ {bidAmount.toLocaleString()}</span>
+              </div>
+            ) : null}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
+              <CalendarIconLucide className="w-4 h-4 text-gray-500" />
+              <div className="text-left">
+                <div className="text-xs text-[#375B7B]">
+                  {t('currentJobs.startJobDate')}
+                </div>
+                <div className="text-xs font-medium">
+                  {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
+          <div>
+            <span className="text-[#375c7b]">{t('job.goodsType')} : </span>
+            <span>{job.origin_goods_type || '-'}</span>
+          </div>
+          <div>
+            <span className="text-[#375B7B]">{t('job.equipment')} : </span>
+            <span>{job.equipment_list || '-'}</span>
+          </div>
+          <div>
+            <span className="text-[#375B7B]">{t('job.safety')} : </span>
+            <span>{job.safety_equipment || '-'}</span>
+          </div>
+        </div>
+
+        {bidStatus && bidCreatedAt && (
+          <div className="flex items-center justify-between pt-2 border-t">
+            <span className="text-xs text-muted-foreground">
+              {t('bidding.bidAt')} {new Date(bidCreatedAt).toLocaleString(language === 'th' ? 'th-TH' : 'en-US', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </span>
+            {getBidStatusBadge(bidStatus)}
+          </div>
+        )}
+
+        {!bidAmount && (
+          <Button className="w-full h-11 text-base font-medium" onClick={() => handlePlaceBid(job.id)}>
+            {t('bidding.placeBid')}
+          </Button>
+        )}
+      </div>
+    </Card>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#DDEDFF] rounded-b-xl page-header-safe">
+      <header className="bg-header text-header-foreground sticky top-0 z-50 rounded-b-xl page-header-safe">
         <div className="flex items-center justify-center px-4 py-3 relative">
-          <button onClick={() => navigate('/home')} className="absolute left-4">
+          <button onClick={() => navigate('/home')} className="absolute left-0 p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('bidding.title')}</h1>
+          <h1 className="text-xl font-semibold">{t('bidding.title')}</h1>
         </div>
       </header>
 
+      {/* Search and Filter Bar */}
+      <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm sticky top-[60px] z-40">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input 
+              placeholder={t('currentJobs.search')} 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="pl-9 h-10 bg-white" 
+            />
+          </div>
+          <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setFilterOpen(true)}>
+            <Filter className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
+        <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-white">
           <TabsTrigger value="bidding" className="rounded-none">
             {t('bidding.biddingTab')}
           </TabsTrigger>
@@ -130,164 +347,86 @@ export default function BiddingPage() {
         </TabsList>
 
         <TabsContent value="bidding" className="px-4 mt-4 space-y-4">
-          {availableJobs.length === 0 ? <div className="text-center py-12 text-muted-foreground">
-              {t('bidding.noJobs')}
-            </div> : availableJobs.map(job => <Card key={job.id} className="p-4 space-y-3 bg-card">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
-                    {t('job.order_code')} {job.order_code}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock className="w-3.5 h-3.5" />
-                    {new Date(job.start_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
-                day: 'numeric',
-                month: 'short',
-                year: '2-digit'
-              })} | {job.start_time.substring(0, 5)}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">{t('job.employer')} : </span>
-                    <span className="font-medium">{job.destination_company_name || job.employer_name}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {job.transport_type}
-                  </div>
-
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start gap-2">
-                        <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                        <div className="text-xs">
-                          <div className="text-muted-foreground">{t('job.origin')}</div>
-                          <div className="font-medium">{job.origin_location}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                        <div className="text-xs">
-                          <div className="text-muted-foreground">{t('job.destination')}</div>
-                          <div className="font-medium">{job.destination_location}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {(job.equipment_list || job.safety_equipment) && <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
-                      {job.equipment_list && <div>
-                          <span className="text-muted-foreground">{t('job.equipment')} : </span>
-                          <span>{job.equipment_list}</span>
-                        </div>}
-                      {job.safety_equipment && <div>
-                          <span className="text-muted-foreground">{t('job.safety')} : </span>
-                          <span>{job.safety_equipment}</span>
-                        </div>}
-                    </div>}
-                </div>
-
-                <Button className="w-full h-11 text-base font-medium" onClick={() => handlePlaceBid(job.id)}>
-                  {t('bidding.placeBid')}
-                </Button>
-              </Card>)}
+          {filteredAvailableJobs.length === 0 ? (
+            <EmptyState />
+          ) : (
+            filteredAvailableJobs.map(job => renderJobCard(job))
+          )}
         </TabsContent>
 
-        <TabsContent value="history" className="px-4 mt-4">
-          <div className="mb-4">
-            <select 
-              className="w-full p-3 border rounded-lg bg-background"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              {months.map(month => (
-                <option key={month.value} value={month.value}>
-                  {month.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-4">
-            <h3 className="font-semibold text-sm mb-3">{t('bidding.monthLabel')}</h3>
-            {filteredBids.length === 0 ? <div className="text-center py-12 text-muted-foreground">
-                {t('bidding.noHistory')}
-              </div> : <div className="space-y-4">
-                {filteredBids.map(bid => <Card key={bid.id} className="p-4 space-y-3 bg-card">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
-                        {t('job.order_code')} {bid.jobs.order_code}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Clock className="w-3.5 h-3.5" />
-                        {new Date(bid.jobs.start_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: '2-digit'
-                  })} | {bid.jobs.start_time.substring(0, 5)}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">{t('job.employer')} : </span>
-                        <span className="font-medium">{bid.jobs.destination_company_name || bid.jobs.employer_name}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {bid.jobs.transport_type}
-                      </div>
-
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-start gap-2">
-                            <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            <div className="text-xs">
-                              <div className="text-muted-foreground">{t('job.origin')}</div>
-                              <div className="font-medium">{bid.jobs.origin_location}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                            <div className="text-xs">
-                              <div className="text-muted-foreground">{t('job.destination')}</div>
-                              <div className="font-medium">{bid.jobs.destination_location}</div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50">
-                          <span className="text-lg font-bold text-teal-700">฿ {bid.bid_amount.toLocaleString()}</span>
-                        </div>
-                      </div>
-
-                      {(bid.jobs.equipment_list || bid.jobs.safety_equipment) && <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-xs">
-                          {bid.jobs.equipment_list && <div>
-                              <span className="text-muted-foreground">{t('job.equipment')} : </span>
-                              <span>{bid.jobs.equipment_list}</span>
-                            </div>}
-                          {bid.jobs.safety_equipment && <div>
-                              <span className="text-muted-foreground">{t('job.safety')} : </span>
-                              <span>{bid.jobs.safety_equipment}</span>
-                            </div>}
-                        </div>}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <span className="text-xs text-muted-foreground">
-                        {t('bidding.bidAt')} {new Date(bid.created_at).toLocaleString(language === 'th' ? 'th-TH' : 'en-US', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                      </span>
-                      {getBidStatusBadge(bid.status)}
-                    </div>
-                  </Card>)}
-              </div>}
-          </div>
+        <TabsContent value="history" className="px-4 mt-4 space-y-4">
+          {filteredBids.length === 0 ? (
+            <EmptyState />
+          ) : (
+            filteredBids.map(bid => renderJobCard(bid.jobs, bid.bid_amount, bid.status, bid.created_at))
+          )}
         </TabsContent>
       </Tabs>
-    </div>;
+
+      {/* Filter Drawer */}
+      <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
+        <DrawerContent>
+          <DrawerHeader className="border-b">
+            <div className="flex items-center justify-between">
+              <DrawerTitle>{t('currentJobs.filter')}</DrawerTitle>
+              <DrawerClose>
+                <X className="w-5 h-5" />
+              </DrawerClose>
+            </div>
+          </DrawerHeader>
+
+          <div className="px-4 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            {/* Date Range Filter */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">{t('currentJobs.dateRange')}</Label>
+              <div className="flex items-center gap-3">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className={cn("flex-1 justify-start text-left font-normal h-11", !startDate && "text-muted-foreground")}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "dd/MM/yyyy") : t('currentJobs.startDate')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className="pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+                
+                <span className="text-muted-foreground">—</span>
+                
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className={cn("flex-1 justify-start text-left font-normal h-11", !endDate && "text-muted-foreground")}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "dd/MM/yyyy") : t('currentJobs.endDate')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus className="pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+
+          <DrawerFooter className="border-t">
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" onClick={handleResetFilter}>
+                {t('currentJobs.clearFilter')}
+              </Button>
+              <Button onClick={handleApplyFilter}>
+                {t('currentJobs.applyFilter')}
+              </Button>
+            </div>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </div>
+  );
 }
