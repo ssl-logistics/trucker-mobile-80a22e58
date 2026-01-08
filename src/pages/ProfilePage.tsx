@@ -22,7 +22,6 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { toast } from '@/hooks/use-toast';
-import troobLogo from '@/assets/troob-logo.png';
 
 interface ProfileData {
   full_name: string;
@@ -213,11 +212,6 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-      </div>
-
-      {/* Troob Logo */}
-      <div className="flex justify-center py-6">
-        <img src={troobLogo} alt="The Troob" className="h-12" />
       </div>
 
       {/* Profile Fields */}
