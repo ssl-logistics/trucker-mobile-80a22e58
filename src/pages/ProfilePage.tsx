@@ -183,7 +183,7 @@ export default function ProfilePage() {
           <img 
             src={profileBg} 
             alt="" 
-            className="w-full h-full object-cover pointer-events-none"
+            className="w-full h-full object-contain object-center pointer-events-none"
           />
         </div>
         <div className="flex justify-center relative">
