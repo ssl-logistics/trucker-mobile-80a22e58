@@ -112,53 +112,57 @@ const SignIn = () => {
     try {
       setServerError("");
       
-      // First, look up email by username using database function
-      const { data: email, error: lookupError } = await supabase
-        .rpc('get_email_by_username', { lookup_username: data.email });
-
-      if (lookupError || !email) {
-        console.error("Username lookup failed:", lookupError);
-        setServerError(t('signIn.invalidCredentials'));
-        return;
-      }
-
-      console.log("Found email for username:", email);
-
-      // Sign in with Supabase Auth using the found email
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: data.password
+      // POST to external login API
+      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+        },
+        body: JSON.stringify({
+          username: data.email,
+          password: data.password
+        })
       });
 
-      if (authError) {
-        if (authError.message.includes("Invalid") || authError.message.includes("credentials")) {
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        const errorMessage = result.error || result.message || 'Login failed';
+        
+        if (errorMessage.includes("Invalid") || errorMessage.includes("credentials")) {
           setServerError(t('signIn.invalidCredentials'));
         } else {
-          setServerError(authError.message);
+          setServerError(errorMessage);
         }
         
-        // Clear saved credentials on login failure
         localStorage.removeItem("rememberedEmail");
         localStorage.removeItem("rememberedPassword");
         localStorage.removeItem("rememberedUser");
         return;
       }
 
-      if (!authData.user) {
-        setServerError(t('signIn.error'));
-        return;
-      }
-
-      // Fetch user role from user_roles table
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .single();
-
-      const role = roleData?.role || 'freelance';
+      // Parse API response
+      const driver = result.data?.driver || null;
+      const userType = result.data?.user_type || null;
       
-      console.log("Login successful:", { userId: authData.user.id, role });
+      // Map user_type to app role
+      let role = 'freelance';
+      if (userType === 'freelance_driver') {
+        role = 'freelance';
+      } else if (userType === 'company') {
+        role = 'company';
+      } else if (userType === 'factory') {
+        role = 'factory';
+      }
+      
+      // Save driver data to localStorage
+      localStorage.setItem("auth_driver", JSON.stringify(driver));
+      localStorage.setItem("auth_user_type", userType || "");
+      localStorage.setItem("user_role", role);
+      localStorage.setItem("auth_driver_id", driver?.id || "");
+      
+      console.log("Login successful:", { driver, userType, role });
 
       // Save or clear credentials based on remember checkbox
       if (data.remember) {
@@ -171,10 +175,10 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
       }
       
-      // Navigate based on role
-      if (role === 'freelance') {
+      // Navigate based on user_type
+      if (userType === 'freelance_driver') {
         navigate("/home");
-      } else if (role === 'company' || role === 'factory') {
+      } else if (userType === 'company' || userType === 'factory') {
         navigate("/dashboard");
       } else {
         navigate("/home");
