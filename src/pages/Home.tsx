@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
-
 interface Job {
   id: string;
   order_code: string;
@@ -27,50 +29,25 @@ interface Job {
   isAccepted?: boolean;
 }
 
-interface DriverData {
-  id: string;
-  first_name: string;
-  last_name: string;
-  profile_photo_url: string | null;
-  front_photo_url: string | null;
-  [key: string]: unknown;
-}
-
 export default function Home() {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const { t } = useLanguage();
+  const { role } = useUserRole();
+  const { vehiclePhoto } = useVehiclePhoto();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  
-  // Get driver data from localStorage (from external API login)
-  const [driver, setDriver] = useState<DriverData | null>(null);
-  const [userRole, setUserRole] = useState<string>('');
 
   useEffect(() => {
-    // Load driver data from localStorage
-    const storedDriver = localStorage.getItem('auth_driver');
-    const storedRole = localStorage.getItem('user_role');
-    
-    if (storedDriver) {
-      try {
-        setDriver(JSON.parse(storedDriver));
-      } catch (e) {
-        console.error('Error parsing driver data:', e);
-      }
-    }
-    setUserRole(storedRole || '');
-  }, []);
-
-  useEffect(() => {
-    if (driver?.id) {
+    if (user) {
       loadJobs();
     }
-  }, [driver]);
+  }, [user]);
 
   // Subscribe to jobs table changes for real-time updates
   useEffect(() => {
-    if (driver?.id) {
+    if (user) {
       const jobsChannel = supabase
         .channel('jobs-changes')
         .on(
@@ -90,8 +67,7 @@ export default function Home() {
         supabase.removeChannel(jobsChannel);
       };
     }
-  }, [driver]);
-
+  }, [user]);
   const loadJobs = async () => {
     const {
       data,
@@ -108,13 +84,13 @@ export default function Home() {
         variant: 'destructive'
       });
     } else {
-      console.log('Loaded jobs for role:', userRole, 'Total jobs:', data?.length);
-      // Check which jobs the driver has accepted and completed
-      if (driver?.id) {
+      console.log('Loaded jobs for role:', role, 'Total jobs:', data?.length);
+      // Check which jobs the user has accepted and completed
+      if (user) {
         const { data: applications } = await supabase
           .from('job_applications')
           .select('job_id, payment_completed_at')
-          .eq('driver_id', driver.id);
+          .eq('driver_id', user.id);
         
         const completedJobIds = new Set(
           applications?.filter(app => app.payment_completed_at).map(app => app.job_id) || []
@@ -135,19 +111,17 @@ export default function Home() {
       }
     }
   };
-
   const handleAcceptJob = (job: Job) => {
     setSelectedJob(job);
     setConfirmDialogOpen(true);
   };
-
   const confirmJobAcceptance = async () => {
-    if (!selectedJob || !driver?.id) return;
+    if (!selectedJob || !user) return;
     
     // Insert job application
     const { error } = await supabase.from('job_applications').insert({
       job_id: selectedJob.id,
-      driver_id: driver.id,
+      driver_id: user.id,
       status: 'pending'
     });
     
@@ -160,8 +134,12 @@ export default function Home() {
       return;
     }
 
-    // Use driver data from localStorage for external system
-    const driverName = `${driver.first_name || ''} ${driver.last_name || ''}`.trim();
+    // Get driver profile info
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('full_name, phone_number')
+      .eq('id', user.id)
+      .single();
 
     // Send job status to external system
     try {
@@ -169,8 +147,8 @@ export default function Home() {
         body: {
           external_job_id: selectedJob.order_code,
           status: 'accepted',
-          driver_name: driverName,
-          driver_phone: ''
+          driver_name: profileData?.full_name || '',
+          driver_phone: profileData?.phone_number || ''
         }
       });
 
@@ -190,25 +168,16 @@ export default function Home() {
     setConfirmDialogOpen(false);
     loadJobs();
   };
-
-  const handleSignOut = () => {
-    // Clear localStorage auth data
-    localStorage.removeItem('auth_driver');
-    localStorage.removeItem('auth_user_type');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('auth_driver_id');
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
     navigate('/');
   };
-
-  // Get display name and photo from driver data
-  const displayName = driver ? `${driver.first_name || ''} ${driver.last_name || ''}`.trim() : '';
-  const profilePhoto = driver?.profile_photo_url || driver?.front_photo_url || undefined;
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header and Search Bar - Sticky Together */}
       <div className="sticky top-0 z-50">
         <AppHeader 
-          userName={displayName} 
-          profilePhoto={profilePhoto}
+          userName={profile?.full_name} 
+          profilePhoto={profile?.avatar_url || vehiclePhoto || undefined} 
           onSignOut={handleSignOut} 
           showQuickMenu={true} 
         />
