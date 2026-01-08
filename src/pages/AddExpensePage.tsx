@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Camera, Pencil, Plus, Trash2 } from "lucide-react";
+import confirmSuccessIcon from "@/assets/confirm-success-icon.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -391,11 +392,7 @@ const AddExpensePage = () => {
         <AlertDialogContent className="max-w-[280px] rounded-2xl p-6">
           <AlertDialogHeader className="space-y-3">
             <div className="flex justify-center">
-              <div className="w-14 h-14 bg-[#0A8778] rounded-full flex items-center justify-center">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
+              <img src={confirmSuccessIcon} alt="Success" className="w-14 h-14" />
             </div>
             <AlertDialogTitle className="text-center text-base font-semibold text-gray-800">
               {t('expense.confirmTitle')}
