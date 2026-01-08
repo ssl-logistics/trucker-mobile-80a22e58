@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Clock, CircleDot, MapPin } from "lucide-react";
+import coinsIcon from '@/assets/coins-icon.png';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -180,9 +181,9 @@ export default function JobHistoryPage() {
               // Guard clause for null jobs
               if (!app.jobs) return null;
               
-              return <Card key={app.id} className="p-4 space-y-3 bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/job/${app.jobs!.id}`)}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-xs font-medium">
+              return <Card key={app.id} className="overflow-hidden bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/job/${app.jobs!.id}`)}>
+                  <div className="flex items-center justify-between px-3 py-2 bg-white">
+                    <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
                       {t('job.order_code')} {app.jobs.order_code}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -190,8 +191,7 @@ export default function JobHistoryPage() {
                       {formatDate(app.jobs.start_date, language)} | {formatTime(app.jobs.start_time)}
                     </div>
                   </div>
-
-                  <div className="space-y-2">
+                  <div className="p-4 space-y-3">
                     <div className="text-sm">
                       <span className="text-muted-foreground">{t('job.employer')} : </span>
                       <span className="font-medium">{app.jobs.destination_company_name || app.jobs.employer_name}</span>
@@ -217,16 +217,17 @@ export default function JobHistoryPage() {
                     </div>
 
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-start gap-2">
-                          <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 flex gap-2">
+                        <div className="flex flex-col items-center">
+                          <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          <div className="w-0.5 flex-1 border-l-2 border-dashed border-gray-300 my-1"></div>
+                          <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
+                        </div>
+                        <div className="flex-1 space-y-2">
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.origin')}</div>
                             <div className="font-medium">{app.jobs.origin_location}</div>
                           </div>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.destination')}</div>
                             <div className="font-medium">{app.jobs.destination_location}</div>
@@ -234,8 +235,9 @@ export default function JobHistoryPage() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50">
-                        <span className="text-lg font-bold text-teal-700">฿ {app.jobs.price.toLocaleString()}</span>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
+                        <img src={coinsIcon} alt="coins" className="w-5 h-5" />
+                        <span className="text-lg font-bold text-teal-500">฿ {app.jobs.price.toLocaleString()}</span>
                       </div>
                     </div>
 
