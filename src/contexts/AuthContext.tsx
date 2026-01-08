@@ -1,29 +1,30 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 
-interface UserProfile {
+interface DriverData {
+  id: string;
   full_name: string;
   avatar_url: string | null;
+  phone_number?: string;
+  username?: string;
+  [key: string]: any;
 }
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: DriverData | null;
   loading: boolean;
-  profile: UserProfile | null;
-  refreshProfile: () => Promise<void>;
+  role: string;
+  isAuthenticated: boolean;
+  logout: () => void;
+  refreshUser: () => void;
 }
-
-// Global cache for profile to prevent flickering during navigation
-let cachedProfile: UserProfile | null = null;
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  session: null,
   loading: true,
-  profile: null,
-  refreshProfile: async () => {},
+  role: 'freelance',
+  isAuthenticated: false,
+  logout: () => {},
+  refreshUser: () => {},
 });
 
 export const useAuth = () => {
@@ -34,112 +35,85 @@ export const useAuth = () => {
   return context;
 };
 
-// Export function to clear all caches on logout
-export const clearAuthCache = () => {
-  cachedProfile = null;
-};
-
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<DriverData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<UserProfile | null>(cachedProfile);
+  const [role, setRole] = useState<string>('freelance');
 
-  const fetchProfile = async (userId: string) => {
+  const loadUserFromStorage = () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      if (data) {
-        cachedProfile = data;
-        setProfile(data);
+      const driverData = localStorage.getItem('auth_driver');
+      const userRole = localStorage.getItem('user_role');
+      const userType = localStorage.getItem('auth_user_type');
+      
+      if (driverData) {
+        const driver = JSON.parse(driverData);
+        setUser(driver);
+        
+        // Map user_type to role - freelance_driver becomes freelance
+        let mappedRole = 'freelance';
+        if (userType === 'freelance_driver') {
+          mappedRole = 'freelance';
+        } else if (userType === 'company') {
+          mappedRole = 'company';
+        } else if (userType === 'factory') {
+          mappedRole = 'factory';
+        } else if (userRole) {
+          mappedRole = userRole;
+        }
+        
+        setRole(mappedRole);
+      } else {
+        setUser(null);
+        setRole('freelance');
       }
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      console.error('Error loading user from storage:', error);
+      setUser(null);
+      setRole('freelance');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const refreshProfile = async () => {
-    if (user) {
-      cachedProfile = null; // Clear cache to force refresh
-      await fetchProfile(user.id);
-    }
+  const logout = () => {
+    localStorage.removeItem('auth_driver');
+    localStorage.removeItem('auth_user_type');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('auth_driver_id');
+    setUser(null);
+    setRole('freelance');
+  };
+
+  const refreshUser = () => {
+    loadUserFromStorage();
   };
 
   useEffect(() => {
-    let mounted = true;
-
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event: AuthChangeEvent, currentSession: Session | null) => {
-        console.log('Auth event:', event, 'Session:', currentSession ? 'exists' : 'null');
-        
-        if (!mounted) return;
-
-        // Handle the session
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-
-        // Clear cache and fetch profile on login
-        if (event === 'SIGNED_IN' && currentSession?.user) {
-          cachedProfile = null; // Clear cache on new login
-          setTimeout(() => {
-            fetchProfile(currentSession.user.id);
-          }, 0);
-        }
-
-        // Clear cache on logout
-        if (event === 'SIGNED_OUT') {
-          cachedProfile = null;
-          setProfile(null);
-        }
-        
-        // Only set loading to false after we've handled the initial session
-        if (loading) {
-          setLoading(false);
-        }
+    loadUserFromStorage();
+    
+    // Listen for storage changes (for multi-tab support)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'auth_driver' || e.key === 'user_role' || e.key === 'auth_user_type') {
+        loadUserFromStorage();
       }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      if (mounted) {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        // Fetch profile if we have a session and no cached profile
-        if (currentSession?.user && !cachedProfile) {
-          fetchProfile(currentSession.user.id);
-        }
-        
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
     };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const value = {
     user,
-    session,
     loading,
-    profile,
-    refreshProfile,
+    role,
+    isAuthenticated: !!user,
+    logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

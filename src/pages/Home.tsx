@@ -31,7 +31,7 @@ interface Job {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useLanguage();
   const { role } = useUserRole();
   const { vehiclePhoto } = useVehiclePhoto();
@@ -168,16 +168,16 @@ export default function Home() {
     setConfirmDialogOpen(false);
     loadJobs();
   };
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    logout();
     navigate('/');
   };
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header and Search Bar - Sticky Together */}
       <div className="sticky top-0 z-50">
         <AppHeader 
-          userName={profile?.full_name} 
-          profilePhoto={profile?.avatar_url || vehiclePhoto || undefined} 
+          userName={user?.full_name} 
+          profilePhoto={user?.avatar_url || vehiclePhoto || undefined} 
           onSignOut={handleSignOut} 
           showQuickMenu={true} 
         />
