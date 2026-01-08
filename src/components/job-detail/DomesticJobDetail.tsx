@@ -306,7 +306,7 @@ export default function DomesticJobDetail({
                     } else {
                       navigate(`/job/${job.id}/pickup`);
                     }
-                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] bg-[#225896]">
+                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent">
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
