@@ -41,6 +41,22 @@ interface JobApplication {
   delivery_sop_completed_at: string | null;
 }
 
+interface JobDestination {
+  id: string;
+  sequence_number: number;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  province: string | null;
+  district: string | null;
+  delivery_date: string | null;
+  delivery_time: string | null;
+  notes: string | null;
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+}
+
 interface Expense {
   id: string;
   expense_type: string;
@@ -56,6 +72,7 @@ export default function JobRouteExpensesPage() {
   const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
+  const [destinations, setDestinations] = useState<JobDestination[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -84,10 +101,20 @@ export default function JobRouteExpensesPage() {
         .select('status, payment_completed_at, checked_in_at, sop_completed_at, delivery_checked_in_at, delivery_sop_completed_at')
         .eq('job_id', jobId)
         .eq('driver_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (appError) throw appError;
       setJobApplication(appData);
+
+      // Load job destinations
+      const { data: destinationsData, error: destinationsError } = await supabase
+        .from('job_destinations')
+        .select('*')
+        .eq('job_id', jobId)
+        .order('sequence_number', { ascending: true });
+
+      if (destinationsError) throw destinationsError;
+      setDestinations(destinationsData || []);
 
       // Load expenses
       const { data: expensesData, error: expensesError } = await supabase
@@ -129,7 +156,8 @@ export default function JobRouteExpensesPage() {
     );
   }
 
-  const pickupPoints = job.transport_type?.includes('หลายที่') ? 4 : 1;
+  // Calculate total points: 1 pickup + destinations count (or at least 1 if no destinations)
+  const totalPoints = 1 + (destinations.length > 0 ? destinations.length : 1);
   const totalItems = 60;
 
   return (
@@ -161,7 +189,7 @@ export default function JobRouteExpensesPage() {
               </Card>
               <Card className="p-3 text-center bg-muted/50">
                 <img src={routeIcon} alt="route" className="w-6 h-6 mx-auto mb-1" />
-                <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.pickupDelivery')}: {pickupPoints}</div>
+                <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.pickupDelivery')}: {totalPoints}</div>
               </Card>
               <Card className="p-3 text-center bg-muted/50">
                 <img src={boxIcon} alt="box" className="w-6 h-6 mx-auto mb-1" />
@@ -189,8 +217,8 @@ export default function JobRouteExpensesPage() {
                   <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                     <CheckCircle2 className="w-4 h-4 text-white" />
                   </div>
-                  {/* Dashed line */}
-                  <div className="absolute left-3 top-6 w-0.5 h-24 border-l-2 border-dashed border-muted-foreground"></div>
+                  {/* Dashed line to next point */}
+                  <div className="absolute left-3 top-6 w-0.5 h-[calc(100%+16px)] border-l-2 border-dashed border-muted-foreground"></div>
                 </div>
 
                 <Card className="p-4 mb-4">
@@ -232,53 +260,104 @@ export default function JobRouteExpensesPage() {
                 </Card>
               </div>
 
-              {/* Delivery Points */}
-              {job.destination_location && (
-                <div className="relative pl-8">
-                  <div className="absolute left-0 top-0">
-                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                    </div>
-                  </div>
-
-                  <Card className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="font-semibold">{t('jobRoute.deliveryPoint')} {job.destination_contact_person || job.destination_location.split(' ')[0]}</div>
-                      {jobApplication.delivery_sop_completed_at && (
-                        <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
-                          <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
-                          {t('jobRoute.podSuccess')}
-                        </Badge>
+              {/* Delivery Points from job_destinations */}
+              {destinations.length > 0 ? (
+                destinations.map((destination, index) => (
+                  <div key={destination.id} className="relative pl-8">
+                    <div className="absolute left-0 top-0">
+                      <div className={`w-6 h-6 rounded-full ${destination.sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      </div>
+                      {/* Dashed line to next point (if not last) */}
+                      {index < destinations.length - 1 && (
+                        <div className="absolute left-3 top-6 w-0.5 h-[calc(100%+16px)] border-l-2 border-dashed border-muted-foreground"></div>
                       )}
                     </div>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.contactName')}</span>
-                        <span className="text-foreground">: {job.destination_contact_person || '-'}</span>
+
+                    <Card className="p-4 mb-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="font-semibold">{t('jobRoute.deliveryPoint')} {destination.sequence_number} - {destination.company_name || destination.province || '-'}</div>
+                        {destination.sop_completed_at && (
+                          <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                            <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
+                            {t('jobRoute.podSuccess')}
+                          </Badge>
+                        )}
                       </div>
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.billNumber')}</span>
-                        <span className="text-foreground">: {job.destination_bill_of_lading || job.order_code}</span>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.contactName')}</span>
+                          <span className="text-foreground">: {destination.contact_name || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.phone')}</span>
+                          <span className="text-foreground">: {destination.contact_phone || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.destination')}</span>
+                          <span className="text-foreground">: {destination.address || `${destination.district || ''} ${destination.province || ''}`.trim() || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
+                          <span className="text-foreground">: {destination.delivery_date ? formatDate(destination.delivery_date, language) : '-'} {destination.delivery_time ? `| ${destination.delivery_time}` : ''}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.remarks')}</span>
+                          <span className="text-foreground">: {destination.notes || '-'}</span>
+                        </div>
                       </div>
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.destination')}</span>
-                        <span className="text-foreground">: {job.destination_location}</span>
-                      </div>
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.productType')}</span>
-                        <span className="text-foreground">: {job.transport_type}</span>
-                      </div>
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
-                        <span className="text-foreground">: {formatDate(job.start_date, language)} | {job.start_time}</span>
-                      </div>
-                      <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.remarks')}</span>
-                        <span className="text-foreground">: {job.destination_remarks || '-'}</span>
+                    </Card>
+                  </div>
+                ))
+              ) : (
+                /* Fallback to original destination if no job_destinations */
+                job.destination_location && (
+                  <div className="relative pl-8">
+                    <div className="absolute left-0 top-0">
+                      <div className={`w-6 h-6 rounded-full ${jobApplication.delivery_sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
+                        <CheckCircle2 className="w-4 h-4 text-white" />
                       </div>
                     </div>
-                  </Card>
-                </div>
+
+                    <Card className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="font-semibold">{t('jobRoute.deliveryPoint')} {job.destination_contact_person || job.destination_location.split(' ')[0]}</div>
+                        {jobApplication.delivery_sop_completed_at && (
+                          <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                            <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
+                            {t('jobRoute.podSuccess')}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.contactName')}</span>
+                          <span className="text-foreground">: {job.destination_contact_person || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.billNumber')}</span>
+                          <span className="text-foreground">: {job.destination_bill_of_lading || job.order_code}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.destination')}</span>
+                          <span className="text-foreground">: {job.destination_location}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.productType')}</span>
+                          <span className="text-foreground">: {job.transport_type}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
+                          <span className="text-foreground">: {formatDate(job.start_date, language)} | {job.start_time}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.remarks')}</span>
+                          <span className="text-foreground">: {job.destination_remarks || '-'}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                )
               )}
             </div>
           </TabsContent>
