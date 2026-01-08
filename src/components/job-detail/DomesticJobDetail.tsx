@@ -306,15 +306,15 @@ export default function DomesticJobDetail({
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10">
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1">
                       <Phone className="w-4 h-4" />
-                      {t('jobDetail.call')}
+                      <span className="text-xs">{t('jobDetail.call')}</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="h-10">
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1">
                       <Navigation className="w-4 h-4" />
-                      {t('jobDetail.route')}
+                      <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
-                    <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => {
+                    <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700 flex flex-col items-center justify-center gap-0.5 p-1" onClick={() => {
                     if (jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.id}/pickup-summary`);
                     } else if (jobApplication?.checked_in_at) {
@@ -323,7 +323,7 @@ export default function DomesticJobDetail({
                       navigate(`/job/${job.id}/pickup`);
                     }
                   }}>
-                      {jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                      <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
                 </div>
