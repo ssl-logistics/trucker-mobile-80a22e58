@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { formatDate } from '@/lib/dateUtils';
+import coinsIcon from '@/assets/coins-icon.png';
 
 interface JobDetail {
   id: string;
@@ -184,14 +185,8 @@ export default function DomesticJobDetail({
       <div className="px-4 py-4 space-y-4">
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-3">
-          <Card className="p-3 bg-[#E8F5F4] border-0">
-            <div className="flex items-center gap-1 mb-1">
-              <div className="w-5 h-5 text-[#0A8778]">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </div>
-            </div>
+          <Card className="p-3 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
+            <img src={coinsIcon} alt="price" className="w-6 h-6 mb-1" />
             <div className="text-xl font-bold text-[#0A8778]">฿ {job.price.toLocaleString()}</div>
           </Card>
           <Card className="p-3 bg-[#E8E8E8] border-0">
