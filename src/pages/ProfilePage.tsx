@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Camera, Edit2 } from 'lucide-react';
+import profileBg from '@/assets/profile-bg.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -177,7 +178,12 @@ export default function ProfilePage() {
       </header>
 
       {/* Avatar Section */}
-      <div className="bg-white px-4 py-8">
+      <div className="relative bg-white px-4 py-8">
+        <img 
+          src={profileBg} 
+          alt="" 
+          className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
+        />
         <div className="flex justify-center relative">
           <div className="relative">
             <Avatar className="w-32 h-32">
