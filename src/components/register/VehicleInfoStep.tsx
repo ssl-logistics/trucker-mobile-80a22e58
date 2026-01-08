@@ -131,6 +131,9 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
       return;
     }
     
+    // Scroll to top before moving to next step
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     onNext({
       ...formData,
       dimensions: {
@@ -423,7 +426,10 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         <Button
           type="button"
           variant="outline"
-          onClick={onBack}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            onBack();
+          }}
           className="flex-1 rounded-xl h-12 text-base font-medium border-2"
         >
           {t('vehicleInfoStep.back')}
