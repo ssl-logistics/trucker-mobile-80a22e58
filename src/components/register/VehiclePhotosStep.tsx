@@ -216,7 +216,10 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
           <Button
             type="button"
             variant="outline"
-            onClick={onBack}
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              onBack();
+            }}
             className="flex-1 rounded-xl h-12 text-base font-medium border-2"
           >
             {t('vehiclePhotosStep.back')}
