@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Pencil, X } from "lucide-react";
+import { Pencil, X, Loader2 } from "lucide-react";
 import { RegistrationData } from "@/pages/Register";
 
 interface ReviewStepProps {
@@ -11,14 +11,26 @@ interface ReviewStepProps {
   onBack: () => void;
   onSubmit: () => void;
   onEditStep: (step: number) => void;
+  isSubmitting?: boolean;
 }
 
-const ReviewStep = ({ data, onBack, onSubmit, onEditStep }: ReviewStepProps) => {
+const ReviewStep = ({ data, onBack, onSubmit, onEditStep, isSubmitting = false }: ReviewStepProps) => {
   const { t } = useLanguage();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   return (
-    <div className="space-y-6">
+    <>
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center animate-fade-in">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-12 h-12 text-white animate-spin" />
+            <p className="text-white text-lg font-medium">{t('review.creating') || 'กำลังสร้างบัญชี...'}</p>
+          </div>
+        </div>
+      )}
+      
+      <div className="space-y-6">
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general">{t('review.generalInfo')}</TabsTrigger>
@@ -298,9 +310,17 @@ const ReviewStep = ({ data, onBack, onSubmit, onEditStep }: ReviewStepProps) => 
         <Button
           type="button"
           onClick={onSubmit}
+          disabled={isSubmitting}
           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 text-base font-medium"
         >
-          {t('review.createAccount')}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {t('review.creating') || 'กำลังสร้าง...'}
+            </>
+          ) : (
+            t('review.createAccount')
+          )}
         </Button>
       </div>
 
@@ -323,7 +343,8 @@ const ReviewStep = ({ data, onBack, onSubmit, onEditStep }: ReviewStepProps) => 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </>
   );
 };
 
