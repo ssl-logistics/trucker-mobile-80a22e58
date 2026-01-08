@@ -143,10 +143,42 @@ const SignIn = () => {
         return;
       }
 
-      // If API returns session data, set it in Supabase client
-      if (result.session) {
-        const { supabase } = await import("@/integrations/supabase/client");
-        await supabase.auth.setSession(result.session);
+      // Import supabase client
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      // If API returns session data (access_token & refresh_token), set it in Supabase client
+      if (result.session?.access_token && result.session?.refresh_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token
+        });
+        
+        if (sessionError) {
+          console.error("Failed to set session:", sessionError);
+          setServerError(t('signIn.error'));
+          return;
+        }
+      } else if (result.access_token && result.refresh_token) {
+        // Alternative: tokens at root level of response
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: result.access_token,
+          refresh_token: result.refresh_token
+        });
+        
+        if (sessionError) {
+          console.error("Failed to set session:", sessionError);
+          setServerError(t('signIn.error'));
+          return;
+        }
+      }
+
+      // Fetch user data after successful authentication
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error("Failed to fetch user:", userError);
+      } else {
+        console.log("Logged in user:", userData.user);
       }
 
       // Save or clear credentials based on remember checkbox
@@ -159,6 +191,7 @@ const SignIn = () => {
         localStorage.removeItem("rememberedPassword");
         localStorage.removeItem("rememberedUser");
       }
+      
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
