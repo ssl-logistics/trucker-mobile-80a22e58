@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Camera, CheckCircle2, Image } from "lucide-react";
+import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -49,6 +51,7 @@ const ContainerSOPPage = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [checkInTime] = useState(new Date());
 
   useEffect(() => {
     if (jobId && user) {
@@ -189,8 +192,8 @@ const ContainerSOPPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">{t('containerSop.loading')}</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -204,128 +207,139 @@ const ContainerSOPPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#245D9E] text-white p-4 flex items-center gap-3">
-        <button onClick={() => navigate(`/job/${jobId}`)}>
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <h1 className="text-lg font-semibold text-center flex-1">
-          {t('containerSop.title')} {jobDetail.container_checkpoint}
-        </h1>
-      </div>
+      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
+        <div className="flex items-center justify-between">
+          <button onClick={() => navigate(`/job/${jobId}`)}>
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <h1 className="text-lg font-semibold">
+            {t('containerSop.title')} {jobDetail.container_checkpoint}
+          </h1>
+          <div className="w-6" />
+        </div>
+      </header>
 
-      <div className="p-4 space-y-4">
+      <div className="px-4 py-6 space-y-6">
         <JobActionButtons jobId={jobId} />
 
-        <div className="bg-[#E8F5E9] border border-[#4CAF50] rounded-lg p-3 flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-[#4CAF50]" />
-          <div className="flex-1">
-            <div className="font-medium text-[#2E7D32]">{t('sop.checkInSuccess')}</div>
-            <div className="text-sm text-[#2E7D32]">
-              {formatDate(jobDetail.start_date, language)} | {jobDetail.start_time?.substring(0, 5) || ''}
+        <Card className="p-4 bg-green-50 border-green-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+              <CheckCircle className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold text-green-900">{t('sop.checkInSuccess')}</div>
+              <div className="text-sm text-green-700">
+                {formatDate(jobDetail.start_date, language)} | {formatTime(checkInTime)}
+              </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">
+          <Label className="text-base">
             {t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
-          </label>
+          </Label>
           
-          {photoPreview ? (
-            <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4">
+          <button
+            onClick={() => setShowPhotoDrawer(true)}
+            className="w-full h-64 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-white"
+          >
+            {photoPreview ? (
               <img 
                 src={photoPreview} 
                 alt="Preview" 
-                className="w-full h-auto rounded"
+                className="w-full h-full object-cover rounded-lg"
               />
-              <button
-                onClick={() => setShowPhotoDrawer(true)}
-                className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-lg"
-              >
-                <Camera className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowPhotoDrawer(true)}
-              className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center gap-2 hover:border-gray-400 transition-colors"
-            >
-              <Camera className="w-8 h-8 text-gray-400" />
-              <span className="text-sm text-gray-500">
-                {t('containerSop.clickToTake')}
-              </span>
-            </button>
-          )}
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground text-center px-4" dangerouslySetInnerHTML={{ __html: `${t('sop.clickToTake')}<br />${t('sop.productPhoto')}` }} />
+              </>
+            )}
+          </button>
         </div>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-        <Button
+        <Button 
+          className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={!photoFile || uploading}
-          className="w-full h-12 text-base bg-[#0FA968] hover:bg-[#0C8B53] text-white"
+          disabled={uploading || !photoFile}
         >
           {uploading ? t('sop.saving') : t('containerSop.confirmButton')}
         </Button>
       </div>
 
-      <Drawer open={showPhotoDrawer} onOpenChange={setShowPhotoDrawer}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle className="text-center">{t('sop.selectSource')}</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-4 space-y-2">
-            <button
-              onClick={() => handlePhotoSelect('camera')}
-              className="w-full flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
-            >
-              <Camera className="w-5 h-5" />
-              <span>{t('sop.takePhoto')}</span>
-            </button>
-            <button
-              onClick={() => handlePhotoSelect('gallery')}
-              className="w-full flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
-            >
-              <Image className="w-5 h-5" />
-              <span>{t('sop.selectFromGallery')}</span>
-            </button>
-          </div>
-          <DrawerFooter>
-            <DrawerClose asChild>
-              <Button variant="outline">{t('sop.cancel')}</Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('containerSop.confirmTitle')}</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-[340px] rounded-2xl">
+          <DialogHeader className="items-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+              <span className="text-4xl">⚠️</span>
+            </div>
+            <DialogTitle className="text-xl text-center">
+              {t('containerSop.confirmTitle')}
+            </DialogTitle>
+            <DialogDescription className="text-center text-base">
               {t('containerSop.confirmMessage')}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex-row gap-3 sm:gap-3">
             <Button
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
+              className="flex-1 h-11"
               disabled={uploading}
             >
               {t('sop.cancel')}
             </Button>
             <Button
               onClick={handleConfirmSOP}
+              className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
               disabled={uploading}
-              className="bg-[#0FA968] hover:bg-[#0C8B53] text-white"
             >
               {uploading ? t('sop.saving') : t('sop.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Drawer open={showPhotoDrawer} onOpenChange={setShowPhotoDrawer}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">{t('sop.selectSource')}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
+            <Button
+              variant="outline"
+              className="w-full h-14 text-base justify-start gap-3"
+              onClick={() => handlePhotoSelect('camera')}
+            >
+              <Camera className="w-6 h-6" />
+              {t('sop.takePhoto')}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-14 text-base justify-start gap-3"
+              onClick={() => handlePhotoSelect('gallery')}
+            >
+              <ImageIcon className="w-6 h-6" />
+              {t('sop.selectFromGallery')}
+            </Button>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full h-12">
+                {t('sop.cancel')}
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
