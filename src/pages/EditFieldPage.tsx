@@ -108,7 +108,7 @@ export default function EditFieldPage() {
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="border-b border-gray-300 rounded-none px-0 pb-2 focus-visible:ring-0 focus-visible:border-blue-600 text-lg"
+              className="border-0 border-b border-gray-300 rounded-none px-0 pb-2 focus-visible:ring-0 focus-visible:border-blue-600 text-lg shadow-none"
               placeholder={getFieldLabel()}
               autoFocus
             />
