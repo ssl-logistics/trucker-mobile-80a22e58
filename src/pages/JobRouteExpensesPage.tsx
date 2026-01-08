@@ -221,8 +221,8 @@ export default function JobRouteExpensesPage() {
               {/* Pickup Point */}
               <div className="relative pl-8">
                 <div className="absolute left-0 top-0">
-                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-white" />
                   </div>
                   {/* Dashed line to next point */}
                   <div className="absolute left-3 top-6 w-0.5 h-[calc(100%+16px)] border-l-2 border-dashed border-muted-foreground"></div>
@@ -272,8 +272,8 @@ export default function JobRouteExpensesPage() {
                 destinations.map((destination, index) => (
                   <div key={destination.id} className="relative pl-8">
                     <div className="absolute left-0 top-0">
-                      <div className={`w-6 h-6 rounded-full ${destination.sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
-                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      <div className={`w-7 h-7 rounded-full ${destination.sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
+                        <CheckCircle2 className="w-5 h-5 text-white" />
                       </div>
                       {/* Dashed line to next point (if not last) */}
                       {index < destinations.length - 1 && (
@@ -321,8 +321,8 @@ export default function JobRouteExpensesPage() {
                 job.destination_location && (
                   <div className="relative pl-8">
                     <div className="absolute left-0 top-0">
-                      <div className={`w-6 h-6 rounded-full ${jobApplication.delivery_sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
-                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      <div className={`w-7 h-7 rounded-full ${jobApplication.delivery_sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
+                        <CheckCircle2 className="w-5 h-5 text-white" />
                       </div>
                     </div>
 
