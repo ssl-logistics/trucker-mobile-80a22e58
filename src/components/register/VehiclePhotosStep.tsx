@@ -113,6 +113,10 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
       // Scroll will happen via useEffect
       return;
     }
+    
+    // Scroll to top before moving to next step
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     onNext({
       hasTrailer,
       frontPhoto: photoFiles.front || undefined,
