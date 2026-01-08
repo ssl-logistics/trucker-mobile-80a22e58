@@ -15,6 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerFooter } from '@/components/ui/drawer';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatDate as formatThaiDate } from '@/lib/dateUtils';
@@ -36,10 +37,17 @@ export default function BiddingPage() {
   const [activeTab, setActiveTab] = useState('bidding');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState('all');
   
-  // Filter states
+  // Filter states for bidding tab
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+
+  // Month value to month index mapping
+  const monthMap: { [key: string]: number } = {
+    'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+    'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+  };
 
   useEffect(() => {
     if (user) {
@@ -137,7 +145,7 @@ export default function BiddingPage() {
     return true;
   });
 
-  // Filter my bids
+  // Filter my bids by month
   const filteredBids = myBids.filter(bid => {
     if (!bid.jobs) return false;
     
@@ -153,23 +161,28 @@ export default function BiddingPage() {
       if (!matchesSearch) return false;
     }
 
-    // Date range filter
-    if (startDate || endDate) {
-      const jobDate = new Date(bid.jobs.start_date);
-      jobDate.setHours(0, 0, 0, 0);
-      if (startDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        if (jobDate < start) return false;
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        if (jobDate > end) return false;
-      }
+    // Month filter
+    if (selectedMonth !== 'all') {
+      const bidMonth = new Date(bid.created_at).getMonth();
+      if (bidMonth !== monthMap[selectedMonth]) return false;
     }
     return true;
   });
+
+  // Group bids by month
+  const groupBidsByMonth = () => {
+    const grouped: { [key: string]: Bid[] } = {};
+    filteredBids.forEach(bid => {
+      const monthName = new Date(bid.created_at).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', { month: 'long' });
+      if (!grouped[monthName]) {
+        grouped[monthName] = [];
+      }
+      grouped[monthName].push(bid);
+    });
+    return grouped;
+  };
+
+  const groupedBids = groupBidsByMonth();
 
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-20 px-4">
@@ -317,24 +330,6 @@ export default function BiddingPage() {
         </div>
       </header>
 
-      {/* Search and Filter Bar */}
-      <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm sticky top-[60px] z-40">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input 
-              placeholder={t('currentJobs.search')} 
-              value={searchQuery} 
-              onChange={e => setSearchQuery(e.target.value)} 
-              className="pl-9 h-10 bg-white" 
-            />
-          </div>
-          <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setFilterOpen(true)}>
-            <Filter className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-white">
@@ -346,24 +341,78 @@ export default function BiddingPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="bidding" className="px-4 mt-4 space-y-4">
-          {filteredAvailableJobs.length === 0 ? (
-            <EmptyState />
-          ) : (
-            filteredAvailableJobs.map(job => renderJobCard(job))
-          )}
+        {/* Bidding Tab */}
+        <TabsContent value="bidding" className="mt-0">
+          {/* Search and Filter Bar */}
+          <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input 
+                  placeholder={t('currentJobs.search')} 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  className="pl-9 h-10 bg-white" 
+                />
+              </div>
+              <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setFilterOpen(true)}>
+                <Filter className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="px-4 py-4 space-y-4">
+            {filteredAvailableJobs.length === 0 ? (
+              <EmptyState />
+            ) : (
+              filteredAvailableJobs.map(job => renderJobCard(job))
+            )}
+          </div>
         </TabsContent>
 
-        <TabsContent value="history" className="px-4 mt-4 space-y-4">
-          {filteredBids.length === 0 ? (
+        {/* History Tab */}
+        <TabsContent value="history" className="mt-0 px-4 py-4">
+          {/* Month Filter */}
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-full mb-4">
+              <SelectValue placeholder={t('income.selectMonth')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('jobHistory.allMonths')}</SelectItem>
+              <SelectItem value="jan">{t('jobHistory.january')}</SelectItem>
+              <SelectItem value="feb">{t('jobHistory.february')}</SelectItem>
+              <SelectItem value="mar">{t('jobHistory.march')}</SelectItem>
+              <SelectItem value="apr">{t('jobHistory.april')}</SelectItem>
+              <SelectItem value="may">{t('jobHistory.may')}</SelectItem>
+              <SelectItem value="jun">{t('jobHistory.june')}</SelectItem>
+              <SelectItem value="jul">{t('jobHistory.july')}</SelectItem>
+              <SelectItem value="aug">{t('jobHistory.august')}</SelectItem>
+              <SelectItem value="sep">{t('jobHistory.september')}</SelectItem>
+              <SelectItem value="oct">{t('jobHistory.october')}</SelectItem>
+              <SelectItem value="nov">{t('jobHistory.november')}</SelectItem>
+              <SelectItem value="dec">{t('jobHistory.december')}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Grouped Bids by Month */}
+          {Object.keys(groupedBids).length === 0 ? (
             <EmptyState />
           ) : (
-            filteredBids.map(bid => renderJobCard(bid.jobs, bid.bid_amount, bid.status, bid.created_at))
+            <div className="space-y-4">
+              {Object.entries(groupedBids).map(([month, bids]) => (
+                <div key={month}>
+                  <div className="text-sm text-muted-foreground mb-2">{month}</div>
+                  <div className="space-y-4">
+                    {bids.map(bid => renderJobCard(bid.jobs, bid.bid_amount, bid.status, bid.created_at))}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </TabsContent>
       </Tabs>
 
-      {/* Filter Drawer */}
+      {/* Filter Drawer for Bidding Tab */}
       <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
         <DrawerContent>
           <DrawerHeader className="border-b">
