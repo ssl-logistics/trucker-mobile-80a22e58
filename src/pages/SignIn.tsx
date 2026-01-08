@@ -110,36 +110,42 @@ const SignIn = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setServerError("");
-      const {
-        supabase
-      } = await import("@/integrations/supabase/client");
       
-      // Lookup email by username
-      const { data: emailData, error: lookupError } = await supabase.rpc('get_email_by_username', {
-        lookup_username: data.email
+      // POST to external login API
+      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: data.email,
+          password: data.password
+        })
       });
-      
-      // If lookup fails or returns null, try using the input directly as email
-      const emailToUse = emailData || data.email;
-      
-      const {
-        data: authData,
-        error: authError
-      } = await supabase.auth.signInWithPassword({
-        email: emailToUse,
-        password: data.password
-      });
-      if (authError) {
-        if (authError.message.includes("Invalid login credentials")) {
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        // Map error messages to translations
+        const errorMessage = result.error || result.message || 'Login failed';
+        
+        if (errorMessage.includes("Invalid") || errorMessage.includes("credentials")) {
           setServerError(t('signIn.invalidCredentials'));
         } else {
-          setServerError(authError.message);
+          setServerError(errorMessage);
         }
+        
         // Clear saved credentials on login failure
         localStorage.removeItem("rememberedEmail");
         localStorage.removeItem("rememberedPassword");
         localStorage.removeItem("rememberedUser");
         return;
+      }
+
+      // If API returns session data, set it in Supabase client
+      if (result.session) {
+        const { supabase } = await import("@/integrations/supabase/client");
+        await supabase.auth.setSession(result.session);
       }
 
       // Save or clear credentials based on remember checkbox
