@@ -340,10 +340,36 @@ const Register = () => {
       if (error) {
         console.error("[Register] API Error:", error);
         console.error("[Register] Error details:", JSON.stringify(error, null, 2));
+        
+        // Parse error message and translate
+        let errorMessage = t('register.createAccountFailed');
+        try {
+          // Check if error.message contains JSON
+          const errorData = JSON.parse(error.message.replace('Edge function returned 400: Error, ', ''));
+          if (errorData.error) {
+            // Map API error messages to translation keys
+            const errorMap: Record<string, string> = {
+              'Email already registered': 'register.error.emailAlreadyRegistered',
+              'Username already registered': 'register.error.usernameAlreadyRegistered',
+              'Phone already registered': 'register.error.phoneAlreadyRegistered',
+              'Invalid email format': 'register.error.invalidEmail',
+              'Invalid phone number': 'register.error.invalidPhone',
+              'Password mismatch': 'register.error.passwordMismatch',
+              'Weak password': 'register.error.weakPassword',
+              'Missing required fields': 'register.error.missingRequired',
+            };
+            const translationKey = errorMap[errorData.error] || 'register.error.unknownError';
+            errorMessage = t(translationKey);
+          }
+        } catch {
+          // If parsing fails, use the error message directly or default
+          errorMessage = error.message || t('register.createAccountFailed');
+        }
+        
         toast({
           variant: "destructive",
           title: t('register.error'),
-          description: error.message || t('register.createAccountFailed')
+          description: errorMessage
         });
         return;
       }

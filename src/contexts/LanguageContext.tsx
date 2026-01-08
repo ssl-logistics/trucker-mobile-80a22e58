@@ -552,6 +552,15 @@ const thTranslations: Record<string, string> = {
   'register.createAccountFailed': 'ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่อีกครั้ง',
   'register.createAccountError': 'ไม่สามารถสร้างบัญชีได้',
   'register.vehicleSaveFailed': 'บันทึกข้อมูลรถไม่สำเร็จ',
+  'register.error.emailAlreadyRegistered': 'อีเมลนี้ถูกใช้งานแล้ว',
+  'register.error.usernameAlreadyRegistered': 'ชื่อผู้ใช้นี้ถูกใช้งานแล้ว',
+  'register.error.phoneAlreadyRegistered': 'เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว',
+  'register.error.invalidEmail': 'รูปแบบอีเมลไม่ถูกต้อง',
+  'register.error.invalidPhone': 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง',
+  'register.error.passwordMismatch': 'รหัสผ่านไม่ตรงกัน',
+  'register.error.weakPassword': 'รหัสผ่านไม่ปลอดภัยเพียงพอ',
+  'register.error.missingRequired': 'กรุณากรอกข้อมูลที่จำเป็น',
+  'register.error.unknownError': 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
   
   // Terms Step (Register)
   'termsStep.title': 'Truckers นโยบายความเป็นส่วนตัวของผู้ขับรถ',
@@ -1738,6 +1747,15 @@ const enTranslations: Record<string, string> = {
   'register.createAccountFailed': 'Failed to create account. Please try again',
   'register.createAccountError': 'Unable to create account',
   'register.vehicleSaveFailed': 'Failed to save vehicle information',
+  'register.error.emailAlreadyRegistered': 'This email is already registered',
+  'register.error.usernameAlreadyRegistered': 'This username is already taken',
+  'register.error.phoneAlreadyRegistered': 'This phone number is already registered',
+  'register.error.invalidEmail': 'Invalid email format',
+  'register.error.invalidPhone': 'Invalid phone number format',
+  'register.error.passwordMismatch': 'Passwords do not match',
+  'register.error.weakPassword': 'Password is too weak',
+  'register.error.missingRequired': 'Please fill in all required fields',
+  'register.error.unknownError': 'An unknown error occurred',
   
   // Terms Step (Register)
   'termsStep.title': 'Truckers Driver Privacy Policy',
@@ -2725,6 +2743,15 @@ const koTranslations: Record<string, string> = {
   'register.createAccountFailed': '계정을 생성할 수 없습니다. 다시 시도해 주세요',
   'register.createAccountError': '계정을 생성할 수 없습니다',
   'register.vehicleSaveFailed': '차량 정보를 저장하지 못했습니다',
+  'register.error.emailAlreadyRegistered': '이 이메일은 이미 등록되어 있습니다',
+  'register.error.usernameAlreadyRegistered': '이 사용자 이름은 이미 사용 중입니다',
+  'register.error.phoneAlreadyRegistered': '이 전화번호는 이미 등록되어 있습니다',
+  'register.error.invalidEmail': '이메일 형식이 올바르지 않습니다',
+  'register.error.invalidPhone': '전화번호 형식이 올바르지 않습니다',
+  'register.error.passwordMismatch': '비밀번호가 일치하지 않습니다',
+  'register.error.weakPassword': '비밀번호가 너무 약합니다',
+  'register.error.missingRequired': '필수 항목을 모두 입력해 주세요',
+  'register.error.unknownError': '알 수 없는 오류가 발생했습니다',
   
   // Terms Step
   'termsStep.title': 'Truckers 운전자 개인정보 보호정책',
@@ -4531,6 +4558,15 @@ const zhTranslations: Record<string, string> = {
   'register.vehicleSaveFailed': '保存车辆信息失败',
   'register.successDesc': '账户创建成功',
   'register.errorDesc': '发生错误，请重试',
+  'register.error.emailAlreadyRegistered': '该邮箱已被注册',
+  'register.error.usernameAlreadyRegistered': '该用户名已被使用',
+  'register.error.phoneAlreadyRegistered': '该手机号已被注册',
+  'register.error.invalidEmail': '邮箱格式不正确',
+  'register.error.invalidPhone': '手机号格式不正确',
+  'register.error.passwordMismatch': '密码不匹配',
+  'register.error.weakPassword': '密码强度不够',
+  'register.error.missingRequired': '请填写所有必填项',
+  'register.error.unknownError': '发生未知错误',
   
   // General Info Step
   'generalInfo.profilePhoto': '个人资料照片',
