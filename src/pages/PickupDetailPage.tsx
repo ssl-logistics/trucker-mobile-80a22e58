@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, MapPin } from 'lucide-react';
+import { ChevronLeft, Phone, Route, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -178,7 +178,7 @@ export default function PickupDetailPage() {
             {t('pickup.call')}
           </Button>
           <Button variant="outline" onClick={openGoogleMaps} className="w-full h-12 text-base border-[#153860]">
-            <Navigation className="w-5 h-5 mr-2" />
+            <Route className="w-5 h-5 mr-2" />
             {t('pickup.route')}
           </Button>
         </div>
