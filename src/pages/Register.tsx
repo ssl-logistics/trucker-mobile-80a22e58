@@ -99,6 +99,7 @@ const Register = () => {
     insuranceValue: ""
   });
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const languageOptions = [{
     code: 'en' as const,
     label: 'EN',
@@ -151,6 +152,8 @@ const Register = () => {
     }
   };
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       console.log("Registration data:", registrationData);
       const {
@@ -350,6 +353,8 @@ const Register = () => {
         title: t('register.error'),
         description: t('register.errorDesc')
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   return <div className="min-h-screen bg-background">
@@ -388,7 +393,7 @@ const Register = () => {
 
       {/* Content */}
       <div className="p-6">
-        <CurrentStepComponent data={registrationData} onNext={handleNext} onBack={handleBack} onSubmit={handleSubmit} onEditStep={(step: number) => setCurrentStep(step)} />
+        <CurrentStepComponent data={registrationData} onNext={handleNext} onBack={handleBack} onSubmit={handleSubmit} onEditStep={(step: number) => setCurrentStep(step)} isSubmitting={isSubmitting} />
       </div>
     </div>;
 };
