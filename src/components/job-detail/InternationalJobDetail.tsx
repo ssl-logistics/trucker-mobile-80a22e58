@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle } from 'lucide-react';
+import { ChevronLeft, Phone, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,10 @@ import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { formatDate } from '@/lib/dateUtils';
+import coinsIcon from '@/assets/coins-icon.png';
+import routeIcon from '@/assets/route-icon.png';
+import boxIcon from '@/assets/box-icon.png';
+import statusIcon from '@/assets/status-icon.png';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -148,26 +152,18 @@ export default function InternationalJobDetail({
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="p-4 bg-[#E8F5F4] border-0">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-6 h-6 text-[#0A8778]">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-[#0A8778]">฿ {job.price.toLocaleString()}</div>
+        <div className="grid grid-cols-3 gap-2">
+          <Card className="p-2 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
+            <img src={coinsIcon} alt="price" className="w-6 h-6 mb-1" />
+            <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {job.price.toLocaleString()}</div>
           </Card>
-          <Card className="p-4 bg-[#E8E8E8] border-0">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-6 h-6 text-gray-600">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-              </div>
-            </div>
-            <div className="text-base text-gray-700">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">4</span></div>
+          <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
+            <img src={routeIcon} alt="route" className="w-5 h-5 mb-1" />
+            <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">4</span></div>
+          </Card>
+          <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
+            <img src={boxIcon} alt="goods" className="w-5 h-5 mb-1" />
+            <div className="text-xs text-gray-700 text-center">{t('jobDetail.totalGoods')} : <span className="font-semibold">{job.origin_goods_quantity || '-'}</span></div>
           </Card>
         </div>
 
@@ -191,7 +187,7 @@ export default function InternationalJobDetail({
             <h2 className="text-lg font-semibold">
               {t('jobDetail.booking')} : {job.order_code}
             </h2>
-            <p className="text-base font-medium text-foreground">
+            <p className="text-base font-medium text-[#005E53]">
               {t('jobDetail.employer')} : {job.employer_name}
             </p>
           </div>
@@ -247,16 +243,18 @@ export default function InternationalJobDetail({
             {/* Right Content Column */}
             <div className="flex-1 space-y-3">
               {/* Container Checkpoint Card */}
-              <Card ref={card1Ref} className={`p-4 border-2 ${jobApplication?.container_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.container_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-sm">{t('jobDetail.containerCheckpoint')}</h3>
-                    {jobApplication?.job_started_at && <span className={`text-xs font-medium ${jobApplication?.container_sop_completed_at ? 'text-green-600' : jobApplication?.container_checked_in_at ? 'text-blue-600' : 'text-orange-500'}`}>
-                        • {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : jobApplication?.container_checked_in_at ? t('jobDetail.waitingContainer') : t('jobDetail.waitingCheckIn')}
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.containerCheckpoint')}</h3>
+                    </div>
+                    {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.container_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : jobApplication?.container_checked_in_at ? t('jobDetail.waitingContainer') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
 
-                  <h4 className="font-semibold text-base text-foreground mb-2">
+                  <h4 className="font-semibold text-base text-[#225795] mb-2">
                     {job.origin_location || '-'}
                   </h4>
 
@@ -264,39 +262,39 @@ export default function InternationalJobDetail({
                     {isInbound ? (
                       <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[160px]">{t('jobDetail.shipArrivalDateTime')}</span>
-                          <span>: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
+                          <span className="text-[#454545] min-w-[160px]">{t('jobDetail.shipArrivalDateTime')}</span>
+                          <span className="text-[#454545]">: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[160px]">{t('jobDetail.emptyContainerPickupDate')}</span>
-                          <span>: {containerData.emptyDate ? formatDate(containerData.emptyDate, language) : '-'}</span>
+                          <span className="text-[#454545] min-w-[160px]">{t('jobDetail.emptyContainerPickupDate')}</span>
+                          <span className="text-[#454545]">: {containerData.emptyDate ? formatDate(containerData.emptyDate, language) : '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[160px]">{t('jobDetail.receiver')}</span>
-                          <span>: {job.destination_company_name || '-'}</span>
+                          <span className="text-[#454545] min-w-[160px]">{t('jobDetail.receiver')}</span>
+                          <span className="text-[#454545]">: {job.destination_company_name || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[160px]">{t('jobDetail.containerTypeQty')}</span>
-                          <span>: {job.origin_goods_quantity || '-'}</span>
+                          <span className="text-[#454545] min-w-[160px]">{t('jobDetail.containerTypeQty')}</span>
+                          <span className="text-[#454545]">: {job.origin_goods_quantity || '-'}</span>
                         </div>
                       </>
                     ) : (
                       <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerPickup')}</span>
-                          <span>: {job.origin_location || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.emptyContainerPickup')}</span>
+                          <span className="text-[#454545]">: {job.origin_location || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
-                          <span>: {formatDate(job.start_date, language)}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
+                          <span className="text-[#454545]">: {formatDate(job.start_date, language)}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerNumber')}</span>
-                          <span>: {containerData.containerNumber}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerNumber')}</span>
+                          <span className="text-[#454545]">: {containerData.containerNumber}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.sealNumber')}</span>
-                          <span>: {containerData.sealNumber}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.sealNumber')}</span>
+                          <span className="text-[#454545]">: {containerData.sealNumber}</span>
                         </div>
                       </>
                     )}
@@ -311,7 +309,7 @@ export default function InternationalJobDetail({
                           <span className="text-sm font-medium">{t('jobDetail.containerNumber')}: <span className="font-semibold">{containerData.containerNumber}</span></span>
                         </div>
                         <div className="text-sm pl-7">
-                          <span className="text-muted-foreground">{t('jobDetail.sealNumber')}</span>: <span className="font-medium">{containerData.sealNumber}</span>
+                          <span className="text-[#454545]">{t('jobDetail.sealNumber')}</span>: <span className="font-medium">{containerData.sealNumber}</span>
                         </div>
                       </div>
                       {job.container_number_2 && (
@@ -321,7 +319,7 @@ export default function InternationalJobDetail({
                             <span className="text-sm font-medium">{t('jobDetail.containerNumber')}: <span className="font-semibold">{job.container_number_2}</span></span>
                           </div>
                           <div className="text-sm pl-7">
-                            <span className="text-muted-foreground">{t('jobDetail.sealNumber')}</span>: <span className="font-medium">{job.seal_number_2 || '-'}</span>
+                            <span className="text-[#454545]">{t('jobDetail.sealNumber')}</span>: <span className="font-medium">{job.seal_number_2 || '-'}</span>
                           </div>
                         </div>
                       )}
@@ -329,11 +327,11 @@ export default function InternationalJobDetail({
                   )}
 
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}>
-                      <Navigation className="w-4 h-4 mr-1" />
-                      {t('jobDetail.route')}
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}>
+                      <img src={routeIcon} alt="route" className="w-4 h-4" />
+                      <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
-                    <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" disabled={!jobApplication?.job_started_at} onClick={() => {
+                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={!jobApplication?.job_started_at} onClick={() => {
                     if (jobApplication?.container_sop_completed_at) {
                       navigate(`/job/${job.id}/container-summary`);
                     } else if (jobApplication?.container_checked_in_at) {
@@ -342,61 +340,64 @@ export default function InternationalJobDetail({
                       navigate(`/job/${job.id}/container-checkin`);
                     }
                   }}>
-                      {jobApplication?.container_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                      <span className="text-xs">{jobApplication?.container_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
                 </div>
               </Card>
 
               {/* Pickup/Loading Point Card */}
-              <Card ref={card2Ref} className={`p-4 border-2 ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.container_sop_completed_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+              <Card ref={card2Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.container_sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-sm">
-                      {isInbound ? t('jobDetail.unloadingPoint') : t('jobDetail.loadingPoint')}
-                    </h3>
-                    {jobApplication?.container_sop_completed_at && <span className={`text-xs font-medium ${jobApplication?.sop_completed_at ? 'text-green-600' : jobApplication?.checked_in_at ? 'text-blue-600' : 'text-orange-500'}`}>
-                        • {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-[#225795]">
+                        {isInbound ? t('jobDetail.unloadingPoint') : t('jobDetail.loadingPoint')}
+                      </h3>
+                    </div>
+                    {jobApplication?.container_sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
 
-                  <h4 className="font-semibold text-base mb-2">
+                  <h4 className="font-semibold text-base text-[#225795] mb-2">
                     {isInbound ? (job.destination_location || '-') : job.destination_location}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.billOfLading') : t('jobDetail.contactPerson')}</span>
-                      <span>: {isInbound ? (job.tax_id || '-') : (job.destination_contact_person || '-')}</span>
+                      <span className="text-[#454545] min-w-[100px]">{isInbound ? t('jobDetail.billOfLading') : t('jobDetail.contactPerson')}</span>
+                      <span className="text-[#454545]">: {isInbound ? (job.tax_id || '-') : (job.destination_contact_person || '-')}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.contactPoint') : t('jobDetail.deliveryRoute')}</span>
-                      <span>: {isInbound ? (job.destination_contact_person || '-') : (job.destination_location || '-')}</span>
+                      <span className="text-[#454545] min-w-[100px]">{isInbound ? t('jobDetail.contactPoint') : t('jobDetail.deliveryRoute')}</span>
+                      <span className="text-[#454545]">: {isInbound ? (job.destination_contact_person || '-') : (job.destination_location || '-')}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryRoute') : t('jobDetail.goodsType')}</span>
-                      <span>: {isInbound ? (job.destination_location || '-') : `${job.destination_goods_type || '-'} ${job.destination_goods_quantity ? `(${job.destination_goods_quantity})` : ''}`}</span>
+                      <span className="text-[#454545] min-w-[100px]">{isInbound ? t('jobDetail.deliveryRoute') : t('jobDetail.goodsType')}</span>
+                      <span className="text-[#454545]">: {isInbound ? (job.destination_location || '-') : `${job.destination_goods_type || '-'} ${job.destination_goods_quantity ? `(${job.destination_goods_quantity})` : ''}`}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{isInbound ? t('jobDetail.deliveryTime') : t('jobDetail.pickupTime')}</span>
-                      <span>: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
+                      <span className="text-[#454545] min-w-[100px]">{isInbound ? t('jobDetail.deliveryTime') : t('jobDetail.pickupTime')}</span>
+                      <span className="text-[#454545]">: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                      <span>: {isInbound ? (job.destination_remarks || '-') : (job.destination_remarks || '-')}</span>
+                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
+                      <span className="text-[#454545]">: {isInbound ? (job.destination_remarks || '-') : (job.destination_remarks || '-')}</span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.container_sop_completed_at}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.container_sop_completed_at}>
                       <Phone className="w-4 h-4" />
-                      {t('jobDetail.call')}
+                      <span className="text-xs">{t('jobDetail.call')}</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.container_sop_completed_at}>
-                      <Navigation className="w-4 h-4" />
-                      {t('jobDetail.route')}
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.container_sop_completed_at}>
+                      <img src={routeIcon} alt="route" className="w-4 h-4" />
+                      <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
-                    <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => {
+                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => {
                     if (jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.id}/pickup-summary`);
                     } else if (jobApplication?.checked_in_at) {
@@ -405,78 +406,83 @@ export default function InternationalJobDetail({
                       navigate(`/job/${job.id}/pickup`);
                     }
                   }} disabled={!jobApplication?.container_sop_completed_at}>
-                      {jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                      <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
                 </div>
               </Card>
 
               {/* Delivery/Return Point Card */}
-              <Card ref={card3Ref} className={`p-4 border-2 ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'border-blue-500 bg-blue-50' : jobApplication?.sop_completed_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+              <Card ref={card3Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-sm">
-                      {isInbound ? t('jobDetail.emptyReturn') : t('jobDetail.fullReturn')}
-                    </h3>
-                    {jobApplication?.sop_completed_at && <span className={`text-xs font-medium ${jobApplication?.delivery_sop_completed_at ? 'text-green-600' : jobApplication?.delivery_checked_in_at ? 'text-blue-600' : 'text-orange-500'}`}>
-                        • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-[#225795]">
+                        {isInbound ? t('jobDetail.emptyReturn') : t('jobDetail.fullReturn')}
+                      </h3>
+                    </div>
+                    {jobApplication?.sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
 
-                  <h4 className="font-semibold text-base mb-2">
+                  <h4 className="font-semibold text-base text-[#225795] mb-2">
                     {isInbound ? (job.origin_location || '-') : job.origin_location}
                   </h4>
 
                   <div className="space-y-1 text-sm mb-3">
                     {isInbound ? <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.returnDeadline')}</span>
-                          <span>: {job.destination_date ? formatDate(job.destination_date, language) : '-'} | {job.destination_time || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.returnDeadline')}</span>
+                          <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : '-'} | {job.destination_time || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerPacker')}</span>
-                          <span>: {job.origin_company_name || job.origin_contact_person || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerPacker')}</span>
+                          <span className="text-[#454545]">: {job.origin_company_name || job.origin_contact_person || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.remarks')}</span>
-                          <span>: {job.origin_remarks || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.remarks')}</span>
+                          <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
                         </div>
                       </> : <>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.fullReturnDate')}</span>
-                          <span>: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.fullReturnDate')}</span>
+                          <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.containerPacker')}</span>
-                          <span>: {(job as any).shipper_load || job.origin_company_name || job.origin_contact_person || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerPacker')}</span>
+                          <span className="text-[#454545]">: {(job as any).shipper_load || job.origin_company_name || job.origin_contact_person || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[140px]">{t('jobDetail.remarks')}</span>
-                          <span>: {job.origin_remarks || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.remarks')}</span>
+                          <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
                         </div>
                       </>}
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
                     {isInbound ? <>
-                        <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.sop_completed_at}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.sop_completed_at}>
                           <Phone className="w-4 h-4" />
-                          {t('jobDetail.call')}
+                          <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.sop_completed_at}>
-                          <Navigation className="w-4 h-4" />
-                          {t('jobDetail.route')}
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at}>
+                          <img src={routeIcon} alt="route" className="w-4 h-4" />
+                          <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
-                          {jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
+                          <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                          <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </> : <>
-                        <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.sop_completed_at}>
-                          <Navigation className="w-4 h-4 mr-1" />
-                          {t('jobDetail.route')}
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at}>
+                          <img src={routeIcon} alt="route" className="w-4 h-4" />
+                          <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
-                          {jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent col-span-2" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
+                          <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                          <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </>}
                   </div>
