@@ -96,7 +96,7 @@ export default function ChangePasswordPage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="**********"
-              className="pr-20 border-b border-muted focus:border-primary rounded-none border-t-0 border-x-0 px-0"
+              className="pr-20 border-0 border-b border-muted focus:border-primary rounded-none px-0 shadow-none focus-visible:ring-0"
             />
             <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
               {newPassword && (
@@ -130,7 +130,7 @@ export default function ChangePasswordPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="**********"
-              className="pr-20 border-b border-muted focus:border-primary rounded-none border-t-0 border-x-0 px-0"
+              className="pr-20 border-0 border-b border-muted focus:border-primary rounded-none px-0 shadow-none focus-visible:ring-0"
             />
             <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
               {confirmPassword && (
