@@ -290,7 +290,7 @@ export default function DomesticJobDetail({
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[6px] py-[6px]">
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]">
                       <Phone className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.call')}</span>
                     </Button>
