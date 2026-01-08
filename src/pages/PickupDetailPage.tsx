@@ -131,7 +131,7 @@ export default function PickupDetailPage() {
       <div className="px-4 py-6 space-y-6">
         <JobActionButtons jobId={jobId} />
 
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.contactName')}</div>
           <div className="text-base">
             {job.origin_contact_person || '-'}
@@ -139,12 +139,12 @@ export default function PickupDetailPage() {
           </div>
         </div>
 
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.routeNumber')}</div>
           <div className="text-base">{job.origin_location}</div>
         </div>
 
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.address')}</div>
           <div className="text-base">{job.origin_address || job.origin_location || '-'}</div>
         </div>
