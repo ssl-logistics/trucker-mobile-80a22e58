@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Navigation, MapPin } from 'lucide-react';
+import { ChevronLeft, MapPin, Phone } from 'lucide-react';
 import expenseViewIcon from '@/assets/expense-view-icon.svg';
 import expenseAddIcon from '@/assets/expense-add-icon.svg';
 import reportProblemIcon from '@/assets/report-problem-icon.svg';
+import routeIcon from '@/assets/route-icon-2.png';
+import checkInIcon from '@/assets/check-in-icon.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,10 +14,11 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import Map from '@/components/Map';
 import { formatDate } from '@/lib/dateUtils';
+import JobActionButtons from '@/components/job/JobActionButtons';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -133,7 +136,7 @@ export default function ContainerCheckInPage() {
     checkpointCode: job.container_checkpoint_code || '-',
     emptyDate: job.empty_container_date || '-'
   };
-  return <div className="min-h-screen bg-background pb-24">
+  return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-center relative">
@@ -144,168 +147,163 @@ export default function ContainerCheckInPage() {
         </div>
       </header>
 
-      <div className="bg-white border-b">
-        <div className="grid grid-cols-3 px-4 py-3">
-          <button className="flex flex-col items-center gap-1 text-[#0A8778]">
-            <img src={expenseViewIcon} alt="" className="w-8 h-8" />
-            <span className="text-xs font-medium">{t('container.viewExpenses')}</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 text-[#0A8778]" onClick={() => navigate(`/job/${jobId}/add-expense`)}>
-            <img src={expenseAddIcon} alt="" className="w-8 h-8" />
-            <span className="text-xs font-medium">{t('container.addExpenses')}</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 text-[#0A8778]" onClick={() => setIsReportDrawerOpen(true)}>
-            <img src={reportProblemIcon} alt="" className="w-8 h-8" />
-            <span className="text-xs font-medium">{t('container.reportProblem')}</span>
-          </button>
-        </div>
-      </div>
+      <div className="px-4 py-6 space-y-6">
+        <JobActionButtons jobId={jobId} />
 
-      <div className="px-4 py-4 space-y-4">
-        <div>
-          <h2 className="text-base font-semibold mb-2">{t('container.emptyContainerPoint')}</h2>
-          <p className="text-base">{job.origin_location || containerData.checkpoint}</p>
+        <div className="border-b border-gray-200 pb-4">
+          <div className="text-sm text-muted-foreground mb-1">{t('container.emptyContainerPoint')}</div>
+          <div className="text-base">{job.origin_location || containerData.checkpoint}</div>
+        </div>
+
+        <div className="border-b border-gray-200 pb-4">
+          <div className="text-sm text-muted-foreground mb-1">{t('container.checkpoint')}</div>
+          <div className="text-base">{job.container_checkpoint || '-'}</div>
         </div>
 
         {/* Interactive Map */}
-        <div className="rounded-lg overflow-hidden border border-border">
+        {job.container_checkpoint_latitude && job.container_checkpoint_longitude ? (
           <Map 
-            latitude={job.container_checkpoint_latitude || 13.0827}
-            longitude={job.container_checkpoint_longitude || 100.8833}
+            latitude={job.container_checkpoint_latitude}
+            longitude={job.container_checkpoint_longitude}
             markerLabel={job.container_checkpoint || t('container.defaultCheckpoint')}
-            showRoute={false}
+            showRoute={true}
           />
+        ) : (
+          <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">{t('container.map')}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="border-b border-gray-200 pb-4">
+          <div className="text-sm text-muted-foreground mb-1">{t('container.startTime')}</div>
+          <div className="text-base">{formatDate(job.empty_container_date || '2023-11-18', language)} | 09:00</div>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-1">{t('container.startTime')}</p>
-            <p className="font-medium">{formatDate(job.empty_container_date || '2023-11-18', language)} | 09.00</p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-600 mb-1">{t('container.checkpoint')}</p>
-            <p className="font-medium">{job.container_checkpoint || '-'}</p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-600 mb-1">{t('container.firstDatePickup')}</p>
-            <p className="font-medium">{formatDate(containerData.emptyDate, language)}</p>
-          </div>
-
-          <Card className="p-4 bg-white border-2 border-gray-200">
-            <div className="flex items-start gap-2 mb-3">
-              <div className="bg-teal-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
-                1
-              </div>
-              <h3 className="font-semibold text-base">{t('container.pair')} 1</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">{t('container.containerNo')}</p>
-                {isInbound ? (
-                  <Input 
-                    value={container1Number} 
-                    onChange={(e) => setContainer1Number(e.target.value)}
-                    placeholder={t('container.enterContainerNo')}
-                    className="h-10"
-                  />
-                ) : (
-                  <p className="font-medium">{job.container_number || '-'}</p>
-                )}
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">{t('container.sealNo')}</p>
-                {isInbound ? (
-                  <Input 
-                    value={container1Seal} 
-                    onChange={(e) => setContainer1Seal(e.target.value)}
-                    placeholder={t('container.enterSealNo')}
-                    className="h-10"
-                  />
-                ) : (
-                  <p className="font-medium">{job.seal_number || '-'}</p>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-white border-2 border-gray-200">
-            <div className="flex items-start gap-2 mb-3">
-              <div className="bg-teal-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
-                2
-              </div>
-              <h3 className="font-semibold text-base">{t('container.pair')} 2</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">{t('container.containerNo')}</p>
-                {isInbound ? (
-                  <Input 
-                    value={container2Number} 
-                    onChange={(e) => setContainer2Number(e.target.value)}
-                    placeholder={t('container.enterContainerNo')}
-                    className="h-10"
-                  />
-                ) : (
-                  <p className="font-medium">{job.container_number_2 || '-'}</p>
-                )}
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">{t('container.sealNo')}</p>
-                {isInbound ? (
-                  <Input 
-                    value={container2Seal} 
-                    onChange={(e) => setContainer2Seal(e.target.value)}
-                    placeholder={t('container.enterSealNo')}
-                    className="h-10"
-                  />
-                ) : (
-                  <p className="font-medium">{job.seal_number_2 || '-'}</p>
-                )}
-              </div>
-            </div>
-          </Card>
+        <div className="border-b border-gray-200 pb-4">
+          <div className="text-sm text-muted-foreground mb-1">{t('container.firstDatePickup')}</div>
+          <div className="text-base">{formatDate(containerData.emptyDate, language)}</div>
         </div>
 
-        <Button variant="outline" className="w-full h-12">
-          <Navigation className="w-5 h-5 mr-2" />
-          {t('container.route')}
-        </Button>
+        <Card className="p-4 bg-[#E8F5F4] border-2 border-[#0A8778]/20 rounded-2xl">
+          <div className="flex items-start gap-2 mb-3">
+            <div className="bg-[#0A8778] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
+              1
+            </div>
+            <h3 className="font-semibold text-base">{t('container.pair')} 1</h3>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-[#454545] mb-1">{t('container.containerNo')}</p>
+              {isInbound ? (
+                <Input 
+                  value={container1Number} 
+                  onChange={(e) => setContainer1Number(e.target.value)}
+                  placeholder={t('container.enterContainerNo')}
+                  className="h-10"
+                />
+              ) : (
+                <p className="font-medium">{job.container_number || '-'}</p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-[#454545] mb-1">{t('container.sealNo')}</p>
+              {isInbound ? (
+                <Input 
+                  value={container1Seal} 
+                  onChange={(e) => setContainer1Seal(e.target.value)}
+                  placeholder={t('container.enterSealNo')}
+                  className="h-10"
+                />
+              ) : (
+                <p className="font-medium">{job.seal_number || '-'}</p>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4 bg-[#E8F5F4] border-2 border-[#0A8778]/20 rounded-2xl">
+          <div className="flex items-start gap-2 mb-3">
+            <div className="bg-[#0A8778] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
+              2
+            </div>
+            <h3 className="font-semibold text-base">{t('container.pair')} 2</h3>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-[#454545] mb-1">{t('container.containerNo')}</p>
+              {isInbound ? (
+                <Input 
+                  value={container2Number} 
+                  onChange={(e) => setContainer2Number(e.target.value)}
+                  placeholder={t('container.enterContainerNo')}
+                  className="h-10"
+                />
+              ) : (
+                <p className="font-medium">{job.container_number_2 || '-'}</p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-[#454545] mb-1">{t('container.sealNo')}</p>
+              {isInbound ? (
+                <Input 
+                  value={container2Seal} 
+                  onChange={(e) => setContainer2Seal(e.target.value)}
+                  placeholder={t('container.enterSealNo')}
+                  className="h-10"
+                />
+              ) : (
+                <p className="font-medium">{job.seal_number_2 || '-'}</p>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        <div className="space-y-3 pt-4">
+          <Button variant="outline" className="w-full h-12 text-base border-[#153860]" onClick={() => {
+            if (job.container_checkpoint_latitude && job.container_checkpoint_longitude) {
+              const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_checkpoint_latitude},${job.container_checkpoint_longitude}`;
+              window.open(url, '_blank');
+            }
+          }}>
+            <img src={routeIcon} alt="Route" className="w-5 h-5 mr-2" />
+            {t('container.route')}
+          </Button>
+        </div>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-        <Button className="w-full h-12 text-base text-white" style={{
-        background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)'
-      }} onClick={() => setShowConfirmDialog(true)}>
+        <Button className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700" onClick={() => setShowConfirmDialog(true)}>
           <MapPin className="w-5 h-5 mr-2" />
           {t('container.checkIn')}
         </Button>
       </div>
 
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader className="items-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <MapPin className="w-8 h-8 text-green-600" />
-            </div>
-            <AlertDialogTitle className="text-center text-xl">
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="max-w-[340px] rounded-2xl">
+          <DialogHeader className="items-center space-y-4">
+            <img src={checkInIcon} alt="Check in" className="w-16 h-16" />
+            <DialogTitle className="text-xl text-center">
               {t('container.confirmTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
+            </DialogTitle>
+            <DialogDescription className="text-center text-base">
               {t('container.confirmMessage1')}<br />
               {t('container.emptyContainerPoint')} {job.container_checkpoint || t('container.defaultCheckpoint')}<br />
               {t('container.confirmMessage2')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="sm:space-x-4">
-            <AlertDialogCancel className="sm:mt-0">{t('container.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCheckIn} className="bg-blue-600 hover:bg-blue-700">
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-3 sm:gap-3">
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="flex-1 h-11">
+              {t('container.cancel')}
+            </Button>
+            <Button onClick={handleCheckIn} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
               {t('container.confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Report Problem Drawer */}
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={jobId} />
