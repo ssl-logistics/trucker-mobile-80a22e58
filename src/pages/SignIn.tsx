@@ -142,44 +142,23 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
         return;
       }
-
-      // Import supabase client
-      const { supabase } = await import("@/integrations/supabase/client");
+      // Store user data from API response to localStorage
+      const userData = {
+        user: result.user || result.data?.user || null,
+        session: result.session || null,
+        access_token: result.access_token || result.session?.access_token || null,
+        refresh_token: result.refresh_token || result.session?.refresh_token || null,
+        role: result.role || result.user?.role || result.data?.role || null,
+      };
       
-      // If API returns session data (access_token & refresh_token), set it in Supabase client
-      if (result.session?.access_token && result.session?.refresh_token) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: result.session.access_token,
-          refresh_token: result.session.refresh_token
-        });
-        
-        if (sessionError) {
-          console.error("Failed to set session:", sessionError);
-          setServerError(t('signIn.error'));
-          return;
-        }
-      } else if (result.access_token && result.refresh_token) {
-        // Alternative: tokens at root level of response
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: result.access_token,
-          refresh_token: result.refresh_token
-        });
-        
-        if (sessionError) {
-          console.error("Failed to set session:", sessionError);
-          setServerError(t('signIn.error'));
-          return;
-        }
-      }
-
-      // Fetch user data after successful authentication
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      // Save auth data to localStorage for app-wide access
+      localStorage.setItem("auth_user", JSON.stringify(userData.user));
+      localStorage.setItem("auth_session", JSON.stringify(userData.session));
+      localStorage.setItem("auth_token", userData.access_token || "");
+      localStorage.setItem("auth_refresh_token", userData.refresh_token || "");
+      localStorage.setItem("user_role", userData.role || "");
       
-      if (userError) {
-        console.error("Failed to fetch user:", userError);
-      } else {
-        console.log("Logged in user:", userData.user);
-      }
+      console.log("Login successful, user data:", userData);
 
       // Save or clear credentials based on remember checkbox
       if (data.remember) {
