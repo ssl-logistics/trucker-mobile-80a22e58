@@ -156,19 +156,19 @@ export default function PickupDetailPage() {
             </div>
           </div>}
 
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.productType')}</div>
           <div className="text-base">
             {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}
           </div>
         </div>
 
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.pickupTime')}</div>
           <div className="text-base">{formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</div>
         </div>
 
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.note')}</div>
           <div className="text-base">{job.origin_remarks || '-'}</div>
         </div>
