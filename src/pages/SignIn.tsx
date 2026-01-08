@@ -116,6 +116,7 @@ const SignIn = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5Zmt3ZXd0ZXhueXNrYmtnc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY4NDA0OTAsImV4cCI6MjA1MjQxNjQ5MH0.SIbpKbPzGVHPpNDmEMOVLNB7p-Yz4AaZLQ9HsJe7i2U',
         },
         body: JSON.stringify({
           username: data.email,
