@@ -214,7 +214,7 @@ export default function JobRouteExpensesPage() {
 
             {/* Route Details */}
             <div className="space-y-4">
-              <div className="text-base font-semibold text-foreground">
+              <div className="text-base font-semibold text-[#005e53]">
                 {t('jobRoute.employer')} : {job.destination_company_name || job.employer_name}
               </div>
 
