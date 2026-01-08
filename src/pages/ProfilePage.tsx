@@ -179,11 +179,13 @@ export default function ProfilePage() {
 
       {/* Avatar Section */}
       <div className="relative bg-white px-4 py-8">
-        <img 
-          src={profileBg} 
-          alt="" 
-          className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
-        />
+        <div className="absolute top-2 left-4 right-4 bottom-2 rounded-xl overflow-hidden">
+          <img 
+            src={profileBg} 
+            alt="" 
+            className="w-full h-full object-cover pointer-events-none"
+          />
+        </div>
         <div className="flex justify-center relative">
           <div className="relative">
             <Avatar className="w-32 h-32">
