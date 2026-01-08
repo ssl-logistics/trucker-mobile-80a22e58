@@ -163,12 +163,14 @@ export default function JobRouteExpensesPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-6 rounded-b-3xl shadow-lg">
+      <header className="bg-header text-header-foreground px-4 py-6 rounded-b-3xl shadow-lg page-header-safe">
         <div className="flex items-center justify-center relative mb-4">
-          <button onClick={() => navigate('/income')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full">
+          <button onClick={() => navigate('/income')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full z-10">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">{job.destination_company_name || job.employer_name}</h1>
+          <h1 className="text-xl font-semibold text-center px-12 truncate max-w-[calc(100%-80px)]">
+            {job.destination_company_name || job.employer_name}
+          </h1>
         </div>
       </header>
 
