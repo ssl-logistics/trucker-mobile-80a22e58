@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Truck, MapPin, Package, CheckCircle2, Fuel } from 'lucide-react';
+import { ChevronLeft, CircleDot, Package, CheckCircle2, Fuel } from 'lucide-react';
+import coinsIcon from '@/assets/coins-icon.png';
+import routeIcon from '@/assets/route-icon.png';
+import boxIcon from '@/assets/box-icon.png';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -153,15 +156,15 @@ export default function JobRouteExpensesPage() {
             {/* Summary Cards */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               <Card className="p-3 text-center bg-muted/50">
-                <Truck className="w-6 h-6 mx-auto mb-1 text-primary" />
+                <img src={coinsIcon} alt="coins" className="w-6 h-6 mx-auto mb-1" />
                 <div className="text-lg font-semibold text-primary">฿ {job.price.toLocaleString()}</div>
               </Card>
               <Card className="p-3 text-center bg-muted/50">
-                <MapPin className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                <img src={routeIcon} alt="route" className="w-6 h-6 mx-auto mb-1" />
                 <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.pickupDelivery')}: {pickupPoints}</div>
               </Card>
               <Card className="p-3 text-center bg-muted/50">
-                <Package className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                <img src={boxIcon} alt="box" className="w-6 h-6 mx-auto mb-1" />
                 <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.itemsCount')}: {totalItems}</div>
               </Card>
             </div>
