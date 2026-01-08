@@ -278,8 +278,8 @@ export default function DomesticJobDetail({
                         <span className="text-sm font-medium text-muted-foreground">: {job.origin_company_name}</span>
                       )}
                     </div>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.checked_in_at ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                      • {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.checked_in_at ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                      {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                     </span>
                   </div>
 
