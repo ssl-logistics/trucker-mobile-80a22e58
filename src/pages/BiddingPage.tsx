@@ -30,7 +30,7 @@ interface Bid extends JobBid {
 
 export default function BiddingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t, language } = useLanguage();
   const [availableJobs, setAvailableJobs] = useState<BiddingJob[]>([]);
   const [myBids, setMyBids] = useState<Bid[]>([]);
@@ -38,6 +38,7 @@ export default function BiddingPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
   
   // Filter states for bidding tab
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -50,11 +51,19 @@ export default function BiddingPage() {
   };
 
   useEffect(() => {
-    if (user) {
-      loadAvailableJobs();
-      loadMyBids();
+    const loadData = async () => {
+      setIsLoading(true);
+      await loadAvailableJobs();
+      if (user) {
+        await loadMyBids();
+      }
+      setIsLoading(false);
+    };
+    
+    if (!authLoading) {
+      loadData();
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const loadAvailableJobs = async () => {
     const { data, error } = await supabase
@@ -362,7 +371,11 @@ export default function BiddingPage() {
           </div>
 
           <div className="px-4 py-4 space-y-4">
-            {filteredAvailableJobs.length === 0 ? (
+            {(authLoading || isLoading) ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : filteredAvailableJobs.length === 0 ? (
               <EmptyState />
             ) : (
               filteredAvailableJobs.map(job => renderJobCard(job))
