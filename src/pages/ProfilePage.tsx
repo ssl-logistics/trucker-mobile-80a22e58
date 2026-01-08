@@ -188,7 +188,7 @@ export default function ProfilePage() {
         </div>
         <div className="flex justify-center relative">
           <div className="relative">
-            <Avatar className="w-32 h-32">
+            <Avatar className="w-24 h-24">
               <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
               <AvatarFallback className="bg-primary/10 text-primary text-3xl">
                 {firstName.charAt(0)}
