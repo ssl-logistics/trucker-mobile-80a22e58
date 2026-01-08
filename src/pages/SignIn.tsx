@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff, Globe } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { App } from "@capacitor/app";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
@@ -111,29 +112,17 @@ const SignIn = () => {
     try {
       setServerError("");
       
-      // POST to external login API
-      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-        },
-        body: JSON.stringify({
-          username: data.email,
-          password: data.password
-        })
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
       });
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        // Map error messages to translations
-        const errorMessage = result.error || result.message || 'Login failed';
-        
-        if (errorMessage.includes("Invalid") || errorMessage.includes("credentials")) {
+      if (authError) {
+        if (authError.message.includes("Invalid") || authError.message.includes("credentials")) {
           setServerError(t('signIn.invalidCredentials'));
         } else {
-          setServerError(errorMessage);
+          setServerError(authError.message);
         }
         
         // Clear saved credentials on login failure
@@ -142,27 +131,22 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
         return;
       }
-      // Parse API response: { success: true, data: { driver: {...}, user_type: "freelance_driver" } }
-      const driver = result.data?.driver || null;
-      const userType = result.data?.user_type || null;
-      
-      // Map user_type to app role (freelance_driver -> freelance)
-      let role = 'freelance';
-      if (userType === 'freelance_driver') {
-        role = 'freelance';
-      } else if (userType === 'company') {
-        role = 'company';
-      } else if (userType === 'factory') {
-        role = 'factory';
+
+      if (!authData.user) {
+        setServerError(t('signIn.error'));
+        return;
       }
+
+      // Fetch user role from user_roles table
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
+
+      const role = roleData?.role || 'freelance';
       
-      // Save driver data to localStorage for app-wide access
-      localStorage.setItem("auth_driver", JSON.stringify(driver));
-      localStorage.setItem("auth_user_type", userType || "");
-      localStorage.setItem("user_role", role);
-      localStorage.setItem("auth_driver_id", driver?.id || "");
-      
-      console.log("Login successful:", { driver, userType, role });
+      console.log("Login successful:", { userId: authData.user.id, role });
 
       // Save or clear credentials based on remember checkbox
       if (data.remember) {
@@ -175,12 +159,10 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
       }
       
-      // Navigate based on user_type
-      if (userType === 'freelance_driver') {
+      // Navigate based on role
+      if (role === 'freelance') {
         navigate("/home");
-      } else if (userType === 'company') {
-        navigate("/dashboard");
-      } else if (userType === 'factory') {
+      } else if (role === 'company' || role === 'factory') {
         navigate("/dashboard");
       } else {
         navigate("/home");
