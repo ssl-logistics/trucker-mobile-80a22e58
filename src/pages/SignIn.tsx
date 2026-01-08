@@ -142,23 +142,27 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
         return;
       }
-      // Store user data from API response to localStorage
-      const userData = {
-        user: result.user || result.data?.user || null,
-        session: result.session || null,
-        access_token: result.access_token || result.session?.access_token || null,
-        refresh_token: result.refresh_token || result.session?.refresh_token || null,
-        role: result.role || result.user?.role || result.data?.role || null,
-      };
+      // Parse API response: { success: true, data: { driver: {...}, user_type: "freelance_driver" } }
+      const driver = result.data?.driver || null;
+      const userType = result.data?.user_type || null;
       
-      // Save auth data to localStorage for app-wide access
-      localStorage.setItem("auth_user", JSON.stringify(userData.user));
-      localStorage.setItem("auth_session", JSON.stringify(userData.session));
-      localStorage.setItem("auth_token", userData.access_token || "");
-      localStorage.setItem("auth_refresh_token", userData.refresh_token || "");
-      localStorage.setItem("user_role", userData.role || "");
+      // Map user_type to app role (freelance_driver -> freelance)
+      let role = 'freelance';
+      if (userType === 'freelance_driver') {
+        role = 'freelance';
+      } else if (userType === 'company') {
+        role = 'company';
+      } else if (userType === 'factory') {
+        role = 'factory';
+      }
       
-      console.log("Login successful, user data:", userData);
+      // Save driver data to localStorage for app-wide access
+      localStorage.setItem("auth_driver", JSON.stringify(driver));
+      localStorage.setItem("auth_user_type", userType || "");
+      localStorage.setItem("user_role", role);
+      localStorage.setItem("auth_driver_id", driver?.id || "");
+      
+      console.log("Login successful:", { driver, userType, role });
 
       // Save or clear credentials based on remember checkbox
       if (data.remember) {
