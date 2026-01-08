@@ -135,6 +135,9 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
       return;
     }
     
+    // Scroll to top before moving to next step
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     onNext({
       ...formData,
       location: selectedLocation,
