@@ -366,8 +366,24 @@ const Register = () => {
               'Missing required fields': 'register.error.missingRequired',
               'Registration failed': 'register.error.registrationFailed',
             };
+            
+            // Map field names for displaying which field is duplicated
+            const fieldMap: Record<string, string> = {
+              'email': 'register.error.fieldEmail',
+              'username': 'register.error.fieldUsername',
+              'phone': 'register.error.fieldPhone',
+            };
+            
             const translationKey = errorMap[errorData.error] || 'register.error.unknownError';
             errorMessage = t(translationKey);
+            
+            // If there's a field specified, show which field is duplicated
+            if (errorData.field && fieldMap[errorData.field]) {
+              const fieldName = t(fieldMap[errorData.field]);
+              // Format: "อีเมล: อีเมลนี้ถูกใช้งานแล้ว" or "Email: This email is already registered"
+              errorMessage = `${fieldName}: ${errorMessage}`;
+            }
+            
             console.log("[Register] Translated error:", translationKey, "->", errorMessage);
           }
         } catch (parseError) {

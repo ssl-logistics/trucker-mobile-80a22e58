@@ -561,6 +561,10 @@ const thTranslations: Record<string, string> = {
   'register.error.weakPassword': 'รหัสผ่านไม่ปลอดภัยเพียงพอ',
   'register.error.missingRequired': 'กรุณากรอกข้อมูลที่จำเป็น',
   'register.error.unknownError': 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
+  'register.error.duplicateField': 'ซ้ำกัน',
+  'register.error.fieldEmail': 'อีเมล',
+  'register.error.fieldUsername': 'ชื่อผู้ใช้',
+  'register.error.fieldPhone': 'เบอร์โทรศัพท์',
   
   // Terms Step (Register)
   'termsStep.title': 'Truckers นโยบายความเป็นส่วนตัวของผู้ขับรถ',
@@ -1756,6 +1760,10 @@ const enTranslations: Record<string, string> = {
   'register.error.weakPassword': 'Password is too weak',
   'register.error.missingRequired': 'Please fill in all required fields',
   'register.error.unknownError': 'An unknown error occurred',
+  'register.error.duplicateField': 'is duplicated',
+  'register.error.fieldEmail': 'Email',
+  'register.error.fieldUsername': 'Username',
+  'register.error.fieldPhone': 'Phone number',
   
   // Terms Step (Register)
   'termsStep.title': 'Truckers Driver Privacy Policy',
@@ -2752,6 +2760,10 @@ const koTranslations: Record<string, string> = {
   'register.error.weakPassword': '비밀번호가 너무 약합니다',
   'register.error.missingRequired': '필수 항목을 모두 입력해 주세요',
   'register.error.unknownError': '알 수 없는 오류가 발생했습니다',
+  'register.error.duplicateField': '중복되었습니다',
+  'register.error.fieldEmail': '이메일',
+  'register.error.fieldUsername': '사용자 이름',
+  'register.error.fieldPhone': '전화번호',
   
   // Terms Step
   'termsStep.title': 'Truckers 운전자 개인정보 보호정책',
@@ -4567,6 +4579,10 @@ const zhTranslations: Record<string, string> = {
   'register.error.weakPassword': '密码强度不够',
   'register.error.missingRequired': '请填写所有必填项',
   'register.error.unknownError': '发生未知错误',
+  'register.error.duplicateField': '重复',
+  'register.error.fieldEmail': '邮箱',
+  'register.error.fieldUsername': '用户名',
+  'register.error.fieldPhone': '手机号',
   
   // General Info Step
   'generalInfo.profilePhoto': '个人资料照片',
