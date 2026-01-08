@@ -112,9 +112,21 @@ const SignIn = () => {
     try {
       setServerError("");
       
-      // Sign in with Supabase Auth
+      // First, look up email by username using database function
+      const { data: email, error: lookupError } = await supabase
+        .rpc('get_email_by_username', { lookup_username: data.email });
+
+      if (lookupError || !email) {
+        console.error("Username lookup failed:", lookupError);
+        setServerError(t('signIn.invalidCredentials'));
+        return;
+      }
+
+      console.log("Found email for username:", email);
+
+      // Sign in with Supabase Auth using the found email
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: data.email,
+        email: email,
         password: data.password
       });
 
