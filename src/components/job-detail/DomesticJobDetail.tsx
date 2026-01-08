@@ -13,6 +13,7 @@ import { formatDate } from '@/lib/dateUtils';
 import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
+import statusIcon from '@/assets/status-icon.png';
 
 interface JobDetail {
   id: string;
@@ -323,6 +324,7 @@ export default function DomesticJobDetail({
                       navigate(`/job/${job.id}/pickup`);
                     }
                   }}>
+                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
