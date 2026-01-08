@@ -220,13 +220,12 @@ export default function JobRouteExpensesPage() {
 
               {/* Pickup Point */}
               <div className="relative pl-8">
-                <div className="absolute left-0 top-0">
-                  <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-white" />
-                  </div>
-                  {/* Dashed line to next point */}
-                  <div className="absolute left-[13px] top-7 w-0.5 h-[calc(100%+96px)] border-l-2 border-dashed border-muted-foreground"></div>
+                {/* Circle */}
+                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center z-10">
+                  <CheckCircle2 className="w-5 h-5 text-white" />
                 </div>
+                {/* Dashed line - spans full height of container */}
+                <div className="absolute left-[13px] top-7 bottom-0 w-0.5 border-l-2 border-dashed border-muted-foreground"></div>
 
                 <Card className="p-4 mb-4">
                   <div className="flex items-start justify-between mb-2">
@@ -271,15 +270,14 @@ export default function JobRouteExpensesPage() {
               {destinations.length > 0 ? (
                 destinations.map((destination, index) => (
                   <div key={destination.id} className="relative pl-8">
-                    <div className="absolute left-0 top-0">
-                      <div className={`w-7 h-7 rounded-full ${destination.sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
-                        <CheckCircle2 className="w-5 h-5 text-white" />
-                      </div>
-                      {/* Dashed line to next point (if not last) */}
-                      {index < destinations.length - 1 && (
-                        <div className="absolute left-[13px] top-7 w-0.5 h-[calc(100%+96px)] border-l-2 border-dashed border-muted-foreground"></div>
-                      )}
+                    {/* Circle */}
+                    <div className={`absolute left-0 top-0 w-7 h-7 rounded-full ${destination.sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center z-10`}>
+                      <CheckCircle2 className="w-5 h-5 text-white" />
                     </div>
+                    {/* Dashed line to next point (if not last) */}
+                    {index < destinations.length - 1 && (
+                      <div className="absolute left-[13px] top-7 bottom-0 w-0.5 border-l-2 border-dashed border-muted-foreground"></div>
+                    )}
 
                     <Card className="p-4 mb-4">
                       <div className="flex items-start justify-between mb-2">
@@ -320,10 +318,9 @@ export default function JobRouteExpensesPage() {
                 /* Fallback to original destination if no job_destinations */
                 job.destination_location && (
                   <div className="relative pl-8">
-                    <div className="absolute left-0 top-0">
-                      <div className={`w-7 h-7 rounded-full ${jobApplication.delivery_sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center`}>
-                        <CheckCircle2 className="w-5 h-5 text-white" />
-                      </div>
+                    {/* Circle */}
+                    <div className={`absolute left-0 top-0 w-7 h-7 rounded-full ${jobApplication.delivery_sop_completed_at ? 'bg-green-500' : 'bg-gray-300'} flex items-center justify-center z-10`}>
+                      <CheckCircle2 className="w-5 h-5 text-white" />
                     </div>
 
                     <Card className="p-4">
