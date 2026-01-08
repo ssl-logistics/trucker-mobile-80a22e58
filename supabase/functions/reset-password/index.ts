@@ -33,15 +33,46 @@ serve(async (req) => {
       }
     );
 
-    // Find user by phone number in profiles table
-    const { data: profile, error: profileError } = await supabaseAdmin
+    // Normalize phone number for search (handle both 0xx and +66xx formats)
+    const normalizedPhone = phone.startsWith('+66') 
+      ? '0' + phone.slice(3) 
+      : phone.startsWith('66') 
+        ? '0' + phone.slice(2) 
+        : phone;
+    
+    const alternativePhone = normalizedPhone.startsWith('0')
+      ? '+66' + normalizedPhone.slice(1)
+      : normalizedPhone;
+
+    console.log("Searching for phone:", { original: phone, normalized: normalizedPhone, alternative: alternativePhone });
+
+    // Find user by phone number in profiles table (try both formats)
+    let profile = null;
+    
+    // Try normalized format first (0xx)
+    const { data: profile1, error: error1 } = await supabaseAdmin
       .from('profiles')
       .select('id')
-      .eq('phone_number', phone)
+      .eq('phone_number', normalizedPhone)
       .single();
+    
+    if (profile1) {
+      profile = profile1;
+    } else {
+      // Try alternative format (+66xx)
+      const { data: profile2, error: error2 } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('phone_number', alternativePhone)
+        .single();
+      
+      if (profile2) {
+        profile = profile2;
+      }
+    }
 
-    if (profileError || !profile) {
-      console.error("Error finding user:", profileError);
+    if (!profile) {
+      console.error("User not found with phone:", { normalizedPhone, alternativePhone });
       return new Response(
         JSON.stringify({ success: false, error: "User not found" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
@@ -49,6 +80,7 @@ serve(async (req) => {
     }
 
     const userId = profile.id;
+    console.log("Found user:", userId);
 
     // Update user password
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
