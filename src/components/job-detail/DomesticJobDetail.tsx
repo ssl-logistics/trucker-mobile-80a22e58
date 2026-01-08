@@ -206,7 +206,7 @@ export default function DomesticJobDetail({
             <h2 className="text-lg font-semibold">
               {t('jobDetail.booking')} : {job.order_code}
             </h2>
-            <p className="text-base font-medium text-foreground">
+            <p className="text-base font-medium text-[#005E53]">
               {t('jobDetail.employer')} : {job.employer_name}
             </p>
           </div>
