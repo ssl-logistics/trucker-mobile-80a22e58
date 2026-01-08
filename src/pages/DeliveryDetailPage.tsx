@@ -529,22 +529,6 @@ export default function DeliveryDetailPage() {
           <div className="text-base">{displayNotes}</div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3 pt-4">
-          <Button variant="outline" className="w-full h-12 text-base border-[#153860]">
-            <Phone className="w-5 h-5 mr-2" />
-            {t('delivery.call')}
-          </Button>
-          <Button variant="outline" onClick={() => {
-            if (displayLatitude && displayLongitude) {
-              const url = `https://www.google.com/maps/dir/?api=1&destination=${displayLatitude},${displayLongitude}`;
-              window.open(url, '_blank');
-            }
-          }} className="w-full h-12 text-base border-[#153860]">
-            <img src={routeIcon} alt="Route" className="w-5 h-5 mr-2" />
-            {t('delivery.navigate')}
-          </Button>
-        </div>
       </div>
 
       {/* Check-in Button - Hide after check-in */}
