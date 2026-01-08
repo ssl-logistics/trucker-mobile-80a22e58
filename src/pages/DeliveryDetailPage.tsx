@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Phone, Navigation, MapPin, Camera, Check } from "lucide-react";
+import { ChevronLeft, Phone, MapPin, Camera, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,6 +27,8 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import routeIcon from '@/assets/route-icon-2.png';
+import checkInIcon from '@/assets/check-in-icon.png';
 
 interface JobDetail {
   id: string;
@@ -373,10 +375,9 @@ export default function DeliveryDetailPage() {
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-4">
-        <div className="bg-white rounded-xl p-4">
-          <JobActionButtons jobId={jobId} />
-        </div>
+      <div className="px-4 py-6 space-y-6">
+        <JobActionButtons jobId={jobId} />
+
         {isCheckedIn && checkedInAt && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
@@ -478,20 +479,17 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
-        {/* Contact Name */}
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.contactName')}</div>
           <div className="text-base">{displayContactName}</div>
         </div>
 
-        {/* Route Number */}
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.routeNumber')}</div>
           <div className="text-base">{displayLocation}</div>
         </div>
 
-        {/* Address */}
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.address')}</div>
           <div className="text-base">{displayAddress}</div>
         </div>
@@ -502,6 +500,7 @@ export default function DeliveryDetailPage() {
             latitude={displayLatitude} 
             longitude={displayLongitude}
             markerLabel={displayCompanyName || displayLocation}
+            showRoute={true}
           />
         ) : (
           <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
@@ -512,8 +511,7 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
-        {/* Product Type */}
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.productType')}</div>
           <div className="text-base">
             {job.destination_goods_type || '-'}
@@ -521,26 +519,29 @@ export default function DeliveryDetailPage() {
           </div>
         </div>
 
-        {/* Delivery Time */}
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.pickupTime')}</div>
           <div className="text-base">{displayDeliveryDate ? formatDate(displayDeliveryDate, language) : '-'} | {displayDeliveryTime}</div>
         </div>
 
-        {/* Note */}
-        <div>
+        <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.remarks')}</div>
           <div className="text-base">{displayNotes}</div>
         </div>
 
-        {/* Action Buttons in Blue Frame */}
-        <div className="border-2 border-blue-500 rounded-lg p-3 space-y-3">
-          <Button variant="outline" className="w-full h-12 text-base">
+        {/* Action Buttons */}
+        <div className="space-y-3 pt-4">
+          <Button variant="outline" className="w-full h-12 text-base border-[#153860]">
             <Phone className="w-5 h-5 mr-2" />
             {t('delivery.call')}
           </Button>
-          <Button variant="outline" className="w-full h-12 text-base">
-            <Navigation className="w-5 h-5 mr-2" />
+          <Button variant="outline" onClick={() => {
+            if (displayLatitude && displayLongitude) {
+              const url = `https://www.google.com/maps/dir/?api=1&destination=${displayLatitude},${displayLongitude}`;
+              window.open(url, '_blank');
+            }
+          }} className="w-full h-12 text-base border-[#153860]">
+            <img src={routeIcon} alt="Route" className="w-5 h-5 mr-2" />
             {t('delivery.navigate')}
           </Button>
         </div>
@@ -600,9 +601,7 @@ export default function DeliveryDetailPage() {
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-              <MapPin className="w-8 h-8 text-green-600" />
-            </div>
+            <img src={checkInIcon} alt="Check in" className="w-16 h-16" />
             <DialogTitle className="text-xl text-center">{t('delivery.confirmStatusTitle')}</DialogTitle>
             <DialogDescription className="text-center text-base">
               {t('delivery.confirmCheckInMessage')}
