@@ -11,6 +11,7 @@ import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { formatDate } from '@/lib/dateUtils';
 import coinsIcon from '@/assets/coins-icon.png';
+import routeIcon from '@/assets/route-icon.png';
 
 interface JobDetail {
   id: string;
@@ -190,11 +191,7 @@ export default function DomesticJobDetail({
             <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {job.price.toLocaleString()}</div>
           </Card>
           <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
-            <div className="w-5 h-5 text-gray-600 mb-1">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-              </svg>
-            </div>
+            <img src={routeIcon} alt="route" className="w-5 h-5 mb-1" />
             <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{destinations.length > 0 ? destinations.length + 1 : 2}</span></div>
           </Card>
           <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
