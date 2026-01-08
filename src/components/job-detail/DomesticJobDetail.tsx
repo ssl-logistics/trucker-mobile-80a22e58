@@ -268,7 +268,7 @@ export default function DomesticJobDetail({
             {/* Right Content Column */}
             <div className="flex-1 space-y-3">
               {/* Pickup Point Card */}
-              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : 'border-teal-500 bg-white'}`}>
+              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : 'border-teal-500 bg-[#F6FFFE]'}`}>
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
