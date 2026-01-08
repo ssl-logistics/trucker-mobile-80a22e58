@@ -298,7 +298,7 @@ export default function DomesticJobDetail({
                       <img src={routeIcon} alt="route" className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
-                    <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700 flex flex-col items-center justify-center gap-0.5 p-1" onClick={() => {
+                    <Button size="sm" onClick={() => {
                     if (jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.id}/pickup-summary`);
                     } else if (jobApplication?.checked_in_at) {
@@ -306,7 +306,7 @@ export default function DomesticJobDetail({
                     } else {
                       navigate(`/job/${job.id}/pickup`);
                     }
-                  }}>
+                  }} className="h-10 bg-blue-600 hover:bg-blue-700 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]">
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
