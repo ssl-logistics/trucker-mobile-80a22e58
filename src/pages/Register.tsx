@@ -202,24 +202,39 @@ const Register = () => {
       if (registrationData.profilePhoto) {
         const fileExt = registrationData.profilePhoto.name.split('.').pop();
         const fileName = `${userId}-${Date.now()}.${fileExt}`;
+        console.log('Uploading profile photo:', fileName);
         const {
+          data: uploadData,
           error: uploadError
         } = await supabase.storage.from('avatars').upload(fileName, registrationData.profilePhoto);
-        if (!uploadError) {
+        
+        if (uploadError) {
+          console.error('Error uploading profile photo:', uploadError);
+        } else {
+          console.log('Upload success:', uploadData);
           const {
             data: {
               publicUrl
             }
           } = supabase.storage.from('avatars').getPublicUrl(fileName);
           avatarUrl = publicUrl;
+          console.log('Avatar URL:', avatarUrl);
         }
       }
 
       // Update profile with avatar URL
-      await supabase.from('profiles').update({
-        avatar_url: avatarUrl,
-        full_name: `${registrationData.firstName} ${registrationData.lastName}`
-      }).eq('id', userId);
+      if (avatarUrl) {
+        const { error: updateError } = await supabase.from('profiles').update({
+          avatar_url: avatarUrl,
+          full_name: `${registrationData.firstName} ${registrationData.lastName}`
+        }).eq('id', userId);
+        
+        if (updateError) {
+          console.error('Error updating profile with avatar:', updateError);
+        } else {
+          console.log('Profile updated with avatar successfully');
+        }
+      }
 
       // Save work preferences
       await supabase.from('driver_work_preferences').insert({
