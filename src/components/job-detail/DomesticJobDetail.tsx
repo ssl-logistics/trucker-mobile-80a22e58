@@ -14,7 +14,6 @@ import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
 import statusIcon from '@/assets/status-icon.png';
-
 interface JobDetail {
   id: string;
   order_code: string;
@@ -42,7 +41,6 @@ interface JobDetail {
   destination_time: string | null;
   destination_date: string | null;
 }
-
 interface JobApplication {
   checked_in_at: string | null;
   sop_completed_at: string | null;
@@ -51,7 +49,6 @@ interface JobApplication {
   delivery_sop_completed_at: string | null;
   status: string;
 }
-
 interface JobDestination {
   id: string;
   sequence_number: number;
@@ -69,14 +66,12 @@ interface JobDestination {
   checked_in_at: string | null;
   sop_completed_at: string | null;
 }
-
 interface DomesticJobDetailProps {
   job: JobDetail;
   jobApplication: JobApplication | null;
   userId: string;
   onUpdate: () => void;
 }
-
 export default function DomesticJobDetail({
   job,
   jobApplication,
@@ -84,7 +79,10 @@ export default function DomesticJobDetail({
   onUpdate
 }: DomesticJobDetailProps) {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const {
+    t,
+    language
+  } = useLanguage();
   const card1Ref = useRef<HTMLDivElement>(null);
   const [cardHeights, setCardHeights] = useState({
     card1: 0,
@@ -92,7 +90,6 @@ export default function DomesticJobDetail({
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [destinations, setDestinations] = useState<JobDestination[]>([]);
-
   useEffect(() => {
     // Calculate card heights for step positioning
     if (card1Ref.current) {
@@ -106,40 +103,31 @@ export default function DomesticJobDetail({
   // Fetch destinations from job_destinations table
   useEffect(() => {
     const fetchDestinations = async () => {
-      const { data, error } = await supabase
-        .from('job_destinations')
-        .select('*')
-        .eq('job_id', job.id)
-        .order('sequence_number', { ascending: true });
-
+      const {
+        data,
+        error
+      } = await supabase.from('job_destinations').select('*').eq('job_id', job.id).order('sequence_number', {
+        ascending: true
+      });
       if (error) {
         console.error('Error fetching destinations:', error);
       } else if (data && data.length > 0) {
         setDestinations(data);
       }
     };
-
     fetchDestinations();
 
     // Set up real-time subscription for job_destinations
-    const channel = supabase
-      .channel(`job_destinations_${job.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'job_destinations',
-          filter: `job_id=eq.${job.id}`
-        },
-        (payload) => {
-          console.log('Job destination updated:', payload);
-          // Refetch destinations when any change occurs
-          fetchDestinations();
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel(`job_destinations_${job.id}`).on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'job_destinations',
+      filter: `job_id=eq.${job.id}`
+    }, payload => {
+      console.log('Job destination updated:', payload);
+      // Refetch destinations when any change occurs
+      fetchDestinations();
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
@@ -203,14 +191,10 @@ export default function DomesticJobDetail({
         </div>
 
         {/* Report Problem Button */}
-        <Button 
-          variant="outline" 
-          className="w-full h-12 border-2 border-gray-300 bg-white hover:bg-gray-50"
-          onClick={() => setIsReportDrawerOpen(true)}
-        >
+        <Button variant="outline" className="w-full h-12 border-2 border-gray-300 bg-white hover:bg-gray-50" onClick={() => setIsReportDrawerOpen(true)}>
           <div className="flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-              <path d="M0 3.5C0 1.568 1.568 0 3.5 0H28.5C30.432 0 32 1.568 32 3.5V22.5C32 23.4283 31.6313 24.3185 30.9749 24.9749C30.3185 25.6313 29.4283 26 28.5 26H16.12L10.974 31.146C10.5661 31.5524 10.047 31.8289 9.48224 31.9407C8.91743 32.0525 8.33217 31.9946 7.80023 31.7743C7.26828 31.5539 6.81346 31.1811 6.49309 30.7027C6.17272 30.2243 6.00115 29.6618 6 29.086V26H3.5C2.57174 26 1.6815 25.6313 1.02513 24.9749C0.368749 24.3185 0 23.4283 0 22.5L0 3.5ZM3.5 3C3.36739 3 3.24021 3.05268 3.14645 3.14645C3.05268 3.24021 3 3.36739 3 3.5V22.5C3 22.776 3.224 23 3.5 23H7.5C7.89782 23 8.27936 23.158 8.56066 23.4393C8.84196 23.7206 9 24.1022 9 24.5V28.88L14.44 23.44C14.721 23.1586 15.1023 23.0004 15.5 23H28.5C28.6326 23 28.7598 22.9473 28.8536 22.8536C28.9473 22.7598 29 22.6326 29 22.5V3.5C29 3.36739 28.9473 3.24021 28.8536 3.14645C28.7598 3.05268 28.6326 3 28.5 3H3.5ZM17.5 7.5V12.5C17.5 12.8978 17.342 13.2794 17.0607 13.5607C16.7794 13.842 16.3978 14 16 14C15.6022 14 15.2206 13.842 14.9393 13.5607C14.658 13.2794 14.5 12.8978 14.5 12.5V7.5C14.5 7.10218 14.658 6.72064 14.9393 6.43934C15.2206 6.15804 15.6022 6 16 6C16.3978 6 16.7794 6.15804 17.0607 6.43934C17.342 6.72064 17.5 7.10218 17.5 7.5ZM18 18C18 18.5304 17.7893 19.0391 17.4142 19.4142C17.0391 19.7893 16.5304 20 16 20C15.4696 20 14.9609 19.7893 14.5858 19.4142C14.2107 19.0391 14 18.5304 14 18C14 17.4696 14.2107 16.9609 14.5858 16.5858C14.9609 16.2107 15.4696 16 16 16C16.5304 16 17.0391 16.2107 17.4142 16.5858C17.7893 16.9609 18 17.4696 18 18Z" fill="#0A8778"/>
+              <path d="M0 3.5C0 1.568 1.568 0 3.5 0H28.5C30.432 0 32 1.568 32 3.5V22.5C32 23.4283 31.6313 24.3185 30.9749 24.9749C30.3185 25.6313 29.4283 26 28.5 26H16.12L10.974 31.146C10.5661 31.5524 10.047 31.8289 9.48224 31.9407C8.91743 32.0525 8.33217 31.9946 7.80023 31.7743C7.26828 31.5539 6.81346 31.1811 6.49309 30.7027C6.17272 30.2243 6.00115 29.6618 6 29.086V26H3.5C2.57174 26 1.6815 25.6313 1.02513 24.9749C0.368749 24.3185 0 23.4283 0 22.5L0 3.5ZM3.5 3C3.36739 3 3.24021 3.05268 3.14645 3.14645C3.05268 3.24021 3 3.36739 3 3.5V22.5C3 22.776 3.224 23 3.5 23H7.5C7.89782 23 8.27936 23.158 8.56066 23.4393C8.84196 23.7206 9 24.1022 9 24.5V28.88L14.44 23.44C14.721 23.1586 15.1023 23.0004 15.5 23H28.5C28.6326 23 28.7598 22.9473 28.8536 22.8536C28.9473 22.7598 29 22.6326 29 22.5V3.5C29 3.36739 28.9473 3.24021 28.8536 3.14645C28.7598 3.05268 28.6326 3 28.5 3H3.5ZM17.5 7.5V12.5C17.5 12.8978 17.342 13.2794 17.0607 13.5607C16.7794 13.842 16.3978 14 16 14C15.6022 14 15.2206 13.842 14.9393 13.5607C14.658 13.2794 14.5 12.8978 14.5 12.5V7.5C14.5 7.10218 14.658 6.72064 14.9393 6.43934C15.2206 6.15804 15.6022 6 16 6C16.3978 6 16.7794 6.15804 17.0607 6.43934C17.342 6.72064 17.5 7.10218 17.5 7.5ZM18 18C18 18.5304 17.7893 19.0391 17.4142 19.4142C17.0391 19.7893 16.5304 20 16 20C15.4696 20 14.9609 19.7893 14.5858 19.4142C14.2107 19.0391 14 18.5304 14 18C14 17.4696 14.2107 16.9609 14.5858 16.5858C14.9609 16.2107 15.4696 16 16 16C16.5304 16 17.0391 16.2107 17.4142 16.5858C17.7893 16.9609 18 17.4696 18 18Z" fill="#0A8778" />
             </svg>
             <span className="font-medium">{t('jobDetail.reportProblem')}</span>
           </div>
@@ -252,18 +236,19 @@ export default function DomesticJobDetail({
               </div>
 
               {/* Delivery Point Circles */}
-              {(destinations.length > 0 ? destinations : [{ id: 'fallback', sequence_number: 1 }]).map((dest, index) => (
-                <div key={dest.id} className="relative flex justify-center" style={{
-                height: '200px',
-                marginBottom: index < (destinations.length > 0 ? destinations.length - 1 : 0) ? '12px' : '0'
-              }}>
+              {(destinations.length > 0 ? destinations : [{
+              id: 'fallback',
+              sequence_number: 1
+            }]).map((dest, index) => <div key={dest.id} className="relative flex justify-center" style={{
+              height: '200px',
+              marginBottom: index < (destinations.length > 0 ? destinations.length - 1 : 0) ? '12px' : '0'
+            }}>
                   <div className="absolute top-0">
                     {dest.sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
                         <CheckCircle className="w-4 h-4 text-white" />
                       </div> : dest.checked_in_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
 
             {/* Right Content Column */}
@@ -274,9 +259,7 @@ export default function DomesticJobDetail({
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm">{t('jobDetail.pickupPoint')}</h3>
-                      {job.origin_company_name && (
-                        <span className="text-sm font-medium text-muted-foreground">: {job.origin_company_name}</span>
-                      )}
+                      {job.origin_company_name && <span className="text-sm font-medium text-muted-foreground">: {job.origin_company_name}</span>}
                     </div>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.checked_in_at ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                       {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
@@ -307,7 +290,7 @@ export default function DomesticJobDetail({
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1">
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]">
                       <Phone className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.call')}</span>
                     </Button>
@@ -332,16 +315,12 @@ export default function DomesticJobDetail({
               </Card>
 
               {/* Delivery Point Cards - Multiple destinations */}
-              {destinations.length > 0 ? (
-                destinations.map((dest, index) => (
-                  <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${dest.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+              {destinations.length > 0 ? destinations.map((dest, index) => <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${dest.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
                     <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
-                          {dest.company_name && (
-                            <span className="text-sm font-medium text-muted-foreground">: {dest.company_name}</span>
-                          )}
+                          {dest.company_name && <span className="text-sm font-medium text-muted-foreground">: {dest.company_name}</span>}
                         </div>
                         {jobApplication?.job_started_at && <span className={`text-xs font-medium ${dest.sop_completed_at ? 'text-green-600' : 'text-orange-500'}`}>
                             • {dest.sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
@@ -381,18 +360,14 @@ export default function DomesticJobDetail({
                         </Button>
                       </div>
                     </div>
-                  </Card>
-                ))
-              ) : (
-                // Fallback to original single destination from jobs table
-                <Card className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+                  </Card>) :
+            // Fallback to original single destination from jobs table
+            <Card className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
                   <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm">{t('jobDetail.deliveryPoint')}</h3>
-                        {job.destination_company_name && (
-                          <span className="text-sm font-medium text-muted-foreground">: {job.destination_company_name}</span>
-                        )}
+                        {job.destination_company_name && <span className="text-sm font-medium text-muted-foreground">: {job.destination_company_name}</span>}
                       </div>
                       {jobApplication?.job_started_at && <span className={`text-xs font-medium ${jobApplication?.delivery_sop_completed_at ? 'text-green-600' : 'text-orange-500'}`}>
                           • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
@@ -436,8 +411,7 @@ export default function DomesticJobDetail({
                       </Button>
                     </div>
                   </div>
-                </Card>
-              )}
+                </Card>}
             </div>
           </div>
         </div>
@@ -454,10 +428,6 @@ export default function DomesticJobDetail({
           </Button>
         </div>}
 
-      <ReportProblemDrawer
-        open={isReportDrawerOpen}
-        onOpenChange={setIsReportDrawerOpen}
-        jobId={job.id}
-      />
+      <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} />
     </div>;
 }
