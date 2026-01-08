@@ -36,7 +36,7 @@ interface ProfileData {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user, profile: authProfile, refreshProfile } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -51,7 +51,7 @@ export default function ProfilePage() {
     if (user) {
       loadProfileDetails();
     }
-  }, [user, authProfile]);
+  }, [user]);
 
   const loadProfileDetails = async () => {
     if (!user) return;
@@ -70,10 +70,10 @@ export default function ProfilePage() {
       .maybeSingle();
 
     setProfile({
-      full_name: authProfile?.full_name || '',
-      phone_number: profileData?.phone_number || '',
-      avatar_url: authProfile?.avatar_url || undefined,
-      email: user.email,
+      full_name: user?.full_name || '',
+      phone_number: profileData?.phone_number || user?.phone_number || '',
+      avatar_url: user?.avatar_url || undefined,
+      email: user?.email || user?.username,
       work_areas: workPrefs?.work_areas || [],
       price_range_min: workPrefs?.price_range_min,
       price_range_max: workPrefs?.price_range_max,
@@ -137,8 +137,8 @@ export default function ProfilePage() {
 
     if (!updateError) {
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-      // Refresh the global profile cache
-      await refreshProfile();
+      // Refresh the user data
+      refreshUser();
       toast({ title: t('profile.success'), description: t('profile.success_desc') });
     } else {
       toast({ title: t('home.error_load'), description: t('profile.error_update'), variant: 'destructive' });

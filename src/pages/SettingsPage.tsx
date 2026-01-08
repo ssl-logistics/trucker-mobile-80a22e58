@@ -30,7 +30,7 @@ import {
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useLanguage();
   const { vehiclePhoto } = useVehiclePhoto();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -107,8 +107,8 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    logout();
     navigate('/');
   };
 
@@ -151,12 +151,12 @@ export default function SettingsPage() {
         >
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12">
-              <AvatarImage src={profile?.avatar_url || vehiclePhoto || undefined} alt={profile?.full_name} />
+              <AvatarImage src={user?.avatar_url || vehiclePhoto || undefined} alt={user?.full_name} />
               <AvatarFallback className="bg-primary/10 text-primary">
-                {profile?.full_name?.charAt(0) || "👤"}
+                {user?.full_name?.charAt(0) || "👤"}
               </AvatarFallback>
             </Avatar>
-            <span className="font-semibold text-foreground">{profile?.full_name || t('settings.profile')}</span>
+            <span className="font-semibold text-foreground">{user?.full_name || t('settings.profile')}</span>
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </button>
