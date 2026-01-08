@@ -284,9 +284,6 @@ export default function ProfilePage() {
           <div className="text-sm text-muted-foreground mb-1">{t('profile.email')}</div>
           <div className="flex items-center justify-between">
             <span className="text-foreground">{profile?.email}</span>
-            <button className="p-2">
-              <Edit2 className="w-4 h-4 text-muted-foreground" />
-            </button>
           </div>
         </div>
       </div>
