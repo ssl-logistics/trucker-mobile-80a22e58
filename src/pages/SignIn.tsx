@@ -175,7 +175,16 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
       }
       
-      navigate("/home");
+      // Navigate based on user_type
+      if (userType === 'freelance_driver') {
+        navigate("/home");
+      } else if (userType === 'company') {
+        navigate("/dashboard");
+      } else if (userType === 'factory') {
+        navigate("/dashboard");
+      } else {
+        navigate("/home");
+      }
     } catch (error) {
       console.error("Login error:", error);
       setServerError(t('signIn.error'));
