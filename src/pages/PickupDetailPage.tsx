@@ -196,9 +196,7 @@ export default function PickupDetailPage() {
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-              <img src={checkInIcon} alt="Check in" className="w-10 h-10" />
-            </div>
+            <img src={checkInIcon} alt="Check in" className="w-16 h-16" />
             <DialogTitle className="text-xl text-center">
               {t('pickup.confirmTitle')}
             </DialogTitle>
