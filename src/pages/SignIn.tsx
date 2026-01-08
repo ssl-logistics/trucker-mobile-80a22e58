@@ -177,7 +177,7 @@ const SignIn = () => {
       
       // Navigate based on user_type
       if (userType === 'freelance_driver') {
-        navigate("/home");
+        navigate("/current-jobs");
       } else if (userType === 'company') {
         navigate("/dashboard");
       } else if (userType === 'factory') {
