@@ -315,99 +315,101 @@ export default function DomesticJobDetail({
               </Card>
 
               {/* Delivery Point Cards - Multiple destinations */}
-              {destinations.length > 0 ? destinations.map((dest, index) => <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${dest.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+              {destinations.length > 0 ? destinations.map((dest, index) => <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${dest.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                     <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-sm">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
-                          {dest.company_name && <span className="text-sm font-medium text-muted-foreground">: {dest.company_name}</span>}
+                          <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
+                          {dest.company_name && <span className="text-sm font-medium text-[#225795]">: {dest.company_name}</span>}
                         </div>
-                        {jobApplication?.job_started_at && <span className={`text-xs font-medium ${dest.sop_completed_at ? 'text-green-600' : 'text-orange-500'}`}>
-                            • {dest.sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
+                        {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${dest.sop_completed_at ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                            {dest.sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
                           </span>}
                       </div>
 
                       <div className="space-y-1 text-sm mb-3">
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                          <span>: {dest.contact_name || '-'}</span>
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
+                          <span className="text-[#454545]">: {dest.contact_name || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
-                          <span>: {dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position')}</span>
+                          <span className="text-[#454545]">: {dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
-                          <span>: {dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
+                          <span className="text-[#454545]">: {dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                          <span>: {dest.notes || '-'}</span>
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
+                          <span className="text-[#454545]">: {dest.notes || '-'}</span>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2">
-                        <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.job_started_at}>
                           <Phone className="w-4 h-4" />
-                          {t('jobDetail.call')}
+                          <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
-                          <Navigation className="w-4 h-4" />
-                          {t('jobDetail.route')}
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.job_started_at}>
+                          <img src={routeIcon} alt="route" className="w-4 h-4" />
+                          <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery/${dest.id}`)} disabled={!jobApplication?.job_started_at}>
-                          {dest.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery/${dest.id}`)} disabled={!jobApplication?.job_started_at}>
+                          <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                          <span className="text-xs">{dest.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
                   </Card>) :
             // Fallback to original single destination from jobs table
-            <Card className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+            <Card className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                   <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm">{t('jobDetail.deliveryPoint')}</h3>
-                        {job.destination_company_name && <span className="text-sm font-medium text-muted-foreground">: {job.destination_company_name}</span>}
+                        <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
+                        {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
                       </div>
-                      {jobApplication?.job_started_at && <span className={`text-xs font-medium ${jobApplication?.delivery_sop_completed_at ? 'text-green-600' : 'text-orange-500'}`}>
-                          • {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
+                      {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                          {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
                         </span>}
                     </div>
 
                     <div className="space-y-1 text-sm mb-3">
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                        <span>: {job.destination_contact_person || '-'}</span>
+                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
+                        <span className="text-[#454545]">: {job.destination_contact_person || '-'}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
-                        <span>: {job.destination_location || '-'}</span>
+                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position')}</span>
+                        <span className="text-[#454545]">: {job.destination_location || '-'}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                        <span>: {job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
+                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
+                        <span className="text-[#454545]">: {job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
-                        <span>: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
+                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
+                        <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
-                        <span>: {job.destination_remarks || '-'}</span>
+                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
+                        <span className="text-[#454545]">: {job.destination_remarks || '-'}</span>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
-                      <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
+                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.job_started_at}>
                         <Phone className="w-4 h-4" />
-                        {t('jobDetail.call')}
+                        <span className="text-xs">{t('jobDetail.call')}</span>
                       </Button>
-                      <Button variant="outline" size="sm" className="h-10" disabled={!jobApplication?.job_started_at}>
-                        <Navigation className="w-4 h-4" />
-                        {t('jobDetail.route')}
+                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.job_started_at}>
+                        <img src={routeIcon} alt="route" className="w-4 h-4" />
+                        <span className="text-xs">{t('jobDetail.route')}</span>
                       </Button>
-                      <Button size="sm" className="h-10 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.job_started_at}>
-                        {jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}
+                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.job_started_at}>
+                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                        <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                       </Button>
                     </div>
                   </div>
