@@ -225,7 +225,7 @@ export default function JobRouteExpensesPage() {
                   <CheckCircle2 className="w-5 h-5 text-white" />
                 </div>
                 {/* Dashed line - spans full height of container */}
-                <div className="absolute left-[13px] top-7 bottom-0 w-0.5 border-l-2 border-dashed border-muted-foreground"></div>
+                <div className="absolute left-[13px] top-7 -bottom-4 w-0.5 border-l-2 border-dashed border-muted-foreground"></div>
 
                 <Card className="p-4 mb-4">
                   <div className="flex items-start justify-between mb-2">
@@ -276,7 +276,7 @@ export default function JobRouteExpensesPage() {
                     </div>
                     {/* Dashed line to next point (if not last) */}
                     {index < destinations.length - 1 && (
-                      <div className="absolute left-[13px] top-7 bottom-0 w-0.5 border-l-2 border-dashed border-muted-foreground"></div>
+                      <div className="absolute left-[13px] top-7 -bottom-4 w-0.5 border-l-2 border-dashed border-muted-foreground"></div>
                     )}
 
                     <Card className="p-4 mb-4">
