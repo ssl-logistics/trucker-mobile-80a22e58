@@ -344,9 +344,16 @@ const Register = () => {
         // Parse error message and translate
         let errorMessage = t('register.createAccountFailed');
         try {
-          // Check if error.message contains JSON
-          const errorData = JSON.parse(error.message.replace('Edge function returned 400: Error, ', ''));
-          if (errorData.error) {
+          // Try multiple parsing patterns for edge function errors
+          let errorData: { error?: string; field?: string } | null = null;
+          
+          // Pattern 1: "Edge function returned 400: Error, {...}"
+          const jsonMatch = error.message?.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            errorData = JSON.parse(jsonMatch[0]);
+          }
+          
+          if (errorData?.error) {
             // Map API error messages to translation keys
             const errorMap: Record<string, string> = {
               'Email already registered': 'register.error.emailAlreadyRegistered',
@@ -357,13 +364,16 @@ const Register = () => {
               'Password mismatch': 'register.error.passwordMismatch',
               'Weak password': 'register.error.weakPassword',
               'Missing required fields': 'register.error.missingRequired',
+              'Registration failed': 'register.error.registrationFailed',
             };
             const translationKey = errorMap[errorData.error] || 'register.error.unknownError';
             errorMessage = t(translationKey);
+            console.log("[Register] Translated error:", translationKey, "->", errorMessage);
           }
-        } catch {
-          // If parsing fails, use the error message directly or default
-          errorMessage = error.message || t('register.createAccountFailed');
+        } catch (parseError) {
+          console.error("[Register] Error parsing:", parseError);
+          // If parsing fails, use default translated message
+          errorMessage = t('register.createAccountFailed');
         }
         
         toast({
