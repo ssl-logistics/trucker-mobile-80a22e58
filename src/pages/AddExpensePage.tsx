@@ -388,34 +388,36 @@ const AddExpensePage = () => {
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        <AlertDialogContent className="max-w-[280px] rounded-2xl p-6">
+          <AlertDialogHeader className="space-y-3">
+            <div className="flex justify-center">
+              <div className="w-14 h-14 bg-[#0A8778] rounded-full flex items-center justify-center">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             </div>
-            <AlertDialogTitle className="text-center">
+            <AlertDialogTitle className="text-center text-base font-semibold text-gray-800">
               {t('expense.confirmTitle')}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              <div className="space-y-2">
-                <p>{t('expense.totalAmount')}</p>
-                <p className="text-2xl font-bold text-green-600">
+            <AlertDialogDescription asChild>
+              <div className="text-center space-y-1">
+                <p className="text-sm text-gray-600">{t('expense.totalAmount')}</p>
+                <p className="text-2xl font-bold text-[#0A8778]">
                   {calculateTotal()} {t('expense.baht')}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   {t('expense.checkDetails')}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2 sm:gap-2">
-            <AlertDialogCancel className="flex-1 m-0">{t('expense.cancel')}</AlertDialogCancel>
+          <AlertDialogFooter className="flex-row justify-center gap-8 mt-4 sm:justify-center">
+            <AlertDialogCancel className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-gray-500 font-medium text-sm">
+              {t('expense.cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
-              className="flex-1 m-0"
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-[#153860] font-semibold text-sm underline"
               onClick={handleConfirm}
               disabled={isSubmitting}
             >
