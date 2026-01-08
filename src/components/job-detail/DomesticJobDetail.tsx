@@ -184,30 +184,26 @@ export default function DomesticJobDetail({
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
         {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="p-3 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
+        <div className="grid grid-cols-3 gap-2">
+          <Card className="p-2 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
             <img src={coinsIcon} alt="price" className="w-6 h-6 mb-1" />
-            <div className="text-xl font-bold text-[#0A8778]">฿ {job.price.toLocaleString()}</div>
+            <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {job.price.toLocaleString()}</div>
           </Card>
-          <Card className="p-3 bg-[#E8E8E8] border-0">
-            <div className="flex items-center gap-1 mb-1">
-              <div className="w-5 h-5 text-gray-600">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-              </div>
+          <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
+            <div className="w-5 h-5 text-gray-600 mb-1">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
             </div>
-            <div className="text-sm text-gray-700">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{destinations.length > 0 ? destinations.length + 1 : 2}</span></div>
+            <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{destinations.length > 0 ? destinations.length + 1 : 2}</span></div>
           </Card>
-          <Card className="p-3 bg-[#E8E8E8] border-0">
-            <div className="flex items-center gap-1 mb-1">
-              <div className="w-5 h-5 text-gray-600">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-                </svg>
-              </div>
+          <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
+            <div className="w-5 h-5 text-gray-600 mb-1">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+              </svg>
             </div>
-            <div className="text-sm text-gray-700">{t('jobDetail.totalGoods')} : <span className="font-semibold">{job.origin_goods_quantity || '-'}</span></div>
+            <div className="text-xs text-gray-700 text-center">{t('jobDetail.totalGoods')} : <span className="font-semibold">{job.origin_goods_quantity || '-'}</span></div>
           </Card>
         </div>
 
