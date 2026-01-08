@@ -10,15 +10,7 @@ import JobActionButtons from '@/components/job/JobActionButtons';
 import Map from '@/components/Map';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate } from '@/lib/dateUtils';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -36,30 +28,31 @@ interface JobDetail {
   origin_address?: string | null;
   origin_company_name?: string | null;
 }
-
 export default function PickupDetailPage() {
   const navigate = useNavigate();
-  const { jobId } = useParams();
-  const { user } = useAuth();
-  const { t, language } = useLanguage();
+  const {
+    jobId
+  } = useParams();
+  const {
+    user
+  } = useAuth();
+  const {
+    t,
+    language
+  } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
   useEffect(() => {
     loadJobDetail();
   }, [jobId, user]);
-
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
-
     setLoading(true);
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude, origin_contact_person, origin_contact_role, origin_goods_type, origin_goods_quantity, origin_remarks, origin_address, origin_company_name')
-      .eq('id', jobId)
-      .single();
-
+    const {
+      data,
+      error
+    } = await supabase.from('jobs').select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude, origin_contact_person, origin_contact_role, origin_goods_type, origin_goods_quantity, origin_remarks, origin_address, origin_company_name').eq('id', jobId).single();
     if (error) {
       toast({
         title: t('pickup.error'),
@@ -72,19 +65,14 @@ export default function PickupDetailPage() {
     }
     setLoading(false);
   };
-
   const handleCheckIn = async () => {
     if (!job || !user) return;
-
-    const { error } = await supabase
-      .from('job_applications')
-      .update({ 
-        checked_in_at: new Date().toISOString(),
-        status: 'checked_in'
-      })
-      .eq('job_id', job.id)
-      .eq('driver_id', user.id);
-
+    const {
+      error
+    } = await supabase.from('job_applications').update({
+      checked_in_at: new Date().toISOString(),
+      status: 'checked_in'
+    }).eq('job_id', job.id).eq('driver_id', user.id);
     if (error) {
       toast({
         title: t('pickup.error'),
@@ -102,16 +90,13 @@ export default function PickupDetailPage() {
       status: 'pickup_checked_in',
       sequenceNumber: 2 // Pickup point
     });
-
     toast({
       title: t('pickup.checkInSuccess'),
-      description: t('pickup.checkInSuccessMessage'),
+      description: t('pickup.checkInSuccessMessage')
     });
     setShowConfirmDialog(false);
     navigate(`/job/${job.id}`);
   };
-
-
   const openGoogleMaps = () => {
     if (!job?.origin_latitude || !job?.origin_longitude) {
       toast({
@@ -121,23 +106,16 @@ export default function PickupDetailPage() {
       });
       return;
     }
-
     const url = `https://www.google.com/maps/dir/?api=1&destination=${job.origin_latitude},${job.origin_longitude}`;
     window.open(url, '_blank');
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+    return <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
   if (!job) return null;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
+  return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
@@ -170,21 +148,12 @@ export default function PickupDetailPage() {
           <div className="text-base">{job.origin_address || job.origin_location || '-'}</div>
         </div>
 
-        {job.origin_latitude && job.origin_longitude ? (
-          <Map 
-            latitude={job.origin_latitude} 
-            longitude={job.origin_longitude}
-            markerLabel={job.origin_location}
-            showRoute={true}
-          />
-        ) : (
-          <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+        {job.origin_latitude && job.origin_longitude ? <Map latitude={job.origin_latitude} longitude={job.origin_longitude} markerLabel={job.origin_location} showRoute={true} /> : <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
             <div className="text-center">
               <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">{t('pickup.map')}</p>
             </div>
-          </div>
-        )}
+          </div>}
 
         <div>
           <div className="text-sm text-muted-foreground mb-1">{t('pickup.productType')}</div>
@@ -204,15 +173,11 @@ export default function PickupDetailPage() {
         </div>
 
         <div className="space-y-3 pt-4">
-          <Button variant="outline" className="w-full h-12 text-base">
+          <Button variant="outline" className="w-full h-12 text-base border-[#153860]">
             <Phone className="w-5 h-5 mr-2" />
             {t('pickup.call')}
           </Button>
-          <Button 
-            variant="outline" 
-            className="w-full h-12 text-base"
-            onClick={openGoogleMaps}
-          >
+          <Button variant="outline" className="w-full h-12 text-base" onClick={openGoogleMaps}>
             <Navigation className="w-5 h-5 mr-2" />
             {t('pickup.route')}
           </Button>
@@ -220,10 +185,7 @@ export default function PickupDetailPage() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-        <Button 
-          className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
-          onClick={() => setShowConfirmDialog(true)}
-        >
+        <Button className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700" onClick={() => setShowConfirmDialog(true)}>
           <MapPin className="w-5 h-5 mr-2" />
           {t('pickup.checkIn')}
         </Button>
@@ -243,22 +205,14 @@ export default function PickupDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowConfirmDialog(false)}
-              className="flex-1 h-11"
-            >
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="flex-1 h-11">
               {t('pickup.cancel')}
             </Button>
-            <Button
-              onClick={handleCheckIn}
-              className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
-            >
+            <Button onClick={handleCheckIn} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
               {t('pickup.confirmButton')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 }
