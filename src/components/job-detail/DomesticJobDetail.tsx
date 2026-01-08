@@ -268,23 +268,23 @@ export default function DomesticJobDetail({
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.contactPerson')}</span>
+                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
                       <span>: {job.origin_contact_person || '-'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.position')}</span>
+                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position')}</span>
                       <span>: {job.origin_location || '-'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.goodsType')}</span>
+                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
                       <span>: {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.pickupTime')}</span>
+                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.pickupTime')}</span>
                       <span>: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobDetail.remarks')}</span>
+                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
                       <span>: {job.origin_remarks || '-'}</span>
                     </div>
                   </div>
