@@ -271,11 +271,13 @@ export default function DomesticJobDetail({
               {/* Pickup Point Card */}
               <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : 'border-teal-500 bg-[#F6FFFE]'}`}>
                 <div>
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <h3 className="font-semibold text-sm">{t('jobDetail.pickupPoint')}</h3>
-                    {job.origin_company_name && (
-                      <span className="text-sm font-medium text-muted-foreground">: {job.origin_company_name}</span>
-                    )}
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm">{t('jobDetail.pickupPoint')}</h3>
+                      {job.origin_company_name && (
+                        <span className="text-sm font-medium text-muted-foreground">: {job.origin_company_name}</span>
+                      )}
+                    </div>
                     <span className={`text-xs font-medium ${jobApplication?.sop_completed_at ? 'text-green-600' : jobApplication?.checked_in_at ? 'text-orange-500' : 'text-orange-500'}`}>
                       • {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                     </span>
