@@ -177,7 +177,7 @@ export default function PickupDetailPage() {
             <Phone className="w-5 h-5 mr-2" />
             {t('pickup.call')}
           </Button>
-          <Button variant="outline" className="w-full h-12 text-base" onClick={openGoogleMaps}>
+          <Button variant="outline" onClick={openGoogleMaps} className="w-full h-12 text-base border-[#153860]">
             <Navigation className="w-5 h-5 mr-2" />
             {t('pickup.route')}
           </Button>
