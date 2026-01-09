@@ -62,9 +62,10 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true);
 
     try {
-      // Call edge function to reset password
+      // Call edge function to reset password with userId for more reliable lookup
       const { data, error } = await supabase.functions.invoke('reset-user-password', {
         body: { 
+          userId: user?.id,
           email: userEmail,
           newPassword: newPassword 
         },
