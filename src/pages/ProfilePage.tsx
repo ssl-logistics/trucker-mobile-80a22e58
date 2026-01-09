@@ -25,11 +25,12 @@ import {
 import { toast } from '@/hooks/use-toast';
 
 interface ProfileData {
-  full_name: string;
+  first_name: string;
+  last_name: string;
   phone_number: string;
   avatar_url?: string;
   email?: string;
-  work_areas?: string[];
+  location?: string;
   price_range_min?: number;
   price_range_max?: number;
 }
@@ -51,11 +52,12 @@ export default function ProfilePage() {
     if (user) {
       // Use data directly from AuthContext (external login API)
       setProfile({
-        full_name: user.full_name || '',
-        phone_number: user.phone_number || user.phone || '',
-        avatar_url: user.avatar_url || undefined,
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        phone_number: user.phone || user.phone_number || '',
+        avatar_url: user.profile_photo_url || user.avatar_url || undefined,
         email: user.email || user.username || '',
-        work_areas: user.work_areas || [],
+        location: user.location || '',
         price_range_min: user.price_range_min,
         price_range_max: user.price_range_max,
       });
@@ -143,9 +145,8 @@ export default function ProfilePage() {
     setPreviewUrl(null);
   };
 
-  const nameParts = profile?.full_name.split(' ') || [];
-  const firstName = nameParts[0] || '';
-  const lastName = nameParts.slice(1).join(' ') || '';
+  const firstName = profile?.first_name || '';
+  const lastName = profile?.last_name || '';
 
   return (
     <div className="min-h-screen bg-background">
@@ -171,7 +172,7 @@ export default function ProfilePage() {
         <div className="flex justify-center relative">
           <div className="relative">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
+              <AvatarImage src={profile?.avatar_url} alt={`${firstName} ${lastName}`} />
               <AvatarFallback className="bg-primary/10 text-primary text-3xl">
                 {firstName.charAt(0)}
               </AvatarFallback>
@@ -214,8 +215,7 @@ export default function ProfilePage() {
               onClick={() => navigate('/profile/edit', { 
                 state: { 
                   field: 'firstName', 
-                  value: firstName, 
-                  fullName: profile?.full_name 
+                  value: firstName
                 } 
               })}
               className="p-2"
@@ -233,8 +233,7 @@ export default function ProfilePage() {
               onClick={() => navigate('/profile/edit', { 
                 state: { 
                   field: 'lastName', 
-                  value: lastName, 
-                  fullName: profile?.full_name 
+                  value: lastName
                 } 
               })}
               className="p-2"
@@ -270,22 +269,13 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Work Areas */}
-      {profile?.work_areas && profile.work_areas.length > 0 && (
+      {/* Location */}
+      {profile?.location && (
         <div className="bg-white mt-2 px-4 py-3">
-          <div className="text-sm text-muted-foreground mb-3">
-            {t('profile.work_areas')}
+          <div className="text-sm text-muted-foreground mb-1">
+            {t('profile.location') || 'พื้นที่ทำงาน'}
           </div>
-          <div className="flex flex-wrap gap-2">
-            {profile.work_areas.map((area, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm"
-              >
-                {area}
-              </span>
-            ))}
-          </div>
+          <div className="text-foreground">{profile.location}</div>
         </div>
       )}
 
