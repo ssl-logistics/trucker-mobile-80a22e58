@@ -31,7 +31,7 @@ interface Job {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, setAuthTransitioning } = useAuth();
   const { t } = useLanguage();
   const { role } = useUserRole();
   const { vehiclePhoto } = useVehiclePhoto();
@@ -169,6 +169,7 @@ export default function Home() {
     loadJobs();
   };
   const handleSignOut = async () => {
+    setAuthTransitioning(true);
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       
@@ -189,7 +190,10 @@ export default function Home() {
       toast({
         description: t('settings.logoutSuccess') || 'ออกจากระบบสำเร็จ',
       });
-      navigate('/');
+      setTimeout(() => {
+        setAuthTransitioning(false);
+        navigate('/');
+      }, 500);
     }
   };
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
