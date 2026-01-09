@@ -102,6 +102,7 @@ export default function ProfilePage() {
     setLoading(true);
     setShowConfirmDialog(false);
 
+    // Upload to Supabase storage
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(filePath, selectedFile);
@@ -117,17 +118,36 @@ export default function ProfilePage() {
       .from('avatars')
       .getPublicUrl(filePath);
 
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ avatar_url: publicUrl })
-      .eq('id', user.id);
+    try {
+      // Update via external API
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            driver_id: user.id,
+            profile_photo_url: publicUrl,
+          }),
+        }
+      );
 
-    if (!updateError) {
-      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-      // Refresh the user data
-      refreshUser();
-      toast({ title: t('profile.success'), description: t('profile.success_desc') });
-    } else {
+      const data = await response.json();
+      console.log('Update profile photo response:', data);
+
+      if (response.ok) {
+        setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+        // Refresh the user data from API
+        await refreshUser();
+        toast({ title: t('profile.success'), description: t('profile.success_desc') });
+      } else {
+        toast({ title: t('home.error_load'), description: data.error || t('profile.error_update'), variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('Error updating profile photo:', error);
       toast({ title: t('home.error_load'), description: t('profile.error_update'), variant: 'destructive' });
     }
     
