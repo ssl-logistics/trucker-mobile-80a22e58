@@ -1197,6 +1197,25 @@ const thTranslations: Record<string, string> = {
   // Fuel Types
   'fuelType.diesel': 'ดีเซล',
   'fuelType.gasoline': 'เบนซิน',
+  'fuelType.gas': 'แก๊ส',
+  'fuelType.electric': 'ไฟฟ้า',
+  'fuelType.hybrid': 'ไฮบริด',
+  
+  // Vehicle Colors
+  'vehicleColor.white': 'ขาว',
+  'vehicleColor.black': 'ดำ',
+  'vehicleColor.red': 'แดง',
+  'vehicleColor.blue': 'น้ำเงิน',
+  'vehicleColor.green': 'เขียว',
+  'vehicleColor.yellow': 'เหลือง',
+  'vehicleColor.orange': 'ส้ม',
+  'vehicleColor.silver': 'เงิน',
+  'vehicleColor.gray': 'เทา',
+  'vehicleColor.grey': 'เทา',
+  'vehicleColor.brown': 'น้ำตาล',
+  'vehicleColor.gold': 'ทอง',
+  'vehicleColor.purple': 'ม่วง',
+  'vehicleColor.pink': 'ชมพู',
   
   // Alt Texts
   'alt.profilePhoto': 'รูปโปรไฟล์',
@@ -2368,6 +2387,25 @@ const enTranslations: Record<string, string> = {
   // Fuel Types
   'fuelType.diesel': 'Diesel',
   'fuelType.gasoline': 'Gasoline',
+  'fuelType.gas': 'Gas',
+  'fuelType.electric': 'Electric',
+  'fuelType.hybrid': 'Hybrid',
+  
+  // Vehicle Colors
+  'vehicleColor.white': 'White',
+  'vehicleColor.black': 'Black',
+  'vehicleColor.red': 'Red',
+  'vehicleColor.blue': 'Blue',
+  'vehicleColor.green': 'Green',
+  'vehicleColor.yellow': 'Yellow',
+  'vehicleColor.orange': 'Orange',
+  'vehicleColor.silver': 'Silver',
+  'vehicleColor.gray': 'Gray',
+  'vehicleColor.grey': 'Grey',
+  'vehicleColor.brown': 'Brown',
+  'vehicleColor.gold': 'Gold',
+  'vehicleColor.purple': 'Purple',
+  'vehicleColor.pink': 'Pink',
   
   // Alt Texts
   'alt.profilePhoto': 'Profile Photo',
@@ -3607,6 +3645,25 @@ const koTranslations: Record<string, string> = {
   // Fuel Types
   'fuelType.diesel': '디젤',
   'fuelType.gasoline': '휘발유',
+  'fuelType.gas': '가스',
+  'fuelType.electric': '전기',
+  'fuelType.hybrid': '하이브리드',
+  
+  // Vehicle Colors
+  'vehicleColor.white': '흰색',
+  'vehicleColor.black': '검정',
+  'vehicleColor.red': '빨강',
+  'vehicleColor.blue': '파랑',
+  'vehicleColor.green': '초록',
+  'vehicleColor.yellow': '노랑',
+  'vehicleColor.orange': '주황',
+  'vehicleColor.silver': '은색',
+  'vehicleColor.gray': '회색',
+  'vehicleColor.grey': '회색',
+  'vehicleColor.brown': '갈색',
+  'vehicleColor.gold': '금색',
+  'vehicleColor.purple': '보라',
+  'vehicleColor.pink': '분홍',
   
   // Alt Texts
   'alt.profilePhoto': '프로필 사진',
@@ -4835,6 +4892,25 @@ const zhTranslations: Record<string, string> = {
   // Fuel Types
   'fuelType.diesel': '柴油',
   'fuelType.gasoline': '汽油',
+  'fuelType.gas': '天然气',
+  'fuelType.electric': '电动',
+  'fuelType.hybrid': '混合动力',
+  
+  // Vehicle Colors
+  'vehicleColor.white': '白色',
+  'vehicleColor.black': '黑色',
+  'vehicleColor.red': '红色',
+  'vehicleColor.blue': '蓝色',
+  'vehicleColor.green': '绿色',
+  'vehicleColor.yellow': '黄色',
+  'vehicleColor.orange': '橙色',
+  'vehicleColor.silver': '银色',
+  'vehicleColor.gray': '灰色',
+  'vehicleColor.grey': '灰色',
+  'vehicleColor.brown': '棕色',
+  'vehicleColor.gold': '金色',
+  'vehicleColor.purple': '紫色',
+  'vehicleColor.pink': '粉色',
   
   // Alt Texts
   'alt.profilePhoto': '个人照片',
