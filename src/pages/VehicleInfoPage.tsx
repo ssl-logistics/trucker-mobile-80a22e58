@@ -56,9 +56,9 @@ export default function VehicleInfoPage() {
   const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
 
   const containerTypeOptions = [
-    { value: '20ft', label: t('editVehicle.container20ft') },
-    { value: '40ft', label: t('editVehicle.container40ft') },
-    { value: '40ft_hc', label: t('editVehicle.container40ftHC') },
+    { value: '20', label: t('editVehicle.container20ft') },
+    { value: '40', label: t('editVehicle.container40ft') },
+    { value: '40_hc', label: t('editVehicle.container40ftHC') },
     { value: 'reefer', label: t('editVehicle.containerReefer') },
   ];
 

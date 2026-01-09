@@ -12,11 +12,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
 
-const vehicleBrands = ['Isuzu', 'Hino', 'Mitsubishi', 'Nissan', 'Mercedes-Benz', 'Volvo', 'Scania'];
+const vehicleBrands = [
+  { value: 'isuzu', label: 'Isuzu' },
+  { value: 'hino', label: 'Hino' },
+  { value: 'mitsubishi', label: 'Mitsubishi' },
+  { value: 'nissan', label: 'Nissan' },
+  { value: 'mercedes-benz', label: 'Mercedes-Benz' },
+  { value: 'volvo', label: 'Volvo' },
+  { value: 'scania', label: 'Scania' },
+];
 
 export default function EditVehicleFieldPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const field = searchParams.get('field');
@@ -27,42 +35,47 @@ export default function EditVehicleFieldPage() {
   const [containerTypes, setContainerTypes] = useState<string[]>([]);
 
   const fieldTranslationMap: { [key: string]: string } = {
-    'plate_number': 'editVehicle.fieldPlateNumber',
-    'plate_province': 'editVehicle.fieldPlateProvince',
-    'vehicle_brand': 'editVehicle.fieldVehicleBrand',
-    'vehicle_color': 'editVehicle.fieldVehicleColor',
-    'vin': 'editVehicle.fieldVIN',
-    'vehicle_type': 'editVehicle.fieldVehicleType',
-    'fuel_type': 'editVehicle.fieldFuelType',
-    'load_capacity': 'editVehicle.fieldLoadCapacity',
-    'dimensions': 'editVehicle.fieldVehicleSize',
-    'container_types': 'editVehicle.fieldContainerTypes',
+    plate_number: 'editVehicle.fieldPlateNumber',
+    plate_province: 'editVehicle.fieldPlateProvince',
+    vehicle_brand: 'editVehicle.fieldVehicleBrand',
+    vehicle_color: 'editVehicle.fieldVehicleColor',
+    vin: 'editVehicle.fieldVIN',
+    vehicle_type: 'editVehicle.fieldVehicleType',
+    fuel_type: 'editVehicle.fieldFuelType',
+    load_capacity: 'editVehicle.fieldLoadCapacity',
+    dimensions: 'editVehicle.fieldVehicleSize',
+    container_types: 'editVehicle.fieldContainerTypes',
   };
 
   const displayFieldName = field && fieldTranslationMap[field] ? t(fieldTranslationMap[field]) : field || '';
 
+  // Use stable values that match the data stored in the backend
   const fuelTypes = [
-    { value: t('editVehicle.diesel'), label: t('editVehicle.diesel') },
-    { value: t('editVehicle.gasoline'), label: t('editVehicle.gasoline') },
-    { value: t('editVehicle.electric'), label: t('editVehicle.electric') },
-    { value: t('editVehicle.hybrid'), label: t('editVehicle.hybrid') },
+    { value: 'diesel', label: t('editVehicle.diesel') },
+    { value: 'gasoline', label: t('editVehicle.gasoline') },
+    { value: 'electric', label: t('editVehicle.electric') },
+    { value: 'hybrid', label: t('editVehicle.hybrid') },
   ];
 
   const vehicleTypes = [
-    { value: t('editVehicle.tractorHead'), label: t('editVehicle.tractorHead') },
-    { value: t('editVehicle.pickup'), label: t('editVehicle.pickup') },
-    { value: t('editVehicle.truck6Wheel'), label: t('editVehicle.truck6Wheel') },
-    { value: t('editVehicle.truck10Wheel'), label: t('editVehicle.truck10Wheel') },
+    { value: 'tractor-head', label: t('editVehicle.tractorHead') },
+    { value: 'pickup', label: t('editVehicle.pickup') },
+    { value: '6-wheel', label: t('editVehicle.truck6Wheel') },
+    { value: '10-wheel', label: t('editVehicle.truck10Wheel') },
   ];
 
   const containerTypeOptions = [
-    { value: '20ft', label: t('editVehicle.container20ft') },
-    { value: '40ft', label: t('editVehicle.container40ft') },
-    { value: '40ft_hc', label: t('editVehicle.container40ftHC') },
+    { value: '20', label: t('editVehicle.container20ft') },
+    { value: '40', label: t('editVehicle.container40ft') },
+    { value: '40_hc', label: t('editVehicle.container40ftHC') },
     { value: 'reefer', label: t('editVehicle.containerReefer') },
   ];
 
-  const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
+  const provinces = Array.from(new Set(locations.map((loc) => loc.province))).sort();
+
+  const isExternalDriver = !!(
+    user && (user.driver_code || user.first_name || user.profile_photo_url || user.front_photo_url)
+  );
 
   useEffect(() => {
     loadCurrentValue();
@@ -71,6 +84,48 @@ export default function EditVehicleFieldPage() {
   const loadCurrentValue = async () => {
     if (!user || !field) return;
 
+    // External driver data is stored on the user object (not in vehicles table)
+    if (isExternalDriver) {
+      switch (field) {
+        case 'plate_number':
+          setValue(user.plate_number || '');
+          break;
+        case 'plate_province':
+          setValue(user.plate_province || '');
+          break;
+        case 'vehicle_brand':
+          setValue(user.vehicle_brand || '');
+          break;
+        case 'vehicle_color':
+          setValue(user.vehicle_color || '');
+          break;
+        case 'vin':
+          setValue(user.vin || '');
+          break;
+        case 'vehicle_type':
+          setValue(user.vehicle_type || '');
+          break;
+        case 'fuel_type':
+          setValue(user.fuel_type || '');
+          break;
+        case 'load_capacity':
+          setValue(user.load_capacity?.toString() || '');
+          break;
+        case 'dimensions':
+          setDimensions({
+            width: user.width?.toString() || '',
+            length: user.length?.toString() || '',
+            height: user.height?.toString() || '',
+          });
+          break;
+        case 'container_types':
+          setContainerTypes(user.container_types || []);
+          break;
+      }
+      return;
+    }
+
+    // Fallback: vehicles table (for non-external users)
     try {
       const { data, error } = await supabase
         .from('vehicles')
@@ -125,10 +180,70 @@ export default function EditVehicleFieldPage() {
   };
 
   const handleSave = async () => {
-    if (!user || !vehicleId) return;
+    if (!user) return;
 
     setLoading(true);
     try {
+      // External driver: update via backend function so VehicleInfoPage + Settings reflect immediately
+      if (isExternalDriver) {
+        const updatePayload: Record<string, any> = {
+          driver_id: user.id,
+        };
+
+        switch (field) {
+          case 'plate_number':
+          case 'plate_province':
+          case 'vehicle_brand':
+          case 'vehicle_color':
+          case 'vin':
+          case 'vehicle_type':
+          case 'fuel_type':
+            updatePayload[field] = value;
+            break;
+          case 'load_capacity':
+            updatePayload.load_capacity = parseFloat(value);
+            break;
+          case 'dimensions':
+            updatePayload.width = dimensions.width ? parseFloat(dimensions.width) : null;
+            updatePayload.length = dimensions.length ? parseFloat(dimensions.length) : null;
+            updatePayload.height = dimensions.height ? parseFloat(dimensions.height) : null;
+            break;
+          case 'container_types':
+            updatePayload.container_types = containerTypes;
+            break;
+        }
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify(updatePayload),
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data?.message || data?.error || t('editVehicle.saveError'));
+        }
+
+        toast({
+          title: t('editVehicle.saveSuccess'),
+          description: t('editVehicle.saveSuccessMessage'),
+        });
+
+        await refreshUser();
+        navigate('/vehicle-info');
+        return;
+      }
+
+      // Fallback: vehicles table
+      if (!vehicleId) return;
+
       let updateData: any = {};
 
       switch (field) {
@@ -168,10 +283,7 @@ export default function EditVehicleFieldPage() {
           break;
       }
 
-      const { error } = await supabase
-        .from('vehicles')
-        .update(updateData)
-        .eq('id', vehicleId);
+      const { error } = await supabase.from('vehicles').update(updateData).eq('id', vehicleId);
 
       if (error) throw error;
 
@@ -184,7 +296,7 @@ export default function EditVehicleFieldPage() {
       console.error('Error updating vehicle:', error);
       toast({
         title: t('editVehicle.error'),
-        description: t('editVehicle.saveError'),
+        description: error instanceof Error ? error.message : t('editVehicle.saveError'),
         variant: 'destructive',
       });
     } finally {
@@ -221,8 +333,8 @@ export default function EditVehicleFieldPage() {
             </SelectTrigger>
             <SelectContent>
               {vehicleBrands.map((brand) => (
-                <SelectItem key={brand} value={brand}>
-                  {brand}
+                <SelectItem key={brand.value} value={brand.value}>
+                  {brand.label}
                 </SelectItem>
               ))}
             </SelectContent>
