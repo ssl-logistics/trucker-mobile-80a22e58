@@ -407,8 +407,8 @@ export default function VehicleInfoPage() {
           </div>
 
           {/* Vehicle Info Fields */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="space-y-0">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.plateNumber')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.plate_number}</p>
@@ -423,7 +423,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.plateProvince')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.plate_province}</p>
@@ -438,7 +438,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.brand')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_brand}</p>
@@ -453,7 +453,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.color')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
@@ -468,7 +468,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.vin')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vin}</p>
@@ -483,7 +483,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.type')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_type}</p>
@@ -498,7 +498,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.fuelType')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.fuel_type}</p>
@@ -513,7 +513,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.loadCapacity')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.load_capacity}</p>
@@ -528,7 +528,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.dimensions')}</Label>
                 <p className="text-base font-medium mt-1">
@@ -547,7 +547,7 @@ export default function VehicleInfoPage() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-3">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.containerTypes')}</Label>
                 <p className="text-base font-medium mt-1">
