@@ -1124,6 +1124,7 @@ const thTranslations: Record<string, string> = {
   'changePassword.errorDesc': 'ไม่สามารถเปลี่ยนรหัสผ่านได้',
   'changePassword.invalidData': 'ข้อมูลไม่ถูกต้อง',
   'changePassword.minLength': 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+  'changePassword.noEmail': 'ไม่พบอีเมลผู้ใช้',
   
   // Forgot Password Page
   'forgotPassword.title': 'ลืมรหัสผ่าน?',
@@ -2296,6 +2297,7 @@ const enTranslations: Record<string, string> = {
   'changePassword.errorDesc': 'Unable to change password',
   'changePassword.invalidData': 'Invalid data',
   'changePassword.minLength': 'Password must be at least 6 characters',
+  'changePassword.noEmail': 'User email not found',
   
   // Forgot Password Page
   'forgotPassword.title': 'Forgot Password?',
@@ -3333,6 +3335,7 @@ const koTranslations: Record<string, string> = {
   'changePassword.errorDesc': '비밀번호를 변경할 수 없습니다',
   'changePassword.invalidData': '올바르지 않은 데이터',
   'changePassword.minLength': '비밀번호는 최소 6자 이상이어야 합니다',
+  'changePassword.noEmail': '사용자 이메일을 찾을 수 없습니다',
   
   // Create New Password Page
   'createPassword.title': '새 비밀번호 생성',
@@ -3764,6 +3767,7 @@ const zhTranslations: Record<string, string> = {
   'changePassword.errorDesc': '无法更改密码',
   'changePassword.minLength': '密码至少需要6个字符',
   'changePassword.invalidData': '无效数据',
+  'changePassword.noEmail': '未找到用户邮箱',
   
   // Create Password Page
   'createPassword.title': '创建新密码',
