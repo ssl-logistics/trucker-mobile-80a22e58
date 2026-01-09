@@ -100,18 +100,17 @@ export default function ProfilePage() {
     setShowConfirmDialog(false);
 
     try {
-      // Upload via backend function (bypasses RLS)
+      // Upload to AWS S3 via edge function
       const formData = new FormData();
       formData.append('file', selectedFile);
-      formData.append('bucket', 'avatars');
-      formData.append('path', `${user.id}/avatar`);
+      formData.append('folder', 'profile');
+      formData.append('fileName', `${user.id}_${Date.now()}.${selectedFile.name.split('.').pop() || 'jpg'}`);
 
       const uploadRes = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-registration-file`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-to-s3`,
         {
           method: 'POST',
           headers: {
-            // Required for calling backend functions
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
@@ -121,7 +120,7 @@ export default function ProfilePage() {
 
       const uploadJson = await uploadRes.json();
       if (!uploadRes.ok || !uploadJson?.url) {
-        console.error('Upload error:', uploadJson);
+        console.error('S3 Upload error:', uploadJson);
         toast({ title: t('home.error_load'), description: uploadJson?.error || t('profile.error_upload'), variant: 'destructive' });
         setLoading(false);
         cleanupPreview();
