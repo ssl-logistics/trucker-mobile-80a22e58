@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Camera, Edit2 } from 'lucide-react';
+import { ChevronLeft, Camera, Edit2, Loader2 } from 'lucide-react';
 import profileBg from '@/assets/profile-bg.png';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   AlertDialog,
@@ -47,6 +48,9 @@ export default function ProfilePage() {
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  
+  // Get presigned URL for S3 profile photos
+  const { url: presignedAvatarUrl, isLoading: isAvatarLoading } = usePresignedImageUrl(profile?.avatar_url);
 
   useEffect(() => {
     console.log('ProfilePage user data:', user);
@@ -205,10 +209,18 @@ export default function ProfilePage() {
         <div className="flex justify-center relative">
           <div className="relative">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={profile?.avatar_url} alt={`${firstName} ${lastName}`} />
-              <AvatarFallback className="bg-primary/10 text-primary text-3xl">
-                {firstName ? firstName.charAt(0) : '👤'}
-              </AvatarFallback>
+              {isAvatarLoading ? (
+                <AvatarFallback className="bg-primary/10 text-primary text-3xl">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                </AvatarFallback>
+              ) : (
+                <>
+                  <AvatarImage src={presignedAvatarUrl || undefined} alt={`${firstName} ${lastName}`} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-3xl">
+                    {firstName ? firstName.charAt(0) : '👤'}
+                  </AvatarFallback>
+                </>
+              )}
             </Avatar>
             <button
               onClick={handlePhotoDrawerOpen}
