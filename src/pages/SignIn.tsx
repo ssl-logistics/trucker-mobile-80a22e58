@@ -168,7 +168,6 @@ const SignIn = () => {
       console.log("Login successful:", { driver, userType, role });
 
       toast({
-        title: t('toast.success'),
         description: t('signIn.loginSuccess') || 'เข้าสู่ระบบสำเร็จ',
       });
 
