@@ -161,7 +161,10 @@ const SignIn = () => {
       localStorage.setItem("auth_user_type", userType || "");
       localStorage.setItem("user_role", role);
       localStorage.setItem("auth_driver_id", driver?.id || "");
-      
+
+      // Notify AuthContext (same-tab) to reload user from storage
+      window.dispatchEvent(new Event('auth_driver_updated'));
+
       console.log("Login successful:", { driver, userType, role });
 
       // Save or clear credentials based on remember checkbox
