@@ -95,16 +95,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     loadUserFromStorage();
-    
-    // Listen for storage changes (for multi-tab support)
+
+    // Listen for storage changes (multi-tab support)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'auth_driver' || e.key === 'user_role' || e.key === 'auth_user_type') {
         loadUserFromStorage();
       }
     };
-    
+
+    // Same-tab support: manually dispatched event after login
+    const handleAuthUpdated = () => {
+      loadUserFromStorage();
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('auth_driver_updated', handleAuthUpdated);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('auth_driver_updated', handleAuthUpdated);
+    };
   }, []);
 
   const value = {
