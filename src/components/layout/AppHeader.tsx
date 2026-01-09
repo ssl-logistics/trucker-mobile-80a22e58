@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Power } from "lucide-react";
+import { Bell, Power, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,7 +13,7 @@ import jobHistoryIcon from "@/assets/job-history-icon.svg";
 interface AppHeaderProps {
   userName?: string;
   profilePhoto?: string;
-  onSignOut?: () => void;
+  onSignOut?: () => Promise<void> | void;
   showQuickMenu?: boolean;
 }
 export function AppHeader({
@@ -30,6 +30,7 @@ export function AppHeader({
     isFreelance
   } = useUserRole();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const getDayName = () => {
     const dayKeys = ['home.sunday', 'home.monday', 'home.tuesday', 'home.wednesday', 'home.thursday', 'home.friday', 'home.saturday'];
     return t(dayKeys[new Date().getDay()]);
@@ -117,13 +118,25 @@ export function AppHeader({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2">
-            <AlertDialogAction onClick={() => {
-            setShowSignOutDialog(false);
-            onSignOut?.();
-          }} className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90">
-              {t('home.sign_out_btn')}
+            <AlertDialogAction 
+              onClick={async () => {
+                if (isLoggingOut) return;
+                setIsLoggingOut(true);
+                await onSignOut?.();
+              }} 
+              disabled={isLoggingOut}
+              className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  กำลังออก...
+                </>
+              ) : (
+                t('home.sign_out_btn')
+              )}
             </AlertDialogAction>
-            <AlertDialogCancel className="flex-1 m-0">{t('home.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isLoggingOut} className="flex-1 m-0">{t('home.cancel')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

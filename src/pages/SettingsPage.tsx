@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power } from 'lucide-react';
+import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -108,6 +109,9 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       
@@ -277,11 +281,19 @@ export default function SettingsPage() {
           <AlertDialogFooter className="flex-row gap-2">
             <AlertDialogAction 
               onClick={handleSignOut}
+              disabled={isLoggingOut}
               className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {t('settings.sign_out')}
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  กำลังออก...
+                </>
+              ) : (
+                t('settings.sign_out')
+              )}
             </AlertDialogAction>
-            <AlertDialogCancel className="flex-1 m-0">{t('settings.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isLoggingOut} className="flex-1 m-0">{t('settings.cancel')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
