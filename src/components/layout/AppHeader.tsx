@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import coverHeader from "@/assets/cover-header.png";
 import currentJobIcon from "@/assets/current-job-icon.svg";
@@ -29,6 +30,10 @@ export function AppHeader({
   const {
     isFreelance
   } = useUserRole();
+  
+  // Get presigned URL for S3 profile photos
+  const { url: presignedProfilePhoto, isLoading: isPhotoLoading } = usePresignedImageUrl(profilePhoto);
+  
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const getDayName = () => {
@@ -49,10 +54,18 @@ export function AppHeader({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-[10px]">
               <Avatar className="w-10 h-10 border-2 border-white/20">
-                <AvatarImage src={profilePhoto} alt={userName} key={profilePhoto} />
-                <AvatarFallback className="bg-white/20 text-white text-base">
-                  {userName?.charAt(0) || "👤"}
-                </AvatarFallback>
+                {isPhotoLoading ? (
+                  <AvatarFallback className="bg-white/20 text-white text-base">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  </AvatarFallback>
+                ) : (
+                  <>
+                    <AvatarImage src={presignedProfilePhoto || undefined} alt={userName} key={presignedProfilePhoto} />
+                    <AvatarFallback className="bg-white/20 text-white text-base">
+                      {userName?.charAt(0) || "👤"}
+                    </AvatarFallback>
+                  </>
+                )}
               </Avatar>
               <div className="min-w-fit h-10 rounded-xl bg-slate-100 px-2.5 py-1">
                 <div className="text-[10px] opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
