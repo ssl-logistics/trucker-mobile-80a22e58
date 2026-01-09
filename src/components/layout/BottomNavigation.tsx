@@ -63,7 +63,7 @@ export function BottomNavigation() {
       id="bottom-navigation"
       style={{
         position: "fixed",
-        bottom: 0,
+        bottom: 8,
         left: 0,
         right: 0,
         zIndex: 2147483647,
