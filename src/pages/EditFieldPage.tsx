@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -40,12 +39,20 @@ export default function EditFieldPage() {
       console.log('Sending update payload:', updatePayload);
 
       // Call the external API via edge function
-      const { data, error } = await supabase.functions.invoke('update-freelance-driver', {
-        method: 'PUT',
-        body: updatePayload,
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify(updatePayload),
+        }
+      );
 
-      console.log('Update response:', data, error);
+      const data = await response.json();
+      const error = !response.ok ? data : null;
 
       if (error) {
         console.error('Update error:', error);
