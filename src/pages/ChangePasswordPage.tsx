@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Eye, EyeOff, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { z } from 'zod';
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const { t } = useLanguage();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -23,6 +25,18 @@ export default function ChangePasswordPage() {
 
   const handleSubmit = async () => {
     if (!isValid) return;
+
+    // Get email from user data
+    const userEmail = user?.email || user?.username;
+    
+    if (!userEmail) {
+      toast({
+        title: t('changePassword.error'),
+        description: t('changePassword.noEmail'),
+        variant: "destructive",
+      });
+      return;
+    }
 
     const passwordSchema = z.object({
       newPassword: z.string().min(6, t('changePassword.minLength')),
@@ -48,21 +62,30 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
+      // Call edge function to reset password
+      const { data, error } = await supabase.functions.invoke('reset-user-password', {
+        body: { 
+          email: userEmail,
+          newPassword: newPassword 
+        },
       });
 
       if (error) throw error;
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       toast({
         title: t('changePassword.success'),
         description: t('changePassword.successDesc'),
       });
 
-      // Sign out and redirect to login
-      await supabase.auth.signOut();
+      // Log out and redirect to login
+      logout();
       navigate('/', { replace: true });
     } catch (error: any) {
+      console.error('Change password error:', error);
       toast({
         title: t('changePassword.error'),
         description: error.message || t('changePassword.errorDesc'),
