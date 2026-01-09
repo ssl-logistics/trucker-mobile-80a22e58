@@ -168,9 +168,29 @@ export default function Home() {
     setConfirmDialogOpen(false);
     loadJobs();
   };
-  const handleSignOut = () => {
-    logout();
-    navigate('/');
+  const handleSignOut = async () => {
+    try {
+      const driverId = user?.id || localStorage.getItem('auth_driver_id');
+      
+      if (driverId) {
+        await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+          },
+          body: JSON.stringify({ driver_id: driverId }),
+        });
+      }
+    } catch (error) {
+      console.error('Logout API error:', error);
+    } finally {
+      logout();
+      toast({
+        description: t('settings.logoutSuccess') || 'ออกจากระบบสำเร็จ',
+      });
+      navigate('/');
+    }
   };
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header and Search Bar - Sticky Together */}
