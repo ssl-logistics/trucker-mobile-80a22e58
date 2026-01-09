@@ -30,7 +30,7 @@ import {
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, setAuthTransitioning } = useAuth();
   const { t } = useLanguage();
   const { vehiclePhoto } = useVehiclePhoto();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -108,6 +108,7 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = async () => {
+    setAuthTransitioning(true);
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       
@@ -128,7 +129,10 @@ export default function SettingsPage() {
       toast({
         description: t('settings.logoutSuccess') || 'ออกจากระบบสำเร็จ',
       });
-      navigate('/');
+      setTimeout(() => {
+        setAuthTransitioning(false);
+        navigate('/');
+      }, 500);
     }
   };
 

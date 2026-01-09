@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
@@ -44,6 +45,7 @@ const SignIn = () => {
   const {
     toast
   } = useToast();
+  const { setAuthTransitioning } = useAuth();
   const loginSchema = z.object({
     email: z.string().min(1, {
       message: t('validation.usernameRequired')
@@ -111,6 +113,7 @@ const SignIn = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setServerError("");
+      setAuthTransitioning(true);
       
       // POST to external login API
       const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login', {
@@ -128,6 +131,7 @@ const SignIn = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
+        setAuthTransitioning(false);
         const errorMessage = result.error || result.message || 'Login failed';
         
         if (errorMessage.includes("Invalid") || errorMessage.includes("credentials")) {
@@ -182,17 +186,22 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
       }
       
-      // Navigate based on user_type
-      if (userType === 'freelance_driver') {
-        navigate("/home");
-      } else if (userType === 'company' || userType === 'factory') {
-        navigate("/dashboard");
-      } else {
-        navigate("/home");
-      }
+      // Small delay to show loading animation before navigation
+      setTimeout(() => {
+        setAuthTransitioning(false);
+        // Navigate based on user_type
+        if (userType === 'freelance_driver') {
+          navigate("/home");
+        } else if (userType === 'company' || userType === 'factory') {
+          navigate("/dashboard");
+        } else {
+          navigate("/home");
+        }
+      }, 500);
     } catch (error) {
       console.error("Login error:", error);
       setServerError(t('signIn.error'));
+      setAuthTransitioning(false);
     }
   };
   return <div className="h-screen bg-background flex flex-col overflow-hidden" style={{

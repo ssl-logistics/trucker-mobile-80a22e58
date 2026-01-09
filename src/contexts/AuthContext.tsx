@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { AuthLoadingOverlay } from '@/components/auth/AuthLoadingOverlay';
 
 interface DriverData {
   id: string;
@@ -14,8 +15,10 @@ interface AuthContextType {
   loading: boolean;
   role: string;
   isAuthenticated: boolean;
+  isAuthTransitioning: boolean;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  setAuthTransitioning: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,8 +26,10 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   role: 'freelance',
   isAuthenticated: false,
+  isAuthTransitioning: false,
   logout: () => {},
   refreshUser: async () => {},
+  setAuthTransitioning: () => {},
 });
 
 export const useAuth = () => {
@@ -43,6 +48,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<DriverData | null>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<string>('freelance');
+  const [isAuthTransitioning, setAuthTransitioning] = useState(false);
 
   const loadUserFromStorage = () => {
     try {
@@ -177,9 +183,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loading,
     role,
     isAuthenticated: !!user,
+    isAuthTransitioning,
     logout,
     refreshUser,
+    setAuthTransitioning,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <AuthLoadingOverlay 
+        isVisible={isAuthTransitioning} 
+        message={user ? 'กำลังออกจากระบบ...' : 'กำลังเข้าสู่ระบบ...'}
+      />
+    </AuthContext.Provider>
+  );
 };
