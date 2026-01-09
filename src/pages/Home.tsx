@@ -169,7 +169,7 @@ export default function Home() {
     loadJobs();
   };
   const handleSignOut = async () => {
-    setAuthTransitioning(true);
+    setAuthTransitioning(true, 'กำลังออกจากระบบ...');
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       

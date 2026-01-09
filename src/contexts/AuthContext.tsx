@@ -16,9 +16,10 @@ interface AuthContextType {
   role: string;
   isAuthenticated: boolean;
   isAuthTransitioning: boolean;
+  authTransitionMessage: string;
   logout: () => void;
   refreshUser: () => Promise<void>;
-  setAuthTransitioning: (value: boolean) => void;
+  setAuthTransitioning: (value: boolean, message?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType>({
   role: 'freelance',
   isAuthenticated: false,
   isAuthTransitioning: false,
+  authTransitionMessage: '',
   logout: () => {},
   refreshUser: async () => {},
   setAuthTransitioning: () => {},
@@ -48,7 +50,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<DriverData | null>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<string>('freelance');
-  const [isAuthTransitioning, setAuthTransitioning] = useState(false);
+  const [isAuthTransitioning, setIsAuthTransitioning] = useState(false);
+  const [authTransitionMessage, setAuthTransitionMessage] = useState('');
 
   const loadUserFromStorage = () => {
     try {
@@ -178,12 +181,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
+  const setAuthTransitioning = (value: boolean, message?: string) => {
+    setIsAuthTransitioning(value);
+    if (message) {
+      setAuthTransitionMessage(message);
+    }
+  };
+
   const value = {
     user,
     loading,
     role,
     isAuthenticated: !!user,
     isAuthTransitioning,
+    authTransitionMessage,
     logout,
     refreshUser,
     setAuthTransitioning,
@@ -194,7 +205,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       {children}
       <AuthLoadingOverlay 
         isVisible={isAuthTransitioning} 
-        message={user ? 'กำลังออกจากระบบ...' : 'กำลังเข้าสู่ระบบ...'}
+        message={authTransitionMessage || 'กำลังโหลด...'}
       />
     </AuthContext.Provider>
   );
