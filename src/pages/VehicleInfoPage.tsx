@@ -49,6 +49,7 @@ export default function VehicleInfoPage() {
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [isRegistrationDrawerOpen, setIsRegistrationDrawerOpen] = useState(false);
   const [registrationPhoto, setRegistrationPhoto] = useState<string | null>(null);
   const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
@@ -199,6 +200,7 @@ export default function VehicleInfoPage() {
     if (!user) return;
 
     console.log('Starting photo upload for type:', photoType);
+    setIsUploading(true);
 
     const isExternalDriver = !!(
       user && (user.driver_code || user.first_name || user.profile_photo_url || user.front_photo_url)
@@ -359,6 +361,8 @@ export default function VehicleInfoPage() {
         description: error instanceof Error ? error.message : t('vehicle.uploadError'),
         variant: 'destructive',
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -368,6 +372,8 @@ export default function VehicleInfoPage() {
 
   const handleRegistrationPhotoUpload = async (file: File) => {
     if (!user) return;
+
+    setIsUploading(true);
 
     const isExternalDriver = !!(
       user && (user.driver_code || user.first_name || user.profile_photo_url || user.front_photo_url)
@@ -485,6 +491,8 @@ export default function VehicleInfoPage() {
         description: error instanceof Error ? error.message : t('vehicle.uploadError'),
         variant: 'destructive',
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -505,7 +513,16 @@ export default function VehicleInfoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-6">
+    <div className="min-h-screen bg-background pb-6 relative">
+      {/* Loading Overlay */}
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center animate-fade-in">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+            <span className="text-white text-sm font-medium">{t('vehicle.uploading') || 'กำลังอัปโหลด...'}</span>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-header text-header-foreground page-header-safe">
         <div className="flex items-center justify-center px-4 py-3 relative">
