@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Eye, EyeOff, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -26,25 +26,26 @@ export default function ChangePasswordPage() {
   const handleSubmit = async () => {
     if (!isValid) return;
 
-    // Get email from user data
-    const userEmail = user?.email || user?.username;
-    
-    if (!userEmail) {
+    const driverId = user?.id;
+
+    if (!driverId) {
       toast({
         title: t('changePassword.error'),
-        description: t('changePassword.noEmail'),
+        description: t('changePassword.errorDesc'),
         variant: "destructive",
       });
       return;
     }
 
-    const passwordSchema = z.object({
-      newPassword: z.string().min(6, t('changePassword.minLength')),
-      confirmPassword: z.string(),
-    }).refine((data) => data.newPassword === data.confirmPassword, {
-      message: t('changePassword.passwordMismatch'),
-      path: ["confirmPassword"],
-    });
+    const passwordSchema = z
+      .object({
+        newPassword: z.string().min(6, t('changePassword.minLength')),
+        confirmPassword: z.string(),
+      })
+      .refine((data) => data.newPassword === data.confirmPassword, {
+        message: t('changePassword.passwordMismatch'),
+        path: ['confirmPassword'],
+      });
 
     try {
       passwordSchema.parse({ newPassword, confirmPassword });
@@ -62,19 +63,27 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true);
 
     try {
-      // Call edge function to reset password with userId for more reliable lookup
-      const { data, error } = await supabase.functions.invoke('reset-user-password', {
-        body: { 
-          userId: user?.id,
-          email: userEmail,
-          newPassword: newPassword 
-        },
-      });
+      // Password is stored on external freelance_drivers, update via backend proxy
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            driver_id: driverId,
+            password: newPassword,
+          }),
+        }
+      );
 
-      if (error) throw error;
-      
-      if (data?.error) {
-        throw new Error(data.error);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.message || data?.error || t('changePassword.errorDesc'));
       }
 
       toast({
@@ -89,7 +98,7 @@ export default function ChangePasswordPage() {
       console.error('Change password error:', error);
       toast({
         title: t('changePassword.error'),
-        description: error.message || t('changePassword.errorDesc'),
+        description: error?.message || t('changePassword.errorDesc'),
         variant: "destructive",
       });
     } finally {
