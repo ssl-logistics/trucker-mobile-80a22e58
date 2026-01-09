@@ -64,8 +64,8 @@ export default function EditFieldPage() {
       } else {
         toast({ title: t('editField.success'), description: t('editField.updated') });
         
-        // Refresh user data to get updated info
-        refreshUser();
+        // Refresh user data to get updated info then navigate
+        await refreshUser();
         
         navigate('/profile');
       }

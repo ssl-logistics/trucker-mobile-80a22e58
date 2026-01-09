@@ -15,7 +15,7 @@ interface AuthContextType {
   role: string;
   isAuthenticated: boolean;
   logout: () => void;
-  refreshUser: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   role: 'freelance',
   isAuthenticated: false,
   logout: () => {},
-  refreshUser: () => {},
+  refreshUser: async () => {},
 });
 
 export const useAuth = () => {
@@ -89,8 +89,62 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setRole('freelance');
   };
 
-  const refreshUser = () => {
-    loadUserFromStorage();
+  const refreshUser = async () => {
+    const driverId = localStorage.getItem('auth_driver_id') || user?.id;
+    
+    if (!driverId) {
+      console.log('No driver ID found, loading from storage');
+      loadUserFromStorage();
+      return;
+    }
+
+    try {
+      console.log('Fetching fresh user data from API...');
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-drivers`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API response:', data);
+        
+        // Find the current user in the response
+        let updatedDriver = null;
+        if (Array.isArray(data)) {
+          updatedDriver = data.find((d: any) => d.id === driverId);
+        } else if (data.drivers && Array.isArray(data.drivers)) {
+          updatedDriver = data.drivers.find((d: any) => d.id === driverId);
+        } else if (data.data && Array.isArray(data.data)) {
+          updatedDriver = data.data.find((d: any) => d.id === driverId);
+        }
+
+        if (updatedDriver) {
+          console.log('Updated driver data:', updatedDriver);
+          // Update localStorage with fresh data
+          localStorage.setItem('auth_driver', JSON.stringify(updatedDriver));
+          setUser(updatedDriver);
+          
+          // Dispatch event to notify other components
+          window.dispatchEvent(new Event('auth_driver_updated'));
+        } else {
+          console.log('Driver not found in API response, using storage');
+          loadUserFromStorage();
+        }
+      } else {
+        console.error('Failed to fetch user data:', response.status);
+        loadUserFromStorage();
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+      loadUserFromStorage();
+    }
   };
 
   useEffect(() => {
