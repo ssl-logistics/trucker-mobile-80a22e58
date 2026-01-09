@@ -64,7 +64,7 @@ export default function DashboardPage() {
         userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
         profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
         onSignOut={handleSignOut} 
-        showQuickMenu={true} 
+        showQuickMenu={false} 
       />
 
       {/* Dashboard Grid */}
