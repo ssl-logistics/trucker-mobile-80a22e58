@@ -77,6 +77,7 @@ const thTranslations: Record<string, string> = {
   'settings.sign_out_confirm': 'คุณต้องการออกจากระบบหรือไม่?',
   'settings.sign_out_description': 'การออกจากระบบจะทำให้คุณต้องล็อกอินเข้าสู่ระบบอีกครั้ง ในครั้งถัดไป กรุณายืนยันออกจากระบบ',
   'settings.cancel': 'ยกเลิก',
+  'settings.logoutSuccess': 'ออกจากระบบสำเร็จ',
   
   // Language Page
   'language.title': 'ภาษา',
@@ -527,6 +528,7 @@ const thTranslations: Record<string, string> = {
   'signIn.signInButton': 'เข้าสู่ระบบ',
   'signIn.registerButton': 'ลงทะเบียน',
   'signIn.success': 'เข้าสู่ระบบสำเร็จ',
+  'signIn.loginSuccess': 'เข้าสู่ระบบสำเร็จ',
   'signIn.welcomeBack': 'ยินดีต้อนรับกลับมา',
   'signIn.error': 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
   'signIn.invalidCredentials': 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง',
@@ -1246,6 +1248,7 @@ const enTranslations: Record<string, string> = {
   'settings.sign_out_confirm': 'Do you want to sign out?',
   'settings.sign_out_description': 'Signing out will require you to log in again next time. Please confirm sign out.',
   'settings.cancel': 'Cancel',
+  'settings.logoutSuccess': 'Logged out successfully',
   
   // Language Page
   'language.title': 'Language',
@@ -1726,6 +1729,7 @@ const enTranslations: Record<string, string> = {
   'signIn.signInButton': 'Sign In',
   'signIn.registerButton': 'Register',
   'signIn.success': 'Sign in successful',
+  'signIn.loginSuccess': 'Logged in successfully',
   'signIn.welcomeBack': 'Welcome back',
   'signIn.error': 'An error occurred. Please try again',
   'signIn.invalidCredentials': 'Invalid username or password. Please try again',
@@ -2415,6 +2419,7 @@ const koTranslations: Record<string, string> = {
   'settings.sign_out_confirm': '로그아웃 하시겠습니까?',
   'settings.sign_out_description': '로그아웃하면 다음에 다시 로그인해야 합니다. 로그아웃을 확인해 주세요.',
   'settings.cancel': '취소',
+  'settings.logoutSuccess': '로그아웃 성공',
   
   // Language Page
   'language.title': '언어',
@@ -3561,6 +3566,7 @@ const koTranslations: Record<string, string> = {
   'signIn.signInButton': '로그인',
   'signIn.registerButton': '회원가입',
   'signIn.success': '로그인 성공',
+  'signIn.loginSuccess': '로그인 성공',
   'signIn.welcomeBack': '다시 오신 것을 환영합니다',
   'signIn.error': '오류가 발생했습니다. 다시 시도해 주세요.',
   'signIn.invalidCredentials': '사용자 이름 또는 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.',
@@ -3652,6 +3658,7 @@ const zhTranslations: Record<string, string> = {
   'settings.sign_out_confirm': '确定要退出登录吗？',
   'settings.sign_out_description': '退出登录后，下次使用需要重新登录。请确认退出登录。',
   'settings.cancel': '取消',
+  'settings.logoutSuccess': '退出登录成功',
   
   // Language Page
   'language.title': '语言',
@@ -4778,6 +4785,7 @@ const zhTranslations: Record<string, string> = {
   'signIn.noAccount': '还没有账户？',
   'signIn.registerButton': '注册',
   'signIn.success': '登录成功',
+  'signIn.loginSuccess': '登录成功',
   'signIn.welcomeBack': '欢迎回来',
   'signIn.error': '发生错误，请重试',
   'signIn.invalidCredentials': '用户名或密码不正确，请重试',
