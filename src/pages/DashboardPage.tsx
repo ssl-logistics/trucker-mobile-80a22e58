@@ -60,7 +60,12 @@ export default function DashboardPage() {
     imageSrc: productBg
   }];
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
-      <AppHeader userName={user?.full_name} profilePhoto={user?.avatar_url || vehiclePhoto || undefined} onSignOut={handleSignOut} />
+      <AppHeader 
+        userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
+        profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
+        onSignOut={handleSignOut} 
+        showQuickMenu={true} 
+      />
 
       {/* Dashboard Grid */}
       <div className="px-4 py-6 space-y-8">
