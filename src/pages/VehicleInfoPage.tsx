@@ -364,7 +364,7 @@ export default function VehicleInfoPage() {
           <button onClick={() => navigate('/settings')} className="absolute left-0">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold underline">{t('vehicle.title')}</h1>
+          <h1 className="text-xl font-semibold">{t('vehicle.title')}</h1>
         </div>
       </header>
 
