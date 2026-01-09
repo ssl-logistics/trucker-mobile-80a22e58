@@ -134,7 +134,7 @@ export function BottomNavigation() {
             </div>
             <span 
               style={{ 
-                fontSize: "10px", 
+                fontSize: "12px", 
                 fontWeight: isActive(item.path) ? "600" : "500",
                 color: isActive(item.path) ? "#ffffff" : "#a8c5e0",
               }}
