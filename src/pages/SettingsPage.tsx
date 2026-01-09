@@ -151,12 +151,19 @@ export default function SettingsPage() {
         >
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12">
-              <AvatarImage src={user?.avatar_url || vehiclePhoto || undefined} alt={user?.full_name} />
+              <AvatarImage 
+                src={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
+                alt={`${user?.first_name || ''} ${user?.last_name || ''}`} 
+              />
               <AvatarFallback className="bg-primary/10 text-primary">
-                {user?.full_name?.charAt(0) || "👤"}
+                {user?.first_name?.charAt(0) || user?.full_name?.charAt(0) || "👤"}
               </AvatarFallback>
             </Avatar>
-            <span className="font-semibold text-foreground">{user?.full_name || t('settings.profile')}</span>
+            <span className="font-semibold text-foreground">
+              {user?.first_name && user?.last_name 
+                ? `${user.first_name} ${user.last_name}` 
+                : user?.full_name || t('settings.profile')}
+            </span>
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </button>
