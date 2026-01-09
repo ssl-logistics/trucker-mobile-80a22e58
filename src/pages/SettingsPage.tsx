@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
+import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,11 @@ export default function SettingsPage() {
   const { user, logout, setAuthTransitioning } = useAuth();
   const { t } = useLanguage();
   const { vehiclePhoto } = useVehiclePhoto();
+  
+  // Get presigned URL for S3 profile photos
+  const profilePhotoUrl = user?.profile_photo_url || user?.avatar_url || vehiclePhoto;
+  const { url: presignedProfilePhoto, isLoading: isPhotoLoading } = usePresignedImageUrl(profilePhotoUrl);
+  
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -186,13 +192,21 @@ export default function SettingsPage() {
         >
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12">
-              <AvatarImage 
-                src={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
-                alt={`${user?.first_name || ''} ${user?.last_name || ''}`} 
-              />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {user?.first_name?.charAt(0) || user?.full_name?.charAt(0) || "👤"}
-              </AvatarFallback>
+              {isPhotoLoading ? (
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                </AvatarFallback>
+              ) : (
+                <>
+                  <AvatarImage 
+                    src={presignedProfilePhoto || undefined} 
+                    alt={`${user?.first_name || ''} ${user?.last_name || ''}`} 
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {user?.first_name?.charAt(0) || user?.full_name?.charAt(0) || "👤"}
+                  </AvatarFallback>
+                </>
+              )}
             </Avatar>
             <span className="font-semibold text-foreground">
               {user?.first_name && user?.last_name 
