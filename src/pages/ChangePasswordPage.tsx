@@ -13,17 +13,15 @@ export default function ChangePasswordPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t } = useLanguage();
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const passwordsMatch = newPassword && confirmPassword && newPassword === confirmPassword;
-  const isSameAsOld = currentPassword && newPassword && currentPassword === newPassword;
-  const isValid = currentPassword.length >= 6 && newPassword.length >= 6 && passwordsMatch && !isSameAsOld;
+  const passwordsDontMatch = confirmPassword && newPassword !== confirmPassword;
+  const isValid = newPassword.length >= 6 && passwordsMatch;
 
   const handleSubmit = async () => {
     if (!isValid) return;
@@ -39,33 +37,18 @@ export default function ChangePasswordPage() {
       return;
     }
 
-    // Check if new password is same as current
-    if (isSameAsOld) {
-      toast({
-        title: t('changePassword.error'),
-        description: t('changePassword.sameAsOld'),
-        variant: "destructive",
-      });
-      return;
-    }
-
     const passwordSchema = z
       .object({
-        currentPassword: z.string().min(6, t('changePassword.minLength')),
         newPassword: z.string().min(6, t('changePassword.minLength')),
         confirmPassword: z.string(),
       })
       .refine((data) => data.newPassword === data.confirmPassword, {
         message: t('changePassword.passwordMismatch'),
         path: ['confirmPassword'],
-      })
-      .refine((data) => data.currentPassword !== data.newPassword, {
-        message: t('changePassword.sameAsOld'),
-        path: ['newPassword'],
       });
 
     try {
-      passwordSchema.parse({ currentPassword, newPassword, confirmPassword });
+      passwordSchema.parse({ newPassword, confirmPassword });
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -92,7 +75,6 @@ export default function ChangePasswordPage() {
           },
           body: JSON.stringify({
             driver_id: driverId,
-            current_password: currentPassword,
             password: newPassword,
           }),
         }
@@ -138,40 +120,6 @@ export default function ChangePasswordPage() {
 
       {/* Form */}
       <div className="p-4 space-y-4">
-        {/* Current Password Field */}
-        <div className="space-y-2">
-          <label className="text-sm text-muted-foreground">{t('changePassword.currentPassword')}</label>
-          <div className="relative">
-            <Input
-              type={showCurrentPassword ? 'text' : 'password'}
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="**********"
-              className="pr-20 border-0 border-b border-muted focus:border-primary rounded-none px-0 shadow-none focus-visible:ring-0"
-            />
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              {currentPassword && (
-                <button
-                  onClick={() => setCurrentPassword('')}
-                  className="p-1 hover:bg-muted rounded-full"
-                >
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
-              )}
-              <button
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="p-1 hover:bg-muted rounded-full"
-              >
-                {showCurrentPassword ? (
-                  <EyeOff className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <Eye className="w-5 h-5 text-muted-foreground" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* New Password Field */}
         <div className="space-y-2">
           <label className="text-sm text-muted-foreground">{t('changePassword.newPassword')}</label>
@@ -205,13 +153,6 @@ export default function ChangePasswordPage() {
             </div>
           </div>
         </div>
-
-        {/* Same as old password warning */}
-        {isSameAsOld && (
-          <p className="text-sm text-destructive">
-            {t('changePassword.sameAsOld')}
-          </p>
-        )}
 
         {/* Confirm Password Field */}
         <div className="space-y-2">
@@ -248,7 +189,7 @@ export default function ChangePasswordPage() {
         </div>
 
         {/* Password Match Status */}
-        {confirmPassword && !isSameAsOld && (
+        {confirmPassword && (
           <p className={`text-sm ${passwordsMatch ? 'text-green-600' : 'text-destructive'}`}>
             {passwordsMatch ? t('changePassword.passwordMatch') : t('changePassword.passwordMismatch')}
           </p>
