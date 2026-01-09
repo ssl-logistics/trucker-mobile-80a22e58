@@ -49,9 +49,10 @@ export default function ProfilePage() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    console.log('ProfilePage user data:', user);
     if (user) {
       // Use data directly from AuthContext (external login API)
-      setProfile({
+      const profileData = {
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         phone_number: user.phone || user.phone_number || '',
@@ -60,7 +61,9 @@ export default function ProfilePage() {
         location: user.location || '',
         price_range_min: user.price_range_min,
         price_range_max: user.price_range_max,
-      });
+      };
+      console.log('Setting profile:', profileData);
+      setProfile(profileData);
     }
   }, [user]);
 
@@ -174,7 +177,7 @@ export default function ProfilePage() {
             <Avatar className="w-20 h-20">
               <AvatarImage src={profile?.avatar_url} alt={`${firstName} ${lastName}`} />
               <AvatarFallback className="bg-primary/10 text-primary text-3xl">
-                {firstName.charAt(0)}
+                {firstName ? firstName.charAt(0) : '👤'}
               </AvatarFallback>
             </Avatar>
             <button
