@@ -919,6 +919,7 @@ const thTranslations: Record<string, string> = {
   'vehicle.uploadSuccess': 'อัพโหลดสำเร็จ',
   'vehicle.uploadSuccessDesc': 'รูปภาพถูกบันทึกเรียบร้อยแล้ว',
   'vehicle.uploadError': 'ไม่สามารถอัพโหลดรูปภาพได้',
+  'vehicle.uploading': 'กำลังอัปโหลด...',
   'vehicle.registrationSuccessDesc': 'รูปทะเบียนรถถูกบันทึกเรียบร้อยแล้ว',
   'vehicle.loading': 'กำลังโหลด...',
   'vehicle.noData': 'ไม่พบข้อมูลรถ',
@@ -2233,6 +2234,7 @@ const enTranslations: Record<string, string> = {
   'vehicle.uploadSuccess': 'Upload Successful',
   'vehicle.uploadSuccessDesc': 'Image saved successfully',
   'vehicle.uploadError': 'Unable to upload image',
+  'vehicle.uploading': 'Uploading...',
   'vehicle.registrationSuccessDesc': 'Registration document saved successfully',
   'vehicle.loading': 'Loading...',
   'vehicle.noData': 'Vehicle data not found',
@@ -3442,6 +3444,7 @@ const koTranslations: Record<string, string> = {
   'vehicle.uploadSuccessDesc': '사진이 성공적으로 업로드되었습니다',
   'vehicle.registrationSuccessDesc': '등록 서류가 성공적으로 업로드되었습니다',
   'vehicle.uploadError': '사진을 업로드할 수 없습니다',
+  'vehicle.uploading': '업로드 중...',
   
   // Job Detail Page
   'jobDetail.error': '오류 발생',
@@ -3715,6 +3718,7 @@ const zhTranslations: Record<string, string> = {
   'vehicle.uploadSuccess': '上传成功',
   'vehicle.uploadSuccessDesc': '照片已成功保存',
   'vehicle.uploadError': '无法上传照片',
+  'vehicle.uploading': '上传中...',
   'vehicle.registrationSuccessDesc': '车辆登记照片已成功保存',
   'vehicle.loading': '加载中...',
   'vehicle.noData': '未找到车辆数据',
