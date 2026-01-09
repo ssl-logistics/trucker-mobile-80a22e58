@@ -101,7 +101,7 @@ export default function Home() {
         start_date: item.start_date || item.period_start || '',
         start_time: item.start_time || '',
         equipment_list: item.truck_type || null,
-        safety_equipment: item.truck_requirements?.join(', ') || null,
+        safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
         isAccepted: false
       }));
 
