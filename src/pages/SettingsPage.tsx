@@ -108,7 +108,7 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = async () => {
-    setAuthTransitioning(true);
+    setAuthTransitioning(true, 'กำลังออกจากระบบ...');
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       

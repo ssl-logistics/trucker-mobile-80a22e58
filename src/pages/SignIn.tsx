@@ -113,7 +113,7 @@ const SignIn = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setServerError("");
-      setAuthTransitioning(true);
+      setAuthTransitioning(true, 'กำลังเข้าสู่ระบบ...');
       
       // POST to external login API
       const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login', {
