@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Camera, Edit2 } from 'lucide-react';
 import profileBg from '@/assets/profile-bg.png';
-import { supabase } from '@/integrations/supabase/client';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -96,29 +96,40 @@ export default function ProfilePage() {
   const handleConfirmUpload = async () => {
     if (!selectedFile || !user) return;
 
-    const fileExt = selectedFile.name.split('.').pop();
-    const filePath = `${user.id}/avatar-${Date.now()}.${fileExt}`;
-
     setLoading(true);
     setShowConfirmDialog(false);
 
-    // Upload to Supabase storage
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, selectedFile);
-
-    if (uploadError) {
-      toast({ title: t('home.error_load'), description: t('profile.error_upload'), variant: 'destructive' });
-      setLoading(false);
-      cleanupPreview();
-      return;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
-
     try {
+      // Upload via backend function (bypasses RLS)
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('bucket', 'avatars');
+      formData.append('path', `${user.id}/avatar`);
+
+      const uploadRes = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-registration-file`,
+        {
+          method: 'POST',
+          headers: {
+            // Required for calling backend functions
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: formData,
+        }
+      );
+
+      const uploadJson = await uploadRes.json();
+      if (!uploadRes.ok || !uploadJson?.url) {
+        console.error('Upload error:', uploadJson);
+        toast({ title: t('home.error_load'), description: uploadJson?.error || t('profile.error_upload'), variant: 'destructive' });
+        setLoading(false);
+        cleanupPreview();
+        return;
+      }
+
+      const publicUrl: string = uploadJson.url;
+
       // Update via external API
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
@@ -126,7 +137,8 @@ export default function ProfilePage() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
             driver_id: user.id,
@@ -139,18 +151,17 @@ export default function ProfilePage() {
       console.log('Update profile photo response:', data);
 
       if (response.ok) {
-        setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-        // Refresh the user data from API
+        setProfile(prev => (prev ? { ...prev, avatar_url: publicUrl } : null));
         await refreshUser();
         toast({ title: t('profile.success'), description: t('profile.success_desc') });
       } else {
-        toast({ title: t('home.error_load'), description: data.error || t('profile.error_update'), variant: 'destructive' });
+        toast({ title: t('home.error_load'), description: data?.error || t('profile.error_update'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Error updating profile photo:', error);
       toast({ title: t('home.error_load'), description: t('profile.error_update'), variant: 'destructive' });
     }
-    
+
     setLoading(false);
     cleanupPreview();
   };
