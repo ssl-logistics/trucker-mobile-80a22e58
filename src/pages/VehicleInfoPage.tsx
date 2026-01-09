@@ -196,33 +196,121 @@ export default function VehicleInfoPage() {
 
 
   const handlePhotoUpload = async (photoType: string, file: File) => {
-    if (!user || !vehicleData) return;
+    if (!user) return;
 
     console.log('Starting photo upload for type:', photoType);
-    
+
+    const isExternalDriver = !!(
+      user && (user.driver_code || user.first_name || user.profile_photo_url || user.front_photo_url)
+    );
+
     try {
+      // External driver flow: upload via backend function + update driver record
+      if (isExternalDriver) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'vehicle-photos');
+        formData.append('path', `${user.id}/${photoType}-${Date.now()}`);
+
+        const uploadRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-registration-file`,
+          {
+            method: 'POST',
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: formData,
+          }
+        );
+
+        const uploadJson = await uploadRes.json();
+        if (!uploadRes.ok || !uploadJson?.url) {
+          throw new Error(uploadJson?.error || t('vehicle.uploadError'));
+        }
+
+        const publicUrl: string = uploadJson.url;
+
+        // Map photoType to driver field name
+        const photoFieldMap: Record<string, string> = {
+          front: 'front_photo_url',
+          side: 'side_photo_url',
+          back: 'back_photo_url',
+          plate: 'plate_photo_url',
+          trailer_plate: 'trailer_plate_photo_url',
+        };
+
+        const fieldName = photoFieldMap[photoType];
+        if (!fieldName) {
+          throw new Error(`Unknown photo type: ${photoType}`);
+        }
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              driver_id: user.id,
+              [fieldName]: publicUrl,
+            }),
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data?.message || data?.error || t('vehicle.uploadError'));
+        }
+
+        // Update local photos state
+        setPhotos((prev) => {
+          const existingIndex = prev.findIndex((p) => p.photo_type === photoType);
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = { ...updated[existingIndex], photo_url: publicUrl };
+            return updated;
+          }
+          return [...prev, { id: photoType, photo_type: photoType, photo_url: publicUrl }];
+        });
+
+        setPhotoTimestamp(Date.now());
+        setIsVehiclePhotoDrawerOpen(false);
+        await refreshUser();
+
+        toast({
+          title: t('vehicle.uploadSuccess'),
+          description: t('vehicle.uploadSuccessDesc'),
+        });
+        return;
+      }
+
+      // Fallback: previous behavior (vehicles table)
+      if (!vehicleData) return;
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${vehicleData.id}-${photoType}-${Date.now()}.${fileExt}`;
 
       console.log('Uploading to:', fileName);
 
-      const { error: uploadError } = await supabase.storage
-        .from('vehicle-photos')
-        .upload(fileName, file);
+      const { error: uploadError } = await supabase.storage.from('vehicle-photos').upload(fileName, file);
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
         throw uploadError;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('vehicle-photos')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('vehicle-photos').getPublicUrl(fileName);
 
       console.log('Public URL:', publicUrl);
 
       // Check if photo already exists
-      const existingPhoto = photos.find(p => p.photo_type === photoType);
+      const existingPhoto = photos.find((p) => p.photo_type === photoType);
       console.log('Existing photo:', existingPhoto);
 
       if (existingPhoto) {
@@ -237,13 +325,11 @@ export default function VehicleInfoPage() {
         }
         console.log('Updated existing photo');
       } else {
-        const { error: insertError } = await supabase
-          .from('vehicle_photos')
-          .insert({
-            vehicle_id: vehicleData.id,
-            photo_type: photoType,
-            photo_url: publicUrl,
-          });
+        const { error: insertError } = await supabase.from('vehicle_photos').insert({
+          vehicle_id: vehicleData.id,
+          photo_type: photoType,
+          photo_url: publicUrl,
+        });
 
         if (insertError) {
           console.error('Insert error:', insertError);
@@ -254,13 +340,13 @@ export default function VehicleInfoPage() {
 
       // Reload photos with a slight delay to ensure DB is updated
       console.log('Reloading photos...');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       await loadVehiclePhotos();
-      
+
       // Force refresh by updating timestamp
       setPhotoTimestamp(Date.now());
       console.log('Photos reloaded, new photos:', photos);
-      
+
       setIsVehiclePhotoDrawerOpen(false);
       toast({
         title: t('vehicle.uploadSuccess'),
@@ -270,7 +356,7 @@ export default function VehicleInfoPage() {
       console.error('Error uploading photo:', error);
       toast({
         title: t('vehicle.errorLoad'),
-        description: t('vehicle.uploadError'),
+        description: error instanceof Error ? error.message : t('vehicle.uploadError'),
         variant: 'destructive',
       });
     }
