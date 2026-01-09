@@ -69,24 +69,44 @@ export default function Home() {
     }
   }, [user]);
   const loadJobs = async () => {
-    const {
-      data,
-      error
-    } = await supabase.from('jobs').select('*').eq('status', 'available').order('created_at', {
-      ascending: false
-    });
-    
-    if (error) {
-      console.error('Error loading jobs:', error);
-      toast({
-        title: t('home.error_load'),
-        description: t('home.error_load_desc'),
-        variant: 'destructive'
-      });
-    } else {
-      console.log('Loaded jobs for role:', role, 'Total jobs:', data?.length);
-      // Check which jobs the user has accepted and completed
-      if (user) {
+    try {
+      // Fetch from get-quote-operations Edge Function instead of database
+      const { data: responseData, error } = await supabase.functions.invoke('get-quote-operations');
+      
+      if (error) {
+        console.error('Error loading jobs from API:', error);
+        toast({
+          title: t('home.error_load'),
+          description: t('home.error_load_desc'),
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      console.log('Loaded jobs from API:', responseData);
+      
+      // Transform API response to Job format
+      const apiJobs = Array.isArray(responseData) ? responseData : (responseData?.data || []);
+      
+      const transformedJobs: Job[] = apiJobs.map((item: any) => ({
+        id: item.id || item.quote_id || String(Math.random()),
+        order_code: item.order_code || item.quote_code || item.code || '',
+        job_type: item.job_type || 'domestic',
+        employer_name: item.employer_name || item.company_name || '',
+        transport_type: item.transport_type || 'single',
+        origin_location: item.origin_location || item.origin || '',
+        destination_location: item.destination_location || item.destination || '',
+        destination_company_name: item.destination_company_name || null,
+        price: item.price || 0,
+        start_date: item.start_date || '',
+        start_time: item.start_time || '',
+        equipment_list: item.equipment_list || null,
+        safety_equipment: item.safety_equipment || null,
+        isAccepted: false
+      }));
+
+      // Check which jobs the user has accepted
+      if (user && transformedJobs.length > 0) {
         const { data: applications } = await supabase
           .from('job_applications')
           .select('job_id, payment_completed_at')
@@ -97,8 +117,7 @@ export default function Home() {
         );
         const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
         
-        // Filter out only completed jobs, keep jobs that are accepted but not completed
-        const availableJobs = (data || [])
+        const availableJobs = transformedJobs
           .filter(job => !completedJobIds.has(job.id))
           .map(job => ({
             ...job,
@@ -107,8 +126,15 @@ export default function Home() {
         
         setJobs(availableJobs);
       } else {
-        setJobs(data || []);
+        setJobs(transformedJobs);
       }
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+      toast({
+        title: t('home.error_load'),
+        description: t('home.error_load_desc'),
+        variant: 'destructive'
+      });
     }
   };
   const handleAcceptJob = (job: Job) => {
