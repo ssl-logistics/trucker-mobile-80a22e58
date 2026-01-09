@@ -112,12 +112,23 @@ export default function SettingsPage() {
     navigate('/');
   };
 
+  // Get vehicle info from user data
+  const vehiclePlate = user?.plate_number && user?.plate_province 
+    ? `${user.plate_number} ${user.plate_province}` 
+    : user?.plate_number || '';
+  const vehicleBrand = user?.vehicle_brand || '';
+
   const menuItems = [
     {
       section: t('settings.personal_info'),
       items: [
         { icon: User, label: t('settings.account'), path: '/account' },
-        { icon: Truck, label: t('settings.vehicle_info'), path: '/vehicle-info' },
+        { 
+          icon: Truck, 
+          label: t('settings.vehicle_info'), 
+          path: '/vehicle-info',
+          subtitle: vehiclePlate || vehicleBrand ? `${vehicleBrand} ${vehiclePlate}`.trim() : undefined
+        },
       ]
     },
     {
@@ -202,7 +213,12 @@ export default function SettingsPage() {
                   >
                     <div className="flex items-center gap-3">
                       <item.icon className="w-5 h-5 text-foreground" />
-                      <span className="text-foreground">{item.label}</span>
+                      <div className="flex flex-col items-start">
+                        <span className="text-foreground">{item.label}</span>
+                        {item.subtitle && (
+                          <span className="text-xs text-muted-foreground">{item.subtitle}</span>
+                        )}
+                      </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </button>
