@@ -1112,10 +1112,12 @@ const thTranslations: Record<string, string> = {
   
   // Change Password Page
   'changePassword.title': 'เปลี่ยนรหัสผ่าน',
+  'changePassword.currentPassword': 'รหัสผ่านเดิม',
   'changePassword.newPassword': 'รหัสผ่านใหม่',
   'changePassword.confirmPassword': 'ยืนยันรหัสผ่าน',
   'changePassword.passwordMatch': 'รหัสผ่านตรงกันแล้ว',
   'changePassword.passwordMismatch': 'รหัสผ่านไม่ตรงกัน',
+  'changePassword.sameAsOld': 'รหัสผ่านใหม่ต้องไม่เหมือนกับรหัสผ่านเดิม',
   'changePassword.usePassword': 'ใช้รหัสผ่านนี้',
   'changePassword.changing': 'กำลังเปลี่ยนรหัสผ่าน...',
   'changePassword.success': 'เปลี่ยนรหัสผ่านสำเร็จ',
@@ -2285,10 +2287,12 @@ const enTranslations: Record<string, string> = {
   
   // Change Password Page
   'changePassword.title': 'Change Password',
+  'changePassword.currentPassword': 'Current Password',
   'changePassword.newPassword': 'New Password',
   'changePassword.confirmPassword': 'Confirm Password',
   'changePassword.passwordMatch': 'Passwords match',
   'changePassword.passwordMismatch': 'Passwords do not match',
+  'changePassword.sameAsOld': 'New password must be different from current password',
   'changePassword.usePassword': 'Use this password',
   'changePassword.changing': 'Changing password...',
   'changePassword.success': 'Password Changed Successfully',
@@ -3323,10 +3327,12 @@ const koTranslations: Record<string, string> = {
   
   // Change Password Page
   'changePassword.title': '비밀번호 변경',
+  'changePassword.currentPassword': '현재 비밀번호',
   'changePassword.newPassword': '새 비밀번호',
   'changePassword.confirmPassword': '비밀번호 확인',
   'changePassword.passwordMatch': '비밀번호 일치',
   'changePassword.passwordMismatch': '비밀번호 불일치',
+  'changePassword.sameAsOld': '새 비밀번호는 현재 비밀번호와 달라야 합니다',
   'changePassword.usePassword': '이 비밀번호 사용',
   'changePassword.changing': '변경 중...',
   'changePassword.success': '비밀번호 변경 완료',
@@ -3755,10 +3761,12 @@ const zhTranslations: Record<string, string> = {
   
   // Change Password Page
   'changePassword.title': '更改密码',
+  'changePassword.currentPassword': '当前密码',
   'changePassword.newPassword': '新密码',
   'changePassword.confirmPassword': '确认密码',
   'changePassword.passwordMatch': '密码匹配',
   'changePassword.passwordMismatch': '密码不匹配',
+  'changePassword.sameAsOld': '新密码必须与当前密码不同',
   'changePassword.usePassword': '使用此密码',
   'changePassword.changing': '正在更改密码...',
   'changePassword.success': '密码更改成功',
