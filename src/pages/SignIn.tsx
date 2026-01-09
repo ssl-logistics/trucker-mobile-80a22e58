@@ -113,7 +113,6 @@ const SignIn = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setServerError("");
-      setAuthTransitioning(true, 'กำลังเข้าสู่ระบบ...');
       
       // POST to external login API
       const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login', {
@@ -131,7 +130,6 @@ const SignIn = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setAuthTransitioning(false);
         const errorMessage = result.error || result.message || 'Login failed';
         
         if (errorMessage.includes("Invalid") || errorMessage.includes("credentials")) {
@@ -186,22 +184,17 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
       }
       
-      // Small delay to show loading animation before navigation
-      setTimeout(() => {
-        setAuthTransitioning(false);
-        // Navigate based on user_type
-        if (userType === 'freelance_driver') {
-          navigate("/home");
-        } else if (userType === 'company' || userType === 'factory') {
-          navigate("/dashboard");
-        } else {
-          navigate("/home");
-        }
-      }, 500);
+      // Navigate based on user_type
+      if (userType === 'freelance_driver') {
+        navigate("/home");
+      } else if (userType === 'company' || userType === 'factory') {
+        navigate("/dashboard");
+      } else {
+        navigate("/home");
+      }
     } catch (error) {
       console.error("Login error:", error);
       setServerError(t('signIn.error'));
-      setAuthTransitioning(false);
     }
   };
   return <div className="h-screen bg-background flex flex-col overflow-hidden" style={{
