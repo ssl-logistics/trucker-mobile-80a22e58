@@ -486,7 +486,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.type')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.vehicle_type}</p>
+                <p className="text-base font-medium mt-1">{t(`vehicleType.${vehicleData.vehicle_type.replace(/[\s-]/g, '').toLowerCase()}`) || vehicleData.vehicle_type}</p>
               </div>
               <Button 
                 variant="ghost" 
@@ -501,7 +501,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.fuelType')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.fuel_type}</p>
+                <p className="text-base font-medium mt-1">{t(`fuelType.${vehicleData.fuel_type.toLowerCase()}`) || vehicleData.fuel_type}</p>
               </div>
               <Button 
                 variant="ghost" 
