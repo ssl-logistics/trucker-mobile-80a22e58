@@ -169,7 +169,6 @@ export default function Home() {
     loadJobs();
   };
   const handleSignOut = async () => {
-    setAuthTransitioning(true, 'กำลังออกจากระบบ...');
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       
@@ -190,10 +189,7 @@ export default function Home() {
       toast({
         description: t('settings.logoutSuccess') || 'ออกจากระบบสำเร็จ',
       });
-      setTimeout(() => {
-        setAuthTransitioning(false);
-        navigate('/');
-      }, 500);
+      navigate('/');
     }
   };
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">

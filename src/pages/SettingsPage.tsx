@@ -108,7 +108,6 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = async () => {
-    setAuthTransitioning(true, 'กำลังออกจากระบบ...');
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       
@@ -129,10 +128,7 @@ export default function SettingsPage() {
       toast({
         description: t('settings.logoutSuccess') || 'ออกจากระบบสำเร็จ',
       });
-      setTimeout(() => {
-        setAuthTransitioning(false);
-        navigate('/');
-      }, 500);
+      navigate('/');
     }
   };
 
