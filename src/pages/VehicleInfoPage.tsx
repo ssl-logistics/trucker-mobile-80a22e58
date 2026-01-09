@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Camera, Edit2, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePresignedImageUrl, usePresignedImageUrls } from '@/hooks/usePresignedImageUrl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +56,17 @@ export default function VehicleInfoPage() {
   const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
   const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
+
+  const photoUrls = useMemo(() => photos.map((p) => p.photo_url), [photos]);
+  const { urls: presignedPhotoUrls, isLoading: isPhotosPresigning } = usePresignedImageUrls(photoUrls);
+  const { url: presignedRegistrationPhoto, isLoading: isRegistrationPresigning } = usePresignedImageUrl(registrationPhoto);
+
+  const getPresignedPhotoUrl = (photo: VehiclePhoto | undefined) => {
+    if (!photo) return null;
+    const idx = photos.findIndex((p) => p.id === photo.id);
+    const url = idx >= 0 ? presignedPhotoUrls[idx] : null;
+    return url || null;
+  };
 
   const containerTypeOptions = [
     { value: '20', label: t('editVehicle.container20ft') },
@@ -527,12 +539,20 @@ export default function VehicleInfoPage() {
           </div>
           <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
             {registrationPhoto ? (
-              <img 
-                src={`${registrationPhoto}?t=${photoTimestamp}`}
-                alt={t('alt.vehicleRegistration')} 
-                className="w-full h-full object-cover"
-                key={`registration-${photoTimestamp}`}
-              />
+              presignedRegistrationPhoto ? (
+                <img 
+                  src={presignedRegistrationPhoto}
+                  alt={t('alt.vehicleRegistration')} 
+                  className="w-full h-full object-cover"
+                  key={`registration-${photoTimestamp}`}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-muted-foreground">
+                    {isRegistrationPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
+                  </span>
+                </div>
+              )
             ) : (
               <span className="text-muted-foreground">{t('vehicle.clickToView')}</span>
             )}
@@ -714,6 +734,7 @@ export default function VehicleInfoPage() {
         <TabsContent value="photos" className="p-4 space-y-6">
           {['front', 'side', 'back'].map((photoType) => {
             const photo = getPhotoByType(photoType);
+            const photoUrl = getPresignedPhotoUrl(photo);
             const labels: Record<string, string> = {
               front: t('vehicle.frontPhoto'),
               side: t('vehicle.leftPhoto'),
@@ -738,17 +759,25 @@ export default function VehicleInfoPage() {
                 </div>
                 <div className="relative bg-muted rounded-2xl aspect-video overflow-hidden">
                   {photo ? (
-                    <>
-                      <img 
-                        src={`${photo.photo_url}?t=${photoTimestamp}`} 
-                        alt={labels[photoType]} 
-                        className="w-full h-full object-cover"
-                        key={`${photoType}-${photoTimestamp}`}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                        <span className="text-white text-lg font-medium drop-shadow-lg">{t('vehicle.clickToView')}</span>
+                    photoUrl ? (
+                      <>
+                        <img 
+                          src={photoUrl} 
+                          alt={labels[photoType]} 
+                          className="w-full h-full object-cover"
+                          key={`${photoType}-${photoTimestamp}`}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <span className="text-white text-lg font-medium drop-shadow-lg">{t('vehicle.clickToView')}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-muted-foreground text-lg">
+                          {isPhotosPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
+                        </span>
                       </div>
-                    </>
+                    )
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-muted-foreground text-lg">{t('vehicle.clickToView')}</span>
