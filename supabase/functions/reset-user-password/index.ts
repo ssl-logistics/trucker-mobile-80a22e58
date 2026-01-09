@@ -12,11 +12,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, newPassword } = await req.json();
+    const { email, newPassword, userId } = await req.json();
 
-    if (!email || !newPassword) {
+    if (!newPassword) {
       return new Response(
-        JSON.stringify({ error: 'Email and new password are required' }),
+        JSON.stringify({ error: 'New password is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -40,55 +40,70 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Find user by email
-    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (listError) {
-      console.error('Error listing users:', listError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to find user' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    let targetUserId = userId;
+
+    // If userId is not provided, try to find by email
+    if (!targetUserId && email) {
+      // Try to get user by email using getUserByEmail (more efficient than listUsers)
+      const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(email);
+      
+      if (getUserError || !userData?.user) {
+        // Fallback: search in profiles table
+        const { data: profileData, error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .eq('phone_number', email)
+          .maybeSingle();
+
+        if (profileError || !profileData) {
+          console.error('User not found by email or phone:', email);
+          return new Response(
+            JSON.stringify({ error: 'User not found' }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        targetUserId = profileData.id;
+      } else {
+        targetUserId = userData.user.id;
+      }
     }
 
-    const user = users.users.find(u => u.email === email);
-
-    if (!user) {
+    if (!targetUserId) {
       return new Response(
-        JSON.stringify({ error: 'User not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'User ID or email is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Update user password
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
+      targetUserId,
       { password: newPassword }
     );
 
     if (updateError) {
       console.error('Error updating password:', updateError);
       return new Response(
-        JSON.stringify({ error: 'Failed to update password' }),
+        JSON.stringify({ error: 'Failed to update password: ' + updateError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Password reset successful for user: ${email}`);
+    console.log(`Password reset successful for user: ${targetUserId}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Password has been reset successfully',
-        email: email
+        message: 'Password has been reset successfully'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: 'An unexpected error occurred' }),
+      JSON.stringify({ error: 'An unexpected error occurred: ' + errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
