@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.get-freelance-drivers]
 verify_jwt = false
+
+[functions.update-freelance-driver]
+verify_jwt = false
