@@ -125,6 +125,10 @@ export default function SettingsPage() {
       console.error('Logout API error:', error);
     } finally {
       logout();
+      toast({
+        title: t('toast.success'),
+        description: t('settings.logoutSuccess') || 'ออกจากระบบสำเร็จ',
+      });
       navigate('/');
     }
   };
