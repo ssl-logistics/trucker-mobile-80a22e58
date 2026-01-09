@@ -61,16 +61,20 @@ export function BottomNavigation() {
   const navContent = (
     <nav
       id="bottom-navigation"
+      className="animate-fade-in"
       style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
         zIndex: 2147483647,
-        backgroundColor: "#153860",
-        padding: "12px 24px",
-        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
-        boxShadow: "0 -4px 6px -1px rgba(0, 0, 0, 0.1)",
+        background: "linear-gradient(135deg, #0f2847 0%, #1a4a7a 50%, #0f2847 100%)",
+        padding: "16px 20px",
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)",
+        boxShadow: "0 -8px 32px -4px rgba(15, 40, 71, 0.4)",
+        borderTopLeftRadius: "24px",
+        borderTopRightRadius: "24px",
+        backdropFilter: "blur(12px)",
         transform: "translateZ(0)",
         WebkitTransform: "translateZ(0)",
         backfaceVisibility: "hidden",
@@ -82,32 +86,38 @@ export function BottomNavigation() {
         display: "flex", 
         justifyContent: "space-around", 
         alignItems: "center", 
-        maxWidth: "32rem", 
+        maxWidth: "28rem", 
         margin: "0 auto" 
       }}>
         {navItems.map((item) => (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
+            className="hover-scale"
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "4px",
+              gap: "6px",
               background: "none",
               border: "none",
               cursor: "pointer",
-              padding: 0,
+              padding: "4px 8px",
+              transition: "all 0.3s ease",
             }}
           >
             <div
               style={{
-                padding: "4px 16px",
-                borderRadius: "9999px",
-                transition: "all 0.2s",
+                padding: "10px 20px",
+                borderRadius: "16px",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 background: isActive(item.path) 
-                  ? "linear-gradient(to right, #00C188, #23B9E9)" 
-                  : "transparent",
+                  ? "linear-gradient(135deg, #00D4AA 0%, #00B4E6 100%)" 
+                  : "rgba(255, 255, 255, 0.08)",
+                boxShadow: isActive(item.path) 
+                  ? "0 4px 20px rgba(0, 212, 170, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)" 
+                  : "none",
+                transform: isActive(item.path) ? "scale(1.05)" : "scale(1)",
               }}
             >
               {item.customIcon ? (
@@ -115,16 +125,36 @@ export function BottomNavigation() {
                   src={isActive(item.path) && item.customActiveIcon ? item.customActiveIcon : item.customIcon} 
                   alt={item.label}
                   style={{
-                    width: "24px",
-                    height: "24px",
-                    filter: "brightness(0) saturate(100%) invert(93%) sepia(8%) saturate(437%) hue-rotate(83deg) brightness(103%) contrast(101%)",
+                    width: "22px",
+                    height: "22px",
+                    filter: isActive(item.path) 
+                      ? "brightness(0) saturate(100%) invert(100%)" 
+                      : "brightness(0) saturate(100%) invert(90%) sepia(10%) saturate(200%) hue-rotate(180deg)",
+                    transition: "all 0.3s ease",
                   }}
                 />
               ) : (
-                <item.icon style={{ width: "24px", height: "24px", color: "#E0FFEA" }} />
+                <item.icon 
+                  style={{ 
+                    width: "22px", 
+                    height: "22px", 
+                    color: isActive(item.path) ? "#ffffff" : "#a8c5e0",
+                    transition: "all 0.3s ease",
+                  }} 
+                />
               )}
             </div>
-            <span style={{ fontSize: "12px", color: "#E2F8FF" }}>{item.label}</span>
+            <span 
+              style={{ 
+                fontSize: "11px", 
+                fontWeight: isActive(item.path) ? "600" : "500",
+                color: isActive(item.path) ? "#ffffff" : "#a8c5e0",
+                letterSpacing: "0.02em",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {item.label}
+            </span>
           </button>
         ))}
       </div>
