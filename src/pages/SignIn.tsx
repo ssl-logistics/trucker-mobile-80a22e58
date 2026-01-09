@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { App } from "@capacitor/app";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,7 @@ const SignIn = () => {
   const [serverError, setServerError] = useState<string>("");
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Get app version from native app - immediate fallback for web
   useEffect(() => {
@@ -111,8 +112,11 @@ const SignIn = () => {
     }
   }, [setValue]);
   const onSubmit = async (data: LoginFormData) => {
+    if (isLoggingIn) return; // Prevent double-click
+    
     try {
       setServerError("");
+      setIsLoggingIn(true);
       
       // POST to external login API
       const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login', {
@@ -141,6 +145,7 @@ const SignIn = () => {
         localStorage.removeItem("rememberedEmail");
         localStorage.removeItem("rememberedPassword");
         localStorage.removeItem("rememberedUser");
+        setIsLoggingIn(false);
         return;
       }
 
@@ -195,6 +200,7 @@ const SignIn = () => {
     } catch (error) {
       console.error("Login error:", error);
       setServerError(t('signIn.error'));
+      setIsLoggingIn(false);
     }
   };
   return <div className="h-screen bg-background flex flex-col overflow-hidden" style={{
@@ -249,10 +255,27 @@ const SignIn = () => {
 
           {/* Submit Buttons */}
           <div className="space-y-2">
-            <Button type="submit" className="w-full text-white h-10 rounded-xl text-sm font-medium bg-primary">
-              {t('signIn.signInButton')}
+            <Button 
+              type="submit" 
+              disabled={isLoggingIn}
+              className="w-full text-white h-10 rounded-xl text-sm font-medium bg-primary"
+            >
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  กำลังเข้าสู่ระบบ...
+                </>
+              ) : (
+                t('signIn.signInButton')
+              )}
             </Button>
-            <Button type="button" variant="outline" onClick={() => navigate("/register")} className="w-full h-10 rounded-xl text-sm font-medium border-2 hover:bg-[#235A99] hover:text-white">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => navigate("/register")} 
+              disabled={isLoggingIn}
+              className="w-full h-10 rounded-xl text-sm font-medium border-2 hover:bg-[#235A99] hover:text-white"
+            >
               {t('signIn.registerButton')}
             </Button>
           </div>
