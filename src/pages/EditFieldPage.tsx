@@ -11,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 export default function EditFieldPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
   const { field, value: initialValue, fullName } = location.state || {};
   
@@ -23,48 +23,52 @@ export default function EditFieldPage() {
 
     setLoading(true);
 
-    if (field === 'firstName') {
-      const nameParts = fullName?.split(' ') || [];
-      const newFullName = `${value} ${nameParts.slice(1).join(' ')}`;
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: newFullName })
-        .eq('id', user.id);
+    try {
+      // Build update payload for external API
+      const updatePayload: Record<string, string> = {
+        driver_id: user.id,
+      };
 
-      if (!error) {
-        toast({ title: t('editField.success'), description: t('editField.updated') });
-        navigate('/profile');
-      } else {
-        toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
+      if (field === 'firstName') {
+        updatePayload.first_name = value;
+      } else if (field === 'lastName') {
+        updatePayload.last_name = value;
+      } else if (field === 'phone') {
+        updatePayload.phone = value;
       }
-    } else if (field === 'lastName') {
-      const nameParts = fullName?.split(' ') || [];
-      const newFullName = `${nameParts[0]} ${value}`;
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: newFullName })
-        .eq('id', user.id);
 
-      if (!error) {
-        toast({ title: t('editField.success'), description: t('editField.updated') });
-        navigate('/profile');
-      } else {
-        toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
-      }
-    } else if (field === 'phone') {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ phone_number: value })
-        .eq('id', user.id);
+      console.log('Sending update payload:', updatePayload);
 
-      if (!error) {
-        toast({ title: t('editField.success'), description: t('editField.updated') });
-        navigate('/profile');
+      // Call the external API via edge function
+      const { data, error } = await supabase.functions.invoke('update-freelance-driver', {
+        method: 'PUT',
+        body: updatePayload,
+      });
+
+      console.log('Update response:', data, error);
+
+      if (error) {
+        console.error('Update error:', error);
+        toast({ 
+          title: t('editField.error'), 
+          description: error.message || t('editField.updateError'), 
+          variant: 'destructive' 
+        });
       } else {
-        toast({ title: t('editField.error'), description: t('editField.updateError'), variant: 'destructive' });
+        toast({ title: t('editField.success'), description: t('editField.updated') });
+        
+        // Refresh user data to get updated info
+        refreshUser();
+        
+        navigate('/profile');
       }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast({ 
+        title: t('editField.error'), 
+        description: t('editField.updateError'), 
+        variant: 'destructive' 
+      });
     }
 
     setLoading(false);
