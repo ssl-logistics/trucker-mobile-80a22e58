@@ -67,9 +67,9 @@ export function AppHeader({
                   </>
                 )}
               </Avatar>
-              <div className="min-w-fit h-10 rounded-xl bg-slate-100 px-2.5 py-1">
-                <div className="text-[10px] opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
-                <div className="font-semibold text-xs text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</div>
+              <div className="min-w-fit h-11 rounded-xl bg-slate-100 px-3 py-1">
+                <div className="text-xs opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
+                <div className="font-semibold text-sm text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</div>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -111,7 +111,7 @@ export function AppHeader({
                 <div className="w-16 h-16 flex items-center justify-center">
                   <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" />
                 </div>
-                <span className="text-xs text-[#153860] text-center">{t(item.labelKey)}</span>
+                <span className="text-sm text-[#153860] text-center">{t(item.labelKey)}</span>
               </button>)}
           </div>
         </div>}
