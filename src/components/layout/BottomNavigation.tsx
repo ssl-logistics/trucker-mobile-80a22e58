@@ -61,20 +61,17 @@ export function BottomNavigation() {
   const navContent = (
     <nav
       id="bottom-navigation"
-      className="animate-fade-in"
       style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
         zIndex: 2147483647,
-        background: "linear-gradient(135deg, #0f2847 0%, #1a4a7a 50%, #0f2847 100%)",
-        padding: "16px 20px",
-        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)",
-        boxShadow: "0 -8px 32px -4px rgba(15, 40, 71, 0.4)",
-        borderTopLeftRadius: "24px",
-        borderTopRightRadius: "24px",
-        backdropFilter: "blur(12px)",
+        backgroundColor: "#153860",
+        padding: "8px 16px",
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)",
+        borderTopLeftRadius: "16px",
+        borderTopRightRadius: "16px",
         transform: "translateZ(0)",
         WebkitTransform: "translateZ(0)",
         backfaceVisibility: "hidden",
@@ -86,38 +83,31 @@ export function BottomNavigation() {
         display: "flex", 
         justifyContent: "space-around", 
         alignItems: "center", 
-        maxWidth: "28rem", 
+        maxWidth: "24rem", 
         margin: "0 auto" 
       }}>
         {navItems.map((item) => (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="hover-scale"
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "6px",
+              gap: "4px",
               background: "none",
               border: "none",
               cursor: "pointer",
-              padding: "4px 8px",
-              transition: "all 0.3s ease",
+              padding: "2px 6px",
             }}
           >
             <div
               style={{
-                padding: "10px 20px",
-                borderRadius: "16px",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                padding: "6px 14px",
+                borderRadius: "12px",
                 background: isActive(item.path) 
                   ? "linear-gradient(135deg, #00D4AA 0%, #00B4E6 100%)" 
-                  : "rgba(255, 255, 255, 0.08)",
-                boxShadow: isActive(item.path) 
-                  ? "0 4px 20px rgba(0, 212, 170, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)" 
-                  : "none",
-                transform: isActive(item.path) ? "scale(1.05)" : "scale(1)",
+                  : "transparent",
               }}
             >
               {item.customIcon ? (
@@ -125,32 +115,28 @@ export function BottomNavigation() {
                   src={isActive(item.path) && item.customActiveIcon ? item.customActiveIcon : item.customIcon} 
                   alt={item.label}
                   style={{
-                    width: "22px",
-                    height: "22px",
+                    width: "20px",
+                    height: "20px",
                     filter: isActive(item.path) 
                       ? "brightness(0) saturate(100%) invert(100%)" 
                       : "brightness(0) saturate(100%) invert(90%) sepia(10%) saturate(200%) hue-rotate(180deg)",
-                    transition: "all 0.3s ease",
                   }}
                 />
               ) : (
                 <item.icon 
                   style={{ 
-                    width: "22px", 
-                    height: "22px", 
+                    width: "20px", 
+                    height: "20px", 
                     color: isActive(item.path) ? "#ffffff" : "#a8c5e0",
-                    transition: "all 0.3s ease",
                   }} 
                 />
               )}
             </div>
             <span 
               style={{ 
-                fontSize: "11px", 
+                fontSize: "10px", 
                 fontWeight: isActive(item.path) ? "600" : "500",
                 color: isActive(item.path) ? "#ffffff" : "#a8c5e0",
-                letterSpacing: "0.02em",
-                transition: "all 0.3s ease",
               }}
             >
               {item.label}
