@@ -28,13 +28,28 @@ export default function AccountPage() {
     setIsDeleting(true);
     
     try {
-      // Call edge function to delete account using Supabase client
-      const { data, error } = await supabase.functions.invoke('delete-account', {
-        method: 'POST',
+      // Get user email for deletion
+      const userEmail = user?.email;
+      const driverCode = user?.driver_code;
+      
+      if (!userEmail) {
+        throw new Error('ไม่พบอีเมลผู้ใช้');
+      }
+
+      // Call delete-driver edge function which uses external API
+      const { data, error } = await supabase.functions.invoke('delete-driver', {
+        body: { 
+          email: userEmail,
+          driverCode: driverCode 
+        },
       });
 
       if (error) {
         throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       toast({
@@ -42,8 +57,9 @@ export default function AccountPage() {
         description: t('account.delete_success_desc'),
       });
 
-      // Sign out after successful deletion
-      await supabase.auth.signOut();
+      // Clear local storage and navigate to login
+      localStorage.removeItem('user');
+      localStorage.removeItem('userRole');
       navigate('/', { replace: true });
     } catch (error: any) {
       console.error('Delete account error:', error);
