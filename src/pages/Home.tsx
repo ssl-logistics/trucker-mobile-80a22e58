@@ -89,19 +89,19 @@ export default function Home() {
       const apiJobs = Array.isArray(responseData) ? responseData : (responseData?.data || []);
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => ({
-        id: item.id || item.quote_id || String(Math.random()),
-        order_code: item.order_code || item.quote_code || item.code || '',
-        job_type: item.job_type || 'domestic',
-        employer_name: item.employer_name || item.company_name || '',
-        transport_type: item.transport_type || 'single',
-        origin_location: item.origin_location || item.origin || '',
-        destination_location: item.destination_location || item.destination || '',
-        destination_company_name: item.destination_company_name || null,
+        id: item.id || String(Math.random()),
+        order_code: item.quote_number || item.order_code || '',
+        job_type: item.shipment_type || item.product_type || 'domestic',
+        employer_name: item.company_name || item.customer_name || '',
+        transport_type: item.send_mode || 'single',
+        origin_location: item.from_location || '',
+        destination_location: item.to_location || '',
+        destination_company_name: item.company_name || null,
         price: item.price || 0,
-        start_date: item.start_date || '',
+        start_date: item.start_date || item.period_start || '',
         start_time: item.start_time || '',
-        equipment_list: item.equipment_list || null,
-        safety_equipment: item.safety_equipment || null,
+        equipment_list: item.truck_type || null,
+        safety_equipment: item.truck_requirements?.join(', ') || null,
         isAccepted: false
       }));
 
