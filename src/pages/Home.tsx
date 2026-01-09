@@ -196,8 +196,8 @@ export default function Home() {
       {/* Header and Search Bar - Sticky Together */}
       <div className="sticky top-0 z-50">
         <AppHeader 
-          userName={user?.full_name || user?.name || user?.username} 
-          profilePhoto={user?.avatar_url || user?.profile_photo || vehiclePhoto || undefined} 
+          userName={user?.full_name || (user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.first_name || user?.name || user?.username)} 
+          profilePhoto={user?.avatar_url || user?.profile_photo || user?.photo || vehiclePhoto || undefined} 
           onSignOut={handleSignOut} 
           showQuickMenu={true} 
         />
