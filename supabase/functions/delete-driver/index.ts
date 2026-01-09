@@ -1,91 +1,74 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'DELETE, POST, OPTIONS',
 };
 
-Deno.serve(async (req) => {
+serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const API_KEY = Deno.env.get('EXTERNAL_REGISTER_API_KEY');
+    const EXTERNAL_API_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/delete-freelance-driver';
 
-    const { email, driverCode } = await req.json();
-    console.log('🗑️ Deleting driver:', { email, driverCode });
+    const body = await req.json();
+    console.log('🗑️ Deleting driver with data:', JSON.stringify(body));
 
+    const { email, driverCode } = body;
+
+    // Validate required fields
     if (!email) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Missing required field: email is required',
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        }
+        JSON.stringify({ error: 'email is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get user by email and delete
-    const { data: userData, error: listError } = await supabase.auth.admin.listUsers();
-    
-    if (listError) {
-      console.error('❌ Error listing users:', listError);
-      throw new Error(`Failed to list users: ${listError.message}`);
+    // Forward the request to the external API
+    const response = await fetch(EXTERNAL_API_URL, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY || '',
+      },
+      body: JSON.stringify({ email, driver_code: driverCode }),
+    });
+
+    const responseText = await response.text();
+    console.log('External API response:', responseText);
+
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+    } catch {
+      responseData = { message: responseText };
     }
 
-    const user = userData.users.find((u) => u.email === email);
-    
-    if (!user) {
-      console.log('⚠️ No auth user found for this email');
+    if (!response.ok) {
+      console.error('❌ External API error:', responseData);
       return new Response(
-        JSON.stringify({ 
-          error: 'User not found with the provided email',
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404,
-        }
+        JSON.stringify({ error: responseData.error || responseData.message || 'Failed to delete driver' }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Delete user account
-    const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
-    
-    if (deleteError) {
-      console.error('❌ Error deleting user account:', deleteError);
-      throw new Error(`Failed to delete user account: ${deleteError.message}`);
-    }
-
-    console.log('✅ Deleted auth user:', user.id);
-
+    console.log('✅ Driver deleted successfully');
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Driver deleted successfully'
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      JSON.stringify({ success: true, message: 'Driver deleted successfully', ...responseData }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Error in delete-driver function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    
+    console.error('❌ Error deleting driver:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ 
-        error: errorMessage,
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
