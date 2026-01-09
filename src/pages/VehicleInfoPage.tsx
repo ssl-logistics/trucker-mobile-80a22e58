@@ -75,21 +75,50 @@ export default function VehicleInfoPage() {
     if (!user) return;
 
     try {
+      // First try to get from user object (from external API via AuthContext)
+      if (user.plate_number) {
+        const vehicleFromUser: VehicleData = {
+          id: user.id,
+          plate_number: user.plate_number || '',
+          plate_province: user.plate_province || '',
+          vehicle_brand: user.vehicle_brand || '',
+          vehicle_color: user.vehicle_color || '',
+          vin: user.vin || '',
+          fuel_type: user.fuel_type || '',
+          load_capacity: user.load_capacity || 0,
+          vehicle_type: user.vehicle_type || '',
+          width: user.width,
+          length: user.length,
+          height: user.height,
+          has_trailer: user.has_trailer || false,
+          trailer_plate_number: user.trailer_plate_number,
+          trailer_plate_province: user.trailer_plate_province,
+          container_types: user.container_types || [],
+        };
+        setVehicleData(vehicleFromUser);
+        
+        // Also set registration photo from user
+        if (user.registration_photo_url) {
+          setRegistrationPhoto(user.registration_photo_url);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Fallback to Supabase vehicles table
       const { data, error } = await supabase
         .from('vehicles')
         .select('*')
         .eq('driver_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      setVehicleData(data);
+      
+      if (data) {
+        setVehicleData(data);
+      }
     } catch (error) {
       console.error('Error loading vehicle data:', error);
-      toast({
-        title: t('vehicle.errorLoad'),
-        description: t('vehicle.errorLoadDesc'),
-        variant: 'destructive',
-      });
     } finally {
       setLoading(false);
     }
@@ -101,11 +130,38 @@ export default function VehicleInfoPage() {
     try {
       console.log('Loading vehicle photos for user:', user.id);
       
+      // If user has photos from external API, use those
+      if (user.front_photo_url || user.side_photo_url || user.back_photo_url || user.plate_photo_url) {
+        const externalPhotos: VehiclePhoto[] = [];
+        if (user.front_photo_url) {
+          externalPhotos.push({ id: 'front', photo_type: 'front', photo_url: user.front_photo_url });
+        }
+        if (user.side_photo_url) {
+          externalPhotos.push({ id: 'side', photo_type: 'side', photo_url: user.side_photo_url });
+        }
+        if (user.back_photo_url) {
+          externalPhotos.push({ id: 'back', photo_type: 'back', photo_url: user.back_photo_url });
+        }
+        if (user.plate_photo_url) {
+          externalPhotos.push({ id: 'plate', photo_type: 'plate', photo_url: user.plate_photo_url });
+        }
+        if (user.trailer_plate_photo_url) {
+          externalPhotos.push({ id: 'trailer_plate', photo_type: 'trailer_plate', photo_url: user.trailer_plate_photo_url });
+        }
+        if (user.registration_photo_url) {
+          externalPhotos.push({ id: 'registration', photo_type: 'registration', photo_url: user.registration_photo_url });
+          setRegistrationPhoto(user.registration_photo_url);
+        }
+        setPhotos(externalPhotos);
+        return;
+      }
+
+      // Fallback to Supabase
       const { data: vehicleData } = await supabase
         .from('vehicles')
         .select('id')
         .eq('driver_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!vehicleData) {
         console.log('No vehicle data found');
