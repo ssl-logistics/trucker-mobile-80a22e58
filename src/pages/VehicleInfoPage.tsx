@@ -43,7 +43,7 @@ const vehicleBrands = ['Isuzu', 'Hino', 'Mitsubishi', 'Nissan', 'Mercedes-Benz',
 
 export default function VehicleInfoPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('data');
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
@@ -281,24 +281,88 @@ export default function VehicleInfoPage() {
   };
 
   const handleRegistrationPhotoUpload = async (file: File) => {
-    if (!user || !vehicleData) return;
+    if (!user) return;
+
+    const isExternalDriver = !!(
+      user && (user.driver_code || user.first_name || user.profile_photo_url || user.front_photo_url)
+    );
 
     try {
+      // External driver flow: upload via backend function + update driver record
+      if (isExternalDriver) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'driver-documents');
+        formData.append('path', `${user.id}/registration-${Date.now()}`);
+
+        const uploadRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-registration-file`,
+          {
+            method: 'POST',
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: formData,
+          }
+        );
+
+        const uploadJson = await uploadRes.json();
+        if (!uploadRes.ok || !uploadJson?.url) {
+          throw new Error(uploadJson?.error || t('vehicle.uploadError'));
+        }
+
+        const publicUrl: string = uploadJson.url;
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              driver_id: user.id,
+              registration_photo_url: publicUrl,
+            }),
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data?.message || data?.error || t('vehicle.uploadError'));
+        }
+
+        setRegistrationPhoto(publicUrl);
+        setPhotoTimestamp(Date.now());
+        setIsRegistrationDrawerOpen(false);
+        await refreshUser();
+
+        toast({
+          title: t('vehicle.uploadSuccess'),
+          description: t('vehicle.registrationSuccessDesc'),
+        });
+        return;
+      }
+
+      // Fallback: previous behavior (vehicles/vehicle_photos)
+      if (!vehicleData) return;
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${vehicleData.id}-registration-${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('vehicle-photos')
-        .upload(fileName, file);
+      const { error: uploadError } = await supabase.storage.from('vehicle-photos').upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('vehicle-photos')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('vehicle-photos').getPublicUrl(fileName);
 
       // Check if registration photo already exists
-      const existingPhoto = photos.find(p => p.photo_type === 'registration');
+      const existingPhoto = photos.find((p) => p.photo_type === 'registration');
 
       if (existingPhoto) {
         const { error: updateError } = await supabase
@@ -308,23 +372,21 @@ export default function VehicleInfoPage() {
 
         if (updateError) throw updateError;
       } else {
-        const { error: insertError } = await supabase
-          .from('vehicle_photos')
-          .insert({
-            vehicle_id: vehicleData.id,
-            photo_type: 'registration',
-            photo_url: publicUrl,
-          });
+        const { error: insertError } = await supabase.from('vehicle_photos').insert({
+          vehicle_id: vehicleData.id,
+          photo_type: 'registration',
+          photo_url: publicUrl,
+        });
 
         if (insertError) throw insertError;
       }
 
       setRegistrationPhoto(publicUrl);
       await loadVehiclePhotos();
-      
+
       // Force refresh by updating timestamp
       setPhotoTimestamp(Date.now());
-      
+
       setIsRegistrationDrawerOpen(false);
       toast({
         title: t('vehicle.uploadSuccess'),
@@ -334,7 +396,7 @@ export default function VehicleInfoPage() {
       console.error('Error uploading registration photo:', error);
       toast({
         title: t('vehicle.errorLoad'),
-        description: t('vehicle.uploadError'),
+        description: error instanceof Error ? error.message : t('vehicle.uploadError'),
         variant: 'destructive',
       });
     }
