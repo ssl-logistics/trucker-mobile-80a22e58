@@ -207,32 +207,34 @@ export default function VehicleInfoPage() {
     );
 
     try {
-      // External driver flow: upload via backend function + update driver record
-      if (isExternalDriver) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('bucket', 'vehicle-photos');
-        formData.append('path', `${user.id}/${photoType}-${Date.now()}`);
+      // Upload to S3 via edge function
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'vehicle-photos');
+      formData.append('fileName', `${user.id}_${photoType}_${Date.now()}.${file.name.split('.').pop() || 'jpg'}`);
 
-        const uploadRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-registration-file`,
-          {
-            method: 'POST',
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: formData,
-          }
-        );
-
-        const uploadJson = await uploadRes.json();
-        if (!uploadRes.ok || !uploadJson?.url) {
-          throw new Error(uploadJson?.error || t('vehicle.uploadError'));
+      const uploadRes = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-to-s3`,
+        {
+          method: 'POST',
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: formData,
         }
+      );
 
-        const publicUrl: string = uploadJson.url;
+      const uploadJson = await uploadRes.json();
+      if (!uploadRes.ok || !uploadJson?.url) {
+        throw new Error(uploadJson?.error || t('vehicle.uploadError'));
+      }
 
+      const publicUrl: string = uploadJson.url;
+      console.log('S3 upload success:', publicUrl);
+
+      // External driver flow: update driver record via API
+      if (isExternalDriver) {
         // Map photoType to driver field name
         const photoFieldMap: Record<string, string> = {
           front: 'front_photo_url',
@@ -290,26 +292,8 @@ export default function VehicleInfoPage() {
         return;
       }
 
-      // Fallback: previous behavior (vehicles table)
+      // Fallback: Supabase vehicles table - save S3 URL to vehicle_photos
       if (!vehicleData) return;
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${vehicleData.id}-${photoType}-${Date.now()}.${fileExt}`;
-
-      console.log('Uploading to:', fileName);
-
-      const { error: uploadError } = await supabase.storage.from('vehicle-photos').upload(fileName, file);
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
-      }
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('vehicle-photos').getPublicUrl(fileName);
-
-      console.log('Public URL:', publicUrl);
 
       // Check if photo already exists
       const existingPhoto = photos.find((p) => p.photo_type === photoType);
@@ -380,32 +364,34 @@ export default function VehicleInfoPage() {
     );
 
     try {
-      // External driver flow: upload via backend function + update driver record
-      if (isExternalDriver) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('bucket', 'driver-documents');
-        formData.append('path', `${user.id}/registration-${Date.now()}`);
+      // Upload to S3 via edge function
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'driver-documents');
+      formData.append('fileName', `${user.id}_registration_${Date.now()}.${file.name.split('.').pop() || 'jpg'}`);
 
-        const uploadRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-registration-file`,
-          {
-            method: 'POST',
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: formData,
-          }
-        );
-
-        const uploadJson = await uploadRes.json();
-        if (!uploadRes.ok || !uploadJson?.url) {
-          throw new Error(uploadJson?.error || t('vehicle.uploadError'));
+      const uploadRes = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-to-s3`,
+        {
+          method: 'POST',
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: formData,
         }
+      );
 
-        const publicUrl: string = uploadJson.url;
+      const uploadJson = await uploadRes.json();
+      if (!uploadRes.ok || !uploadJson?.url) {
+        throw new Error(uploadJson?.error || t('vehicle.uploadError'));
+      }
 
+      const publicUrl: string = uploadJson.url;
+      console.log('S3 registration upload success:', publicUrl);
+
+      // External driver flow: update driver record via API
+      if (isExternalDriver) {
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
           {
@@ -439,19 +425,8 @@ export default function VehicleInfoPage() {
         return;
       }
 
-      // Fallback: previous behavior (vehicles/vehicle_photos)
+      // Fallback: Supabase vehicles table - save S3 URL to vehicle_photos
       if (!vehicleData) return;
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${vehicleData.id}-registration-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage.from('vehicle-photos').upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('vehicle-photos').getPublicUrl(fileName);
 
       // Check if registration photo already exists
       const existingPhoto = photos.find((p) => p.photo_type === 'registration');

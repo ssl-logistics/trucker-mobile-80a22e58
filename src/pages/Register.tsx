@@ -152,22 +152,21 @@ const Register = () => {
     }
   };
   const uploadFile = async (file: File, bucket: string, path: string): Promise<string | null> => {
-    console.log(`[Upload] Starting upload via edge function: bucket=${bucket}, path=${path}, file=${file.name}, size=${file.size}`);
+    console.log(`[Upload] Starting upload to S3: folder=${bucket}, path=${path}, file=${file.name}, size=${file.size}`);
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      
       // Create FormData for the file upload
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('bucket', bucket);
-      formData.append('path', path);
+      formData.append('folder', bucket); // Use bucket as folder name in S3
+      formData.append('fileName', `${path.replace(/\//g, '-')}-${Date.now()}.${file.name.split('.').pop() || 'jpg'}`);
 
-      // Call edge function to upload file
+      // Call edge function to upload file to S3
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/upload-registration-file`, {
+      const response = await fetch(`${supabaseUrl}/functions/v1/upload-to-s3`, {
         method: 'POST',
         headers: {
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: formData,
       });
@@ -175,11 +174,11 @@ const Register = () => {
       const data = await response.json();
       
       if (!response.ok) {
-        console.error(`[Upload] Error uploading to ${bucket}:`, data.error);
+        console.error(`[Upload] Error uploading to S3:`, data.error);
         return null;
       }
       
-      console.log(`[Upload] Success: ${data.url}`);
+      console.log(`[Upload] S3 Success: ${data.url}`);
       return data.url;
     } catch (error) {
       console.error('[Upload] Exception:', error);
