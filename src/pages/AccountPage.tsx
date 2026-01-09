@@ -76,7 +76,7 @@ export default function AccountPage() {
         <div className="bg-white rounded-lg p-4">
           <div>
             <label className="text-sm text-muted-foreground">{t('account.username')}</label>
-            <p className="text-foreground mt-1">{user?.email || t('account.no_data')}</p>
+            <p className="text-foreground mt-1">{user?.username || t('account.no_data')}</p>
           </div>
         </div>
 
