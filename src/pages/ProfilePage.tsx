@@ -49,36 +49,18 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      loadProfileDetails();
+      // Use data directly from AuthContext (external login API)
+      setProfile({
+        full_name: user.full_name || '',
+        phone_number: user.phone_number || user.phone || '',
+        avatar_url: user.avatar_url || undefined,
+        email: user.email || user.username || '',
+        work_areas: user.work_areas || [],
+        price_range_min: user.price_range_min,
+        price_range_max: user.price_range_max,
+      });
     }
   }, [user]);
-
-  const loadProfileDetails = async () => {
-    if (!user) return;
-
-    const { data: workPrefs } = await supabase
-      .from('driver_work_preferences')
-      .select('work_areas, price_range_min, price_range_max')
-      .eq('driver_id', user.id)
-      .maybeSingle();
-
-    // Get phone number from profiles table
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('phone_number')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    setProfile({
-      full_name: user?.full_name || '',
-      phone_number: profileData?.phone_number || user?.phone_number || '',
-      avatar_url: user?.avatar_url || undefined,
-      email: user?.email || user?.username,
-      work_areas: workPrefs?.work_areas || [],
-      price_range_min: workPrefs?.price_range_min,
-      price_range_max: workPrefs?.price_range_max,
-    });
-  };
 
   const handlePhotoDrawerOpen = () => {
     setShowPhotoDrawer(true);
