@@ -116,6 +116,7 @@ export default function SettingsPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
           body: JSON.stringify({ driver_id: driverId }),
         });
