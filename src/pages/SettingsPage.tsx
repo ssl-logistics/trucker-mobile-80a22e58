@@ -126,7 +126,6 @@ export default function SettingsPage() {
     } finally {
       logout();
       toast({
-        title: t('toast.success'),
         description: t('settings.logoutSuccess') || 'ออกจากระบบสำเร็จ',
       });
       navigate('/');
