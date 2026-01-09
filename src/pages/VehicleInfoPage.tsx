@@ -456,7 +456,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.color')}</Label>
-                <p className="text-base font-medium mt-1">{t(`vehicleColor.${vehicleData.vehicle_color.toLowerCase()}`) !== `vehicleColor.${vehicleData.vehicle_color.toLowerCase()}` ? t(`vehicleColor.${vehicleData.vehicle_color.toLowerCase()}`) : vehicleData.vehicle_color}</p>
+                <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
               </div>
               <Button 
                 variant="ghost" 
