@@ -107,9 +107,25 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSignOut = () => {
-    logout();
-    navigate('/');
+  const handleSignOut = async () => {
+    try {
+      const driverId = user?.id || localStorage.getItem('auth_driver_id');
+      
+      if (driverId) {
+        await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ driver_id: driverId }),
+        });
+      }
+    } catch (error) {
+      console.error('Logout API error:', error);
+    } finally {
+      logout();
+      navigate('/');
+    }
   };
 
   // Get vehicle info from user data
