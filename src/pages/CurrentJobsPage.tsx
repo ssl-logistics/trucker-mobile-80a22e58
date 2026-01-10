@@ -243,7 +243,7 @@ export default function CurrentJobsPage() {
                     
                     <div className="flex items-center gap-2">
                       {job.vehicle_type && (
-                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
                           {job.vehicle_type}
                         </Badge>
                       )}
