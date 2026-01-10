@@ -27,6 +27,8 @@ interface Job {
   start_time: string;
   equipment_list: string | null;
   safety_equipment: string | null;
+  goods_type: string | null;
+  goods_quantity: string | null;
   isAccepted?: boolean;
 }
 
@@ -135,6 +137,8 @@ export default function Home() {
           start_time: item.start_time || '',
           equipment_list: item.truck_type !== '-' ? item.truck_type : null,
           safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
+          goods_type: item.goods_type || item.product_type || null,
+          goods_quantity: item.goods_quantity || item.quantity || null,
           isAccepted: false
         };
       });
