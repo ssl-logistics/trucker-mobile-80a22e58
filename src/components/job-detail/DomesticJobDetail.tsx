@@ -311,8 +311,6 @@ export default function DomesticJobDetail({
                     <Button size="sm" onClick={() => {
                     if (jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.order_code}/pickup-summary`);
-                    } else if (jobApplication?.checked_in_at) {
-                      navigate(`/job/${job.order_code}/sop`);
                     } else {
                       navigate(`/job/${job.order_code}/pickup`);
                     }
