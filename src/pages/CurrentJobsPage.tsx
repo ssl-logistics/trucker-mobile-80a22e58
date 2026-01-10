@@ -312,7 +312,7 @@ export default function CurrentJobsPage() {
                       </div>
                     </div>
 
-                    <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => navigate(`/job/${job.id}`)}>
+                    <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => navigate(`/job/${job.order_number}`)}>
                       {t('currentJobs.viewDetails')}
                     </Button>
                   </div>
