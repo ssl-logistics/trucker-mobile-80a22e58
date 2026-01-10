@@ -40,11 +40,11 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
   const isOutbound = job.transport_type?.includes('ขาออก');
 
   return (
-    <Card className="p-4 space-y-3 bg-card">
-      <div className="flex items-start justify-between mb-3">
-        <div className="inline-block px-3 py-1 rounded-tl-xl rounded-br-xl bg-green-50 text-green-700 text-sm font-medium">
-          {t('job.order_code')} {job.order_code}
-        </div>
+    <Card className="p-4 pt-8 space-y-3 bg-card relative overflow-hidden">
+      <div className="absolute top-0 left-0 px-3 py-1 rounded-br-xl bg-green-50 text-green-700 text-sm font-medium">
+        {t('job.order_code')} {job.order_code}
+      </div>
+      <div className="flex items-start justify-end mb-3">
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Clock className="w-4 h-4" />
           {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
