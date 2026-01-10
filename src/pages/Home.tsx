@@ -110,9 +110,18 @@ export default function Home() {
           }
         }
         
+        // Extract order code from title (format: "โพสต์หารถด่วน - OR20251203002")
+        let orderCode = item.post_code || item.order_number || item.quote_number || '';
+        if (item.title && item.title.includes(' - ')) {
+          const titleParts = item.title.split(' - ');
+          if (titleParts.length >= 2) {
+            orderCode = titleParts[titleParts.length - 1].trim();
+          }
+        }
+        
         return {
           id: item.id || String(Math.random()),
-          order_code: item.post_code || item.order_number || item.quote_number || '',
+          order_code: orderCode,
           job_type: item.post_type || item.shipment_type || item.product_type || 'domestic',
           employer_name: item.factory_name !== '-' ? item.factory_name : (item.company_name || item.customer_name || ''),
           transport_type: item.send_mode || 'single',
