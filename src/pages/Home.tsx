@@ -191,13 +191,7 @@ export default function Home() {
           'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
         },
         body: JSON.stringify({
-          post_id: selectedJob.id,
-          driver_id: user.id,
-          driver_code: user.driver_code || '',
-          driver_name: user.first_name && user.last_name 
-            ? `${user.first_name} ${user.last_name}` 
-            : user.full_name || user.name || '',
-          driver_phone: user.phone || user.phone_number || '',
+          order_number: selectedJob.order_code
         }),
       });
 
