@@ -70,11 +70,16 @@ export default function Home() {
   }, [user]);
   const loadJobs = async () => {
     try {
-      // Fetch from get-express-rent-posts API
-      const { data: responseData, error } = await supabase.functions.invoke('get-express-rent-posts');
+      // Fetch from external get-express-rent-posts API using GET
+      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-express-rent-posts', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       
-      if (error) {
-        console.error('Error loading jobs from API:', error);
+      if (!response.ok) {
+        console.error('Error loading jobs from API:', response.statusText);
         toast({
           title: t('home.error_load'),
           description: t('home.error_load_desc'),
@@ -83,6 +88,7 @@ export default function Home() {
         return;
       }
 
+      const responseData = await response.json();
       console.log('Loaded jobs from API:', responseData);
       
       // Transform API response to Job format
