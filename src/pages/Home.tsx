@@ -88,22 +88,45 @@ export default function Home() {
       // Transform API response to Job format
       const apiJobs = Array.isArray(responseData) ? responseData : (responseData?.data || []);
       
-      const transformedJobs: Job[] = apiJobs.map((item: any) => ({
-        id: item.id || String(Math.random()),
-        order_code: item.order_number || item.quote_number || '',
-        job_type: item.shipment_type || item.product_type || 'domestic',
-        employer_name: item.company_name || item.customer_name || '',
-        transport_type: item.send_mode || 'single',
-        origin_location: item.from_location || '',
-        destination_location: item.to_location || '',
-        destination_company_name: item.company_name || null,
-        price: item.price || 0,
-        start_date: item.start_date || item.period_start || '',
-        start_time: item.start_time || '',
-        equipment_list: item.truck_type || null,
-        safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
-        isAccepted: false
-      }));
+      const transformedJobs: Job[] = apiJobs.map((item: any) => {
+        // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
+        let originLocation = item.origin || item.from_location || '';
+        let destinationLocation = item.destination || item.to_location || '';
+        
+        // If origin/destination is empty or "-", try to parse from description
+        if ((!originLocation || originLocation === '-') && item.description) {
+          const parts = item.description.split('→').map((p: string) => p.trim());
+          if (parts.length >= 2) {
+            originLocation = parts[0] || '';
+            destinationLocation = parts[1] || '';
+          }
+        }
+        
+        // If destination is still empty, try parsing from description
+        if ((!destinationLocation || destinationLocation === '-') && item.description) {
+          const parts = item.description.split('→').map((p: string) => p.trim());
+          if (parts.length >= 2) {
+            destinationLocation = parts[1] || '';
+          }
+        }
+        
+        return {
+          id: item.id || String(Math.random()),
+          order_code: item.post_code || item.order_number || item.quote_number || '',
+          job_type: item.post_type || item.shipment_type || item.product_type || 'domestic',
+          employer_name: item.factory_name !== '-' ? item.factory_name : (item.company_name || item.customer_name || ''),
+          transport_type: item.send_mode || 'single',
+          origin_location: originLocation,
+          destination_location: destinationLocation,
+          destination_company_name: item.company_name || null,
+          price: item.price || 0,
+          start_date: item.pickup_date || item.start_date || item.period_start || '',
+          start_time: item.start_time || '',
+          equipment_list: item.truck_type !== '-' ? item.truck_type : null,
+          safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
+          isAccepted: false
+        };
+      });
 
       // Check which jobs the user has accepted
       if (user && transformedJobs.length > 0) {
