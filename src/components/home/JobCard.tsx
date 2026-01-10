@@ -49,7 +49,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
       </div>
       <div className="absolute top-0 right-0 px-3 py-1 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Clock className="w-4 h-4" />
-        {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+        {formatDate(job.start_date, language)} {job.start_time ? `| ${job.start_time.substring(0, 5)}` : ''}
       </div>
 
       <div className="space-y-2">
