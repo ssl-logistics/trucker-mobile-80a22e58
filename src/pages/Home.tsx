@@ -123,7 +123,7 @@ export default function Home() {
           id: item.id || String(Math.random()),
           order_code: orderCode,
           job_type: item.post_type || item.shipment_type || item.product_type || 'domestic',
-          employer_name: item.factory_name !== '-' ? item.factory_name : (item.company_name || item.customer_name || ''),
+          employer_name: item.company_name || item.factory_name || item.customer_name || '',
           transport_type: item.send_mode || 'single',
           origin_location: originLocation,
           destination_location: destinationLocation,
