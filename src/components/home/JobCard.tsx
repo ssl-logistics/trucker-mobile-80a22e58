@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/dateUtils';
 interface Job {
   id: string;
   order_code: string;
+  title: string;
   job_type: string;
   employer_name: string;
   transport_type: string;
@@ -49,6 +50,10 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
           {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
         </div>
       </div>
+
+      {job.title && (
+        <h3 className="text-lg font-semibold text-foreground">{job.title}</h3>
+      )}
 
       <div className="space-y-2">
         <div className="text-base">
