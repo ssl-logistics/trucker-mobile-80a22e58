@@ -1,4 +1,5 @@
-import { Clock, MapPin, CircleDot, Coins } from 'lucide-react';
+import { Clock, MapPin, CircleDot } from 'lucide-react';
+import coinsIcon from '@/assets/coins-icon-2.png';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -114,7 +115,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
           </div>
           
           <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50">
-            <Coins className="w-5 h-5 text-teal-600" />
+            <img src={coinsIcon} alt="coins" className="w-5 h-5" />
             <span className="text-xl font-bold text-teal-700">฿ {job.price.toLocaleString()}</span>
           </div>
         </div>
