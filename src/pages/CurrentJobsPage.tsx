@@ -299,7 +299,7 @@ export default function CurrentJobsPage() {
 
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
                       <div>
-                        <span className="text-[#375c7b]">{t('job.goodsType')} : </span>
+                        <span className="text-[#375c7b]">{t('job.goods')} : </span>
                         <span>{job.product_name || '-'}</span>
                       </div>
                       <div>
