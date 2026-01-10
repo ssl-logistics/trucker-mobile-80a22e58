@@ -182,55 +182,50 @@ export default function Home() {
   const confirmJobAcceptance = async () => {
     if (!selectedJob || !user) return;
     
-    // Insert job application
-    const { error } = await supabase.from('job_applications').insert({
-      job_id: selectedJob.id,
-      driver_id: user.id,
-      status: 'pending'
-    });
-    
-    if (error) {
+    try {
+      // Call external API to accept job
+      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/accept-express-rent-job', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+        },
+        body: JSON.stringify({
+          post_id: selectedJob.id,
+          driver_id: user.id,
+          driver_code: user.driver_code || '',
+          driver_name: user.first_name && user.last_name 
+            ? `${user.first_name} ${user.last_name}` 
+            : user.full_name || user.name || '',
+          driver_phone: user.phone || user.phone_number || '',
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        toast({
+          title: t('home.error_load'),
+          description: result.message || t('home.error_accept'),
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      toast({
+        title: t('home.accept_success'),
+        description: `${t('home.accept_success_desc')} ${selectedJob.order_code}`
+      });
+      setConfirmDialogOpen(false);
+      loadJobs();
+    } catch (err) {
+      console.error('Error accepting job:', err);
       toast({
         title: t('home.error_load'),
         description: t('home.error_accept'),
         variant: 'destructive'
       });
-      return;
     }
-
-    // Get driver profile info
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('full_name, phone_number')
-      .eq('id', user.id)
-      .single();
-
-    // Send job status to external system
-    try {
-      const { data: statusResponse, error: statusError } = await supabase.functions.invoke('receive-job-status', {
-        body: {
-          external_job_id: selectedJob.order_code,
-          status: 'accepted',
-          driver_name: profileData?.full_name || '',
-          driver_phone: profileData?.phone_number || ''
-        }
-      });
-
-      if (statusError) {
-        console.error('Error sending job status:', statusError);
-      } else {
-        console.log('Job status sent successfully:', statusResponse);
-      }
-    } catch (err) {
-      console.error('Failed to send job status:', err);
-    }
-
-    toast({
-      title: t('home.accept_success'),
-      description: `${t('home.accept_success_desc')} ${selectedJob.order_code}`
-    });
-    setConfirmDialogOpen(false);
-    loadJobs();
   };
   const handleSignOut = async () => {
     try {
