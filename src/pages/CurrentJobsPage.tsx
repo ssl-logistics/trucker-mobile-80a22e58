@@ -299,10 +299,6 @@ export default function CurrentJobsPage() {
 
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
                       <div>
-                        <span className="text-[#375c7b]">{t('job.goodsType')} : </span>
-                        <span>{job.product_name || '-'}</span>
-                      </div>
-                      <div>
                         <span className="text-[#375B7B]">น้ำหนัก : </span>
                         <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
                       </div>
