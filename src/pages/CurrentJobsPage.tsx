@@ -303,10 +303,6 @@ export default function CurrentJobsPage() {
                         <span>{job.product_name || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[#375B7B]">ประเภทสินค้า : </span>
-                        <span>{job.product_type || '-'}</span>
-                      </div>
-                      <div>
                         <span className="text-[#375B7B]">น้ำหนัก : </span>
                         <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
                       </div>
