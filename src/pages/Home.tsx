@@ -18,6 +18,7 @@ interface Job {
   job_type: string;
   employer_name: string;
   transport_type: string;
+  transport_type_label?: string;
   origin_location: string;
   destination_location: string;
   destination_company_name: string | null;
@@ -125,6 +126,7 @@ export default function Home() {
           job_type: item.post_type || item.shipment_type || item.product_type || 'domestic',
           employer_name: item.company_name || item.factory_name || item.customer_name || '',
           transport_type: item.send_mode || 'single',
+          transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
           destination_location: destinationLocation,
           destination_company_name: item.company_name || null,
