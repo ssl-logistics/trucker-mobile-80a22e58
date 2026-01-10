@@ -70,8 +70,8 @@ export default function Home() {
   }, [user]);
   const loadJobs = async () => {
     try {
-      // Fetch from get-quote-operations Edge Function instead of database
-      const { data: responseData, error } = await supabase.functions.invoke('get-quote-operations');
+      // Fetch from get-express-rent-posts API
+      const { data: responseData, error } = await supabase.functions.invoke('get-express-rent-posts');
       
       if (error) {
         console.error('Error loading jobs from API:', error);
