@@ -90,7 +90,7 @@ export default function Home() {
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => ({
         id: item.id || String(Math.random()),
-        order_code: item.quote_number || item.order_code || '',
+        order_code: item.order_number || item.quote_number || '',
         job_type: item.shipment_type || item.product_type || 'domestic',
         employer_name: item.company_name || item.customer_name || '',
         transport_type: item.send_mode || 'single',
