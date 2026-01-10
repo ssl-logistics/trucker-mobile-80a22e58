@@ -12,6 +12,7 @@ interface Job {
   job_type: string;
   employer_name: string;
   transport_type: string;
+  transport_type_label?: string;
   origin_location: string;
   destination_location: string;
   destination_company_name: string | null;
@@ -91,7 +92,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
           )}
         </div>
         <div className="text-base text-muted-foreground">
-          {job.transport_type}
+          {job.transport_type_label || job.transport_type}
         </div>
 
         <div className="flex items-start justify-between gap-4">
