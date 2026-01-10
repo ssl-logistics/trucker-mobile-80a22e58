@@ -44,11 +44,9 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
       <div className="absolute top-0 left-0 px-3 py-1 rounded-br-xl bg-green-50 text-green-700 text-sm font-medium">
         {t('job.order_code')} {job.order_code}
       </div>
-      <div className="flex items-start justify-end mb-3">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Clock className="w-4 h-4" />
-          {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
-        </div>
+      <div className="absolute top-0 right-0 px-3 py-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Clock className="w-4 h-4" />
+        {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
       </div>
 
       <div className="space-y-2">
