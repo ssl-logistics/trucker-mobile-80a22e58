@@ -60,23 +60,56 @@ export default function SOPCheckInPage() {
     if (!user || !jobId) return;
 
     setLoading(true);
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('id, order_code, employer_name, origin_location, origin_company_name, start_date, start_time')
-      .eq('id', jobId)
-      .single();
+    
+    try {
+      // Fetch from external API using order_code
+      const response = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          }
+        }
+      );
 
-    if (error) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch job details');
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Find the specific job by order_number
+        const foundJob = result.data.find((j: any) => j.order_number === jobId);
+        
+        if (foundJob) {
+          // Map API response to JobDetail interface
+          const mappedJob: JobDetail = {
+            id: foundJob.id,
+            order_code: foundJob.order_number,
+            employer_name: foundJob.sender_name,
+            origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
+            origin_company_name: foundJob.sender_name,
+            start_date: foundJob.sender_pickup_date,
+            start_time: foundJob.sender_pickup_time,
+          };
+          setJob(mappedJob);
+        } else {
+          throw new Error('Job not found');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading job detail:', error);
       toast({
         title: t('sop.error'),
         description: t('pickup.loadError'),
         variant: 'destructive'
       });
       navigate('/current-jobs');
-    } else {
-      setJob(data);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
@@ -146,19 +179,7 @@ export default function SOPCheckInPage() {
 
       if (insertError) throw insertError;
 
-      // Update job application status
-      const { error: updateError } = await supabase
-        .from('job_applications')
-        .update({ 
-          sop_completed_at: new Date().toISOString(),
-          status: 'sop_completed'
-        })
-        .eq('job_id', job.id)
-        .eq('driver_id', user.id);
-
-      if (updateError) throw updateError;
-
-      // Send job status update
+      // Send job status update to external API
       await sendJobStatus({
         jobId: job.id,
         orderCode: job.order_code,
@@ -172,7 +193,7 @@ export default function SOPCheckInPage() {
         description: t('sop.sopSuccessMessage'),
       });
 
-      navigate(`/job/${job.id}`);
+      navigate(`/job/${job.order_code}`);
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
@@ -202,7 +223,7 @@ export default function SOPCheckInPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.id}/pickup`)} className="p-1">
+          <button onClick={() => navigate(`/job/${job.order_code}/pickup`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('sop.title')} {job.origin_company_name || ''}</h1>

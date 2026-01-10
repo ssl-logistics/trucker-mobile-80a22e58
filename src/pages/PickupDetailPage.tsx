@@ -51,40 +51,69 @@ export default function PickupDetailPage() {
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
     setLoading(true);
-    const {
-      data,
-      error
-    } = await supabase.from('jobs').select('id, order_code, employer_name, origin_location, start_date, start_time, origin_latitude, origin_longitude, origin_contact_person, origin_contact_role, origin_goods_type, origin_goods_quantity, origin_remarks, origin_address, origin_company_name').eq('id', jobId).single();
-    if (error) {
+    
+    try {
+      // Fetch from external API using order_code
+      const response = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch job details');
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Find the specific job by order_number
+        const foundJob = result.data.find((j: any) => j.order_number === jobId);
+        
+        if (foundJob) {
+          // Map API response to JobDetail interface
+          const mappedJob: JobDetail = {
+            id: foundJob.id,
+            order_code: foundJob.order_number,
+            employer_name: foundJob.sender_name,
+            origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
+            start_date: foundJob.sender_pickup_date,
+            start_time: foundJob.sender_pickup_time,
+            origin_latitude: foundJob.sender_latitude,
+            origin_longitude: foundJob.sender_longitude,
+            origin_contact_person: foundJob.sender_contact_name,
+            origin_contact_role: foundJob.sender_contact_phone,
+            origin_goods_type: foundJob.product_name,
+            origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
+            origin_remarks: foundJob.remarks,
+            origin_address: foundJob.sender_address,
+            origin_company_name: foundJob.sender_name,
+          };
+          setJob(mappedJob);
+        } else {
+          throw new Error('Job not found');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading job detail:', error);
       toast({
         title: t('pickup.error'),
         description: t('pickup.loadError'),
         variant: 'destructive'
       });
       navigate('/current-jobs');
-    } else {
-      setJob(data);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
   const handleCheckIn = async () => {
     if (!job || !user) return;
-    const {
-      error
-    } = await supabase.from('job_applications').update({
-      checked_in_at: new Date().toISOString(),
-      status: 'checked_in'
-    }).eq('job_id', job.id).eq('driver_id', user.id);
-    if (error) {
-      toast({
-        title: t('pickup.error'),
-        description: t('pickup.checkInError'),
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    // Send job status update
+    
+    // Send job status update to external API
     await sendJobStatus({
       jobId: job.id,
       orderCode: job.order_code,
@@ -92,12 +121,13 @@ export default function PickupDetailPage() {
       status: 'pickup_checked_in',
       sequenceNumber: 2 // Pickup point
     });
+    
     toast({
       title: t('pickup.checkInSuccess'),
       description: t('pickup.checkInSuccessMessage')
     });
     setShowConfirmDialog(false);
-    navigate(`/job/${job.id}`);
+    navigate(`/job/${job.order_code}`);
   };
   const openGoogleMaps = () => {
     if (!job?.origin_latitude || !job?.origin_longitude) {
@@ -121,7 +151,7 @@ export default function PickupDetailPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
+          <button onClick={() => navigate(`/job/${job.order_code}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('pickup.title')} {job.origin_company_name || ''}</h1>
