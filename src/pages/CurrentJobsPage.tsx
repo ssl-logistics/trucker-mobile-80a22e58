@@ -19,26 +19,31 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatDate as formatThaiDate } from '@/lib/dateUtils';
-interface JobApplication {
-  job_id: string;
+// Interface for accepted jobs from external API
+interface AcceptedJob {
+  id: string;
+  order_number: string;
+  order_code: string;
+  job_type: string;
+  employer_name: string;
+  company_name: string;
+  transport_type: string;
+  origin_location: string;
+  destination_location: string;
+  destination_company_name: string | null;
+  price: number;
+  start_date: string;
+  pickup_date: string;
+  start_time: string;
+  pickup_time: string;
+  equipment_list: string | null;
+  safety_equipment: string | null;
+  origin_goods_type: string | null;
+  goods_type: string | null;
+  product_name: string | null;
   status: string;
-  applied_at: string;
-  jobs: {
-    id: string;
-    order_code: string;
-    job_type: string;
-    employer_name: string;
-    transport_type: string;
-    origin_location: string;
-    destination_location: string;
-    destination_company_name: string | null;
-    price: number;
-    start_date: string;
-    start_time: string;
-    equipment_list: string | null;
-    safety_equipment: string | null;
-    origin_goods_type: string | null;
-  } | null;
+  accepted_at: string;
+  post_code: string;
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
@@ -52,7 +57,7 @@ export default function CurrentJobsPage() {
   const {
     role
   } = useUserRole();
-  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [acceptedJobs, setAcceptedJobs] = useState<AcceptedJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,61 +68,55 @@ export default function CurrentJobsPage() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   useEffect(() => {
-    loadCurrentJobs();
-
-    // Real-time subscription for job applications changes
-    const channel = supabase.channel('job-applications-changes').on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'job_applications'
-    }, () => {
-      console.log('Job applications changed, reloading...');
-      loadCurrentJobs();
-    }).subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    loadAcceptedJobs();
   }, [user]);
-  const loadCurrentJobs = async () => {
+
+  const loadAcceptedJobs = async () => {
     if (!user) return;
     setLoading(true);
-    const {
-      data,
-      error
-    } = await supabase.from('job_applications').select(`
-        job_id,
-        status,
-        applied_at,
-        jobs (
-          id,
-          order_code,
-          job_type,
-          employer_name,
-          transport_type,
-          origin_location,
-          destination_location,
-          destination_company_name,
-          price,
-          start_date,
-          start_time,
-          equipment_list,
-          safety_equipment,
-          origin_goods_type
-        )
-      `).eq('driver_id', user.id).is('payment_completed_at', null).order('applied_at', {
-      ascending: false
-    });
-    if (error) {
-      console.error('Error loading current jobs:', error);
+    
+    try {
+      // Get freelance_driver_id from user profile or external mapping
+      const freelanceDriverId = user.id;
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Error loading accepted jobs:', result);
+        toast({
+          title: t('currentJobs.errorLoad'),
+          description: t('currentJobs.errorLoadDesc'),
+          variant: 'destructive'
+        });
+        setAcceptedJobs([]);
+      } else {
+        console.log('Loaded accepted jobs:', result);
+        // Handle both array response and object with data property
+        const jobs = Array.isArray(result) ? result : (result.data || []);
+        setAcceptedJobs(jobs);
+      }
+    } catch (error) {
+      console.error('Error fetching accepted jobs:', error);
       toast({
         title: t('currentJobs.errorLoad'),
         description: t('currentJobs.errorLoadDesc'),
         variant: 'destructive'
       });
-    } else {
-      console.log('Loaded current jobs for role:', role, 'Total applications:', data?.length);
-      setApplications(data || []);
+      setAcceptedJobs([]);
     }
+    
     setLoading(false);
   };
   const handleApplyFilter = () => {
@@ -131,39 +130,43 @@ export default function CurrentJobsPage() {
     setEndDate(undefined);
   };
 
-  // Filter applications based on selected filters
-  const filteredApplications = applications.filter(application => {
-    const job = application.jobs;
-
-    // Skip if job is null
-    if (!job) return false;
-
+  // Filter jobs based on selected filters
+  const filteredJobs = acceptedJobs.filter(job => {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      const matchesSearch = job.order_code.toLowerCase().includes(query) || job.employer_name.toLowerCase().includes(query) || job.destination_company_name && job.destination_company_name.toLowerCase().includes(query) || job.origin_location.toLowerCase().includes(query) || job.destination_location.toLowerCase().includes(query);
+      const orderCode = job.order_code || job.post_code || '';
+      const employerName = job.employer_name || job.company_name || '';
+      const matchesSearch = 
+        orderCode.toLowerCase().includes(query) || 
+        employerName.toLowerCase().includes(query) || 
+        (job.destination_company_name && job.destination_company_name.toLowerCase().includes(query)) || 
+        (job.origin_location && job.origin_location.toLowerCase().includes(query)) || 
+        (job.destination_location && job.destination_location.toLowerCase().includes(query));
       if (!matchesSearch) return false;
     }
 
     // Job type filter
     if (selectedJobType !== 'all') {
-      const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
-      const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+      const transportType = job.transport_type || '';
+      const isDomestic = transportType.includes('เที่ยวเดียว') || transportType.includes('หลายที่') || transportType.includes('ภายในประเทศ');
+      const isInternational = transportType.includes('ขาเข้า') || transportType.includes('ขาออก');
       if (selectedJobType === 'domestic' && !isDomestic) return false;
       if (selectedJobType === 'international' && !isInternational) return false;
     }
 
     // Transport type filter
     if (selectedTransportType !== 'all') {
-      if (selectedTransportType === 'inbound' && !job.transport_type?.includes('ขาเข้า')) return false;
-      if (selectedTransportType === 'outbound' && !job.transport_type?.includes('ขาออก')) return false;
-      if (selectedTransportType === 'single' && !job.transport_type?.includes('เที่ยวเดียว')) return false;
-      if (selectedTransportType === 'multiple' && !job.transport_type?.includes('หลายที่')) return false;
+      const transportType = job.transport_type || '';
+      if (selectedTransportType === 'inbound' && !transportType.includes('ขาเข้า')) return false;
+      if (selectedTransportType === 'outbound' && !transportType.includes('ขาออก')) return false;
+      if (selectedTransportType === 'single' && !transportType.includes('เที่ยวเดียว')) return false;
+      if (selectedTransportType === 'multiple' && !transportType.includes('หลายที่')) return false;
     }
 
     // Date range filter
     if (startDate || endDate) {
-      const jobDate = new Date(job.start_date);
+      const jobDate = new Date(job.start_date || job.pickup_date);
       jobDate.setHours(0, 0, 0, 0);
       if (startDate) {
         const start = new Date(startDate);
@@ -212,45 +215,48 @@ export default function CurrentJobsPage() {
       <div className="px-4 py-4">
         {loading ? <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div> : filteredApplications.length === 0 ? <EmptyState /> : <div className="space-y-4">
-            {filteredApplications.map(application => {
-          const job = application.jobs;
+          </div> : filteredJobs.length === 0 ? <EmptyState /> : <div className="space-y-4">
+            {filteredJobs.map(job => {
+          const orderCode = job.order_code || job.post_code || '';
+          const employerName = job.employer_name || job.company_name || '';
+          const startDate = job.start_date || job.pickup_date || '';
+          const startTime = job.start_time || job.pickup_time || '';
+          const transportType = job.transport_type || '';
+          const goodsType = job.origin_goods_type || job.goods_type || job.product_name || '-';
 
-          // Guard clause for null jobs
-          if (!job) return null;
-          return <Card key={application.job_id} className="overflow-hidden bg-card">
+          return <Card key={job.id} className="overflow-hidden bg-card">
                   <div className="flex items-center justify-between px-3 py-2 bg-white">
                     <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
-                      {t('job.order_code')} {job.order_code}
+                      {t('job.order_code')} {orderCode}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" />
-                      {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+                      {formatThaiDate(startDate, language)} | {startTime.substring(0, 5)}
                     </div>
                   </div>
                   <div className="p-4 space-y-3">
             <div className="text-sm">
               <span className="text-muted-foreground">{t('job.employer')} : </span>
-              <span className="font-medium">{job.employer_name}</span>
+              <span className="font-medium">{employerName}</span>
             </div>
             <div className="flex items-center gap-2">
-              {(job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่')) && <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+              {(transportType.includes('เที่ยวเดียว') || transportType.includes('หลายที่') || transportType.includes('ภายในประเทศ')) && <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
                   {t('job.domestic')}
                 </Badge>}
-              {(job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก')) && <>
+              {(transportType.includes('ขาเข้า') || transportType.includes('ขาออก')) && <>
                   <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
                     {t('job.international')}
                   </Badge>
-                  {job.transport_type?.includes('ขาเข้า') && <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                  {transportType.includes('ขาเข้า') && <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
                       {t('job.inbound')}
                     </Badge>}
-                  {job.transport_type?.includes('ขาออก') && <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
+                  {transportType.includes('ขาออก') && <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
                       {t('job.outbound')}
                     </Badge>}
                 </>}
             </div>
             <div className="text-sm text-muted-foreground">
-              {job.transport_type}
+              {transportType}
             </div>
 
             <div className="flex items-start justify-between gap-4">
@@ -263,11 +269,11 @@ export default function CurrentJobsPage() {
                         <div className="flex-1 space-y-2">
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.origin')}</div>
-                            <div className="font-medium">{job.origin_location}</div>
+                            <div className="font-medium">{job.origin_location || '-'}</div>
                           </div>
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.destination')}</div>
-                            <div className="font-medium">{job.destination_location}</div>
+                            <div className="font-medium">{job.destination_location || '-'}</div>
                           </div>
                         </div>
                       </div>
@@ -275,7 +281,7 @@ export default function CurrentJobsPage() {
                       <div className="text-right space-y-2">
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
                           <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-                          <span className="text-lg font-bold text-teal-500">฿ {job.price.toLocaleString()}</span>
+                          <span className="text-lg font-bold text-teal-500">฿ {(job.price || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
                           <CalendarIconLucide className="w-4 h-4 text-gray-500" />
@@ -284,7 +290,7 @@ export default function CurrentJobsPage() {
                               {t('currentJobs.startJobDate')}
                             </div>
                             <div className="text-xs font-medium">
-                              {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+                              {formatThaiDate(startDate, language)} | {startTime.substring(0, 5)}
                             </div>
                           </div>
                         </div>
@@ -294,7 +300,7 @@ export default function CurrentJobsPage() {
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
                       <div>
                         <span className="text-[#375c7b]">{t('job.goodsType')} : </span>
-                        <span>{job.origin_goods_type || '-'}</span>
+                        <span>{goodsType}</span>
                       </div>
                       <div>
                         <span className="text-[#375B7B]">{t('job.equipment')} : </span>
