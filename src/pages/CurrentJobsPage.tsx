@@ -23,27 +23,48 @@ import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 interface AcceptedJob {
   id: string;
   order_number: string;
-  order_code: string;
-  job_type: string;
-  employer_name: string;
-  company_name: string;
-  transport_type: string;
-  origin_location: string;
-  destination_location: string;
-  destination_company_name: string | null;
-  price: number;
-  start_date: string;
-  pickup_date: string;
-  start_time: string;
-  pickup_time: string;
-  equipment_list: string | null;
-  safety_equipment: string | null;
-  origin_goods_type: string | null;
-  goods_type: string | null;
-  product_name: string | null;
+  transport_type_id: string | null;
+  transport_mode: string | null;
   status: string;
-  accepted_at: string;
-  post_code: string;
+  sender_name: string;
+  sender_address: string;
+  sender_latitude: number | null;
+  sender_longitude: number | null;
+  sender_province: string;
+  sender_district: string;
+  sender_pickup_date: string;
+  sender_pickup_time: string;
+  sender_contact_name: string;
+  sender_contact_phone: string;
+  destination_name: string;
+  destination_address: string;
+  destination_latitude: number | null;
+  destination_longitude: number | null;
+  destination_province: string;
+  destination_district: string;
+  destination_delivery_date: string;
+  destination_delivery_time: string;
+  destination_contact_name: string;
+  destination_contact_phone: string;
+  destination_company_name: string | null;
+  product_name: string | null;
+  product_type: string | null;
+  product_category: string | null;
+  product_weight: number | null;
+  product_weight_value: number | null;
+  product_quantity: number | null;
+  product_unit: string | null;
+  vehicle_type: string | null;
+  vehicle_category: string | null;
+  transport_price: number;
+  driver_name: string | null;
+  driver_phone: string | null;
+  license_plate: string | null;
+  freelance_bidder_id: string | null;
+  freelance_bidder_name: string | null;
+  remarks: string | null;
+  created_at: string;
+  updated_at: string;
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
@@ -134,38 +155,21 @@ export default function CurrentJobsPage() {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      const orderCode = job.order_code || job.post_code || '';
-      const employerName = job.employer_name || job.company_name || '';
+      const orderNumber = job.order_number || '';
+      const senderName = job.sender_name || '';
       const matchesSearch = 
-        orderCode.toLowerCase().includes(query) || 
-        employerName.toLowerCase().includes(query) || 
+        orderNumber.toLowerCase().includes(query) || 
+        senderName.toLowerCase().includes(query) || 
         (job.destination_company_name && job.destination_company_name.toLowerCase().includes(query)) || 
-        (job.origin_location && job.origin_location.toLowerCase().includes(query)) || 
-        (job.destination_location && job.destination_location.toLowerCase().includes(query));
+        (job.sender_province && job.sender_province.toLowerCase().includes(query)) || 
+        (job.destination_province && job.destination_province.toLowerCase().includes(query)) ||
+        (job.product_name && job.product_name.toLowerCase().includes(query));
       if (!matchesSearch) return false;
-    }
-
-    // Job type filter
-    if (selectedJobType !== 'all') {
-      const transportType = job.transport_type || '';
-      const isDomestic = transportType.includes('เที่ยวเดียว') || transportType.includes('หลายที่') || transportType.includes('ภายในประเทศ');
-      const isInternational = transportType.includes('ขาเข้า') || transportType.includes('ขาออก');
-      if (selectedJobType === 'domestic' && !isDomestic) return false;
-      if (selectedJobType === 'international' && !isInternational) return false;
-    }
-
-    // Transport type filter
-    if (selectedTransportType !== 'all') {
-      const transportType = job.transport_type || '';
-      if (selectedTransportType === 'inbound' && !transportType.includes('ขาเข้า')) return false;
-      if (selectedTransportType === 'outbound' && !transportType.includes('ขาออก')) return false;
-      if (selectedTransportType === 'single' && !transportType.includes('เที่ยวเดียว')) return false;
-      if (selectedTransportType === 'multiple' && !transportType.includes('หลายที่')) return false;
     }
 
     // Date range filter
     if (startDate || endDate) {
-      const jobDate = new Date(job.start_date || job.pickup_date);
+      const jobDate = new Date(job.sender_pickup_date);
       jobDate.setHours(0, 0, 0, 0);
       if (startDate) {
         const start = new Date(startDate);
@@ -216,49 +220,44 @@ export default function CurrentJobsPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div> : filteredJobs.length === 0 ? <EmptyState /> : <div className="space-y-4">
             {filteredJobs.map(job => {
-          const orderCode = job.order_code || job.post_code || '';
-          const employerName = job.employer_name || job.company_name || '';
-          const startDate = job.start_date || job.pickup_date || '';
-          const startTime = job.start_time || job.pickup_time || '';
-          const transportType = job.transport_type || '';
-          const goodsType = job.origin_goods_type || job.goods_type || job.product_name || '-';
+          const pickupDate = job.sender_pickup_date || '';
+          const pickupTime = job.sender_pickup_time || '';
+          const deliveryDate = job.destination_delivery_date || '';
+          const deliveryTime = job.destination_delivery_time || '';
 
           return <Card key={job.id} className="overflow-hidden bg-card">
                   <div className="flex items-center justify-between px-3 py-2 bg-white">
                     <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
-                      {t('job.order_code')} {orderCode}
+                      {t('job.order_code')} {job.order_number}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" />
-                      {formatThaiDate(startDate, language)} | {startTime.substring(0, 5)}
+                      {formatThaiDate(pickupDate, language)} | {pickupTime.substring(0, 5)}
                     </div>
                   </div>
                   <div className="p-4 space-y-3">
-            <div className="text-sm">
-              <span className="text-muted-foreground">{t('job.employer')} : </span>
-              <span className="font-medium">{employerName}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {(transportType.includes('เที่ยวเดียว') || transportType.includes('หลายที่') || transportType.includes('ภายในประเทศ')) && <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-                  {t('job.domestic')}
-                </Badge>}
-              {(transportType.includes('ขาเข้า') || transportType.includes('ขาออก')) && <>
-                  <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-                    {t('job.international')}
-                  </Badge>
-                  {transportType.includes('ขาเข้า') && <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                      {t('job.inbound')}
-                    </Badge>}
-                  {transportType.includes('ขาออก') && <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
-                      {t('job.outbound')}
-                    </Badge>}
-                </>}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {transportType}
-            </div>
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">{t('job.employer')} : </span>
+                      <span className="font-medium">{job.sender_name}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {job.vehicle_type && (
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                          {job.vehicle_type}
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className={cn(
+                        job.status === 'in_progress' ? 'bg-amber-50 text-amber-700' : 
+                        job.status === 'completed' ? 'bg-green-50 text-green-700' : 
+                        'bg-gray-50 text-gray-700'
+                      )}>
+                        {job.status === 'in_progress' ? 'กำลังดำเนินการ' : 
+                         job.status === 'completed' ? 'เสร็จสิ้น' : job.status}
+                      </Badge>
+                    </div>
 
-            <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 flex gap-2">
                         <div className="flex flex-col items-center">
                           <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
@@ -268,11 +267,13 @@ export default function CurrentJobsPage() {
                         <div className="flex-1 space-y-2">
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.origin')}</div>
-                            <div className="font-medium">{job.origin_location || '-'}</div>
+                            <div className="font-medium">{job.sender_province}, {job.sender_district}</div>
+                            <div className="text-muted-foreground text-[10px] line-clamp-1">{job.sender_address}</div>
                           </div>
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.destination')}</div>
-                            <div className="font-medium">{job.destination_location || '-'}</div>
+                            <div className="font-medium">{job.destination_province}, {job.destination_district}</div>
+                            <div className="text-muted-foreground text-[10px] line-clamp-1">{job.destination_address}</div>
                           </div>
                         </div>
                       </div>
@@ -280,16 +281,16 @@ export default function CurrentJobsPage() {
                       <div className="text-right space-y-2">
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
                           <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-                          <span className="text-lg font-bold text-teal-500">฿ {(job.price || 0).toLocaleString()}</span>
+                          <span className="text-lg font-bold text-teal-500">฿ {(job.transport_price || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
                           <CalendarIconLucide className="w-4 h-4 text-gray-500" />
                           <div className="text-left">
                             <div className="text-xs text-[#375B7B]">
-                              {t('currentJobs.startJobDate')}
+                              วันส่งสินค้า
                             </div>
                             <div className="text-xs font-medium">
-                              {formatThaiDate(startDate, language)} | {startTime.substring(0, 5)}
+                              {formatThaiDate(deliveryDate, language)} | {deliveryTime.substring(0, 5)}
                             </div>
                           </div>
                         </div>
@@ -299,21 +300,25 @@ export default function CurrentJobsPage() {
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
                       <div>
                         <span className="text-[#375c7b]">{t('job.goodsType')} : </span>
-                        <span>{goodsType}</span>
+                        <span>{job.product_name || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[#375B7B]">{t('job.equipment')} : </span>
-                        <span>{job.equipment_list || '-'}</span>
+                        <span className="text-[#375B7B]">ประเภทสินค้า : </span>
+                        <span>{job.product_type || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[#375B7B]">{t('job.safety')} : </span>
-                        <span>{job.safety_equipment || '-'}</span>
+                        <span className="text-[#375B7B]">น้ำหนัก : </span>
+                        <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[#375B7B]">จำนวน : </span>
+                        <span>{job.product_quantity || '-'}</span>
                       </div>
                     </div>
 
-                  <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => navigate(`/job/${job.id}`)}>
-                    {t('currentJobs.viewDetails')}
-                  </Button>
+                    <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => navigate(`/job/${job.id}`)}>
+                      {t('currentJobs.viewDetails')}
+                    </Button>
                   </div>
                 </Card>;
         })}
