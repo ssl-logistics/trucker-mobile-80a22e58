@@ -42,7 +42,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
   return (
     <Card className="p-4 space-y-3 bg-card">
       <div className="flex items-start justify-between mb-3">
-        <div className="inline-block px-3 py-1 rounded bg-green-50 text-green-700 text-sm font-medium">
+        <div className="inline-block px-3 py-1 rounded-tl-xl rounded-br-xl bg-green-50 text-green-700 text-sm font-medium">
           {t('job.order_code')} {job.order_code}
         </div>
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
