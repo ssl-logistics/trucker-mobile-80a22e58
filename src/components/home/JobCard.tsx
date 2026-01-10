@@ -121,14 +121,10 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
           </div>
         </div>
 
-        <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-sm">
+        <div className="bg-muted/50 rounded-lg p-3 text-sm">
           <div>
-            <span className="text-muted-foreground">{t('job.goods_type')} : </span>
+            <span className="text-muted-foreground">{t('job.goods')} : </span>
             <span>{job.goods_type || '-'}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">{t('job.goods_quantity')} : </span>
-            <span>{job.goods_quantity || '-'}</span>
           </div>
         </div>
       </div>
