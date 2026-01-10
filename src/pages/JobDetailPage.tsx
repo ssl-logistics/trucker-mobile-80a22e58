@@ -1,15 +1,65 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
-import { BackButton } from '@/components/layout/BackButton';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Phone, Package, Truck, Calendar, Clock, User, Building, CircleDot } from 'lucide-react';
-import { formatDate } from '@/lib/dateUtils';
+import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
+import InternationalJobDetail from '@/components/job-detail/InternationalJobDetail';
 
-interface AcceptedJob {
+// Interface matching what the detail components expect
+interface JobDetail {
+  id: string;
+  order_code: string;
+  job_type: string;
+  employer_name: string;
+  transport_type: string;
+  origin_location: string;
+  origin_address: string | null;
+  origin_company_name: string | null;
+  destination_location: string;
+  destination_address: string | null;
+  destination_company_name: string | null;
+  price: number;
+  start_date: string;
+  start_time: string;
+  equipment_list: string | null;
+  safety_equipment: string | null;
+  container_checkpoint: string | null;
+  container_checkpoint_code: string | null;
+  empty_container_date: string | null;
+  container_number: string | null;
+  container_number_2: string | null;
+  seal_number: string | null;
+  seal_number_2: string | null;
+  origin_contact_person: string | null;
+  origin_contact_role: string | null;
+  origin_bill_of_lading: string | null;
+  origin_goods_type: string | null;
+  origin_goods_quantity: string | null;
+  origin_remarks: string | null;
+  destination_contact_person: string | null;
+  destination_bill_of_lading: string | null;
+  destination_goods_type: string | null;
+  destination_goods_quantity: string | null;
+  destination_time: string | null;
+  destination_date: string | null;
+  destination_remarks: string | null;
+  tax_id: string | null;
+}
+
+interface JobApplication {
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+  job_started_at: string | null;
+  delivery_checked_in_at: string | null;
+  delivery_sop_completed_at: string | null;
+  container_checked_in_at: string | null;
+  container_sop_completed_at: string | null;
+  status: string;
+}
+
+// Interface for API response
+interface AcceptedJobAPI {
   id: string;
   order_number: string;
   transport_type_id: string;
@@ -58,16 +108,18 @@ interface AcceptedJob {
 
 export default function JobDetailPage() {
   const { jobId } = useParams(); // This is now order_number
+  const location = useLocation();
   const { user } = useAuth();
-  const { t, language } = useLanguage();
-  const [job, setJob] = useState<AcceptedJob | null>(null);
+  const { t } = useLanguage();
+  const [job, setJob] = useState<JobDetail | null>(null);
+  const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user && jobId) {
       loadJobDetail();
     }
-  }, [jobId, user]);
+  }, [jobId, user, location.key]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
@@ -75,7 +127,7 @@ export default function JobDetailPage() {
     setLoading(true);
     
     try {
-      // Fetch from external API using the user's freelance_bidder_id
+      // Fetch from external API
       const response = await fetch(
         `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
         {
@@ -94,9 +146,65 @@ export default function JobDetailPage() {
       
       if (result.success && result.data) {
         // Find the specific job by order_number
-        const foundJob = result.data.find((j: AcceptedJob) => j.order_number === jobId);
+        const foundJob = result.data.find((j: AcceptedJobAPI) => j.order_number === jobId);
+        
         if (foundJob) {
-          setJob(foundJob);
+          // Map API response to JobDetail interface
+          const mappedJob: JobDetail = {
+            id: foundJob.id,
+            order_code: foundJob.order_number,
+            job_type: 'domestic', // Default to domestic
+            employer_name: foundJob.sender_name,
+            transport_type: 'เที่ยวเดียว', // Default to single trip (domestic)
+            origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
+            origin_address: foundJob.sender_address,
+            origin_company_name: foundJob.sender_name,
+            destination_location: `${foundJob.destination_district}, ${foundJob.destination_province}`,
+            destination_address: foundJob.destination_address,
+            destination_company_name: foundJob.destination_company_name,
+            price: foundJob.transport_price,
+            start_date: foundJob.sender_pickup_date,
+            start_time: foundJob.sender_pickup_time,
+            equipment_list: null,
+            safety_equipment: null,
+            container_checkpoint: null,
+            container_checkpoint_code: null,
+            empty_container_date: null,
+            container_number: null,
+            container_number_2: null,
+            seal_number: null,
+            seal_number_2: null,
+            origin_contact_person: foundJob.sender_contact_name,
+            origin_contact_role: foundJob.sender_contact_phone,
+            origin_bill_of_lading: null,
+            origin_goods_type: foundJob.product_name,
+            origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
+            origin_remarks: foundJob.remarks,
+            destination_contact_person: foundJob.destination_contact_name,
+            destination_bill_of_lading: null,
+            destination_goods_type: foundJob.product_name,
+            destination_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
+            destination_time: foundJob.destination_delivery_time,
+            destination_date: foundJob.destination_delivery_date,
+            destination_remarks: foundJob.remarks,
+            tax_id: null,
+          };
+          
+          setJob(mappedJob);
+
+          // Create a mock job application based on status
+          const mockJobApplication: JobApplication = {
+            checked_in_at: foundJob.status === 'in_progress' ? new Date().toISOString() : null,
+            sop_completed_at: null,
+            job_started_at: foundJob.status === 'in_progress' ? new Date().toISOString() : null,
+            delivery_checked_in_at: null,
+            delivery_sop_completed_at: null,
+            container_checked_in_at: null,
+            container_sop_completed_at: null,
+            status: foundJob.status,
+          };
+          
+          setJobApplication(mockJobApplication);
         } else {
           toast({
             title: t('jobDetail.error'),
@@ -127,184 +235,39 @@ export default function JobDetailPage() {
 
   if (!job || !user) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <div className="bg-primary text-primary-foreground p-4 flex items-center gap-3">
-          <BackButton />
-          <h1 className="text-lg font-semibold">{t('jobDetail.title')}</h1>
-        </div>
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="text-center">
-            <p className="text-muted-foreground">{t('jobDetail.notFound')}</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center">
+          <p className="text-muted-foreground">{t('jobDetail.notFound')}</p>
         </div>
       </div>
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'in_progress':
-        return <Badge className="bg-amber-50 text-amber-700">กำลังดำเนินการ</Badge>;
-      case 'completed':
-        return <Badge className="bg-green-50 text-green-700">เสร็จสิ้น</Badge>;
-      default:
-        return <Badge className="bg-gray-50 text-gray-700">{status}</Badge>;
-    }
-  };
+  // Determine if domestic or international
+  const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
+  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
 
-  return (
-    <div className="min-h-screen bg-background pb-6">
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground p-4 flex items-center gap-3">
-        <BackButton />
-        <h1 className="text-lg font-semibold">{t('jobDetail.title')}</h1>
-      </div>
-
-      <div className="p-4 space-y-4">
-        {/* Order Info Card */}
-        <Card className="p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">{t('job.order_code')}</span>
-              <span className="font-semibold text-primary">{job.order_number}</span>
-            </div>
-            {getStatusBadge(job.status)}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">{job.vehicle_type || '-'}</span>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 border-t">
-            <span className="text-sm text-muted-foreground">ค่าขนส่ง</span>
-            <span className="text-xl font-bold text-primary">฿ {job.transport_price?.toLocaleString()}</span>
-          </div>
-        </Card>
-
-        {/* Origin Info */}
-        <Card className="p-4 space-y-3">
-          <div className="flex items-center gap-2 text-green-600">
-            <CircleDot className="w-5 h-5" />
-            <span className="font-semibold">{t('job.origin')}</span>
-          </div>
-          
-          <div className="pl-7 space-y-2">
-            <div className="flex items-start gap-2">
-              <Building className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <span className="text-sm font-medium">{job.sender_name}</span>
-            </div>
-            
-            <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <span className="text-sm text-muted-foreground">{job.sender_address}</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{formatDate(job.sender_pickup_date, language)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{job.sender_pickup_time?.substring(0, 5)}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{job.sender_contact_name}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-muted-foreground" />
-              <a href={`tel:${job.sender_contact_phone}`} className="text-sm text-primary underline">
-                {job.sender_contact_phone}
-              </a>
-            </div>
-          </div>
-        </Card>
-
-        {/* Destination Info */}
-        <Card className="p-4 space-y-3">
-          <div className="flex items-center gap-2 text-red-600">
-            <MapPin className="w-5 h-5" />
-            <span className="font-semibold">{t('job.destination')}</span>
-          </div>
-          
-          <div className="pl-7 space-y-2">
-            {job.destination_company_name && (
-              <div className="flex items-start gap-2">
-                <Building className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <span className="text-sm font-medium">{job.destination_company_name}</span>
-              </div>
-            )}
-            
-            <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <span className="text-sm text-muted-foreground">{job.destination_address}</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{formatDate(job.destination_delivery_date, language)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{job.destination_delivery_time?.substring(0, 5)}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{job.destination_contact_name}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-muted-foreground" />
-              <a href={`tel:${job.destination_contact_phone}`} className="text-sm text-primary underline">
-                {job.destination_contact_phone}
-              </a>
-            </div>
-          </div>
-        </Card>
-
-        {/* Product Info */}
-        <Card className="p-4 space-y-3">
-          <div className="flex items-center gap-2 text-blue-600">
-            <Package className="w-5 h-5" />
-            <span className="font-semibold">ข้อมูลสินค้า</span>
-          </div>
-          
-          <div className="pl-7 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{t('job.goods')}</span>
-              <span>{job.product_name || '-'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">ประเภท</span>
-              <span>{job.product_type || '-'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">น้ำหนัก</span>
-              <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">จำนวน</span>
-              <span>{job.product_quantity || '-'}</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Remarks */}
-        {job.remarks && (
-          <Card className="p-4 space-y-2">
-            <span className="font-semibold text-sm">หมายเหตุ</span>
-            <p className="text-sm text-muted-foreground">{job.remarks}</p>
-          </Card>
-        )}
-      </div>
-    </div>
+  return isDomestic ? (
+    <DomesticJobDetail 
+      job={job} 
+      jobApplication={jobApplication} 
+      userId={user.id}
+      onUpdate={loadJobDetail}
+    />
+  ) : isInternational ? (
+    <InternationalJobDetail 
+      job={job} 
+      jobApplication={jobApplication} 
+      userId={user.id}
+      onUpdate={loadJobDetail}
+    />
+  ) : (
+    // Default to DomesticJobDetail if transport type is unknown
+    <DomesticJobDetail 
+      job={job} 
+      jobApplication={jobApplication} 
+      userId={user.id}
+      onUpdate={loadJobDetail}
+    />
   );
 }
