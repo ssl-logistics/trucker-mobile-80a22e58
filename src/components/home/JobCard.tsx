@@ -21,6 +21,8 @@ interface Job {
   start_time: string;
   equipment_list: string | null;
   safety_equipment: string | null;
+  goods_type: string | null;
+  goods_quantity: string | null;
   isAccepted?: boolean;
 }
 
@@ -121,12 +123,12 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
 
         <div className="bg-muted/50 rounded-lg p-3 space-y-1.5 text-sm">
           <div>
-            <span className="text-muted-foreground">{t('job.equipment')} : </span>
-            <span>{job.equipment_list || '-'}</span>
+            <span className="text-muted-foreground">{t('job.goods_type')} : </span>
+            <span>{job.goods_type || '-'}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">{t('job.safety')} : </span>
-            <span>{job.safety_equipment || '-'}</span>
+            <span className="text-muted-foreground">{t('job.goods_quantity')} : </span>
+            <span>{job.goods_quantity || '-'}</span>
           </div>
         </div>
       </div>

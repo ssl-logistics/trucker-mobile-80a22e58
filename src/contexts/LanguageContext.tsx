@@ -132,6 +132,8 @@ const thTranslations: Record<string, string> = {
   'job.equipment': 'อุปกรณ์ติดรถ',
   'job.safety': 'อุปกรณ์ Safety',
   'job.goodsType': 'ประเภทสินค้า',
+  'job.goods_type': 'ประเภทสินค้า',
+  'job.goods_quantity': 'จำนวนสินค้า',
   'job.accept': 'รับงานนี้',
   'job.accepted': 'รับงานนี้แล้ว',
   
@@ -1305,6 +1307,8 @@ const enTranslations: Record<string, string> = {
   'job.equipment': 'Vehicle Equipment',
   'job.safety': 'Safety Equipment',
   'job.goodsType': 'Product Type',
+  'job.goods_type': 'Product Type',
+  'job.goods_quantity': 'Quantity',
   'job.accept': 'Accept Job',
   'job.accepted': 'Job Accepted',
   
@@ -2478,6 +2482,8 @@ const koTranslations: Record<string, string> = {
   'job.equipment': '장비',
   'job.safety': '안전 장비',
   'job.goodsType': '제품 유형',
+  'job.goods_type': '제품 유형',
+  'job.goods_quantity': '수량',
   'job.accept': '이 작업 수락',
   'job.accepted': '이미 수락함',
   
@@ -3845,6 +3851,8 @@ const zhTranslations: Record<string, string> = {
   'job.equipment': '车辆设备',
   'job.safety': '安全设备',
   'job.goodsType': '产品类型',
+  'job.goods_type': '产品类型',
+  'job.goods_quantity': '数量',
   'job.accepted': '已接受此工作',
   
   // Confirm Job Dialog
