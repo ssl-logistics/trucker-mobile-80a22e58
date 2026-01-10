@@ -23,6 +23,8 @@ interface Job {
   safety_equipment: string | null;
   goods_type: string | null;
   goods_quantity: string | null;
+  goods_weight?: number | null;
+  goods_unit?: string | null;
   isAccepted?: boolean;
 }
 
@@ -121,10 +123,18 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
           </div>
         </div>
 
-        <div className="bg-muted/50 rounded-lg p-3 text-sm">
+        <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
           <div>
             <span className="text-muted-foreground">{t('job.goods')} : </span>
             <span>{job.goods_type || '-'}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">น้ำหนัก : </span>
+            <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${job.goods_unit || 'kg'}` : '-'}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">จำนวน : </span>
+            <span>{job.goods_quantity || '-'}</span>
           </div>
         </div>
       </div>
