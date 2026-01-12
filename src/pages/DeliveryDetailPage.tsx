@@ -281,26 +281,6 @@ export default function DeliveryDetailPage() {
       photoUrl = uploadData.url;
     }
 
-    // Update job application with POD completion
-    const { error } = await supabase
-      .from("job_applications")
-      .update({
-        delivery_sop_completed_at: new Date().toISOString(),
-        pod_photo_url: photoUrl,
-      })
-      .eq("job_id", job.id)
-      .eq("driver_id", user.id);
-
-    if (error) {
-      toast({
-        title: t('delivery.error'),
-        description: t('delivery.podError'),
-        variant: "destructive",
-      });
-      setIsSubmittingPod(false);
-      return;
-    }
-
     // Get current location for POD
     let podLatitude = 0;
     let podLongitude = 0;
