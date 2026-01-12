@@ -422,16 +422,22 @@ export default function DomesticJobDetail({
               </Card>
 
               {/* Delivery Point Cards - Multiple destinations */}
-              {destinations.length > 0 ? destinations.map((dest, index) => <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${dest.sop_completed_at ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+              {destinations.length > 0 ? destinations.map((dest, index) => {
+                const isPodCompleted = !!dest.sop_completed_at;
+                
+                return (
+                  <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                     <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
                           {dest.company_name && <span className="text-sm font-medium text-[#225795]">: {dest.company_name}</span>}
                         </div>
-                        {(pickupSopCompleted || jobApplication?.sop_completed_at) && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${dest.sop_completed_at ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                            {dest.sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
-                          </span>}
+                        {(pickupSopCompleted || jobApplication?.sop_completed_at) && (
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                            {isPodCompleted ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
+                          </span>
+                        )}
                       </div>
 
                       <div className="space-y-1 text-sm mb-3">
@@ -462,24 +468,32 @@ export default function DomesticJobDetail({
                           <img src={routeIcon} alt="route" className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.order_code}/delivery/${dest.id}`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                        <Button size="sm" className={`h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent ${isPodCompleted ? 'bg-green-600 hover:bg-green-700' : 'bg-[#225896]'}`} onClick={() => navigate(`/job/${job.order_code}/delivery/${dest.id}`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                          <span className="text-xs">{dest.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
-                  </Card>) :
+                  </Card>
+                );
+              }) :
             // Fallback to original single destination from jobs table
-            <Card className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+            (() => {
+              const isPodCompleted = !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at);
+              
+              return (
+                <Card className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                   <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
                         {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
                       </div>
-                      {(pickupSopCompleted || jobApplication?.sop_completed_at) && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${(deliverySopCompleted || jobApplication?.delivery_sop_completed_at) ? 'text-green-600 bg-green-50' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                          {(deliverySopCompleted || jobApplication?.delivery_sop_completed_at) ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPayment') : t('jobDetail.waitingCheckIn')}
-                        </span>}
+                      {(pickupSopCompleted || jobApplication?.sop_completed_at) && (
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                          {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPayment') : t('jobDetail.waitingCheckIn')}
+                        </span>
+                      )}
                     </div>
 
                     <div className="space-y-1 text-sm mb-3">
@@ -514,13 +528,15 @@ export default function DomesticJobDetail({
                         <img src={routeIcon} alt="route" className="w-4 h-4" />
                         <span className="text-xs">{t('jobDetail.route')}</span>
                       </Button>
-                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.order_code}/delivery`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                      <Button size="sm" className={`h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent ${isPodCompleted ? 'bg-green-600 hover:bg-green-700' : 'bg-[#225896]'}`} onClick={() => navigate(`/job/${job.order_code}/delivery`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">{(deliverySopCompleted || jobApplication?.delivery_sop_completed_at) ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                        <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                       </Button>
                     </div>
                   </div>
-                </Card>}
+                </Card>
+              );
+            })()}
             </div>
           </div>
         </div>
