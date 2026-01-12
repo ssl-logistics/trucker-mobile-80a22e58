@@ -641,8 +641,8 @@ export default function DeliveryDetailPage() {
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="flex-1 h-11">
               {t('delivery.cancel')}
             </Button>
-            <Button onClick={handleCheckIn} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
-              {t('delivery.confirm')}
+            <Button onClick={handleCheckIn} disabled={isCheckingIn} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
+              {isCheckingIn ? 'กำลังเช็คอิน...' : t('delivery.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
