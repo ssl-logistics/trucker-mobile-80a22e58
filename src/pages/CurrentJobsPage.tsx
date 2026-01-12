@@ -251,11 +251,13 @@ export default function CurrentJobsPage() {
                         job.status === 'in_transit' ? 'bg-blue-50 text-blue-700' :
                         job.status === 'in_progress' ? 'bg-amber-50 text-amber-700' : 
                         job.status === 'completed' ? 'bg-green-50 text-green-700' : 
+                        job.status === 'delivered' ? 'bg-purple-50 text-purple-700' :
                         'bg-gray-50 text-gray-700'
                       )}>
-                        {job.status === 'in_transit' ? 'กำลังขนส่ง' :
-                         job.status === 'in_progress' ? 'กำลังดำเนินการ' : 
-                         job.status === 'completed' ? 'เสร็จสิ้น' : job.status}
+                        {job.status === 'in_transit' ? t('jobStatus.inTransit') :
+                         job.status === 'in_progress' ? t('jobStatus.inProgress') : 
+                         job.status === 'completed' ? t('jobStatus.completed') : 
+                         job.status === 'delivered' ? t('jobStatus.delivered') : job.status}
                       </Badge>
                     </div>
 

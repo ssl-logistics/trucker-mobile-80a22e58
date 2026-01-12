@@ -186,6 +186,12 @@ const thTranslations: Record<string, string> = {
   'currentJobs.errorLoad': 'เกิดข้อผิดพลาด',
   'currentJobs.errorLoadDesc': 'ไม่สามารถโหลดข้อมูลงานได้',
   
+  // Job Status
+  'jobStatus.inTransit': 'กำลังขนส่ง',
+  'jobStatus.inProgress': 'กำลังดำเนินการ',
+  'jobStatus.completed': 'เสร็จสิ้น',
+  'jobStatus.delivered': 'ส่งแล้ว',
+
   // Bidding Page
   'bidding.title': 'เสนอราคา',
   'bidding.biddingTab': 'เสนอราคา',
@@ -1362,6 +1368,12 @@ const enTranslations: Record<string, string> = {
   'currentJobs.errorLoad': 'Error',
   'currentJobs.errorLoadDesc': 'Unable to load jobs',
   
+  // Job Status
+  'jobStatus.inTransit': 'In Transit',
+  'jobStatus.inProgress': 'In Progress',
+  'jobStatus.completed': 'Completed',
+  'jobStatus.delivered': 'Delivered',
+
   // Bidding Page
   'bidding.title': 'Bidding',
   'bidding.biddingTab': 'Bidding',
@@ -2538,6 +2550,12 @@ const koTranslations: Record<string, string> = {
   'currentJobs.errorLoad': '오류 발생',
   'currentJobs.errorLoadDesc': '작업 데이터를 불러올 수 없습니다',
   
+  // Job Status
+  'jobStatus.inTransit': '운송 중',
+  'jobStatus.inProgress': '진행 중',
+  'jobStatus.completed': '완료',
+  'jobStatus.delivered': '배송 완료',
+
   // Bidding Page
   'bidding.title': '입찰',
   'bidding.biddingTab': '입찰',
@@ -3893,6 +3911,12 @@ const zhTranslations: Record<string, string> = {
   'currentJobs.errorLoadDesc': '无法加载当前工作',
   'currentJobs.startJobDate': '开始日期',
   
+  // Job Status
+  'jobStatus.inTransit': '运输中',
+  'jobStatus.inProgress': '进行中',
+  'jobStatus.completed': '已完成',
+  'jobStatus.delivered': '已送达',
+
   // Job History Page
   'jobHistory.title': '工作历史',
   'jobHistory.no_history': '暂无工作历史',
