@@ -116,9 +116,9 @@ export default function DomesticJobDetail({
         const hasPickupCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         setPickupCheckedIn(hasPickupCheckin);
 
-        // Fetch SOP status from external API
+        // Fetch SOP status from external API using freelance_driver_id
         const sopResponse = await fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?order_number=${job.order_code}&freelance_driver_id=${userId}`,
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${userId}&order_number=${job.order_code}`,
           {
             headers: {
               'Content-Type': 'application/json',
