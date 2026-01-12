@@ -307,7 +307,7 @@ export default function DeliveryDetailPage() {
       jobId: job.id,
       orderCode: job.order_code,
       userId: user.id,
-      status: 'delivery_sop_completed',
+      status: 'delivery_confirmed',
       sequenceNumber: 3 // Delivery point
     });
 
