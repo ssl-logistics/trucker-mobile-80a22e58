@@ -155,20 +155,31 @@ export default function DeliveryDetailPage() {
               }
             );
             
+            let deliveryCheckinTime = null;
             if (checkinsResponse.ok) {
               const checkinsResult = await checkinsResponse.json();
               if (checkinsResult.success && checkinsResult.data) {
                 const deliveryCheckin = checkinsResult.data.find((c: any) => c.checkin_type === 'delivery');
-                // Always set jobApplication with check-in status
-                setJobApplication({
-                  delivery_checked_in_at: deliveryCheckin?.checkin_time || null,
-                  payment_completed_at: null,
-                  payment_method: null,
-                  pod_photo_url: null,
-                  delivery_sop_completed_at: null,
-                });
+                deliveryCheckinTime = deliveryCheckin?.checkin_time || null;
               }
             }
+            
+            // Fetch local job application data for payment status
+            const { data: localJobApp } = await supabase
+              .from("job_applications")
+              .select("payment_completed_at, payment_method, pod_photo_url, delivery_sop_completed_at")
+              .eq("job_id", foundJob.id)
+              .eq("driver_id", user.id)
+              .single();
+            
+            // Combine check-in status with local payment data
+            setJobApplication({
+              delivery_checked_in_at: deliveryCheckinTime,
+              payment_completed_at: localJobApp?.payment_completed_at || null,
+              payment_method: localJobApp?.payment_method || null,
+              pod_photo_url: localJobApp?.pod_photo_url || null,
+              delivery_sop_completed_at: localJobApp?.delivery_sop_completed_at || null,
+            });
           } catch (checkinError) {
             console.error('Error fetching checkin status:', checkinError);
           }
@@ -216,8 +227,12 @@ export default function DeliveryDetailPage() {
     });
     setShowPaymentDrawer(false);
     
-    // Reload page to show POD section after payment confirmation
-    loadJobDetail();
+    // Update jobApplication state directly to show POD section immediately
+    setJobApplication(prev => ({
+      ...prev!,
+      payment_completed_at: new Date().toISOString(),
+      payment_method: selectedPaymentMethod,
+    }));
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
