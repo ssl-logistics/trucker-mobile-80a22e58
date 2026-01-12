@@ -149,8 +149,9 @@ export default function PickupDetailPage() {
             order_number: job.order_number || job.order_code,
             checkin_type: 'pickup',
             freelance_driver_id: user.id,
-            driver_name: user.full_name || user.username || '',
-            driver_phone: user.phone_number || '',
+            driver_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.full_name || user.username || '',
+            driver_phone: user.phone || user.phone_number || '',
+            driver_avatar: user.profile_photo_url || user.avatar_url || '',
             latitude: latitude,
             longitude: longitude,
             notes: 'ถึงจุดรับแล้ว'
