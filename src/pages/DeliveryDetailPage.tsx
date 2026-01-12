@@ -10,6 +10,7 @@ import JobActionButtons from "@/components/job/JobActionButtons";
 import Map from "@/components/Map";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
+import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import {
   Dialog,
   DialogContent,
@@ -93,6 +94,9 @@ export default function DeliveryDetailPage() {
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Get presigned URL for POD photo
+  const { url: presignedPodPhotoUrl } = usePresignedImageUrl(jobApplication?.pod_photo_url);
 
   useEffect(() => {
     loadJobDetail();
@@ -622,11 +626,11 @@ export default function DeliveryDetailPage() {
             </div>
 
             {/* POD Photo */}
-            {jobApplication.pod_photo_url && (
+            {presignedPodPhotoUrl && (
               <div className="mt-4">
                 <div className="text-sm text-gray-500 mb-2">{t('delivery.podPhoto')}</div>
                 <img
-                  src={jobApplication.pod_photo_url}
+                  src={presignedPodPhotoUrl}
                   alt="POD Document"
                   className="w-full h-48 object-contain rounded-lg border bg-gray-50"
                 />
