@@ -46,6 +46,7 @@ interface JobDetail {
   destination_remarks?: string | null;
   destination_time?: string | null;
   destination_company_name?: string | null;
+  price?: number;
 }
 
 interface JobDestination {
@@ -141,6 +142,7 @@ export default function DeliveryDetailPage() {
             destination_remarks: foundJob.remarks,
             destination_time: foundJob.destination_delivery_time,
             destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
+            price: foundJob.driver_price || foundJob.price || 0,
           };
           setJob(mappedJob);
 
@@ -484,7 +486,7 @@ export default function DeliveryDetailPage() {
                 </div>
                 <div className="space-y-1">
                   <div className="text-gray-500 text-xs">{t('delivery.amount')}</div>
-                  <div className="font-medium text-gray-900">1,000</div>
+                  <div className="font-medium text-gray-900">{job?.price?.toLocaleString() || '-'}</div>
                 </div>
               </div>
             </div>
