@@ -440,8 +440,8 @@ export default function DeliveryDetailPage() {
       });
       setShowConfirmDialog(false);
       
-      // Navigate to Delivery SOP page to update status
-      navigate(`/job/${job.order_code}/delivery-sop`);
+      // Navigate to job status page
+      navigate(`/job/${job.order_code}`);
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
