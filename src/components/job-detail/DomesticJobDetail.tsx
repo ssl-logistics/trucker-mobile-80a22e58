@@ -132,10 +132,10 @@ export default function DomesticJobDetail({
           console.log('Fetched SOP status:', sopResult);
           
           if (sopResult.success && sopResult.data) {
-            // Check for pickup SOP
+            // Check for pickup SOP - check both sop_type and status fields
             const pickupSOP = Array.isArray(sopResult.data)
-              ? sopResult.data.find((s: any) => s.status === 'pickup')
-              : sopResult.data.status === 'pickup' ? sopResult.data : null;
+              ? sopResult.data.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
+              : (sopResult.data.sop_type === 'pickup' || sopResult.data.status === 'pickup') ? sopResult.data : null;
             
             setPickupSopCompleted(!!pickupSOP);
           }
