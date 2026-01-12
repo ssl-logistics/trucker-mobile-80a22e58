@@ -119,23 +119,6 @@ export default function PickupSummaryPage() {
         }
       }
 
-      // Also check local job_applications for check-in time
-      const { data: appData } = await supabase
-        .from("job_applications")
-        .select("checked_in_at, sop_completed_at")
-        .eq("job_id", jobId)
-        .eq("driver_id", user.id)
-        .single();
-
-      if (appData && !sopData?.checked_in_at) {
-        setSopData(prev => ({
-          ...prev,
-          checked_in_at: appData.checked_in_at || prev?.checked_in_at || null,
-          sop_completed_at: appData.sop_completed_at || prev?.sop_completed_at || null,
-          sop_photo_url: prev?.sop_photo_url || null,
-        }));
-      }
-
     } catch (error) {
       console.error('Error loading pickup summary:', error);
       toast({
