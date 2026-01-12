@@ -49,9 +49,18 @@ export default function PickupDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
+  const [sopPhotoUrl, setSopPhotoUrl] = useState<string | null>(null);
+  
   useEffect(() => {
     loadJobDetail();
   }, [jobId, user]);
+  
+  useEffect(() => {
+    if (job && user) {
+      fetchSopStatus();
+    }
+  }, [job, user]);
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
     setLoading(true);
@@ -114,6 +123,40 @@ export default function PickupDetailPage() {
       setLoading(false);
     }
   };
+
+  const fetchSopStatus = async () => {
+    if (!job || !user) return;
+    
+    try {
+      const response = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${user.id}&order_number=${job.order_code}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          }
+        }
+      );
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Fetched SOP status:', result);
+        
+        if (result.success && result.data && result.data.length > 0) {
+          const pickupSop = result.data.find((sop: any) => sop.sop_type === 'pickup');
+          if (pickupSop) {
+            setPickupSopCompleted(true);
+            if (pickupSop.product_images && pickupSop.product_images.length > 0) {
+              setSopPhotoUrl(pickupSop.product_images[0]);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching SOP status:', error);
+    }
+  };
+
   const handleCheckIn = async () => {
     if (!job || !user || isCheckingIn) return;
     
