@@ -308,7 +308,7 @@ export default function DeliveryDetailPage() {
       }
     }
 
-    // Send POD to external API via driver-checkin-proxy (same format as other checkins)
+    // Send POD to external API directly (same API as check-in)
     let podSubmitSuccess = false;
     let podApiResponse: any = null;
     
@@ -330,7 +330,7 @@ export default function DeliveryDetailPage() {
       console.log('Payload:', JSON.stringify(podPayload, null, 2));
       
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
+        'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/driver-checkin',
         {
           method: 'POST',
           headers: {
