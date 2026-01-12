@@ -1,6 +1,6 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,12 @@ import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
 import statusIcon from '@/assets/status-icon.png';
+
+interface DriverCheckin {
+  order_number: string;
+  checkin_type: string;
+  checked_in_at: string;
+}
 interface JobDetail {
   id: string;
   order_code: string;
@@ -90,6 +96,8 @@ export default function DomesticJobDetail({
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [destinations, setDestinations] = useState<JobDestination[]>([]);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   useEffect(() => {
     // Calculate card heights for step positioning
     if (card1Ref.current) {
@@ -308,14 +316,46 @@ export default function DomesticJobDetail({
                       <img src={routeIcon} alt="route" className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
-                    <Button size="sm" onClick={() => {
+                    <Button size="sm" onClick={async () => {
                     if (jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.order_code}/pickup-summary`);
                     } else {
-                      navigate(`/job/${job.order_code}/pickup`);
+                      // Check if already checked in via external API
+                      setIsCheckingStatus(true);
+                      try {
+                        const response = await fetch(
+                          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${userId}&order_number=${job.order_code}`,
+                          { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+                        );
+                        const data = await response.json();
+                        console.log('Check-in status:', data);
+                        
+                        // Check if pickup checkin exists
+                        const pickupCheckin = Array.isArray(data) 
+                          ? data.find((c: DriverCheckin) => c.checkin_type === 'pickup')
+                          : null;
+                        
+                        if (pickupCheckin) {
+                          // Already checked in, go to SOP page
+                          navigate(`/job/${job.order_code}/sop-checkin`);
+                        } else {
+                          // Not checked in yet, go to check-in page
+                          navigate(`/job/${job.order_code}/pickup`);
+                        }
+                      } catch (error) {
+                        console.error('Error checking status:', error);
+                        // Fallback to check-in page on error
+                        navigate(`/job/${job.order_code}/pickup`);
+                      } finally {
+                        setIsCheckingStatus(false);
+                      }
                     }
-                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent">
-                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isCheckingStatus}>
+                      {isCheckingStatus ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      ) : (
+                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                      )}
                       <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
