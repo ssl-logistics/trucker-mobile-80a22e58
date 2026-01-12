@@ -257,15 +257,18 @@ export default function DeliveryDetailPage() {
 
     let photoUrl = jobApplication?.pod_photo_url;
 
-    // Upload photo if new one is selected
+    // Upload photo to S3 if new one is selected
     if (podPhoto) {
-      const fileExt = podPhoto.name.split(".").pop();
-      const fileName = `${user.id}-${job.id}-${Date.now()}.${fileExt}`;
-      const filePath = `pod-documents/${fileName}`;
+      const formData = new FormData();
+      formData.append('file', podPhoto);
+      formData.append('folder', 'mobile/pod-photos');
+      formData.append('filename', `${user.id}-${job.order_code}-${Date.now()}`);
 
-      const { error: uploadError } = await supabase.storage.from("driver-documents").upload(filePath, podPhoto);
+      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
+        body: formData
+      });
 
-      if (uploadError) {
+      if (uploadError || !uploadData?.url) {
         toast({
           title: t('delivery.error'),
           description: t('delivery.uploadError'),
@@ -275,11 +278,7 @@ export default function DeliveryDetailPage() {
         return;
       }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("driver-documents").getPublicUrl(filePath);
-
-      photoUrl = publicUrl;
+      photoUrl = uploadData.url;
     }
 
     // Update job application with POD completion
