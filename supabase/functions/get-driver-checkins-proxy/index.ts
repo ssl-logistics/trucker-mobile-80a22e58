@@ -28,23 +28,19 @@ serve(async (req) => {
 
     console.log('Fetching check-ins for driver:', freelanceDriverId, 'order:', orderNumber);
 
-    // Build query params
-    let queryParams = `freelance_driver_id=${freelanceDriverId}`;
-    if (orderNumber) {
-      queryParams += `&order_number=${orderNumber}`;
-    }
+    // Forward all query params to external API
+    // (allows optional filters like checkin_type, limit, offset, etc.)
+    const forwardUrl = new URL('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-checkins');
+    forwardUrl.search = url.search;
 
     // Forward request to external API
-    const response = await fetch(
-      `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-checkins?${queryParams}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
-        }
-      }
-    );
+    const response = await fetch(forwardUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+      },
+    });
 
     const responseText = await response.text();
     console.log('External API response:', response.status, responseText);

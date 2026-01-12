@@ -158,30 +158,38 @@ export default function DeliveryDetailPage() {
               }
             );
             
-            let deliveryCheckinTime = null;
+            let deliveryCheckinTime: string | null = null;
+            let deliveryConfirmedTime: string | null = null;
+            let deliveryConfirmedPhotoUrl: string | null = null;
+
             if (checkinsResponse.ok) {
               const checkinsResult = await checkinsResponse.json();
-              if (checkinsResult.success && checkinsResult.data) {
+              if (checkinsResult.success && Array.isArray(checkinsResult.data)) {
                 const deliveryCheckin = checkinsResult.data.find((c: any) => c.checkin_type === 'delivery');
                 deliveryCheckinTime = deliveryCheckin?.checkin_time || null;
+
+                const deliveryConfirmed = checkinsResult.data.find((c: any) => c.checkin_type === 'delivery_confirmed');
+                deliveryConfirmedTime = deliveryConfirmed?.checkin_time || null;
+                deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
               }
             }
             
-            // Fetch local job application data for payment status
+            // Fetch local job application data for payment status (may not exist for external jobs)
             const { data: localJobApp } = await supabase
               .from("job_applications")
               .select("payment_completed_at, payment_method, pod_photo_url, delivery_sop_completed_at")
               .eq("job_id", foundJob.id)
               .eq("driver_id", user.id)
-              .single();
+              .maybeSingle();
             
-            // Combine check-in status with local payment data
+            // Combine external check-in status with local payment/POD data
             setJobApplication({
               delivery_checked_in_at: deliveryCheckinTime,
               payment_completed_at: localJobApp?.payment_completed_at || null,
               payment_method: localJobApp?.payment_method || null,
-              pod_photo_url: localJobApp?.pod_photo_url || null,
-              delivery_sop_completed_at: localJobApp?.delivery_sop_completed_at || null,
+              // Prefer external delivery_confirmed photo/time if present, fallback to local
+              pod_photo_url: deliveryConfirmedPhotoUrl || localJobApp?.pod_photo_url || null,
+              delivery_sop_completed_at: deliveryConfirmedTime || localJobApp?.delivery_sop_completed_at || null,
             });
           } catch (checkinError) {
             console.error('Error fetching checkin status:', checkinError);
