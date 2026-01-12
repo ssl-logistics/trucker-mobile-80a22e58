@@ -994,6 +994,7 @@ const thTranslations: Record<string, string> = {
   'delivery.confirmStatusTitle': 'แจ้งเตือนการยืนยันสถานะ',
   'delivery.confirmCheckInMessage': 'คุณต้องการเช็คอินที่ "จุดส่ง หวค.ชัยน้ำตาล" ใช่หรือไม่?',
   'delivery.confirm': 'ยืนยัน',
+  'delivery.submitting': 'กำลังดำเนินการ...',
   'delivery.paymentChannel': 'ช่องทางชำระเงิน',
   'delivery.confirmPodMessage': 'คุณต้องการยืนยันการยืนยันอัพโหลดรูปสินค้า POD ใช่หรือไม่?',
   
@@ -2037,6 +2038,7 @@ const enTranslations: Record<string, string> = {
   'delivery.confirmStatusTitle': 'Confirm Status',
   'delivery.confirmCheckInMessage': 'Do you want to check in at "Delivery Point Chai Sugar"?',
   'delivery.confirm': 'Confirm',
+  'delivery.submitting': 'Submitting...',
   'delivery.paymentChannel': 'Payment Method',
   'delivery.confirmPodMessage': 'Do you want to confirm uploading POD product photo?',
   
@@ -4136,6 +4138,7 @@ const zhTranslations: Record<string, string> = {
   'delivery.confirmMessage': '您要确认送货完成吗？',
   'delivery.cancel': '取消',
   'delivery.confirm': '确认',
+  'delivery.submitting': '提交中...',
   'delivery.deliverySuccess': '送货成功',
   'delivery.deliverySuccessMessage': '送货已成功完成',
   'delivery.error': '错误',

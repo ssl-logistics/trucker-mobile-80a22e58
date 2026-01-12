@@ -91,6 +91,7 @@ export default function DeliveryDetailPage() {
   const [showPodConfirmDialog, setShowPodConfirmDialog] = useState(false);
   const [podPhoto, setPodPhoto] = useState<File | null>(null);
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
+  const [isSubmittingPod, setIsSubmittingPod] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -250,7 +251,9 @@ export default function DeliveryDetailPage() {
   };
 
   const handlePodConfirm = async () => {
-    if (!job || !user) return;
+    if (!job || !user || isSubmittingPod) return;
+    
+    setIsSubmittingPod(true);
 
     let photoUrl = jobApplication?.pod_photo_url;
 
@@ -268,6 +271,7 @@ export default function DeliveryDetailPage() {
           description: t('delivery.uploadError'),
           variant: "destructive",
         });
+        setIsSubmittingPod(false);
         return;
       }
 
@@ -294,6 +298,7 @@ export default function DeliveryDetailPage() {
         description: t('delivery.podError'),
         variant: "destructive",
       });
+      setIsSubmittingPod(false);
       return;
     }
 
@@ -774,8 +779,8 @@ export default function DeliveryDetailPage() {
             <Button variant="outline" onClick={() => setShowPodConfirmDialog(false)} className="flex-1 h-11">
               {t('delivery.cancel')}
             </Button>
-            <Button onClick={handlePodConfirm} className="flex-1 h-11 bg-teal-600 hover:bg-teal-700">
-              {t('delivery.confirm')}
+            <Button onClick={handlePodConfirm} disabled={isSubmittingPod} className="flex-1 h-11 bg-teal-600 hover:bg-teal-700">
+              {isSubmittingPod ? t('delivery.submitting') : t('delivery.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
