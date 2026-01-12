@@ -981,6 +981,7 @@ const thTranslations: Record<string, string> = {
   'delivery.deliveryTo': 'ส่งของถึง',
   'delivery.employerName': 'หวค.ชัยน้ำตาล',
   'delivery.podCompleted': 'POD สำเร็จ',
+  'delivery.podPhoto': 'รูปใบส่งสินค้า',
   'delivery.contactPersonData': 'คุณธงใบย',
   'delivery.routeData': 'SAM001 เมือง/สมุทรปราการ',
   'delivery.addressData': 'ที่อยู่ 55/5 ช.ลาดพร้าว 101 แขวงคลองจั่น คณ.',
@@ -2025,6 +2026,7 @@ const enTranslations: Record<string, string> = {
   'delivery.deliveryTo': 'Delivery To',
   'delivery.employerName': 'Chai Sugar Company',
   'delivery.podCompleted': 'POD Completed',
+  'delivery.podPhoto': 'Delivery Document Photo',
   'delivery.contactPersonData': 'Mr. Thongbai',
   'delivery.routeData': 'SAM001 Mueang/Samut Prakan',
   'delivery.addressData': 'Address 55/5 Ladprao 101 Rd., Khlong Chan, BKK',
@@ -3047,6 +3049,7 @@ const koTranslations: Record<string, string> = {
   'delivery.clickToTake': '클릭하여 촬영',
   'delivery.waybill': '운송장',
   'delivery.podCompleted': 'POD 완료',
+  'delivery.podPhoto': '배송 서류 사진',
   'delivery.map': '지도',
   'delivery.makePayment': '결제하기',
   'delivery.confirmPod': 'POD 확인',
@@ -4154,6 +4157,8 @@ const zhTranslations: Record<string, string> = {
   'delivery.route': '路线',
   'delivery.loadError': '无法加载工作数据',
   'delivery.noCoordinates': '找不到位置坐标',
+  'delivery.podCompleted': 'POD 成功',
+  'delivery.podPhoto': '送货单照片',
   
   // SOP Check-in Page
   'sop.title': '取货点',
