@@ -215,7 +215,9 @@ export default function DeliveryDetailPage() {
       description: t('delivery.paymentSuccessToast'),
     });
     setShowPaymentDrawer(false);
-    loadJobDetail();
+    
+    // Navigate to POD/Delivery SOP page after payment confirmation
+    navigate(`/job/${job.order_code}/delivery-sop`);
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
