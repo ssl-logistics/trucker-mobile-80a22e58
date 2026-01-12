@@ -35,7 +35,9 @@ export default function PickupSummaryPage() {
   const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
 
   useEffect(() => {
-    loadData();
+    if (user && jobId) {
+      loadData();
+    }
   }, [jobId, user]);
 
   const loadData = async () => {
@@ -44,28 +46,16 @@ export default function PickupSummaryPage() {
     setLoading(true);
 
     try {
-      // Load job details from external API
-      const token = localStorage.getItem('external_access_token');
-      const externalUserId = localStorage.getItem('external_user_id');
-
-      if (!token || !externalUserId) {
-        toast({
-          title: t('pickupSummary.error'),
-          description: t('pickupSummary.loadError'),
-          variant: "destructive",
-        });
-        navigate("/current-jobs");
-        return;
-      }
+      const freelanceDriverId = user.id;
 
       // Fetch job detail from external API
       const jobResponse = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${externalUserId}`,
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${freelanceDriverId}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
-          },
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          }
         }
       );
 
@@ -77,23 +67,48 @@ export default function PickupSummaryPage() {
             setJob({
               id: foundJob.order_number,
               order_code: foundJob.order_number,
-              employer_name: foundJob.pickup?.company_name || foundJob.employer_name || '',
-              origin_location: foundJob.pickup?.location || '',
-              start_date: foundJob.pickup?.date || '',
-              start_time: foundJob.pickup?.time || '',
+              employer_name: foundJob.sender_name || '',
+              origin_location: foundJob.sender_address || '',
+              start_date: foundJob.sender_pickup_date || '',
+              start_time: foundJob.sender_pickup_time || '',
             });
+          }
+        }
+      }
+
+      // Fetch check-in data from proxy API
+      const checkinResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${freelanceDriverId}&order_number=${jobId}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      let checkedInAt: string | null = null;
+      if (checkinResponse.ok) {
+        const checkinResult = await checkinResponse.json();
+        if (checkinResult.success && checkinResult.data) {
+          // Find pickup check-in
+          const pickupCheckin = Array.isArray(checkinResult.data)
+            ? checkinResult.data.find((c: any) => c.checkin_type === 'pickup')
+            : checkinResult.data.checkin_type === 'pickup' ? checkinResult.data : null;
+
+          if (pickupCheckin) {
+            checkedInAt = pickupCheckin.checkin_time || pickupCheckin.created_at || null;
           }
         }
       }
 
       // Fetch SOP data from API
       const sopResponse = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${externalUserId}&order_number=${jobId}`,
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${freelanceDriverId}&order_number=${jobId}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
-          },
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          }
         }
       );
 
@@ -108,15 +123,36 @@ export default function PickupSummaryPage() {
           if (pickupSOP) {
             // Get the first product image as SOP photo
             const productImages = pickupSOP.product_images || [];
-            const sopPhotoUrl = productImages.length > 0 ? productImages[0] : null;
+            const photoUrl = productImages.length > 0 ? productImages[0] : null;
 
             setSopData({
-              checked_in_at: pickupSOP.checked_in_at || pickupSOP.created_at || null,
-              sop_completed_at: pickupSOP.sop_completed_at || pickupSOP.created_at || null,
-              sop_photo_url: sopPhotoUrl,
+              checked_in_at: checkedInAt || pickupSOP.checked_in_at || null,
+              sop_completed_at: pickupSOP.recorded_at || pickupSOP.created_at || null,
+              sop_photo_url: photoUrl,
+            });
+          } else {
+            // No SOP yet, but might have check-in
+            setSopData({
+              checked_in_at: checkedInAt,
+              sop_completed_at: null,
+              sop_photo_url: null,
             });
           }
+        } else {
+          // No SOP data, set check-in only
+          setSopData({
+            checked_in_at: checkedInAt,
+            sop_completed_at: null,
+            sop_photo_url: null,
+          });
         }
+      } else {
+        // SOP API failed, set check-in only
+        setSopData({
+          checked_in_at: checkedInAt,
+          sop_completed_at: null,
+          sop_photo_url: null,
+        });
       }
 
     } catch (error) {
@@ -139,7 +175,21 @@ export default function PickupSummaryPage() {
     );
   }
 
-  if (!job) return null;
+  if (!job) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">{t('pickupSummary.notFound') || 'ไม่พบข้อมูลงาน'}</p>
+          <button 
+            onClick={() => navigate('/current-jobs')}
+            className="text-primary underline"
+          >
+            {t('common.back') || 'กลับ'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
@@ -197,6 +247,15 @@ export default function PickupSummaryPage() {
                 </div>
               </div>
             )}
+          </Card>
+        )}
+
+        {/* No data state */}
+        {!sopData?.checked_in_at && !sopData?.sop_completed_at && (
+          <Card className="p-4 bg-gray-50 border-gray-200">
+            <div className="text-center text-muted-foreground py-4">
+              {t('pickupSummary.noData') || 'ยังไม่มีข้อมูลการเช็คอินหรือ SOP'}
+            </div>
           </Card>
         )}
       </div>
