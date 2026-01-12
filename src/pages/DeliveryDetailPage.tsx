@@ -101,62 +101,94 @@ export default function DeliveryDetailPage() {
 
     setLoading(true);
     
-    // Load job basic info
-    const { data: jobData, error: jobError } = await supabase
-      .from("jobs")
-      .select("id, order_code, employer_name, destination_location, start_date, start_time, destination_latitude, destination_longitude, destination_contact_person, destination_address, destination_goods_type, destination_goods_quantity, destination_remarks, destination_time, destination_company_name")
-      .eq("id", jobId)
-      .single();
+    try {
+      // Fetch from external API using order_number
+      const response = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          }
+        }
+      );
 
-    if (jobError) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch job details');
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Find the specific job by order_number
+        const foundJob = result.data.find((j: any) => j.order_number === jobId);
+        
+        if (foundJob) {
+          // Map API response to JobDetail interface
+          const mappedJob: JobDetail = {
+            id: foundJob.id,
+            order_code: foundJob.order_number,
+            employer_name: foundJob.destination_name || foundJob.destination_company_name,
+            destination_location: `${foundJob.destination_district}, ${foundJob.destination_province}`,
+            start_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date,
+            start_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time,
+            destination_latitude: foundJob.destination_latitude,
+            destination_longitude: foundJob.destination_longitude,
+            destination_contact_person: foundJob.destination_contact_name,
+            destination_address: foundJob.destination_address,
+            destination_goods_type: foundJob.product_name,
+            destination_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
+            destination_remarks: foundJob.remarks,
+            destination_time: foundJob.destination_delivery_time,
+            destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
+          };
+          setJob(mappedJob);
+
+          // Check for delivery check-in status from API
+          try {
+            const checkinsResponse = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${user.id}&order_number=${jobId}`,
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              }
+            );
+            
+            if (checkinsResponse.ok) {
+              const checkinsResult = await checkinsResponse.json();
+              if (checkinsResult.success && checkinsResult.data) {
+                const deliveryCheckin = checkinsResult.data.find((c: any) => c.checkin_type === 'delivery');
+                if (deliveryCheckin) {
+                  setJobApplication(prev => ({
+                    ...prev,
+                    delivery_checked_in_at: deliveryCheckin.checkin_time,
+                    payment_completed_at: prev?.payment_completed_at || null,
+                    payment_method: prev?.payment_method || null,
+                    pod_photo_url: prev?.pod_photo_url || null,
+                    delivery_sop_completed_at: prev?.delivery_sop_completed_at || null,
+                  }));
+                }
+              }
+            }
+          } catch (checkinError) {
+            console.error('Error fetching checkin status:', checkinError);
+          }
+        } else {
+          throw new Error('Job not found');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading job detail:', error);
       toast({
         title: t('delivery.error'),
         description: t('pickup.loadError'),
-        variant: "destructive",
+        variant: 'destructive'
       });
-      navigate("/current-jobs");
-      return;
+      navigate('/current-jobs');
+    } finally {
+      setLoading(false);
     }
-    
-    setJob(jobData);
-
-    // If destinationId is provided, load from job_destinations
-    if (destinationId) {
-      const { data: destData, error: destError } = await supabase
-        .from("job_destinations")
-        .select("*")
-        .eq("id", destinationId)
-        .single();
-
-      if (destError) {
-        toast({
-          title: t('delivery.error'),
-          description: t('pickup.loadError'),
-          variant: "destructive",
-        });
-        navigate(`/job/${jobId}`);
-        return;
-      }
-      
-      setDestination(destData);
-    }
-
-    // Load job application status
-    const { data: appData } = await supabase
-      .from("job_applications")
-      .select("delivery_checked_in_at, payment_completed_at, payment_method, pod_photo_url, delivery_sop_completed_at")
-      .eq("job_id", jobId)
-      .eq("driver_id", user.id);
-
-    if (appData && appData.length > 0) {
-      setJobApplication(appData[0]);
-      // Load existing POD photo preview if available
-      if (appData[0].pod_photo_url) {
-        setPodPhotoPreview(appData[0].pod_photo_url);
-      }
-    }
-
-    setLoading(false);
   };
 
   const handlePaymentConfirm = async () => {
