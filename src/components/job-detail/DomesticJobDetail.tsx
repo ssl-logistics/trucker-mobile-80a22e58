@@ -98,6 +98,8 @@ export default function DomesticJobDetail({
   const [destinations, setDestinations] = useState<JobDestination[]>([]);
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
+  const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
+  const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
 
   // Fetch check-in status and SOP status from external APIs
@@ -114,7 +116,9 @@ export default function DomesticJobDetail({
         
         const checkins = checkinResult?.data || checkinResult || [];
         const hasPickupCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
+        const hasDeliveryCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
         setPickupCheckedIn(hasPickupCheckin);
+        setDeliveryCheckedIn(hasDeliveryCheckin);
 
         // Fetch SOP status from external API using freelance_driver_id
         const sopResponse = await fetch(
@@ -137,7 +141,13 @@ export default function DomesticJobDetail({
               ? sopResult.data.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
               : (sopResult.data.sop_type === 'pickup' || sopResult.data.status === 'pickup') ? sopResult.data : null;
             
+            // Check for delivery SOP
+            const deliverySOP = Array.isArray(sopResult.data)
+              ? sopResult.data.find((s: any) => s.sop_type === 'delivery' || s.status === 'delivery')
+              : (sopResult.data.sop_type === 'delivery' || sopResult.data.status === 'delivery') ? sopResult.data : null;
+            
             setPickupSopCompleted(!!pickupSOP);
+            setDeliverySopCompleted(!!deliverySOP);
           }
         }
       } catch (error) {
@@ -457,8 +467,8 @@ export default function DomesticJobDetail({
                         <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
                         {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
                       </div>
-                      {(pickupSopCompleted || jobApplication?.sop_completed_at) && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                          {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
+                      {(pickupSopCompleted || jobApplication?.sop_completed_at) && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${(deliverySopCompleted || jobApplication?.delivery_sop_completed_at) ? 'text-green-600 bg-green-50' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                          {(deliverySopCompleted || jobApplication?.delivery_sop_completed_at) ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPayment') : t('jobDetail.waitingCheckIn')}
                         </span>}
                     </div>
 
