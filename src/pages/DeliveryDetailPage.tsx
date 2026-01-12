@@ -591,21 +591,21 @@ export default function DeliveryDetailPage() {
 
         {/* POD Success - Show after POD completed */}
         {jobApplication?.delivery_sop_completed_at && (
-          <div className="bg-green-50 rounded-xl shadow-md p-4 space-y-4 border-2 border-green-500">
+          <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
                   <Check className="w-6 h-6 text-white" />
                 </div>
-                <span className="font-semibold text-lg text-green-700">{t('delivery.podCompleted')}</span>
+                <span className="font-semibold text-lg">{t('delivery.podCompleted')}</span>
               </div>
-              <span className="text-sm text-green-600 font-medium">
+              <span className="text-sm text-gray-600 font-medium">
                 {formatDateTime(jobApplication.delivery_sop_completed_at, language)}
               </span>
             </div>
 
             {/* Payment Info */}
-            <div className="bg-white rounded-lg p-4 border border-green-200">
+            <div className="bg-gray-50 rounded-lg p-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
                   <div className="text-gray-500 text-xs">{t('delivery.paymentMethod')}</div>
@@ -630,7 +630,7 @@ export default function DeliveryDetailPage() {
                 <img
                   src={jobApplication.pod_photo_url}
                   alt="POD Document"
-                  className="w-full h-48 object-contain rounded-lg border border-green-200 bg-white"
+                  className="w-full h-48 object-contain rounded-lg border bg-gray-50"
                 />
               </div>
             )}
