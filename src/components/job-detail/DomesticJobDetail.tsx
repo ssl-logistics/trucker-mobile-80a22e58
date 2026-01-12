@@ -153,7 +153,11 @@ export default function DomesticJobDetail({
               : (sopResult.data.sop_type === 'delivery' || sopResult.data.status === 'delivery') ? sopResult.data : null;
             
             setPickupSopCompleted(!!pickupSOP);
-            setDeliverySopCompleted(!!deliverySOP);
+            // Only set deliverySopCompleted from SOP if delivery_confirmed doesn't exist
+            // delivery_confirmed takes priority over delivery SOP
+            if (!hasDeliveryConfirmed) {
+              setDeliverySopCompleted(!!deliverySOP);
+            }
           }
         }
       } catch (error) {
