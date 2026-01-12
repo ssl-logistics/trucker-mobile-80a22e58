@@ -430,11 +430,6 @@ export default function DomesticJobDetail({
                     <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          {isPodCompleted && (
-                            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                              <CheckCircle className="w-3 h-3 text-white" />
-                            </div>
-                          )}
                           <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
                           {dest.company_name && <span className="text-sm font-medium text-[#225795]">: {dest.company_name}</span>}
                         </div>
@@ -491,11 +486,6 @@ export default function DomesticJobDetail({
                   <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        {isPodCompleted && (
-                          <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                            <CheckCircle className="w-3 h-3 text-white" />
-                          </div>
-                        )}
                         <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
                         {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
                       </div>
