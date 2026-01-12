@@ -47,6 +47,7 @@ export default function PickupDetailPage() {
   } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   useEffect(() => {
     loadJobDetail();
@@ -114,7 +115,9 @@ export default function PickupDetailPage() {
     }
   };
   const handleCheckIn = async () => {
-    if (!job || !user) return;
+    if (!job || !user || isCheckingIn) return;
+    
+    setIsCheckingIn(true);
     
     try {
       // Get current location
@@ -185,6 +188,8 @@ export default function PickupDetailPage() {
         description: 'ไม่สามารถเช็คอินได้ กรุณาลองใหม่อีกครั้ง',
         variant: 'destructive'
       });
+    } finally {
+      setIsCheckingIn(false);
     }
   };
   const openGoogleMaps = () => {
@@ -296,8 +301,8 @@ export default function PickupDetailPage() {
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="flex-1 h-11">
               {t('pickup.cancel')}
             </Button>
-            <Button onClick={handleCheckIn} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
-              {t('pickup.confirmButton')}
+            <Button onClick={handleCheckIn} disabled={isCheckingIn} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
+              {isCheckingIn ? 'กำลังเช็คอิน...' : t('pickup.confirmButton')}
             </Button>
           </DialogFooter>
         </DialogContent>
