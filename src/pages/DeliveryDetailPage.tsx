@@ -602,8 +602,29 @@ export default function DeliveryDetailPage() {
               </span>
             </div>
 
+            {/* Payment Info */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-1">
+                  <div className="text-gray-500 text-xs">{t('delivery.paymentMethod')}</div>
+                  <div className="font-medium text-gray-900">
+                    {jobApplication.payment_method === "cash" && t('delivery.cash')}
+                    {jobApplication.payment_method === "mobile_banking" && t('delivery.mobileBanking')}
+                    {jobApplication.payment_method === "qr_code" && t('delivery.qrCode')}
+                    {!jobApplication.payment_method && '-'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-gray-500 text-xs">{t('delivery.amount')}</div>
+                  <div className="font-medium text-green-600 text-lg">฿{job?.price?.toLocaleString() || '-'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* POD Photo */}
             {jobApplication.pod_photo_url && (
               <div className="mt-4">
+                <div className="text-sm text-gray-500 mb-2">{t('delivery.podPhoto')}</div>
                 <img
                   src={jobApplication.pod_photo_url}
                   alt="POD Document"
