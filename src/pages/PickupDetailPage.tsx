@@ -137,14 +137,13 @@ export default function PickupDetailPage() {
         }
       }
 
-      // Call external check-in API
+      // Call check-in API via proxy
       const response = await fetch(
-        'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/driver-checkin',
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
           },
           body: JSON.stringify({
             order_number: job.order_number || job.order_code,
