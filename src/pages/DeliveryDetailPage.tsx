@@ -320,23 +320,32 @@ export default function DeliveryDetailPage() {
       }
     }
 
-    // Send POD to external API
+    // Send POD to external API via driver-checkin-proxy (same format as other checkins)
     try {
-      const { error: podError } = await supabase.functions.invoke('receive-pod', {
-        body: {
-          order_number: job.order_code,
-          driver_name: user.full_name || user.first_name || 'Unknown Driver',
-          driver_phone: user.phone_number || user.phone || '',
-          driver_id: user.id,
-          photo_url: photoUrl,
-          latitude: podLatitude,
-          longitude: podLongitude,
-          notes: 'จัดส่งสำเร็จ'
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            order_number: job.order_code,
+            checkin_type: 'pod',
+            freelance_driver_id: user.id,
+            driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
+            driver_phone: user.phone_number || user.phone || '',
+            driver_avatar: user.avatar_url || user.profile_photo_url || '',
+            latitude: podLatitude,
+            longitude: podLongitude,
+            notes: 'จัดส่งสำเร็จ',
+            photo_url: photoUrl
+          })
         }
-      });
+      );
       
-      if (podError) {
-        console.error('POD API error:', podError);
+      if (!response.ok) {
+        console.error('POD API error:', await response.text());
       } else {
         console.log('POD submitted to external API successfully');
       }
