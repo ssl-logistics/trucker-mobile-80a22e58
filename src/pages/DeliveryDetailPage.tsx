@@ -331,7 +331,7 @@ export default function DeliveryDetailPage() {
           },
           body: JSON.stringify({
             order_number: job.order_code,
-            checkin_type: 'pod',
+            checkin_type: 'delivery_confirmed',
             freelance_driver_id: user.id,
             driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
             driver_phone: user.phone_number || user.phone || '',
