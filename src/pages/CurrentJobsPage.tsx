@@ -248,11 +248,13 @@ export default function CurrentJobsPage() {
                         </Badge>
                       )}
                       <Badge variant="secondary" className={cn(
+                        job.status === 'in_transit' ? 'bg-blue-50 text-blue-700' :
                         job.status === 'in_progress' ? 'bg-amber-50 text-amber-700' : 
                         job.status === 'completed' ? 'bg-green-50 text-green-700' : 
                         'bg-gray-50 text-gray-700'
                       )}>
-                        {job.status === 'in_progress' ? 'กำลังดำเนินการ' : 
+                        {job.status === 'in_transit' ? 'กำลังขนส่ง' :
+                         job.status === 'in_progress' ? 'กำลังดำเนินการ' : 
                          job.status === 'completed' ? 'เสร็จสิ้น' : job.status}
                       </Badge>
                     </div>
