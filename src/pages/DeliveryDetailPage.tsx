@@ -309,7 +309,26 @@ export default function DeliveryDetailPage() {
     }
 
     // Send POD to external API via driver-checkin-proxy (same format as other checkins)
+    let podSubmitSuccess = false;
+    let podApiResponse: any = null;
+    
     try {
+      const podPayload = {
+        order_number: job.order_code,
+        checkin_type: 'delivery_confirmed',
+        freelance_driver_id: user.id,
+        driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
+        driver_phone: user.phone_number || user.phone || '',
+        driver_avatar: user.avatar_url || user.profile_photo_url || '',
+        latitude: podLatitude,
+        longitude: podLongitude,
+        notes: 'จัดส่งสำเร็จ',
+        photo_url: photoUrl
+      };
+      
+      console.log('=== Sending POD to external API ===');
+      console.log('Payload:', JSON.stringify(podPayload, null, 2));
+      
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
         {
@@ -317,44 +336,54 @@ export default function DeliveryDetailPage() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            order_number: job.order_code,
-            checkin_type: 'delivery_confirmed',
-            freelance_driver_id: user.id,
-            driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
-            driver_phone: user.phone_number || user.phone || '',
-            driver_avatar: user.avatar_url || user.profile_photo_url || '',
-            latitude: podLatitude,
-            longitude: podLongitude,
-            notes: 'จัดส่งสำเร็จ',
-            photo_url: photoUrl
-          })
+          body: JSON.stringify(podPayload)
         }
       );
       
+      const responseText = await response.text();
+      console.log('POD API response status:', response.status);
+      console.log('POD API response body:', responseText);
+      
+      try {
+        podApiResponse = JSON.parse(responseText);
+      } catch {
+        podApiResponse = { message: responseText };
+      }
+      
       if (!response.ok) {
-        console.error('POD API error:', await response.text());
+        console.error('POD API error:', responseText);
+        toast({
+          title: "❌ ส่ง POD ไม่สำเร็จ",
+          description: `API Error: ${podApiResponse?.error || podApiResponse?.message || 'Unknown error'}`,
+          variant: "destructive",
+        });
+        setIsSubmittingPod(false);
+        return;
       } else {
-        console.log('POD submitted to external API successfully');
+        podSubmitSuccess = true;
+        console.log('✅ POD submitted to external API successfully:', podApiResponse);
       }
     } catch (podApiError) {
       console.error('Error calling POD API:', podApiError);
+      toast({
+        title: "❌ ส่ง POD ไม่สำเร็จ",
+        description: `Network Error: ${podApiError instanceof Error ? podApiError.message : 'Unknown error'}`,
+        variant: "destructive",
+      });
+      setIsSubmittingPod(false);
+      return;
     }
 
-    // Send job status update to external API
-    await sendJobStatus({
-      jobId: job.id,
-      orderCode: job.order_code,
-      userId: user.id,
-      status: 'delivery_confirmed',
-      sequenceNumber: 3 // Delivery point
-    });
-
-    toast({
-      title: t('delivery.podSuccess'),
-      description: t('delivery.podSuccessToast'),
-    });
+    // Show success toast with API response details
+    if (podSubmitSuccess && podApiResponse) {
+      toast({
+        title: "✅ " + (podApiResponse.message || t('delivery.podSuccess')),
+        description: `Order: ${podApiResponse.data?.order_number || job.order_code} | เวลา: ${new Date(podApiResponse.data?.checkin_time || Date.now()).toLocaleTimeString('th-TH')}`,
+      });
+    }
+    
     setShowPodConfirmDialog(false);
+    setIsSubmittingPod(false);
     navigate(`/job/${job.order_code}`);
   };
 
