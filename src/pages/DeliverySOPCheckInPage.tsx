@@ -71,46 +71,56 @@ export default function DeliverySOPCheckInPage() {
     if (!user || !jobId) return;
 
     setLoading(true);
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('id, order_code, employer_name, destination_location, destination_company_name, start_date, start_time')
-      .eq('id', jobId)
-      .single();
+    
+    try {
+      // Fetch from external API using order_number
+      const response = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          }
+        }
+      );
 
-    if (error) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch job details');
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Find the specific job by order_number
+        const foundJob = result.data.find((j: any) => j.order_number === jobId);
+        
+        if (foundJob) {
+          // Map API response to JobDetail interface
+          const mappedJob: JobDetail = {
+            id: foundJob.id,
+            order_code: foundJob.order_number,
+            employer_name: foundJob.destination_name || foundJob.destination_company_name,
+            destination_location: `${foundJob.destination_district}, ${foundJob.destination_province}`,
+            destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
+            start_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date,
+            start_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time,
+          };
+          setJob(mappedJob);
+        } else {
+          throw new Error('Job not found');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading job detail:', error);
       toast({
         title: t('deliverySop.error'),
         description: t('deliverySop.loadError'),
         variant: 'destructive'
       });
       navigate('/current-jobs');
-      return;
+    } finally {
+      setLoading(false);
     }
-    
-    setJob(data);
-
-    // If destinationId is provided, load destination info
-    if (destinationId) {
-      const { data: destData, error: destError } = await supabase
-        .from('job_destinations')
-        .select('id, job_id, sequence_number, company_name, contact_name, checked_in_at, sop_completed_at')
-        .eq('id', destinationId)
-        .single();
-
-      if (destError) {
-        toast({
-          title: t('deliverySop.error'),
-          description: t('deliverySop.loadError'),
-          variant: 'destructive'
-        });
-        navigate(`/job/${jobId}`);
-        return;
-      }
-      
-      setDestination(destData);
-    }
-
-    setLoading(false);
   };
 
   const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
