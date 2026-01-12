@@ -67,8 +67,9 @@ export default function SOPCheckInPage() {
     if (!user || !job) return;
 
     try {
+      // Fetch SOP status using freelance_driver_id as primary param
       const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?order_number=${job.order_code}&freelance_driver_id=${user.id}`,
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${user.id}&order_number=${job.order_code}`,
         {
           headers: {
             'Content-Type': 'application/json',
