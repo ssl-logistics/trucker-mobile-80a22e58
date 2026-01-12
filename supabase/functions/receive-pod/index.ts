@@ -45,9 +45,9 @@ serve(async (req) => {
     }
 
     // Get API key from environment
-    const apiKey = Deno.env.get('TRUCKER_API_KEY');
+    const apiKey = Deno.env.get('API_TRUCKER_PUBLIC');
     if (!apiKey) {
-      console.error('TRUCKER_API_KEY not configured');
+      console.error('API_TRUCKER_PUBLIC not configured');
       return new Response(
         JSON.stringify({ success: false, error: 'API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -62,6 +62,7 @@ serve(async (req) => {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
+        'apikey': apiKey,
         'x-api-key': apiKey
       },
       body: JSON.stringify(payload)
