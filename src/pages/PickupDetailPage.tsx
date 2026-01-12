@@ -113,21 +113,75 @@ export default function PickupDetailPage() {
   const handleCheckIn = async () => {
     if (!job || !user) return;
     
-    // Send job status update to external API
-    await sendJobStatus({
-      jobId: job.id,
-      orderCode: job.order_code,
-      userId: user.id,
-      status: 'pickup_checked_in',
-      sequenceNumber: 2 // Pickup point
-    });
-    
-    toast({
-      title: t('pickup.checkInSuccess'),
-      description: t('pickup.checkInSuccessMessage')
-    });
-    setShowConfirmDialog(false);
-    navigate(`/job/${job.order_code}`);
+    try {
+      // Get current location
+      let latitude = job.origin_latitude || 0;
+      let longitude = job.origin_longitude || 0;
+      
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+        } catch (geoError) {
+          console.log('Could not get current location, using job location');
+        }
+      }
+
+      // Call external check-in API
+      const response = await fetch(
+        'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/driver-checkin',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          },
+          body: JSON.stringify({
+            order_number: job.order_code,
+            checkin_type: 'pickup',
+            driver_name: user.full_name || user.username || '',
+            driver_phone: user.phone_number || '',
+            latitude: latitude,
+            longitude: longitude,
+            notes: 'ถึงจุดรับแล้ว'
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Check-in failed');
+      }
+
+      // Also send job status update
+      await sendJobStatus({
+        jobId: job.id,
+        orderCode: job.order_code,
+        userId: user.id,
+        status: 'pickup_checked_in',
+        sequenceNumber: 2
+      });
+      
+      toast({
+        title: t('pickup.checkInSuccess'),
+        description: t('pickup.checkInSuccessMessage')
+      });
+      setShowConfirmDialog(false);
+      navigate(`/job/${job.order_code}/sop`);
+    } catch (error) {
+      console.error('Check-in error:', error);
+      toast({
+        title: t('pickup.error'),
+        description: 'ไม่สามารถเช็คอินได้ กรุณาลองใหม่อีกครั้ง',
+        variant: 'destructive'
+      });
+    }
   };
   const openGoogleMaps = () => {
     if (!job?.origin_latitude || !job?.origin_longitude) {
