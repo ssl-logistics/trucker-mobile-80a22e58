@@ -325,10 +325,13 @@ export default function DeliveryDetailPage() {
       const { error: podError } = await supabase.functions.invoke('receive-pod', {
         body: {
           order_number: job.order_code,
-          driver_name: user.full_name || 'Unknown Driver',
+          driver_name: user.full_name || user.first_name || 'Unknown Driver',
+          driver_phone: user.phone_number || user.phone || '',
+          driver_id: user.id,
           photo_url: photoUrl,
           latitude: podLatitude,
-          longitude: podLongitude
+          longitude: podLongitude,
+          notes: 'จัดส่งสำเร็จ'
         }
       });
       

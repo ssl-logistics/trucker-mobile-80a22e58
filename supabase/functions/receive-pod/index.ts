@@ -8,9 +8,12 @@ const corsHeaders = {
 interface PodPayload {
   order_number: string;
   driver_name: string;
+  driver_phone: string;
+  driver_id: string;
   photo_url: string;
   latitude: number;
   longitude: number;
+  notes: string;
 }
 
 serve(async (req) => {
@@ -27,8 +30,8 @@ serve(async (req) => {
     console.log('Payload:', JSON.stringify(payload, null, 2));
 
     // Validate required fields
-    const requiredFields = ['order_number', 'driver_name', 'photo_url', 'latitude', 'longitude'];
-    const missingFields = requiredFields.filter(field => !payload[field as keyof PodPayload]);
+    const requiredFields = ['order_number', 'driver_name', 'driver_phone', 'driver_id', 'photo_url', 'latitude', 'longitude', 'notes'];
+    const missingFields = requiredFields.filter(field => payload[field as keyof PodPayload] === undefined || payload[field as keyof PodPayload] === null);
     
     if (missingFields.length > 0) {
       console.error('Missing required fields:', missingFields);
