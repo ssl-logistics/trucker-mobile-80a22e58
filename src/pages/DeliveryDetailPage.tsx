@@ -368,7 +368,7 @@ export default function DeliveryDetailPage() {
       setShowConfirmDialog(false);
       
       // Navigate to Delivery SOP page to update status
-      navigate(`/delivery-sop/${job.order_code}`);
+      navigate(`/job/${job.order_code}/delivery-sop`);
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
