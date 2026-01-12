@@ -51,10 +51,53 @@ export default function SOPCheckInPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
+  const [existingSOP, setExistingSOP] = useState<any>(null);
 
   useEffect(() => {
     loadJobDetail();
   }, [jobId, user]);
+
+  useEffect(() => {
+    if (job && user) {
+      checkExistingSOP();
+    }
+  }, [job, user]);
+
+  const checkExistingSOP = async () => {
+    if (!user || !job) return;
+
+    try {
+      const response = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?order_number=${job.order_code}&freelance_driver_id=${user.id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          }
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          // Find pickup SOP
+          const pickupSOP = Array.isArray(result.data) 
+            ? result.data.find((s: any) => s.status === 'pickup')
+            : result.data.status === 'pickup' ? result.data : null;
+          
+          if (pickupSOP) {
+            setExistingSOP(pickupSOP);
+            // If SOP already exists, show existing photos
+            if (pickupSOP.product_images?.length > 0) {
+              setPhotoPreview(pickupSOP.product_images[0]);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing SOP:', error);
+    }
+  };
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
