@@ -357,7 +357,7 @@ export default function DomesticJobDetail({
                       navigate(`/job/${job.order_code}/pickup-summary`);
                     } else if (pickupCheckedIn) {
                       // Already checked in, go to SOP page
-                      navigate(`/job/${job.order_code}/sop-checkin`);
+                      navigate(`/job/${job.order_code}/sop`);
                     } else {
                       // Not checked in yet, go to check-in page
                       navigate(`/job/${job.order_code}/pickup`);
