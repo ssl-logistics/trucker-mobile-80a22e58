@@ -159,16 +159,14 @@ export default function DeliveryDetailPage() {
               const checkinsResult = await checkinsResponse.json();
               if (checkinsResult.success && checkinsResult.data) {
                 const deliveryCheckin = checkinsResult.data.find((c: any) => c.checkin_type === 'delivery');
-                if (deliveryCheckin) {
-                  setJobApplication(prev => ({
-                    ...prev,
-                    delivery_checked_in_at: deliveryCheckin.checkin_time,
-                    payment_completed_at: prev?.payment_completed_at || null,
-                    payment_method: prev?.payment_method || null,
-                    pod_photo_url: prev?.pod_photo_url || null,
-                    delivery_sop_completed_at: prev?.delivery_sop_completed_at || null,
-                  }));
-                }
+                // Always set jobApplication with check-in status
+                setJobApplication({
+                  delivery_checked_in_at: deliveryCheckin?.checkin_time || null,
+                  payment_completed_at: null,
+                  payment_method: null,
+                  pod_photo_url: null,
+                  delivery_sop_completed_at: null,
+                });
               }
             }
           } catch (checkinError) {
