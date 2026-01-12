@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import { formatDateTime } from "@/lib/dateUtils";
+import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 
 interface JobDetail {
   id: string;
@@ -18,14 +19,10 @@ interface JobDetail {
   start_time: string;
 }
 
-interface JobApplication {
+interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
-}
-
-interface SOPPhoto {
-  photo_url: string;
-  created_at: string;
+  sop_photo_url: string | null;
 }
 
 export default function PickupSummaryPage() {
@@ -34,9 +31,9 @@ export default function PickupSummaryPage() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
-  const [application, setApplication] = useState<JobApplication | null>(null);
-  const [sopPhoto, setSOPPhoto] = useState<SOPPhoto | null>(null);
+  const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
 
   useEffect(() => {
     loadData();
@@ -47,54 +44,110 @@ export default function PickupSummaryPage() {
 
     setLoading(true);
 
-    // Load job details
-    const { data: jobData, error: jobError } = await supabase
-      .from("jobs")
-      .select("id, order_code, employer_name, origin_location, start_date, start_time")
-      .eq("id", jobId)
-      .single();
+    try {
+      // Load job details from external API
+      const token = localStorage.getItem('external_access_token');
+      const externalUserId = localStorage.getItem('external_user_id');
 
-    if (jobError) {
+      if (!token || !externalUserId) {
+        toast({
+          title: t('pickupSummary.error'),
+          description: t('pickupSummary.loadError'),
+          variant: "destructive",
+        });
+        navigate("/current-jobs");
+        return;
+      }
+
+      // Fetch job detail from external API
+      const jobResponse = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${externalUserId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (jobResponse.ok) {
+        const jobResult = await jobResponse.json();
+        if (jobResult.success && jobResult.data) {
+          const foundJob = jobResult.data.find((j: any) => j.order_number === jobId);
+          if (foundJob) {
+            setJob({
+              id: foundJob.order_number,
+              order_code: foundJob.order_number,
+              employer_name: foundJob.pickup?.company_name || foundJob.employer_name || '',
+              origin_location: foundJob.pickup?.location || '',
+              start_date: foundJob.pickup?.date || '',
+              start_time: foundJob.pickup?.time || '',
+            });
+          }
+        }
+      }
+
+      // Fetch SOP data from API
+      const sopResponse = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${externalUserId}&order_number=${jobId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (sopResponse.ok) {
+        const sopResult = await sopResponse.json();
+        if (sopResult.success && sopResult.data) {
+          // Find pickup SOP
+          const pickupSOP = Array.isArray(sopResult.data)
+            ? sopResult.data.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
+            : (sopResult.data.sop_type === 'pickup' || sopResult.data.status === 'pickup') ? sopResult.data : null;
+
+          if (pickupSOP) {
+            // Get the first product image as SOP photo
+            const productImages = pickupSOP.product_images || [];
+            const sopPhotoUrl = productImages.length > 0 ? productImages[0] : null;
+
+            setSopData({
+              checked_in_at: pickupSOP.checked_in_at || pickupSOP.created_at || null,
+              sop_completed_at: pickupSOP.sop_completed_at || pickupSOP.created_at || null,
+              sop_photo_url: sopPhotoUrl,
+            });
+          }
+        }
+      }
+
+      // Also check local job_applications for check-in time
+      const { data: appData } = await supabase
+        .from("job_applications")
+        .select("checked_in_at, sop_completed_at")
+        .eq("job_id", jobId)
+        .eq("driver_id", user.id)
+        .single();
+
+      if (appData && !sopData?.checked_in_at) {
+        setSopData(prev => ({
+          ...prev,
+          checked_in_at: appData.checked_in_at || prev?.checked_in_at || null,
+          sop_completed_at: appData.sop_completed_at || prev?.sop_completed_at || null,
+          sop_photo_url: prev?.sop_photo_url || null,
+        }));
+      }
+
+    } catch (error) {
+      console.error('Error loading pickup summary:', error);
       toast({
         title: t('pickupSummary.error'),
         description: t('pickupSummary.loadError'),
         variant: "destructive",
       });
-      navigate("/current-jobs");
-      return;
-    }
-
-    setJob(jobData);
-
-    // Load job application
-    const { data: appData } = await supabase
-      .from("job_applications")
-      .select("checked_in_at, sop_completed_at")
-      .eq("job_id", jobId)
-      .eq("driver_id", user.id)
-      .single();
-
-    if (appData) {
-      setApplication(appData);
-    }
-
-    // Load SOP photo
-    const { data: photoData } = await supabase
-      .from("pickup_sop_photos")
-      .select("photo_url, created_at")
-      .eq("job_id", jobId)
-      .eq("driver_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (photoData) {
-      setSOPPhoto(photoData);
     }
 
     setLoading(false);
   };
-
 
   if (loading) {
     return (
@@ -114,7 +167,7 @@ export default function PickupSummaryPage() {
           <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('pickupSummary.title')} {job.employer_name || ''}</h1>
+          <h1 className="text-lg font-semibold">{job.employer_name || ''}</h1>
           <div className="w-6" />
         </div>
       </header>
@@ -125,44 +178,44 @@ export default function PickupSummaryPage() {
         <div className="bg-white rounded-xl p-4">
           <JobActionButtons jobId={jobId} />
         </div>
+
         {/* Check-in Status */}
-        {application?.checked_in_at && (
-          <Card className="p-4 bg-green-50 border-green-200">
+        {sopData?.checked_in_at && (
+          <Card className="p-4 bg-[#E6F7E6] border-green-200">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 flex justify-between items-center">
                 <div className="font-semibold text-green-900">{t('pickupSummary.checkInSuccess')}</div>
-                <div className="text-sm text-green-700">{formatDateTime(application.checked_in_at, language)}</div>
+                <div className="text-sm text-green-700">{formatDateTime(sopData.checked_in_at, language)}</div>
               </div>
             </div>
           </Card>
         )}
 
         {/* SOP Status */}
-        {application?.sop_completed_at && (
-          <Card className="p-4 bg-green-50 border-green-200">
+        {sopData?.sop_completed_at && (
+          <Card className="p-4 bg-[#E6F7E6] border-green-200">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 flex justify-between items-center">
                 <div className="font-semibold text-green-900">{t('pickupSummary.sopSuccess')}</div>
-                <div className="text-sm text-green-700">{formatDateTime(application.sop_completed_at, language)}</div>
+                <div className="text-sm text-green-700">{formatDateTime(sopData.sop_completed_at, language)}</div>
               </div>
             </div>
-          </Card>
-        )}
 
-        {/* SOP Photo */}
-        {sopPhoto && (
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">{t('pickupSummary.productPhoto')}</div>
-            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-              <img src={sopPhoto.photo_url} alt="SOP Photo" className="w-full h-full object-cover" />
-            </div>
-          </div>
+            {/* SOP Photo */}
+            {sopPhotoUrl && (
+              <div className="mt-4">
+                <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+                  <img src={sopPhotoUrl} alt="SOP Photo" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            )}
+          </Card>
         )}
       </div>
     </div>
