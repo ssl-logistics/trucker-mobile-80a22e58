@@ -142,7 +142,7 @@ export default function DeliveryDetailPage() {
             destination_remarks: foundJob.remarks,
             destination_time: foundJob.destination_delivery_time,
             destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
-            price: foundJob.driver_price || foundJob.price || 0,
+            price: foundJob.transport_price || 0,
           };
           setJob(mappedJob);
 
