@@ -55,7 +55,7 @@ serve(async (req) => {
     }
 
     // Forward to external system
-    const externalUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/receive-pod';
+    const externalUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/receive-pod';
     console.log('Forwarding POD to external system:', externalUrl);
     
     const externalResponse = await fetch(externalUrl, {
