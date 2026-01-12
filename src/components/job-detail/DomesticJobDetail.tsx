@@ -516,7 +516,7 @@ export default function DomesticJobDetail({
                       </Button>
                       <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.order_code}/delivery`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                        <span className="text-xs">{(deliverySopCompleted || jobApplication?.delivery_sop_completed_at) ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                       </Button>
                     </div>
                   </div>
