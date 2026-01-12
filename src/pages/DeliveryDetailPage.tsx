@@ -374,13 +374,11 @@ export default function DeliveryDetailPage() {
       return;
     }
 
-    // Show success toast with API response details
-    if (podSubmitSuccess && podApiResponse) {
-      toast({
-        title: "✅ " + (podApiResponse.message || t('delivery.podSuccess')),
-        description: `Order: ${podApiResponse.data?.order_number || job.order_code} | เวลา: ${new Date(podApiResponse.data?.checkin_time || Date.now()).toLocaleTimeString('th-TH')}`,
-      });
-    }
+    // Show success toast
+    toast({
+      title: t('delivery.podSuccess'),
+      description: t('delivery.podSuccessToast'),
+    });
     
     setShowPodConfirmDialog(false);
     setIsSubmittingPod(false);
