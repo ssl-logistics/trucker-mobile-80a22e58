@@ -154,39 +154,44 @@ export default function SOPCheckInPage() {
     setUploading(true);
 
     try {
-      // Upload photo to storage
-      const fileExt = photoFile.name.split('.').pop();
-      const fileName = `${user.id}/${job.id}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('vehicle-photos')
-        .upload(fileName, photoFile);
+      // First upload image to S3 via edge function
+      const formData = new FormData();
+      formData.append('file', photoFile);
+      formData.append('folder', 'mobile/sop-photos');
+      formData.append('filename', `${user.id}-${job.order_code}-${Date.now()}`);
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('vehicle-photos')
-        .getPublicUrl(fileName);
-
-      // Save SOP photo record
-      const { error: insertError } = await supabase
-        .from('pickup_sop_photos')
-        .insert({
-          job_id: job.id,
-          driver_id: user.id,
-          photo_url: publicUrl
-        });
-
-      if (insertError) throw insertError;
-
-      // Send job status update to external API
-      await sendJobStatus({
-        jobId: job.id,
-        orderCode: job.order_code,
-        userId: user.id,
-        status: 'pickup_sop_completed',
-        sequenceNumber: 2 // Pickup point
+      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
+        body: formData
       });
+
+      if (uploadError || !uploadData?.url) {
+        throw new Error('Failed to upload image');
+      }
+
+      const imageUrl = uploadData.url;
+
+      // Call driver-sop API
+      const response = await fetch(
+        'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/driver-sop',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+          },
+          body: JSON.stringify({
+            order_number: job.order_code,
+            freelance_driver_id: user.id,
+            product_images: [imageUrl],
+            status: 'pickup'
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit SOP');
+      }
 
       toast({
         title: t('sop.sopSuccess'),
