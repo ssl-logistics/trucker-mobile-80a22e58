@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Phone, MapPin, Camera, Check } from "lucide-react";
+import { ChevronLeft, Phone, MapPin, Camera, Check, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import Map from "@/components/Map";
@@ -589,23 +590,23 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
-        {/* POD Success - Show after POD completed */}
+        {/* POD Success - Show after POD completed (Same style as SOP success) */}
         {jobApplication?.delivery_sop_completed_at && (
-          <div className="bg-green-50 rounded-xl shadow-md p-4 space-y-4 border-2 border-green-500">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
-                  <Check className="w-6 h-6 text-white" />
-                </div>
-                <span className="font-semibold text-lg text-green-700">{t('delivery.podCompleted')}</span>
+          <Card className="p-4 bg-green-50 border-green-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-white" />
               </div>
-              <span className="text-sm text-green-600 font-medium">
-                {formatDateTime(jobApplication.delivery_sop_completed_at, language)}
-              </span>
+              <div className="flex-1">
+                <div className="font-semibold text-green-900">{t('delivery.podCompleted')}</div>
+                <div className="text-sm text-green-700">
+                  {formatDateTime(jobApplication.delivery_sop_completed_at, language)}
+                </div>
+              </div>
             </div>
 
             {/* Payment Info */}
-            <div className="bg-white rounded-lg p-4 border border-green-200">
+            <div className="mt-4 bg-white rounded-lg p-4 border border-green-200">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
                   <div className="text-gray-500 text-xs">{t('delivery.paymentMethod')}</div>
@@ -634,7 +635,7 @@ export default function DeliveryDetailPage() {
                 />
               </div>
             )}
-          </div>
+          </Card>
         )}
 
         <div className="border-b border-gray-200 pb-4">
