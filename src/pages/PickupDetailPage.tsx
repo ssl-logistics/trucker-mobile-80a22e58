@@ -180,7 +180,7 @@ export default function PickupDetailPage() {
         description: t('pickup.checkInSuccessMessage')
       });
       setShowConfirmDialog(false);
-      navigate(`/job/${job.order_code}/sop`);
+      navigate(`/job/${job.order_code}`);
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
