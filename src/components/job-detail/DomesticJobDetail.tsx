@@ -361,7 +361,8 @@ export default function DomesticJobDetail({
                         กำลังตรวจสอบ...
                       </span>
                     ) : (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'text-green-600 bg-[#E6F7E6]' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1 ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'text-green-600 bg-[#E6F7E6]' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {(pickupSopCompleted || jobApplication?.sop_completed_at) && <CheckCircle className="w-3 h-3" />}
                         {(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                       </span>
                     )}
@@ -434,7 +435,8 @@ export default function DomesticJobDetail({
                           {dest.company_name && <span className="text-sm font-medium text-[#225795]">: {dest.company_name}</span>}
                         </div>
                         {(pickupSopCompleted || jobApplication?.sop_completed_at) && (
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1 ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                            {isPodCompleted && <CheckCircle className="w-3 h-3" />}
                             {isPodCompleted ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
                           </span>
                         )}
@@ -490,7 +492,8 @@ export default function DomesticJobDetail({
                         {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
                       </div>
                       {(pickupSopCompleted || jobApplication?.sop_completed_at) && (
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1 ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                          {isPodCompleted && <CheckCircle className="w-3 h-3" />}
                           {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPayment') : t('jobDetail.waitingCheckIn')}
                         </span>
                       )}
