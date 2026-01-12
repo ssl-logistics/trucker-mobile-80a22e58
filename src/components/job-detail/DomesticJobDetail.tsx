@@ -468,7 +468,7 @@ export default function DomesticJobDetail({
                           <img src={routeIcon} alt="route" className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className={`h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent ${isPodCompleted ? 'bg-green-600 hover:bg-green-700' : 'bg-[#225896]'}`} onClick={() => navigate(`/job/${job.order_code}/delivery/${dest.id}`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => navigate(`/job/${job.order_code}/delivery/${dest.id}`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
@@ -528,7 +528,7 @@ export default function DomesticJobDetail({
                         <img src={routeIcon} alt="route" className="w-4 h-4" />
                         <span className="text-xs">{t('jobDetail.route')}</span>
                       </Button>
-                      <Button size="sm" className={`h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent ${isPodCompleted ? 'bg-green-600 hover:bg-green-700' : 'bg-[#225896]'}`} onClick={() => navigate(`/job/${job.order_code}/delivery`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => navigate(`/job/${job.order_code}/delivery`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                         <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                       </Button>
