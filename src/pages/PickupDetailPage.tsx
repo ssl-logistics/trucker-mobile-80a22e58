@@ -16,6 +16,7 @@ import checkInIcon from '@/assets/check-in-icon.png';
 interface JobDetail {
   id: string;
   order_code: string;
+  order_number?: string;
   employer_name: string;
   origin_location: string;
   start_date: string;
@@ -29,6 +30,8 @@ interface JobDetail {
   origin_remarks?: string | null;
   origin_address?: string | null;
   origin_company_name?: string | null;
+  driver_name?: string;
+  driver_phone?: string;
 }
 export default function PickupDetailPage() {
   const navigate = useNavigate();
@@ -144,10 +147,10 @@ export default function PickupDetailPage() {
             'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
           },
           body: JSON.stringify({
-            order_number: job.order_code,
+            order_number: job.order_number || job.order_code,
             checkin_type: 'pickup',
-            driver_name: user.full_name || user.username || '',
-            driver_phone: user.phone_number || '',
+            driver_name: job.driver_name || user.full_name || user.username || '',
+            driver_phone: job.driver_phone || user.phone_number || '',
             latitude: latitude,
             longitude: longitude,
             notes: 'ถึงจุดรับแล้ว'
