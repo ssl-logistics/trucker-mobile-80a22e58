@@ -265,74 +265,88 @@ export default function DeliveryDetailPage() {
     navigate(`/job/${job.id}`);
   };
 
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+
   const handleCheckIn = async () => {
-    if (!job || !user) return;
+    if (!job || !user || isCheckingIn) return;
 
-    // If we have a specific destination, update job_destinations table
-    if (destination && destinationId) {
-      const { error } = await supabase
-        .from("job_destinations")
-        .update({
-          checked_in_at: new Date().toISOString(),
-        })
-        .eq("id", destinationId);
+    setIsCheckingIn(true);
 
-      if (error) {
-        toast({
-          title: t('delivery.error'),
-          description: t('pickup.checkInError'),
-          variant: "destructive",
-        });
-        return;
+    try {
+      // Get current location
+      let latitude = displayLatitude || 0;
+      let longitude = displayLongitude || 0;
+      
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+        } catch (geoError) {
+          console.log('Could not get current location, using job location');
+        }
       }
 
-      // Send job status update
+      // Call check-in API via proxy with checkin_type: 'delivery'
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            order_number: job.order_code,
+            checkin_type: 'delivery',
+            freelance_driver_id: user.id,
+            driver_name: user.full_name || user.username || '',
+            driver_phone: user.phone_number || '',
+            driver_avatar: user.avatar_url || '',
+            latitude: latitude,
+            longitude: longitude,
+            notes: 'ถึงจุดส่งแล้ว'
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Check-in failed');
+      }
+
+      // Also send job status update
       await sendJobStatus({
         jobId: job.id,
         orderCode: job.order_code,
         userId: user.id,
         status: 'delivery_checked_in',
-        sequenceNumber: destination.sequence_number,
+        sequenceNumber: destination?.sequence_number || 3,
         destinationId: destinationId
       });
-    } else {
-      // Fallback to old behavior for legacy routes
-      const { error } = await supabase
-        .from("job_applications")
-        .update({
-          delivery_checked_in_at: new Date().toISOString(),
-          status: "delivery_checked_in",
-        })
-        .eq("job_id", job.id)
-        .eq("driver_id", user.id);
 
-      if (error) {
-        toast({
-          title: t('delivery.error'),
-          description: t('pickup.checkInError'),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Send job status update
-      await sendJobStatus({
-        jobId: job.id,
-        orderCode: job.order_code,
-        userId: user.id,
-        status: 'delivery_checked_in',
-        sequenceNumber: 3
+      toast({
+        title: t('delivery.checkInSuccess'),
+        description: t('pickup.checkInSuccessMessage'),
       });
+      setShowConfirmDialog(false);
+      
+      // Reload to show updated state
+      loadJobDetail();
+    } catch (error) {
+      console.error('Check-in error:', error);
+      toast({
+        title: t('delivery.error'),
+        description: 'ไม่สามารถเช็คอินได้ กรุณาลองใหม่อีกครั้ง',
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingIn(false);
     }
-
-    toast({
-      title: t('delivery.checkInSuccess'),
-      description: t('pickup.checkInSuccessMessage'),
-    });
-    setShowConfirmDialog(false);
-
-    // Reload to show updated state
-    loadJobDetail();
   };
 
   // Determine which check-in status to use
