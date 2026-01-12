@@ -513,7 +513,8 @@ export default function DeliveryDetailPage() {
       <div className="px-4 py-6 space-y-6">
         <JobActionButtons jobId={jobId} />
 
-        {isCheckedIn && checkedInAt && (
+        {/* Check-in Success Card - Only show when POD is NOT completed yet */}
+        {isCheckedIn && checkedInAt && !jobApplication?.delivery_sop_completed_at && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -531,7 +532,8 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
-        {jobApplication?.payment_completed_at && (
+        {/* Payment Info - Only show when POD is NOT completed yet */}
+        {jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -687,8 +689,8 @@ export default function DeliveryDetailPage() {
 
       </div>
 
-      {/* Check-in Button - Hide after check-in */}
-      {!isCheckedIn && (
+      {/* Check-in Button - Hide after check-in or when POD completed */}
+      {!isCheckedIn && !jobApplication?.delivery_sop_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -700,8 +702,8 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* SOP Button - Show after check-in for multi-destination */}
-      {isCheckedIn && !isSopCompleted && destination && (
+      {/* SOP Button - Show after check-in for multi-destination, hide when POD completed */}
+      {isCheckedIn && !isSopCompleted && destination && !jobApplication?.delivery_sop_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -712,8 +714,8 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* Payment Button - Show after check-in, hide after payment (legacy) */}
-      {!destination && jobApplication?.delivery_checked_in_at && !jobApplication?.payment_completed_at && (
+      {/* Payment Button - Show after check-in, hide after payment OR when POD completed */}
+      {!destination && jobApplication?.delivery_checked_in_at && !jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -724,7 +726,7 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* POD Confirm Button - Show after payment, hide after POD completed (legacy) */}
+      {/* POD Confirm Button - Show after payment, hide after POD completed */}
       {!destination && jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
