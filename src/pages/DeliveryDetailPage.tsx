@@ -367,8 +367,8 @@ export default function DeliveryDetailPage() {
       });
       setShowConfirmDialog(false);
       
-      // Reload to show updated state
-      loadJobDetail();
+      // Navigate to Delivery SOP page to update status
+      navigate(`/delivery-sop/${job.order_code}`);
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
