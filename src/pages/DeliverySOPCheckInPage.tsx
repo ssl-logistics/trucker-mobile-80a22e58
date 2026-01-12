@@ -238,7 +238,7 @@ export default function DeliverySOPCheckInPage() {
         description: t('deliverySop.sopSuccessMessage'),
       });
 
-      navigate(`/job/${job.id}`);
+      navigate(`/job/${job.order_code}`);
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
@@ -270,7 +270,7 @@ export default function DeliverySOPCheckInPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.id}`)} className="p-1">
+          <button onClick={() => navigate(`/job/${job.order_code}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('deliverySop.title')} {displayCompanyName}</h1>
