@@ -96,8 +96,37 @@ export default function DomesticJobDetail({
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [destinations, setDestinations] = useState<JobDestination[]>([]);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
+  const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
+
+  // Fetch check-in status from external API
+  useEffect(() => {
+    const fetchCheckinStatus = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${userId}&order_number=${job.order_code}`,
+          { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+        );
+        const result = await response.json();
+        console.log('Fetched check-in status:', result);
+        
+        // Check if pickup checkin exists - API returns { success: true, data: [...] }
+        const checkins = result?.data || result || [];
+        const hasPickupCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
+        setPickupCheckedIn(hasPickupCheckin);
+      } catch (error) {
+        console.error('Error fetching check-in status:', error);
+        setPickupCheckedIn(false);
+      } finally {
+        setIsLoadingCheckinStatus(false);
+      }
+    };
+    
+    if (userId && job.order_code) {
+      fetchCheckinStatus();
+    }
+  }, [userId, job.order_code]);
+
   useEffect(() => {
     // Calculate card heights for step positioning
     if (card1Ref.current) {
@@ -272,16 +301,23 @@ export default function DomesticJobDetail({
             {/* Right Content Column */}
             <div className="flex-1 space-y-3">
               {/* Pickup Point Card */}
-              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : 'border-teal-500 bg-[#F6FFFE]'}`}>
+              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : 'border-teal-500 bg-[#F6FFFE]'}`}>
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.pickupPoint')}</h3>
                       {job.origin_company_name && <span className="text-sm font-medium text-[#225795]">: {job.origin_company_name}</span>}
                     </div>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.checked_in_at ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                      {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
-                    </span>
+                    {isLoadingCheckinStatus ? (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
+                        <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
+                        กำลังตรวจสอบ...
+                      </span>
+                    ) : (
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
+                      </span>
+                    )}
                   </div>
 
                   <div className="space-y-1 text-sm mb-3">
@@ -316,42 +352,18 @@ export default function DomesticJobDetail({
                       <img src={routeIcon} alt="route" className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
-                    <Button size="sm" onClick={async () => {
+                    <Button size="sm" onClick={() => {
                     if (jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.order_code}/pickup-summary`);
+                    } else if (pickupCheckedIn) {
+                      // Already checked in, go to SOP page
+                      navigate(`/job/${job.order_code}/sop-checkin`);
                     } else {
-                      // Check if already checked in via external API
-                      setIsCheckingStatus(true);
-                      try {
-                        const response = await fetch(
-                          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${userId}&order_number=${job.order_code}`,
-                          { method: 'GET', headers: { 'Content-Type': 'application/json' } }
-                        );
-                        const data = await response.json();
-                        console.log('Check-in status:', data);
-                        
-                        // Check if pickup checkin exists
-                        const pickupCheckin = Array.isArray(data) 
-                          ? data.find((c: DriverCheckin) => c.checkin_type === 'pickup')
-                          : null;
-                        
-                        if (pickupCheckin) {
-                          // Already checked in, go to SOP page
-                          navigate(`/job/${job.order_code}/sop-checkin`);
-                        } else {
-                          // Not checked in yet, go to check-in page
-                          navigate(`/job/${job.order_code}/pickup`);
-                        }
-                      } catch (error) {
-                        console.error('Error checking status:', error);
-                        // Fallback to check-in page on error
-                        navigate(`/job/${job.order_code}/pickup`);
-                      } finally {
-                        setIsCheckingStatus(false);
-                      }
+                      // Not checked in yet, go to check-in page
+                      navigate(`/job/${job.order_code}/pickup`);
                     }
-                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isCheckingStatus}>
-                      {isCheckingStatus ? (
+                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isLoadingCheckinStatus}>
+                      {isLoadingCheckinStatus ? (
                         <Loader2 className="w-4 h-4 animate-spin text-white" />
                       ) : (
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
