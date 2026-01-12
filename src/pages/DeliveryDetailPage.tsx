@@ -301,6 +301,46 @@ export default function DeliveryDetailPage() {
       return;
     }
 
+    // Get current location for POD
+    let podLatitude = 0;
+    let podLongitude = 0;
+    if (navigator.geolocation) {
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          });
+        });
+        podLatitude = position.coords.latitude;
+        podLongitude = position.coords.longitude;
+      } catch (geoError) {
+        console.log('Could not get location for POD:', geoError);
+      }
+    }
+
+    // Send POD to external API
+    try {
+      const { error: podError } = await supabase.functions.invoke('receive-pod', {
+        body: {
+          order_number: job.order_code,
+          driver_name: user.full_name || 'Unknown Driver',
+          photo_url: photoUrl,
+          latitude: podLatitude,
+          longitude: podLongitude
+        }
+      });
+      
+      if (podError) {
+        console.error('POD API error:', podError);
+      } else {
+        console.log('POD submitted to external API successfully');
+      }
+    } catch (podApiError) {
+      console.error('Error calling POD API:', podApiError);
+    }
+
     // Send job status update to external API
     await sendJobStatus({
       jobId: job.id,
