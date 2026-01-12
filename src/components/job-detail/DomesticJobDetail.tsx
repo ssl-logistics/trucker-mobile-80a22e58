@@ -97,33 +97,60 @@ export default function DomesticJobDetail({
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [destinations, setDestinations] = useState<JobDestination[]>([]);
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
+  const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
 
-  // Fetch check-in status from external API
+  // Fetch check-in status and SOP status from external APIs
   useEffect(() => {
-    const fetchCheckinStatus = async () => {
+    const fetchStatuses = async () => {
       try {
-        const response = await fetch(
+        // Fetch check-in status
+        const checkinResponse = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${userId}&order_number=${job.order_code}`,
           { method: 'GET', headers: { 'Content-Type': 'application/json' } }
         );
-        const result = await response.json();
-        console.log('Fetched check-in status:', result);
+        const checkinResult = await checkinResponse.json();
+        console.log('Fetched check-in status:', checkinResult);
         
-        // Check if pickup checkin exists - API returns { success: true, data: [...] }
-        const checkins = result?.data || result || [];
+        const checkins = checkinResult?.data || checkinResult || [];
         const hasPickupCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         setPickupCheckedIn(hasPickupCheckin);
+
+        // Fetch SOP status from external API
+        const sopResponse = await fetch(
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?order_number=${job.order_code}&freelance_driver_id=${userId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+            }
+          }
+        );
+        
+        if (sopResponse.ok) {
+          const sopResult = await sopResponse.json();
+          console.log('Fetched SOP status:', sopResult);
+          
+          if (sopResult.success && sopResult.data) {
+            // Check for pickup SOP
+            const pickupSOP = Array.isArray(sopResult.data)
+              ? sopResult.data.find((s: any) => s.status === 'pickup')
+              : sopResult.data.status === 'pickup' ? sopResult.data : null;
+            
+            setPickupSopCompleted(!!pickupSOP);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching check-in status:', error);
+        console.error('Error fetching statuses:', error);
         setPickupCheckedIn(false);
+        setPickupSopCompleted(false);
       } finally {
         setIsLoadingCheckinStatus(false);
       }
     };
     
     if (userId && job.order_code) {
-      fetchCheckinStatus();
+      fetchStatuses();
     }
   }, [userId, job.order_code]);
 
@@ -266,7 +293,7 @@ export default function DomesticJobDetail({
               height: `${cardHeights.card1 || 200}px`
             }}>
                 <div className="absolute top-0">
-                  {jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                  {(pickupSopCompleted || jobApplication?.sop_completed_at) ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
                       <CheckCircle className="w-4 h-4 text-white" />
                     </div> : <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" />}
                 </div>
@@ -292,7 +319,7 @@ export default function DomesticJobDetail({
                   <div className="absolute top-0">
                     {isSopCompleted ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
                         <CheckCircle className="w-4 h-4 text-white" />
-                      </div> : isCheckedIn ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
+                      </div> : isCheckedIn ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : (pickupSopCompleted || jobApplication?.sop_completed_at) ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
                   </div>
                 </div>;
             })}
@@ -301,7 +328,7 @@ export default function DomesticJobDetail({
             {/* Right Content Column */}
             <div className="flex-1 space-y-3">
               {/* Pickup Point Card */}
-              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : 'border-teal-500 bg-[#F6FFFE]'}`}>
+              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : 'border-teal-500 bg-[#F6FFFE]'}`}>
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
@@ -314,8 +341,8 @@ export default function DomesticJobDetail({
                         กำลังตรวจสอบ...
                       </span>
                     ) : (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                        {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'text-green-600 bg-green-50' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                       </span>
                     )}
                   </div>
@@ -353,7 +380,7 @@ export default function DomesticJobDetail({
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
                     <Button size="sm" onClick={() => {
-                    if (jobApplication?.sop_completed_at) {
+                    if (pickupSopCompleted || jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.order_code}/pickup-summary`);
                     } else if (pickupCheckedIn) {
                       // Already checked in, go to SOP page
@@ -368,21 +395,21 @@ export default function DomesticJobDetail({
                       ) : (
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       )}
-                      <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                      <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
                 </div>
               </Card>
 
               {/* Delivery Point Cards - Multiple destinations */}
-              {destinations.length > 0 ? destinations.map((dest, index) => <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${dest.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                    <div className={`${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
+              {destinations.length > 0 ? destinations.map((dest, index) => <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${dest.sop_completed_at ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                    <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
                           {dest.company_name && <span className="text-sm font-medium text-[#225795]">: {dest.company_name}</span>}
                         </div>
-                        {jobApplication?.sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${dest.sop_completed_at ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {(pickupSopCompleted || jobApplication?.sop_completed_at) && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${dest.sop_completed_at ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                             {dest.sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
                           </span>}
                       </div>
@@ -407,15 +434,15 @@ export default function DomesticJobDetail({
                       </div>
 
                       <div className="grid grid-cols-3 gap-2">
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.sop_completed_at}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                           <Phone className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                           <img src={routeIcon} alt="route" className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.order_code}/delivery/${dest.id}`)} disabled={!jobApplication?.sop_completed_at}>
+                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.order_code}/delivery/${dest.id}`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           <span className="text-xs">{dest.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
@@ -423,14 +450,14 @@ export default function DomesticJobDetail({
                     </div>
                   </Card>) :
             // Fallback to original single destination from jobs table
-            <Card className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                  <div className={`${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
+            <Card className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                  <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
                         {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
                       </div>
-                      {jobApplication?.sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                      {(pickupSopCompleted || jobApplication?.sop_completed_at) && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                           {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
                         </span>}
                     </div>
@@ -459,15 +486,15 @@ export default function DomesticJobDetail({
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
-                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.sop_completed_at}>
+                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                         <Phone className="w-4 h-4" />
                         <span className="text-xs">{t('jobDetail.call')}</span>
                       </Button>
-                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at}>
+                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                         <img src={routeIcon} alt="route" className="w-4 h-4" />
                         <span className="text-xs">{t('jobDetail.route')}</span>
                       </Button>
-                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.order_code}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
+                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.order_code}/delivery`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                         <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                       </Button>
