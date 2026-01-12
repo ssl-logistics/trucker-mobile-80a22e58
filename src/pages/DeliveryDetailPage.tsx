@@ -216,8 +216,8 @@ export default function DeliveryDetailPage() {
     });
     setShowPaymentDrawer(false);
     
-    // Navigate to POD/Delivery SOP page after payment confirmation
-    navigate(`/job/${job.order_code}/delivery-sop`);
+    // Reload page to show POD section after payment confirmation
+    loadJobDetail();
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
