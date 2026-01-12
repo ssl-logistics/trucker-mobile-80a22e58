@@ -54,18 +54,17 @@ serve(async (req) => {
       );
     }
 
-    // Forward to external system
-    const externalUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/receive-pod';
+    // Forward to external system (match login-style calling convention)
+    const externalUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/receive-pod';
     console.log('Forwarding POD to external system:', externalUrl);
-    
+
     const externalResponse = await fetch(externalUrl, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'apikey': apiKey,
-        'x-api-key': apiKey
+        'x-api-key': apiKey,
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const externalResult = await externalResponse.text();
@@ -79,18 +78,25 @@ serve(async (req) => {
       responseData = { message: externalResult };
     }
 
-    console.log('POD submission processed successfully');
-    console.log('================================');
+    const ok = externalResponse.ok;
+
+    if (ok) {
+      console.log('POD submission processed successfully');
+      console.log('================================');
+    } else {
+      console.error('External POD submission failed');
+      console.log('================================');
+    }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'POD submitted successfully',
-        data: responseData
+      JSON.stringify({
+        success: ok,
+        message: ok ? 'POD submitted successfully' : 'POD submission failed',
+        data: responseData,
       }),
-      { 
-        status: externalResponse.status, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: externalResponse.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
 
