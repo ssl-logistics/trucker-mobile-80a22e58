@@ -117,8 +117,14 @@ export default function DomesticJobDetail({
         const checkins = checkinResult?.data || checkinResult || [];
         const hasPickupCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         const hasDeliveryCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
+        const hasDeliveryConfirmed = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
+        
+        // If delivery_confirmed exists, set deliverySopCompleted to true
+        if (hasDeliveryConfirmed) {
+          setDeliverySopCompleted(true);
+        }
 
         // Fetch SOP status from external API using freelance_driver_id
         const sopResponse = await fetch(
