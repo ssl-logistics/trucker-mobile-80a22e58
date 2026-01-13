@@ -280,21 +280,21 @@ serve(async (req) => {
 
     console.log('Successfully upserted job:', upsertedJob.id);
 
-    // Send push notifications to all freelance drivers
+    // Send push notifications to all registered devices (broadcast)
     try {
       console.log('Sending push notifications for new job...');
       
-      // Get all freelance users from user_roles table
-      const { data: freelanceUsers, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'freelance');
+      // Get all push subscriptions directly (no role filtering)
+      const { data: subscriptions, error: subError } = await supabase
+        .from('push_subscriptions')
+        .select('user_id');
       
-      if (rolesError) {
-        console.error('Error fetching freelance users:', rolesError);
-      } else if (freelanceUsers && freelanceUsers.length > 0) {
-        const userIds = freelanceUsers.map(u => u.user_id);
-        console.log(`Found ${userIds.length} freelance users to notify`);
+      if (subError) {
+        console.error('Error fetching push subscriptions:', subError);
+      } else if (subscriptions && subscriptions.length > 0) {
+        // Get unique user_ids
+        const userIds = [...new Set(subscriptions.map(s => s.user_id))];
+        console.log(`Found ${userIds.length} users with push subscriptions to notify`);
         
         // Call send-push-notification function
         const notificationPayload = {
@@ -326,7 +326,7 @@ serve(async (req) => {
           console.error('Failed to send push notifications:', errorText);
         }
       } else {
-        console.log('No freelance users found to notify');
+        console.log('No push subscriptions found');
       }
     } catch (notifError) {
       console.error('Error sending push notifications:', notifError);
