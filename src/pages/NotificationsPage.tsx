@@ -196,9 +196,9 @@ export default function NotificationsPage() {
 
   // Navigate to job detail page
   const handleViewJobDetail = () => {
-    if (selectedNotification?.reference_id) {
+    if (selectedJob?.id) {
       setModalOpen(false);
-      navigate(`/job/${selectedNotification.reference_id}`);
+      navigate(`/job/${selectedJob.id}`);
     }
   };
 
