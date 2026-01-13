@@ -3,6 +3,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
 import InternationalJobDetail from '@/components/job-detail/InternationalJobDetail';
 
@@ -107,7 +108,7 @@ interface AcceptedJobAPI {
 }
 
 export default function JobDetailPage() {
-  const { jobId } = useParams(); // This is now order_number
+  const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -125,16 +126,47 @@ export default function JobDetailPage() {
     if (!user || !jobId) return;
 
     setLoading(true);
-    
+
     try {
-      // Fetch from external API
+      // 1) Try loading from our database first (jobs table)
+      const { data: dbJob, error: dbJobError } = await supabase
+        .from('jobs')
+        .select(
+          'id,order_code,job_type,employer_name,transport_type,origin_location,origin_address,origin_company_name,destination_location,destination_address,destination_company_name,price,start_date,start_time,equipment_list,safety_equipment,container_checkpoint,container_checkpoint_code,empty_container_date,container_number,container_number_2,seal_number,seal_number_2,origin_contact_person,origin_contact_role,origin_bill_of_lading,origin_goods_type,origin_goods_quantity,origin_remarks,destination_contact_person,destination_bill_of_lading,destination_goods_type,destination_goods_quantity,destination_time,destination_date,destination_remarks,tax_id'
+        )
+        .or(`order_code.eq.${jobId},id.eq.${jobId}`)
+        .maybeSingle();
+
+      if (!dbJobError && dbJob) {
+        const mappedJob: JobDetail = {
+          ...(dbJob as unknown as JobDetail),
+          price: Number((dbJob as any).price),
+        };
+
+        setJob(mappedJob);
+
+        // If the user has already applied/accepted this job, load their application status
+        const { data: dbApplication } = await supabase
+          .from('job_applications')
+          .select(
+            'checked_in_at,sop_completed_at,job_started_at,delivery_checked_in_at,delivery_sop_completed_at,container_checked_in_at,container_sop_completed_at,status'
+          )
+          .eq('job_id', (dbJob as any).id)
+          .eq('driver_id', user.id)
+          .maybeSingle();
+
+        setJobApplication(dbApplication ?? null);
+        return;
+      }
+
+      // 2) Fallback: Fetch from external API (accepted jobs)
       const response = await fetch(
         `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
-          }
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+          },
         }
       );
 
@@ -143,11 +175,11 @@ export default function JobDetailPage() {
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         // Find the specific job by order_number
         const foundJob = result.data.find((j: AcceptedJobAPI) => j.order_number === jobId);
-        
+
         if (foundJob) {
           // Map API response to JobDetail interface
           const mappedJob: JobDetail = {
@@ -189,7 +221,7 @@ export default function JobDetailPage() {
             destination_remarks: foundJob.remarks,
             tax_id: null,
           };
-          
+
           setJob(mappedJob);
 
           // Create a mock job application based on status
@@ -203,13 +235,13 @@ export default function JobDetailPage() {
             container_sop_completed_at: null,
             status: foundJob.status,
           };
-          
+
           setJobApplication(mockJobApplication);
         } else {
           toast({
             title: t('jobDetail.error'),
             description: t('jobDetail.notFound'),
-            variant: 'destructive'
+            variant: 'destructive',
           });
         }
       }
@@ -218,7 +250,7 @@ export default function JobDetailPage() {
       toast({
         title: t('jobDetail.error'),
         description: t('jobDetail.errorLoadDesc'),
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
