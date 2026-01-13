@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon, MapPin, Banknote, Truck, Calendar as CalendarIconLucide, Clock } from 'lucide-react';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { th, enUS, ko, zhCN } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +31,19 @@ interface Notification {
   created_at: string;
 }
 
+interface Job {
+  id: string;
+  order_code: string;
+  origin_location: string;
+  destination_location: string;
+  price: number;
+  start_date: string;
+  start_time: string;
+  transport_type: string;
+  job_type: string;
+  employer_name: string;
+}
+
 export default function NotificationsPage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
@@ -37,6 +51,10 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loadingJob, setLoadingJob] = useState(false);
 
   // Fetch notifications from database
   useEffect(() => {
@@ -152,9 +170,35 @@ export default function NotificationsPage() {
       );
     }
 
-    // Navigate based on reference type
+    setSelectedNotification(notification);
+
+    // Fetch job details if reference type is job
     if (notification.reference_type === 'job' && notification.reference_id) {
-      navigate(`/job/${notification.reference_id}`);
+      setLoadingJob(true);
+      setDrawerOpen(true);
+      
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('id, order_code, origin_location, destination_location, price, start_date, start_time, transport_type, job_type, employer_name')
+        .eq('id', notification.reference_id)
+        .single();
+
+      if (!error && data) {
+        setSelectedJob(data);
+      } else {
+        setSelectedJob(null);
+      }
+      setLoadingJob(false);
+    } else {
+      setDrawerOpen(true);
+    }
+  };
+
+  // Navigate to job detail page
+  const handleViewJobDetail = () => {
+    if (selectedNotification?.reference_id) {
+      setDrawerOpen(false);
+      navigate(`/job/${selectedNotification.reference_id}`);
     }
   };
 
@@ -255,6 +299,115 @@ export default function NotificationsPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Job Detail Drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader className="border-b">
+            <DrawerTitle className="text-center">
+              {t('notifications.jobDetail') || 'รายละเอียดงาน'}
+            </DrawerTitle>
+          </DrawerHeader>
+          
+          <div className="p-4 overflow-y-auto">
+            {loadingJob ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="text-sm mt-3 text-muted-foreground">{t('common.loading') || 'กำลังโหลด...'}</p>
+              </div>
+            ) : selectedJob ? (
+              <div className="space-y-4">
+                {/* Order Code */}
+                <div className="bg-primary/10 rounded-lg p-3 text-center">
+                  <p className="text-xs text-muted-foreground">{t('job.orderCode') || 'รหัสงาน'}</p>
+                  <p className="font-bold text-primary text-lg">{selectedJob.order_code}</p>
+                </div>
+
+                {/* Route */}
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t('job.origin') || 'ต้นทาง'}</p>
+                      <p className="font-medium">{selectedJob.origin_location}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t('job.destination') || 'ปลายทาง'}</p>
+                      <p className="font-medium">{selectedJob.destination_location}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+                  <Banknote className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">{t('job.price') || 'ราคา'}</p>
+                    <p className="font-bold text-lg text-primary">฿{selectedJob.price.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                {/* Date & Time */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                    <CalendarIconLucide className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t('job.date') || 'วันที่'}</p>
+                      <p className="font-medium text-sm">
+                        {format(parseISO(selectedJob.start_date), 'd MMM yyyy', { locale: getLocale() })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t('job.time') || 'เวลา'}</p>
+                      <p className="font-medium text-sm">{selectedJob.start_time}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transport Type & Job Type */}
+                <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+                  <Truck className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">{t('job.transportType') || 'ประเภทการขนส่ง'}</p>
+                    <p className="font-medium">{selectedJob.transport_type} • {selectedJob.job_type}</p>
+                  </div>
+                </div>
+
+                {/* Employer */}
+                <div className="text-center text-sm text-muted-foreground">
+                  {t('job.employer') || 'ผู้ว่าจ้าง'}: <span className="font-medium text-foreground">{selectedJob.employer_name}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                <p>{t('notifications.noJobDetail') || 'ไม่พบข้อมูลงาน'}</p>
+              </div>
+            )}
+          </div>
+
+          <DrawerFooter className="border-t">
+            {selectedJob && (
+              <Button onClick={handleViewJobDetail} className="w-full">
+                {t('notifications.viewJobDetail') || 'ดูรายละเอียดงาน'}
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setDrawerOpen(false)} className="w-full">
+              {t('common.close') || 'ปิด'}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
