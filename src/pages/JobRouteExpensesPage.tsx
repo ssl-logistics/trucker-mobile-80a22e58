@@ -193,29 +193,34 @@ export default function JobRouteExpensesPage() {
           sop_completed_at: ['delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
         };
         setDestinations([destination]);
+        // Load expenses using the actual UUID from API
+        const { data: expensesData, error: expensesError } = await supabase
+          .from('expenses')
+          .select('*')
+          .eq('job_id', apiJob.id)
+          .eq('driver_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (expensesError) {
+          console.error('Error loading expenses:', expensesError);
+        }
+        setExpenses(expensesData || []);
       } else {
         // Job not found in API
         setJob(null);
         setJobApplication(null);
+        setExpenses([]);
       }
-
-      // Load expenses from local database
-      const { data: expensesData, error: expensesError } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('job_id', jobId)
-        .eq('driver_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (expensesError) throw expensesError;
-      setExpenses(expensesData || []);
     } catch (error) {
       console.error('Error loading job data:', error);
-      toast({
-        title: t('jobRoute.error'),
-        description: t('jobRoute.loadError'),
-        variant: 'destructive'
-      });
+      // Don't show error toast if we have job data but expenses failed
+      if (!job) {
+        toast({
+          title: t('jobRoute.error'),
+          description: t('jobRoute.loadError'),
+          variant: 'destructive'
+        });
+      }
     } finally {
       setLoading(false);
     }
