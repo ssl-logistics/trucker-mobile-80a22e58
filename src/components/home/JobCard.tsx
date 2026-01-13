@@ -57,7 +57,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
 
   const handleGoToJobPage = () => {
     setDetailModalOpen(false);
-    navigate(`/job/${job.id}`);
+    navigate(`/job/${job.order_code}`);
   };
 
   return (
