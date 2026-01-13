@@ -303,7 +303,7 @@ export default function CustomerPage() {
                   {pieData.map((entry, index) => (
                     <div key={index} className="flex items-center gap-2 min-w-0">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-                      <span className="text-xs text-gray-700 truncate max-w-[120px]">{entry.name}</span>
+                      <span className="text-xs text-gray-700 truncate max-w-[80px]">{entry.name}</span>
                     </div>
                   ))}
                 </div>
