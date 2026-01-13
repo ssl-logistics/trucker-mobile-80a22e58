@@ -7,13 +7,36 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface JobData {
+// External API job interface
+interface ExternalJob {
   id: string;
   sender_name: string;
   transport_price: number;
   sender_pickup_date: string;
   created_at: string;
+}
+
+// Local job application interface
+interface JobApplication {
+  id: string;
+  applied_at: string;
+  status: string;
+  jobs: {
+    id: string;
+    employer_name: string;
+    destination_company_name: string | null;
+    price: number;
+    start_date: string;
+  } | null;
+}
+
+// Unified job data for customer aggregation
+interface JobData {
+  customerName: string;
+  amount: number;
+  date: string;
 }
 
 interface CustomerData {
@@ -28,6 +51,7 @@ const COLORS = ['#14b8a6', '#3b82f6', '#8b5cf6', '#eab308', '#ef4444', '#10b981'
 export default function CustomerPage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [timePeriod, setTimePeriod] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [jobs, setJobs] = useState<JobData[]>([]);
@@ -38,35 +62,79 @@ export default function CustomerPage() {
   const koreanMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : englishMonths;
 
-  // Fetch jobs from API
+  // Fetch jobs from both local DB and external API
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchAllJobs = async () => {
+      if (!user) return;
       setLoading(true);
+      
+      const allJobs: JobData[] = [];
+
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        // 1. Fetch from local job_applications (Supabase)
+        const { data: localApps, error: localError } = await supabase
+          .from('job_applications')
+          .select(`
+            id,
+            applied_at,
+            status,
+            jobs:job_id (
+              id,
+              employer_name,
+              destination_company_name,
+              price,
+              start_date
+            )
+          `)
+          .eq('driver_id', user.id);
 
-        const { data, error } = await supabase.functions.invoke('get-freelance-accepted-jobs', {
-          body: { freelance_driver_id: user.id }
-        });
-
-        if (error) {
-          console.error('Error fetching jobs:', error);
-          return;
+        if (!localError && localApps) {
+          localApps.forEach((app: JobApplication) => {
+            if (app.jobs) {
+              allJobs.push({
+                customerName: app.jobs.destination_company_name || app.jobs.employer_name,
+                amount: app.jobs.price || 0,
+                date: app.jobs.start_date || app.applied_at
+              });
+            }
+          });
         }
 
-        if (data?.data) {
-          setJobs(data.data);
+        // 2. Fetch from external API (get-freelance-accepted-jobs)
+        const response = await fetch(
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          const externalJobs: ExternalJob[] = Array.isArray(result) ? result : (result.data || []);
+          
+          externalJobs.forEach(job => {
+            allJobs.push({
+              customerName: job.sender_name || 'ไม่ระบุชื่อ',
+              amount: job.transport_price || 0,
+              date: job.sender_pickup_date || job.created_at
+            });
+          });
         }
+
+        setJobs(allJobs);
       } catch (err) {
-        console.error('Error:', err);
+        console.error('Error fetching jobs:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchJobs();
-  }, []);
+    fetchAllJobs();
+  }, [user]);
 
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
@@ -97,7 +165,7 @@ export default function CustomerPage() {
   const { pieData, customerDetails } = useMemo(() => {
     // Filter jobs based on time period
     const filteredJobs = jobs.filter(job => {
-      const jobDate = new Date(job.sender_pickup_date || job.created_at);
+      const jobDate = new Date(job.date);
       if (!jobDate || isNaN(jobDate.getTime())) return false;
 
       if (timePeriod === 'day') {
@@ -116,15 +184,15 @@ export default function CustomerPage() {
       }
     });
 
-    // Aggregate by customer (sender_name)
+    // Aggregate by customer
     const customerMap = new Map<string, { jobs: number; amount: number }>();
 
     filteredJobs.forEach(job => {
-      const customerName = job.sender_name || 'ไม่ระบุชื่อ';
+      const customerName = job.customerName || 'ไม่ระบุชื่อ';
       const existing = customerMap.get(customerName) || { jobs: 0, amount: 0 };
       customerMap.set(customerName, {
         jobs: existing.jobs + 1,
-        amount: existing.amount + (job.transport_price || 0)
+        amount: existing.amount + (job.amount || 0)
       });
     });
 
