@@ -1,22 +1,73 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface JobData {
+  id: string;
+  sender_name: string;
+  transport_price: number;
+  sender_pickup_date: string;
+  created_at: string;
+}
+
+interface CustomerData {
+  name: string;
+  jobs: number;
+  amount: number;
+  color: string;
+}
+
+const COLORS = ['#14b8a6', '#3b82f6', '#8b5cf6', '#eab308', '#ef4444', '#10b981', '#f97316', '#6366f1'];
+
 export default function CustomerPage() {
   const navigate = useNavigate();
-  const {
-    t,
-    language
-  } = useLanguage();
+  const { t, language } = useLanguage();
   const [timePeriod, setTimePeriod] = useState('month');
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [jobs, setJobs] = useState<JobData[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
   const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const koreanMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : englishMonths;
+
+  // Fetch jobs from API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase.functions.invoke('get-freelance-accepted-jobs', {
+          body: { freelance_driver_id: user.id }
+        });
+
+        if (error) {
+          console.error('Error fetching jobs:', error);
+          return;
+        }
+
+        if (data?.data) {
+          setJobs(data.data);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
+
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
     const month = months[selectedDate.getMonth()];
@@ -29,6 +80,7 @@ export default function CustomerPage() {
       return `${t('finance.buddhist_era')} ${year}`;
     }
   };
+
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);
     if (timePeriod === 'day') {
@@ -41,73 +93,63 @@ export default function CustomerPage() {
     setSelectedDate(newDate);
   };
 
-  // Dynamic data based on filters
-  const {
-    pieData,
-    customerDetails
-  } = useMemo(() => {
-    // Base multiplier based on time period
-    let timeMultiplier = 1;
-    if (timePeriod === 'day') {
-      timeMultiplier = 0.1; // Daily data is smaller
-    } else if (timePeriod === 'month') {
-      timeMultiplier = 1;
-    } else {
-      timeMultiplier = 12; // Yearly data is larger
-    }
+  // Filter jobs by selected date and aggregate by customer
+  const { pieData, customerDetails } = useMemo(() => {
+    // Filter jobs based on time period
+    const filteredJobs = jobs.filter(job => {
+      const jobDate = new Date(job.sender_pickup_date || job.created_at);
+      if (!jobDate || isNaN(jobDate.getTime())) return false;
 
-    // Date-based variation
-    const dateHash = selectedDate.getTime() % 100;
-    const dateVariation = 1 + dateHash / 100;
-    const finalMultiplier = timeMultiplier * dateVariation;
-    const baseCustomers = [{
-      name: 'ธนพัฒน์ ศรีรัตน์',
-      baseJobs: 25,
-      baseAmount: 25000,
-      avatar: '👤',
-      color: '#14b8a6'
-    }, {
-      name: 'อรนุช วิชัย',
-      baseJobs: 20,
-      baseAmount: 20000,
-      avatar: '👤',
-      color: '#3b82f6'
-    }, {
-      name: 'พิชิตชัย สุขดี',
-      baseJobs: 15,
-      baseAmount: 15000,
-      avatar: '👤',
-      color: '#8b5cf6'
-    }, {
-      name: 'ชนาธิป สุขเสมอ',
-      baseJobs: 10,
-      baseAmount: 10000,
-      avatar: '👤',
-      color: '#9ca3af'
-    }, {
-      name: 'ปวีณา วงศ์ชัย',
-      baseJobs: 30,
-      baseAmount: 30000,
-      avatar: '👤',
-      color: '#eab308'
-    }];
-    const pieData = baseCustomers.map(c => ({
+      if (timePeriod === 'day') {
+        return (
+          jobDate.getDate() === selectedDate.getDate() &&
+          jobDate.getMonth() === selectedDate.getMonth() &&
+          jobDate.getFullYear() === selectedDate.getFullYear()
+        );
+      } else if (timePeriod === 'month') {
+        return (
+          jobDate.getMonth() === selectedDate.getMonth() &&
+          jobDate.getFullYear() === selectedDate.getFullYear()
+        );
+      } else {
+        return jobDate.getFullYear() === selectedDate.getFullYear();
+      }
+    });
+
+    // Aggregate by customer (sender_name)
+    const customerMap = new Map<string, { jobs: number; amount: number }>();
+
+    filteredJobs.forEach(job => {
+      const customerName = job.sender_name || 'ไม่ระบุชื่อ';
+      const existing = customerMap.get(customerName) || { jobs: 0, amount: 0 };
+      customerMap.set(customerName, {
+        jobs: existing.jobs + 1,
+        amount: existing.amount + (job.transport_price || 0)
+      });
+    });
+
+    // Convert to array and sort by jobs descending
+    const sortedCustomers: CustomerData[] = Array.from(customerMap.entries())
+      .map(([name, data], index) => ({
+        name,
+        jobs: data.jobs,
+        amount: data.amount,
+        color: COLORS[index % COLORS.length]
+      }))
+      .sort((a, b) => b.jobs - a.jobs)
+      .slice(0, 5); // Top 5
+
+    const pieData = sortedCustomers.map(c => ({
       name: c.name,
-      value: Math.round(c.baseJobs * finalMultiplier),
+      value: c.jobs,
       color: c.color
     }));
-    const customerDetails = baseCustomers.map(c => ({
-      name: c.name,
-      jobs: Math.round(c.baseJobs * finalMultiplier),
-      amount: Math.round(c.baseAmount * finalMultiplier),
-      avatar: c.avatar
-    }));
-    return {
-      pieData,
-      customerDetails
-    };
-  }, [selectedDate, timePeriod]);
-  return <div className="min-h-screen bg-background pb-20">
+
+    return { pieData, customerDetails: sortedCustomers };
+  }, [jobs, selectedDate, timePeriod]);
+
+  return (
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-10 shadow-md">
         <div className="flex items-center justify-center relative">
@@ -141,71 +183,87 @@ export default function CustomerPage() {
           </button>
         </div>
 
-        {/* Pie Chart */}
-        <Card key={`chart-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800">{t('customer.title')}</h3>
-            <span className="text-sm text-gray-500">{t('customer.top_5')}</span>
+        {loading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-64 w-full" />
           </div>
-          <div className="flex items-center">
-            <ResponsiveContainer width="60%" height={180}>
-              <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <Pie 
-                  data={pieData} 
-                  cx="50%" 
-                  cy="50%" 
-                  innerRadius={25} 
-                  outerRadius={75}
-                  paddingAngle={0} 
-                  dataKey="value"
-                  stroke="none"
-                  label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
-                    const RADIAN = Math.PI / 180;
-                    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                    return (
-                      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight="bold">
-                        {value}
-                      </text>
-                    );
-                  }}
-                  labelLine={false}
-                >
-                  {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex-1 space-y-2">
-              {pieData.map((entry, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-                  <span className="text-xs text-gray-700">{entry.name}</span>
+        ) : customerDetails.length === 0 ? (
+          <Card className="p-8 bg-white shadow-sm text-center">
+            <p className="text-gray-500">{t('finance.no_data')}</p>
+          </Card>
+        ) : (
+          <>
+            {/* Pie Chart */}
+            <Card key={`chart-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-gray-800">{t('customer.title')}</h3>
+                <span className="text-sm text-gray-500">{t('customer.top_5')}</span>
+              </div>
+              <div className="flex items-center">
+                <ResponsiveContainer width="60%" height={180}>
+                  <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                    <Pie 
+                      data={pieData} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={25} 
+                      outerRadius={75}
+                      paddingAngle={0} 
+                      dataKey="value"
+                      stroke="none"
+                      label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
+                        const RADIAN = Math.PI / 180;
+                        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                        return (
+                          <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight="bold">
+                            {value}
+                          </text>
+                        );
+                      }}
+                      labelLine={false}
+                    >
+                      {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex-1 space-y-2">
+                  {pieData.map((entry, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                      <span className="text-xs text-gray-700 truncate">{entry.name}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </Card>
+              </div>
+            </Card>
 
-        {/* Customer List */}
-        <Card key={`list-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="space-y-3">
-            {customerDetails.map((customer, index) => <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl">
-                  {customer.avatar}
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-800 text-sm">{customer.name}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-primary">{customer.jobs} {t('customer.jobs')}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-gray-900">฿ {customer.amount.toLocaleString()}</p>
-                </div>
-              </div>)}
-          </div>
-        </Card>
+            {/* Customer List */}
+            <Card key={`list-${timePeriod}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="space-y-3">
+                {customerDetails.map((customer, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: customer.color }}>
+                      {customer.name.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-800 text-sm truncate">{customer.name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-primary">{customer.jobs} {t('customer.jobs')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gray-900">฿ {customer.amount.toLocaleString()}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 }
