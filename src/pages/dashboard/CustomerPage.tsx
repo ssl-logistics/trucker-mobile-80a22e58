@@ -299,7 +299,7 @@ export default function CustomerPage() {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex-1 space-y-2 min-w-0">
+                <div className="flex-1 space-y-2 min-w-0 pl-4">
                   {pieData.map((entry, index) => (
                     <div key={index} className="flex items-center gap-2 min-w-0">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
