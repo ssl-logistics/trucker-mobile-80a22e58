@@ -1,16 +1,37 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, TrendingUp } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import profitIcon from '@/assets/profit-icon.png';
 import successIcon from '@/assets/success-icon.png';
 import deliveryIcon from '@/assets/delivery-icon.png';
 import cancelIcon from '@/assets/cancel-icon.png';
+
+interface JobStatsData {
+  jobStats: {
+    total: number;
+    success: number;
+    inProgress: number;
+    cancelled: number;
+  };
+  regionStats: {
+    north: number;
+    central: number;
+    northeast: number;
+    east: number;
+    west: number;
+    south: number;
+  };
+}
+
 export default function ShippingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     t,
     language
@@ -18,11 +39,64 @@ export default function ShippingPage() {
   const [timePeriod, setTimePeriod] = useState('month');
   const [vehicleType, setVehicleType] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [statsData, setStatsData] = useState<JobStatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
   const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const koreanMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const chineseMonths = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
   const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : language === 'zh' ? chineseMonths : englishMonths;
+
+  // Fetch job stats from API
+  useEffect(() => {
+    const fetchJobStats = async () => {
+      if (!user?.id) return;
+      
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('get-freelance-job-stats', {
+          body: null,
+          headers: {},
+        });
+
+        // Use query params instead
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-job-stats?freelance_driver_id=${user.id}&time_period=${timePeriod}&vehicle_type=${vehicleType}&date=${selectedDate.toISOString()}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setStatsData(data);
+        } else {
+          console.error('Failed to fetch job stats');
+          // Set empty stats on error
+          setStatsData({
+            jobStats: { total: 0, success: 0, inProgress: 0, cancelled: 0 },
+            regionStats: { north: 0, central: 0, northeast: 0, east: 0, west: 0, south: 0 }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching job stats:', error);
+        setStatsData({
+          jobStats: { total: 0, success: 0, inProgress: 0, cancelled: 0 },
+          regionStats: { north: 0, central: 0, northeast: 0, east: 0, west: 0, south: 0 }
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchJobStats();
+  }, [user?.id, timePeriod, vehicleType, selectedDate]);
+
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
     const month = months[selectedDate.getMonth()];
@@ -47,91 +121,44 @@ export default function ShippingPage() {
     setSelectedDate(newDate);
   };
 
-  // Dynamic data based on filters
-  const {
-    jobStats,
-    regionStats
-  } = useMemo(() => {
-    // Base multiplier based on time period
-    let timeMultiplier = 1;
-    if (timePeriod === 'day') {
-      timeMultiplier = 0.1; // Daily data is smaller
-    } else if (timePeriod === 'month') {
-      timeMultiplier = 1;
-    } else {
-      timeMultiplier = 12; // Yearly data is larger
+  // Transform API data to display format
+  const { jobStats, regionStats } = useMemo(() => {
+    if (!statsData) {
+      return {
+        jobStats: [
+          { label: t('shipping.all_jobs'), value: 0, change: 0, icon: 'profit' },
+          { label: t('shipping.success'), value: 0, change: 0, icon: 'success' },
+          { label: t('shipping.in_delivery'), value: 0, change: 0, icon: 'delivery' },
+          { label: t('shipping.cancelled'), value: 0, change: 0, icon: 'cancel' }
+        ],
+        regionStats: [
+          { region: t('shipping.north'), value: 0, change: 0 },
+          { region: t('shipping.central'), value: 0, change: 0 },
+          { region: t('shipping.northeast'), value: 0, change: 0 },
+          { region: t('shipping.east'), value: 0, change: 0 },
+          { region: t('shipping.west'), value: 0, change: 0 },
+          { region: t('shipping.south'), value: 0, change: 0 }
+        ]
+      };
     }
 
-    // Vehicle type multiplier
-    const vehicleMultipliers: {
-      [key: string]: number;
-    } = {
-      'all': 1,
-      'หัวลาก': 0.4,
-      '12ล้อ': 0.25,
-      '10ล้อ': 0.15,
-      '6ล้อ': 0.12,
-      '4ล้อ': 0.08
-    };
-    const vehicleMultiplier = vehicleMultipliers[vehicleType] || 1;
-
-    // Date-based variation (simulate different data for different dates)
-    const dateHash = selectedDate.getTime() % 100;
-    const dateVariation = 1 + dateHash / 100;
-    const finalMultiplier = timeMultiplier * vehicleMultiplier * dateVariation;
-    const baseTotal = Math.round(300 * finalMultiplier);
-    const baseSuccess = Math.round(baseTotal * 0.997);
-    const baseInProgress = Math.round(baseTotal * 0.003);
-    const baseCancelled = Math.round(baseTotal * 0.007);
     return {
-      jobStats: [{
-        label: t('shipping.all_jobs'),
-        value: baseTotal,
-        change: Math.round(2 * dateVariation),
-        icon: 'profit'
-      }, {
-        label: t('shipping.success'),
-        value: baseSuccess,
-        change: Math.round(2 * dateVariation),
-        icon: 'success'
-      }, {
-        label: t('shipping.in_delivery'),
-        value: baseInProgress,
-        change: Math.round(1 * dateVariation),
-        icon: 'delivery'
-      }, {
-        label: t('shipping.cancelled'),
-        value: baseCancelled,
-        change: Math.round(1 * dateVariation),
-        icon: 'cancel'
-      }],
-      regionStats: [{
-        region: t('shipping.north'),
-        value: Math.round(baseTotal * 0.18),
-        change: Math.round(2 * dateVariation)
-      }, {
-        region: t('shipping.central'),
-        value: Math.round(baseTotal * 0.25),
-        change: Math.round(3 * dateVariation)
-      }, {
-        region: t('shipping.northeast'),
-        value: Math.round(baseTotal * 0.15),
-        change: Math.round(1 * dateVariation)
-      }, {
-        region: t('shipping.east'),
-        value: Math.round(baseTotal * 0.20),
-        change: Math.round(2 * dateVariation)
-      }, {
-        region: t('shipping.west'),
-        value: Math.round(baseTotal * 0.10),
-        change: Math.round(1 * dateVariation)
-      }, {
-        region: t('shipping.south'),
-        value: Math.round(baseTotal * 0.12),
-        change: Math.round(2 * dateVariation)
-      }]
+      jobStats: [
+        { label: t('shipping.all_jobs'), value: statsData.jobStats.total, change: 0, icon: 'profit' },
+        { label: t('shipping.success'), value: statsData.jobStats.success, change: 0, icon: 'success' },
+        { label: t('shipping.in_delivery'), value: statsData.jobStats.inProgress, change: 0, icon: 'delivery' },
+        { label: t('shipping.cancelled'), value: statsData.jobStats.cancelled, change: 0, icon: 'cancel' }
+      ],
+      regionStats: [
+        { region: t('shipping.north'), value: statsData.regionStats.north, change: 0 },
+        { region: t('shipping.central'), value: statsData.regionStats.central, change: 0 },
+        { region: t('shipping.northeast'), value: statsData.regionStats.northeast, change: 0 },
+        { region: t('shipping.east'), value: statsData.regionStats.east, change: 0 },
+        { region: t('shipping.west'), value: statsData.regionStats.west, change: 0 },
+        { region: t('shipping.south'), value: statsData.regionStats.south, change: 0 }
+      ]
     };
-  }, [selectedDate, timePeriod, vehicleType, t]);
+  }, [statsData, t]);
   return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-10 shadow-md">
@@ -182,47 +209,51 @@ export default function ShippingPage() {
         </Select>
 
         {/* Job Stats */}
-        <Card key={`stats-${timePeriod}-${vehicleType}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800">{t('shipping.job_data')}</h3>
-            <span className="text-xs text-gray-500">{t('finance.compare_year')}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {jobStats.map((stat, index) => <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl">
-                  {stat.icon === 'profit' ? <img src={profitIcon} alt="Profit" className="w-10 h-10" /> : stat.icon === 'success' ? <img src={successIcon} alt="Success" className="w-10 h-10" /> : stat.icon === 'delivery' ? <img src={deliveryIcon} alt="Delivery" className="w-10 h-10" /> : stat.icon === 'cancel' ? <img src={cancelIcon} alt="Cancel" className="w-10 h-10" /> : stat.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-600">{stat.label}</p>
-                  <div className="flex items-center gap-1 flex-wrap">
-                    <p className="text-xl font-bold text-primary">{stat.value}</p>
-                    <span className="text-xs text-green-600 bg-[#E7F6ED] px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                      ▲{stat.change}%
-                    </span>
+        {isLoading ? (
+          <Card className="p-8 bg-white shadow-sm flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </Card>
+        ) : (
+          <Card key={`stats-${timePeriod}-${vehicleType}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-gray-800">{t('shipping.job_data')}</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {jobStats.map((stat, index) => <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl">
+                    {stat.icon === 'profit' ? <img src={profitIcon} alt="Profit" className="w-10 h-10" /> : stat.icon === 'success' ? <img src={successIcon} alt="Success" className="w-10 h-10" /> : stat.icon === 'delivery' ? <img src={deliveryIcon} alt="Delivery" className="w-10 h-10" /> : stat.icon === 'cancel' ? <img src={cancelIcon} alt="Cancel" className="w-10 h-10" /> : stat.icon}
                   </div>
-                </div>
-              </div>)}
-          </div>
-        </Card>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-600">{stat.label}</p>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <p className="text-xl font-bold text-primary">{stat.value}</p>
+                    </div>
+                  </div>
+                </div>)}
+            </div>
+          </Card>
+        )}
 
         {/* Region Stats */}
-        <Card key={`region-${timePeriod}-${vehicleType}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800">{t('shipping.by_region')}</h3>
-            <span className="text-xs text-gray-500">{t('finance.compare_year')}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {regionStats.map((stat, index) => <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-700 mb-1">{stat.region}</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold text-primary">{stat.value}</p>
-                  <span className="text-xs text-green-600 bg-[#E7F6ED] px-2 py-0.5 rounded-full">
-                    ▲{stat.change}%
-                  </span>
-                </div>
-              </div>)}
-          </div>
-        </Card>
+        {isLoading ? (
+          <Card className="p-8 bg-white shadow-sm flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </Card>
+        ) : (
+          <Card key={`region-${timePeriod}-${vehicleType}-${selectedDate.getTime()}`} className="p-4 bg-white shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-gray-800">{t('shipping.by_region')}</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {regionStats.map((stat, index) => <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-700 mb-1">{stat.region}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xl font-bold text-primary">{stat.value}</p>
+                  </div>
+                </div>)}
+            </div>
+          </Card>
+        )}
       </div>
     </div>;
 }
