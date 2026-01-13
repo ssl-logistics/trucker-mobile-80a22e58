@@ -349,14 +349,6 @@ export default function DomesticJobDetail({
                       <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />
                     )}
                   </div>
-                  {/* POD Success Icon - Shows below when POD is completed */}
-                  {isSopCompleted && (
-                    <div className="absolute bottom-0">
-                      <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div>
-                    </div>
-                  )}
                 </div>;
             })}
             </div>
