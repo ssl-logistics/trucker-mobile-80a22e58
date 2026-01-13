@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -74,6 +74,8 @@ export default function InternationalJobDetail({
   onUpdate
 }: InternationalJobDetailProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
   const { t, language } = useLanguage();
   const card1Ref = useRef<HTMLDivElement>(null);
   const card2Ref = useRef<HTMLDivElement>(null);
@@ -128,7 +130,11 @@ export default function InternationalJobDetail({
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate('/current-jobs')} className="p-1">
+          <button onClick={() => {
+            // If from history page or POD is completed, go to home instead of current-jobs
+            const isPodCompleted = !!jobApplication?.delivery_sop_completed_at;
+            navigate((isFromHistory || isPodCompleted) ? '/home' : '/current-jobs');
+          }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <div className="flex-1 text-center">

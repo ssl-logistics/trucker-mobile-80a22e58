@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -85,6 +85,8 @@ export default function DomesticJobDetail({
   onUpdate
 }: DomesticJobDetailProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
   const {
     t,
     language
@@ -242,9 +244,9 @@ export default function DomesticJobDetail({
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <button onClick={() => {
-            // If POD is completed, go to home instead of current-jobs
+            // If from history page or POD is completed, go to home instead of current-jobs
             const isPodCompleted = !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at);
-            navigate(isPodCompleted ? '/home' : '/current-jobs');
+            navigate((isFromHistory || isPodCompleted) ? '/home' : '/current-jobs');
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
