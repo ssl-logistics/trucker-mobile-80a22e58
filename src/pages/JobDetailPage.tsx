@@ -129,13 +129,21 @@ export default function JobDetailPage() {
 
     try {
       // 1) Try loading from our database first (jobs table)
-      const { data: dbJob, error: dbJobError } = await supabase
+      const isUuid = (value: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+      let jobQuery = supabase
         .from('jobs')
         .select(
           'id,order_code,job_type,employer_name,transport_type,origin_location,origin_address,origin_company_name,destination_location,destination_address,destination_company_name,price,start_date,start_time,equipment_list,safety_equipment,container_checkpoint,container_checkpoint_code,empty_container_date,container_number,container_number_2,seal_number,seal_number_2,origin_contact_person,origin_contact_role,origin_bill_of_lading,origin_goods_type,origin_goods_quantity,origin_remarks,destination_contact_person,destination_bill_of_lading,destination_goods_type,destination_goods_quantity,destination_time,destination_date,destination_remarks,tax_id'
-        )
-        .or(`order_code.eq.${jobId},id.eq.${jobId}`)
-        .maybeSingle();
+        );
+
+      // Avoid PostgREST 400: comparing uuid column with non-uuid strings
+      jobQuery = isUuid(jobId)
+        ? jobQuery.or(`order_code.eq.${jobId},id.eq.${jobId}`)
+        : jobQuery.eq('order_code', jobId);
+
+      const { data: dbJob, error: dbJobError } = await jobQuery.maybeSingle();
 
       if (!dbJobError && dbJob) {
         const mappedJob: JobDetail = {
