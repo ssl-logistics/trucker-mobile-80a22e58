@@ -188,6 +188,7 @@ export default function IncomePage() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
+                          <p className="text-sm text-muted-foreground">{t('income.employer')}: {income.employer}</p>
                         </div>
                         <div className={`flex items-center gap-2 font-semibold ${income.status === "paid" ? "text-green-600" : "text-muted-foreground"}`}>
                           {income.status === "paid" ? <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
@@ -213,6 +214,7 @@ export default function IncomePage() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
+                          <p className="text-sm text-muted-foreground">{t('income.employer')}: {income.employer}</p>
                         </div>
                         <div className="flex items-center gap-2 text-green-600 font-semibold">
                           <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
@@ -236,6 +238,7 @@ export default function IncomePage() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-base mb-1">{income.jobTitle}</h3>
+                          <p className="text-sm text-muted-foreground">{t('income.employer')}: {income.employer}</p>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground font-semibold">
                           <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
