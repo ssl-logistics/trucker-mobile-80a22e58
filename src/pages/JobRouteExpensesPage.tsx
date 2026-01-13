@@ -55,7 +55,8 @@ interface JobDetail {
   employer_name: string;
   destination_company_name: string | null;
   price: number;
-  transport_type: string;
+  product_type: string;
+  vehicle_type: string;
   origin_location: string;
   destination_location: string;
   origin_contact_person: string | null;
@@ -151,7 +152,8 @@ export default function JobRouteExpensesPage() {
           employer_name: apiJob.sender_name,
           destination_company_name: apiJob.destination_company_name,
           price: apiJob.transport_price,
-          transport_type: apiJob.vehicle_type || apiJob.product_name || '-',
+          product_type: apiJob.product_name || '-',
+          vehicle_type: apiJob.vehicle_type || '-',
           origin_location: `${apiJob.sender_district || ''}, ${apiJob.sender_province || ''}`.replace(/^, |, $/g, '') || apiJob.sender_address || '-',
           destination_location: `${apiJob.destination_district || ''}, ${apiJob.destination_province || ''}`.replace(/^, |, $/g, '') || apiJob.destination_address || '-',
           origin_contact_person: apiJob.sender_contact_name,
@@ -336,7 +338,11 @@ export default function JobRouteExpensesPage() {
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.productType')}</span>
-                      <span className="text-foreground">: {job.transport_type}</span>
+                      <span className="text-foreground">: {job.product_type}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.vehicleType')}</span>
+                      <span className="text-foreground">: {job.vehicle_type}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
@@ -428,7 +434,11 @@ export default function JobRouteExpensesPage() {
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.productType')}</span>
-                          <span className="text-foreground">: {job.transport_type}</span>
+                          <span className="text-foreground">: {job.product_type}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.vehicleType')}</span>
+                          <span className="text-foreground">: {job.vehicle_type}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
