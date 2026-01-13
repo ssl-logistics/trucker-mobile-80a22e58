@@ -94,7 +94,7 @@ export default function NotificationsPage() {
 
         <TabsContent value={activeTab} className="mt-0">
           {/* Date Picker */}
-          <div className="flex items-center justify-center px-4 py-3 bg-white border-b">
+          <div className="flex items-center justify-center px-4 py-3 bg-white">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
