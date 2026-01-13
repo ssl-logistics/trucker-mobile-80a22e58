@@ -4,10 +4,20 @@ import { ChevronLeft, Wallet, Receipt } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/hooks/use-toast";
+
+interface CompletedJob {
+  id: string;
+  order_number: string;
+  sender_name: string;
+  destination_company_name: string | null;
+  transport_price: number;
+  sender_pickup_date: string;
+  status: string;
+}
+
 interface IncomeJob {
   id: string;
   jobId: string;
@@ -19,6 +29,7 @@ interface IncomeJob {
   month: string;
   orderCode: string;
 }
+
 export default function IncomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -27,70 +38,80 @@ export default function IncomePage() {
   const [loading, setLoading] = useState(true);
   const [paidJobs, setPaidJobs] = useState<IncomeJob[]>([]);
   const [unpaidJobs, setUnpaidJobs] = useState<IncomeJob[]>([]);
+
   useEffect(() => {
     if (user) {
       loadIncomeData();
     }
   }, [user]);
+
   const loadIncomeData = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Fetch all accepted job applications (excluding pending and rejected)
-      const {
-        data: applications,
-        error
-      } = await supabase.from("job_applications").select(`
-          id,
-          job_id,
-          payment_completed_at,
-          status,
-          jobs (
-            id,
-            order_code,
-            employer_name,
-            destination_company_name,
-            price,
-            start_date
-          )
-        `).eq("driver_id", user.id).neq("status", "pending").neq("status", "rejected");
-      if (error) {
-        toast({
-          title: t('income.errorLoad'),
-          description: t('income.errorLoadDesc'),
-          variant: "destructive"
-        });
-        return;
+      // Fetch completed jobs from external API (same as job history)
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            freelance_id: user.id,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch completed jobs');
       }
+
+      const result = await response.json();
+      const completedJobs: CompletedJob[] = result.data || [];
+
+      // Filter only completed/delivered jobs
+      const finishedJobs = completedJobs.filter(
+        job => job.status === 'completed' || job.status === 'delivered'
+      );
 
       // Process the data
       const paid: IncomeJob[] = [];
       const unpaid: IncomeJob[] = [];
-      applications?.forEach((app: any) => {
-        if (!app.jobs) return;
-        const job: IncomeJob = {
-          id: app.id,
-          jobId: app.job_id,
-          jobTitle: app.jobs.destination_company_name || app.jobs.employer_name,
-          employer: app.jobs.destination_company_name || app.jobs.employer_name,
-          amount: app.jobs.price,
-          status: app.payment_completed_at ? "paid" : "pending",
-          date: new Date(app.jobs.start_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
-          month: new Date(app.jobs.start_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
+
+      finishedJobs.forEach((job) => {
+        const incomeJob: IncomeJob = {
+          id: job.id,
+          jobId: job.order_number,
+          jobTitle: job.destination_company_name || job.sender_name,
+          employer: job.sender_name,
+          amount: job.transport_price,
+          status: job.status === 'completed' ? "paid" : "pending",
+          date: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
+          month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
             month: "long"
           }),
-          orderCode: app.jobs.order_code
+          orderCode: job.order_number
         };
-        if (app.payment_completed_at) {
-          paid.push(job);
+
+        // Consider "completed" as paid, "delivered" as pending payment
+        if (job.status === 'completed') {
+          paid.push(incomeJob);
         } else {
-          unpaid.push(job);
+          unpaid.push(incomeJob);
         }
       });
+
       setPaidJobs(paid);
       setUnpaidJobs(unpaid);
     } catch (error) {
       console.error("Error loading income data:", error);
+      toast({
+        title: t('income.errorLoad'),
+        description: t('income.errorLoadDesc'),
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
