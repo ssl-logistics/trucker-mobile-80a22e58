@@ -242,6 +242,7 @@ const thTranslations: Record<string, string> = {
   'finance.income': 'รายได้',
   'finance.pending_payments': 'รายได้ค้างชำระ',
   'finance.companies': 'บริษัท',
+  'finance.no_data': 'ไม่มีข้อมูลในช่วงเวลานี้',
 
   // Shipping Page
   'shipping.title': 'การจัดส่ง',
@@ -1430,6 +1431,7 @@ const enTranslations: Record<string, string> = {
   'finance.income': 'Income',
   'finance.pending_payments': 'Pending Payments',
   'finance.companies': 'Companies',
+  'finance.no_data': 'No data available for this period',
 
   // Shipping Page
   'shipping.title': 'Shipping',
@@ -2618,6 +2620,7 @@ const koTranslations: Record<string, string> = {
   'finance.income': '수입',
   'finance.pending_payments': '미지급 수입',
   'finance.companies': '회사',
+  'finance.no_data': '해당 기간에 데이터가 없습니다',
 
   // Shipping Page
   'shipping.title': '배송',
@@ -4449,6 +4452,7 @@ const zhTranslations: Record<string, string> = {
   'finance.income': '收入',
   'finance.pending_payments': '待支付收入',
   'finance.companies': '公司',
+  'finance.no_data': '该时间段没有数据',
   
   // Shipping Page
   'shipping.title': '运输',
