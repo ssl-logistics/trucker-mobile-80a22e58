@@ -241,7 +241,11 @@ export default function DomesticJobDetail({
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate('/current-jobs')} className="p-1">
+          <button onClick={() => {
+            // If POD is completed, go to home instead of current-jobs
+            const isPodCompleted = !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at);
+            navigate(isPodCompleted ? '/home' : '/current-jobs');
+          }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <div className="flex-1 text-center">
