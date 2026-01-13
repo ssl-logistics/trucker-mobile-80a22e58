@@ -13,6 +13,33 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/dateUtils';
 
+// API response interfaces
+interface ApiJobDetail {
+  id: string;
+  order_number: string;
+  sender_name: string;
+  destination_company_name: string | null;
+  transport_price: number;
+  transport_type: string;
+  sender_pickup_date: string;
+  sender_pickup_time: string;
+  sender_province: string;
+  sender_district: string;
+  sender_address: string;
+  sender_contact_name: string | null;
+  sender_contact_phone: string | null;
+  receiver_province: string;
+  receiver_district: string;
+  receiver_address: string;
+  receiver_contact_name: string | null;
+  receiver_contact_phone: string | null;
+  goods_type: string | null;
+  goods_weight: number | null;
+  goods_quantity: number | null;
+  remarks: string | null;
+  status: string;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -85,38 +112,85 @@ export default function JobRouteExpensesPage() {
 
     setLoading(true);
     try {
-      // Load job details
-      const { data: jobData, error: jobError } = await supabase
-        .from('jobs')
-        .select('*')
-        .eq('id', jobId)
-        .single();
+      // Fetch job data from external API (same as job history and income)
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
 
-      if (jobError) throw jobError;
-      setJob(jobData);
+      if (!response.ok) {
+        throw new Error('Failed to fetch job data');
+      }
 
-      // Load job application
-      const { data: appData, error: appError } = await supabase
-        .from('job_applications')
-        .select('status, payment_completed_at, checked_in_at, sop_completed_at, delivery_checked_in_at, delivery_sop_completed_at')
-        .eq('job_id', jobId)
-        .eq('driver_id', user.id)
-        .maybeSingle();
+      const result = await response.json();
+      const allJobs: ApiJobDetail[] = result.data || [];
 
-      if (appError) throw appError;
-      setJobApplication(appData);
+      // Find the specific job by ID (order_number)
+      const apiJob = allJobs.find(j => j.order_number === jobId || j.id === jobId);
 
-      // Load job destinations
-      const { data: destinationsData, error: destinationsError } = await supabase
-        .from('job_destinations')
-        .select('*')
-        .eq('job_id', jobId)
-        .order('sequence_number', { ascending: true });
+      if (apiJob) {
+        // Map API data to existing JobDetail interface
+        const mappedJob: JobDetail = {
+          id: apiJob.id,
+          order_code: apiJob.order_number,
+          employer_name: apiJob.sender_name,
+          destination_company_name: apiJob.destination_company_name,
+          price: apiJob.transport_price,
+          transport_type: apiJob.transport_type || apiJob.goods_type || '-',
+          origin_location: `${apiJob.sender_district || ''} ${apiJob.sender_province || ''}`.trim() || apiJob.sender_address || '-',
+          destination_location: `${apiJob.receiver_district || ''} ${apiJob.receiver_province || ''}`.trim() || apiJob.receiver_address || '-',
+          origin_contact_person: apiJob.sender_contact_name,
+          destination_contact_person: apiJob.receiver_contact_name,
+          origin_bill_of_lading: apiJob.order_number,
+          destination_bill_of_lading: apiJob.order_number,
+          start_date: apiJob.sender_pickup_date,
+          start_time: apiJob.sender_pickup_time || '-',
+          origin_remarks: apiJob.remarks,
+          destination_remarks: apiJob.remarks,
+        };
+        setJob(mappedJob);
 
-      if (destinationsError) throw destinationsError;
-      setDestinations(destinationsData || []);
+        // Map job application status
+        const mappedApplication: JobApplication = {
+          status: apiJob.status,
+          payment_completed_at: apiJob.status === 'completed' ? new Date().toISOString() : null,
+          checked_in_at: apiJob.status !== 'accepted' ? new Date().toISOString() : null,
+          sop_completed_at: ['in_transit', 'delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
+          delivery_checked_in_at: ['delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
+          delivery_sop_completed_at: ['delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
+        };
+        setJobApplication(mappedApplication);
 
-      // Load expenses
+        // Create destination from API data
+        const destination: JobDestination = {
+          id: apiJob.id,
+          sequence_number: 1,
+          company_name: apiJob.destination_company_name,
+          contact_name: apiJob.receiver_contact_name,
+          contact_phone: apiJob.receiver_contact_phone,
+          address: apiJob.receiver_address,
+          province: apiJob.receiver_province,
+          district: apiJob.receiver_district,
+          delivery_date: apiJob.sender_pickup_date,
+          delivery_time: apiJob.sender_pickup_time,
+          notes: apiJob.remarks,
+          checked_in_at: ['delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
+          sop_completed_at: ['delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
+        };
+        setDestinations([destination]);
+      } else {
+        // Job not found in API
+        setJob(null);
+        setJobApplication(null);
+      }
+
+      // Load expenses from local database
       const { data: expensesData, error: expensesError } = await supabase
         .from('expenses')
         .select('*')
