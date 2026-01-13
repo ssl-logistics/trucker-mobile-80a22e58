@@ -325,8 +325,8 @@ export default function DomesticJobDetail({
               sequence_number: 1
             }]).map((dest, index) => {
               // For fallback, use jobApplication's delivery status
-              const isSopCompleted = dest.id === 'fallback' 
-                ? !!jobApplication?.delivery_sop_completed_at 
+              const isPodCompleted = dest.id === 'fallback' 
+                ? !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at)
                 : !!dest.sop_completed_at;
               const isCheckedIn = dest.id === 'fallback'
                 ? !!jobApplication?.delivery_checked_in_at
@@ -337,7 +337,7 @@ export default function DomesticJobDetail({
                 marginBottom: index < (destinations.length > 0 ? destinations.length - 1 : 0) ? '12px' : '0'
               }}>
                   <div className="absolute top-0">
-                    {isSopCompleted ? (
+                    {isPodCompleted ? (
                       <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
                         <CheckCircle className="w-4 h-4 text-white" />
                       </div>
