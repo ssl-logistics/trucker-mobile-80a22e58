@@ -306,9 +306,6 @@ export default function ProductPage() {
               <div className="space-y-3">
                 {productDetails.map((product, index) => (
                   <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: product.color }}>
-                      {product.name.charAt(0)}
-                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-800 text-sm truncate">{product.name}</p>
                     </div>
