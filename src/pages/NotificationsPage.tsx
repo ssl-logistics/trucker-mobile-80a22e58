@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,7 +53,7 @@ export default function NotificationsPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loadingJob, setLoadingJob] = useState(false);
 
   // Fetch notifications from database
@@ -175,7 +175,7 @@ export default function NotificationsPage() {
     // Fetch job details if reference type is job
     if (notification.reference_type === 'job' && notification.reference_id) {
       setLoadingJob(true);
-      setDrawerOpen(true);
+      setModalOpen(true);
       
       const { data, error } = await supabase
         .from('jobs')
@@ -190,14 +190,14 @@ export default function NotificationsPage() {
       }
       setLoadingJob(false);
     } else {
-      setDrawerOpen(true);
+      setModalOpen(true);
     }
   };
 
   // Navigate to job detail page
   const handleViewJobDetail = () => {
     if (selectedNotification?.reference_id) {
-      setDrawerOpen(false);
+      setModalOpen(false);
       navigate(`/job/${selectedNotification.reference_id}`);
     }
   };
@@ -300,16 +300,16 @@ export default function NotificationsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Job Detail Drawer */}
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="max-h-[85vh]">
-          <DrawerHeader className="border-b">
-            <DrawerTitle className="text-center">
+      {/* Job Detail Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center">
               {t('notifications.jobDetail') || 'รายละเอียดงาน'}
-            </DrawerTitle>
-          </DrawerHeader>
+            </DialogTitle>
+          </DialogHeader>
           
-          <div className="p-4 overflow-y-auto">
+          <div className="py-4">
             {loadingJob ? (
               <div className="flex flex-col items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -396,18 +396,18 @@ export default function NotificationsPage() {
             )}
           </div>
 
-          <DrawerFooter className="border-t">
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
             {selectedJob && (
               <Button onClick={handleViewJobDetail} className="w-full">
                 {t('notifications.viewJobDetail') || 'ดูรายละเอียดงาน'}
               </Button>
             )}
-            <Button variant="outline" onClick={() => setDrawerOpen(false)} className="w-full">
+            <Button variant="outline" onClick={() => setModalOpen(false)} className="w-full">
               {t('common.close') || 'ปิด'}
             </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
