@@ -662,6 +662,63 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          description_en: string | null
+          description_ko: string | null
+          description_th: string | null
+          description_zh: string | null
+          id: string
+          image_url: string | null
+          is_read: boolean | null
+          notification_type: string | null
+          reference_id: string | null
+          reference_type: string | null
+          title_en: string | null
+          title_ko: string | null
+          title_th: string
+          title_zh: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description_en?: string | null
+          description_ko?: string | null
+          description_th?: string | null
+          description_zh?: string | null
+          id?: string
+          image_url?: string | null
+          is_read?: boolean | null
+          notification_type?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title_en?: string | null
+          title_ko?: string | null
+          title_th: string
+          title_zh?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description_en?: string | null
+          description_ko?: string | null
+          description_th?: string | null
+          description_zh?: string | null
+          id?: string
+          image_url?: string | null
+          is_read?: boolean | null
+          notification_type?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title_en?: string | null
+          title_ko?: string | null
+          title_th?: string
+          title_zh?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       pickup_sop_photos: {
         Row: {
           created_at: string
