@@ -59,7 +59,7 @@ export default function IncomePage() {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
-            freelance_id: user.id,
+            freelance_driver_id: user.id,
           }),
         }
       );
