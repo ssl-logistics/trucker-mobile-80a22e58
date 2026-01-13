@@ -371,7 +371,7 @@ export default function JobRouteExpensesPage() {
 
                     <Card className="p-4 mb-4">
                       <div className="flex items-start justify-between mb-2">
-                        <div className="font-semibold">{t('jobRoute.deliveryPoint')} {destination.sequence_number} - {destination.company_name || destination.province || '-'}</div>
+                        <div className="font-semibold">{t('jobRoute.deliveryPoint')}{destinations.length > 1 ? ` ${destination.sequence_number}` : ''} - {destination.company_name || destination.province || '-'}</div>
                         {destination.sop_completed_at && (
                           <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                             <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
@@ -415,7 +415,7 @@ export default function JobRouteExpensesPage() {
 
                     <Card className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <div className="font-semibold">{t('jobRoute.deliveryPoint')} {job.destination_contact_person || job.destination_location.split(' ')[0]}</div>
+                        <div className="font-semibold">{t('jobRoute.deliveryPoint')} - {job.destination_contact_person || job.destination_location.split(' ')[0]}</div>
                         {jobApplication.delivery_sop_completed_at && (
                           <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                             <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
