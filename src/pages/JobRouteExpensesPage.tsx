@@ -60,7 +60,9 @@ interface JobDetail {
   origin_location: string;
   destination_location: string;
   origin_contact_person: string | null;
+  origin_contact_phone: string | null;
   destination_contact_person: string | null;
+  destination_contact_phone: string | null;
   origin_bill_of_lading: string | null;
   destination_bill_of_lading: string | null;
   start_date: string;
@@ -157,7 +159,9 @@ export default function JobRouteExpensesPage() {
           origin_location: `${apiJob.sender_district || ''}, ${apiJob.sender_province || ''}`.replace(/^, |, $/g, '') || apiJob.sender_address || '-',
           destination_location: `${apiJob.destination_district || ''}, ${apiJob.destination_province || ''}`.replace(/^, |, $/g, '') || apiJob.destination_address || '-',
           origin_contact_person: apiJob.sender_contact_name,
+          origin_contact_phone: apiJob.sender_contact_phone,
           destination_contact_person: apiJob.destination_contact_name,
+          destination_contact_phone: apiJob.destination_contact_phone,
           origin_bill_of_lading: apiJob.order_number,
           destination_bill_of_lading: apiJob.order_number,
           start_date: apiJob.sender_pickup_date,
@@ -415,7 +419,7 @@ export default function JobRouteExpensesPage() {
 
                     <Card className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <div className="font-semibold">{t('jobRoute.deliveryPoint')} - {job.destination_contact_person || job.destination_location.split(' ')[0]}</div>
+                        <div className="font-semibold">{t('jobRoute.deliveryPoint')} - {job.destination_contact_phone || '-'}</div>
                         {jobApplication.delivery_sop_completed_at && (
                           <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
                             <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>

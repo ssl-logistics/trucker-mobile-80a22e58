@@ -1069,7 +1069,7 @@ const thTranslations: Record<string, string> = {
   'jobRoute.paid': 'ชำระแล้ว',
   'jobRoute.employer': 'ผู้จ้าง',
   'jobRoute.pickupPoint': 'จุดรับสินค้า',
-  'jobRoute.deliveryPoint': 'จุดส่ง',
+  'jobRoute.deliveryPoint': 'ส่งสินค้า',
   'jobRoute.sopSuccess': 'SOP สำเร็จ',
   'jobRoute.podSuccess': 'POD สำเร็จ',
   'jobRoute.contactName': 'ชื่อผู้ติดต่อ',
