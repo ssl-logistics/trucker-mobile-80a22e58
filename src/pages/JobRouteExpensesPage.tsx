@@ -13,31 +13,40 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/dateUtils';
 
-// API response interfaces
+// API response interfaces (matching JobHistoryPage)
 interface ApiJobDetail {
   id: string;
   order_number: string;
+  transport_type_id: string | null;
+  transport_mode: string | null;
+  status: string;
   sender_name: string;
-  destination_company_name: string | null;
-  transport_price: number;
-  transport_type: string;
-  sender_pickup_date: string;
-  sender_pickup_time: string;
+  sender_address: string;
   sender_province: string;
   sender_district: string;
-  sender_address: string;
+  sender_pickup_date: string;
+  sender_pickup_time: string;
   sender_contact_name: string | null;
   sender_contact_phone: string | null;
-  receiver_province: string;
-  receiver_district: string;
-  receiver_address: string;
-  receiver_contact_name: string | null;
-  receiver_contact_phone: string | null;
-  goods_type: string | null;
-  goods_weight: number | null;
-  goods_quantity: number | null;
+  destination_name: string;
+  destination_address: string;
+  destination_province: string;
+  destination_district: string;
+  destination_delivery_date: string;
+  destination_delivery_time: string;
+  destination_contact_name: string | null;
+  destination_contact_phone: string | null;
+  destination_company_name: string | null;
+  product_name: string | null;
+  product_type: string | null;
+  product_weight: number | null;
+  product_quantity: number | null;
+  product_unit: string | null;
+  vehicle_type: string | null;
+  transport_price: number;
   remarks: string | null;
-  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface JobDetail {
@@ -142,15 +151,15 @@ export default function JobRouteExpensesPage() {
           employer_name: apiJob.sender_name,
           destination_company_name: apiJob.destination_company_name,
           price: apiJob.transport_price,
-          transport_type: apiJob.transport_type || apiJob.goods_type || '-',
-          origin_location: `${apiJob.sender_district || ''} ${apiJob.sender_province || ''}`.trim() || apiJob.sender_address || '-',
-          destination_location: `${apiJob.receiver_district || ''} ${apiJob.receiver_province || ''}`.trim() || apiJob.receiver_address || '-',
+          transport_type: apiJob.vehicle_type || apiJob.product_name || '-',
+          origin_location: `${apiJob.sender_district || ''}, ${apiJob.sender_province || ''}`.replace(/^, |, $/g, '') || apiJob.sender_address || '-',
+          destination_location: `${apiJob.destination_district || ''}, ${apiJob.destination_province || ''}`.replace(/^, |, $/g, '') || apiJob.destination_address || '-',
           origin_contact_person: apiJob.sender_contact_name,
-          destination_contact_person: apiJob.receiver_contact_name,
+          destination_contact_person: apiJob.destination_contact_name,
           origin_bill_of_lading: apiJob.order_number,
           destination_bill_of_lading: apiJob.order_number,
           start_date: apiJob.sender_pickup_date,
-          start_time: apiJob.sender_pickup_time || '-',
+          start_time: apiJob.sender_pickup_time?.substring(0, 5) || '-',
           origin_remarks: apiJob.remarks,
           destination_remarks: apiJob.remarks,
         };
@@ -172,13 +181,13 @@ export default function JobRouteExpensesPage() {
           id: apiJob.id,
           sequence_number: 1,
           company_name: apiJob.destination_company_name,
-          contact_name: apiJob.receiver_contact_name,
-          contact_phone: apiJob.receiver_contact_phone,
-          address: apiJob.receiver_address,
-          province: apiJob.receiver_province,
-          district: apiJob.receiver_district,
-          delivery_date: apiJob.sender_pickup_date,
-          delivery_time: apiJob.sender_pickup_time,
+          contact_name: apiJob.destination_contact_name,
+          contact_phone: apiJob.destination_contact_phone,
+          address: apiJob.destination_address,
+          province: apiJob.destination_province,
+          district: apiJob.destination_district,
+          delivery_date: apiJob.destination_delivery_date,
+          delivery_time: apiJob.destination_delivery_time?.substring(0, 5),
           notes: apiJob.remarks,
           checked_in_at: ['delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
           sop_completed_at: ['delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
