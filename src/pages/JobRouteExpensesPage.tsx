@@ -397,7 +397,7 @@ export default function JobRouteExpensesPage() {
                           <span className="text-foreground">: {destination.address || `${destination.district || ''} ${destination.province || ''}`.trim() || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
+                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.deliveryTime')}</span>
                           <span className="text-foreground">: {destination.delivery_date ? formatDate(destination.delivery_date, language) : '-'} {destination.delivery_time ? `| ${destination.delivery_time}` : ''}</span>
                         </div>
                         <div className="flex">
