@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+
 import profitIcon from '@/assets/profit-icon.png';
 import successIcon from '@/assets/success-icon.png';
 import deliveryIcon from '@/assets/delivery-icon.png';
@@ -55,12 +55,6 @@ export default function ShippingPage() {
       
       setIsLoading(true);
       try {
-        const { data, error } = await supabase.functions.invoke('get-freelance-job-stats', {
-          body: null,
-          headers: {},
-        });
-
-        // Use query params instead
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-job-stats?freelance_driver_id=${user.id}&time_period=${timePeriod}&vehicle_type=${vehicleType}&date=${selectedDate.toISOString()}`,
           {
