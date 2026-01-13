@@ -150,8 +150,13 @@ export default function CurrentJobsPage() {
     setEndDate(undefined);
   };
 
-  // Filter jobs based on selected filters
+  // Filter jobs based on selected filters - exclude completed/delivered jobs
   const filteredJobs = acceptedJobs.filter(job => {
+    // Exclude completed or delivered jobs - they should show in history
+    if (job.status === 'completed' || job.status === 'delivered') {
+      return false;
+    }
+
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
