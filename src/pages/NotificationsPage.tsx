@@ -305,7 +305,7 @@ export default function NotificationsPage() {
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-center">
-              {t('notifications.jobDetail') || 'รายละเอียดงาน'}
+              รายละเอียดงาน
             </DialogTitle>
           </DialogHeader>
           
@@ -313,13 +313,13 @@ export default function NotificationsPage() {
             {loadingJob ? (
               <div className="flex flex-col items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="text-sm mt-3 text-muted-foreground">{t('common.loading') || 'กำลังโหลด...'}</p>
+                <p className="text-sm mt-3 text-muted-foreground">กำลังโหลด...</p>
               </div>
             ) : selectedJob ? (
               <div className="space-y-4">
                 {/* Order Code */}
                 <div className="bg-primary/10 rounded-lg p-3 text-center">
-                  <p className="text-xs text-muted-foreground">{t('job.orderCode') || 'รหัสงาน'}</p>
+                  <p className="text-xs text-muted-foreground">รหัสงาน</p>
                   <p className="font-bold text-primary text-lg">{selectedJob.order_code}</p>
                 </div>
 
@@ -330,7 +330,7 @@ export default function NotificationsPage() {
                       <MapPin className="w-4 h-4 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">{t('job.origin') || 'ต้นทาง'}</p>
+                      <p className="text-xs text-muted-foreground">ต้นทาง</p>
                       <p className="font-medium">{selectedJob.origin_location}</p>
                     </div>
                   </div>
@@ -340,7 +340,7 @@ export default function NotificationsPage() {
                       <MapPin className="w-4 h-4 text-red-600" />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">{t('job.destination') || 'ปลายทาง'}</p>
+                      <p className="text-xs text-muted-foreground">ปลายทาง</p>
                       <p className="font-medium">{selectedJob.destination_location}</p>
                     </div>
                   </div>
@@ -350,7 +350,7 @@ export default function NotificationsPage() {
                 <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
                   <Banknote className="w-5 h-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">{t('job.price') || 'ราคา'}</p>
+                    <p className="text-xs text-muted-foreground">ราคา</p>
                     <p className="font-bold text-lg text-primary">฿{selectedJob.price.toLocaleString()}</p>
                   </div>
                 </div>
@@ -360,7 +360,7 @@ export default function NotificationsPage() {
                   <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
                     <CalendarIconLucide className="w-4 h-4 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">{t('job.date') || 'วันที่'}</p>
+                      <p className="text-xs text-muted-foreground">วันที่</p>
                       <p className="font-medium text-sm">
                         {format(parseISO(selectedJob.start_date), 'd MMM yyyy', { locale: getLocale() })}
                       </p>
@@ -369,7 +369,7 @@ export default function NotificationsPage() {
                   <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
                     <Clock className="w-4 h-4 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">{t('job.time') || 'เวลา'}</p>
+                      <p className="text-xs text-muted-foreground">เวลา</p>
                       <p className="font-medium text-sm">{selectedJob.start_time}</p>
                     </div>
                   </div>
@@ -379,19 +379,19 @@ export default function NotificationsPage() {
                 <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
                   <Truck className="w-5 h-5 text-muted-foreground" />
                   <div>
-                    <p className="text-xs text-muted-foreground">{t('job.transportType') || 'ประเภทการขนส่ง'}</p>
+                    <p className="text-xs text-muted-foreground">ประเภทการขนส่ง</p>
                     <p className="font-medium">{selectedJob.transport_type} • {selectedJob.job_type}</p>
                   </div>
                 </div>
 
                 {/* Employer */}
                 <div className="text-center text-sm text-muted-foreground">
-                  {t('job.employer') || 'ผู้ว่าจ้าง'}: <span className="font-medium text-foreground">{selectedJob.employer_name}</span>
+                  ผู้ว่าจ้าง: <span className="font-medium text-foreground">{selectedJob.employer_name}</span>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                <p>{t('notifications.noJobDetail') || 'ไม่พบข้อมูลงาน'}</p>
+                <p>ไม่พบข้อมูลงาน</p>
               </div>
             )}
           </div>
@@ -399,11 +399,11 @@ export default function NotificationsPage() {
           <DialogFooter className="flex flex-col gap-2 sm:flex-col">
             {selectedJob && (
               <Button onClick={handleViewJobDetail} className="w-full">
-                {t('notifications.viewJobDetail') || 'ดูรายละเอียดงาน'}
+                ดูรายละเอียดงาน
               </Button>
             )}
             <Button variant="outline" onClick={() => setModalOpen(false)} className="w-full">
-              {t('common.close') || 'ปิด'}
+              ปิด
             </Button>
           </DialogFooter>
         </DialogContent>
