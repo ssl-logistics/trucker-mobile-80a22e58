@@ -231,14 +231,14 @@ export default function JobHistoryPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start border-b rounded-none bg-white h-auto p-0">
-          <TabsTrigger value="all" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent">
+        <TabsList className="w-full justify-start rounded-none bg-white h-auto p-0">
+          <TabsTrigger value="all" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
             {t('jobHistory.all')}
           </TabsTrigger>
-          <TabsTrigger value="in-progress" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent">
+          <TabsTrigger value="in-progress" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
             {t('jobHistory.inProgress')}
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent">
+          <TabsTrigger value="completed" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
             {t('jobHistory.completed')}
           </TabsTrigger>
         </TabsList>
