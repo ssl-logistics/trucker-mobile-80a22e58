@@ -331,10 +331,6 @@ export default function JobRouteExpensesPage() {
                       <span className="text-foreground">: {job.origin_contact_person || '-'}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.billNumber')}</span>
-                      <span className="text-foreground">: {job.origin_bill_of_lading || job.order_code}</span>
-                    </div>
-                    <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.destination')}</span>
                       <span className="text-foreground">: {job.origin_location}</span>
                     </div>
@@ -425,10 +421,6 @@ export default function JobRouteExpensesPage() {
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.contactName')}</span>
                           <span className="text-foreground">: {job.destination_contact_person || '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.billNumber')}</span>
-                          <span className="text-foreground">: {job.destination_bill_of_lading || job.order_code}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.destination')}</span>
