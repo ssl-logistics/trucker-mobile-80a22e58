@@ -325,8 +325,8 @@ export default function JobRouteExpensesPage() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="font-semibold">{t('jobRoute.pickupPoint')} {job.origin_contact_person || 'Factory1'}</div>
                     {jobApplication.sop_completed_at && (
-                      <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
-                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
+                      <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 whitespace-nowrap flex-shrink-0">
+                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1 flex-shrink-0"></div>
                         {t('jobRoute.sopSuccess')}
                       </Badge>
                     )}
@@ -377,8 +377,8 @@ export default function JobRouteExpensesPage() {
                       <div className="flex items-start justify-between mb-2">
                         <div className="font-semibold">{t('jobRoute.deliveryPoint')}{destinations.length > 1 ? ` ${destination.sequence_number}` : ''} - {destination.company_name || destination.province || '-'}</div>
                         {destination.sop_completed_at && (
-                          <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
-                            <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1"></div>
+                          <Badge variant="outline" className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 whitespace-nowrap flex-shrink-0">
+                            <div className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1 flex-shrink-0"></div>
                             {t('jobRoute.podSuccess')}
                           </Badge>
                         )}
