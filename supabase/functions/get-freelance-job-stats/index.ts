@@ -13,17 +13,28 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const freelanceDriverId = url.searchParams.get('freelance_driver_id');
-    const timePeriod = url.searchParams.get('time_period') || 'month'; // day, month, year
-    const vehicleType = url.searchParams.get('vehicle_type') || 'all';
-    const dateStr = url.searchParams.get('date'); // ISO date string
+
+    // Support both query params (GET) and JSON body (POST) to avoid client-side mismatches
+    let body: any = null;
+    if (req.method !== 'GET') {
+      try {
+        body = await req.json();
+      } catch {
+        body = null;
+      }
+    }
+
+    const freelanceDriverId = url.searchParams.get('freelance_driver_id') || body?.freelance_driver_id;
+    const timePeriod = url.searchParams.get('time_period') || body?.time_period || 'month'; // day, month, year
+    const vehicleType = url.searchParams.get('vehicle_type') || body?.vehicle_type || 'all';
+    const dateStr = url.searchParams.get('date') || body?.date; // ISO date string
 
     if (!freelanceDriverId) {
       return new Response(
         JSON.stringify({ error: 'freelance_driver_id is required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
@@ -33,16 +44,18 @@ serve(async (req) => {
       console.error('EXPRESS_RENT_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'API key not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Call external API to get accepted jobs
-    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`;
-    
+    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
+      freelanceDriverId
+    )}`;
+
     console.log('Fetching job stats for driver:', freelanceDriverId);
 
     const response = await fetch(externalUrl, {
@@ -59,9 +72,9 @@ serve(async (req) => {
       console.error('External API error:', data);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch jobs', details: data }),
-        { 
-          status: response.status, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
@@ -69,27 +82,78 @@ serve(async (req) => {
     // Process jobs data to generate statistics
     const jobs = data.data || data || [];
     const selectedDate = dateStr ? new Date(dateStr) : new Date();
-    
+
+    const parseJobDate = (job: any): Date | null => {
+      const datePart =
+        job.sender_pickup_date ||
+        job.pickup_date ||
+        job.start_date ||
+        job.created_at ||
+        job.destination_delivery_date;
+
+      const timePart = job.sender_pickup_time || job.pickup_time || job.start_time;
+
+      if (!datePart) return null;
+
+      // If we have separate date + time, combine to ISO-ish string
+      if (
+        typeof datePart === 'string' &&
+        typeof timePart === 'string' &&
+        !datePart.includes('T') &&
+        timePart.includes(':')
+      ) {
+        return new Date(`${datePart}T${timePart}`);
+      }
+
+      return new Date(datePart);
+    };
+
     // Filter jobs by date range based on time period
     const filterJobsByDate = (job: any) => {
-      const jobDate = new Date(job.pickup_date || job.created_at || job.start_date);
-      
+      const jobDate = parseJobDate(job);
+      if (!jobDate || Number.isNaN(jobDate.getTime())) return false;
+
       if (timePeriod === 'day') {
         return jobDate.toDateString() === selectedDate.toDateString();
       } else if (timePeriod === 'month') {
-        return jobDate.getMonth() === selectedDate.getMonth() && 
-               jobDate.getFullYear() === selectedDate.getFullYear();
+        return (
+          jobDate.getMonth() === selectedDate.getMonth() &&
+          jobDate.getFullYear() === selectedDate.getFullYear()
+        );
       } else {
         return jobDate.getFullYear() === selectedDate.getFullYear();
       }
     };
 
-    // Filter jobs by vehicle type
+    const normalizeVehicle = (value: any) =>
+      String(value || '')
+        // remove normal + non-breaking + zero-width spaces
+        .replace(/[\s\u00A0\u200B\uFEFF]+/g, '')
+        .replace(/^รถ/, '');
+
+    const extractWheelCount = (value: string) => {
+      const match = value.match(/\d+/);
+      return match ? match[0] : null;
+    };
+
+    // Filter jobs by vehicle type (UI might send "10ล้อ" but API may return "รถ 10 ล้อ")
     const filterJobsByVehicle = (job: any) => {
       if (vehicleType === 'all') return true;
-      return job.vehicle_type === vehicleType || 
-             job.truck_type === vehicleType ||
-             job.transport_vehicle_type === vehicleType;
+
+      const desired = normalizeVehicle(vehicleType);
+      const desiredWheel = extractWheelCount(desired);
+
+      const candidates = [job.vehicle_type, job.truck_type, job.transport_vehicle_type]
+        .filter(Boolean)
+        .map(normalizeVehicle);
+
+      if (desiredWheel) {
+        // Match by wheel count first (10/12/6/4)
+        return candidates.some((v: string) => v.includes(desiredWheel));
+      }
+
+      // Non-numeric types (e.g., หัวลาก)
+      return candidates.some((v: string) => v.includes(desired) || desired.includes(v));
     };
 
     const filteredJobs = jobs.filter((job: any) => filterJobsByDate(job) && filterJobsByVehicle(job));

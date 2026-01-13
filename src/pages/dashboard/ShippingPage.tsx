@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, TrendingUp, Loader2 } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -195,10 +195,10 @@ export default function ShippingPage() {
           <SelectContent className="bg-white">
             <SelectItem value="all">{t('shipping.all_types')}</SelectItem>
             <SelectItem value="หัวลาก">{t('shipping.tractor')}</SelectItem>
-            <SelectItem value="12ล้อ">{t('shipping.12wheels')}</SelectItem>
-            <SelectItem value="10ล้อ">{t('shipping.10wheels')}</SelectItem>
-            <SelectItem value="6ล้อ">{t('shipping.6wheels')}</SelectItem>
-            <SelectItem value="4ล้อ">{t('shipping.4wheels')}</SelectItem>
+            <SelectItem value="รถ 12 ล้อ">{t('shipping.12wheels')}</SelectItem>
+            <SelectItem value="รถ 10 ล้อ">{t('shipping.10wheels')}</SelectItem>
+            <SelectItem value="รถ 6 ล้อ">{t('shipping.6wheels')}</SelectItem>
+            <SelectItem value="รถ 4 ล้อ">{t('shipping.4wheels')}</SelectItem>
           </SelectContent>
         </Select>
 
