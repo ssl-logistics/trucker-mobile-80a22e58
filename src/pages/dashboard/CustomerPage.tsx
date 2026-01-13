@@ -269,7 +269,7 @@ export default function CustomerPage() {
                 <span className="text-sm text-gray-500">{t('customer.top_5')}</span>
               </div>
               <div className="flex items-center">
-                <ResponsiveContainer width="60%" height={180}>
+                <ResponsiveContainer width="50%" height={180}>
                   <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                     <Pie 
                       data={pieData} 
@@ -280,8 +280,8 @@ export default function CustomerPage() {
                       paddingAngle={pieData.length === 1 ? 0 : 2} 
                       dataKey="value"
                       stroke="none"
-                      startAngle={0}
-                      endAngle={360}
+                      startAngle={90}
+                      endAngle={-270}
                       label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
                         const RADIAN = Math.PI / 180;
                         const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -299,11 +299,11 @@ export default function CustomerPage() {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-2 min-w-0">
                   {pieData.map((entry, index) => (
-                    <div key={index} className="flex items-center gap-2">
+                    <div key={index} className="flex items-center gap-2 min-w-0">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-                      <span className="text-xs text-gray-700 truncate">{entry.name}</span>
+                      <span className="text-xs text-gray-700 truncate max-w-[120px]">{entry.name}</span>
                     </div>
                   ))}
                 </div>
