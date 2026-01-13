@@ -533,6 +533,7 @@ const thTranslations: Record<string, string> = {
   // Sign In Page
   'signIn.title': 'เข้าสู่ระบบหรือสมัครสมาชิก',
   'signIn.username': 'ชื่อผู้ใช้',
+  'signIn.usernamePlaceholder': 'กรอกชื่อผู้ใช้',
   'signIn.password': 'รหัสผ่าน',
   'signIn.rememberMe': 'จดจำฉันในระบบ',
   'signIn.forgotPassword': 'ลืมรหัสผ่าน?',
@@ -1752,6 +1753,7 @@ const enTranslations: Record<string, string> = {
   // Sign In Page
   'signIn.title': 'Sign In or Register',
   'signIn.username': 'Username',
+  'signIn.usernamePlaceholder': 'Enter username',
   'signIn.password': 'Password',
   'signIn.rememberMe': 'Remember me',
   'signIn.forgotPassword': 'Forgot password?',
@@ -3613,6 +3615,7 @@ const koTranslations: Record<string, string> = {
   // Sign In Page
   'signIn.title': '로그인 또는 회원가입',
   'signIn.username': '사용자 이름',
+  'signIn.usernamePlaceholder': '사용자 이름 입력',
   'signIn.password': '비밀번호',
   'signIn.rememberMe': '로그인 상태 유지',
   'signIn.forgotPassword': '비밀번호를 잊으셨나요?',
@@ -4849,6 +4852,7 @@ const zhTranslations: Record<string, string> = {
   // Sign In Page
   'signIn.title': '登录或注册',
   'signIn.username': '用户名',
+  'signIn.usernamePlaceholder': '输入用户名',
   'signIn.email': '电子邮件',
   'signIn.password': '密码',
   'signIn.rememberMe': '记住我',

@@ -221,7 +221,7 @@ const SignIn = () => {
             <Label htmlFor="email" className="text-foreground">
               {t('signIn.username')} <span className="text-destructive">*</span>
             </Label>
-            <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder') || "ชื่อผู้ใช้"} {...register("email")} className={errors.email ? "border-destructive" : ""} />
+            <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder')} {...register("email")} className={errors.email ? "border-destructive" : ""} />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
 
