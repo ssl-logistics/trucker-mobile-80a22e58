@@ -38,14 +38,9 @@ interface JobDetail {
   start_time: string;
 }
 
-interface JobDestination {
-  id: string;
-  job_id: string;
+// JobDestination interface removed - table no longer exists
+interface DestinationInfo {
   sequence_number: number;
-  company_name: string | null;
-  contact_name: string | null;
-  checked_in_at: string | null;
-  sop_completed_at: string | null;
 }
 
 export default function DeliverySOPCheckInPage() {
@@ -54,7 +49,7 @@ export default function DeliverySOPCheckInPage() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
-  const [destination, setDestination] = useState<JobDestination | null>(null);
+  const [destination, setDestination] = useState<DestinationInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
@@ -190,27 +185,8 @@ export default function DeliverySOPCheckInPage() {
 
       if (insertError) throw insertError;
 
-      // If we have a specific destination, update job_destinations table
-      if (destination && destinationId) {
-        const { error: updateError } = await supabase
-          .from('job_destinations')
-          .update({ 
-            sop_completed_at: new Date().toISOString()
-          })
-          .eq('id', destinationId);
-
-        if (updateError) throw updateError;
-
-        // Send job status update
-        await sendJobStatus({
-          jobId: job.id,
-          orderCode: job.order_code,
-          userId: user.id,
-          status: 'delivery_sop_completed',
-          sequenceNumber: destination.sequence_number,
-          destinationId: destinationId
-        });
-      } else {
+      // Update job application with delivery SOP completion
+      {
         // Fallback to old behavior for legacy routes
         const { error: updateError } = await supabase
           .from('job_applications')
@@ -253,7 +229,7 @@ export default function DeliverySOPCheckInPage() {
   };
 
   // Display values
-  const displayCompanyName = destination?.company_name || job?.destination_company_name || '';
+  const displayCompanyName = job?.destination_company_name || '';
 
   if (loading) {
     return (

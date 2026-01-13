@@ -280,6 +280,59 @@ serve(async (req) => {
 
     console.log('Successfully upserted job:', upsertedJob.id);
 
+    // Send push notifications to all freelance drivers
+    try {
+      console.log('Sending push notifications for new job...');
+      
+      // Get all freelance users from user_roles table
+      const { data: freelanceUsers, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'freelance');
+      
+      if (rolesError) {
+        console.error('Error fetching freelance users:', rolesError);
+      } else if (freelanceUsers && freelanceUsers.length > 0) {
+        const userIds = freelanceUsers.map(u => u.user_id);
+        console.log(`Found ${userIds.length} freelance users to notify`);
+        
+        // Call send-push-notification function
+        const notificationPayload = {
+          user_ids: userIds,
+          title: '📦 งานใหม่เข้ามาแล้ว!',
+          body: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          data: {
+            type: 'new_job',
+            job_id: upsertedJob.id,
+            order_code: upsertedJob.order_code,
+            url: `/job/${upsertedJob.id}`
+          }
+        };
+        
+        const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify(notificationPayload),
+        });
+        
+        if (pushResponse.ok) {
+          const pushResult = await pushResponse.json();
+          console.log('Push notifications sent:', pushResult);
+        } else {
+          const errorText = await pushResponse.text();
+          console.error('Failed to send push notifications:', errorText);
+        }
+      } else {
+        console.log('No freelance users found to notify');
+      }
+    } catch (notifError) {
+      console.error('Error sending push notifications:', notifError);
+      // Don't fail the main request if notifications fail
+    }
+
     // Handle multiple destinations if provided
     let destinationsInserted = 0;
     if (data.destinations && Array.isArray(data.destinations) && data.destinations.length > 0) {

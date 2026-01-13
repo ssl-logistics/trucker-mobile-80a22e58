@@ -55,23 +55,7 @@ interface JobApplication {
   delivery_sop_completed_at: string | null;
   status: string;
 }
-interface JobDestination {
-  id: string;
-  sequence_number: number;
-  company_name: string | null;
-  contact_name: string | null;
-  contact_phone: string | null;
-  address: string | null;
-  province: string | null;
-  district: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  delivery_date: string | null;
-  delivery_time: string | null;
-  notes: string | null;
-  checked_in_at: string | null;
-  sop_completed_at: string | null;
-}
+// JobDestination interface removed - table no longer exists
 interface DomesticJobDetailProps {
   job: JobDetail;
   jobApplication: JobApplication | null;
@@ -97,7 +81,7 @@ export default function DomesticJobDetail({
     card2: 0
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
-  const [destinations, setDestinations] = useState<JobDestination[]>([]);
+  // destinations state removed - job_destinations table no longer exists
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
@@ -184,40 +168,11 @@ export default function DomesticJobDetail({
         card2: 200
       });
     }
-  }, [jobApplication, destinations]);
+  }, [jobApplication]);
 
-  // Fetch destinations from job_destinations table
-  useEffect(() => {
-    const fetchDestinations = async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('job_destinations').select('*').eq('job_id', job.id).order('sequence_number', {
-        ascending: true
-      });
-      if (error) {
-        console.error('Error fetching destinations:', error);
-      } else if (data && data.length > 0) {
-        setDestinations(data);
-      }
-    };
-    fetchDestinations();
+  // Empty destinations array - job_destinations table no longer exists
+  const destinations: { id: string; sequence_number: number; company_name: string | null; contact_name: string | null; contact_phone: string | null; address: string | null; province: string | null; district: string | null; delivery_date: string | null; delivery_time: string | null; notes: string | null; checked_in_at: string | null; sop_completed_at: string | null }[] = [];
 
-    // Set up real-time subscription for job_destinations
-    const channel = supabase.channel(`job_destinations_${job.id}`).on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'job_destinations',
-      filter: `job_id=eq.${job.id}`
-    }, payload => {
-      console.log('Job destination updated:', payload);
-      // Refetch destinations when any change occurs
-      fetchDestinations();
-    }).subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [job.id]);
   const handleStartJob = async () => {
     const {
       error
