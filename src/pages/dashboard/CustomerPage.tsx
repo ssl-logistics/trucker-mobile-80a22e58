@@ -277,9 +277,11 @@ export default function CustomerPage() {
                       cy="50%" 
                       innerRadius={25} 
                       outerRadius={75}
-                      paddingAngle={0} 
+                      paddingAngle={pieData.length === 1 ? 0 : 2} 
                       dataKey="value"
                       stroke="none"
+                      startAngle={0}
+                      endAngle={360}
                       label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
                         const RADIAN = Math.PI / 180;
                         const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
