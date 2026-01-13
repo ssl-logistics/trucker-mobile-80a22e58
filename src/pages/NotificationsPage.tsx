@@ -78,21 +78,18 @@ export default function NotificationsPage() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full rounded-none border-b bg-white h-12">
-          <TabsTrigger value="all" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
+          <TabsTrigger value="all" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
             {t('notifications.all')}
           </TabsTrigger>
-          <TabsTrigger value="unread" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none">
+          <TabsTrigger value="unread" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
             {t('notifications.unread')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-0">
-          {/* Date and Mark All Read */}
-          <div className="flex items-center justify-between px-4 py-3 bg-white border-b">
+          {/* Date header */}
+          <div className="flex items-center px-4 py-3 bg-white border-b">
             <span className="text-sm text-muted-foreground">{getNotificationDate()}</span>
-            <button onClick={markAllAsRead} className="text-sm text-blue-600 font-medium">
-              {t('notifications.markAllRead')}
-            </button>
           </div>
 
           {/* Notifications List */}
