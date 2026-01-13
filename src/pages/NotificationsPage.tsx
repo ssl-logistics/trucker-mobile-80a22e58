@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isSameDay, parseISO } from 'date-fns';
 import { th, enUS, ko, zhCN } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -9,49 +9,107 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Notification {
   id: string;
-  date: string;
-  time: string;
-  title: {
-    th: string;
-    en: string;
-    ko: string;
-    zh: string;
-  };
-  description: {
-    th: string;
-    en: string;
-    ko: string;
-    zh: string;
-  };
-  isRead: boolean;
-  imageUrl?: string;
-  fullContent?: {
-    th: string;
-    en: string;
-    ko: string;
-    zh: string;
-  };
+  user_id: string | null;
+  title_th: string;
+  title_en: string | null;
+  title_ko: string | null;
+  title_zh: string | null;
+  description_th: string | null;
+  description_en: string | null;
+  description_ko: string | null;
+  description_zh: string | null;
+  notification_type: string;
+  reference_id: string | null;
+  reference_type: string | null;
+  is_read: boolean;
+  image_url: string | null;
+  created_at: string;
 }
-
-// Empty notifications - no demo data
-const mockNotificationsData: Notification[] = [];
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const [notifications] = useState<Notification[]>(mockNotificationsData);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const unreadNotifications = notifications.filter(n => !n.isRead);
-  const displayNotifications = activeTab === 'all' ? notifications : unreadNotifications;
+  // Fetch notifications from database
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching notifications:', error);
+        } else {
+          setNotifications(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+        },
+        (payload) => {
+          console.log('New notification received:', payload);
+          setNotifications((prev) => [payload.new as Notification, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const unreadNotifications = notifications.filter(n => !n.is_read);
+  
+  // Filter by tab and selected date
+  const filteredNotifications = (activeTab === 'all' ? notifications : unreadNotifications)
+    .filter(n => {
+      const notifDate = parseISO(n.created_at);
+      return isSameDay(notifDate, selectedDate);
+    });
   
   // Get localized content
-  const getLocalizedContent = (content: { th: string; en: string; ko: string; zh: string }) => {
-    return content[language as keyof typeof content] || content.th;
+  const getLocalizedTitle = (notification: Notification) => {
+    switch (language) {
+      case 'en': return notification.title_en || notification.title_th;
+      case 'ko': return notification.title_ko || notification.title_th;
+      case 'zh': return notification.title_zh || notification.title_th;
+      default: return notification.title_th;
+    }
+  };
+
+  const getLocalizedDescription = (notification: Notification) => {
+    switch (language) {
+      case 'en': return notification.description_en || notification.description_th;
+      case 'ko': return notification.description_ko || notification.description_th;
+      case 'zh': return notification.description_zh || notification.description_th;
+      default: return notification.description_th;
+    }
   };
 
   // Get locale for date-fns
@@ -67,6 +125,37 @@ export default function NotificationsPage() {
   // Format selected date for display
   const formatSelectedDate = () => {
     return format(selectedDate, 'd MMMM yyyy', { locale: getLocale() });
+  };
+
+  // Format notification date/time
+  const formatNotificationDateTime = (dateString: string) => {
+    const date = parseISO(dateString);
+    return {
+      date: format(date, 'd MMM yyyy', { locale: getLocale() }),
+      time: format(date, 'HH:mm'),
+    };
+  };
+
+  // Handle notification click
+  const handleNotificationClick = async (notification: Notification) => {
+    // Mark as read
+    if (!notification.is_read) {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notification.id);
+
+      setNotifications(prev =>
+        prev.map(n =>
+          n.id === notification.id ? { ...n, is_read: true } : n
+        )
+      );
+    }
+
+    // Navigate based on reference type
+    if (notification.reference_type === 'job' && notification.reference_id) {
+      navigate(`/job/${notification.reference_id}`);
+    }
   };
 
   return (
@@ -123,37 +212,45 @@ export default function NotificationsPage() {
 
           {/* Notifications List */}
           <div className="bg-white">
-            {displayNotifications.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="text-sm mt-3">{t('common.loading') || 'กำลังโหลด...'}</p>
+              </div>
+            ) : filteredNotifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <CalendarIcon className="w-12 h-12 mb-3 opacity-50" />
                 <p className="text-sm">{t('notifications.noNotifications') || 'ไม่มีการแจ้งเตือน'}</p>
               </div>
             ) : (
-              displayNotifications.map((notification) => (
-                <button
-                  key={notification.id}
-                  onClick={() => navigate(`/notifications/${notification.id}`)}
-                  className="w-full px-4 py-4 border-b hover:bg-gray-50 text-left transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                      notification.isRead ? 'bg-gray-400' : 'bg-red-500'
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-muted-foreground mb-1">
-                        {notification.date} | {notification.time}
+              filteredNotifications.map((notification) => {
+                const { date, time } = formatNotificationDateTime(notification.created_at);
+                return (
+                  <button
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className="w-full px-4 py-4 border-b hover:bg-gray-50 text-left transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                        notification.is_read ? 'bg-gray-400' : 'bg-red-500'
+                      }`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-muted-foreground mb-1">
+                          {date} | {time}
+                        </div>
+                        <h3 className="font-semibold text-sm mb-1">
+                          {getLocalizedTitle(notification)}
+                        </h3>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {getLocalizedDescription(notification)}
+                        </p>
                       </div>
-                      <h3 className="font-semibold text-sm mb-1">
-                        {getLocalizedContent(notification.title)}
-                      </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {getLocalizedContent(notification.description)}
-                      </p>
+                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
-                  </div>
-                </button>
-              ))
+                  </button>
+                );
+              })
             )}
           </div>
         </TabsContent>
