@@ -1,8 +1,13 @@
-import { Clock, MapPin, CircleDot } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Clock, MapPin, CircleDot, Banknote, Truck, Calendar, Eye } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { th } from 'date-fns/locale';
 import coinsIcon from '@/assets/coins-icon-2.png';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDate } from '@/lib/dateUtils';
 
@@ -35,6 +40,8 @@ interface JobCardProps {
 
 export const JobCard = ({ job, onAccept }: JobCardProps) => {
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   // Determine if domestic or international based on transport_type
   const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
@@ -43,6 +50,15 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
   const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
   const isInbound = job.transport_type?.includes('ขาเข้า');
   const isOutbound = job.transport_type?.includes('ขาออก');
+
+  const handleViewDetail = () => {
+    setDetailModalOpen(true);
+  };
+
+  const handleGoToJobPage = () => {
+    setDetailModalOpen(false);
+    navigate(`/job/${job.id}`);
+  };
 
   return (
     <Card className="p-4 pt-8 space-y-3 bg-card relative overflow-hidden">
@@ -139,13 +155,133 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
         </div>
       </div>
 
-      <Button 
-        onClick={() => onAccept(job)} 
-        className="w-full h-11 text-base font-medium"
-        disabled={job.isAccepted}
-      >
-        {job.isAccepted ? t('job.accepted') : t('job.accept')}
-      </Button>
+      <div className="flex gap-2">
+        <Button 
+          variant="outline"
+          onClick={handleViewDetail} 
+          className="flex-1 h-11 text-base font-medium"
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          ดูรายละเอียด
+        </Button>
+        <Button 
+          onClick={() => onAccept(job)} 
+          className="flex-1 h-11 text-base font-medium"
+          disabled={job.isAccepted}
+        >
+          {job.isAccepted ? t('job.accepted') : t('job.accept')}
+        </Button>
+      </div>
+
+      {/* Job Detail Modal */}
+      <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              รายละเอียดงาน
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            {/* Order Code */}
+            <div className="bg-primary/10 rounded-lg p-3 text-center">
+              <p className="text-xs text-muted-foreground">รหัสงาน</p>
+              <p className="font-bold text-primary text-lg">{job.order_code}</p>
+            </div>
+
+            {/* Route */}
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">ต้นทาง</p>
+                  <p className="font-medium">{job.origin_location}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4 h-4 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">ปลายทาง</p>
+                  <p className="font-medium">{job.destination_location}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Price */}
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+              <Banknote className="w-5 h-5 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">ราคา</p>
+                <p className="font-bold text-lg text-primary">฿{job.price.toLocaleString()}</p>
+              </div>
+            </div>
+
+            {/* Date & Time */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">วันที่</p>
+                  <p className="font-medium text-sm">
+                    {job.start_date ? formatDate(job.start_date, language) : '-'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">เวลา</p>
+                  <p className="font-medium text-sm">{job.start_time || '-'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Transport Type & Job Type */}
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+              <Truck className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">ประเภทการขนส่ง</p>
+                <p className="font-medium">{job.transport_type_label || job.transport_type} • {job.job_type}</p>
+              </div>
+            </div>
+
+            {/* Goods Info */}
+            <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+              <div>
+                <span className="text-muted-foreground">สินค้า : </span>
+                <span>{job.goods_type || '-'}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">น้ำหนัก : </span>
+                <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${job.goods_unit || 'kg'}` : '-'}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">จำนวน : </span>
+                <span>{job.goods_quantity || '-'}</span>
+              </div>
+            </div>
+
+            {/* Employer */}
+            <div className="text-center text-sm text-muted-foreground">
+              ผู้ว่าจ้าง: <span className="font-medium text-foreground">{job.employer_name}</span>
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+            <Button onClick={handleGoToJobPage} className="w-full">
+              ดูรายละเอียดเพิ่มเติม
+            </Button>
+            <Button variant="outline" onClick={() => setDetailModalOpen(false)} className="w-full">
+              ปิด
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
