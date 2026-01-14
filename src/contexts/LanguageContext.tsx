@@ -458,6 +458,8 @@ const thTranslations: Record<string, string> = {
   'jobDetail.guarantor': 'ผู้รับรอง',
   'jobDetail.returnDate': 'วันคืนตู้คอนเทนเนอร์',
   'jobDetail.startJobDesc': 'คุณสามารถเริ่มตรวจตู้เปล่าได้แล้ว',
+  'jobDetail.waitingStartJob': 'รอเริ่มงาน',
+  'jobDetail.startingJob': 'กำลังเริ่มงาน...',
 
   // Chat Page
   'chat.title': 'แชท',
@@ -1679,6 +1681,8 @@ const enTranslations: Record<string, string> = {
   'jobDetail.guarantor': 'Guarantor',
   'jobDetail.returnDate': 'Return Date',
   'jobDetail.startJobDesc': 'You can now start container inspection',
+  'jobDetail.waitingStartJob': 'Waiting to Start',
+  'jobDetail.startingJob': 'Starting Job...',
   'terms.sharing_intro': 'We will not share your personal data with third parties, except in the following cases:',
   'terms.sharing_provider': 'Service Providers We Hire:',
   'terms.sharing_provider_desc': 'Companies or individuals we use for services in various areas (such as payment services, data analysis) that have privacy terms to protect your data',
@@ -3115,6 +3119,8 @@ const koTranslations: Record<string, string> = {
   'jobDetail.containerSuccess': '컨테이너 완료',
   'jobDetail.waitingContainer': '컨테이너 대기 중',
   'jobDetail.startJobDesc': '작업이 시작되었습니다',
+  'jobDetail.waitingStartJob': '시작 대기 중',
+  'jobDetail.startingJob': '작업 시작 중...',
   'jobDetail.startDateTime': '시작 날짜/시간',
   'jobDetail.shipArrivalDateTime': '선박 도착 날짜/시간',
   'jobDetail.emptyContainerDate': '빈 컨테이너 날짜',
@@ -4089,6 +4095,8 @@ const zhTranslations: Record<string, string> = {
   'jobDetail.guarantor': '担保人',
   'jobDetail.returnDate': '集装箱归还日期',
   'jobDetail.startJobDesc': '您现在可以开始检查空集装箱',
+  'jobDetail.waitingStartJob': '等待开始',
+  'jobDetail.startingJob': '正在开始工作...',
   
   // Report Problem
   'reportProblem.title': '报告问题',
