@@ -174,9 +174,10 @@ export default function DomesticJobDetail({
   const destinations: { id: string; sequence_number: number; company_name: string | null; contact_name: string | null; contact_phone: string | null; address: string | null; province: string | null; district: string | null; delivery_date: string | null; delivery_time: string | null; notes: string | null; checked_in_at: string | null; sop_completed_at: string | null }[] = [];
 
   const [isStartingJob, setIsStartingJob] = useState(false);
+  const [hasStartedJob, setHasStartedJob] = useState(false);
 
-  // Check if job has been started
-  const isJobStarted = !!(jobApplication?.job_started_at);
+  // Check if job has been started (from database OR local state)
+  const isJobStarted = !!(jobApplication?.job_started_at) || hasStartedJob;
 
   const handleStartJob = async () => {
     setIsStartingJob(true);
@@ -194,6 +195,8 @@ export default function DomesticJobDetail({
           variant: 'destructive'
         });
       } else {
+        // Immediately hide button and enable actions
+        setHasStartedJob(true);
         toast({
           title: t('jobDetail.startJobSuccess'),
           description: t('jobDetail.startJobSuccessDesc')
