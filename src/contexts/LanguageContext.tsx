@@ -1235,6 +1235,14 @@ const thTranslations: Record<string, string> = {
   'expenses.types.maintenance': 'ค่าซ่อมบำรุง',
   'expenses.types.other': 'อื่นๆ',
   
+  // Job Types
+  'jobType.domestic': 'ในประเทศ',
+  'jobType.international': 'ระหว่างประเทศ',
+  'jobType.express_rent': 'รถเช่าด่วน',
+  'jobType.bidding': 'งานประมูล',
+  'jobType.container': 'งานคอนเทนเนอร์',
+  'jobType.freight': 'งานขนส่งสินค้า',
+  
   // Push Notification Prompt
   'notification.enableTitle': 'เปิดการแจ้งเตือน',
   'notification.enableDesc': 'รับการแจ้งเตือนเมื่อมีงานใหม่, ข้อความ หรืออัพเดทสำคัญ',
@@ -2424,6 +2432,14 @@ const enTranslations: Record<string, string> = {
   'expenses.types.food': 'Food',
   'expenses.types.maintenance': 'Maintenance',
   'expenses.types.other': 'Other',
+  
+  // Job Types
+  'jobType.domestic': 'Domestic',
+  'jobType.international': 'International',
+  'jobType.express_rent': 'Express Rent',
+  'jobType.bidding': 'Bidding',
+  'jobType.container': 'Container',
+  'jobType.freight': 'Freight',
   
   // Push Notification Prompt
   'notification.enableTitle': 'Enable Notifications',
@@ -3682,6 +3698,14 @@ const koTranslations: Record<string, string> = {
   'expenses.types.maintenance': '유지보수',
   'expenses.types.other': '기타',
   
+  // Job Types
+  'jobType.domestic': '국내',
+  'jobType.international': '국제',
+  'jobType.express_rent': '급행 렌트',
+  'jobType.bidding': '입찰',
+  'jobType.container': '컨테이너',
+  'jobType.freight': '화물',
+  
   // Push Notification Prompt
   'notification.enableTitle': '알림 활성화',
   'notification.enableDesc': '새 작업, 메시지 또는 중요한 업데이트에 대한 알림을 받으세요',
@@ -4929,6 +4953,14 @@ const zhTranslations: Record<string, string> = {
   'expenses.types.food': '餐饮费',
   'expenses.types.maintenance': '维修费',
   'expenses.types.other': '其他',
+  
+  // Job Types
+  'jobType.domestic': '国内',
+  'jobType.international': '国际',
+  'jobType.express_rent': '急租车',
+  'jobType.bidding': '竞标',
+  'jobType.container': '集装箱',
+  'jobType.freight': '货运',
   
   // Push Notification Prompt
   'notification.enableTitle': '启用通知',

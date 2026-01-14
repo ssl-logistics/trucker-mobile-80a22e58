@@ -45,6 +45,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
   const navigate = useNavigate();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
+  // Helper function to get translated job type
+  const getJobTypeLabel = (jobType: string): string => {
+    const translationKey = `jobType.${jobType}`;
+    const translated = t(translationKey);
+    // If translation not found (returns key), show original value
+    return translated === translationKey ? jobType : translated;
+  };
+
   // Auto open modal when autoOpenDetail is true
   useEffect(() => {
     if (autoOpenDetail) {
@@ -264,7 +272,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">ประเภทงาน</p>
-                <p className="font-medium">{job.job_type || '-'}</p>
+                <p className="font-medium">{job.job_type ? getJobTypeLabel(job.job_type) : '-'}</p>
               </div>
             </div>
 
