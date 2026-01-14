@@ -272,10 +272,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
-            <Button onClick={handleGoToJobPage} className="w-full">
-              ดูรายละเอียดเพิ่มเติม
-            </Button>
+          <DialogFooter>
             <Button variant="outline" onClick={() => setDetailModalOpen(false)} className="w-full">
               ปิด
             </Button>
