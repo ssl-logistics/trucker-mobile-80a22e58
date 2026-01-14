@@ -56,6 +56,8 @@ interface JobDetail {
   destination_company_name: string | null;
   price: number;
   product_type: string;
+  product_quantity: number | null;
+  product_unit: string | null;
   vehicle_type: string;
   origin_location: string;
   destination_location: string;
@@ -155,6 +157,8 @@ export default function JobRouteExpensesPage() {
           destination_company_name: apiJob.destination_company_name,
           price: apiJob.transport_price,
           product_type: apiJob.product_name || '-',
+          product_quantity: apiJob.product_quantity,
+          product_unit: apiJob.product_unit,
           vehicle_type: apiJob.vehicle_type || '-',
           origin_location: `${apiJob.sender_district || ''}, ${apiJob.sender_province || ''}`.replace(/^, |, $/g, '') || apiJob.sender_address || '-',
           destination_location: `${apiJob.destination_district || ''}, ${apiJob.destination_province || ''}`.replace(/^, |, $/g, '') || apiJob.destination_address || '-',
@@ -252,7 +256,8 @@ export default function JobRouteExpensesPage() {
 
   // Calculate total points: 1 pickup + destinations count (or at least 1 if no destinations)
   const totalPoints = 1 + (destinations.length > 0 ? destinations.length : 1);
-  const totalItems = 60;
+  // Get total items from API product_quantity
+  const totalItems = job?.product_quantity || 0;
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -294,7 +299,7 @@ export default function JobRouteExpensesPage() {
               </Card>
               <Card className="p-3 text-center bg-muted/50">
                 <img src={boxIcon} alt="box" className="w-6 h-6 mx-auto mb-1" />
-                <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.itemsCount')}: {totalItems}</div>
+                <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.itemsCount')}: {totalItems} {job?.product_unit || ''}</div>
               </Card>
             </div>
 
