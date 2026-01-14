@@ -137,7 +137,7 @@ export default function Home() {
         return {
           id: item.id || String(Math.random()),
           order_code: orderCode,
-          job_type: item.post_type || item.shipment_type || item.product_type || 'domestic',
+          job_type: item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic',
           employer_name: item.company_name || item.factory_name || item.customer_name || '',
           transport_type: item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
