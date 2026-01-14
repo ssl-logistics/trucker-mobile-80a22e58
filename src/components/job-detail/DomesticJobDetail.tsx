@@ -104,25 +104,19 @@ export default function DomesticJobDetail({
         
         const allCheckins = checkinResult?.data || checkinResult || [];
         console.log('All checkins from API:', allCheckins.length, 'items');
+        console.log('Current job.id (transport_order_id to match):', job.id);
         
-        // Filter checkins to only include those from the current user AND matching order_number
-        // Note: The external API returns checkins but may not filter by order_number properly
-        // We need to verify each checkin belongs to this specific order
+        // Filter checkins by matching transport_order_id with job.id
+        // The external API doesn't properly filter by order_number, so we filter by transport_order_id
         const checkins = Array.isArray(allCheckins) 
           ? allCheckins.filter((c: any) => {
               const matchesUser = c.freelance_driver_id === userId;
-              // Check if the checkin has order_number field that matches current job
-              // If API doesn't return order_number in checkin, we need to rely on transport_order_id matching
-              // For now, we filter by user only since API should filter by order_number
-              console.log('Checkin freelance_driver_id:', c.freelance_driver_id, 'matchesUser:', matchesUser, 'order_number param sent:', job.order_code);
-              return matchesUser;
+              const matchesOrder = c.transport_order_id === job.id;
+              console.log('Checkin transport_order_id:', c.transport_order_id, 'job.id:', job.id, 'matchesOrder:', matchesOrder, 'matchesUser:', matchesUser);
+              return matchesUser && matchesOrder;
             })
           : [];
-        console.log('Filtered checkins for current user:', checkins.length, 'items');
-        
-        // IMPORTANT: If the external API doesn't properly filter by order_number,
-        // we would need the API to return order_number in each checkin record to filter here
-        // Currently relying on API to filter correctly
+        console.log('Filtered checkins for current order:', checkins.length, 'items');
         
         const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
