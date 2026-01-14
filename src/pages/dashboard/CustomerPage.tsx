@@ -16,6 +16,7 @@ interface ExternalJob {
   transport_price: number;
   sender_pickup_date: string;
   created_at: string;
+  status: string;
 }
 
 // Local job application interface
@@ -116,7 +117,10 @@ export default function CustomerPage() {
           const result = await response.json();
           const externalJobs: ExternalJob[] = Array.isArray(result) ? result : (result.data || []);
           
-          externalJobs.forEach(job => {
+          // Only include completed jobs in customer statistics
+          const completedJobs = externalJobs.filter(job => job.status === 'completed');
+          
+          completedJobs.forEach(job => {
             allJobs.push({
               customerName: job.sender_name || 'ไม่ระบุชื่อ',
               amount: job.transport_price || 0,

@@ -134,9 +134,9 @@ export default function FinancePage() {
       }
     };
 
-    // Filter completed jobs by period
+    // Filter only completed jobs by period (not delivered - POD not yet done)
     const filteredJobs = jobs.filter(
-      job => (job.status === 'completed' || job.status === 'delivered') && 
+      job => job.status === 'completed' && 
              job.sender_pickup_date && 
              filterByPeriod(job.sender_pickup_date)
     );
