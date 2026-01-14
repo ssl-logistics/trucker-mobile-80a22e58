@@ -159,19 +159,20 @@ serve(async (req) => {
     const filteredJobs = jobs.filter((job: any) => filterJobsByDate(job) && filterJobsByVehicle(job));
 
     // Calculate statistics
+    // Note: 'completed' = POD submitted (success), 'delivered' = arrived but POD not done (still in progress)
     const totalJobs = filteredJobs.length;
     const successJobs = filteredJobs.filter((job: any) => 
       job.status === 'completed' || 
-      job.status === 'delivered' || 
-      job.job_status === 'JOB_COMPLETED' ||
-      job.job_status === 'DELIVERED'
+      job.job_status === 'JOB_COMPLETED'
     ).length;
     const inProgressJobs = filteredJobs.filter((job: any) => 
       job.status === 'in_progress' || 
       job.status === 'accepted' ||
+      job.status === 'delivered' || // delivered but POD not done = still in progress
       job.job_status === 'IN_PROGRESS' ||
       job.job_status === 'ACCEPTED' ||
-      job.job_status === 'PICKED_UP'
+      job.job_status === 'PICKED_UP' ||
+      job.job_status === 'DELIVERED'
     ).length;
     const cancelledJobs = filteredJobs.filter((job: any) => 
       job.status === 'cancelled' || 
