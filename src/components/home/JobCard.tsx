@@ -264,12 +264,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">ประเภทงาน</p>
-                <p className="font-medium">
-                  {job.job_type === 'domestic' ? 'ในประเทศ' : 
-                   job.job_type === 'international' ? 'ระหว่างประเทศ' : 
-                   job.job_type === 'express_rent' ? 'รถเช่าด่วน' :
-                   job.job_type || '-'}
-                </p>
+                <p className="font-medium">{job.job_type || '-'}</p>
               </div>
             </div>
 
