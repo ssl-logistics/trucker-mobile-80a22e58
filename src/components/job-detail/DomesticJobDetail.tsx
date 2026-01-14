@@ -91,6 +91,13 @@ export default function DomesticJobDetail({
   // Fetch check-in status and SOP status from external APIs
   useEffect(() => {
     const fetchStatuses = async () => {
+      // Reset all states first when job changes
+      setPickupCheckedIn(false);
+      setPickupSopCompleted(false);
+      setDeliveryCheckedIn(false);
+      setDeliverySopCompleted(false);
+      setIsLoadingCheckinStatus(true);
+      
       try {
         console.log('Current userId:', userId, 'Order code:', job.order_code);
         
@@ -118,6 +125,7 @@ export default function DomesticJobDetail({
           : [];
         console.log('Filtered checkins for current order:', checkins.length, 'items');
         
+        // Check for different checkin types - only from filtered checkins for this specific order
         const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
         const hasDeliveryConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
@@ -126,7 +134,7 @@ export default function DomesticJobDetail({
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
         
-        // If delivery_confirmed exists, set deliverySopCompleted to true
+        // If delivery_confirmed exists for THIS order, set deliverySopCompleted to true
         if (hasDeliveryConfirmed) {
           setDeliverySopCompleted(true);
         }
