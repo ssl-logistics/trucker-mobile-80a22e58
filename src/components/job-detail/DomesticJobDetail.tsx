@@ -92,6 +92,8 @@ export default function DomesticJobDetail({
   useEffect(() => {
     const fetchStatuses = async () => {
       try {
+        console.log('Current userId:', userId, 'Order code:', job.order_code);
+        
         // Fetch check-in status
         const checkinResponse = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${userId}&order_number=${job.order_code}`,
@@ -101,15 +103,23 @@ export default function DomesticJobDetail({
         console.log('Fetched check-in status:', checkinResult);
         
         const allCheckins = checkinResult?.data || checkinResult || [];
+        console.log('All checkins from API:', allCheckins.length, 'items');
+        
         // Filter checkins to only include those from the current user
         const checkins = Array.isArray(allCheckins) 
-          ? allCheckins.filter((c: any) => c.freelance_driver_id === userId)
+          ? allCheckins.filter((c: any) => {
+              const matches = c.freelance_driver_id === userId;
+              console.log('Checkin freelance_driver_id:', c.freelance_driver_id, 'matches userId:', matches);
+              return matches;
+            })
           : [];
-        console.log('Filtered checkins for current user:', checkins);
+        console.log('Filtered checkins for current user:', checkins.length, 'items');
         
         const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
         const hasDeliveryConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
+        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed);
+        
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
         
