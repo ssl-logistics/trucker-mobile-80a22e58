@@ -169,10 +169,16 @@ export default function DeliveryDetailPage() {
             if (checkinsResponse.ok) {
               const checkinsResult = await checkinsResponse.json();
               if (checkinsResult.success && Array.isArray(checkinsResult.data)) {
-                const deliveryCheckin = checkinsResult.data.find((c: any) => c.checkin_type === 'delivery');
+                // Filter checkins by transport_order_id matching job.id (foundJob.id)
+                const filteredCheckins = checkinsResult.data.filter(
+                  (c: any) => c.transport_order_id === foundJob.id && c.freelance_driver_id === user.id
+                );
+                console.log('Filtered delivery checkins for order', foundJob.id, ':', filteredCheckins.length);
+                
+                const deliveryCheckin = filteredCheckins.find((c: any) => c.checkin_type === 'delivery');
                 deliveryCheckinTime = deliveryCheckin?.checkin_time || null;
 
-                const deliveryConfirmed = checkinsResult.data.find((c: any) => c.checkin_type === 'delivery_confirmed');
+                const deliveryConfirmed = filteredCheckins.find((c: any) => c.checkin_type === 'delivery_confirmed');
                 deliveryConfirmedTime = deliveryConfirmed?.checkin_time || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
               }
