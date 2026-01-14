@@ -294,10 +294,18 @@ const SignIn = () => {
             <button 
               type="button" 
               onClick={() => {
-                // TODO: Implement LINE login
-                toast({
-                  description: "LINE Login - กำลังพัฒนา",
-                });
+                // Generate random state for CSRF protection
+                const state = Math.random().toString(36).substring(2, 15);
+                sessionStorage.setItem('line_oauth_state', state);
+                
+                // LINE OAuth URL
+                const LINE_CHANNEL_ID = '2007140195'; // Replace with your LINE Channel ID
+                const redirectUri = encodeURIComponent(`${window.location.origin}/#/auth/line/callback`);
+                const scope = encodeURIComponent('profile openid');
+                
+                const authUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;
+                
+                window.location.href = authUrl;
               }}
               disabled={isLoggingIn}
               className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#00B900] hover:bg-[#00A000] text-white font-medium transition-colors disabled:opacity-50"

@@ -52,6 +52,7 @@ import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
 import ApiTestPage from "./pages/ApiTestPage";
+import LineCallbackPage from "./pages/LineCallbackPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-new-password" element={<CreateNewPassword />} />
+            <Route path="/auth/line/callback" element={<LineCallbackPage />} />
             <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
               <Route path="/chat" element={<ProtectedRoute><ChatListPage /></ProtectedRoute>} />
