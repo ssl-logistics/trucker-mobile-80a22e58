@@ -25,6 +25,13 @@ import {
 } from "@/components/ui/drawer";
 import { toast } from '@/hooks/use-toast';
 
+interface LineUser {
+  lineUserId: string;
+  displayName: string;
+  pictureUrl?: string;
+  statusMessage?: string;
+}
+
 interface ProfileData {
   first_name: string;
   last_name: string;
@@ -34,6 +41,8 @@ interface ProfileData {
   location?: string;
   price_range_min?: number;
   price_range_max?: number;
+  loginType?: 'normal' | 'line';
+  lineUser?: LineUser;
 }
 
 export default function ProfilePage() {
@@ -55,16 +64,27 @@ export default function ProfilePage() {
   useEffect(() => {
     console.log('ProfilePage user data:', user);
     if (user) {
+      // Check if login via LINE
+      const isLineLogin = user.loginType === 'line' || !!user.lineUser;
+      
       // Use data directly from AuthContext (external login API)
-      const profileData = {
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
+      const profileData: ProfileData = {
+        first_name: isLineLogin && user.lineUser?.displayName 
+          ? user.lineUser.displayName.split(' ')[0] || user.lineUser.displayName
+          : user.first_name || '',
+        last_name: isLineLogin && user.lineUser?.displayName 
+          ? user.lineUser.displayName.split(' ').slice(1).join(' ') || ''
+          : user.last_name || '',
         phone_number: user.phone || user.phone_number || '',
-        avatar_url: user.profile_photo_url || user.avatar_url || undefined,
+        avatar_url: isLineLogin && user.lineUser?.pictureUrl 
+          ? user.lineUser.pictureUrl 
+          : user.profile_photo_url || user.avatar_url || undefined,
         email: user.email || user.username || '',
         location: user.location || '',
         price_range_min: user.price_range_min,
         price_range_max: user.price_range_max,
+        loginType: isLineLogin ? 'line' : 'normal',
+        lineUser: user.lineUser,
       };
       console.log('Setting profile:', profileData);
       setProfile(profileData);
@@ -206,7 +226,7 @@ export default function ProfilePage() {
             className="w-full h-full object-contain object-center pointer-events-none"
           />
         </div>
-        <div className="flex justify-center relative">
+        <div className="flex flex-col items-center relative">
           <div className="relative">
             <Avatar className="w-20 h-20">
               {isAvatarLoading ? (
@@ -215,20 +235,28 @@ export default function ProfilePage() {
                 </AvatarFallback>
               ) : (
                 <>
-                  <AvatarImage src={presignedAvatarUrl || undefined} alt={`${firstName} ${lastName}`} />
+                  <AvatarImage 
+                    src={profile?.loginType === 'line' && profile?.lineUser?.pictureUrl 
+                      ? profile.lineUser.pictureUrl 
+                      : presignedAvatarUrl || undefined
+                    } 
+                    alt={`${firstName} ${lastName}`} 
+                  />
                   <AvatarFallback className="bg-primary/10 text-primary text-3xl">
                     {firstName ? firstName.charAt(0) : '👤'}
                   </AvatarFallback>
                 </>
               )}
             </Avatar>
-            <button
-              onClick={handlePhotoDrawerOpen}
-              disabled={loading}
-              className="absolute bottom-0 right-0 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md cursor-pointer border-2 border-gray-200"
-            >
-              <Camera className="w-5 h-5 text-gray-600" />
-            </button>
+            {profile?.loginType !== 'line' && (
+              <button
+                onClick={handlePhotoDrawerOpen}
+                disabled={loading}
+                className="absolute bottom-0 right-0 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md cursor-pointer border-2 border-gray-200"
+              >
+                <Camera className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
             <input
               ref={cameraInputRef}
               type="file"
@@ -247,46 +275,77 @@ export default function ProfilePage() {
               disabled={loading}
             />
           </div>
+          
+          {/* Login Type Badge */}
+          <div className="mt-3">
+            {profile?.loginType === 'line' ? (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00B900] text-white text-xs font-medium">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                </svg>
+                เข้าสู่ระบบด้วย LINE
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                เข้าสู่ระบบปกติ
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Profile Fields */}
       <div className="bg-white mt-2 divide-y">
-        <div className="px-4 py-3">
-          <div className="text-sm text-muted-foreground mb-1">{t('profile.first_name')}</div>
-          <div className="flex items-center justify-between">
-            <span className="text-foreground">{firstName}</span>
-            <button
-              onClick={() => navigate('/profile/edit', { 
-                state: { 
-                  field: 'firstName', 
-                  value: firstName
-                } 
-              })}
-              className="p-2"
-            >
-              <Edit2 className="w-4 h-4 text-muted-foreground" />
-            </button>
+        {/* For LINE login, show display name as single field */}
+        {profile?.loginType === 'line' ? (
+          <div className="px-4 py-3">
+            <div className="text-sm text-muted-foreground mb-1">ชื่อ LINE</div>
+            <div className="flex items-center justify-between">
+              <span className="text-foreground">{profile.lineUser?.displayName || `${firstName} ${lastName}`}</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="px-4 py-3">
+              <div className="text-sm text-muted-foreground mb-1">{t('profile.first_name')}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-foreground">{firstName}</span>
+                <button
+                  onClick={() => navigate('/profile/edit', { 
+                    state: { 
+                      field: 'firstName', 
+                      value: firstName
+                    } 
+                  })}
+                  className="p-2"
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
 
-        <div className="px-4 py-3">
-          <div className="text-sm text-muted-foreground mb-1">{t('profile.last_name')}</div>
-          <div className="flex items-center justify-between">
-            <span className="text-foreground">{lastName}</span>
-            <button
-              onClick={() => navigate('/profile/edit', { 
-                state: { 
-                  field: 'lastName', 
-                  value: lastName
-                } 
-              })}
-              className="p-2"
-            >
-              <Edit2 className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
-        </div>
+            <div className="px-4 py-3">
+              <div className="text-sm text-muted-foreground mb-1">{t('profile.last_name')}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-foreground">{lastName}</span>
+                <button
+                  onClick={() => navigate('/profile/edit', { 
+                    state: { 
+                      field: 'lastName', 
+                      value: lastName
+                    } 
+                  })}
+                  className="p-2"
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="px-4 py-3">
           <div className="text-sm text-muted-foreground mb-1">{t('profile.phone')}</div>

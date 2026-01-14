@@ -64,9 +64,23 @@ const LineCallbackPage = () => {
           throw new Error(data.error);
         }
 
-        // Store LINE user data
+        // Store LINE user data and login type
         sessionStorage.setItem('line_user', JSON.stringify(data.user));
+        localStorage.setItem('auth_login_type', 'line');
         sessionStorage.removeItem('line_oauth_state');
+
+        // Create a driver record for LINE user
+        const lineDriver = {
+          id: data.user.lineUserId,
+          full_name: data.user.displayName,
+          avatar_url: data.user.pictureUrl || null,
+          loginType: 'line',
+          lineUser: data.user,
+        };
+        localStorage.setItem('auth_driver', JSON.stringify(lineDriver));
+
+        // Dispatch event to notify AuthContext
+        window.dispatchEvent(new Event('auth_driver_updated'));
 
         toast({
           title: 'เข้าสู่ระบบสำเร็จ',
