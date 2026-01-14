@@ -227,7 +227,8 @@ export default function Home() {
           'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
         },
         body: JSON.stringify({
-          order_number: selectedJob.order_code
+          order_number: selectedJob.order_code,
+          freelance_driver_id: user.id
         }),
       });
 
