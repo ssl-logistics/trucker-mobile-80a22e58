@@ -154,9 +154,18 @@ export default function NotificationsPage() {
       );
     }
 
-    // Navigate to home and open job detail modal
+    // Navigate to home and open job detail modal by order_code
     if (notification.reference_type === 'job' && notification.reference_id) {
-      navigate('/home', { state: { openJobId: notification.reference_id } });
+      // Fetch job to get order_code
+      const { data: jobData } = await supabase
+        .from('jobs')
+        .select('order_code')
+        .eq('id', notification.reference_id)
+        .single();
+      
+      if (jobData?.order_code) {
+        navigate('/home', { state: { openJobOrderCode: jobData.order_code } });
+      }
     } else {
       // For non-job notifications, go to notification detail
       navigate(`/notification/${notification.id}`);
