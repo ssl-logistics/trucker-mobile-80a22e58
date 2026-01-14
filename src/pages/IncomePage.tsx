@@ -66,12 +66,11 @@ export default function IncomePage() {
       }
 
       const result = await response.json();
-      const completedJobs: CompletedJob[] = result.data || [];
+      const allJobs: CompletedJob[] = result.data || [];
 
-      // Filter only completed/delivered jobs
-      const finishedJobs = completedJobs.filter(
-        job => job.status === 'completed' || job.status === 'delivered'
-      );
+      // Only show completed jobs (POD submitted) in income
+      // 'delivered' status means not yet completed POD - don't show in income
+      const finishedJobs = allJobs.filter(job => job.status === 'completed');
 
       // Process the data
       const paid: IncomeJob[] = [];
