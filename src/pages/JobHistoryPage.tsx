@@ -137,9 +137,11 @@ export default function JobHistoryPage() {
         console.error('Error loading completed jobs:', result);
       } else {
         const jobs = Array.isArray(result) ? result : (result.data || []);
-        // Only get completed or delivered jobs
+        // Only get truly completed jobs (POD submitted)
+        // 'delivered' status means arrived at destination but may not have submitted POD yet
+        // Those should stay in current jobs until POD is done
         const completed = jobs.filter((job: CompletedJob) => 
-          job.status === 'completed' || job.status === 'delivered'
+          job.status === 'completed'
         );
         setCompletedJobs(completed);
       }
