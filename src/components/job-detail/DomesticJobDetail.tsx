@@ -127,23 +127,15 @@ export default function DomesticJobDetail({
           const sopResult = await sopResponse.json();
           console.log('Fetched SOP status:', sopResult);
           
-          if (sopResult.success && sopResult.data) {
+        if (sopResult.success && sopResult.data) {
             // Check for pickup SOP - check both sop_type and status fields
             const pickupSOP = Array.isArray(sopResult.data)
               ? sopResult.data.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
               : (sopResult.data.sop_type === 'pickup' || sopResult.data.status === 'pickup') ? sopResult.data : null;
             
-            // Check for delivery SOP
-            const deliverySOP = Array.isArray(sopResult.data)
-              ? sopResult.data.find((s: any) => s.sop_type === 'delivery' || s.status === 'delivery')
-              : (sopResult.data.sop_type === 'delivery' || sopResult.data.status === 'delivery') ? sopResult.data : null;
-            
             setPickupSopCompleted(!!pickupSOP);
-            // Only set deliverySopCompleted from SOP if delivery_confirmed doesn't exist
-            // delivery_confirmed takes priority over delivery SOP
-            if (!hasDeliveryConfirmed) {
-              setDeliverySopCompleted(!!deliverySOP);
-            }
+            // Note: deliverySopCompleted is ONLY set from hasDeliveryConfirmed (delivery_confirmed checkin)
+            // Do NOT set it from delivery SOP record existence - that doesn't mean POD is completed
           }
         }
       } catch (error) {
