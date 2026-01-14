@@ -259,21 +259,25 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
               </div>
             </div>
 
-            {/* Transport Type */}
+            {/* Job Type - Domestic/International */}
             <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">ประเภทการขนส่ง</p>
-                <p className="font-medium">{job.transport_type_label || job.transport_type}</p>
+                <p className="text-xs text-muted-foreground">ประเภทงาน</p>
+                <p className="font-medium">
+                  {job.job_type === 'domestic' ? 'ในประเทศ' : 
+                   job.job_type === 'international' ? 'ระหว่างประเทศ' : 
+                   job.job_type || '-'}
+                </p>
               </div>
             </div>
 
-            {/* Job Type */}
+            {/* Transport Type - Single/Multiple trips */}
             <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">รูปแบบงาน</p>
-                <p className="font-medium">{job.job_type || '-'}</p>
+                <p className="text-xs text-muted-foreground">รูปแบบการส่ง</p>
+                <p className="font-medium">{job.transport_type_label || job.transport_type || '-'}</p>
               </div>
             </div>
 
