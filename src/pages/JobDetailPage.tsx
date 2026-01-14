@@ -122,52 +122,11 @@ export default function JobDetailPage() {
     }
   }, [jobId, user, location.key]);
 
-  const loadJobDetail = async () => {
-    if (!user || !jobId) return;
-
-    setLoading(true);
-
+  // Helper function to fetch from external API
+  const fetchFromExternalAPI = async (): Promise<boolean> => {
+    if (!user || !jobId) return false;
+    
     try {
-      // 1) Try loading from our database first (jobs table)
-      const isUuid = (value: string) =>
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-
-      let jobQuery = supabase
-        .from('jobs')
-        .select(
-          'id,order_code,job_type,employer_name,transport_type,origin_location,origin_address,origin_company_name,destination_location,destination_address,destination_company_name,price,start_date,start_time,equipment_list,safety_equipment,container_checkpoint,container_checkpoint_code,empty_container_date,container_number,container_number_2,seal_number,seal_number_2,origin_contact_person,origin_contact_role,origin_bill_of_lading,origin_goods_type,origin_goods_quantity,origin_remarks,destination_contact_person,destination_bill_of_lading,destination_goods_type,destination_goods_quantity,destination_time,destination_date,destination_remarks,tax_id'
-        );
-
-      // Avoid PostgREST 400: comparing uuid column with non-uuid strings
-      jobQuery = isUuid(jobId)
-        ? jobQuery.or(`order_code.eq.${jobId},id.eq.${jobId}`)
-        : jobQuery.eq('order_code', jobId);
-
-      const { data: dbJob, error: dbJobError } = await jobQuery.maybeSingle();
-
-      if (!dbJobError && dbJob) {
-        const mappedJob: JobDetail = {
-          ...(dbJob as unknown as JobDetail),
-          price: Number((dbJob as any).price),
-        };
-
-        setJob(mappedJob);
-
-        // If the user has already applied/accepted this job, load their application status
-        const { data: dbApplication } = await supabase
-          .from('job_applications')
-          .select(
-            'checked_in_at,sop_completed_at,job_started_at,delivery_checked_in_at,delivery_sop_completed_at,container_checked_in_at,container_sop_completed_at,status'
-          )
-          .eq('job_id', (dbJob as any).id)
-          .eq('driver_id', user.id)
-          .maybeSingle();
-
-        setJobApplication(dbApplication ?? null);
-        return;
-      }
-
-      // 2) Fallback: Fetch from external API (accepted jobs)
       const response = await fetch(
         `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
         {
@@ -179,7 +138,7 @@ export default function JobDetailPage() {
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch job details');
+        return false;
       }
 
       const result = await response.json();
@@ -193,9 +152,9 @@ export default function JobDetailPage() {
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
-            job_type: 'domestic', // Default to domestic
+            job_type: 'domestic',
             employer_name: foundJob.sender_name,
-            transport_type: 'เที่ยวเดียว', // Default to single trip (domestic)
+            transport_type: 'เที่ยวเดียว',
             origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
             origin_address: foundJob.sender_address,
             origin_company_name: foundJob.sender_name,
@@ -245,7 +204,78 @@ export default function JobDetailPage() {
           };
 
           setJobApplication(mockJobApplication);
-        } else {
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('Error fetching from external API:', error);
+      return false;
+    }
+  };
+
+  const loadJobDetail = async () => {
+    if (!user || !jobId) return;
+
+    setLoading(true);
+    
+    // Check if coming from history page - prioritize external API for consistent pricing
+    const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+
+    try {
+      // If coming from history, try external API first for consistent pricing
+      if (isFromHistory) {
+        const success = await fetchFromExternalAPI();
+        if (success) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Try loading from our database (jobs table)
+      const isUuid = (value: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+      let jobQuery = supabase
+        .from('jobs')
+        .select(
+          'id,order_code,job_type,employer_name,transport_type,origin_location,origin_address,origin_company_name,destination_location,destination_address,destination_company_name,price,start_date,start_time,equipment_list,safety_equipment,container_checkpoint,container_checkpoint_code,empty_container_date,container_number,container_number_2,seal_number,seal_number_2,origin_contact_person,origin_contact_role,origin_bill_of_lading,origin_goods_type,origin_goods_quantity,origin_remarks,destination_contact_person,destination_bill_of_lading,destination_goods_type,destination_goods_quantity,destination_time,destination_date,destination_remarks,tax_id'
+        );
+
+      // Avoid PostgREST 400: comparing uuid column with non-uuid strings
+      jobQuery = isUuid(jobId)
+        ? jobQuery.or(`order_code.eq.${jobId},id.eq.${jobId}`)
+        : jobQuery.eq('order_code', jobId);
+
+      const { data: dbJob, error: dbJobError } = await jobQuery.maybeSingle();
+
+      if (!dbJobError && dbJob) {
+        const mappedJob: JobDetail = {
+          ...(dbJob as unknown as JobDetail),
+          price: Number((dbJob as any).price),
+        };
+
+        setJob(mappedJob);
+
+        // If the user has already applied/accepted this job, load their application status
+        const { data: dbApplication } = await supabase
+          .from('job_applications')
+          .select(
+            'checked_in_at,sop_completed_at,job_started_at,delivery_checked_in_at,delivery_sop_completed_at,container_checked_in_at,container_sop_completed_at,status'
+          )
+          .eq('job_id', (dbJob as any).id)
+          .eq('driver_id', user.id)
+          .maybeSingle();
+
+        setJobApplication(dbApplication ?? null);
+        setLoading(false);
+        return;
+      }
+
+      // Fallback: Fetch from external API (if not already tried from history)
+      if (!isFromHistory) {
+        const success = await fetchFromExternalAPI();
+        if (!success) {
           toast({
             title: t('jobDetail.error'),
             description: t('jobDetail.notFound'),
