@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, MapPin, CircleDot, Banknote, Truck, Calendar, Eye } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -36,12 +36,28 @@ interface Job {
 interface JobCardProps {
   job: Job;
   onAccept: (job: Job) => void;
+  autoOpenDetail?: boolean;
+  onDetailClosed?: () => void;
 }
 
-export const JobCard = ({ job, onAccept }: JobCardProps) => {
+export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed }: JobCardProps) => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+
+  // Auto open modal when autoOpenDetail is true
+  useEffect(() => {
+    if (autoOpenDetail) {
+      setDetailModalOpen(true);
+    }
+  }, [autoOpenDetail]);
+
+  const handleModalClose = (open: boolean) => {
+    setDetailModalOpen(open);
+    if (!open && onDetailClosed) {
+      onDetailClosed();
+    }
+  };
 
   // Determine if domestic or international based on transport_type
   const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
@@ -174,7 +190,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
       </div>
 
       {/* Job Detail Modal */}
-      <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
+      <Dialog open={detailModalOpen} onOpenChange={handleModalClose}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-center">

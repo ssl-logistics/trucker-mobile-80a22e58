@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +34,7 @@ interface Job {
 
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout, setAuthTransitioning } = useAuth();
   const { t } = useLanguage();
   const { role } = useUserRole();
@@ -41,12 +42,23 @@ export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       loadJobs();
     }
   }, [user]);
+
+  // Handle openJobOrderCode from notifications navigation
+  useEffect(() => {
+    const orderCode = location.state?.openJobOrderCode;
+    if (orderCode) {
+      setOpenJobOrderCode(orderCode);
+      // Clear the state to prevent reopening on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.openJobOrderCode]);
 
   // Subscribe to jobs table changes for real-time updates
   useEffect(() => {
@@ -272,7 +284,15 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
-          {jobs.map(job => <JobCard key={job.id} job={job} onAccept={handleAcceptJob} />)}
+          {jobs.map(job => (
+            <JobCard 
+              key={job.id} 
+              job={job} 
+              onAccept={handleAcceptJob}
+              autoOpenDetail={openJobOrderCode === job.order_code}
+              onDetailClosed={() => setOpenJobOrderCode(null)}
+            />
+          ))}
         </div>
       </div>
 
