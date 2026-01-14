@@ -252,17 +252,28 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
                 <Clock className="w-4 h-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">เวลา</p>
-                  <p className="font-medium text-sm">{job.start_time || '-'}</p>
+                  <p className="font-medium text-sm">
+                    {job.start_time ? job.start_time.substring(0, 5) : '-'}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Transport Type & Job Type */}
+            {/* Transport Type */}
             <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">ประเภทการขนส่ง</p>
                 <p className="font-medium">{job.transport_type_label || job.transport_type}</p>
+              </div>
+            </div>
+
+            {/* Job Type */}
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+              <Truck className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">รูปแบบงาน</p>
+                <p className="font-medium">{job.job_type || '-'}</p>
               </div>
             </div>
 
