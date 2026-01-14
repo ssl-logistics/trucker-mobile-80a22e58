@@ -75,7 +75,7 @@ export default function JobHistoryPage() {
 
   useEffect(() => {
     if (user) {
-      loadJobHistory();
+      // Only load from external API - no local database
       loadCompletedJobs();
     }
   }, [user]);
