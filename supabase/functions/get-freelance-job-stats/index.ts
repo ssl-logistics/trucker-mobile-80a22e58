@@ -52,35 +52,66 @@ serve(async (req) => {
     }
 
     // Call external API to get accepted jobs
-    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
+    const jobsUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
+      freelanceDriverId
+    )}`;
+
+    // Call external API to get check-ins (to determine delivery_confirmed status)
+    const checkinsUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-checkins?freelance_driver_id=${encodeURIComponent(
       freelanceDriverId
     )}`;
 
     console.log('Fetching job stats for driver:', freelanceDriverId);
 
-    const response = await fetch(externalUrl, {
-      method: 'GET',
-      headers: {
-        'x-api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
-    });
+    // Fetch both jobs and check-ins in parallel
+    const [jobsResponse, checkinsResponse] = await Promise.all([
+      fetch(jobsUrl, {
+        method: 'GET',
+        headers: {
+          'x-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+      }),
+      fetch(checkinsUrl, {
+        method: 'GET',
+        headers: {
+          'x-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+      }),
+    ]);
 
-    const data = await response.json();
+    const jobsData = await jobsResponse.json();
+    const checkinsData = await checkinsResponse.json();
 
-    if (!response.ok) {
-      console.error('External API error:', data);
+    if (!jobsResponse.ok) {
+      console.error('External API error (jobs):', jobsData);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch jobs', details: data }),
+        JSON.stringify({ error: 'Failed to fetch jobs', details: jobsData }),
         {
-          status: response.status,
+          status: jobsResponse.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
 
-    // Process jobs data to generate statistics
-    const jobs = data.data || data || [];
+    // Process jobs and check-ins data
+    const jobs = jobsData.data || jobsData || [];
+    const checkins = checkinsData.data || checkinsData || [];
+
+    // Build set of transport_order_ids that have delivery_confirmed
+    const confirmedTransportIds = new Set(
+      checkins
+        .filter((c: any) => 
+          c.freelance_driver_id === freelanceDriverId &&
+          c.checkin_type === 'delivery_confirmed' &&
+          c.transport_order_id
+        )
+        .map((c: any) => String(c.transport_order_id))
+    );
+
+    console.log('Confirmed transport IDs:', Array.from(confirmedTransportIds));
+    console.log('Total check-ins:', checkins.length);
     const selectedDate = dateStr ? new Date(dateStr) : new Date();
 
     const parseJobDate = (job: any): Date | null => {
@@ -158,26 +189,30 @@ serve(async (req) => {
 
     const filteredJobs = jobs.filter((job: any) => filterJobsByDate(job) && filterJobsByVehicle(job));
 
-    // Calculate statistics
-    // Note: 'completed' = POD submitted (success), 'delivered' = arrived but POD not done (still in progress)
+    // Calculate statistics based on ACTUAL delivery_confirmed status
+    // Success = งานที่มี delivery_confirmed check-in (POD ส่งแล้วจริงๆ)
+    // In Progress = งานที่รับแล้วแต่ยังไม่มี delivery_confirmed
     const totalJobs = filteredJobs.length;
-    const successJobs = filteredJobs.filter((job: any) => 
-      job.status === 'completed' || 
-      job.job_status === 'JOB_COMPLETED'
-    ).length;
-    const inProgressJobs = filteredJobs.filter((job: any) => 
-      job.status === 'in_progress' || 
-      job.status === 'accepted' ||
-      job.status === 'delivered' || // delivered but POD not done = still in progress
-      job.job_status === 'IN_PROGRESS' ||
-      job.job_status === 'ACCEPTED' ||
-      job.job_status === 'PICKED_UP' ||
-      job.job_status === 'DELIVERED'
-    ).length;
+    
+    const successJobs = filteredJobs.filter((job: any) => {
+      const jobId = String(job.id);
+      return confirmedTransportIds.has(jobId);
+    }).length;
+    
+    const inProgressJobs = filteredJobs.filter((job: any) => {
+      const jobId = String(job.id);
+      const hasDeliveryConfirmed = confirmedTransportIds.has(jobId);
+      const isCancelled = job.status === 'cancelled' || job.job_status === 'CANCELLED';
+      // In progress = not confirmed AND not cancelled
+      return !hasDeliveryConfirmed && !isCancelled;
+    }).length;
+    
     const cancelledJobs = filteredJobs.filter((job: any) => 
       job.status === 'cancelled' || 
       job.job_status === 'CANCELLED'
     ).length;
+
+    console.log('Stats calculation:', { totalJobs, successJobs, inProgressJobs, cancelledJobs });
 
     // Calculate region statistics based on destination province/region
     const regionMapping: { [key: string]: string } = {
