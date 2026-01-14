@@ -24,7 +24,7 @@ interface Job {
   destination_company_name: string | null;
   price: number;
   start_date: string;
-  start_time: string;
+  pickup_time: string;
   equipment_list: string | null;
   safety_equipment: string | null;
   goods_type: string | null;
@@ -146,7 +146,7 @@ export default function Home() {
           destination_company_name: item.company_name || null,
           price: item.price || 0,
           start_date: item.pickup_date || item.start_date || item.period_start || '',
-          start_time: item.start_time || '',
+          pickup_time: item.pickup_time || item.start_time || '',
           equipment_list: item.truck_type !== '-' ? item.truck_type : null,
           safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
           goods_type: item.product_name || item.goods_type || item.product_type || null,

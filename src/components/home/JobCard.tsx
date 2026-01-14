@@ -23,7 +23,7 @@ interface Job {
   destination_company_name: string | null;
   price: number;
   start_date: string;
-  start_time: string;
+  pickup_time: string;
   equipment_list: string | null;
   safety_equipment: string | null;
   goods_type: string | null;
@@ -91,7 +91,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
       </div>
       <div className="absolute top-0 right-0 px-3 py-1 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Clock className="w-4 h-4" />
-        {formatDate(job.start_date, language)} {job.start_time ? `| ${job.start_time.substring(0, 5)}` : ''}
+        {formatDate(job.start_date, language)} {job.pickup_time ? `| ${job.pickup_time.substring(0, 5)}` : ''}
       </div>
 
       <div className="space-y-2">
@@ -261,7 +261,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
                 <div>
                   <p className="text-xs text-muted-foreground">เวลา</p>
                   <p className="font-medium text-sm">
-                    {job.start_time ? job.start_time.substring(0, 5) : '-'}
+                    {job.pickup_time ? job.pickup_time.substring(0, 5) : '-'}
                   </p>
                 </div>
               </div>
