@@ -219,6 +219,29 @@ export default function Home() {
     if (!selectedJob || !user) return;
     
     try {
+      // Get driver name from user object
+      const driverName = user.first_name && user.last_name 
+        ? `${user.first_name} ${user.last_name}` 
+        : user.full_name || user.name || '';
+      
+      // Get driver phone from user object
+      const driverPhone = user.phone_number || user.phone || '';
+      
+      // Get vehicle info - try to fetch from Supabase
+      let licensePlate = '';
+      let vehicleType = '';
+      
+      const { data: vehicleData } = await supabase
+        .from('vehicles')
+        .select('plate_number, plate_province, vehicle_type')
+        .eq('driver_id', user.id)
+        .maybeSingle();
+      
+      if (vehicleData) {
+        licensePlate = vehicleData.plate_number || '';
+        vehicleType = vehicleData.vehicle_type || '';
+      }
+
       // Call external API to accept job
       const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/accept-express-rent-job', {
         method: 'POST',
@@ -228,7 +251,11 @@ export default function Home() {
         },
         body: JSON.stringify({
           order_number: selectedJob.order_code,
-          freelance_driver_id: user.id
+          freelance_driver_id: user.id,
+          freelance_driver_name: driverName,
+          driver_phone: driverPhone,
+          license_plate: licensePlate,
+          vehicle_type: vehicleType
         }),
       });
 
