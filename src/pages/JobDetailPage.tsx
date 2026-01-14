@@ -194,12 +194,14 @@ export default function JobDetailPage() {
           setJob(mappedJob);
 
           // Create job application based on status from API
+          // Note: 'delivered' status means arrived at destination but NOT POD completed
+          // Only 'completed' status means POD is done
           const jobApplicationData: JobApplication = {
             checked_in_at: null,
             sop_completed_at: null,
             job_started_at: foundJob.status === 'in_progress' ? new Date().toISOString() : null,
-            delivery_checked_in_at: null,
-            delivery_sop_completed_at: foundJob.status === 'completed' || foundJob.status === 'delivered' ? new Date().toISOString() : null,
+            delivery_checked_in_at: foundJob.status === 'delivered' || foundJob.status === 'completed' ? new Date().toISOString() : null,
+            delivery_sop_completed_at: foundJob.status === 'completed' ? new Date().toISOString() : null,
             container_checked_in_at: null,
             container_sop_completed_at: null,
             status: foundJob.status,
