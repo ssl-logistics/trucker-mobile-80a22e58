@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Search, MapPin, Banknote, Truck, Calendar, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -9,6 +9,8 @@ import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
@@ -34,6 +36,7 @@ interface Job {
 
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout, setAuthTransitioning } = useAuth();
   const { t } = useLanguage();
   const { role } = useUserRole();
@@ -41,12 +44,72 @@ export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [detailJob, setDetailJob] = useState<Job | null>(null);
+  const [loadingDetailJob, setLoadingDetailJob] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadJobs();
     }
   }, [user]);
+
+  // Handle openJobId from notifications navigation
+  useEffect(() => {
+    const openJobId = location.state?.openJobId;
+    if (openJobId && jobs.length > 0) {
+      // First try to find job in current jobs list
+      const foundJob = jobs.find(j => j.id === openJobId);
+      if (foundJob) {
+        setDetailJob(foundJob);
+        setDetailModalOpen(true);
+      } else {
+        // Fetch job from database if not in list
+        fetchJobById(openJobId);
+      }
+      // Clear the state to prevent reopening on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.openJobId, jobs]);
+
+  const fetchJobById = async (jobId: string) => {
+    setLoadingDetailJob(true);
+    setDetailModalOpen(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('id', jobId)
+        .single();
+      
+      if (!error && data) {
+        setDetailJob({
+          id: data.id,
+          order_code: data.order_code,
+          job_type: data.job_type,
+          employer_name: data.employer_name,
+          transport_type: data.transport_type,
+          transport_type_label: '',
+          origin_location: data.origin_location,
+          destination_location: data.destination_location,
+          destination_company_name: data.destination_company_name,
+          price: data.price,
+          start_date: data.start_date,
+          start_time: data.start_time,
+          equipment_list: data.equipment_list,
+          safety_equipment: data.safety_equipment,
+          goods_type: null,
+          goods_quantity: null,
+          isAccepted: false
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching job:', err);
+    } finally {
+      setLoadingDetailJob(false);
+    }
+  };
 
   // Subscribe to jobs table changes for real-time updates
   useEffect(() => {
@@ -279,5 +342,107 @@ export default function Home() {
       <BottomNavigation />
 
       <ConfirmJobDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen} onConfirm={confirmJobAcceptance} job={selectedJob} />
+
+      {/* Job Detail Modal from Notifications */}
+      <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              รายละเอียดงาน
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {loadingDetailJob ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="text-sm mt-3 text-muted-foreground">กำลังโหลด...</p>
+              </div>
+            ) : detailJob ? (
+              <div className="space-y-4">
+                {/* Order Code */}
+                <div className="bg-primary/10 rounded-lg p-3 text-center">
+                  <p className="text-xs text-muted-foreground">รหัสงาน</p>
+                  <p className="font-bold text-primary text-lg">{detailJob.order_code}</p>
+                </div>
+
+                {/* Route */}
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">ต้นทาง</p>
+                      <p className="font-medium">{detailJob.origin_location}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">ปลายทาง</p>
+                      <p className="font-medium">{detailJob.destination_location}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+                  <Banknote className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">ราคา</p>
+                    <p className="font-bold text-lg text-primary">฿{detailJob.price.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                {/* Date & Time */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">วันที่</p>
+                      <p className="font-medium text-sm">{detailJob.start_date || '-'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">เวลา</p>
+                      <p className="font-medium text-sm">{detailJob.start_time || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transport Type */}
+                <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+                  <Truck className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">ประเภทการขนส่ง</p>
+                    <p className="font-medium">{detailJob.transport_type_label || detailJob.transport_type}</p>
+                  </div>
+                </div>
+
+                {/* Employer */}
+                <div className="text-center text-sm text-muted-foreground">
+                  ผู้ว่าจ้าง: <span className="font-medium text-foreground">{detailJob.employer_name}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                <p>ไม่พบข้อมูลงาน</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailModalOpen(false)} className="w-full">
+              ปิด
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>;
 }

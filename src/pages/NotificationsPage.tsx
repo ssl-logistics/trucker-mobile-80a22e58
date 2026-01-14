@@ -170,27 +170,12 @@ export default function NotificationsPage() {
       );
     }
 
-    setSelectedNotification(notification);
-
-    // Fetch job details if reference type is job
+    // Navigate to home and open job detail modal
     if (notification.reference_type === 'job' && notification.reference_id) {
-      setLoadingJob(true);
-      setModalOpen(true);
-      
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('id, order_code, origin_location, destination_location, price, start_date, start_time, transport_type, job_type, employer_name')
-        .eq('id', notification.reference_id)
-        .single();
-
-      if (!error && data) {
-        setSelectedJob(data);
-      } else {
-        setSelectedJob(null);
-      }
-      setLoadingJob(false);
+      navigate('/home', { state: { openJobId: notification.reference_id } });
     } else {
-      setModalOpen(true);
+      // For non-job notifications, go to notification detail
+      navigate(`/notification/${notification.id}`);
     }
   };
 
