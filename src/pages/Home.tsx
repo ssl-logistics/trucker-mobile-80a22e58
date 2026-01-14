@@ -174,7 +174,10 @@ export default function Home() {
             if (!job.start_date) return true; // Keep jobs without date
             
             // Combine date and time to create full datetime
-            const pickupDateTime = new Date(`${job.start_date}T${job.pickup_time || '23:59'}:00`);
+            // pickup_time may already include seconds (e.g., "18:40:00") or not (e.g., "18:40")
+            const time = job.pickup_time || '23:59:59';
+            const normalizedTime = time.length === 5 ? `${time}:00` : time; // Add seconds if missing
+            const pickupDateTime = new Date(`${job.start_date}T${normalizedTime}`);
             return pickupDateTime >= now;
           });
         };
@@ -192,7 +195,9 @@ export default function Home() {
         const now = new Date();
         const filteredJobs = transformedJobs.filter(job => {
           if (!job.start_date) return true;
-          const pickupDateTime = new Date(`${job.start_date}T${job.pickup_time || '23:59'}:00`);
+          const time = job.pickup_time || '23:59:59';
+          const normalizedTime = time.length === 5 ? `${time}:00` : time;
+          const pickupDateTime = new Date(`${job.start_date}T${normalizedTime}`);
           return pickupDateTime >= now;
         });
         setJobs(filteredJobs);
