@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, CalendarIcon, MapPin, Banknote, Truck, Calendar as CalendarIconLucide, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { th, enUS, ko, zhCN } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,18 +31,6 @@ interface Notification {
   created_at: string;
 }
 
-interface Job {
-  id: string;
-  order_code: string;
-  origin_location: string;
-  destination_location: string;
-  price: number;
-  start_date: string;
-  start_time: string;
-  transport_type: string;
-  job_type: string;
-  employer_name: string;
-}
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
@@ -51,10 +39,6 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [loadingJob, setLoadingJob] = useState(false);
 
   // Fetch notifications from database
   useEffect(() => {
@@ -179,14 +163,6 @@ export default function NotificationsPage() {
     }
   };
 
-  // Navigate to job detail page
-  const handleViewJobDetail = () => {
-    if (selectedJob?.order_code) {
-      setModalOpen(false);
-      navigate(`/job/${selectedJob.order_code}`);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -284,115 +260,6 @@ export default function NotificationsPage() {
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* Job Detail Modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              รายละเอียดงาน
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="py-4">
-            {loadingJob ? (
-              <div className="flex flex-col items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="text-sm mt-3 text-muted-foreground">กำลังโหลด...</p>
-              </div>
-            ) : selectedJob ? (
-              <div className="space-y-4">
-                {/* Order Code */}
-                <div className="bg-primary/10 rounded-lg p-3 text-center">
-                  <p className="text-xs text-muted-foreground">รหัสงาน</p>
-                  <p className="font-bold text-primary text-lg">{selectedJob.order_code}</p>
-                </div>
-
-                {/* Route */}
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">ต้นทาง</p>
-                      <p className="font-medium">{selectedJob.origin_location}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-4 h-4 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">ปลายทาง</p>
-                      <p className="font-medium">{selectedJob.destination_location}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Price */}
-                <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
-                  <Banknote className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">ราคา</p>
-                    <p className="font-bold text-lg text-primary">฿{selectedJob.price.toLocaleString()}</p>
-                  </div>
-                </div>
-
-                {/* Date & Time */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                    <CalendarIconLucide className="w-4 h-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">วันที่</p>
-                      <p className="font-medium text-sm">
-                        {format(parseISO(selectedJob.start_date), 'd MMM yyyy', { locale: getLocale() })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">เวลา</p>
-                      <p className="font-medium text-sm">{selectedJob.start_time}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Transport Type & Job Type */}
-                <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
-                  <Truck className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">ประเภทการขนส่ง</p>
-                    <p className="font-medium">{selectedJob.transport_type} • {selectedJob.job_type}</p>
-                  </div>
-                </div>
-
-                {/* Employer */}
-                <div className="text-center text-sm text-muted-foreground">
-                  ผู้ว่าจ้าง: <span className="font-medium text-foreground">{selectedJob.employer_name}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                <p>ไม่พบข้อมูลงาน</p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
-            {selectedJob && (
-              <Button onClick={handleViewJobDetail} className="w-full">
-                ดูรายละเอียดงาน
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => setModalOpen(false)} className="w-full">
-              ปิด
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
