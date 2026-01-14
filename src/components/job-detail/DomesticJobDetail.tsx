@@ -100,10 +100,16 @@ export default function DomesticJobDetail({
         const checkinResult = await checkinResponse.json();
         console.log('Fetched check-in status:', checkinResult);
         
-        const checkins = checkinResult?.data || checkinResult || [];
-        const hasPickupCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
-        const hasDeliveryCheckin = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
-        const hasDeliveryConfirmed = Array.isArray(checkins) && checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
+        const allCheckins = checkinResult?.data || checkinResult || [];
+        // Filter checkins to only include those from the current user
+        const checkins = Array.isArray(allCheckins) 
+          ? allCheckins.filter((c: any) => c.freelance_driver_id === userId)
+          : [];
+        console.log('Filtered checkins for current user:', checkins);
+        
+        const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
+        const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
+        const hasDeliveryConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
         
