@@ -246,7 +246,7 @@ export const JobCard = ({ job, onAccept }: JobCardProps) => {
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">ประเภทการขนส่ง</p>
-                <p className="font-medium">{job.transport_type_label || job.transport_type} • {job.job_type}</p>
+                <p className="font-medium">{job.transport_type_label || job.transport_type}</p>
               </div>
             </div>
 
