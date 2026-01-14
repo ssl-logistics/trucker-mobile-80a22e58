@@ -57,20 +57,13 @@ export default function Home() {
   // Handle openJobId from notifications navigation
   useEffect(() => {
     const openJobId = location.state?.openJobId;
-    if (openJobId && jobs.length > 0) {
-      // First try to find job in current jobs list
-      const foundJob = jobs.find(j => j.id === openJobId);
-      if (foundJob) {
-        setDetailJob(foundJob);
-        setDetailModalOpen(true);
-      } else {
-        // Fetch job from database if not in list
-        fetchJobById(openJobId);
-      }
+    if (openJobId) {
+      // Always fetch from database since notification uses database job ID
+      fetchJobById(openJobId);
       // Clear the state to prevent reopening on refresh
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state?.openJobId, jobs]);
+  }, [location.state?.openJobId]);
 
   const fetchJobById = async (jobId: string) => {
     setLoadingDetailJob(true);
