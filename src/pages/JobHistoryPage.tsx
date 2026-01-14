@@ -116,37 +116,75 @@ export default function JobHistoryPage() {
 
   const loadCompletedJobs = async () => {
     if (!user) return;
-    
+
+    setLoading(true);
     try {
       const freelanceDriverId = user.id;
-      
-      const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-          },
-        }
+
+      // Fetch jobs + checkins in parallel
+      const [jobsRes, checkinsRes] = await Promise.all([
+        fetch(
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
+            freelanceDriverId
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": "fld_sk_2026_xY9kWewT3xNySk8kGsRq_live",
+            },
+          }
+        ),
+        fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(
+            freelanceDriverId
+          )}&order_number=all`,
+          { method: "GET", headers: { "Content-Type": "application/json" } }
+        ),
+      ]);
+
+      const jobsJson = await jobsRes.json();
+      const checkinsJson = await checkinsRes.json();
+
+      if (!jobsRes.ok) {
+        console.error("Error loading jobs:", jobsJson);
+        setCompletedJobs([]);
+        return;
+      }
+
+      if (!checkinsRes.ok) {
+        console.error("Error loading checkins:", checkinsJson);
+        setCompletedJobs([]);
+        return;
+      }
+
+      const jobs: CompletedJob[] = Array.isArray(jobsJson)
+        ? jobsJson
+        : jobsJson.data || [];
+
+      const allCheckins = checkinsJson?.data || checkinsJson || [];
+      const checkins = Array.isArray(allCheckins) ? allCheckins : [];
+
+      // ✅ Completed = มี delivery_confirmed ของ transport_order_id (POD ส่งแล้ว)
+      const confirmedTransportIds = new Set(
+        checkins
+          .filter(
+            (c: any) =>
+              c.freelance_driver_id === freelanceDriverId &&
+              c.checkin_type === "delivery_confirmed" &&
+              c.transport_order_id
+          )
+          .map((c: any) => String(c.transport_order_id))
       );
 
-      const result = await response.json();
+      const completed = jobs
+        .filter((job) => confirmedTransportIds.has(String(job.id)))
+        .map((job) => ({ ...job, status: "completed" }));
 
-      if (!response.ok) {
-        console.error('Error loading completed jobs:', result);
-      } else {
-        const jobs = Array.isArray(result) ? result : (result.data || []);
-        // Only get truly completed jobs (POD submitted)
-        // 'delivered' status means arrived at destination but may not have submitted POD yet
-        // Those should stay in current jobs until POD is done
-        const completed = jobs.filter((job: CompletedJob) => 
-          job.status === 'completed'
-        );
-        setCompletedJobs(completed);
-      }
+      setCompletedJobs(completed);
     } catch (error) {
-      console.error('Error fetching completed jobs:', error);
+      console.error("Error fetching completed jobs:", error);
+      setCompletedJobs([]);
     } finally {
       setLoading(false);
     }
