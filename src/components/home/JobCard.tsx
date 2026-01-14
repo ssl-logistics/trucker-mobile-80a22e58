@@ -267,6 +267,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
                 <p className="font-medium">
                   {job.job_type === 'domestic' ? 'ในประเทศ' : 
                    job.job_type === 'international' ? 'ระหว่างประเทศ' : 
+                   job.job_type === 'express_rent' ? 'รถเช่าด่วน' :
                    job.job_type || '-'}
                 </p>
               </div>
