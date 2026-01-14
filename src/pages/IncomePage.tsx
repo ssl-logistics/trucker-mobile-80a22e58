@@ -49,32 +49,52 @@ export default function IncomePage() {
     if (!user) return;
     setLoading(true);
     try {
-      // Fetch completed jobs from external API (same as job history)
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-        }
-      );
+      // Fetch jobs and checkins in parallel
+      const [jobsRes, checkinsRes] = await Promise.all([
+        fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+          }
+        ),
+        fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
+          { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+        ),
+      ]);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch completed jobs');
+      if (!jobsRes.ok) {
+        throw new Error('Failed to fetch jobs');
       }
 
-      const result = await response.json();
-      const allJobs: CompletedJob[] = result.data || [];
+      const jobsJson = await jobsRes.json();
+      const checkinsJson = await checkinsRes.json();
 
-      // Only show completed jobs (POD submitted) in income
-      // 'delivered' status means not yet completed POD - don't show in income
-      const finishedJobs = allJobs.filter(job => job.status === 'completed');
+      const allJobs: CompletedJob[] = jobsJson.data || [];
+      const allCheckins = checkinsJson?.data || checkinsJson || [];
+      const checkins = Array.isArray(allCheckins) ? allCheckins : [];
+
+      // Get transport_order_ids that have delivery_confirmed
+      const confirmedTransportIds = new Set(
+        checkins
+          .filter(
+            (c: any) =>
+              c.freelance_driver_id === user.id &&
+              c.checkin_type === 'delivery_confirmed' &&
+              c.transport_order_id
+          )
+          .map((c: any) => String(c.transport_order_id))
+      );
+
+      // Only show jobs with delivery_confirmed in income
+      const finishedJobs = allJobs.filter(job => confirmedTransportIds.has(String(job.id)));
 
       // Process the data
       const paid: IncomeJob[] = [];
-      const unpaid: IncomeJob[] = [];
 
       finishedJobs.forEach((job) => {
         const incomeJob: IncomeJob = {
@@ -83,24 +103,18 @@ export default function IncomePage() {
           jobTitle: job.destination_company_name || job.sender_name,
           employer: job.sender_name,
           amount: job.transport_price,
-          status: job.status === 'completed' ? "paid" : "pending",
+          status: "paid",
           date: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
           month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
             month: "long"
           }),
           orderCode: job.order_number
         };
-
-        // Consider "completed" as paid, "delivered" as pending payment
-        if (job.status === 'completed') {
-          paid.push(incomeJob);
-        } else {
-          unpaid.push(incomeJob);
-        }
+        paid.push(incomeJob);
       });
 
       setPaidJobs(paid);
-      setUnpaidJobs(unpaid);
+      setUnpaidJobs([]);
     } catch (error) {
       console.error("Error loading income data:", error);
       toast({

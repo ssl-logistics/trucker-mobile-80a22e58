@@ -55,30 +55,52 @@ export default function FinancePage() {
       
       setLoading(true);
       try {
-        // Fetch jobs from external API
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-          }
+        // Fetch jobs and checkins in parallel
+        const [jobsRes, checkinsRes, expenseRes] = await Promise.all([
+          fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+            }
+          ),
+          fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
+            { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+          ),
+          supabase
+            .from('expenses')
+            .select('job_id, amount, created_at')
+            .eq('driver_id', user.id),
+        ]);
+
+        const jobsJson = await jobsRes.json();
+        const checkinsJson = await checkinsRes.json();
+
+        const allJobs: CompletedJob[] = jobsJson?.data || [];
+        const allCheckins = checkinsJson?.data || checkinsJson || [];
+        const checkins = Array.isArray(allCheckins) ? allCheckins : [];
+
+        // Get transport_order_ids that have delivery_confirmed
+        const confirmedTransportIds = new Set(
+          checkins
+            .filter(
+              (c: any) =>
+                c.freelance_driver_id === user.id &&
+                c.checkin_type === 'delivery_confirmed' &&
+                c.transport_order_id
+            )
+            .map((c: any) => String(c.transport_order_id))
         );
 
-        if (response.ok) {
-          const result = await response.json();
-          setJobs(result.data || []);
-        }
+        // Only include jobs with delivery_confirmed in finance
+        const completedJobs = allJobs.filter(job => confirmedTransportIds.has(String(job.id)));
+        setJobs(completedJobs);
 
-        // Fetch expenses from Supabase
-        const { data: expenseData } = await supabase
-          .from('expenses')
-          .select('job_id, amount, created_at')
-          .eq('driver_id', user.id);
-        
-        setExpenses(expenseData || []);
+        setExpenses(expenseRes.data || []);
       } catch (error) {
         console.error('Error loading finance data:', error);
       } finally {
@@ -134,11 +156,9 @@ export default function FinancePage() {
       }
     };
 
-    // Filter only completed jobs by period (not delivered - POD not yet done)
+    // Filter jobs by period (already filtered by delivery_confirmed in loadData)
     const filteredJobs = jobs.filter(
-      job => job.status === 'completed' && 
-             job.sender_pickup_date && 
-             filterByPeriod(job.sender_pickup_date)
+      job => job.sender_pickup_date && filterByPeriod(job.sender_pickup_date)
     );
 
     // Filter expenses by period

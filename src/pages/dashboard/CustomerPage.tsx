@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -17,20 +16,6 @@ interface ExternalJob {
   sender_pickup_date: string;
   created_at: string;
   status: string;
-}
-
-// Local job application interface
-interface JobApplication {
-  id: string;
-  applied_at: string;
-  status: string;
-  jobs: {
-    id: string;
-    employer_name: string;
-    destination_company_name: string | null;
-    price: number;
-    start_date: string;
-  } | null;
 }
 
 // Unified job data for customer aggregation
@@ -63,7 +48,7 @@ export default function CustomerPage() {
   const koreanMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : englishMonths;
 
-  // Fetch jobs from both local DB and external API
+  // Fetch jobs from external API with delivery_confirmed check
   useEffect(() => {
     const fetchAllJobs = async () => {
       if (!user) return;
@@ -72,62 +57,53 @@ export default function CustomerPage() {
       const allJobs: JobData[] = [];
 
       try {
-        // 1. Fetch from local job_applications (Supabase)
-        const { data: localApps, error: localError } = await supabase
-          .from('job_applications')
-          .select(`
-            id,
-            applied_at,
-            status,
-            jobs:job_id (
-              id,
-              employer_name,
-              destination_company_name,
-              price,
-              start_date
-            )
-          `)
-          .eq('driver_id', user.id);
-
-        if (!localError && localApps) {
-          localApps.forEach((app: JobApplication) => {
-            if (app.jobs) {
-              allJobs.push({
-                customerName: app.jobs.destination_company_name || app.jobs.employer_name,
-                amount: app.jobs.price || 0,
-                date: app.jobs.start_date || app.applied_at
-              });
+        // Fetch jobs and checkins in parallel from external API
+        const [jobsRes, checkinsRes] = await Promise.all([
+          fetch(
+            `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+              },
             }
-          });
-        }
+          ),
+          fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
+            { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+          ),
+        ]);
 
-        // 2. Fetch from external API (get-freelance-accepted-jobs)
-        const response = await fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-            },
-          }
+        const jobsJson = await jobsRes.json();
+        const checkinsJson = await checkinsRes.json();
+
+        const externalJobs: ExternalJob[] = Array.isArray(jobsJson) ? jobsJson : (jobsJson.data || []);
+        const allCheckins = checkinsJson?.data || checkinsJson || [];
+        const checkins = Array.isArray(allCheckins) ? allCheckins : [];
+
+        // Get transport_order_ids that have delivery_confirmed
+        const confirmedTransportIds = new Set(
+          checkins
+            .filter(
+              (c: any) =>
+                c.freelance_driver_id === user.id &&
+                c.checkin_type === 'delivery_confirmed' &&
+                c.transport_order_id
+            )
+            .map((c: any) => String(c.transport_order_id))
         );
 
-        if (response.ok) {
-          const result = await response.json();
-          const externalJobs: ExternalJob[] = Array.isArray(result) ? result : (result.data || []);
-          
-          // Only include completed jobs in customer statistics
-          const completedJobs = externalJobs.filter(job => job.status === 'completed');
-          
-          completedJobs.forEach(job => {
-            allJobs.push({
-              customerName: job.sender_name || 'ไม่ระบุชื่อ',
-              amount: job.transport_price || 0,
-              date: job.sender_pickup_date || job.created_at
-            });
+        // Only include jobs with delivery_confirmed in customer statistics
+        const completedJobs = externalJobs.filter(job => confirmedTransportIds.has(String(job.id)));
+        
+        completedJobs.forEach(job => {
+          allJobs.push({
+            customerName: job.sender_name || 'ไม่ระบุชื่อ',
+            amount: job.transport_price || 0,
+            date: job.sender_pickup_date || job.created_at
           });
-        }
+        });
 
         setJobs(allJobs);
       } catch (err) {
