@@ -167,7 +167,19 @@ export default function Home() {
         );
         const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
         
-        const availableJobs = transformedJobs
+        // Filter out jobs with past pickup date/time
+        const now = new Date();
+        const filterPastJobs = (jobList: Job[]) => {
+          return jobList.filter(job => {
+            if (!job.start_date) return true; // Keep jobs without date
+            
+            // Combine date and time to create full datetime
+            const pickupDateTime = new Date(`${job.start_date}T${job.pickup_time || '23:59'}:00`);
+            return pickupDateTime >= now;
+          });
+        };
+
+        const availableJobs = filterPastJobs(transformedJobs)
           .filter(job => !completedJobIds.has(job.id))
           .map(job => ({
             ...job,
@@ -176,7 +188,14 @@ export default function Home() {
         
         setJobs(availableJobs);
       } else {
-        setJobs(transformedJobs);
+        // Filter out jobs with past pickup date/time for non-logged in users too
+        const now = new Date();
+        const filteredJobs = transformedJobs.filter(job => {
+          if (!job.start_date) return true;
+          const pickupDateTime = new Date(`${job.start_date}T${job.pickup_time || '23:59'}:00`);
+          return pickupDateTime >= now;
+        });
+        setJobs(filteredJobs);
       }
     } catch (err) {
       console.error('Error fetching jobs:', err);
