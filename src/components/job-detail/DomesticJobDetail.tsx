@@ -173,40 +173,6 @@ export default function DomesticJobDetail({
   // Empty destinations array - job_destinations table no longer exists
   const destinations: { id: string; sequence_number: number; company_name: string | null; contact_name: string | null; contact_phone: string | null; address: string | null; province: string | null; district: string | null; delivery_date: string | null; delivery_time: string | null; notes: string | null; checked_in_at: string | null; sop_completed_at: string | null }[] = [];
 
-  const [isStartingJob, setIsStartingJob] = useState(false);
-  const [hasStartedJob, setHasStartedJob] = useState(false);
-
-  // Check if job has been started (from database OR local state)
-  const isJobStarted = !!(jobApplication?.job_started_at) || hasStartedJob;
-
-  const handleStartJob = async () => {
-    setIsStartingJob(true);
-    try {
-      const {
-        error
-      } = await supabase.from('job_applications').update({
-        job_started_at: new Date().toISOString(),
-        status: 'job_started'
-      }).eq('job_id', job.id).eq('driver_id', userId);
-      if (error) {
-        toast({
-          title: t('jobDetail.error'),
-          description: t('jobDetail.errorStartJob'),
-          variant: 'destructive'
-        });
-      } else {
-        // Immediately hide button and enable actions
-        setHasStartedJob(true);
-        toast({
-          title: t('jobDetail.startJobSuccess'),
-          description: t('jobDetail.startJobSuccessDesc')
-        });
-        onUpdate();
-      }
-    } finally {
-      setIsStartingJob(false);
-    }
-  };
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
@@ -330,8 +296,8 @@ export default function DomesticJobDetail({
             {/* Right Content Column */}
             <div className="flex-1 space-y-3">
               {/* Pickup Point Card */}
-              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : isJobStarted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                <div className={`${!isJobStarted ? 'opacity-60' : ''}`}>
+              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : 'border-teal-500 bg-[#F6FFFE]'}`}>
+                <div>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.pickupPoint')}</h3>
@@ -341,10 +307,6 @@ export default function DomesticJobDetail({
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
                         <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
                         กำลังตรวจสอบ...
-                      </span>
-                    ) : !isJobStarted ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                        {t('jobDetail.waitingStartJob')}
                       </span>
                     ) : (
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'text-green-600 bg-[#E6F7E6]' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
@@ -377,11 +339,11 @@ export default function DomesticJobDetail({
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!isJobStarted}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]">
                       <Phone className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.call')}</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!isJobStarted}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]">
                       <img src={routeIcon} alt="route" className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
@@ -395,7 +357,7 @@ export default function DomesticJobDetail({
                       // Not checked in yet, go to check-in page
                       navigate(`/job/${job.order_code}/pickup`);
                     }
-                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isLoadingCheckinStatus || !isJobStarted}>
+                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isLoadingCheckinStatus}>
                       {isLoadingCheckinStatus ? (
                         <Loader2 className="w-4 h-4 animate-spin text-white" />
                       ) : (
@@ -406,6 +368,7 @@ export default function DomesticJobDetail({
                   </div>
                 </div>
               </Card>
+
 
               {/* Delivery Point Cards - Multiple destinations */}
               {destinations.length > 0 ? destinations.map((dest, index) => {
@@ -528,24 +491,6 @@ export default function DomesticJobDetail({
         </div>
       </div>
 
-      {/* Bottom Button - Show Start Job button if job not started yet */}
-      {!isJobStarted && <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-          <Button 
-            className="w-full h-12 text-base text-white" 
-            style={{ background: 'linear-gradient(90deg, #245D9E 0%, #1A4271 100%)' }} 
-            onClick={handleStartJob} 
-            disabled={isStartingJob}
-          >
-            {isStartingJob ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {t('jobDetail.startingJob')}
-              </>
-            ) : (
-              t('jobDetail.startJob')
-            )}
-          </Button>
-        </div>}
 
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} />
     </div>;
