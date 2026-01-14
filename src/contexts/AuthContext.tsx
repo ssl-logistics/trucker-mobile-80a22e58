@@ -1,12 +1,22 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { AuthLoadingOverlay } from '@/components/auth/AuthLoadingOverlay';
 
+interface LineUser {
+  lineUserId: string;
+  displayName: string;
+  pictureUrl?: string;
+  statusMessage?: string;
+}
+
 interface DriverData {
   id: string;
   full_name: string;
   avatar_url: string | null;
   phone_number?: string;
   username?: string;
+  // LINE login fields
+  loginType?: 'normal' | 'line';
+  lineUser?: LineUser;
   [key: string]: any;
 }
 
@@ -58,9 +68,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const driverData = localStorage.getItem('auth_driver');
       const userRole = localStorage.getItem('user_role');
       const userType = localStorage.getItem('auth_user_type');
+      const lineUserData = sessionStorage.getItem('line_user');
+      const loginType = localStorage.getItem('auth_login_type');
       
       if (driverData) {
         const driver = JSON.parse(driverData);
+        
+        // Add LINE user data if available
+        if (lineUserData && loginType === 'line') {
+          const lineUser = JSON.parse(lineUserData);
+          driver.loginType = 'line';
+          driver.lineUser = lineUser;
+          // Use LINE profile data if not set
+          if (!driver.avatar_url && lineUser.pictureUrl) {
+            driver.avatar_url = lineUser.pictureUrl;
+          }
+          if (!driver.full_name && lineUser.displayName) {
+            driver.full_name = lineUser.displayName;
+          }
+        } else {
+          driver.loginType = 'normal';
+        }
+        
         setUser(driver);
         
         // Map user_type to role - freelance_driver becomes freelance
@@ -76,6 +105,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
         
         setRole(mappedRole);
+      } else if (lineUserData) {
+        // LINE login only (no existing driver account)
+        const lineUser = JSON.parse(lineUserData);
+        const lineDriver: DriverData = {
+          id: lineUser.lineUserId,
+          full_name: lineUser.displayName,
+          avatar_url: lineUser.pictureUrl || null,
+          loginType: 'line',
+          lineUser: lineUser,
+        };
+        setUser(lineDriver);
+        setRole('freelance');
       } else {
         setUser(null);
         setRole('freelance');
@@ -94,6 +135,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('auth_user_type');
     localStorage.removeItem('user_role');
     localStorage.removeItem('auth_driver_id');
+    localStorage.removeItem('auth_login_type');
+    sessionStorage.removeItem('line_user');
+    sessionStorage.removeItem('line_oauth_state');
     setUser(null);
     setRole('freelance');
   };
