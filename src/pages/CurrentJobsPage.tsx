@@ -150,10 +150,13 @@ export default function CurrentJobsPage() {
     setEndDate(undefined);
   };
 
-  // Filter jobs based on selected filters - exclude completed/delivered jobs
+  // Filter jobs based on selected filters - exclude only 'completed' jobs
+  // 'delivered' status means the driver arrived at destination but may not have submitted POD yet
+  // Jobs should only go to history after POD is confirmed (status = 'completed')
   const filteredJobs = acceptedJobs.filter(job => {
-    // Exclude completed or delivered jobs - they should show in history
-    if (job.status === 'completed' || job.status === 'delivered') {
+    // Only exclude 'completed' jobs - they have finished POD
+    // 'delivered' status should still show in current jobs until POD is done
+    if (job.status === 'completed') {
       return false;
     }
 
