@@ -50,7 +50,7 @@ const LineCallbackPage = () => {
       try {
         // Get the redirect URI that was used (must match exactly what was sent to LINE)
         // NOTE: Must NOT include a "#" fragment for LINE.
-        const redirectUri = `${window.location.origin}/line-callback.html`;
+        const redirectUri = `${window.location.origin}/auth/line/callback`;
 
         // Call edge function to exchange code for token
         const { data, error: fnError } = await supabase.functions.invoke('line-auth', {
