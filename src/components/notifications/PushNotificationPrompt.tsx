@@ -261,12 +261,34 @@ export const PushNotificationPrompt = () => {
     return null;
   }
 
+  const handleEnableViaSettings = async () => {
+    setIsLoading(true);
+    
+    try {
+      await openNotificationSettings();
+      
+      toast({
+        title: 'กรุณาเปิดการแจ้งเตือน',
+        description: 'เปิดสวิตช์การแจ้งเตือนสำหรับแอปนี้',
+      });
+      
+      setShowPrompt(false);
+      localStorage.setItem('push_notification_last_prompt', new Date().toISOString());
+    } catch (error) {
+      console.error('Failed to open settings:', error);
+      // Fallback to regular enable flow
+      await handleEnable();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96">
-      <Card className="p-4 shadow-lg border-2 border-primary/20 bg-background">
+      <Card className="p-4 shadow-lg border-2 border-orange-500/30 bg-background">
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Bell className="w-5 h-5 text-primary" />
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
+            <Bell className="w-5 h-5 text-orange-500" />
           </div>
           
           <div className="flex-1 min-w-0">
@@ -280,10 +302,11 @@ export const PushNotificationPrompt = () => {
             <div className="flex gap-2">
               <Button
                 size="sm"
-                onClick={handleEnable}
+                onClick={handleEnableViaSettings}
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 bg-orange-500 hover:bg-orange-600"
               >
+                <Settings className="w-4 h-4 mr-1" />
                 {isLoading ? t('notification.enabling') : t('notification.enableButton')}
               </Button>
               <Button
