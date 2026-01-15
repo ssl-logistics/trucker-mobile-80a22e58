@@ -53,6 +53,7 @@ import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
 import ApiTestPage from "./pages/ApiTestPage";
 import LineCallbackPage from "./pages/LineCallbackPage";
+import PushDebugPage from "./pages/PushDebugPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -116,6 +117,7 @@ const App = () => (
           <Route path="/terms" element={<ProtectedRoute><TermsPage /></ProtectedRoute>} />
           <Route path="/contact" element={<ProtectedRoute><ContactPage /></ProtectedRoute>} />
           <Route path="/api-test" element={<ProtectedRoute><ApiTestPage /></ProtectedRoute>} />
+          <Route path="/push-debug" element={<ProtectedRoute><PushDebugPage /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
