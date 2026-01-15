@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { setAuthItem } from "@/utils/authStorage";
 import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
@@ -163,14 +164,14 @@ const SignIn = () => {
         role = 'factory';
       }
       
-      // Save driver data to localStorage (persistent across app restarts)
-      localStorage.setItem("auth_driver", JSON.stringify(driver));
-      localStorage.setItem("auth_user_type", userType || "");
-      localStorage.setItem("user_role", role);
-      localStorage.setItem("auth_driver_id", driver?.id || "");
-      localStorage.setItem("auth_login_type", "normal");
-
-      // Notify AuthContext (same-tab) to reload user from storage
+      // Save driver data (persistent across app restarts)
+      await Promise.all([
+        setAuthItem("auth_driver", JSON.stringify(driver)),
+        setAuthItem("auth_user_type", userType || ""),
+        setAuthItem("user_role", role),
+        setAuthItem("auth_driver_id", driver?.id || ""),
+        setAuthItem("auth_login_type", "normal"),
+      ]);
       window.dispatchEvent(new Event('auth_driver_updated'));
 
       console.log("Login successful:", { driver, userType, role });

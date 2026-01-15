@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { setAuthItem } from '@/utils/authStorage';
 import { Loader2 } from 'lucide-react';
 
 const LineCallbackPage = () => {
@@ -65,9 +66,11 @@ const LineCallbackPage = () => {
           throw new Error(data.error);
         }
 
-        // Store LINE user data and login type in localStorage (persistent across app restarts)
-        localStorage.setItem('line_user', JSON.stringify(data.user));
-        localStorage.setItem('auth_login_type', 'line');
+        // Store LINE user data and login type (persistent across app restarts)
+        await Promise.all([
+          setAuthItem('line_user', JSON.stringify(data.user)),
+          setAuthItem('auth_login_type', 'line'),
+        ]);
         sessionStorage.removeItem('line_oauth_state');
 
         // Create a driver record for LINE user
@@ -78,7 +81,7 @@ const LineCallbackPage = () => {
           loginType: 'line',
           lineUser: data.user,
         };
-        localStorage.setItem('auth_driver', JSON.stringify(lineDriver));
+        await setAuthItem('auth_driver', JSON.stringify(lineDriver));
 
         // Dispatch event to notify AuthContext
         window.dispatchEvent(new Event('auth_driver_updated'));
