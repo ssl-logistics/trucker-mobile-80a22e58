@@ -6,6 +6,8 @@ import {
   setupNativePushListeners,
   unregisterNativePushNotifications,
   checkNativePushStatus,
+  openNotificationSettings,
+  isNotificationPermissionDenied,
 } from './capacitorPushNotifications';
 import {
   requestNotificationPermission,
@@ -14,6 +16,9 @@ import {
   unsubscribeFromPushNotifications,
   checkPushSubscriptionStatus,
 } from './pushNotifications';
+
+// Re-export for convenience
+export { openNotificationSettings, isNotificationPermissionDenied };
 
 export type PushPermissionStatus = 'granted' | 'denied' | 'prompt' | 'unsupported';
 
