@@ -258,23 +258,40 @@ export const setupNativePushListeners = (): void => {
     return;
   }
 
+  console.log('[NativePush] Setting up push notification listeners...');
+
   // Handle incoming push notifications when app is in foreground
   PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-    console.log('Push notification received:', notification);
+    console.log('[NativePush] Push notification received in foreground:', JSON.stringify(notification));
     // You can show a local notification or update UI here
   });
 
   // Handle notification tap
   PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
-    console.log('Push notification action performed:', notification);
+    console.log('[NativePush] Push notification action performed:', JSON.stringify(notification));
     
-    const data = notification.notification.data;
-    
-    // Navigate to appropriate page based on notification data
-    if (data?.url) {
-      window.location.hash = data.url;
+    try {
+      const data = notification.notification.data;
+      console.log('[NativePush] Notification data:', JSON.stringify(data));
+      
+      // Navigate to appropriate page based on notification data
+      if (data?.url) {
+        console.log('[NativePush] Navigating to:', data.url);
+        // Use setTimeout to ensure navigation happens after app is ready
+        setTimeout(() => {
+          try {
+            window.location.hash = data.url;
+          } catch (navError) {
+            console.error('[NativePush] Navigation error:', navError);
+          }
+        }, 500);
+      }
+    } catch (error) {
+      console.error('[NativePush] Error handling notification action:', error);
     }
   });
+
+  console.log('[NativePush] Push notification listeners set up successfully');
 };
 
 // Unregister from native push notifications
