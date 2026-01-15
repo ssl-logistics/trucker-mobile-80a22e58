@@ -176,19 +176,24 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
     console.log('[NativePush] Upserting to push_subscriptions...');
     console.log('[NativePush] Data:', { user_id: userId, endpoint: endpoint.substring(0, 30) + '...', p256dh: platform });
 
+    // First, delete any existing FCM subscriptions for this user
+    console.log('[NativePush] Deleting old FCM subscriptions for user...');
+    await supabase
+      .from('push_subscriptions')
+      .delete()
+      .eq('user_id', userId)
+      .like('endpoint', 'fcm://%');
+
+    // Then insert the new token
+    console.log('[NativePush] Inserting new FCM token...');
     const { error } = await supabase
       .from('push_subscriptions')
-      .upsert(
-        {
-          user_id: userId,
-          endpoint: endpoint,
-          p256dh: platform, // Store platform type
-          auth: token, // Store the actual token
-        },
-        {
-          onConflict: 'user_id,endpoint',
-        }
-      );
+      .insert({
+        user_id: userId,
+        endpoint: endpoint,
+        p256dh: platform, // Store platform type
+        auth: token, // Store the actual token
+      });
 
     if (error) {
       console.error('[NativePush] ❌ Database error saving FCM token:', error);

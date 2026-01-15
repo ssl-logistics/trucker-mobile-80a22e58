@@ -575,10 +575,11 @@ Deno.serve(async (req) => {
 
     const results: Array<{ success: boolean; error?: string; user_id: string; type: string }> = [];
 
-    // Send web push notifications
-    if (webSubs.length > 0) {
-      const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY') || 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
-      const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY') || 'UUxI0TsfQ0pZKZr4H_SqKwZ6dO6lJtfcbO3s';
+    // Send web push notifications (only if VAPID keys are configured)
+    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
+    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
+    
+    if (webSubs.length > 0 && vapidPublicKey && vapidPrivateKey) {
       const vapidSubject = 'mailto:support@sslmarketplace.com';
 
       const notificationPayload = JSON.stringify({
@@ -619,6 +620,8 @@ Deno.serve(async (req) => {
           results.push({ success: false, error: 'Promise rejected', user_id: '', type: 'web' });
         }
       });
+    } else if (webSubs.length > 0) {
+      console.warn('VAPID keys not configured, skipping web push notifications');
     }
 
     // Send FCM notifications for native mobile
