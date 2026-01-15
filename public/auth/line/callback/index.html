@@ -9,9 +9,18 @@
     <script>
       // LINE redirects here with ?code=...&state=...
       // Forward query params to HashRouter callback page
+      // For HashRouter, query params must come AFTER the hash
       (function () {
+        console.log('[LINE Callback HTML] Current URL:', window.location.href);
+        console.log('[LINE Callback HTML] Search params:', window.location.search);
+        
         var search = window.location.search || "";
-        window.location.replace("/" + search + "#/auth/line/callback");
+        // For HashRouter: params go after the hash path
+        // Format: /#/auth/line/callback?code=xxx&state=yyy
+        var newUrl = "/#/auth/line/callback" + search;
+        
+        console.log('[LINE Callback HTML] Redirecting to:', newUrl);
+        window.location.replace(newUrl);
       })();
     </script>
   </body>
