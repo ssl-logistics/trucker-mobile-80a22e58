@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "466729526322",
+    "project_id": "the-troob",
+    "storage_bucket": "the-troob.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466729526322:android:498271b63663cbe1a7882b",
+        "android_client_info": {
+          "package_name": "com.thetroob.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "466729526322-ppq8bp7nvpctohb9t9227f2da9060i3q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaHXJ0yEWDiRMrJ7OFn32zmkNSh_Wu88I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "466729526322-ppq8bp7nvpctohb9t9227f2da9060i3q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
