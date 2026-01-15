@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,12 +14,56 @@ import {
   isNotificationPermissionDenied,
 } from '@/utils/unifiedPushNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 export const PushNotificationPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [showDeniedPrompt, setShowDeniedPrompt] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
+  const waitingForSettingsReturn = useRef(false);
+
+  // Function to check permission and register token if granted
+  const checkAndRegisterToken = useCallback(async () => {
+    console.log('[PushPrompt] Checking permission and registering token...');
+    
+    if (!isPushSupported()) {
+      console.log('[PushPrompt] Push not supported');
+      return false;
+    }
+
+    const status = await getPushPermissionStatus();
+    console.log('[PushPrompt] Current permission status:', status);
+
+    if (status === 'granted') {
+      // Permission granted, try to register token
+      const isSubscribed = await isPushEnabled();
+      console.log('[PushPrompt] Already subscribed:', isSubscribed);
+      
+      if (!isSubscribed) {
+        console.log('[PushPrompt] Not subscribed yet, enabling push notifications...');
+        const success = await enablePushNotifications();
+        console.log('[PushPrompt] Enable result:', success);
+        
+        if (success) {
+          toast({
+            title: t('toast.notificationEnabled'),
+            description: t('toast.notificationEnabledDesc'),
+          });
+          setShowPrompt(false);
+          setShowDeniedPrompt(false);
+          return true;
+        }
+      } else {
+        setShowPrompt(false);
+        setShowDeniedPrompt(false);
+        return true;
+      }
+    }
+    
+    return false;
+  }, [t]);
 
   useEffect(() => {
     // Initialize push notification listeners
@@ -98,6 +142,47 @@ export const PushNotificationPrompt = () => {
     checkPermission();
   }, []);
 
+  // Listen for app resume (when user returns from Settings)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    let appStateListener: any = null;
+
+    const setupListener = async () => {
+      appStateListener = await App.addListener('appStateChange', async (state) => {
+        console.log('[PushPrompt] App state changed:', state.isActive);
+        
+        if (state.isActive && waitingForSettingsReturn.current) {
+          console.log('[PushPrompt] Returned from settings, checking permission...');
+          waitingForSettingsReturn.current = false;
+          
+          // Small delay to let the system update permission status
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const registered = await checkAndRegisterToken();
+          console.log('[PushPrompt] Token registration after settings return:', registered);
+          
+          if (registered) {
+            toast({
+              title: 'เปิดการแจ้งเตือนสำเร็จ!',
+              description: 'คุณจะได้รับการแจ้งเตือนเมื่อมีงานใหม่',
+            });
+          }
+        }
+      });
+    };
+
+    setupListener();
+
+    return () => {
+      if (appStateListener) {
+        appStateListener.remove();
+      }
+    };
+  }, [checkAndRegisterToken]);
+
   const handleEnable = async () => {
     setIsLoading(true);
     
@@ -168,6 +253,7 @@ export const PushNotificationPrompt = () => {
 
   const handleOpenSettings = async () => {
     const platform = getPlatformName();
+    waitingForSettingsReturn.current = true;
     
     try {
       await openNotificationSettings();
@@ -178,14 +264,15 @@ export const PushNotificationPrompt = () => {
           ? 'เปิดการแจ้งเตือนใน Settings' 
           : 'Open Notifications in Settings',
         description: platform === 'Android'
-          ? 'กรุณาเปิดการแจ้งเตือนสำหรับแอปนี้'
-          : 'Please enable notifications for this app',
+          ? 'กรุณาเปิดการแจ้งเตือนสำหรับแอปนี้ แล้วกลับมาที่แอป'
+          : 'Please enable notifications for this app, then return to the app',
       });
       
       setShowDeniedPrompt(false);
       localStorage.setItem('push_notification_denied_prompt', new Date().toISOString());
     } catch (error) {
       console.error('Failed to open settings:', error);
+      waitingForSettingsReturn.current = false;
       
       // Show manual instruction
       toast({
@@ -263,19 +350,21 @@ export const PushNotificationPrompt = () => {
 
   const handleEnableViaSettings = async () => {
     setIsLoading(true);
+    waitingForSettingsReturn.current = true;
     
     try {
       await openNotificationSettings();
       
       toast({
         title: 'กรุณาเปิดการแจ้งเตือน',
-        description: 'เปิดสวิตช์การแจ้งเตือนสำหรับแอปนี้',
+        description: 'เปิดสวิตช์การแจ้งเตือนสำหรับแอปนี้ แล้วกลับมาที่แอป',
       });
       
       setShowPrompt(false);
       localStorage.setItem('push_notification_last_prompt', new Date().toISOString());
     } catch (error) {
       console.error('Failed to open settings:', error);
+      waitingForSettingsReturn.current = false;
       // Fallback to regular enable flow
       await handleEnable();
     } finally {
