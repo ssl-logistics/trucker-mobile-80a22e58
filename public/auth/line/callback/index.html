@@ -3,24 +3,86 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LINE Callback</title>
+    <title>LINE Callback - Redirecting...</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: #06C755;
+        color: white;
+      }
+      .container {
+        text-align: center;
+        padding: 20px;
+      }
+      .spinner {
+        border: 4px solid rgba(255,255,255,0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .debug {
+        margin-top: 20px;
+        font-size: 12px;
+        background: rgba(0,0,0,0.2);
+        padding: 10px;
+        border-radius: 8px;
+        word-break: break-all;
+      }
+    </style>
   </head>
   <body>
+    <div class="container">
+      <div class="spinner"></div>
+      <p>กำลังดำเนินการ LINE Login...</p>
+      <div class="debug" id="debug"></div>
+    </div>
     <script>
       // LINE redirects here with ?code=...&state=...
       // Forward query params to HashRouter callback page
-      // For HashRouter, query params must come AFTER the hash
       (function () {
-        console.log('[LINE Callback HTML] Current URL:', window.location.href);
-        console.log('[LINE Callback HTML] Search params:', window.location.search);
+        var debugEl = document.getElementById('debug');
+        function log(msg) {
+          console.log('[LINE Callback HTML] ' + msg);
+          debugEl.innerHTML += msg + '<br>';
+        }
+        
+        log('URL: ' + window.location.href);
+        log('Search: ' + window.location.search);
+        log('Hash: ' + window.location.hash);
         
         var search = window.location.search || "";
+        
+        if (!search || search === '?') {
+          log('ERROR: No query params found!');
+          debugEl.innerHTML += '<br><strong style="color:red">ไม่พบ code จาก LINE กรุณาลองใหม่</strong>';
+          setTimeout(function() {
+            window.location.href = '/';
+          }, 3000);
+          return;
+        }
+        
         // For HashRouter: params go after the hash path
         // Format: /#/auth/line/callback?code=xxx&state=yyy
-        var newUrl = "/#/auth/line/callback" + search;
+        var newUrl = window.location.origin + "/#/auth/line/callback" + search;
         
-        console.log('[LINE Callback HTML] Redirecting to:', newUrl);
-        window.location.replace(newUrl);
+        log('Redirecting to: ' + newUrl);
+        
+        // Use replace to avoid back button issues
+        setTimeout(function() {
+          window.location.replace(newUrl);
+        }, 500);
       })();
     </script>
   </body>
