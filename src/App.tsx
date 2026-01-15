@@ -117,7 +117,7 @@ const App = () => (
           <Route path="/terms" element={<ProtectedRoute><TermsPage /></ProtectedRoute>} />
           <Route path="/contact" element={<ProtectedRoute><ContactPage /></ProtectedRoute>} />
           <Route path="/api-test" element={<ProtectedRoute><ApiTestPage /></ProtectedRoute>} />
-          <Route path="/push-debug" element={<ProtectedRoute><PushDebugPage /></ProtectedRoute>} />
+          <Route path="/push-debug" element={<PushDebugPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
