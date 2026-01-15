@@ -1,4 +1,3 @@
-import { Capacitor } from "@capacitor/core";
 import { Preferences } from "@capacitor/preferences";
 
 export const AUTH_KEYS = [
@@ -12,54 +11,97 @@ export const AUTH_KEYS = [
 
 export type AuthKey = (typeof AUTH_KEYS)[number];
 
-export async function getAuthItem(key: AuthKey): Promise<string | null> {
-  // Prefer localStorage when available (web + native)
-  const lsValue = localStorage.getItem(key);
-  if (lsValue !== null && lsValue !== "") return lsValue;
-
-  // Fallback to native persisted storage
-  if (!Capacitor.isNativePlatform()) return lsValue;
-
+async function prefGet(key: string): Promise<string | null> {
   try {
     const { value } = await Preferences.get({ key });
     return value ?? null;
   } catch {
-    return lsValue;
+    return null;
   }
 }
 
-export async function setAuthItem(key: AuthKey, value: string): Promise<void> {
-  localStorage.setItem(key, value);
-
-  if (Capacitor.isNativePlatform()) {
+async function prefSet(key: string, value: string): Promise<void> {
+  try {
     await Preferences.set({ key, value });
+  } catch {
+    // ignore
   }
 }
 
-export async function removeAuthItem(key: AuthKey): Promise<void> {
-  localStorage.removeItem(key);
-
-  if (Capacitor.isNativePlatform()) {
+async function prefRemove(key: string): Promise<void> {
+  try {
     await Preferences.remove({ key });
+  } catch {
+    // ignore
   }
 }
 
 /**
- * On native builds, ensure values already in localStorage are copied into
- * Preferences so they survive OS-kill / swipe-away more reliably (iOS).
+ * Storage strategy (especially for iOS/Android):
+ * - Always read from Preferences first, then fallback to localStorage.
+ * - Always write to BOTH stores (best-effort) to keep them in sync.
+ * - When we find a value in one store, mirror it to the other store.
+ */
+export async function getAuthItem(key: AuthKey): Promise<string | null> {
+  const [prefValue, lsValue] = await Promise.all([
+    prefGet(key),
+    Promise.resolve(localStorage.getItem(key)),
+  ]);
+
+  const normalizedPref = prefValue ?? null;
+  const normalizedLs = lsValue ?? null;
+
+  const chosen =
+    normalizedPref && normalizedPref !== "" ? normalizedPref :
+    normalizedLs && normalizedLs !== "" ? normalizedLs :
+    null;
+
+  if (!chosen) return null;
+
+  // Mirror to keep consistent across restarts.
+  if (normalizedLs !== chosen) {
+    try {
+      localStorage.setItem(key, chosen);
+    } catch {
+      // ignore
+    }
+  }
+
+  if (normalizedPref !== chosen) {
+    await prefSet(key, chosen);
+  }
+
+  return chosen;
+}
+
+export async function setAuthItem(key: AuthKey, value: string): Promise<void> {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // ignore
+  }
+
+  await prefSet(key, value);
+}
+
+export async function removeAuthItem(key: AuthKey): Promise<void> {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+
+  await prefRemove(key);
+}
+
+/**
+ * Keep a best-effort sync between both stores (useful after upgrades).
  */
 export async function syncAuthFromLocalStorageToNative(): Promise<void> {
-  if (!Capacitor.isNativePlatform()) return;
-
   await Promise.all(
     AUTH_KEYS.map(async (key) => {
-      const lsValue = localStorage.getItem(key);
-      if (lsValue === null || lsValue === "") return;
-
-      const { value } = await Preferences.get({ key });
-      if (!value) {
-        await Preferences.set({ key, value: lsValue });
-      }
+      // getAuthItem already mirrors whichever store has the value.
+      await getAuthItem(key);
     })
   );
 }

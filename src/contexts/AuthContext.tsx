@@ -67,8 +67,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const loadUserFromStorage = async () => {
     setLoading(true);
 
+    const safeJsonParse = <T,>(value: string): T | null => {
+      try {
+        return JSON.parse(value) as T;
+      } catch {
+        return null;
+      }
+    };
+
     try {
-      // On native, mirror localStorage → Preferences (first run after upgrade)
+      // Keep both stores in sync (useful after upgrades)
       await syncAuthFromLocalStorageToNative();
 
       const [driverData, userRole, userType, lineUserData, loginType] = await Promise.all([
@@ -79,20 +87,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         getAuthItem('auth_login_type'),
       ]);
 
-      if (driverData) {
-        const driver = JSON.parse(driverData);
+      const parsedDriver = driverData && driverData !== 'null' ? safeJsonParse<any>(driverData) : null;
+      const hasValidDriver =
+        parsedDriver &&
+        typeof parsedDriver === 'object' &&
+        typeof parsedDriver.id === 'string' &&
+        parsedDriver.id.length > 0;
+
+      // If we detect corrupted/invalid data, clear it once to avoid a permanent boot loop
+      if (driverData && !hasValidDriver) {
+        await Promise.all([removeAuthItem('auth_driver'), removeAuthItem('auth_driver_id')]);
+      }
+
+      if (hasValidDriver) {
+        const driver: DriverData = parsedDriver;
 
         // Add LINE user data if available
         if (lineUserData && loginType === 'line') {
-          const lineUser = JSON.parse(lineUserData);
-          driver.loginType = 'line';
-          driver.lineUser = lineUser;
-          // Use LINE profile data if not set
-          if (!driver.avatar_url && lineUser.pictureUrl) {
-            driver.avatar_url = lineUser.pictureUrl;
-          }
-          if (!driver.full_name && lineUser.displayName) {
-            driver.full_name = lineUser.displayName;
+          const lineUser = safeJsonParse<LineUser>(lineUserData);
+          if (lineUser) {
+            driver.loginType = 'line';
+            driver.lineUser = lineUser;
+
+            // Use LINE profile data if not set
+            if (!driver.avatar_url && lineUser.pictureUrl) {
+              driver.avatar_url = lineUser.pictureUrl;
+            }
+            if (!driver.full_name && lineUser.displayName) {
+              driver.full_name = lineUser.displayName;
+            }
+          } else {
+            driver.loginType = 'normal';
           }
         } else {
           driver.loginType = 'normal';
@@ -115,16 +140,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setRole(mappedRole);
       } else if (lineUserData) {
         // LINE login only (no existing driver account)
-        const lineUser = JSON.parse(lineUserData);
-        const lineDriver: DriverData = {
-          id: lineUser.lineUserId,
-          full_name: lineUser.displayName,
-          avatar_url: lineUser.pictureUrl || null,
-          loginType: 'line',
-          lineUser: lineUser,
-        };
-        setUser(lineDriver);
-        setRole('freelance');
+        const lineUser = safeJsonParse<LineUser>(lineUserData);
+        if (lineUser) {
+          const lineDriver: DriverData = {
+            id: lineUser.lineUserId,
+            full_name: lineUser.displayName,
+            avatar_url: lineUser.pictureUrl || null,
+            loginType: 'line',
+            lineUser: lineUser,
+          };
+          setUser(lineDriver);
+          setRole('freelance');
+        } else {
+          setUser(null);
+          setRole('freelance');
+        }
       } else {
         setUser(null);
         setRole('freelance');
