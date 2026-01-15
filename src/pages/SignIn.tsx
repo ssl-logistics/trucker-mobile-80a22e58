@@ -260,7 +260,7 @@ const SignIn = () => {
             <Button 
               type="submit" 
               disabled={isLoggingIn}
-              className="w-full text-white h-10 rounded-xl text-sm font-medium bg-primary"
+              className="w-full text-white h-10 rounded-xl text-sm font-medium bg-primary hover:bg-[#235A99]"
             >
               {isLoggingIn ? (
                 <>
