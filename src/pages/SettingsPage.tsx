@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send } from 'lucide-react';
+import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -235,6 +235,7 @@ export default function SettingsPage() {
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true },
         { icon: Send, label: 'ทดสอบการแจ้งเตือน', hasTestPush: true },
+        { icon: Bug, label: 'Push Debug', path: '/push-debug' },
       ]
     },
     {
