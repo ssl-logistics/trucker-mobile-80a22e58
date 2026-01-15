@@ -300,9 +300,11 @@ const SignIn = () => {
                 
                 // LINE OAuth URL
                 const LINE_CHANNEL_ID = '2008888039';
-                const redirectUri = encodeURIComponent(`${window.location.origin}/#/auth/line/callback`);
+                // IMPORTANT: LINE does not accept redirect_uri with a "#" fragment.
+                // We redirect to a small static page that forwards to our HashRouter callback.
+                const redirectUri = encodeURIComponent(`${window.location.origin}/line-callback.html`);
                 const scope = encodeURIComponent('profile openid');
-                
+
                 const authUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;
                 
                 window.location.href = authUrl;
