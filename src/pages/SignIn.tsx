@@ -163,11 +163,12 @@ const SignIn = () => {
         role = 'factory';
       }
       
-      // Save driver data to localStorage
+      // Save driver data to localStorage (persistent across app restarts)
       localStorage.setItem("auth_driver", JSON.stringify(driver));
       localStorage.setItem("auth_user_type", userType || "");
       localStorage.setItem("user_role", role);
       localStorage.setItem("auth_driver_id", driver?.id || "");
+      localStorage.setItem("auth_login_type", "normal");
 
       // Notify AuthContext (same-tab) to reload user from storage
       window.dispatchEvent(new Event('auth_driver_updated'));
