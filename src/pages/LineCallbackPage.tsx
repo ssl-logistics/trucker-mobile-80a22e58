@@ -99,20 +99,29 @@ const LineCallbackPage = () => {
           throw new Error(data.error);
         }
 
-        console.log('[LINE Callback] ✅ LINE user data received:', {
+        console.log('[LINE Callback] ✅ LINE user data received (FULL):', JSON.stringify(data.user, null, 2));
+        console.log('[LINE Callback] 📋 User Details:', {
           lineUserId: data.user.lineUserId,
           displayName: data.user.displayName,
-          pictureUrl: data.user.pictureUrl ? 'present' : 'missing',
-          statusMessage: data.user.statusMessage,
+          pictureUrl: data.user.pictureUrl || 'NO PICTURE',
+          statusMessage: data.user.statusMessage || 'NO STATUS',
+          email: data.user.email || 'NO EMAIL',
         });
 
         // Store LINE user data and login type (persistent across app restarts)
         console.log('[LINE Callback] 💾 Saving auth data to storage...');
-        await Promise.all([
-          setAuthItem('line_user', JSON.stringify(data.user)),
-          setAuthItem('auth_login_type', 'line'),
-        ]);
+        
+        const lineUserJson = JSON.stringify(data.user);
+        console.log('[LINE Callback] 💾 line_user JSON:', lineUserJson);
+        
+        await setAuthItem('line_user', lineUserJson);
+        console.log('[LINE Callback] ✅ line_user saved');
+        
+        await setAuthItem('auth_login_type', 'line');
+        console.log('[LINE Callback] ✅ auth_login_type saved');
+        
         sessionStorage.removeItem('line_oauth_state');
+        console.log('[LINE Callback] ✅ line_oauth_state removed from sessionStorage');
 
         // Create a driver record for LINE user
         const lineDriver = {
@@ -122,19 +131,30 @@ const LineCallbackPage = () => {
           loginType: 'line',
           lineUser: data.user,
         };
-        console.log('[LINE Callback] 💾 Saving driver data:', lineDriver);
-        await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+        console.log('[LINE Callback] 💾 Driver object created:', JSON.stringify(lineDriver, null, 2));
+        
+        const driverJson = JSON.stringify(lineDriver);
+        console.log('[LINE Callback] 💾 auth_driver JSON:', driverJson);
+        
+        await setAuthItem('auth_driver', driverJson);
+        console.log('[LINE Callback] ✅ auth_driver saved successfully');
 
         // Dispatch event to notify AuthContext
-        console.log('[LINE Callback] 📢 Dispatching auth_driver_updated event');
+        console.log('[LINE Callback] 📢 Dispatching auth_driver_updated event...');
         window.dispatchEvent(new Event('auth_driver_updated'));
+        console.log('[LINE Callback] ✅ Event dispatched');
 
         toast({
           title: 'เข้าสู่ระบบสำเร็จ',
           description: `ยินดีต้อนรับ ${data.user.displayName}`,
         });
 
-        console.log('[LINE Callback] ✅ Login complete, navigating to /home');
+        console.log('[LINE Callback] 🎉 LOGIN COMPLETE! Summary:');
+        console.log('[LINE Callback] - User ID:', data.user.lineUserId);
+        console.log('[LINE Callback] - Name:', data.user.displayName);
+        console.log('[LINE Callback] - Has Picture:', !!data.user.pictureUrl);
+        console.log('[LINE Callback] 🚀 Navigating to /home...');
+        
         // Navigate to home or dashboard
         navigate('/home');
 
