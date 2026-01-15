@@ -113,13 +113,35 @@ export const PushNotificationPrompt = () => {
       } else {
         // Check if permission was denied
         const isDenied = await isNotificationPermissionDenied();
+        const platform = getPlatformName();
         
         if (isDenied) {
-          // Show the denied prompt instead
+          // Show the denied prompt and auto-open settings
           setShowPrompt(false);
           setShowDeniedPrompt(true);
+          
+          // Auto-open settings to help user
+          try {
+            await openNotificationSettings();
+            toast({
+              title: platform === 'Android' 
+                ? 'กรุณาเปิดการแจ้งเตือนใน Settings' 
+                : 'Please enable notifications in Settings',
+              description: platform === 'Android'
+                ? 'เลือก "การแจ้งเตือน" แล้วเปิดสวิตช์'
+                : 'Find "Notifications" and enable it',
+            });
+          } catch {
+            // Settings couldn't open automatically - show manual instruction
+            toast({
+              title: 'ไม่สามารถเปิดการแจ้งเตือนได้',
+              description: platform === 'Android'
+                ? 'ไปที่ Settings > Apps > The Troob > Notifications > เปิด'
+                : 'Go to Settings > Notifications > The Troob > Allow',
+              variant: "destructive",
+            });
+          }
         } else {
-          const platform = getPlatformName();
           toast({
             title: t('toast.cannotEnableNotification'),
             description: platform === 'Web' 
