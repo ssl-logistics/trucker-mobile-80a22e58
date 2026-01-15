@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const driverData = localStorage.getItem('auth_driver');
       const userRole = localStorage.getItem('user_role');
       const userType = localStorage.getItem('auth_user_type');
-      const lineUserData = sessionStorage.getItem('line_user');
+      const lineUserData = localStorage.getItem('line_user');
       const loginType = localStorage.getItem('auth_login_type');
       
       if (driverData) {
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('user_role');
     localStorage.removeItem('auth_driver_id');
     localStorage.removeItem('auth_login_type');
-    sessionStorage.removeItem('line_user');
+    localStorage.removeItem('line_user');
     sessionStorage.removeItem('line_oauth_state');
     setUser(null);
     setRole('freelance');

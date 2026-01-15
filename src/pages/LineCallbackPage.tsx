@@ -65,8 +65,8 @@ const LineCallbackPage = () => {
           throw new Error(data.error);
         }
 
-        // Store LINE user data and login type
-        sessionStorage.setItem('line_user', JSON.stringify(data.user));
+        // Store LINE user data and login type in localStorage (persistent across app restarts)
+        localStorage.setItem('line_user', JSON.stringify(data.user));
         localStorage.setItem('auth_login_type', 'line');
         sessionStorage.removeItem('line_oauth_state');
 
