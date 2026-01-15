@@ -10,23 +10,33 @@ export const isNativePlatform = (): boolean => {
 
 // Request permission and register for push notifications on native platforms
 export const registerNativePushNotifications = async (): Promise<string | null> => {
+  console.log('[NativePush] registerNativePushNotifications called');
+  console.log('[NativePush] Platform:', Capacitor.getPlatform());
+  console.log('[NativePush] isNativePlatform:', isNativePlatform());
+
   if (!isNativePlatform()) {
-    console.log('Not running on native platform, skipping native push registration');
+    console.log('[NativePush] Not running on native platform, skipping native push registration');
     return null;
   }
 
   try {
     // Request permission
+    console.log('[NativePush] Checking permissions...');
     let permStatus = await PushNotifications.checkPermissions();
+    console.log('[NativePush] Initial permission status:', permStatus.receive);
 
     if (permStatus.receive === 'prompt') {
+      console.log('[NativePush] Requesting permissions...');
       permStatus = await PushNotifications.requestPermissions();
+      console.log('[NativePush] After request, permission status:', permStatus.receive);
     }
 
     if (permStatus.receive !== 'granted') {
-      console.log('Push notification permission not granted');
+      console.log('[NativePush] Push notification permission not granted:', permStatus.receive);
       return null;
     }
+
+    console.log('[NativePush] Permission granted, setting up listeners...');
 
     // IMPORTANT: add listeners BEFORE calling register() to avoid missing fast events.
     return await new Promise<string | null>((resolve) => {
@@ -60,26 +70,30 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
       };
 
       const timeoutId = setTimeout(() => {
-        console.warn('Native push registration timed out (no token received)');
+        console.warn('[NativePush] Registration timed out (no token received after 15s)');
         settle(null);
       }, 15000);
 
       (async () => {
         try {
+          console.log('[NativePush] Adding registration listeners...');
           [registrationHandle, errorHandle] = await Promise.all([
             PushNotifications.addListener('registration', (token: Token) => {
-              console.log('Native push registration success, token:', token.value);
+              console.log('[NativePush] ✅ Registration SUCCESS!');
+              console.log('[NativePush] Token received:', token.value?.substring(0, 30) + '...');
               settle(token.value);
             }),
             PushNotifications.addListener('registrationError', (error: any) => {
-              console.error('Native push registration error:', error);
+              console.error('[NativePush] ❌ Registration ERROR:', JSON.stringify(error));
               settle(null);
             }),
           ]);
 
+          console.log('[NativePush] Listeners added, calling PushNotifications.register()...');
           await PushNotifications.register();
+          console.log('[NativePush] PushNotifications.register() completed');
         } catch (error) {
-          console.error('Failed to register native push notifications:', error);
+          console.error('[NativePush] Failed to register:', error);
           settle(null);
         }
       })();
@@ -92,55 +106,82 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
 
 // Save native push token to database (FCM format for Firebase)
 export const saveNativePushToken = async (token: string): Promise<void> => {
+  console.log('[NativePush] saveNativePushToken called');
+  console.log('[NativePush] Token to save:', token?.substring(0, 30) + '...');
+
   try {
     // Try backend auth first, then fall back to stored driver_id (custom auth)
     let userId: string | null = null;
+    let authSource = 'none';
 
+    // Method 1: Supabase auth
     try {
+      console.log('[NativePush] Trying supabase.auth.getUser()...');
       const { data: { user } } = await supabase.auth.getUser();
       userId = user?.id ?? null;
-    } catch {
-      // ignore
+      if (userId) authSource = 'supabase_auth';
+      console.log('[NativePush] Supabase auth user_id:', userId);
+    } catch (e) {
+      console.log('[NativePush] Supabase auth failed:', e);
     }
 
-    // On native, auth state is often stored in Capacitor Preferences (not localStorage)
+    // Method 2: Capacitor Preferences - auth_driver_id
     if (!userId) {
+      console.log('[NativePush] Trying getAuthItem("auth_driver_id")...');
       userId = await getAuthItem('auth_driver_id');
+      if (userId) authSource = 'preferences_driver_id';
+      console.log('[NativePush] Preferences auth_driver_id:', userId);
     }
 
-    // Fallback: derive from stored driver object
+    // Method 3: Capacitor Preferences - auth_driver object
     if (!userId) {
+      console.log('[NativePush] Trying getAuthItem("auth_driver")...');
       const driverStr = await getAuthItem('auth_driver');
+      console.log('[NativePush] auth_driver string:', driverStr?.substring(0, 50) + '...');
       if (driverStr) {
         try {
           const parsed = JSON.parse(driverStr) as any;
-          if (parsed?.id) userId = String(parsed.id);
-        } catch {
-          // ignore
+          if (parsed?.id) {
+            userId = String(parsed.id);
+            authSource = 'preferences_driver_object';
+          }
+          console.log('[NativePush] Parsed driver.id:', userId);
+        } catch (e) {
+          console.log('[NativePush] Failed to parse auth_driver:', e);
         }
       }
     }
 
-    // Last fallback
+    // Method 4: localStorage fallback
     if (!userId) {
+      console.log('[NativePush] Trying localStorage.getItem("auth_driver_id")...');
       userId = localStorage.getItem('auth_driver_id');
+      if (userId) authSource = 'localStorage';
+      console.log('[NativePush] localStorage auth_driver_id:', userId);
     }
 
+    console.log('[NativePush] Final userId:', userId, 'source:', authSource);
+
     if (!userId) {
+      console.error('[NativePush] ❌ No user ID found from any source!');
       throw new Error('User not authenticated - no user ID found');
     }
 
     const platform = Capacitor.getPlatform(); // 'ios' or 'android'
 
-    console.log('Saving FCM token for user:', userId, 'platform:', platform);
+    console.log('[NativePush] Saving FCM token for user:', userId, 'platform:', platform);
 
     // Use fcm:// prefix so backend can identify FCM tokens
+    const endpoint = `fcm://${token}`;
+    console.log('[NativePush] Upserting to push_subscriptions...');
+    console.log('[NativePush] Data:', { user_id: userId, endpoint: endpoint.substring(0, 30) + '...', p256dh: platform });
+
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert(
         {
           user_id: userId,
-          endpoint: `fcm://${token}`,
+          endpoint: endpoint,
           p256dh: platform, // Store platform type
           auth: token, // Store the actual token
         },
@@ -150,11 +191,11 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
       );
 
     if (error) {
-      console.error('Database error saving FCM token:', error);
+      console.error('[NativePush] ❌ Database error saving FCM token:', error);
       throw error;
     }
 
-    console.log('FCM push token saved to database for platform:', platform, 'token:', token.substring(0, 20) + '...');
+    console.log('[NativePush] ✅ FCM token saved successfully!');
   } catch (error) {
     console.error('Failed to save FCM push token:', error);
     throw error;
