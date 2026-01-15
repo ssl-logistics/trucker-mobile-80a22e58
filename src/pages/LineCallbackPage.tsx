@@ -4,13 +4,24 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
 import { Loader2 } from 'lucide-react';
+import { LineUserInfoModal } from '@/components/line/LineUserInfoModal';
+
+interface LineUserData {
+  lineUserId: string;
+  displayName: string;
+  pictureUrl?: string;
+  statusMessage?: string;
+  email?: string;
+}
 
 const LineCallbackPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [status, setStatus] = useState<'loading' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [lineUserData, setLineUserData] = useState<LineUserData | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -144,6 +155,11 @@ const LineCallbackPage = () => {
         window.dispatchEvent(new Event('auth_driver_updated'));
         console.log('[LINE Callback] ✅ Event dispatched');
 
+        // Store LINE user data for modal display
+        setLineUserData(data.user);
+        setStatus('success');
+        setShowUserModal(true);
+
         toast({
           title: 'เข้าสู่ระบบสำเร็จ',
           description: `ยินดีต้อนรับ ${data.user.displayName}`,
@@ -153,10 +169,7 @@ const LineCallbackPage = () => {
         console.log('[LINE Callback] - User ID:', data.user.lineUserId);
         console.log('[LINE Callback] - Name:', data.user.displayName);
         console.log('[LINE Callback] - Has Picture:', !!data.user.pictureUrl);
-        console.log('[LINE Callback] 🚀 Navigating to /home...');
-        
-        // Navigate to home or dashboard
-        navigate('/home');
+        console.log('[LINE Callback] 📋 Showing user info modal...');
 
       } catch (err: any) {
         console.error('[LINE Callback] ❌ Exception:', err);
@@ -174,14 +187,35 @@ const LineCallbackPage = () => {
     handleCallback();
   }, [searchParams, navigate, toast]);
 
+  const handleModalClose = () => {
+    setShowUserModal(false);
+    console.log('[LINE Callback] 🚀 Modal closed, navigating to /home...');
+    navigate('/home');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
+      {/* LINE User Info Modal */}
+      <LineUserInfoModal
+        open={showUserModal}
+        onClose={handleModalClose}
+        userData={lineUserData}
+      />
+
       <div className="text-center space-y-4">
         {status === 'loading' ? (
           <>
             <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#00B900]" />
             <p className="text-lg font-medium">กำลังเข้าสู่ระบบ LINE...</p>
             <p className="text-sm text-muted-foreground">กรุณารอสักครู่</p>
+          </>
+        ) : status === 'success' ? (
+          <>
+            <div className="w-12 h-12 mx-auto rounded-full bg-[#00B900]/10 flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+            <p className="text-lg font-medium text-[#00B900]">เข้าสู่ระบบสำเร็จ</p>
+            <p className="text-sm text-muted-foreground">กำลังแสดงข้อมูลผู้ใช้...</p>
           </>
         ) : (
           <>
