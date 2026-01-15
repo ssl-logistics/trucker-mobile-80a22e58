@@ -299,7 +299,7 @@ const SignIn = () => {
                 sessionStorage.setItem('line_oauth_state', state);
                 
                 // LINE OAuth URL
-                const LINE_CHANNEL_ID = '2007140195'; // Replace with your LINE Channel ID
+                const LINE_CHANNEL_ID = '2008888039';
                 const redirectUri = encodeURIComponent(`${window.location.origin}/#/auth/line/callback`);
                 const scope = encodeURIComponent('profile openid');
                 
