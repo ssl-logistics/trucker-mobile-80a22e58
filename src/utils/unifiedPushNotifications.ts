@@ -37,6 +37,10 @@ export const getPushPermissionStatus = async (): Promise<PushPermissionStatus> =
   }
 
   if (isNativePlatform()) {
+    // Native can be explicitly denied (Android 13+ / iOS), or just not requested yet.
+    const denied = await isNotificationPermissionDenied();
+    if (denied) return 'denied';
+
     const isEnabled = await checkNativePushStatus();
     return isEnabled ? 'granted' : 'prompt';
   }
