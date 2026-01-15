@@ -10,7 +10,31 @@
     <meta name="description" content="The Troob - แอปพลิเคชันสำหรับคนขับรถบรรทุก">
     <meta name="author" content="The Troob Team" />
 
-    
+    <script>
+      // If LINE redirects to /auth/line/callback?code=... (no hash), convert it to HashRouter route.
+      (function () {
+        try {
+          var path = window.location.pathname || "";
+          var search = window.location.search || "";
+          var hash = window.location.hash || "";
+          var isLineCallbackPath = path === "/auth/line/callback" || path === "/auth/line/callback/";
+          var hasLineParams = /(^|[?&])(code|error)=/.test(search);
+
+          if (isLineCallbackPath && hasLineParams && !hash) {
+            var newUrl = window.location.origin + "/#/auth/line/callback" + search;
+            try {
+              localStorage.setItem("line_last_bootstrap_url", window.location.href);
+              localStorage.setItem("line_last_bootstrap_redirect", newUrl);
+            } catch (_) {}
+            console.log("[LINE Bootstrap Redirect] redirecting to:", newUrl);
+            window.location.replace(newUrl);
+          }
+        } catch (e) {
+          console.error("[LINE Bootstrap Redirect] error:", e);
+        }
+      })();
+    </script>
+
     
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/QmUNqVqNhMTq49FMVk6yfsaWayK2/social-images/social-1764834776164-image.png">
