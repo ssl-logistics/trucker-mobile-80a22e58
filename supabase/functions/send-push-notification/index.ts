@@ -148,7 +148,6 @@ async function sendFCMNotification(
           priority: 'high',
           notification: {
             sound: 'default',
-            click_action: 'FLUTTER_NOTIFICATION_CLICK',
           },
         },
         apns: {
@@ -542,17 +541,18 @@ Deno.serve(async (req) => {
       throw new Error('No user IDs provided');
     }
 
-    // Get web push subscriptions
+    // Get web push subscriptions (browser endpoints)
     const { data: webSubscriptions, error: webSubError } = await supabaseClient
       .from('push_subscriptions')
       .select('*')
-      .in('user_id', userIds);
+      .in('user_id', userIds)
+      .not('endpoint', 'like', 'fcm://%');
 
     if (webSubError) {
       console.error('Error fetching web subscriptions:', webSubError);
     }
 
-    // Get native push tokens (FCM)
+    // Get native push tokens (FCM) saved as endpoint: fcm://<token>
     const { data: nativeTokens, error: nativeError } = await supabaseClient
       .from('push_subscriptions')
       .select('*')
@@ -564,12 +564,8 @@ Deno.serve(async (req) => {
     }
 
     // Separate web push and FCM tokens
-    const webSubs = (webSubscriptions || []).filter(
-      (sub: PushSubscription) => !sub.endpoint.startsWith('fcm://')
-    );
-    const fcmSubs = (webSubscriptions || []).filter(
-      (sub: PushSubscription) => sub.endpoint.startsWith('fcm://')
-    );
+    const webSubs = (webSubscriptions || []) as PushSubscription[];
+    const fcmSubs = (nativeTokens || []) as PushSubscription[];
 
     console.log(`Found ${webSubs.length} web subscriptions, ${fcmSubs.length} FCM tokens`);
 
@@ -633,6 +629,11 @@ Deno.serve(async (req) => {
           const serviceAccount: FirebaseServiceAccount = JSON.parse(firebaseServiceAccountJson);
           const accessToken = await generateFirebaseAccessToken(serviceAccount);
           
+          const fcmData: Record<string, unknown> = {
+            ...(payload.data ?? {}),
+            ...(payload.url ? { url: payload.url } : {}),
+          };
+
           const fcmResults = await Promise.allSettled(
             fcmSubs.map(async (sub: PushSubscription) => {
               // Extract FCM token from endpoint (format: fcm://token)
@@ -642,7 +643,7 @@ Deno.serve(async (req) => {
                 fcmToken,
                 payload.title,
                 payload.body,
-                payload.data,
+                fcmData,
                 accessToken,
                 serviceAccount.project_id
               );
