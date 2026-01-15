@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2 } from 'lucide-react';
+import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -17,6 +17,8 @@ import {
   enablePushNotifications,
   disablePushNotifications,
   getPlatformName,
+  getPushPermissionStatus,
+  openNotificationSettings,
 } from '@/utils/unifiedPushNotifications';
 import {
   AlertDialog,
@@ -43,6 +45,7 @@ export default function SettingsPage() {
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isSendingTestPush, setIsSendingTestPush] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -114,6 +117,72 @@ export default function SettingsPage() {
     }
   };
 
+  const handleTestPush = async () => {
+    if (isSendingTestPush) return;
+    setIsSendingTestPush(true);
+
+    try {
+      const driverId = user?.id || localStorage.getItem('auth_driver_id');
+
+      if (!driverId) {
+        toast({
+          title: 'ไม่พบผู้ใช้',
+          description: 'กรุณาเข้าสู่ระบบใหม่',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Check if push is enabled first
+      const status = await getPushPermissionStatus();
+      if (status === 'denied') {
+        toast({
+          title: 'การแจ้งเตือนถูกปิด',
+          description: 'กรุณาเปิดการแจ้งเตือนใน Settings ก่อน',
+          variant: 'destructive',
+        });
+        await openNotificationSettings();
+        return;
+      }
+
+      if (status !== 'granted') {
+        toast({
+          title: 'ยังไม่ได้เปิดการแจ้งเตือน',
+          description: 'กรุณาเปิด Switch ด้านบนก่อน',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const response = await supabase.functions.invoke('send-push-notification', {
+        body: {
+          user_ids: [driverId],
+          title: '🔔 Test Notification',
+          body: 'การแจ้งเตือนทำงานปกติ!',
+          data: { type: 'test' },
+        },
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      toast({
+        title: '✅ ส่งแจ้งเตือนแล้ว',
+        description: 'ถ้าไม่ได้รับภายใน 10 วินาที ให้ลองปิด-เปิด Notification ใหม่',
+      });
+    } catch (error) {
+      console.error('Test push error:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถส่ง notification ได้',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSendingTestPush(false);
+    }
+  };
+
   const handleSignOut = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
@@ -165,6 +234,7 @@ export default function SettingsPage() {
       section: t('settings.general'),
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true },
+        { icon: Send, label: 'ทดสอบการแจ้งเตือน', hasTestPush: true },
       ]
     },
     {
@@ -244,6 +314,22 @@ export default function SettingsPage() {
                       />
                     </div>
                   </div>
+                ) : item.hasTestPush ? (
+                  <button
+                    onClick={handleTestPush}
+                    disabled={isSendingTestPush}
+                    className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon className="w-5 h-5 text-foreground" />
+                      <span className="text-foreground">{item.label}</span>
+                    </div>
+                    {isSendingTestPush ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </button>
                 ) : (
                   <button
                     onClick={() => item.path && navigate(item.path)}
