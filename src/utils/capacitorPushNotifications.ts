@@ -32,14 +32,7 @@ export const openNotificationSettings = async (): Promise<void> => {
       return;
     }
   } catch (error) {
-    console.warn('[NativePush] NativeSettings failed, trying App.openUrl fallback:', error);
-    try {
-      // Works reliably on iOS; on Android this may or may not resolve depending on OEM.
-      await App.openUrl({ url: 'app-settings:' });
-      return;
-    } catch (e) {
-      console.error('[NativePush] App.openUrl fallback failed:', e);
-    }
+    console.error('[NativePush] NativeSettings failed:', error);
   }
 
   console.log('[NativePush] Please open Settings manually and enable notifications for this app');
