@@ -28,6 +28,14 @@ const LineCallbackPage = () => {
       console.log('[LINE Callback] 🔄 Starting callback handler');
       console.log('[LINE Callback] Full URL:', window.location.href);
       console.log('[LINE Callback] Search params:', Object.fromEntries(searchParams.entries()));
+
+      // Persist last callback info for debugging (so we can inspect even if we redirect away)
+      try {
+        localStorage.setItem('line_last_callback_url', window.location.href);
+        localStorage.setItem('line_last_callback_params', JSON.stringify(Object.fromEntries(searchParams.entries())));
+      } catch (e) {
+        console.warn('[LINE Callback] Could not persist debug info', e);
+      }
       
       const code = searchParams.get('code');
       const state = searchParams.get('state');
@@ -64,14 +72,27 @@ const LineCallbackPage = () => {
       }
 
       // Verify state to prevent CSRF
-      const savedState = sessionStorage.getItem('line_oauth_state');
-      console.log('[LINE Callback] State verification:', { received: state, saved: savedState, match: state === savedState });
-      
-      if (state !== savedState) {
+      const savedStateSession = sessionStorage.getItem('line_oauth_state');
+      const savedStateLocal = localStorage.getItem('line_oauth_state');
+      const stateMatch = (state && savedStateSession && state === savedStateSession) || (state && savedStateLocal && state === savedStateLocal);
+
+      console.log('[LINE Callback] State verification:', {
+        received: state,
+        savedSession: savedStateSession,
+        savedLocal: savedStateLocal,
+        match: stateMatch,
+      });
+
+      if (!stateMatch) {
         console.error('[LINE Callback] ❌ State mismatch - CSRF protection triggered');
         setStatus('error');
-        setErrorMessage('Invalid state parameter');
-        setTimeout(() => navigate('/'), 3000);
+        setErrorMessage('Invalid state parameter (state mismatch)');
+        toast({
+          variant: 'destructive',
+          title: 'เกิดข้อผิดพลาด',
+          description: 'State ไม่ตรงกัน (ลองกดเข้าสู่ระบบ LINE ใหม่อีกครั้ง)',
+        });
+        setTimeout(() => navigate('/'), 6000);
         return;
       }
 
@@ -132,7 +153,8 @@ const LineCallbackPage = () => {
         console.log('[LINE Callback] ✅ auth_login_type saved');
         
         sessionStorage.removeItem('line_oauth_state');
-        console.log('[LINE Callback] ✅ line_oauth_state removed from sessionStorage');
+        localStorage.removeItem('line_oauth_state');
+        console.log('[LINE Callback] ✅ line_oauth_state removed from sessionStorage & localStorage');
 
         // Create a driver record for LINE user
         const lineDriver = {
