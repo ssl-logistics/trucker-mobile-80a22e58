@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LINE Callback</title>
+  </head>
+  <body>
+    <script>
+      // LINE redirects here with ?code=...&state=...
+      // Our app uses HashRouter, so we forward to:
+      //   /?code=...&state=...#/auth/line/callback
+      (function () {
+        var search = window.location.search || "";
+        window.location.replace("/" + search + "#/auth/line/callback");
+      })();
+    </script>
+  </body>
+</html>
