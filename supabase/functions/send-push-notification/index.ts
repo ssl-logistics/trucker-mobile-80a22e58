@@ -406,61 +406,63 @@ async function generateVapidJwt(
   vapidPublicKey: string,
   subject: string
 ): Promise<string> {
+  // VAPID public key is base64url-encoded uncompressed P-256 public key (65 bytes: 0x04 || X(32) || Y(32))
+  // VAPID private key is base64url-encoded 32-byte private key (d)
   const url = new URL(endpoint);
   const audience = `${url.protocol}//${url.host}`;
-  
-  const header = {
-    typ: 'JWT',
-    alg: 'ES256',
-  };
-  
+
+  const header = { typ: 'JWT', alg: 'ES256' };
+
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     aud: audience,
     exp: now + 12 * 60 * 60,
     sub: subject,
   };
-  
+
   const encoder = new TextEncoder();
   const headerB64 = uint8ArrayToUrlBase64(encoder.encode(JSON.stringify(header)));
   const payloadB64 = uint8ArrayToUrlBase64(encoder.encode(JSON.stringify(payload)));
   const unsignedToken = `${headerB64}.${payloadB64}`;
-  
+
+  const publicKeyBytes = urlBase64ToUint8Array(vapidPublicKey);
+  if (publicKeyBytes.length !== 65 || publicKeyBytes[0] !== 0x04) {
+    throw new Error('Invalid VAPID public key format. Expected 65-byte uncompressed P-256 public key.');
+  }
+
+  const x = publicKeyBytes.slice(1, 33);
+  const y = publicKeyBytes.slice(33, 65);
+  const d = urlBase64ToUint8Array(vapidPrivateKey);
+
+  if (d.length !== 32) {
+    throw new Error('Invalid VAPID private key format. Expected 32 bytes.');
+  }
+
   const jwk = {
     kty: 'EC',
     crv: 'P-256',
-    d: vapidPrivateKey,
-    x: vapidPublicKey.substring(0, 43),
-    y: vapidPublicKey.substring(43),
+    x: uint8ArrayToUrlBase64(x),
+    y: uint8ArrayToUrlBase64(y),
+    d: uint8ArrayToUrlBase64(d),
+    ext: true,
   };
-  
-  try {
-    const privateKey = await crypto.subtle.importKey(
-      'jwk',
-      jwk,
-      {
-        name: 'ECDSA',
-        namedCurve: 'P-256',
-      },
-      false,
-      ['sign']
-    );
-    
-    const signature = await crypto.subtle.sign(
-      {
-        name: 'ECDSA',
-        hash: { name: 'SHA-256' },
-      },
-      privateKey,
-      encoder.encode(unsignedToken)
-    );
-    
-    const signatureB64 = uint8ArrayToUrlBase64(new Uint8Array(signature));
-    return `${unsignedToken}.${signatureB64}`;
-  } catch (error) {
-    console.error('Error generating VAPID JWT:', error);
-    throw error;
-  }
+
+  const privateKey = await crypto.subtle.importKey(
+    'jwk',
+    jwk,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    { name: 'ECDSA', hash: { name: 'SHA-256' } },
+    privateKey,
+    encoder.encode(unsignedToken)
+  );
+
+  const signatureB64 = uint8ArrayToUrlBase64(new Uint8Array(signature));
+  return `${unsignedToken}.${signatureB64}`;
 }
 
 async function sendWebPushNotification(
@@ -473,21 +475,21 @@ async function sendWebPushNotification(
   try {
     const body = await createWebPushBody(payload, subscription);
     
+    // VAPID auth for Web Push
     const jwt = await generateVapidJwt(
       subscription.endpoint,
       vapidPrivateKey,
       vapidPublicKey,
       vapidSubject
     );
-    
-    const vapidHeader = `vapid t=${jwt}, k=${vapidPublicKey}`;
-    
+
     const response = await fetch(subscription.endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/octet-stream',
         'Content-Encoding': 'aes128gcm',
-        'Authorization': vapidHeader,
+        'Authorization': `WebPush ${jwt}`,
+        'Crypto-Key': `p256ecdsa=${vapidPublicKey}`,
         'TTL': '86400',
         'Urgency': 'high',
       },
