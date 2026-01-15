@@ -51,19 +51,34 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
 // Save native push token to database (FCM format for Firebase)
 export const saveNativePushToken = async (token: string): Promise<void> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Try Supabase auth first, then fall back to localStorage driver_id
+    let userId: string | null = null;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id || null;
+    } catch (e) {
+      console.log('Supabase auth not available, checking localStorage');
+    }
+    
+    // Fall back to driver_id from localStorage (for custom auth)
+    if (!userId) {
+      userId = localStorage.getItem('auth_driver_id');
+    }
 
-    if (!user) {
-      throw new Error('User not authenticated');
+    if (!userId) {
+      throw new Error('User not authenticated - no user ID found');
     }
 
     const platform = Capacitor.getPlatform(); // 'ios' or 'android'
+
+    console.log('Saving FCM token for user:', userId, 'platform:', platform);
 
     // Use fcm:// prefix so backend can identify FCM tokens
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert({
-        user_id: user.id,
+        user_id: userId,
         endpoint: `fcm://${token}`,
         p256dh: platform, // Store platform type
         auth: token, // Store the actual token
@@ -72,10 +87,11 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
       });
 
     if (error) {
+      console.error('Database error saving FCM token:', error);
       throw error;
     }
 
-    console.log('FCM push token saved to database for platform:', platform);
+    console.log('FCM push token saved to database for platform:', platform, 'token:', token.substring(0, 20) + '...');
   } catch (error) {
     console.error('Failed to save FCM push token:', error);
     throw error;
@@ -116,14 +132,25 @@ export const unregisterNativePushNotifications = async (): Promise<void> => {
   try {
     await PushNotifications.removeAllListeners();
     
-    // Remove FCM tokens from database
-    const { data: { user } } = await supabase.auth.getUser();
+    // Get user ID from Supabase auth or localStorage
+    let userId: string | null = null;
     
-    if (user) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id || null;
+    } catch (e) {
+      console.log('Supabase auth not available, checking localStorage');
+    }
+    
+    if (!userId) {
+      userId = localStorage.getItem('auth_driver_id');
+    }
+    
+    if (userId) {
       await supabase
         .from('push_subscriptions')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .like('endpoint', 'fcm://%');
     }
     
