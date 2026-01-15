@@ -8,7 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
 import { SwipeBackProvider } from "@/components/layout/SwipeBackProvider";
 
-import SignIn from "./pages/SignIn";
+import StartPage from "./pages/StartPage";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import CreateNewPassword from "./pages/CreateNewPassword";
@@ -70,7 +70,7 @@ const App = () => (
               
               <PushNotificationPrompt />
               <Routes>
-            <Route path="/" element={<SignIn />} />
+            <Route path="/" element={<StartPage />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-new-password" element={<CreateNewPassword />} />
