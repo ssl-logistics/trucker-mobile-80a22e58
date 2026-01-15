@@ -1,11 +1,70 @@
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
+import { App } from '@capacitor/app';
 import { supabase } from '@/integrations/supabase/client';
 import { getAuthItem } from '@/utils/authStorage';
 
 // Check if running on native platform
 export const isNativePlatform = (): boolean => {
   return Capacitor.isNativePlatform();
+};
+
+// Open device notification settings
+export const openNotificationSettings = async (): Promise<void> => {
+  if (!isNativePlatform()) {
+    console.log('[NativePush] Not on native platform, cannot open settings');
+    return;
+  }
+
+  const platform = Capacitor.getPlatform();
+  console.log('[NativePush] Opening notification settings for:', platform);
+
+  try {
+    if (platform === 'android') {
+      // Android: Open app notification settings directly
+      // This uses the App plugin to get package name and construct intent
+      const info = await App.getInfo();
+      const packageName = info.id;
+      
+      // Use Android intent to open notification settings
+      // @ts-ignore - Android specific API
+      if (window.Android?.openNotificationSettings) {
+        // @ts-ignore
+        window.Android.openNotificationSettings();
+      } else {
+        // Fallback: try to open general app settings
+        // This requires a native plugin or custom implementation
+        console.log('[NativePush] Android: Package name:', packageName);
+        console.log('[NativePush] Please open Settings > Apps > ' + packageName + ' > Notifications');
+      }
+    } else if (platform === 'ios') {
+      // iOS: Open app settings
+      // @ts-ignore - iOS specific API
+      if (window.webkit?.messageHandlers?.openSettings) {
+        // @ts-ignore
+        window.webkit.messageHandlers.openSettings.postMessage({});
+      } else {
+        console.log('[NativePush] iOS: Please open Settings > Notifications');
+      }
+    }
+  } catch (error) {
+    console.error('[NativePush] Failed to open notification settings:', error);
+  }
+};
+
+// Check if notification permission is denied (not just not-granted)
+export const isNotificationPermissionDenied = async (): Promise<boolean> => {
+  if (!isNativePlatform()) {
+    return false;
+  }
+
+  try {
+    const permStatus = await PushNotifications.checkPermissions();
+    return permStatus.receive === 'denied';
+  } catch (error) {
+    console.error('[NativePush] Failed to check permission:', error);
+    return false;
+  }
 };
 
 // Request permission and register for push notifications on native platforms
