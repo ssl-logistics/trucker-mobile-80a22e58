@@ -33,32 +33,40 @@ export const PushNotificationPrompt = () => {
 
       // Check current permission status
       const status = await getPushPermissionStatus();
-      
-      // If denied, show the "open settings" prompt
-      if (status === 'denied') {
-        const isDenied = await isNotificationPermissionDenied();
-        if (isDenied) {
-          // Check if user has dismissed the denied prompt recently
-          const lastDeniedPrompt = localStorage.getItem('push_notification_denied_prompt');
-          if (lastDeniedPrompt) {
-            const lastPromptTime = new Date(lastDeniedPrompt).getTime();
-            const now = new Date().getTime();
-            const daysSinceLastPrompt = (now - lastPromptTime) / (1000 * 60 * 60 * 24);
-            
-            // Don't show prompt if less than 3 days since last prompt
-            if (daysSinceLastPrompt < 3) {
-              return;
-            }
+
+      // If denied (native/web), show the "open settings" prompt (and auto-open settings once)
+      const denied = status === 'denied' || (await isNotificationPermissionDenied());
+      if (denied) {
+        // Check if user has dismissed the denied prompt recently
+        const lastDeniedPrompt = localStorage.getItem('push_notification_denied_prompt');
+        if (lastDeniedPrompt) {
+          const lastPromptTime = new Date(lastDeniedPrompt).getTime();
+          const now = new Date().getTime();
+          const daysSinceLastPrompt = (now - lastPromptTime) / (1000 * 60 * 60 * 24);
+
+          // Don't show prompt if less than 3 days since last prompt
+          if (daysSinceLastPrompt < 3) {
+            return;
           }
-          
-          setTimeout(() => {
-            setShowDeniedPrompt(true);
-          }, 2000);
-          return;
         }
-      }
-      
-      if (status === 'granted' || status === 'unsupported') {
+
+        setTimeout(() => {
+          setShowDeniedPrompt(true);
+        }, 1200);
+
+        // Auto-open settings (best effort) once per day when we detect it's denied
+        const lastAutoOpen = localStorage.getItem('push_notification_denied_auto_open');
+        const shouldAutoOpen = !lastAutoOpen
+          ? true
+          : (new Date().getTime() - new Date(lastAutoOpen).getTime()) / (1000 * 60 * 60 * 24) >= 1;
+
+        if (shouldAutoOpen) {
+          localStorage.setItem('push_notification_denied_auto_open', new Date().toISOString());
+          setTimeout(() => {
+            void openNotificationSettings();
+          }, 1800);
+        }
+
         return;
       }
 

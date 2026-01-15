@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
-import { App } from '@capacitor/app';
+import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
 import { supabase } from '@/integrations/supabase/client';
 import { getAuthItem } from '@/utils/authStorage';
 
@@ -21,35 +21,28 @@ export const openNotificationSettings = async (): Promise<void> => {
 
   try {
     if (platform === 'android') {
-      // Android: Open app notification settings directly
-      // This uses the App plugin to get package name and construct intent
-      const info = await App.getInfo();
-      const packageName = info.id;
-      
-      // Use Android intent to open notification settings
-      // @ts-ignore - Android specific API
-      if (window.Android?.openNotificationSettings) {
-        // @ts-ignore
-        window.Android.openNotificationSettings();
-      } else {
-        // Fallback: try to open general app settings
-        // This requires a native plugin or custom implementation
-        console.log('[NativePush] Android: Package name:', packageName);
-        console.log('[NativePush] Please open Settings > Apps > ' + packageName + ' > Notifications');
-      }
-    } else if (platform === 'ios') {
-      // iOS: Open app settings
-      // @ts-ignore - iOS specific API
-      if (window.webkit?.messageHandlers?.openSettings) {
-        // @ts-ignore
-        window.webkit.messageHandlers.openSettings.postMessage({});
-      } else {
-        console.log('[NativePush] iOS: Please open Settings > Notifications');
-      }
+      // Best effort: open the app-specific notification settings screen.
+      await NativeSettings.openAndroid({ option: AndroidSettings.AppNotification });
+      return;
+    }
+
+    if (platform === 'ios') {
+      // iOS only officially supports opening the app settings page.
+      await NativeSettings.openIOS({ option: IOSSettings.App });
+      return;
     }
   } catch (error) {
-    console.error('[NativePush] Failed to open notification settings:', error);
+    console.warn('[NativePush] NativeSettings failed, trying App.openUrl fallback:', error);
+    try {
+      // Works reliably on iOS; on Android this may or may not resolve depending on OEM.
+      await App.openUrl({ url: 'app-settings:' });
+      return;
+    } catch (e) {
+      console.error('[NativePush] App.openUrl fallback failed:', e);
+    }
   }
+
+  console.log('[NativePush] Please open Settings manually and enable notifications for this app');
 };
 
 // Check if notification permission is denied (not just not-granted)
