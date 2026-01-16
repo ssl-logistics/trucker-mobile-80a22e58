@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
@@ -109,6 +110,7 @@ interface AcceptedJobAPI {
 export default function JobDetailPage() {
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
@@ -209,6 +211,27 @@ export default function JobDetailPage() {
 
           setJobApplication(jobApplicationData);
         } else {
+          // Not in accepted jobs list (e.g. new job notification). Try local DB and redirect.
+          try {
+            const { data: localJob, error: localJobError } = await supabase
+              .from('jobs')
+              .select('id, order_code, status')
+              .or(`id.eq.${jobId},order_code.eq.${jobId}`)
+              .maybeSingle();
+
+            if (!localJobError && localJob?.order_code) {
+              if (localJob.status === 'open_for_bidding') {
+                navigate(`/bidding/${localJob.id}`, { replace: true });
+                return;
+              }
+
+              navigate('/home', { state: { openJobOrderCode: localJob.order_code }, replace: true });
+              return;
+            }
+          } catch (e) {
+            console.error('Local job redirect failed:', e);
+          }
+
           toast({
             title: t('jobDetail.error'),
             description: t('jobDetail.notFound'),
@@ -216,6 +239,27 @@ export default function JobDetailPage() {
           });
         }
       } else {
+        // External API did not return data. Try local DB and redirect.
+        try {
+          const { data: localJob, error: localJobError } = await supabase
+            .from('jobs')
+            .select('id, order_code, status')
+            .or(`id.eq.${jobId},order_code.eq.${jobId}`)
+            .maybeSingle();
+
+          if (!localJobError && localJob?.order_code) {
+            if (localJob.status === 'open_for_bidding') {
+              navigate(`/bidding/${localJob.id}`, { replace: true });
+              return;
+            }
+
+            navigate('/home', { state: { openJobOrderCode: localJob.order_code }, replace: true });
+            return;
+          }
+        } catch (e) {
+          console.error('Local job redirect failed:', e);
+        }
+
         toast({
           title: t('jobDetail.error'),
           description: t('jobDetail.notFound'),

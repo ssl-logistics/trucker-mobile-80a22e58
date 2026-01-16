@@ -50,15 +50,24 @@ export default function Home() {
     }
   }, [user]);
 
-  // Handle openJobOrderCode from notifications navigation
+  // Handle openJobOrderCode from notifications navigation (state or query string)
   useEffect(() => {
-    const orderCode = location.state?.openJobOrderCode;
+    const orderCodeFromState = location.state?.openJobOrderCode as string | undefined;
+    const orderCodeFromQuery = new URLSearchParams(location.search).get('openJobOrderCode') || undefined;
+
+    const orderCode = orderCodeFromState || orderCodeFromQuery;
+
     if (orderCode) {
       setOpenJobOrderCode(orderCode);
-      // Clear the state to prevent reopening on refresh
-      navigate(location.pathname, { replace: true, state: {} });
+
+      // Clear navigation state/query to prevent reopening on refresh
+      if (orderCodeFromState) {
+        navigate(location.pathname, { replace: true, state: {} });
+      } else {
+        navigate(location.pathname, { replace: true });
+      }
     }
-  }, [location.state?.openJobOrderCode]);
+  }, [location.pathname, location.search, location.state, navigate]);
 
   // Subscribe to jobs table changes for real-time updates
   useEffect(() => {
