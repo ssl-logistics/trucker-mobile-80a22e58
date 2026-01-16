@@ -265,21 +265,30 @@ export default function Home() {
       // Get driver phone from user object
       const driverPhone = user.phone_number || user.phone || '';
       
-      // Get vehicle info - try to fetch from Supabase
+      // Get vehicle info - fetch latest vehicle record (some drivers may have multiple)
       let licensePlate = '';
       let vehicleType = '';
       let vehicleBrand = '';
-      
-      const { data: vehicleData } = await supabase
+
+      const { data: vehicleData, error: vehicleError } = await supabase
         .from('vehicles')
-        .select('plate_number, plate_province, vehicle_type, vehicle_brand')
+        .select('plate_number, plate_province, vehicle_type, vehicle_brand, updated_at, created_at')
         .eq('driver_id', user.id)
+        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
-      
+
+      if (vehicleError) {
+        console.error('Error loading vehicle info:', vehicleError);
+      }
+
       if (vehicleData) {
-        licensePlate = vehicleData.plate_number || '';
-        vehicleType = vehicleData.vehicle_type || '';
-        vehicleBrand = vehicleData.vehicle_brand || '';
+        const province = (vehicleData.plate_province || '').trim();
+        const number = (vehicleData.plate_number || '').trim();
+        licensePlate = [province, number].filter(Boolean).join(' ').trim();
+        vehicleType = (vehicleData.vehicle_type || '').trim();
+        vehicleBrand = (vehicleData.vehicle_brand || '').trim();
       }
 
       // Call external API to accept job
