@@ -6,8 +6,6 @@ import { ArrowLeft, RefreshCw, Bell, Smartphone, Database, User } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { getAuthItem } from '@/utils/authStorage';
-import { Capacitor } from '@capacitor/core';
-import { PushNotifications } from '@capacitor/push-notifications';
 import {
   isPushSupported,
   getPushPermissionStatus,
@@ -167,125 +165,14 @@ const PushDebugPage = () => {
 
   const handleRegisterPush = async () => {
     setLoading(true);
-    addLog('Starting push registration...');
+    addLog('Starting push registration via enablePushNotifications()...');
 
     try {
-      if (isNativePlatform()) {
-        addLog('Native platform detected');
-        
-        // Check current permission
-        const permStatus = await PushNotifications.checkPermissions();
-        addLog(`Current permission: ${permStatus.receive}`);
-
-        if (permStatus.receive === 'prompt') {
-          addLog('Requesting permission...');
-          const newStatus = await PushNotifications.requestPermissions();
-          addLog(`New permission: ${newStatus.receive}`);
-        }
-
-        if (permStatus.receive === 'granted' || (await PushNotifications.checkPermissions()).receive === 'granted') {
-          addLog('Permission granted, registering...');
-          
-          // Set up listener BEFORE register
-          const registrationPromise = new Promise<string | null>((resolve) => {
-            const timeout = setTimeout(() => {
-              addLog('⚠️ Registration timeout (15s)');
-              resolve(null);
-            }, 15000);
-
-            PushNotifications.addListener('registration', (token) => {
-              clearTimeout(timeout);
-              addLog(`✅ Token received: ${token.value.substring(0, 30)}...`);
-              resolve(token.value);
-            });
-
-            PushNotifications.addListener('registrationError', (error) => {
-              clearTimeout(timeout);
-              addLog(`❌ Registration error: ${JSON.stringify(error)}`);
-              resolve(null);
-            });
-          });
-
-          await PushNotifications.register();
-          addLog('Register called, waiting for token...');
-          
-          const token = await registrationPromise;
-          
-          if (token) {
-            addLog('Attempting to save token...');
-            
-            // Get user ID
-            let userId: string | null = null;
-            
-            try {
-              const { data: { user } } = await supabase.auth.getUser();
-              userId = user?.id ?? null;
-            } catch {}
-            
-            if (!userId) {
-              userId = await getAuthItem('auth_driver_id');
-            }
-            
-            if (!userId) {
-              const driverStr = await getAuthItem('auth_driver');
-              if (driverStr) {
-                try {
-                  const parsed = JSON.parse(driverStr);
-                  userId = parsed?.id ? String(parsed.id) : null;
-                } catch {}
-              }
-            }
-            
-            if (!userId) {
-              userId = localStorage.getItem('auth_driver_id');
-            }
-
-            if (userId) {
-              addLog(`User ID found: ${userId}`);
-              
-              // Delete old FCM tokens
-              const { error: deleteError } = await supabase
-                .from('push_subscriptions')
-                .delete()
-                .eq('user_id', userId)
-                .like('endpoint', 'fcm://%');
-              
-              if (deleteError) {
-                addLog(`Delete error: ${deleteError.message}`);
-              } else {
-                addLog('Old FCM tokens deleted');
-              }
-
-              // Insert new token
-              const endpoint = `fcm://${token}`;
-              const { error: insertError } = await supabase
-                .from('push_subscriptions')
-                .insert({
-                  user_id: userId,
-                  endpoint: endpoint,
-                  p256dh: Capacitor.getPlatform(),
-                  auth: token,
-                });
-
-              if (insertError) {
-                addLog(`❌ Insert error: ${insertError.message}`);
-              } else {
-                addLog('✅ FCM token saved to database!');
-              }
-            } else {
-              addLog('❌ No user ID available - cannot save token');
-            }
-          }
-        } else {
-          addLog('Permission not granted');
-        }
-      } else {
-        addLog('Using web push flow...');
-        const result = await enablePushNotifications();
-        addLog(`Web push result: ${result}`);
-      }
-
-      // Reload debug info
+      // Use unified function that handles both native and web
+      const result = await enablePushNotifications();
+      addLog(`Push registration result: ${result ? '✅ Success' : '❌ Failed'}`);
+      
+      // Reload debug info to show updated subscriptions
       await loadDebugInfo();
       
     } catch (error: any) {
