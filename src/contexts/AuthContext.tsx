@@ -138,24 +138,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
 
         setRole(mappedRole);
-      } else if (lineUserData) {
-        // LINE login only (no existing driver account)
-        const lineUser = safeJsonParse<LineUser>(lineUserData);
-        if (lineUser) {
-          const lineDriver: DriverData = {
-            id: lineUser.lineUserId,
-            full_name: lineUser.displayName,
-            avatar_url: lineUser.pictureUrl || null,
-            loginType: 'line',
-            lineUser: lineUser,
-          };
-          setUser(lineDriver);
-          setRole('freelance');
-        } else {
-          setUser(null);
-          setRole('freelance');
-        }
       } else {
+        // Not authenticated (we require a valid stored auth_driver)
         setUser(null);
         setRole('freelance');
       }
