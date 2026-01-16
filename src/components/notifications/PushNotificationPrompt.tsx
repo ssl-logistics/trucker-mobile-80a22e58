@@ -77,6 +77,17 @@ export const PushNotificationPrompt = () => {
 
       // Check current permission status
       const status = await getPushPermissionStatus();
+      console.log('[PushPrompt] Initial permission status:', status);
+
+      // If permission is already granted, auto-register token
+      if (status === 'granted') {
+        console.log('[PushPrompt] Permission already granted, auto-registering token...');
+        const registered = await checkAndRegisterToken();
+        console.log('[PushPrompt] Auto-register result:', registered);
+        if (registered) {
+          return; // Already registered, no need to show prompt
+        }
+      }
 
       // If denied (native/web), show the "open settings" prompt (and auto-open settings once)
       const denied = status === 'denied' || (await isNotificationPermissionDenied());
@@ -140,7 +151,7 @@ export const PushNotificationPrompt = () => {
     };
 
     checkPermission();
-  }, []);
+  }, [checkAndRegisterToken]);
 
   // Listen for app resume (when user returns from Settings)
   useEffect(() => {
