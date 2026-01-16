@@ -14,6 +14,7 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 interface Job {
   id: string;
+  post_id?: string;
   order_code: string;
   job_type: string;
   employer_name: string;
@@ -145,6 +146,7 @@ export default function Home() {
         
         return {
           id: item.id || String(Math.random()),
+          post_id: item.id || item.post_id || '',
           order_code: orderCode,
           job_type: item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic',
           employer_name: item.company_name || item.factory_name || item.customer_name || '',
@@ -239,16 +241,18 @@ export default function Home() {
       // Get vehicle info - try to fetch from Supabase
       let licensePlate = '';
       let vehicleType = '';
+      let vehicleBrand = '';
       
       const { data: vehicleData } = await supabase
         .from('vehicles')
-        .select('plate_number, plate_province, vehicle_type')
+        .select('plate_number, plate_province, vehicle_type, vehicle_brand')
         .eq('driver_id', user.id)
         .maybeSingle();
       
       if (vehicleData) {
         licensePlate = vehicleData.plate_number || '';
         vehicleType = vehicleData.vehicle_type || '';
+        vehicleBrand = vehicleData.vehicle_brand || '';
       }
 
       // Call external API to accept job
@@ -260,11 +264,13 @@ export default function Home() {
         },
         body: JSON.stringify({
           order_number: selectedJob.order_code,
+          post_id: selectedJob.post_id || selectedJob.id,
           freelance_driver_id: user.id,
           freelance_driver_name: driverName,
           driver_phone: driverPhone,
           license_plate: licensePlate,
-          vehicle_type: vehicleType
+          vehicle_type: vehicleType,
+          vehicle_brand: vehicleBrand
         }),
       });
 
