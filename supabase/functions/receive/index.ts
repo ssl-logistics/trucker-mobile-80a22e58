@@ -359,7 +359,8 @@ serve(async (req) => {
               type: 'new_job',
               job_id: upsertedJob.id,
               order_code: upsertedJob.order_code,
-              url: `/job/${upsertedJob.id}`
+              // Open Home and auto-open the job detail modal by order_code
+              url: `/home?openJobOrderCode=${upsertedJob.order_code}`
             }
           };
           

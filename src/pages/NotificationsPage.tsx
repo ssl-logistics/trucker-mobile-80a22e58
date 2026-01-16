@@ -229,18 +229,17 @@ export default function NotificationsPage() {
       );
     }
 
-    // Navigate to job detail page directly
+    // Navigate based on notification type
     if (notification.reference_type === 'job' && notification.reference_id) {
-      // Fetch job to get order_code
+      // reference_id is a job UUID in our database
       const { data: jobData, error } = await supabase
         .from('jobs')
         .select('order_code')
         .eq('id', notification.reference_id)
         .maybeSingle();
-      
+
       if (error || !jobData?.order_code) {
-        // Job not found - show message
-        console.log('Job not found for notification:', notification.reference_id);
+        console.log('Job not found for notification:', notification.reference_id, 'error:', error);
         toast({
           title: t('jobDetail.notFound') || 'ไม่พบข้อมูลงาน',
           description: t('jobDetail.jobMayBeDeleted') || 'งานนี้อาจถูกลบหรือไม่มีอยู่ในระบบแล้ว',
@@ -248,13 +247,22 @@ export default function NotificationsPage() {
         });
         return;
       }
-      
-      // Navigate to job detail page using order_code (which JobDetailPage expects)
+
+      // "new_job" notifications are jobs that userยังไม่ได้รับงาน (ยังไม่อยู่ในหน้า JobDetail ที่ดึงเฉพาะ accepted jobs)
+      // เลยพาไปหน้า Home เพื่อเปิด modal รายละเอียดงานจาก order_code แทน
+      if (notification.notification_type === 'new_job') {
+        navigate('/home', { state: { openJobOrderCode: jobData.order_code } });
+        return;
+      }
+
+      // Default job flow: open job detail page (accepted jobs)
       navigate(`/job/${jobData.order_code}`);
-    } else {
-      // For non-job notifications, go to notification detail
-      navigate(`/notification/${notification.id}`);
+      return;
     }
+
+    // For non-job notifications, go to notification detail
+    navigate(`/notifications/${notification.id}`);
+
   };
 
   return (
