@@ -16,7 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { sendJobStatus } from '@/lib/jobStatusService';
-import Map from '@/components/Map';
+import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
 interface JobDetail {
@@ -162,7 +162,7 @@ export default function ContainerCheckInPage() {
 
         {/* Interactive Map */}
         {job.container_checkpoint_latitude && job.container_checkpoint_longitude ? (
-          <Map 
+          <GoogleMap 
             latitude={job.container_checkpoint_latitude}
             longitude={job.container_checkpoint_longitude}
             markerLabel={job.container_checkpoint || t('container.defaultCheckpoint')}

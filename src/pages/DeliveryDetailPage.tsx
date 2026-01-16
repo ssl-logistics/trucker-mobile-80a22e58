@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
-import Map from "@/components/Map";
+import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
@@ -662,7 +662,7 @@ export default function DeliveryDetailPage() {
 
         {/* Map */}
         {displayLatitude && displayLongitude ? (
-          <Map 
+          <GoogleMap 
             latitude={displayLatitude} 
             longitude={displayLongitude}
             markerLabel={displayCompanyName || displayLocation}
