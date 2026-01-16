@@ -314,52 +314,61 @@ serve(async (req) => {
     }
 
     // Send push notifications to all registered devices (broadcast)
+    // Only send if job start_date/start_time is not in the past
     try {
-      console.log('Sending push notifications for new job...');
+      // Check if job datetime is in the past
+      const jobDateTime = new Date(`${upsertedJob.start_date}T${upsertedJob.start_time}`);
+      const now = new Date();
       
-      // Get all push subscriptions directly (no role filtering)
-      const { data: subscriptions, error: subError } = await supabase
-        .from('push_subscriptions')
-        .select('user_id');
-      
-      if (subError) {
-        console.error('Error fetching push subscriptions:', subError);
-      } else if (subscriptions && subscriptions.length > 0) {
-        // Get unique user_ids
-        const userIds = [...new Set(subscriptions.map(s => s.user_id))];
-        console.log(`Found ${userIds.length} users with push subscriptions to notify`);
-        
-        // Call send-push-notification function
-        const notificationPayload = {
-          user_ids: userIds,
-          title: '📦 งานใหม่เข้ามาแล้ว!',
-          body: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-          data: {
-            type: 'new_job',
-            job_id: upsertedJob.id,
-            order_code: upsertedJob.order_code,
-            url: `/job/${upsertedJob.id}`
-          }
-        };
-        
-        const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseKey}`,
-          },
-          body: JSON.stringify(notificationPayload),
-        });
-        
-        if (pushResponse.ok) {
-          const pushResult = await pushResponse.json();
-          console.log('Push notifications sent:', pushResult);
-        } else {
-          const errorText = await pushResponse.text();
-          console.error('Failed to send push notifications:', errorText);
-        }
+      if (jobDateTime < now) {
+        console.log(`Skipping push notification - job datetime is in the past: ${jobDateTime.toISOString()} < ${now.toISOString()}`);
       } else {
-        console.log('No push subscriptions found');
+        console.log('Sending push notifications for new job...');
+        
+        // Get all push subscriptions directly (no role filtering)
+        const { data: subscriptions, error: subError } = await supabase
+          .from('push_subscriptions')
+          .select('user_id');
+        
+        if (subError) {
+          console.error('Error fetching push subscriptions:', subError);
+        } else if (subscriptions && subscriptions.length > 0) {
+          // Get unique user_ids
+          const userIds = [...new Set(subscriptions.map(s => s.user_id))];
+          console.log(`Found ${userIds.length} users with push subscriptions to notify`);
+          
+          // Call send-push-notification function
+          const notificationPayload = {
+            user_ids: userIds,
+            title: '📦 งานใหม่เข้ามาแล้ว!',
+            body: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+            data: {
+              type: 'new_job',
+              job_id: upsertedJob.id,
+              order_code: upsertedJob.order_code,
+              url: `/job/${upsertedJob.id}`
+            }
+          };
+          
+          const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify(notificationPayload),
+          });
+          
+          if (pushResponse.ok) {
+            const pushResult = await pushResponse.json();
+            console.log('Push notifications sent:', pushResult);
+          } else {
+            const errorText = await pushResponse.text();
+            console.error('Failed to send push notifications:', errorText);
+          }
+        } else {
+          console.log('No push subscriptions found');
+        }
       }
     } catch (pushError) {
       console.error('Error sending push notifications:', pushError);
