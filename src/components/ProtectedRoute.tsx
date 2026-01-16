@@ -8,8 +8,8 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
-  // 🚧 DEV MODE: ปิด auth ชั่วคราวเพื่อพัฒนา
-  const DEV_MODE = true; // เปลี่ยนเป็น false เมื่อจะใช้งานจริง
+  // Production mode - ตรวจสอบ auth ปกติ
+  const DEV_MODE = false;
 
   if (DEV_MODE) {
     return <>{children}</>;
