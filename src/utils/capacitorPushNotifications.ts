@@ -149,63 +149,101 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
   }
 };
 
+// ============= Token persistence helpers =============
+
+type CurrentUserIdResult = {
+  userId: string | null;
+  source: string;
+};
+
+const getCurrentUserIdFromAnySource = async (): Promise<CurrentUserIdResult> => {
+  // Try backend auth first, then fall back to stored driver_id (custom auth)
+  let userId: string | null = null;
+  let authSource = 'none';
+
+  // Method 1: Backend auth
+  try {
+    console.log('[NativePush] Trying supabase.auth.getUser()...');
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id ?? null;
+    if (userId) authSource = 'supabase_auth';
+    console.log('[NativePush] Supabase auth user_id:', userId);
+  } catch (e) {
+    console.log('[NativePush] Supabase auth failed:', e);
+  }
+
+  // Method 2: Capacitor Preferences - auth_driver_id
+  if (!userId) {
+    console.log('[NativePush] Trying getAuthItem("auth_driver_id")...');
+    userId = await getAuthItem('auth_driver_id');
+    if (userId) authSource = 'preferences_driver_id';
+    console.log('[NativePush] Preferences auth_driver_id:', userId);
+  }
+
+  // Method 3: Capacitor Preferences - auth_driver object
+  if (!userId) {
+    console.log('[NativePush] Trying getAuthItem("auth_driver")...');
+    const driverStr = await getAuthItem('auth_driver');
+    console.log('[NativePush] auth_driver string:', driverStr?.substring(0, 50) + '...');
+    if (driverStr) {
+      try {
+        const parsed = JSON.parse(driverStr) as any;
+        if (parsed?.id) {
+          userId = String(parsed.id);
+          authSource = 'preferences_driver_object';
+        }
+        console.log('[NativePush] Parsed driver.id:', userId);
+      } catch (e) {
+        console.log('[NativePush] Failed to parse auth_driver:', e);
+      }
+    }
+  }
+
+  // Method 4: localStorage fallback
+  if (!userId) {
+    console.log('[NativePush] Trying localStorage.getItem("auth_driver_id")...');
+    userId = localStorage.getItem('auth_driver_id');
+    if (userId) authSource = 'localStorage';
+    console.log('[NativePush] localStorage auth_driver_id:', userId);
+  }
+
+  console.log('[NativePush] Final userId:', userId, 'source:', authSource);
+
+  return { userId, source: authSource };
+};
+
+// Check if we already have a saved FCM token in DB for the current user
+export const hasNativePushTokenInDb = async (): Promise<boolean> => {
+  try {
+    const { userId } = await getCurrentUserIdFromAnySource();
+    if (!userId) return false;
+
+    const { data, error } = await supabase
+      .from('push_subscriptions')
+      .select('id')
+      .eq('user_id', userId)
+      .like('endpoint', 'fcm://%')
+      .limit(1);
+
+    if (error) {
+      console.error('[NativePush] Failed to check existing FCM token:', error);
+      return false;
+    }
+
+    return (data?.length ?? 0) > 0;
+  } catch (error) {
+    console.error('[NativePush] Failed to check existing FCM token:', error);
+    return false;
+  }
+};
+
 // Save native push token to database (FCM format for Firebase)
 export const saveNativePushToken = async (token: string): Promise<void> => {
   console.log('[NativePush] saveNativePushToken called');
   console.log('[NativePush] Token to save:', token?.substring(0, 30) + '...');
 
   try {
-    // Try backend auth first, then fall back to stored driver_id (custom auth)
-    let userId: string | null = null;
-    let authSource = 'none';
-
-    // Method 1: Supabase auth
-    try {
-      console.log('[NativePush] Trying supabase.auth.getUser()...');
-      const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id ?? null;
-      if (userId) authSource = 'supabase_auth';
-      console.log('[NativePush] Supabase auth user_id:', userId);
-    } catch (e) {
-      console.log('[NativePush] Supabase auth failed:', e);
-    }
-
-    // Method 2: Capacitor Preferences - auth_driver_id
-    if (!userId) {
-      console.log('[NativePush] Trying getAuthItem("auth_driver_id")...');
-      userId = await getAuthItem('auth_driver_id');
-      if (userId) authSource = 'preferences_driver_id';
-      console.log('[NativePush] Preferences auth_driver_id:', userId);
-    }
-
-    // Method 3: Capacitor Preferences - auth_driver object
-    if (!userId) {
-      console.log('[NativePush] Trying getAuthItem("auth_driver")...');
-      const driverStr = await getAuthItem('auth_driver');
-      console.log('[NativePush] auth_driver string:', driverStr?.substring(0, 50) + '...');
-      if (driverStr) {
-        try {
-          const parsed = JSON.parse(driverStr) as any;
-          if (parsed?.id) {
-            userId = String(parsed.id);
-            authSource = 'preferences_driver_object';
-          }
-          console.log('[NativePush] Parsed driver.id:', userId);
-        } catch (e) {
-          console.log('[NativePush] Failed to parse auth_driver:', e);
-        }
-      }
-    }
-
-    // Method 4: localStorage fallback
-    if (!userId) {
-      console.log('[NativePush] Trying localStorage.getItem("auth_driver_id")...');
-      userId = localStorage.getItem('auth_driver_id');
-      if (userId) authSource = 'localStorage';
-      console.log('[NativePush] localStorage auth_driver_id:', userId);
-    }
-
-    console.log('[NativePush] Final userId:', userId, 'source:', authSource);
+    const { userId, source } = await getCurrentUserIdFromAnySource();
 
     if (!userId) {
       console.error('[NativePush] ❌ No user ID found from any source!');
@@ -214,12 +252,16 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
 
     const platform = Capacitor.getPlatform(); // 'ios' or 'android'
 
-    console.log('[NativePush] Saving FCM token for user:', userId, 'platform:', platform);
+    console.log('[NativePush] Saving FCM token for user:', userId, 'platform:', platform, 'source:', source);
 
     // Use fcm:// prefix so backend can identify FCM tokens
     const endpoint = `fcm://${token}`;
     console.log('[NativePush] Upserting to push_subscriptions...');
-    console.log('[NativePush] Data:', { user_id: userId, endpoint: endpoint.substring(0, 30) + '...', p256dh: platform });
+    console.log('[NativePush] Data:', {
+      user_id: userId,
+      endpoint: endpoint.substring(0, 30) + '...',
+      p256dh: platform,
+    });
 
     // First, delete any existing FCM subscriptions for this user
     console.log('[NativePush] Deleting old FCM subscriptions for user...');
