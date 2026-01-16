@@ -40,7 +40,7 @@ export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Fetch notifications from database
+  // Fetch notifications from database and filter out past job notifications
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -52,11 +52,61 @@ export default function NotificationsPage() {
 
         if (error) {
           console.error('Error fetching notifications:', error);
-        } else {
-          setNotifications(data || []);
+          setNotifications([]);
+          return;
         }
+
+        if (!data || data.length === 0) {
+          setNotifications([]);
+          return;
+        }
+
+        // Get all job reference IDs from notifications
+        const jobReferenceIds = data
+          .filter(n => n.reference_type === 'job' && n.reference_id)
+          .map(n => n.reference_id as string);
+
+        if (jobReferenceIds.length === 0) {
+          // No job notifications, just set all notifications
+          setNotifications(data);
+          return;
+        }
+
+        // Fetch jobs to check their start dates
+        const { data: jobsData, error: jobsError } = await supabase
+          .from('jobs')
+          .select('id, start_date, start_time')
+          .in('id', jobReferenceIds);
+
+        if (jobsError) {
+          console.error('Error fetching jobs for filtering:', jobsError);
+          setNotifications(data);
+          return;
+        }
+
+        // Create a map of job IDs to their datetime
+        const now = new Date();
+        const pastJobIds = new Set<string>();
+        
+        jobsData?.forEach(job => {
+          const jobDateTime = new Date(`${job.start_date}T${job.start_time}`);
+          if (jobDateTime < now) {
+            pastJobIds.add(job.id);
+          }
+        });
+
+        // Filter out notifications for past jobs
+        const filteredNotifications = data.filter(n => {
+          if (n.reference_type === 'job' && n.reference_id) {
+            return !pastJobIds.has(n.reference_id);
+          }
+          return true; // Keep non-job notifications
+        });
+
+        setNotifications(filteredNotifications);
       } catch (error) {
         console.error('Error fetching notifications:', error);
+        setNotifications([]);
       } finally {
         setLoading(false);
       }
@@ -74,9 +124,28 @@ export default function NotificationsPage() {
           schema: 'public',
           table: 'notifications',
         },
-        (payload) => {
+        async (payload) => {
           console.log('New notification received:', payload);
-          setNotifications((prev) => [payload.new as Notification, ...prev]);
+          const newNotif = payload.new as Notification;
+          
+          // Check if this is a job notification and if the job is in the past
+          if (newNotif.reference_type === 'job' && newNotif.reference_id) {
+            const { data: jobData } = await supabase
+              .from('jobs')
+              .select('start_date, start_time')
+              .eq('id', newNotif.reference_id)
+              .single();
+            
+            if (jobData) {
+              const jobDateTime = new Date(`${jobData.start_date}T${jobData.start_time}`);
+              if (jobDateTime < new Date()) {
+                // Job is in the past, don't add this notification
+                return;
+              }
+            }
+          }
+          
+          setNotifications((prev) => [newNotif, ...prev]);
         }
       )
       .subscribe();
