@@ -281,14 +281,16 @@ serve(async (req) => {
     console.log('Successfully upserted job:', upsertedJob.id);
 
     // Create notification in database for new job
-    // Only create if job start_date/start_time is not in the past
+    // Only create if job pickup date (start_date) is not in the past
     try {
-      // Check if job datetime is in the past
-      const jobDateTime = new Date(`${upsertedJob.start_date}T${upsertedJob.start_time}`);
-      const now = new Date();
+      // Check if pickup date is in the past (compare dates only, not time)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const pickupDate = new Date(upsertedJob.start_date);
+      pickupDate.setHours(0, 0, 0, 0);
       
-      if (jobDateTime < now) {
-        console.log(`Skipping notification creation - job datetime is in the past: ${jobDateTime.toISOString()} < ${now.toISOString()}`);
+      if (pickupDate < today) {
+        console.log(`Skipping notification creation - pickup date is in the past: ${upsertedJob.start_date}`);
       } else {
         console.log('Creating notification for new job...');
         
@@ -323,14 +325,16 @@ serve(async (req) => {
     }
 
     // Send push notifications to all registered devices (broadcast)
-    // Only send if job start_date/start_time is not in the past
+    // Only send if job pickup date (start_date) is not in the past
     try {
-      // Check if job datetime is in the past
-      const jobDateTime = new Date(`${upsertedJob.start_date}T${upsertedJob.start_time}`);
-      const now = new Date();
+      // Check if pickup date is in the past (compare dates only, not time)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const pickupDate = new Date(upsertedJob.start_date);
+      pickupDate.setHours(0, 0, 0, 0);
       
-      if (jobDateTime < now) {
-        console.log(`Skipping push notification - job datetime is in the past: ${jobDateTime.toISOString()} < ${now.toISOString()}`);
+      if (pickupDate < today) {
+        console.log(`Skipping push notification - pickup date is in the past: ${upsertedJob.start_date}`);
       } else {
         console.log('Sending push notifications for new job...');
         
