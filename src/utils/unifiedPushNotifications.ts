@@ -62,13 +62,24 @@ export const enablePushNotifications = async (): Promise<boolean> => {
   try {
     if (isNativePlatform()) {
       // Native platform (iOS/Android)
+      console.log('[UnifiedPush] Starting native push registration...');
       const token = await registerNativePushNotifications();
+      console.log('[UnifiedPush] Registration result, token:', token ? token.substring(0, 20) + '...' : null);
       
       if (token) {
-        await saveNativePushToken(token);
+        console.log('[UnifiedPush] Token received, saving to database...');
+        try {
+          await saveNativePushToken(token);
+          console.log('[UnifiedPush] Token saved successfully!');
+        } catch (saveError) {
+          console.error('[UnifiedPush] Failed to save token:', saveError);
+          // Still return true if we got the token, save might fail due to auth timing
+          // The token will be saved later when auth is ready
+        }
         setupNativePushListeners();
         return true;
       }
+      console.log('[UnifiedPush] No token received');
       return false;
     } else {
       // Web platform
