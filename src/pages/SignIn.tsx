@@ -191,13 +191,19 @@ const SignIn = () => {
         localStorage.removeItem("rememberedUser");
       }
       
-      // Navigate based on user_type
-      if (userType === 'freelance_driver') {
-        navigate("/home");
+      // Check if there's a saved redirect destination (from ProtectedRoute)
+      const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
+      sessionStorage.removeItem('auth_redirect_after_login');
+
+      // Navigate based on user_type, or to saved redirect path
+      if (redirectPath && redirectPath !== '/' && redirectPath !== '/home' && redirectPath !== '/dashboard') {
+        navigate(redirectPath, { replace: true });
+      } else if (userType === 'freelance_driver') {
+        navigate("/home", { replace: true });
       } else if (userType === 'company' || userType === 'factory') {
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       } else {
-        navigate("/home");
+        navigate("/home", { replace: true });
       }
     } catch (error) {
       console.error("Login error:", error);
