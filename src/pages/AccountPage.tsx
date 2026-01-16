@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import { AUTH_KEYS, removeAuthItem } from '@/utils/authStorage';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,10 +58,11 @@ export default function AccountPage() {
         description: t('account.delete_success_desc'),
       });
 
-      // Clear local storage and navigate to login
-      localStorage.removeItem('user');
-      localStorage.removeItem('userRole');
-      navigate('/', { replace: true });
+      // Clear all auth storage items properly
+      await Promise.all(AUTH_KEYS.map(key => removeAuthItem(key)));
+      
+      // Navigate to sign-in page
+      navigate('/sign-in', { replace: true });
     } catch (error: any) {
       console.error('Delete account error:', error);
       toast({
