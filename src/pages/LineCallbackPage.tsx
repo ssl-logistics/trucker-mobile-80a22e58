@@ -227,8 +227,17 @@ const LineCallbackPage = () => {
     console.log('[LINE Callback] 📢 Dispatching auth_driver_updated event...');
     window.dispatchEvent(new Event('auth_driver_updated'));
     
-    console.log('[LINE Callback] 🚀 Navigating to /home...');
-    navigate('/home');
+    // Check if there's a saved redirect destination (from ProtectedRoute)
+    const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
+    sessionStorage.removeItem('auth_redirect_after_login');
+
+    if (redirectPath && redirectPath !== '/' && redirectPath !== '/home') {
+      console.log('[LINE Callback] 🚀 Navigating to saved redirect:', redirectPath);
+      navigate(redirectPath, { replace: true });
+    } else {
+      console.log('[LINE Callback] 🚀 Navigating to /home...');
+      navigate('/home', { replace: true });
+    }
   };
 
   // Debug: Log render state
