@@ -144,8 +144,36 @@ export const getPlatformName = (): string => {
 };
 
 // Initialize push notifications (call on app start)
-export const initializePushNotifications = (): void => {
+// This will also auto-register the FCM token if permission is already granted but no token saved
+export const initializePushNotifications = async (): Promise<void> => {
   if (isNativePlatform()) {
     setupNativePushListeners();
+    
+    // Auto-register token if permission granted but no token in DB
+    try {
+      const permitted = await checkNativePushStatus();
+      console.log('[UnifiedPush] initializePushNotifications - permission status:', permitted);
+      
+      if (permitted) {
+        const hasToken = await hasNativePushTokenInDb();
+        console.log('[UnifiedPush] initializePushNotifications - has token in DB:', hasToken);
+        
+        if (!hasToken) {
+          console.log('[UnifiedPush] Permission granted but no token in DB, auto-registering...');
+          const token = await registerNativePushNotifications();
+          if (token) {
+            console.log('[UnifiedPush] Auto-registration got token, saving...');
+            try {
+              await saveNativePushToken(token);
+              console.log('[UnifiedPush] ✅ Auto-registered FCM token successfully!');
+            } catch (saveError) {
+              console.error('[UnifiedPush] Failed to save auto-registered token:', saveError);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[UnifiedPush] Error in auto-registration check:', error);
+    }
   }
 };
