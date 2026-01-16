@@ -168,6 +168,32 @@ export default function Home() {
 
       // Check which jobs the user has accepted
       if (user && transformedJobs.length > 0) {
+        // Fetch accepted jobs from external API
+        let acceptedOrderNumbers = new Set<string>();
+        try {
+          const acceptedResponse = await fetch(
+            `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+              }
+            }
+          );
+          
+          if (acceptedResponse.ok) {
+            const acceptedResult = await acceptedResponse.json();
+            if (acceptedResult.success && acceptedResult.data) {
+              acceptedOrderNumbers = new Set(
+                acceptedResult.data.map((job: any) => job.order_number)
+              );
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching accepted jobs:', err);
+        }
+
+        // Also check local job_applications table
         const { data: applications } = await supabase
           .from('job_applications')
           .select('job_id, payment_completed_at')
@@ -185,16 +211,17 @@ export default function Home() {
             if (!job.start_date) return true; // Keep jobs without date
             
             // Combine date and time to create full datetime
-            // pickup_time may already include seconds (e.g., "18:40:00") or not (e.g., "18:40")
             const time = job.pickup_time || '23:59:59';
-            const normalizedTime = time.length === 5 ? `${time}:00` : time; // Add seconds if missing
+            const normalizedTime = time.length === 5 ? `${time}:00` : time;
             const pickupDateTime = new Date(`${job.start_date}T${normalizedTime}`);
             return pickupDateTime >= now;
           });
         };
 
+        // Filter out: completed jobs, accepted via external API, and past jobs
         const availableJobs = filterPastJobs(transformedJobs)
           .filter(job => !completedJobIds.has(job.id))
+          .filter(job => !acceptedOrderNumbers.has(job.order_code)) // Filter by order_code from external API
           .map(job => ({
             ...job,
             isAccepted: acceptedJobIds.has(job.id)
