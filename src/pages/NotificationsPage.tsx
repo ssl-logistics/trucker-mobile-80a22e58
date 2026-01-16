@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface Notification {
   id: string;
@@ -228,18 +229,28 @@ export default function NotificationsPage() {
       );
     }
 
-    // Navigate to home and open job detail modal by order_code
+    // Navigate to job detail page directly
     if (notification.reference_type === 'job' && notification.reference_id) {
       // Fetch job to get order_code
-      const { data: jobData } = await supabase
+      const { data: jobData, error } = await supabase
         .from('jobs')
         .select('order_code')
         .eq('id', notification.reference_id)
-        .single();
+        .maybeSingle();
       
-      if (jobData?.order_code) {
-        navigate('/home', { state: { openJobOrderCode: jobData.order_code } });
+      if (error || !jobData?.order_code) {
+        // Job not found - show message
+        console.log('Job not found for notification:', notification.reference_id);
+        toast({
+          title: t('jobDetail.notFound') || 'ไม่พบข้อมูลงาน',
+          description: t('jobDetail.jobMayBeDeleted') || 'งานนี้อาจถูกลบหรือไม่มีอยู่ในระบบแล้ว',
+          variant: 'destructive',
+        });
+        return;
       }
+      
+      // Navigate to job detail page using order_code (which JobDetailPage expects)
+      navigate(`/job/${jobData.order_code}`);
     } else {
       // For non-job notifications, go to notification detail
       navigate(`/notification/${notification.id}`);
