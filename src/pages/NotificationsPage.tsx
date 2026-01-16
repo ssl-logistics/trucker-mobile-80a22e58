@@ -84,13 +84,15 @@ export default function NotificationsPage() {
           return;
         }
 
-        // Create a map of job IDs to their datetime
-        const now = new Date();
+        // Create a set of job IDs with past pickup dates
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Compare dates only, not time
         const pastJobIds = new Set<string>();
         
         jobsData?.forEach(job => {
-          const jobDateTime = new Date(`${job.start_date}T${job.start_time}`);
-          if (jobDateTime < now) {
+          const pickupDate = new Date(job.start_date);
+          pickupDate.setHours(0, 0, 0, 0);
+          if (pickupDate < today) {
             pastJobIds.add(job.id);
           }
         });
@@ -137,9 +139,12 @@ export default function NotificationsPage() {
               .single();
             
             if (jobData) {
-              const jobDateTime = new Date(`${jobData.start_date}T${jobData.start_time}`);
-              if (jobDateTime < new Date()) {
-                // Job is in the past, don't add this notification
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const pickupDate = new Date(jobData.start_date);
+              pickupDate.setHours(0, 0, 0, 0);
+              if (pickupDate < today) {
+                // Pickup date is in the past, don't add this notification
                 return;
               }
             }
