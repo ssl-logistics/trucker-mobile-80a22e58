@@ -6,6 +6,7 @@ import {
   setupNativePushListeners,
   unregisterNativePushNotifications,
   checkNativePushStatus,
+  hasNativePushTokenInDb,
   openNotificationSettings,
   isNotificationPermissionDenied,
 } from './capacitorPushNotifications';
@@ -120,7 +121,10 @@ export const isPushEnabled = async (): Promise<boolean> => {
 
   try {
     if (isNativePlatform()) {
-      return await checkNativePushStatus();
+      // For native: "enabled" means permission granted AND we have a saved FCM token in DB
+      const permitted = await checkNativePushStatus();
+      if (!permitted) return false;
+      return await hasNativePushTokenInDb();
     } else {
       return await checkPushSubscriptionStatus();
     }
