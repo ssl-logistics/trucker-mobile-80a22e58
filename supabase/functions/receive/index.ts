@@ -281,33 +281,42 @@ serve(async (req) => {
     console.log('Successfully upserted job:', upsertedJob.id);
 
     // Create notification in database for new job
+    // Only create if job start_date/start_time is not in the past
     try {
-      console.log('Creating notification for new job...');
+      // Check if job datetime is in the past
+      const jobDateTime = new Date(`${upsertedJob.start_date}T${upsertedJob.start_time}`);
+      const now = new Date();
       
-      const notificationData = {
-        user_id: null, // Broadcast to all users
-        title_th: '📦 งานใหม่เข้ามาแล้ว!',
-        title_en: '📦 New Job Available!',
-        title_ko: '📦 새로운 작업이 있습니다!',
-        title_zh: '📦 新工作已到达！',
-        description_th: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-        description_en: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-        description_ko: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-        description_zh: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-        notification_type: 'new_job',
-        reference_id: upsertedJob.id,
-        reference_type: 'job',
-        is_read: false,
-      };
-
-      const { error: notifError } = await supabase
-        .from('notifications')
-        .insert(notificationData);
-
-      if (notifError) {
-        console.error('Error creating notification:', notifError);
+      if (jobDateTime < now) {
+        console.log(`Skipping notification creation - job datetime is in the past: ${jobDateTime.toISOString()} < ${now.toISOString()}`);
       } else {
-        console.log('Notification created successfully');
+        console.log('Creating notification for new job...');
+        
+        const notificationData = {
+          user_id: null, // Broadcast to all users
+          title_th: '📦 งานใหม่เข้ามาแล้ว!',
+          title_en: '📦 New Job Available!',
+          title_ko: '📦 새로운 작업이 있습니다!',
+          title_zh: '📦 新工作已到达！',
+          description_th: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          description_en: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          description_ko: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          description_zh: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          notification_type: 'new_job',
+          reference_id: upsertedJob.id,
+          reference_type: 'job',
+          is_read: false,
+        };
+
+        const { error: notifError } = await supabase
+          .from('notifications')
+          .insert(notificationData);
+
+        if (notifError) {
+          console.error('Error creating notification:', notifError);
+        } else {
+          console.log('Notification created successfully');
+        }
       }
     } catch (notifError) {
       console.error('Error creating notification:', notifError);
