@@ -265,43 +265,14 @@ export default function Home() {
       // Get driver phone from user object
       const driverPhone = user.phone_number || user.phone || '';
       
-      // Get vehicle info - first try from user object (external API), then fallback to Supabase
-      let licensePlate = '';
-      let vehicleType = '';
-      let vehicleBrand = '';
-
-      // Check if user has vehicle data from external API (like VehicleInfoPage does)
-      if (user.plate_number) {
-        const province = (user.plate_province || '').trim();
-        const number = (user.plate_number || '').trim();
-        licensePlate = [province, number].filter(Boolean).join(' ').trim();
-        vehicleType = (user.vehicle_type || '').trim();
-        vehicleBrand = (user.vehicle_brand || '').trim();
-        console.log('Using vehicle data from user object:', { licensePlate, vehicleType, vehicleBrand });
-      } else {
-        // Fallback to Supabase vehicles table
-        const { data: vehicleData, error: vehicleError } = await supabase
-          .from('vehicles')
-          .select('plate_number, plate_province, vehicle_type, vehicle_brand, updated_at, created_at')
-          .eq('driver_id', user.id)
-          .order('updated_at', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (vehicleError) {
-          console.error('Error loading vehicle info:', vehicleError);
-        }
-
-        if (vehicleData) {
-          const province = (vehicleData.plate_province || '').trim();
-          const number = (vehicleData.plate_number || '').trim();
-          licensePlate = [province, number].filter(Boolean).join(' ').trim();
-          vehicleType = (vehicleData.vehicle_type || '').trim();
-          vehicleBrand = (vehicleData.vehicle_brand || '').trim();
-          console.log('Using vehicle data from Supabase:', { licensePlate, vehicleType, vehicleBrand });
-        }
-      }
+      // Get vehicle info from user object (from login API)
+      const province = (user.plate_province || '').trim();
+      const number = (user.plate_number || '').trim();
+      const licensePlate = [province, number].filter(Boolean).join(' ').trim();
+      const vehicleType = (user.vehicle_type || '').trim();
+      const vehicleBrand = (user.vehicle_brand || '').trim();
+      
+      console.log('Vehicle data from user:', { licensePlate, vehicleType, vehicleBrand });
 
       // Call external API to accept job
       const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/accept-express-rent-job', {
