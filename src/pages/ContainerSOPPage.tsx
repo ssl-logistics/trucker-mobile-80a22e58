@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon } from "lucide-react";
+import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,8 @@ import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
+import { useOCR } from "@/hooks/useOCR";
+import { OCRInputField, OCRStatusBadge } from "@/components/ocr/OCRInputField";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +37,8 @@ interface JobDetail {
   container_checkpoint: string;
   container_number: string;
   seal_number: string;
+  container_number_2?: string;
+  seal_number_2?: string;
   start_date: string;
   start_time: string;
 }
@@ -44,6 +48,8 @@ const ContainerSOPPage = () => {
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { extractFromImage, extracting } = useOCR();
+  
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -52,6 +58,17 @@ const ContainerSOPPage = () => {
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
+  
+  // OCR fields
+  const [containerNumber, setContainerNumber] = useState("");
+  const [sealNumber, setSealNumber] = useState("");
+  const [containerNumber2, setContainerNumber2] = useState("");
+  const [sealNumber2, setSealNumber2] = useState("");
+  const [ocrContainerNumber, setOcrContainerNumber] = useState<string | null>(null);
+  const [ocrSealNumber, setOcrSealNumber] = useState<string | null>(null);
+  const [ocrContainerNumber2, setOcrContainerNumber2] = useState<string | null>(null);
+  const [ocrSealNumber2, setOcrSealNumber2] = useState<string | null>(null);
+  const [ocrError, setOcrError] = useState<string | null>(null);
 
   useEffect(() => {
     if (jobId && user) {
@@ -89,7 +106,7 @@ const ContainerSOPPage = () => {
       input.capture = 'environment';
     }
     
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         setPhotoFile(file);
@@ -98,6 +115,32 @@ const ContainerSOPPage = () => {
           setPhotoPreview(reader.result as string);
         };
         reader.readAsDataURL(file);
+        
+        // Run OCR extraction
+        setOcrError(null);
+        const result = await extractFromImage(file, 'container_seal');
+        
+        if (result.success && result.data) {
+          if (result.data.container_number) {
+            setOcrContainerNumber(result.data.container_number);
+          }
+          if (result.data.seal_number) {
+            setOcrSealNumber(result.data.seal_number);
+          }
+          if (result.data.container_number_2) {
+            setOcrContainerNumber2(result.data.container_number_2);
+          }
+          if (result.data.seal_number_2) {
+            setOcrSealNumber2(result.data.seal_number_2);
+          }
+          
+          toast({
+            title: "OCR สำเร็จ",
+            description: "ตรวจสอบและยืนยันข้อมูลที่อ่านได้",
+          });
+        } else if (result.error) {
+          setOcrError(result.error);
+        }
       }
     };
     
@@ -161,13 +204,17 @@ const ContainerSOPPage = () => {
 
       if (updateError) throw updateError;
 
-      // Send job status update
+      // Send job status update with container info
       await sendJobStatus({
         jobId,
         orderCode: jobDetail.order_code,
         userId: user.id,
         status: 'container_sop_completed',
-        sequenceNumber: 1 // Container checkpoint
+        sequenceNumber: 1, // Container checkpoint
+        containerNumber: containerNumber || undefined,
+        sealNumber: sealNumber || undefined,
+        containerNumber2: containerNumber2 || undefined,
+        sealNumber2: sealNumber2 || undefined,
       });
 
       toast({
@@ -245,7 +292,7 @@ const ContainerSOPPage = () => {
           
           <button
             onClick={() => setShowPhotoDrawer(true)}
-            className="w-full h-64 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-white"
+            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-white"
           >
             {photoPreview ? (
               <img 
@@ -262,7 +309,77 @@ const ContainerSOPPage = () => {
               </>
             )}
           </button>
+          
+          {/* OCR Status */}
+          {(extracting || ocrError || ocrContainerNumber) && (
+            <div className="mt-2">
+              <OCRStatusBadge 
+                isExtracting={extracting} 
+                hasResult={!!(ocrContainerNumber || ocrSealNumber)} 
+                error={ocrError || undefined}
+              />
+            </div>
+          )}
         </div>
+        
+        {/* OCR Input Fields */}
+        {photoFile && (
+          <Card className="p-4 space-y-4 bg-white">
+            <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
+              <Scan className="w-4 h-4" />
+              ข้อมูลเลขตู้ / เลขซิล
+            </div>
+            
+            <OCRInputField
+              id="container-number"
+              label="เลขตู้ (Container No.)"
+              value={containerNumber}
+              onChange={setContainerNumber}
+              ocrValue={ocrContainerNumber}
+              isExtracting={extracting}
+              placeholder="เช่น MSCU1234567"
+            />
+            
+            <OCRInputField
+              id="seal-number"
+              label="เลขซิล (Seal No.)"
+              value={sealNumber}
+              onChange={setSealNumber}
+              ocrValue={ocrSealNumber}
+              isExtracting={extracting}
+              placeholder="เช่น TH123456"
+            />
+            
+            {/* Second container/seal for dual shipments */}
+            {(ocrContainerNumber2 || containerNumber2) && (
+              <>
+                <div className="border-t pt-4">
+                  <p className="text-xs text-muted-foreground mb-3">ตู้ที่ 2 (ถ้ามี)</p>
+                </div>
+                
+                <OCRInputField
+                  id="container-number-2"
+                  label="เลขตู้ที่ 2"
+                  value={containerNumber2}
+                  onChange={setContainerNumber2}
+                  ocrValue={ocrContainerNumber2}
+                  isExtracting={extracting}
+                  placeholder="เช่น MSCU7654321"
+                />
+                
+                <OCRInputField
+                  id="seal-number-2"
+                  label="เลขซิลที่ 2"
+                  value={sealNumber2}
+                  onChange={setSealNumber2}
+                  ocrValue={ocrSealNumber2}
+                  isExtracting={extracting}
+                  placeholder="เช่น TH654321"
+                />
+              </>
+            )}
+          </Card>
+        )}
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
