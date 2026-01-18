@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2 } from "lucide-react";
 import confirmSuccessIcon from "@/assets/confirm-success-icon.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOCR } from "@/hooks/useOCR";
 
 interface ExpenseItem {
   id: string;
@@ -34,6 +35,9 @@ interface ExpenseItem {
   amount: string;
   receiptPhoto: File | null;
   receiptPreview: string | null;
+  ocrAmount: number | null;
+  ocrRawText: string | null;
+  ocrExtracting: boolean;
 }
 
 const AddExpensePage = () => {
@@ -43,6 +47,7 @@ const AddExpensePage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { extractFromImage } = useOCR();
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
   
   const expenseTypes = [
@@ -52,7 +57,7 @@ const AddExpensePage = () => {
     { value: "other", label: t('expense.other') },
   ];
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
-    { id: "1", type: undefined, customType: "", amount: "", receiptPhoto: null, receiptPreview: null },
+    { id: "1", type: undefined, customType: "", amount: "", receiptPhoto: null, receiptPreview: null, ocrAmount: null, ocrRawText: null, ocrExtracting: false },
   ]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +70,9 @@ const AddExpensePage = () => {
       amount: "",
       receiptPhoto: null,
       receiptPreview: null,
+      ocrAmount: null,
+      ocrRawText: null,
+      ocrExtracting: false,
     };
     setExpenses([...expenses, newExpense]);
   };
@@ -81,7 +89,7 @@ const AddExpensePage = () => {
     ));
   };
 
-  const handlePhotoSelect = (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -93,7 +101,43 @@ const AddExpensePage = () => {
         ));
       };
       reader.readAsDataURL(file);
+      
+      // Run OCR extraction for amount
+      setExpenses(prev => prev.map(exp => 
+        exp.id === id 
+          ? { ...exp, ocrExtracting: true, ocrAmount: null, ocrRawText: null } 
+          : exp
+      ));
+      
+      const result = await extractFromImage(file, 'expense_amount');
+      
+      setExpenses(prev => prev.map(exp => {
+        if (exp.id === id) {
+          if (result.success && result.data?.amount) {
+            toast({
+              title: "OCR สำเร็จ",
+              description: `พบจำนวนเงิน: ${result.data.amount} บาท`,
+            });
+            return { 
+              ...exp, 
+              ocrExtracting: false, 
+              ocrAmount: result.data.amount,
+              ocrRawText: result.data.raw_text || null
+            };
+          }
+          return { ...exp, ocrExtracting: false };
+        }
+        return exp;
+      }));
     }
+  };
+  
+  const handleApplyOCRAmount = (id: string) => {
+    setExpenses(prev => prev.map(exp => 
+      exp.id === id && exp.ocrAmount !== null
+        ? { ...exp, amount: String(exp.ocrAmount), ocrAmount: null } 
+        : exp
+    ));
   };
 
   const calculateTotal = () => {
@@ -305,20 +349,6 @@ const AddExpensePage = () => {
               </div>
             )}
 
-            {/* Amount */}
-            <div className="space-y-2">
-              <Label htmlFor={`amount-${expense.id}`}>
-                {t('expense.price')} <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id={`amount-${expense.id}`}
-                type="number"
-                placeholder="0"
-                value={expense.amount}
-                onChange={(e) => handleExpenseChange(expense.id, "amount", e.target.value)}
-              />
-            </div>
-
             {/* Receipt Photo */}
             <div className="space-y-2">
               <Label>
@@ -357,6 +387,57 @@ const AddExpensePage = () => {
                   )}
                 </label>
               </div>
+              
+              {/* OCR Extracting Status */}
+              {expense.ocrExtracting && (
+                <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                  <span className="text-sm text-blue-700">กำลังอ่านจำนวนเงินจากรูป...</span>
+                </div>
+              )}
+              
+              {/* OCR Amount Result */}
+              {expense.ocrAmount !== null && !expense.ocrExtracting && (
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-green-700 flex items-center gap-1">
+                        <Scan className="w-3 h-3" />
+                        OCR พบจำนวนเงิน:
+                      </p>
+                      <p className="text-lg font-bold text-green-800">
+                        ฿{expense.ocrAmount.toLocaleString()}
+                      </p>
+                      {expense.ocrRawText && (
+                        <p className="text-xs text-green-600 mt-1">"{expense.ocrRawText}"</p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => handleApplyOCRAmount(expense.id)}
+                    >
+                      ใช้ค่านี้
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Amount */}
+            <div className="space-y-2">
+              <Label htmlFor={`amount-${expense.id}`}>
+                {t('expense.price')} <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id={`amount-${expense.id}`}
+                type="number"
+                placeholder="0"
+                value={expense.amount}
+                onChange={(e) => handleExpenseChange(expense.id, "amount", e.target.value)}
+                className={expense.ocrAmount !== null ? "border-green-300 ring-1 ring-green-200" : ""}
+              />
             </div>
 
             {index < expenses.length - 1 && (
