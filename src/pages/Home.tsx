@@ -308,6 +308,29 @@ export default function Home() {
         title: t('home.accept_success'),
         description: `${t('home.accept_success_desc')} ${selectedJob.order_code}`
       });
+
+      // Create tracking room after successful job acceptance
+      try {
+        const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
+          body: {
+            truck_plate: licensePlate,
+            order_code: selectedJob.order_code,
+            origin_lat: 0, // API job doesn't have coordinates, set to 0 for now
+            origin_lng: 0,
+            destination_lat: 0,
+            destination_lng: 0
+          }
+        });
+
+        if (trackingResponse.error) {
+          console.error('Error creating tracking room:', trackingResponse.error);
+        } else {
+          console.log('Tracking room created:', trackingResponse.data);
+        }
+      } catch (trackingError) {
+        console.error('Error creating tracking room:', trackingError);
+      }
+
       setConfirmDialogOpen(false);
       loadJobs();
     } catch (err) {
