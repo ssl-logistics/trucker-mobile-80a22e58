@@ -31,6 +31,10 @@ interface Job {
   goods_type: string | null;
   goods_quantity: string | null;
   isAccepted?: boolean;
+  origin_lat?: number;
+  origin_lng?: number;
+  destination_lat?: number;
+  destination_lng?: number;
 }
 
 export default function Home() {
@@ -315,10 +319,10 @@ export default function Home() {
           body: {
             truck_plate: licensePlate,
             order_code: selectedJob.order_code,
-            origin_lat: 0, // API job doesn't have coordinates, set to 0 for now
-            origin_lng: 0,
-            destination_lat: 0,
-            destination_lng: 0
+            origin_lat: selectedJob.origin_lat || 0,
+            origin_lng: selectedJob.origin_lng || 0,
+            destination_lat: selectedJob.destination_lat || 0,
+            destination_lng: selectedJob.destination_lng || 0
           }
         });
 
