@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.create-tracking-room]
 verify_jwt = false
+
+[functions.update-truck-position]
+verify_jwt = false
