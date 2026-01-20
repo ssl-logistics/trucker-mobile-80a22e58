@@ -315,15 +315,18 @@ export default function Home() {
 
       // Create tracking room after successful job acceptance
       try {
+        const trackingBody = {
+          truck_plate: licensePlate,
+          order_code: selectedJob.order_code,
+          origin_lat: selectedJob.origin_lat || 0,
+          origin_lng: selectedJob.origin_lng || 0,
+          destination_lat: selectedJob.destination_lat || 0,
+          destination_lng: selectedJob.destination_lng || 0
+        };
+        console.log('📍 create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
+        
         const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
-          body: {
-            truck_plate: licensePlate,
-            order_code: selectedJob.order_code,
-            origin_lat: selectedJob.origin_lat || 0,
-            origin_lng: selectedJob.origin_lng || 0,
-            destination_lat: selectedJob.destination_lat || 0,
-            destination_lng: selectedJob.destination_lng || 0
-          }
+          body: trackingBody
         });
 
         if (trackingResponse.error) {
