@@ -11,6 +11,7 @@ import GoogleMap from '@/components/GoogleMap';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate } from '@/lib/dateUtils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { startGpsTracking, useGpsTracking } from '@/hooks/useGpsTracking';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 interface JobDetail {
@@ -51,6 +52,9 @@ export default function PickupDetailPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
   const [sopPhotoUrl, setSopPhotoUrl] = useState<string | null>(null);
+  
+  // Initialize GPS tracking hook
+  const { startTracking } = useGpsTracking();
   
   useEffect(() => {
     loadJobDetail();
@@ -296,6 +300,13 @@ export default function PickupDetailPage() {
         status: 'pickup_checked_in',
         sequenceNumber: 2
       });
+
+      // Start GPS tracking after successful check-in
+      if (roomCode) {
+        startGpsTracking(roomCode, job.order_code);
+        startTracking();
+        console.log('[PickupDetailPage] GPS tracking started for room:', roomCode);
+      }
       
       toast({
         title: t('pickup.checkInSuccess'),
