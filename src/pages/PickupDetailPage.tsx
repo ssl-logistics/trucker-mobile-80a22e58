@@ -239,16 +239,19 @@ export default function PickupDetailPage() {
           if (!trackingResponse.error && trackingResponse.data?.room?.room_code) {
             roomCode = trackingResponse.data.room.room_code;
             localStorage.setItem(roomCodeKey, roomCode);
-          } else if (trackingResponse.error) {
+          } else {
             // If 409 conflict, extract existing room_code from error details
-            const errorDetails = trackingResponse.error?.message || '';
-            const roomMatch = errorDetails.match(/room '(RM[A-Z0-9]+)'/);
+            // Response format: { error: "...", details: { error: "...", details: "...room 'RMXXXXXX'" } }
+            const errorData = trackingResponse.data || {};
+            const detailsStr = errorData?.details?.details || errorData?.details || '';
+            const roomMatch = String(detailsStr).match(/room '(RM[A-Z0-9]+)'/);
+            
             if (roomMatch && roomMatch[1]) {
               roomCode = roomMatch[1];
               localStorage.setItem(roomCodeKey, roomCode);
               console.log('📍 Extracted existing room_code from conflict:', roomCode);
             } else {
-              console.warn('Failed to create tracking room (fallback):', trackingResponse.error);
+              console.warn('Failed to create tracking room (fallback):', trackingResponse.error || errorData);
             }
           }
         } catch (trackingError) {
