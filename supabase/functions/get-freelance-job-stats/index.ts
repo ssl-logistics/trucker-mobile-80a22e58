@@ -96,17 +96,24 @@ serve(async (req) => {
     }
 
     // Process jobs and check-ins data
-    const jobs = jobsData.data || jobsData || [];
+    const allJobs = jobsData.data || jobsData || [];
     const checkins = checkinsData.data || checkinsData || [];
 
+    // Filter only "งานด่วน" (urgent jobs) - this page only shows urgent jobs
+    const jobs = allJobs.filter((job: any) => {
+      const jobType = job.job_type || job.type || '';
+      return jobType === 'งานด่วน';
+    });
+
     // Log all job details for debugging
-    console.log('All jobs from API:', jobs.map((job: any, index: number) => ({
+    console.log('All jobs from API:', allJobs.length, 'Urgent jobs only:', jobs.length);
+    console.log('Urgent jobs:', jobs.map((job: any, index: number) => ({
       index: index + 1,
       id: job.id,
       order_number: job.order_number || job.order_code || job.job_order_number || 'N/A',
+      job_type: job.job_type || job.type || 'N/A',
       status: job.status || job.job_status || 'N/A',
       pickup_date: job.sender_pickup_date || job.pickup_date || job.start_date || 'N/A',
-      delivery_confirmed: job.delivery_confirmed || false,
     })));
 
     // Build set of transport_order_ids that have delivery_confirmed
