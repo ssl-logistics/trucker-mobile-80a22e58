@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 
 const TRACKING_INTERVAL_MS = 1000; // 1 second
-const UPDATE_POSITION_URL = 'https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/update-truck-position';
+// Use our edge function which forwards to external API with proper API key
+const UPDATE_POSITION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-truck-position`;
 
 interface TrackingState {
   isTracking: boolean;
