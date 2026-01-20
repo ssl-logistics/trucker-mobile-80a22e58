@@ -1217,8 +1217,17 @@ const thTranslations: Record<string, string> = {
   'province.samutprakan': 'สมุทรปราการ',
   
   // Vehicle Types
-  'vehicleType.10wheel': '10 ล้อ',
+  'vehicleType.4wheel': '4 ล้อ',
   'vehicleType.6wheel': '6 ล้อ',
+  'vehicleType.10wheel': '10 ล้อ',
+  'vehicleType.10wheelBox': '10 ล้อตู้',
+  'vehicleType.10wheelTrailer': '10 ล้อพ่วง',
+  'vehicleType.12wheel': '12 ล้อ',
+  'vehicleType.18wheel': '18 ล้อ',
+  'vehicleType.22wheel': '22 ล้อ',
+  'vehicleType.40wheel': '40 ล้อ',
+  'vehicleType.tractor': 'หัวลาก',
+  'vehicleType.trailer': 'พ่วง',
   
   // Fuel Types
   'fuelType.diesel': 'ดีเซล',
@@ -2422,8 +2431,17 @@ const enTranslations: Record<string, string> = {
   'province.samutprakan': 'Samut Prakan',
   
   // Vehicle Types
-  'vehicleType.10wheel': '10 Wheels',
+  'vehicleType.4wheel': '4 Wheels',
   'vehicleType.6wheel': '6 Wheels',
+  'vehicleType.10wheel': '10 Wheels',
+  'vehicleType.10wheelBox': '10 Wheels Box',
+  'vehicleType.10wheelTrailer': '10 Wheels Trailer',
+  'vehicleType.12wheel': '12 Wheels',
+  'vehicleType.18wheel': '18 Wheels',
+  'vehicleType.22wheel': '22 Wheels',
+  'vehicleType.40wheel': '40 Wheels',
+  'vehicleType.tractor': 'Tractor',
+  'vehicleType.trailer': 'Trailer',
   
   // Fuel Types
   'fuelType.diesel': 'Diesel',
@@ -3694,8 +3712,17 @@ const koTranslations: Record<string, string> = {
   'province.samutprakan': '사뭇프라칸',
   
   // Vehicle Types
-  'vehicleType.10wheel': '10륜',
+  'vehicleType.4wheel': '4륜',
   'vehicleType.6wheel': '6륜',
+  'vehicleType.10wheel': '10륜',
+  'vehicleType.10wheelBox': '10륜 박스',
+  'vehicleType.10wheelTrailer': '10륜 트레일러',
+  'vehicleType.12wheel': '12륜',
+  'vehicleType.18wheel': '18륜',
+  'vehicleType.22wheel': '22륜',
+  'vehicleType.40wheel': '40륜',
+  'vehicleType.tractor': '트랙터',
+  'vehicleType.trailer': '트레일러',
   
   // Fuel Types
   'fuelType.diesel': '디젤',
@@ -4958,8 +4985,17 @@ const zhTranslations: Record<string, string> = {
   'province.samutprakan': '北榄',
   
   // Vehicle Types
-  'vehicleType.10wheel': '10轮',
+  'vehicleType.4wheel': '4轮',
   'vehicleType.6wheel': '6轮',
+  'vehicleType.10wheel': '10轮',
+  'vehicleType.10wheelBox': '10轮箱式',
+  'vehicleType.10wheelTrailer': '10轮拖车',
+  'vehicleType.12wheel': '12轮',
+  'vehicleType.18wheel': '18轮',
+  'vehicleType.22wheel': '22轮',
+  'vehicleType.40wheel': '40轮',
+  'vehicleType.tractor': '拖拉机',
+  'vehicleType.trailer': '拖车',
   
   // Fuel Types
   'fuelType.diesel': '柴油',

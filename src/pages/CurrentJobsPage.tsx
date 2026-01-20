@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatDate as formatThaiDate } from '@/lib/dateUtils';
+import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 // Interface for accepted jobs from external API
 interface AcceptedJob {
   id: string;
@@ -244,7 +245,7 @@ export default function CurrentJobsPage() {
                     
                     {job.vehicle_type && (
                       <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-                        {job.vehicle_type}
+                        {getTranslatedVehicleType(job.vehicle_type, t)}
                       </Badge>
                     )}
 
