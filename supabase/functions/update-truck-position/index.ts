@@ -66,10 +66,28 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.error('External API error:', responseData);
+
+      // If room is not active, return 200 so the client can stop tracking without treating this as a fatal error
+      if (
+        response.status === 404 &&
+        (responseData?.error === 'Room not found or inactive' ||
+          responseData?.details?.error === 'Room not found or inactive')
+      ) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            should_stop: true,
+            error: 'Room not found or inactive',
+            details: responseData,
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'Failed to update truck position',
-          details: responseData 
+          details: responseData,
         }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
