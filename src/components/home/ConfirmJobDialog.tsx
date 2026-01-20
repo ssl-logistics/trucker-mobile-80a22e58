@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +21,10 @@ interface ConfirmJobDialogProps {
     employer_name: string;
     destination_company_name: string | null;
   } | null;
+  isLoading?: boolean;
 }
 
-export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job }: ConfirmJobDialogProps) => {
+export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job, isLoading = false }: ConfirmJobDialogProps) => {
   const { t } = useLanguage();
   
   return (
@@ -50,14 +52,25 @@ export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job }: Confirm
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-row gap-4 mt-4 sm:justify-center">
-          <AlertDialogCancel className="flex-1 m-0 border-0 text-muted-foreground hover:text-foreground hover:bg-transparent">
+          <AlertDialogCancel 
+            className="flex-1 m-0 border-0 text-muted-foreground hover:text-foreground hover:bg-transparent"
+            disabled={isLoading}
+          >
             {t('confirm.cancel')}
           </AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm} 
-            className="flex-1 m-0 bg-transparent text-green-600 hover:bg-transparent hover:text-green-700 font-semibold"
+            className="flex-1 m-0 bg-transparent text-green-600 hover:bg-transparent hover:text-green-700 font-semibold disabled:opacity-50"
+            disabled={isLoading}
           >
-            {t('confirm.confirm')}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                กำลังดำเนินการ...
+              </>
+            ) : (
+              t('confirm.confirm')
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
