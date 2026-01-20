@@ -209,6 +209,40 @@ export default function PickupDetailPage() {
         throw new Error('Check-in failed');
       }
 
+      // Get room_code from localStorage or fetch tracking rooms
+      const roomCode = localStorage.getItem(`room_code_${job.order_code}`);
+      
+      if (roomCode) {
+        // Call truck-arrival API to notify arrival at origin
+        try {
+          const arrivalResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/truck-arrival`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                room_code: roomCode,
+                arrival_type: 'origin'
+              })
+            }
+          );
+          
+          if (arrivalResponse.ok) {
+            const arrivalResult = await arrivalResponse.json();
+            console.log('Truck arrival notification sent:', arrivalResult);
+          } else {
+            console.warn('Failed to send truck arrival notification');
+          }
+        } catch (arrivalError) {
+          console.error('Error sending truck arrival notification:', arrivalError);
+          // Don't fail the check-in if arrival notification fails
+        }
+      } else {
+        console.log('No room_code found for order:', job.order_code);
+      }
+
       // Also send job status update
       await sendJobStatus({
         jobId: job.id,

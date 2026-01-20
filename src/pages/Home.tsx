@@ -338,6 +338,11 @@ export default function Home() {
           console.error('Error creating tracking room:', trackingResponse.error);
         } else {
           console.log('Tracking room created:', trackingResponse.data);
+          // Save room_code to localStorage for later use (check-in, tracking)
+          if (trackingResponse.data?.room?.room_code) {
+            localStorage.setItem(`room_code_${selectedJob.order_code}`, trackingResponse.data.room.room_code);
+            console.log('Saved room_code:', trackingResponse.data.room.room_code);
+          }
         }
       } catch (trackingError) {
         console.error('Error creating tracking room:', trackingError);
