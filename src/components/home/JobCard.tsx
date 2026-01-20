@@ -285,6 +285,17 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
               </div>
             </div>
 
+            {/* Required Truck Type */}
+            {job.equipment_list && (
+              <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+                <Truck className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">ประเภทรถที่ต้องการ</p>
+                  <p className="font-medium">{job.equipment_list}</p>
+                </div>
+              </div>
+            )}
+
             {/* Goods Info */}
             <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
               <div>
