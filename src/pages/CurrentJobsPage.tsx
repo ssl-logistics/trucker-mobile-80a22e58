@@ -242,25 +242,11 @@ export default function CurrentJobsPage() {
                       <span className="font-medium">{job.sender_name}</span>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      {job.vehicle_type && (
-                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-                          {job.vehicle_type}
-                        </Badge>
-                      )}
-                      <Badge variant="secondary" className={cn(
-                        job.status === 'in_transit' ? 'bg-blue-50 text-blue-700' :
-                        job.status === 'in_progress' ? 'bg-amber-50 text-amber-700' : 
-                        job.status === 'completed' ? 'bg-green-50 text-green-700' : 
-                        job.status === 'delivered' ? 'bg-purple-50 text-purple-700' :
-                        'bg-gray-50 text-gray-700'
-                      )}>
-                        {job.status === 'in_transit' ? t('jobStatus.inTransit') :
-                         job.status === 'in_progress' ? t('jobStatus.inProgress') : 
-                         job.status === 'completed' ? t('jobStatus.completed') : 
-                         job.status === 'delivered' ? t('jobStatus.delivered') : job.status}
+                    {job.vehicle_type && (
+                      <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
+                        {job.vehicle_type}
                       </Badge>
-                    </div>
+                    )}
 
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 flex gap-2">
