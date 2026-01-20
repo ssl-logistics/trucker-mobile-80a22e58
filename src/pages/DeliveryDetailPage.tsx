@@ -11,6 +11,7 @@ import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
+import { useGpsTracking } from "@/hooks/useGpsTracking";
 import {
   Dialog,
   DialogContent,
@@ -94,6 +95,9 @@ export default function DeliveryDetailPage() {
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // GPS tracking hook
+  const { stopTracking } = useGpsTracking();
   
   // Get presigned URL for POD photo
   const { url: presignedPodPhotoUrl } = usePresignedImageUrl(jobApplication?.pod_photo_url);
@@ -479,6 +483,10 @@ export default function DeliveryDetailPage() {
         console.error('[DeliveryDetailPage] Error sending truck-arrival:', arrivalError);
         // Don't block check-in if arrival notification fails
       }
+
+      // Stop GPS tracking after delivery check-in
+      stopTracking();
+      console.log('[DeliveryDetailPage] GPS tracking stopped');
 
       toast({
         title: t('delivery.checkInSuccess'),
