@@ -85,6 +85,8 @@ export const PushNotificationPrompt = () => {
         const registered = await checkAndRegisterToken();
         console.log('[PushPrompt] Auto-register result:', registered);
         if (registered) {
+          // After notification permission granted, request GPS permission
+          requestGpsPermission();
           return; // Already registered, no need to show prompt
         }
       }
@@ -152,6 +154,46 @@ export const PushNotificationPrompt = () => {
 
     checkPermission();
   }, [checkAndRegisterToken]);
+
+  // Request GPS permission after notification permission is granted
+  const requestGpsPermission = async () => {
+    if (!navigator.geolocation) {
+      console.warn('[GPS] Geolocation not supported');
+      return;
+    }
+
+    // Check if GPS permission was already requested
+    const gpsRequested = localStorage.getItem('gps_permission_requested');
+    if (gpsRequested) {
+      console.log('[GPS] Permission already requested before');
+      return;
+    }
+
+    try {
+      console.log('[GPS] Requesting GPS permission...');
+      await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        });
+      });
+      console.log('[GPS] Permission granted');
+      localStorage.setItem('gps_permission_requested', 'true');
+      toast({
+        title: 'เปิดการใช้งาน GPS สำเร็จ',
+        description: 'ระบบสามารถติดตามตำแหน่งของคุณได้แล้ว',
+      });
+    } catch (error) {
+      console.warn('[GPS] Permission denied or error:', error);
+      localStorage.setItem('gps_permission_requested', 'true');
+      toast({
+        title: 'ต้องการสิทธิ์ GPS',
+        description: 'กรุณาอนุญาตให้เข้าถึงตำแหน่งเพื่อใช้งานการติดตามรถ',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Listen for app resume (when user returns from Settings)
   useEffect(() => {
