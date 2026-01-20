@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
+import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 
 interface JobApplication {
   id: string;
@@ -336,7 +337,7 @@ export default function JobHistoryPage() {
                       <div className="flex items-center gap-2">
                         {job.vehicle_type && (
                           <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-                            {job.vehicle_type}
+                            {getTranslatedVehicleType(job.vehicle_type, t)}
                           </Badge>
                         )}
                         <Badge variant="secondary" className="bg-green-50 text-green-700 hover:bg-green-50">
