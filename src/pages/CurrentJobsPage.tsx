@@ -150,13 +150,10 @@ export default function CurrentJobsPage() {
     setEndDate(undefined);
   };
 
-  // Filter jobs based on selected filters - exclude only 'completed' jobs
-  // 'delivered' status means the driver arrived at destination but may not have submitted POD yet
-  // Jobs should only go to history after POD is confirmed (status = 'completed')
-  const filteredJobs = acceptedJobs.filter(job => {
-    // Only exclude 'completed' jobs - they have finished POD
-    // 'delivered' status should still show in current jobs until POD is done
-    if (job.status === 'completed') {
+  // Filter jobs - only show urgent jobs (is_express_rent: true)
+  const filteredJobs = acceptedJobs.filter((job: any) => {
+    // Only show urgent jobs (งานด่วน)
+    if (job.is_express_rent !== true) {
       return false;
     }
 
