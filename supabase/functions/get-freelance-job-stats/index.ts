@@ -99,10 +99,19 @@ serve(async (req) => {
     const allJobs = jobsData.data || jobsData || [];
     const checkins = checkinsData.data || checkinsData || [];
 
-    // Filter only "งานด่วน" (urgent jobs) - this page only shows urgent jobs
+    // Log all job_type values to understand the data structure
+    console.log('All jobs job_type values:', allJobs.map((job: any) => ({
+      order_number: job.order_number || job.order_code,
+      job_type: job.job_type,
+      type: job.type,
+      transport_type: job.transport_type,
+    })));
+
+    // Filter only "งานด่วน" (urgent jobs) - check multiple possible field names
     const jobs = allJobs.filter((job: any) => {
       const jobType = job.job_type || job.type || '';
-      return jobType === 'งานด่วน';
+      // Accept various possible values for urgent jobs
+      return jobType === 'งานด่วน' || jobType === 'urgent' || jobType === 'express';
     });
 
     // Log all job details for debugging
