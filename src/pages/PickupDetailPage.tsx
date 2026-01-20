@@ -209,12 +209,19 @@ export default function PickupDetailPage() {
         throw new Error('Check-in failed');
       }
 
-      // Get room_code from localStorage or fetch tracking rooms
-      const roomCode = localStorage.getItem(`room_code_${job.order_code}`);
+      // Get room_code from localStorage
+      const roomCodeKey = `room_code_${job.order_code}`;
+      const roomCode = localStorage.getItem(roomCodeKey);
+      
+      console.log('🔍 Looking for room_code with key:', roomCodeKey);
+      console.log('🔍 Found room_code:', roomCode);
+      console.log('🔍 All localStorage keys:', Object.keys(localStorage));
       
       if (roomCode) {
         // Call truck-arrival API to notify arrival at origin
         try {
+          console.log('📍 Calling truck-arrival with:', { room_code: roomCode, arrival_type: 'origin' });
+          
           const arrivalResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/truck-arrival`,
             {
@@ -231,16 +238,19 @@ export default function PickupDetailPage() {
           
           if (arrivalResponse.ok) {
             const arrivalResult = await arrivalResponse.json();
-            console.log('Truck arrival notification sent:', arrivalResult);
+            console.log('✅ Truck arrival notification sent:', arrivalResult);
           } else {
-            console.warn('Failed to send truck arrival notification');
+            const errorText = await arrivalResponse.text();
+            console.warn('❌ Failed to send truck arrival notification:', errorText);
           }
         } catch (arrivalError) {
           console.error('Error sending truck arrival notification:', arrivalError);
           // Don't fail the check-in if arrival notification fails
         }
       } else {
-        console.log('No room_code found for order:', job.order_code);
+        console.warn('⚠️ No room_code found for order:', job.order_code);
+        console.warn('⚠️ This job may have been accepted before tracking was implemented.');
+        console.warn('⚠️ Please re-accept the job to create a tracking room.');
       }
 
       // Also send job status update
