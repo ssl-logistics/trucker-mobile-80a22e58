@@ -11,7 +11,7 @@ import GoogleMap from '@/components/GoogleMap';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate } from '@/lib/dateUtils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { startGpsTracking, useGpsTracking } from '@/hooks/useGpsTracking';
+import { useGpsTracking } from '@/hooks/useGpsTracking';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 interface JobDetail {
@@ -303,8 +303,8 @@ export default function PickupDetailPage() {
 
       // Start GPS tracking after successful check-in
       if (roomCode) {
-        startGpsTracking(roomCode, job.order_code);
-        startTracking();
+        // Pass roomCode and orderCode directly to startTracking
+        startTracking(roomCode, job.order_code);
         console.log('[PickupDetailPage] GPS tracking started for room:', roomCode);
       }
       

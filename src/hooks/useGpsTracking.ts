@@ -123,11 +123,17 @@ export function useGpsTracking() {
     }
   }, []);
 
-  const startTracking = useCallback(() => {
+  const startTracking = useCallback((roomCode?: string, orderCode?: string) => {
+    // If roomCode is provided, save state first
+    if (roomCode && orderCode) {
+      console.log('[GPS Tracking] Starting tracking with provided room:', roomCode);
+      saveTrackingState({ isTracking: true, roomCode, orderCode });
+    }
+    
     const state = getTrackingState();
     
     if (!state.isTracking || !state.roomCode) {
-      console.log('[GPS Tracking] Not starting - tracking disabled or no room code');
+      console.log('[GPS Tracking] Not starting - tracking disabled or no room code', state);
       return;
     }
 
