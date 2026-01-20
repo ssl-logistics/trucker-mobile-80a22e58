@@ -150,12 +150,8 @@ export default function CurrentJobsPage() {
     setEndDate(undefined);
   };
 
-  // Filter jobs - only show urgent jobs (is_express_rent: true)
+  // Filter jobs based on search and date filters
   const filteredJobs = acceptedJobs.filter((job: any) => {
-    // Only show urgent jobs (งานด่วน)
-    if (job.is_express_rent !== true) {
-      return false;
-    }
 
     // Search filter
     if (searchQuery) {
