@@ -460,6 +460,26 @@ export default function DeliveryDetailPage() {
         destinationId: destinationId
       });
 
+      // Send truck arrival notification for destination
+      try {
+        const roomCode = localStorage.getItem(`room_code_${job.order_code}`);
+        if (roomCode) {
+          console.log('[DeliveryDetailPage] Sending truck-arrival for destination:', { room_code: roomCode, arrival_type: 'destination' });
+          const arrivalResponse = await supabase.functions.invoke('truck-arrival', {
+            body: {
+              room_code: roomCode,
+              arrival_type: 'destination'
+            }
+          });
+          console.log('[DeliveryDetailPage] truck-arrival response:', arrivalResponse.data);
+        } else {
+          console.warn('[DeliveryDetailPage] No room_code found for order:', job.order_code);
+        }
+      } catch (arrivalError) {
+        console.error('[DeliveryDetailPage] Error sending truck-arrival:', arrivalError);
+        // Don't block check-in if arrival notification fails
+      }
+
       toast({
         title: t('delivery.checkInSuccess'),
         description: t('pickup.checkInSuccessMessage'),
