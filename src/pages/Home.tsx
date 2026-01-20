@@ -117,7 +117,9 @@ export default function Home() {
       // Transform API response to Job format
       const apiJobs = Array.isArray(responseData) ? responseData : (responseData?.data || []);
       
-      const transformedJobs: Job[] = apiJobs.map((item: any) => {
+      const transformedJobs: Job[] = apiJobs
+        .filter((item: any) => item.is_express_rent === true) // Only show urgent jobs (งานด่วน)
+        .map((item: any) => {
         // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
         let originLocation = item.origin || item.from_location || '';
         let destinationLocation = item.destination || item.to_location || '';
