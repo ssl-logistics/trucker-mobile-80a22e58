@@ -45,7 +45,7 @@ export function stopGpsTracking(): void {
 }
 
 // Send position update
-async function sendPositionUpdate(roomCode: string, lat: number, lng: number): Promise<boolean> {
+async function sendPositionUpdate(roomCode: string, lat: number, lng: number): Promise<{ success: boolean; shouldStop: boolean }> {
   try {
     const response = await fetch(UPDATE_POSITION_URL, {
       method: 'POST',
@@ -61,14 +61,23 @@ async function sendPositionUpdate(roomCode: string, lat: number, lng: number): P
 
     if (response.ok) {
       console.log('[GPS Tracking] Position sent:', { lat, lng });
-      return true;
+      return { success: true, shouldStop: false };
     } else {
-      console.warn('[GPS Tracking] Failed to send position:', response.status);
-      return false;
+      const errorData = await response.json().catch(() => ({}));
+      console.warn('[GPS Tracking] Failed to send position:', response.status, errorData);
+      
+      // Stop tracking if room not found or inactive
+      if (errorData?.details?.error === 'Room not found or inactive' || 
+          errorData?.error?.includes('Room not found')) {
+        console.log('[GPS Tracking] Room inactive, stopping tracking');
+        return { success: false, shouldStop: true };
+      }
+      
+      return { success: false, shouldStop: false };
     }
   } catch (error) {
     console.error('[GPS Tracking] Error sending position:', error);
-    return false;
+    return { success: false, shouldStop: false };
   }
 }
 
@@ -77,6 +86,14 @@ export function useGpsTracking() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const lastPositionRef = useRef<{ lat: number; lng: number } | null>(null);
+
+  const clearTrackingInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    stopGpsTracking();
+  }, []);
 
   const sendCurrentPosition = useCallback(async () => {
     const state = getTrackingState();
@@ -88,20 +105,28 @@ export function useGpsTracking() {
     // Get current position
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           lastPositionRef.current = { lat, lng };
           
           if (state.roomCode) {
-            sendPositionUpdate(state.roomCode, lat, lng);
+            const result = await sendPositionUpdate(state.roomCode, lat, lng);
+            if (result.shouldStop) {
+              console.log('[GPS Tracking] Auto-stopping due to room inactive');
+              clearTrackingInterval();
+            }
           }
         },
-        (error) => {
+        async (error) => {
           console.warn('[GPS Tracking] Geolocation error:', error.message);
           // If we have a last known position, send that
           if (lastPositionRef.current && state.roomCode) {
-            sendPositionUpdate(state.roomCode, lastPositionRef.current.lat, lastPositionRef.current.lng);
+            const result = await sendPositionUpdate(state.roomCode, lastPositionRef.current.lat, lastPositionRef.current.lng);
+            if (result.shouldStop) {
+              console.log('[GPS Tracking] Auto-stopping due to room inactive');
+              clearTrackingInterval();
+            }
           }
         },
         {
@@ -111,7 +136,7 @@ export function useGpsTracking() {
         }
       );
     }
-  }, []);
+  }, [clearTrackingInterval]);
 
   const startTracking = useCallback(() => {
     const state = getTrackingState();
