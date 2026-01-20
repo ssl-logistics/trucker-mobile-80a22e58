@@ -48,6 +48,7 @@ export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
 
   useEffect(() => {
@@ -275,7 +276,9 @@ export default function Home() {
     setConfirmDialogOpen(true);
   };
   const confirmJobAcceptance = async () => {
-    if (!selectedJob || !user) return;
+    if (!selectedJob || !user || isAccepting) return;
+    
+    setIsAccepting(true);
     
     try {
       // Get driver name from user object
@@ -361,6 +364,7 @@ export default function Home() {
       }
 
       setConfirmDialogOpen(false);
+      setIsAccepting(false);
       loadJobs();
     } catch (err) {
       console.error('Error accepting job:', err);
@@ -369,6 +373,7 @@ export default function Home() {
         description: t('home.error_accept'),
         variant: 'destructive'
       });
+      setIsAccepting(false);
     }
   };
   const handleSignOut = async () => {
@@ -436,6 +441,6 @@ export default function Home() {
 
       <BottomNavigation />
 
-      <ConfirmJobDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen} onConfirm={confirmJobAcceptance} job={selectedJob} />
+      <ConfirmJobDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen} onConfirm={confirmJobAcceptance} job={selectedJob} isLoading={isAccepting} />
     </div>;
 }
