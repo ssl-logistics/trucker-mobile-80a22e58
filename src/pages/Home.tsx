@@ -166,7 +166,12 @@ export default function Home() {
           safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
           goods_type: item.product_name || item.goods_type || item.product_type || null,
           goods_quantity: item.goods_quantity || item.quantity || null,
-          isAccepted: false
+          isAccepted: false,
+          // Map coordinates from API
+          origin_lat: item.origin_lat || undefined,
+          origin_lng: item.origin_lng || undefined,
+          destination_lat: item.destination_lat || undefined,
+          destination_lng: item.destination_lng || undefined
         };
       });
 
