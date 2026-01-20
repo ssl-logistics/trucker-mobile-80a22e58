@@ -23,6 +23,8 @@ interface JobDetail {
   start_time: string;
   origin_latitude?: number;
   origin_longitude?: number;
+  destination_latitude?: number;
+  destination_longitude?: number;
   origin_contact_person?: string | null;
   origin_contact_role?: string | null;
   origin_goods_type?: string | null;
@@ -30,8 +32,6 @@ interface JobDetail {
   origin_remarks?: string | null;
   origin_address?: string | null;
   origin_company_name?: string | null;
-  driver_name?: string;
-  driver_phone?: string;
 }
 export default function PickupDetailPage() {
   const navigate = useNavigate();
@@ -98,13 +98,13 @@ export default function PickupDetailPage() {
             start_time: foundJob.sender_pickup_time,
             origin_latitude: foundJob.sender_latitude,
             origin_longitude: foundJob.sender_longitude,
+            destination_latitude: foundJob.destination_latitude,
+            destination_longitude: foundJob.destination_longitude,
             origin_contact_person: foundJob.sender_contact_name,
             origin_contact_role: foundJob.sender_contact_phone,
             origin_goods_type: foundJob.product_name,
-            origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
-            origin_remarks: foundJob.remarks,
-            origin_address: foundJob.sender_address,
-            origin_company_name: foundJob.sender_name,
+            origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null, origin_remarks: foundJob.remarks,
+            origin_address: foundJob.sender_address, origin_company_name: foundJob.sender_name,
           };
           setJob(mappedJob);
         } else {
@@ -209,33 +209,58 @@ export default function PickupDetailPage() {
         throw new Error('Check-in failed');
       }
 
-      // Get room_code from localStorage
+      // Get room_code from localStorage (fallback: create tracking room if missing)
       const roomCodeKey = `room_code_${job.order_code}`;
-      const roomCode = localStorage.getItem(roomCodeKey);
-      
-      console.log('🔍 Looking for room_code with key:', roomCodeKey);
-      console.log('🔍 Found room_code:', roomCode);
-      console.log('🔍 All localStorage keys:', Object.keys(localStorage));
-      
+      let roomCode = localStorage.getItem(roomCodeKey);
+
+      if (!roomCode) {
+        const truckPlate =
+          user.license_plate ||
+          (user.plate_province && user.plate_number ? `${user.plate_province} ${user.plate_number}` : '') ||
+          user.plate_number ||
+          '';
+
+        try {
+          const trackingBody = {
+            truck_plate: truckPlate,
+            order_code: job.order_code,
+            origin_lat: job.origin_latitude ?? 0,
+            origin_lng: job.origin_longitude ?? 0,
+            destination_lat: job.destination_latitude ?? 0,
+            destination_lng: job.destination_longitude ?? 0,
+          };
+
+          console.log('📍 create-tracking-room fallback body:', trackingBody);
+
+          const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
+            body: trackingBody,
+          });
+
+          if (!trackingResponse.error && trackingResponse.data?.room?.room_code) {
+            roomCode = trackingResponse.data.room.room_code;
+            localStorage.setItem(roomCodeKey, roomCode);
+          } else if (trackingResponse.error) {
+            console.warn('Failed to create tracking room (fallback):', trackingResponse.error);
+          }
+        } catch (trackingError) {
+          console.warn('Failed to create tracking room (fallback):', trackingError);
+        }
+      }
+
       if (roomCode) {
         // Call truck-arrival API to notify arrival at origin
         try {
-          console.log('📍 Calling truck-arrival with:', { room_code: roomCode, arrival_type: 'origin' });
-          
-          const arrivalResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/truck-arrival`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                room_code: roomCode,
-                arrival_type: 'origin'
-              })
-            }
-          );
-          
+          const arrivalBody = { room_code: roomCode, arrival_type: 'origin' };
+          console.log('📍 truck-arrival body:', arrivalBody);
+
+          const arrivalResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/truck-arrival`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(arrivalBody),
+          });
+
           if (arrivalResponse.ok) {
             const arrivalResult = await arrivalResponse.json();
             console.log('✅ Truck arrival notification sent:', arrivalResult);
@@ -248,9 +273,7 @@ export default function PickupDetailPage() {
           // Don't fail the check-in if arrival notification fails
         }
       } else {
-        console.warn('⚠️ No room_code found for order:', job.order_code);
-        console.warn('⚠️ This job may have been accepted before tracking was implemented.');
-        console.warn('⚠️ Please re-accept the job to create a tracking room.');
+        console.warn('⚠️ No room_code found/created for order:', job.order_code);
       }
 
       // Also send job status update
