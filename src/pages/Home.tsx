@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
+import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
 interface Job {
   id: string;
   post_id?: string;
@@ -229,10 +230,14 @@ export default function Home() {
           });
         };
 
-        // Filter out: completed jobs, accepted via external API, and past jobs
+        // Get driver's vehicle type for filtering
+        const driverVehicleType = user.vehicle_type || '';
+        
+        // Filter out: completed jobs, accepted via external API, past jobs, and jobs requiring bigger trucks
         const availableJobs = filterPastJobs(transformedJobs)
           .filter(job => !completedJobIds.has(job.id))
           .filter(job => !acceptedOrderNumbers.has(job.order_code)) // Filter by order_code from external API
+          .filter(job => canHandleJobTruckType(driverVehicleType, job.equipment_list)) // Filter by truck type capability
           .map(job => ({
             ...job,
             isAccepted: acceptedJobIds.has(job.id)
