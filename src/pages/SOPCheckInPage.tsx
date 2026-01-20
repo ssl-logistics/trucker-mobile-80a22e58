@@ -52,6 +52,40 @@ export default function SOPCheckInPage() {
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   const [existingSOP, setExistingSOP] = useState<any>(null);
+  const [gpsPermissionGranted, setGpsPermissionGranted] = useState(false);
+
+  // Request GPS permission on mount
+  useEffect(() => {
+    const requestGpsPermission = async () => {
+      if (!navigator.geolocation) {
+        console.warn('Geolocation not supported');
+        setGpsPermissionGranted(false);
+        return;
+      }
+
+      try {
+        await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          });
+        });
+        setGpsPermissionGranted(true);
+        console.log('✅ GPS permission granted');
+      } catch (error) {
+        console.warn('❌ GPS permission denied or error:', error);
+        setGpsPermissionGranted(false);
+        toast({
+          title: 'ต้องการสิทธิ์ GPS',
+          description: 'กรุณาอนุญาตให้เข้าถึงตำแหน่งเพื่อใช้งานฟีเจอร์นี้',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    requestGpsPermission();
+  }, []);
 
   useEffect(() => {
     loadJobDetail();
