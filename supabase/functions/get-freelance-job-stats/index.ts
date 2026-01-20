@@ -99,6 +99,16 @@ serve(async (req) => {
     const jobs = jobsData.data || jobsData || [];
     const checkins = checkinsData.data || checkinsData || [];
 
+    // Log all job details for debugging
+    console.log('All jobs from API:', jobs.map((job: any, index: number) => ({
+      index: index + 1,
+      id: job.id,
+      order_number: job.order_number || job.order_code || job.job_order_number || 'N/A',
+      status: job.status || job.job_status || 'N/A',
+      pickup_date: job.sender_pickup_date || job.pickup_date || job.start_date || 'N/A',
+      delivery_confirmed: job.delivery_confirmed || false,
+    })));
+
     // Build set of transport_order_ids that have delivery_confirmed
     const confirmedTransportIds = new Set(
       checkins
