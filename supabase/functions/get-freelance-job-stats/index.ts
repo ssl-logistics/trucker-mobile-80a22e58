@@ -99,18 +99,18 @@ serve(async (req) => {
     const allJobs = jobsData.data || jobsData || [];
     const checkins = checkinsData.data || checkinsData || [];
 
-    // Filter only urgent jobs (งานด่วน) using is_express_rent field
-    const jobs = allJobs.filter((job: any) => job.is_express_rent === true);
+    // Note: We no longer filter by is_express_rent because the accepted jobs API
+    // does not return this field. All accepted jobs should be counted.
+    const jobs = allJobs;
     
-    console.log(`Filtered ${jobs.length} urgent jobs (is_express_rent: true) from ${allJobs.length} total jobs`);
+    console.log(`Processing ${jobs.length} accepted jobs`);
 
     // Log all job details for debugging
-    console.log('All jobs from API:', allJobs.length, 'Urgent jobs only:', jobs.length);
-    console.log('Urgent jobs:', jobs.map((job: any, index: number) => ({
+    console.log('All jobs from API:', allJobs.length);
+    console.log('Jobs:', jobs.map((job: any, index: number) => ({
       index: index + 1,
       id: job.id,
       order_number: job.order_number || job.order_code || job.job_order_number || 'N/A',
-      job_type: job.job_type || job.type || 'N/A',
       status: job.status || job.job_status || 'N/A',
       pickup_date: job.sender_pickup_date || job.pickup_date || job.start_date || 'N/A',
     })));
