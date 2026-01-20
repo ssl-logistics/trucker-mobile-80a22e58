@@ -5,6 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import coverHeader from "@/assets/cover-header.png";
 import currentJobIcon from "@/assets/current-job-icon.svg";
@@ -33,6 +34,9 @@ export function AppHeader({
   
   // Get presigned URL for S3 profile photos
   const { url: presignedProfilePhoto, isLoading: isPhotoLoading } = usePresignedImageUrl(profilePhoto);
+  
+  // Check for unread notifications
+  const { hasUnread } = useUnreadNotifications();
   
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -75,7 +79,9 @@ export function AppHeader({
             <div className="flex items-center gap-1">
               <button onClick={() => navigate("/notifications")} className="relative p-1.5 hover:bg-white/10 rounded-full transition-colors">
                 <Bell className="w-4 h-4 text-[#153860]" />
-                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                {hasUnread && (
+                  <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                )}
               </button>
               <button onClick={() => setShowSignOutDialog(true)} className="p-1.5 hover:bg-white/10 rounded-full transition-colors">
                 <Power className="w-4 h-4 text-[#153860]" />
