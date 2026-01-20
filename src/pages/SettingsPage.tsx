@@ -234,8 +234,6 @@ export default function SettingsPage() {
       section: t('settings.general'),
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true },
-        { icon: Send, label: 'ทดสอบการแจ้งเตือน', hasTestPush: true },
-        { icon: Bug, label: 'Push Debug', path: '/push-debug' },
       ]
     },
     {
