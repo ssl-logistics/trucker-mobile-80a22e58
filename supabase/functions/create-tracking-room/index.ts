@@ -73,11 +73,40 @@ serve(async (req) => {
     }
 
     if (!response.ok) {
+      // Make this function idempotent: if the order_code already exists, return the existing room_code as success.
+      if (response.status === 409) {
+        const detailsStr = responseData?.details ?? responseData?.message ?? '';
+        const roomMatch = String(detailsStr).match(/room '(RM[A-Z0-9]+)'/);
+
+        if (roomMatch && roomMatch[1]) {
+          const existingRoomCode = roomMatch[1];
+          console.log('Tracking room already exists, using room_code:', existingRoomCode);
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: 'Tracking room already exists',
+              room: {
+                room_code: existingRoomCode,
+                truck_plate: body.truck_plate,
+                order_code: body.order_code,
+                origin_lat: body.origin_lat,
+                origin_lng: body.origin_lng,
+                destination_lat: body.destination_lat,
+                destination_lng: body.destination_lng,
+                status: 'active',
+              },
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
       console.error('External API error:', responseData);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'Failed to create tracking room',
-          details: responseData 
+          details: responseData,
         }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
