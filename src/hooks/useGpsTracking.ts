@@ -60,6 +60,14 @@ async function sendPositionUpdate(roomCode: string, lat: number, lng: number): P
     });
 
     if (response.ok) {
+      const data = await response.json().catch(() => ({} as any));
+
+      // Backend may return 200 with a stop instruction (room inactive)
+      if (data?.success === false && data?.should_stop === true) {
+        console.log('[GPS Tracking] Room inactive (200 response), stopping tracking');
+        return { success: false, shouldStop: true };
+      }
+
       console.log('[GPS Tracking] Position sent:', { lat, lng });
       return { success: true, shouldStop: false };
     } else {
