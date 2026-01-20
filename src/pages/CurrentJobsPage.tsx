@@ -152,7 +152,15 @@ export default function CurrentJobsPage() {
   };
 
   // Filter jobs based on search and date filters
+  // Exclude completed/closed jobs - only show active jobs
+  const completedStatuses = ['completed', 'cancelled', 'closed', 'delivered', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
+  
   const filteredJobs = acceptedJobs.filter((job: any) => {
+    // Filter out completed jobs
+    const jobStatus = (job.status || '').toLowerCase().trim();
+    if (completedStatuses.some(s => jobStatus.includes(s.toLowerCase()))) {
+      return false;
+    }
 
     // Search filter
     if (searchQuery) {
