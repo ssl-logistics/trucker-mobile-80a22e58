@@ -99,20 +99,10 @@ serve(async (req) => {
     const allJobs = jobsData.data || jobsData || [];
     const checkins = checkinsData.data || checkinsData || [];
 
-    // Log all job_type values to understand the data structure
-    console.log('All jobs job_type values:', allJobs.map((job: any) => ({
-      order_number: job.order_number || job.order_code,
-      job_type: job.job_type,
-      type: job.type,
-      transport_type: job.transport_type,
-    })));
-
-    // Filter only "งานด่วน" (urgent jobs) - check multiple possible field names
-    const jobs = allJobs.filter((job: any) => {
-      const jobType = job.job_type || job.type || '';
-      // Accept various possible values for urgent jobs
-      return jobType === 'งานด่วน' || jobType === 'urgent' || jobType === 'express';
-    });
+    // Filter only urgent jobs (งานด่วน) using is_express_rent field
+    const jobs = allJobs.filter((job: any) => job.is_express_rent === true);
+    
+    console.log(`Filtered ${jobs.length} urgent jobs (is_express_rent: true) from ${allJobs.length} total jobs`);
 
     // Log all job details for debugging
     console.log('All jobs from API:', allJobs.length, 'Urgent jobs only:', jobs.length);
