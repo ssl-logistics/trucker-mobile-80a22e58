@@ -151,12 +151,42 @@ const SignIn = () => {
       }
 
       // Parse API response
-      const driver = result.data?.driver || null;
+      let driver = result.data?.driver || null;
+      const vehicle = result.data?.vehicle || null;
       const userType = result.data?.user_type || null;
+      
+      // For internal_driver and external_driver, merge vehicle data into driver object
+      if (driver && vehicle && (userType === 'internal_driver' || userType === 'external_driver')) {
+        driver = {
+          ...driver,
+          // Map vehicle fields to match freelance driver structure
+          plate_number: vehicle.license_plate || driver.license_plate,
+          plate_province: vehicle.province || '',
+          vehicle_brand: vehicle.brand || driver.car_brand,
+          vehicle_color: vehicle.color || '',
+          vin: vehicle.vin || '',
+          fuel_type: vehicle.fuel_type || '',
+          load_capacity: vehicle.weight_capacity || 0,
+          vehicle_type: vehicle.vehicle_type || driver.vehicle_type,
+          width: vehicle.dimensions_width,
+          length: vehicle.dimensions_length,
+          height: vehicle.dimensions_height,
+          container_types: vehicle.container_types || [],
+          has_trailer: false,
+          // Vehicle photos
+          front_photo_url: vehicle.front_image_url,
+          side_photo_url: vehicle.side_image_url,
+          back_photo_url: vehicle.rear_image_url,
+          plate_photo_url: vehicle.license_plate_image_url,
+          registration_photo_url: vehicle.document_url,
+          // Keep vehicle reference
+          vehicle_id: vehicle.id,
+        };
+      }
       
       // Map user_type to app role
       let role = 'freelance';
-      if (userType === 'freelance_driver') {
+      if (userType === 'freelance_driver' || userType === 'internal_driver' || userType === 'external_driver') {
         role = 'freelance';
       } else if (userType === 'company') {
         role = 'company';
