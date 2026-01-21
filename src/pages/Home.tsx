@@ -13,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
+import { useUserRole as useUserRoleHook } from '@/hooks/useUserRole';
 interface Job {
   id: string;
   post_id?: string;
@@ -41,9 +42,9 @@ interface Job {
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, setAuthTransitioning } = useAuth();
+  const { user, logout, setAuthTransitioning, userType } = useAuth();
   const { t } = useLanguage();
-  const { role } = useUserRole();
+  const { role, isInternalDriver, isExternalDriver } = useUserRole();
   const { vehiclePhoto } = useVehiclePhoto();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -119,8 +120,13 @@ export default function Home() {
       // Transform API response to Job format
       const apiJobs = Array.isArray(responseData) ? responseData : (responseData?.data || []);
       
+      // Filter by is_express_rent based on user type
+      // internal_driver & external_driver: show is_express_rent = false (งานปกติ)
+      // freelance_driver: show is_express_rent = true (งานด่วน)
+      const isExpressRentFilter = isInternalDriver || isExternalDriver ? false : true;
+      
       const transformedJobs: Job[] = apiJobs
-        .filter((item: any) => item.is_express_rent === true) // Only show urgent jobs (งานด่วน)
+        .filter((item: any) => item.is_express_rent === isExpressRentFilter)
         .map((item: any) => {
         // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
         let originLocation = item.origin || item.from_location || '';
