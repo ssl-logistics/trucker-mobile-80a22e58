@@ -39,24 +39,53 @@ interface Bid extends JobBid {
 }
 
 // Interface for external API ticket response
+interface ExternalTicketRoute {
+  id: string;
+  route_code: string;
+  is_multi_destination: boolean;
+  origin_district: {
+    id: string;
+    name: string;
+    district_code: string;
+    province: {
+      id: string;
+      name: string;
+      province_code: string;
+    };
+  } | null;
+  destination_district: {
+    id: string;
+    name: string;
+    district_code: string;
+    province: {
+      id: string;
+      name: string;
+      province_code: string;
+    };
+  } | null;
+}
+
 interface ExternalTicket {
   id: string;
-  order_code: string;
-  employer_name: string;
-  origin_location: string;
-  destination_location: string;
-  origin_company_name?: string;
-  destination_company_name?: string;
-  origin_goods_type?: string;
-  equipment_list?: string;
-  safety_equipment?: string;
-  transport_type: string;
-  job_type: string;
-  price: number;
-  start_date: string;
-  start_time: string;
+  ticket_number: string;
   status: string;
+  product: string;
+  weight_tons: number;
+  trips_per_month: number;
+  price: number | null;
+  price_unit: string;
+  price_type: string;
+  distance_km: number;
+  notes: string | null;
   created_at: string;
+  updated_at: string;
+  vehicle_type: {
+    id: string;
+    name: string;
+    vehicle_code: string;
+  };
+  route: ExternalTicketRoute;
+  bids: unknown[];
 }
 
 export default function BiddingPage() {
@@ -89,6 +118,80 @@ export default function BiddingPage() {
     oct: 9,
     nov: 10,
     dec: 11,
+  };
+
+  const transformTicketToJob = (ticket: ExternalTicket): BiddingJob => {
+    // Build origin location string
+    const originDistrict = ticket.route?.origin_district;
+    const originLocation = originDistrict
+      ? `${originDistrict.name}, ${originDistrict.province?.name || ''}`
+      : '';
+
+    // Build destination location string
+    const destDistrict = ticket.route?.destination_district;
+    const destinationLocation = ticket.route?.is_multi_destination
+      ? 'หลายจุดหมาย'
+      : destDistrict
+        ? `${destDistrict.name}, ${destDistrict.province?.name || ''}`
+        : '';
+
+    // Get current date as start_date (API doesn't provide specific date)
+    const today = new Date().toISOString().split('T')[0];
+
+    return {
+      id: ticket.id,
+      order_code: ticket.ticket_number || '',
+      employer_name: ticket.vehicle_type?.name || 'รถบรรทุก',
+      origin_location: originLocation,
+      destination_location: destinationLocation,
+      origin_company_name: null,
+      destination_company_name: null,
+      origin_goods_type: ticket.product || null,
+      equipment_list: `${ticket.weight_tons || 0} ตัน / ${ticket.trips_per_month || 0} เที่ยว/เดือน`,
+      safety_equipment: ticket.notes || null,
+      transport_type: ticket.route?.is_multi_destination ? 'ขนส่งหลายที่' : 'ขนส่งเที่ยวเดียว',
+      job_type: 'งานประมูล',
+      price: ticket.price || 0,
+      start_date: today,
+      start_time: '08:00',
+      status: 'open_for_bidding',
+      created_at: ticket.created_at || new Date().toISOString(),
+      updated_at: ticket.updated_at || new Date().toISOString(),
+      assigned_role: null,
+      container_checkpoint: null,
+      container_checkpoint_code: null,
+      container_checkpoint_latitude: null,
+      container_checkpoint_longitude: null,
+      container_number: null,
+      container_number_2: null,
+      destination_address: null,
+      destination_bill_of_lading: null,
+      destination_contact_person: null,
+      destination_date: null,
+      destination_goods_quantity: `${ticket.weight_tons || 0} ตัน`,
+      destination_goods_type: ticket.product || null,
+      destination_latitude: null,
+      destination_longitude: null,
+      destination_remarks: null,
+      destination_time: null,
+      district: originDistrict?.name || null,
+      empty_container_date: null,
+      origin_address: null,
+      origin_bill_of_lading: null,
+      origin_contact_person: null,
+      origin_contact_role: null,
+      origin_goods_quantity: `${ticket.weight_tons || 0} ตัน`,
+      origin_latitude: null,
+      origin_longitude: null,
+      origin_remarks: null,
+      province: originDistrict?.province?.name || null,
+      return_full_container_date: null,
+      return_full_container_location: null,
+      seal_number: null,
+      seal_number_2: null,
+      shipper_load: null,
+      tax_id: null,
+    };
   };
 
   useEffect(() => {
@@ -130,118 +233,15 @@ export default function BiddingPage() {
 
       // Transform external API data to match BiddingJob format
       if (data && Array.isArray(data)) {
-        const transformedJobs: BiddingJob[] = data.map((ticket: ExternalTicket) => ({
-          id: ticket.id,
-          order_code: ticket.order_code || '',
-          employer_name: ticket.employer_name || '',
-          origin_location: ticket.origin_location || '',
-          destination_location: ticket.destination_location || '',
-          origin_company_name: ticket.origin_company_name || null,
-          destination_company_name: ticket.destination_company_name || null,
-          origin_goods_type: ticket.origin_goods_type || null,
-          equipment_list: ticket.equipment_list || null,
-          safety_equipment: ticket.safety_equipment || null,
-          transport_type: ticket.transport_type || '',
-          job_type: ticket.job_type || '',
-          price: ticket.price || 0,
-          start_date: ticket.start_date || '',
-          start_time: ticket.start_time || '00:00',
-          status: ticket.status || 'open_for_bidding',
-          created_at: ticket.created_at || new Date().toISOString(),
-          updated_at: ticket.created_at || new Date().toISOString(),
-          // Optional fields with defaults
-          assigned_role: null,
-          container_checkpoint: null,
-          container_checkpoint_code: null,
-          container_checkpoint_latitude: null,
-          container_checkpoint_longitude: null,
-          container_number: null,
-          container_number_2: null,
-          destination_address: null,
-          destination_bill_of_lading: null,
-          destination_contact_person: null,
-          destination_date: null,
-          destination_goods_quantity: null,
-          destination_goods_type: null,
-          destination_latitude: null,
-          destination_longitude: null,
-          destination_remarks: null,
-          destination_time: null,
-          district: null,
-          empty_container_date: null,
-          origin_address: null,
-          origin_bill_of_lading: null,
-          origin_contact_person: null,
-          origin_contact_role: null,
-          origin_goods_quantity: null,
-          origin_latitude: null,
-          origin_longitude: null,
-          origin_remarks: null,
-          province: null,
-          return_full_container_date: null,
-          return_full_container_location: null,
-          seal_number: null,
-          seal_number_2: null,
-          shipper_load: null,
-          tax_id: null,
-        }));
+        const transformedJobs: BiddingJob[] = data.map((ticket: ExternalTicket) => transformTicketToJob(ticket));
+        setAvailableJobs(transformedJobs);
+      } else if (data && data.data && Array.isArray(data.data)) {
+        // Handle if response is wrapped in { success: true, data: [...] }
+        const transformedJobs: BiddingJob[] = data.data.map((ticket: ExternalTicket) => transformTicketToJob(ticket));
         setAvailableJobs(transformedJobs);
       } else if (data && data.tickets && Array.isArray(data.tickets)) {
         // Handle if response is wrapped in { tickets: [...] }
-        const transformedJobs: BiddingJob[] = data.tickets.map((ticket: ExternalTicket) => ({
-          id: ticket.id,
-          order_code: ticket.order_code || '',
-          employer_name: ticket.employer_name || '',
-          origin_location: ticket.origin_location || '',
-          destination_location: ticket.destination_location || '',
-          origin_company_name: ticket.origin_company_name || null,
-          destination_company_name: ticket.destination_company_name || null,
-          origin_goods_type: ticket.origin_goods_type || null,
-          equipment_list: ticket.equipment_list || null,
-          safety_equipment: ticket.safety_equipment || null,
-          transport_type: ticket.transport_type || '',
-          job_type: ticket.job_type || '',
-          price: ticket.price || 0,
-          start_date: ticket.start_date || '',
-          start_time: ticket.start_time || '00:00',
-          status: ticket.status || 'open_for_bidding',
-          created_at: ticket.created_at || new Date().toISOString(),
-          updated_at: ticket.created_at || new Date().toISOString(),
-          assigned_role: null,
-          container_checkpoint: null,
-          container_checkpoint_code: null,
-          container_checkpoint_latitude: null,
-          container_checkpoint_longitude: null,
-          container_number: null,
-          container_number_2: null,
-          destination_address: null,
-          destination_bill_of_lading: null,
-          destination_contact_person: null,
-          destination_date: null,
-          destination_goods_quantity: null,
-          destination_goods_type: null,
-          destination_latitude: null,
-          destination_longitude: null,
-          destination_remarks: null,
-          destination_time: null,
-          district: null,
-          empty_container_date: null,
-          origin_address: null,
-          origin_bill_of_lading: null,
-          origin_contact_person: null,
-          origin_contact_role: null,
-          origin_goods_quantity: null,
-          origin_latitude: null,
-          origin_longitude: null,
-          origin_remarks: null,
-          province: null,
-          return_full_container_date: null,
-          return_full_container_location: null,
-          seal_number: null,
-          seal_number_2: null,
-          shipper_load: null,
-          tax_id: null,
-        }));
+        const transformedJobs: BiddingJob[] = data.tickets.map((ticket: ExternalTicket) => transformTicketToJob(ticket));
         setAvailableJobs(transformedJobs);
       } else {
         console.log('No tickets data in response:', data);
