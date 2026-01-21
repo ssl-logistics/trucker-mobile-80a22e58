@@ -77,6 +77,8 @@ interface ExternalTicket {
   price_type: string;
   distance_km: number;
   notes: string | null;
+  company_name?: string;
+  employer_name?: string;
   created_at: string;
   updated_at: string;
   vehicle_type: {
@@ -141,7 +143,7 @@ export default function BiddingPage() {
     return {
       id: ticket.id,
       order_code: ticket.ticket_number || '',
-      employer_name: ticket.vehicle_type?.name || 'รถบรรทุก',
+      employer_name: ticket.company_name || ticket.employer_name || 'ไม่ระบุผู้จ้าง',
       origin_location: originLocation,
       destination_location: destinationLocation,
       origin_company_name: null,
