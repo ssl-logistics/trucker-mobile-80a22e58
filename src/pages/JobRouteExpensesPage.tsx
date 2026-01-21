@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/dateUtils';
+import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 
 // API response interfaces (matching JobHistoryPage)
 interface ApiJobDetail {
@@ -351,7 +352,7 @@ export default function JobRouteExpensesPage() {
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.vehicleType')}</span>
-                      <span className="text-foreground">: {job.vehicle_type}</span>
+                      <span className="text-foreground">: {getTranslatedVehicleType(job.vehicle_type, t)}</span>
                     </div>
                     <div className="flex">
                       <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.pickupTime')}</span>
@@ -407,7 +408,7 @@ export default function JobRouteExpensesPage() {
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.vehicleType')}</span>
-                          <span className="text-foreground">: {job.vehicle_type}</span>
+                          <span className="text-foreground">: {getTranslatedVehicleType(job.vehicle_type, t)}</span>
                         </div>
                         <div className="flex">
                           <span className="text-muted-foreground min-w-[100px]">{t('jobRoute.deliveryTime')}</span>
