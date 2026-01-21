@@ -169,7 +169,7 @@ export default function BiddingPage() {
       origin_company_name: null,
       destination_company_name: null,
       origin_goods_type: ticket.product || null,
-      equipment_list: `${ticket.weight_tons || 0} ตัน / ${ticket.trips_per_month || 0} เที่ยว/เดือน`,
+      equipment_list: ticket.vehicle_type?.name || null,
       safety_equipment: ticket.notes || null,
       transport_type: ticket.route?.is_multi_destination ? 'ขนส่งหลายที่' : 'ขนส่งเที่ยวเดียว',
       job_type: 'งานประมูล',
