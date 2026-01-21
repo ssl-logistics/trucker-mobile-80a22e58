@@ -25,6 +25,7 @@ interface AuthContextType {
   user: DriverData | null;
   loading: boolean;
   role: string;
+  userType: string;
   isAuthenticated: boolean;
   isAuthTransitioning: boolean;
   authTransitionMessage: string;
@@ -37,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   role: 'freelance',
+  userType: 'freelance_driver',
   isAuthenticated: false,
   isAuthTransitioning: false,
   authTransitionMessage: '',
@@ -61,6 +63,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<DriverData | null>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<string>('freelance');
+  const [userType, setUserType] = useState<string>('freelance_driver');
   const [isAuthTransitioning, setIsAuthTransitioning] = useState(false);
   const [authTransitionMessage, setAuthTransitionMessage] = useState('');
 
@@ -125,9 +128,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         setUser(driver);
 
-        // Map user_type to role - freelance_driver becomes freelance
+        // Store userType directly for feature access control
+        setUserType(userType || 'freelance_driver');
+
+        // Map user_type to role for backward compatibility
         let mappedRole = 'freelance';
-        if (userType === 'freelance_driver') {
+        if (userType === 'freelance_driver' || userType === 'internal_driver' || userType === 'external_driver') {
           mappedRole = 'freelance';
         } else if (userType === 'company') {
           mappedRole = 'company';
@@ -257,6 +263,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     loading,
     role,
+    userType,
     isAuthenticated: !!user,
     isAuthTransitioning,
     authTransitionMessage,
