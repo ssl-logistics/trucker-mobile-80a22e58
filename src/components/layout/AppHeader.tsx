@@ -29,7 +29,7 @@ export function AppHeader({
     t
   } = useLanguage();
   const {
-    isFreelance
+    canAccessBidding
   } = useUserRole();
   
   // Get presigned URL for S3 profile photos
@@ -113,7 +113,7 @@ export function AppHeader({
           icon: jobHistoryIcon,
           labelKey: "home.job_history",
           path: "/job-history"
-        }].filter(item => !item.showForFreelanceOnly || isFreelance).map(item => <button key={item.labelKey} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
+        }].filter(item => !item.showForFreelanceOnly || canAccessBidding).map(item => <button key={item.labelKey} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
                 <div className="w-16 h-16 flex items-center justify-center">
                   <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" />
                 </div>

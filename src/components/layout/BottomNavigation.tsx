@@ -17,7 +17,7 @@ export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { isFreelance } = useUserRole();
+  const { canAccessDashboard } = useUserRole();
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -56,7 +56,7 @@ export function BottomNavigation() {
       customIcon: SettingsIcon,
       customActiveIcon: SettingsIconActive,
     },
-  ].filter((item) => !item.showForFreelanceOnly || isFreelance);
+  ].filter((item) => !item.showForFreelanceOnly || canAccessDashboard);
   
   const navContent = (
     <nav
