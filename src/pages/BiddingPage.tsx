@@ -502,7 +502,7 @@ export default function BiddingPage() {
             <span>{job.origin_goods_type || "-"}</span>
           </div>
           <div>
-            <span className="text-[#375B7B]">{t("job.requiredTruck")} : </span>
+            <span className="text-[#375B7B]">{t("job.equipment")} : </span>
             <span>{job.equipment_list || "-"}</span>
           </div>
           <div>
