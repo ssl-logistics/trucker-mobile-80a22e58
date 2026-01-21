@@ -65,6 +65,14 @@ interface ExternalTicketRoute {
   } | null;
 }
 
+interface ExternalTicketUser {
+  id: string;
+  full_name: string;
+  company_name: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
 interface ExternalTicket {
   id: string;
   ticket_number: string;
@@ -79,6 +87,8 @@ interface ExternalTicket {
   notes: string | null;
   company_name?: string;
   employer_name?: string;
+  customer?: ExternalTicketUser;
+  creator?: ExternalTicketUser;
   created_at: string;
   updated_at: string;
   vehicle_type: {
@@ -140,10 +150,20 @@ export default function BiddingPage() {
     // Get current date as start_date (API doesn't provide specific date)
     const today = new Date().toISOString().split('T')[0];
 
+    // Get employer name from customer or creator
+    const employerName = 
+      ticket.customer?.company_name || 
+      ticket.creator?.company_name || 
+      ticket.customer?.full_name ||
+      ticket.creator?.full_name ||
+      ticket.company_name || 
+      ticket.employer_name || 
+      'ไม่ระบุผู้จ้าง';
+
     return {
       id: ticket.id,
       order_code: ticket.ticket_number || '',
-      employer_name: ticket.company_name || ticket.employer_name || 'ไม่ระบุผู้จ้าง',
+      employer_name: employerName,
       origin_location: originLocation,
       destination_location: destinationLocation,
       origin_company_name: null,
