@@ -200,7 +200,7 @@ const SignIn = () => {
         navigate(redirectPath, { replace: true });
       } else if (userType === 'freelance_driver') {
         navigate("/home", { replace: true });
-      } else if (userType === 'company' || userType === 'factory') {
+      } else if (userType === 'company' || userType === 'factory' || userType === 'internal_driver' || userType === 'external_driver') {
         navigate("/dashboard", { replace: true });
       } else {
         navigate("/home", { replace: true });

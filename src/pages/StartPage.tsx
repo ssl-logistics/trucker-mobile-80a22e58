@@ -14,7 +14,7 @@ const StartPage = () => {
   }
 
   if (user) {
-    const to = role === "company" || role === "factory" ? "/dashboard" : "/home";
+    const to = role === "company" || role === "factory" || role === "internal_driver" || role === "external_driver" ? "/dashboard" : "/home";
     return <Navigate to={to} replace />;
   }
 
