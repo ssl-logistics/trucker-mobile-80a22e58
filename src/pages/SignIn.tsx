@@ -198,11 +198,10 @@ const SignIn = () => {
       // Navigate based on user_type, or to saved redirect path
       if (redirectPath && redirectPath !== '/' && redirectPath !== '/home' && redirectPath !== '/dashboard') {
         navigate(redirectPath, { replace: true });
-      } else if (userType === 'freelance_driver') {
-        navigate("/home", { replace: true });
-      } else if (userType === 'company' || userType === 'factory' || userType === 'internal_driver' || userType === 'external_driver') {
+      } else if (userType === 'company' || userType === 'factory') {
         navigate("/dashboard", { replace: true });
       } else {
+        // freelance_driver, internal_driver, external_driver all go to /home
         navigate("/home", { replace: true });
       }
     } catch (error) {
