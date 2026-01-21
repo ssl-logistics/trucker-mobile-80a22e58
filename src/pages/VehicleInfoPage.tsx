@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
+import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 
 interface VehicleData {
   id: string;
@@ -73,6 +74,9 @@ export default function VehicleInfoPage() {
     { value: '40', label: t('editVehicle.container40ft') },
     { value: '40_hc', label: t('editVehicle.container40ftHC') },
     { value: 'reefer', label: t('editVehicle.containerReefer') },
+    // Also support type20, type40 format from internal_driver API
+    { value: 'type20', label: t('editVehicle.container20ft') },
+    { value: 'type40', label: t('editVehicle.container40ft') },
   ];
 
   const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
@@ -646,7 +650,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.type')}</Label>
-                <p className="text-base font-medium mt-1">{t(`vehicleType.${vehicleData.vehicle_type.replace(/[\s-]/g, '').toLowerCase()}`) || vehicleData.vehicle_type}</p>
+                <p className="text-base font-medium mt-1">{getTranslatedVehicleType(vehicleData.vehicle_type, t)}</p>
               </div>
               <Button 
                 variant="ghost" 
