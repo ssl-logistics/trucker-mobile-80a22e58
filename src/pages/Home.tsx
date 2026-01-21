@@ -54,9 +54,10 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
+      console.log('🔄 Loading jobs with userType:', userType, 'isInternalDriver:', isInternalDriver, 'isExternalDriver:', isExternalDriver);
       loadJobs();
     }
-  }, [user]);
+  }, [user, userType, isInternalDriver, isExternalDriver]);
 
   // Handle openJobOrderCode from notifications navigation (state or query string)
   useEffect(() => {
