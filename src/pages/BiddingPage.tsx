@@ -166,10 +166,10 @@ export default function BiddingPage() {
       employer_name: employerName,
       origin_location: originLocation,
       destination_location: destinationLocation,
-      origin_company_name: null,
+      origin_company_name: ticket.vehicle_type?.name || null, // Store vehicle type here for display
       destination_company_name: null,
       origin_goods_type: ticket.product || null,
-      equipment_list: ticket.vehicle_type?.name || null,
+      equipment_list: null, // No equipment data from external API
       safety_equipment: ticket.notes || null,
       transport_type: ticket.route?.is_multi_destination ? 'ขนส่งหลายที่' : 'ขนส่งเที่ยวเดียว',
       job_type: 'งานประมูล',
@@ -501,14 +501,24 @@ export default function BiddingPage() {
             <span className="text-[#375c7b]">{t("job.goodsType")} : </span>
             <span>{job.origin_goods_type || "-"}</span>
           </div>
-          <div>
-            <span className="text-[#375B7B]">{t("job.equipment")} : </span>
-            <span>{job.equipment_list || "-"}</span>
-          </div>
-          <div>
-            <span className="text-[#375B7B]">{t("job.safety")} : </span>
-            <span>{job.safety_equipment || "-"}</span>
-          </div>
+          {job.origin_company_name && (
+            <div>
+              <span className="text-[#375B7B]">{t("job.requiredTruck")} : </span>
+              <span>{job.origin_company_name}</span>
+            </div>
+          )}
+          {job.equipment_list && (
+            <div>
+              <span className="text-[#375B7B]">{t("job.equipment")} : </span>
+              <span>{job.equipment_list}</span>
+            </div>
+          )}
+          {job.safety_equipment && (
+            <div>
+              <span className="text-[#375B7B]">{t("job.safety")} : </span>
+              <span>{job.safety_equipment}</span>
+            </div>
+          )}
         </div>
 
         {bidStatus && bidCreatedAt && (
