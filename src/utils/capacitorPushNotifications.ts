@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
-import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
 import { supabase } from '@/integrations/supabase/client';
 import { getAuthItem } from '@/utils/authStorage';
 
@@ -10,6 +9,8 @@ export const isNativePlatform = (): boolean => {
 };
 
 // Open device notification settings
+// Note: On iOS, users need to manually go to Settings > App > Notifications
+// On Android, this attempts to open app settings via intent
 export const openNotificationSettings = async (): Promise<void> => {
   if (!isNativePlatform()) {
     console.log('[NativePush] Not on native platform, cannot open settings');
@@ -20,19 +21,25 @@ export const openNotificationSettings = async (): Promise<void> => {
   console.log('[NativePush] Opening notification settings for:', platform);
 
   try {
-    if (platform === 'android') {
-      // Best effort: open the app-specific notification settings screen.
-      await NativeSettings.openAndroid({ option: AndroidSettings.AppNotification });
+    if (platform === 'ios') {
+      // Try to open iOS app settings using URL scheme
+      // This works for most iOS versions
+      const opened = window.open('app-settings:', '_system');
+      if (!opened) {
+        console.log('[NativePush] Could not open settings automatically');
+        console.log('[NativePush] Please open Settings > Notifications > [App Name] manually');
+      }
       return;
     }
 
-    if (platform === 'ios') {
-      // iOS only officially supports opening the app settings page.
-      await NativeSettings.openIOS({ option: IOSSettings.App });
+    if (platform === 'android') {
+      // On Android, logging instruction for now
+      // Full native settings requires capacitor-native-settings which doesn't support Cap 8
+      console.log('[NativePush] Please open Settings > Apps > [App Name] > Notifications manually');
       return;
     }
   } catch (error) {
-    console.error('[NativePush] NativeSettings failed:', error);
+    console.error('[NativePush] Failed to open settings:', error);
   }
 
   console.log('[NativePush] Please open Settings manually and enable notifications for this app');
