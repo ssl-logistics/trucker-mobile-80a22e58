@@ -26,7 +26,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const generalInfoSchema = z.object({
     firstName: z.string().min(1, t('generalInfo.validation.firstNameRequired')),
     lastName: z.string().min(1, t('generalInfo.validation.lastNameRequired')),
-    phone: z.string().min(10, t('generalInfo.validation.phoneRequired')),
+    phone: z.string().regex(/^[0-9]{10}$/, t('generalInfo.validation.phoneRequired')),
     email: z.string().email(t('generalInfo.validation.emailFormat')).optional().or(z.literal("")),
     username: z.string().min(1, t('generalInfo.validation.usernameRequired')),
     password: z.string().min(8, t('generalInfo.validation.passwordMin')),
@@ -280,7 +280,15 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
           </Label>
           <Input
             id="phone"
+            type="tel"
+            inputMode="numeric"
+            maxLength={10}
             {...register("phone")}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+              e.target.value = value;
+              setValue("phone", value);
+            }}
             className={errors.phone ? "border-destructive" : ""}
           />
           {errors.phone && (
