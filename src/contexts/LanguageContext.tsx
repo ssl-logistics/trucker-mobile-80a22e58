@@ -422,7 +422,7 @@ const thTranslations: Record<string, string> = {
   'jobDetail.position': 'เส้นทาง',
   'jobDetail.goodsType': 'ประเภทสินค้า',
   'jobDetail.pickupTime': 'เข้ารับสินค้า',
-  'jobDetail.deliveryTime': 'ส่งสินค้า',
+  'jobDetail.deliveryTime': 'จัดส่งสินค้า',
   'jobDetail.remarks': 'หมายเหตุ',
   'jobDetail.call': 'โทร',
   'jobDetail.route': 'เส้นทาง',
