@@ -45,16 +45,14 @@ export function AppHeader({
     return t(dayKeys[new Date().getDay()]);
   };
   return <header className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden">
-      <div className="relative overflow-hidden min-h-[85px] flex flex-col justify-end" style={{
+      <div className="relative overflow-hidden min-h-[70px] flex flex-col justify-end" style={{
       paddingTop: "env(safe-area-inset-top, 0px)"
     }}>
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url(${coverHeader})`
       }} />
-        {/* Spacer for top area - can be used for additional info */}
-        <div className="flex-1" />
         {/* Content positioned at bottom */}
-        <div className="relative z-10 px-4 pt-1 pb-2">
+        <div className="relative z-10 px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-[10px]">
               <Avatar className="w-10 h-10 border-2 border-white/20">
