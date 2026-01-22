@@ -24,7 +24,7 @@ interface PushSubscription {
   id: string;
 }
 
-// ============= Firebase Cloud Messaging (FCM) for Native Mobile =============
+// ============= Firebase Cloud Messaging (FCM) for Android =============
 
 interface FirebaseServiceAccount {
   type: string;
@@ -37,6 +37,135 @@ interface FirebaseServiceAccount {
   token_uri: string;
   auth_provider_x509_cert_url: string;
   client_x509_cert_url: string;
+}
+
+// ============= Apple Push Notification Service (APNs) for iOS =============
+
+async function generateApnsJwt(keyId: string, teamId: string, privateKeyP8: string): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  
+  const header = {
+    alg: 'ES256',
+    kid: keyId,
+  };
+  
+  const payload = {
+    iss: teamId,
+    iat: now,
+  };
+  
+  const encoder = new TextEncoder();
+  const headerB64 = btoa(JSON.stringify(header)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const payloadB64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const unsignedToken = `${headerB64}.${payloadB64}`;
+  
+  // Parse the P8 private key (PEM format)
+  const pemLines = privateKeyP8.split('\n');
+  const pemContents = pemLines
+    .filter(line => !line.startsWith('-----'))
+    .join('');
+  const binaryString = atob(pemContents);
+  const privateKeyBytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    privateKeyBytes[i] = binaryString.charCodeAt(i);
+  }
+  
+  // Import the PKCS#8 key for ES256 signing
+  const privateKey = await crypto.subtle.importKey(
+    'pkcs8',
+    privateKeyBytes.buffer,
+    {
+      name: 'ECDSA',
+      namedCurve: 'P-256',
+    },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign(
+    {
+      name: 'ECDSA',
+      hash: { name: 'SHA-256' },
+    },
+    privateKey,
+    encoder.encode(unsignedToken)
+  );
+  
+  // Convert signature to base64url
+  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  
+  return `${unsignedToken}.${signatureB64}`;
+}
+
+async function sendApnsNotification(
+  deviceToken: string,
+  title: string,
+  body: string,
+  data: Record<string, unknown> | undefined,
+  keyId: string,
+  teamId: string,
+  privateKeyP8: string,
+  bundleId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const jwt = await generateApnsJwt(keyId, teamId, privateKeyP8);
+    
+    const apnsPayload = {
+      aps: {
+        alert: {
+          title: title,
+          body: body,
+        },
+        sound: 'default',
+        badge: 1,
+      },
+      ...data,
+    };
+    
+    // Use production APNs endpoint
+    const apnsUrl = `https://api.push.apple.com/3/device/${deviceToken}`;
+    
+    const response = await fetch(apnsUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `bearer ${jwt}`,
+        'apns-topic': bundleId,
+        'apns-push-type': 'alert',
+        'apns-priority': '10',
+        'apns-expiration': '0',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(apnsPayload),
+    });
+    
+    if (response.ok) {
+      console.log('APNs notification sent successfully');
+      return { success: true };
+    }
+    
+    const errorText = await response.text();
+    console.error(`APNs error ${response.status}: ${errorText}`);
+    
+    // Check if token is invalid/expired
+    if (response.status === 400 || response.status === 410) {
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.reason === 'BadDeviceToken' || errorJson.reason === 'Unregistered') {
+          return { success: false, error: 'TOKEN_EXPIRED' };
+        }
+      } catch (_) {
+        // Not JSON, continue
+      }
+    }
+    
+    return { success: false, error: errorText };
+  } catch (error) {
+    console.error('Error sending APNs notification:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
 }
 
 // Generate JWT for Firebase OAuth2
@@ -552,22 +681,34 @@ Deno.serve(async (req) => {
       console.error('Error fetching web subscriptions:', webSubError);
     }
 
-    // Get native push tokens (FCM) saved as endpoint: fcm://<token>
-    const { data: nativeTokens, error: nativeError } = await supabaseClient
+    // Get native push tokens (FCM for Android) saved as endpoint: fcm://<token>
+    const { data: fcmTokens, error: fcmError } = await supabaseClient
       .from('push_subscriptions')
       .select('*')
       .in('user_id', userIds)
       .like('endpoint', 'fcm://%');
 
-    if (nativeError) {
-      console.error('Error fetching native tokens:', nativeError);
+    if (fcmError) {
+      console.error('Error fetching FCM tokens:', fcmError);
     }
 
-    // Separate web push and FCM tokens
-    const webSubs = (webSubscriptions || []) as PushSubscription[];
-    const fcmSubs = (nativeTokens || []) as PushSubscription[];
+    // Get iOS push tokens (APNs) saved as endpoint: apns://<token>
+    const { data: apnsTokens, error: apnsError } = await supabaseClient
+      .from('push_subscriptions')
+      .select('*')
+      .in('user_id', userIds)
+      .like('endpoint', 'apns://%');
 
-    console.log(`Found ${webSubs.length} web subscriptions, ${fcmSubs.length} FCM tokens`);
+    if (apnsError) {
+      console.error('Error fetching APNs tokens:', apnsError);
+    }
+
+    // Separate web push, FCM, and APNs tokens
+    const webSubs = (webSubscriptions || []) as PushSubscription[];
+    const fcmSubs = (fcmTokens || []) as PushSubscription[];
+    const apnsSubs = (apnsTokens || []) as PushSubscription[];
+
+    console.log(`Found ${webSubs.length} web subscriptions, ${fcmSubs.length} FCM tokens (Android), ${apnsSubs.length} APNs tokens (iOS)`);
 
     const results: Array<{ success: boolean; error?: string; user_id: string; type: string }> = [];
 
@@ -620,7 +761,60 @@ Deno.serve(async (req) => {
       console.warn('VAPID keys not configured, skipping web push notifications');
     }
 
-    // Send FCM notifications for native mobile
+    // Send APNs notifications for iOS
+    if (apnsSubs.length > 0) {
+      const apnsKeyId = Deno.env.get('APNS_KEY_ID');
+      const apnsTeamId = Deno.env.get('APNS_TEAM_ID');
+      const apnsAuthKey = Deno.env.get('APNS_AUTH_KEY_P8');
+      const bundleId = 'com.thetroob.mobile';
+
+      if (apnsKeyId && apnsTeamId && apnsAuthKey) {
+        const apnsData: Record<string, unknown> = {
+          ...(payload.data ?? {}),
+          ...(payload.url ? { url: payload.url } : {}),
+        };
+
+        const apnsResults = await Promise.allSettled(
+          apnsSubs.map(async (sub: PushSubscription) => {
+            // Extract APNs token from endpoint (format: apns://token)
+            const apnsToken = sub.endpoint.replace('apns://', '');
+            
+            const result = await sendApnsNotification(
+              apnsToken,
+              payload.title,
+              payload.body,
+              apnsData,
+              apnsKeyId,
+              apnsTeamId,
+              apnsAuthKey,
+              bundleId
+            );
+
+            if (!result.success && result.error === 'TOKEN_EXPIRED') {
+              console.log('Removing expired APNs token:', sub.id);
+              await supabaseClient
+                .from('push_subscriptions')
+                .delete()
+                .eq('id', sub.id);
+            }
+
+            return { ...result, user_id: sub.user_id, type: 'apns' };
+          })
+        );
+
+        apnsResults.forEach(r => {
+          if (r.status === 'fulfilled') {
+            results.push(r.value);
+          } else {
+            results.push({ success: false, error: 'Promise rejected', user_id: '', type: 'apns' });
+          }
+        });
+      } else {
+        console.warn('APNs keys not configured, skipping iOS notifications');
+      }
+    }
+
+    // Send FCM notifications for Android
     if (fcmSubs.length > 0) {
       const firebaseServiceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
       
@@ -671,7 +865,7 @@ Deno.serve(async (req) => {
           console.error('Error with FCM:', fcmError);
         }
       } else {
-        console.warn('FIREBASE_SERVICE_ACCOUNT not configured, skipping FCM notifications');
+        console.warn('FIREBASE_SERVICE_ACCOUNT not configured, skipping Android FCM notifications');
       }
     }
 
