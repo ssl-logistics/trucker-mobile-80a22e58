@@ -59,11 +59,31 @@ async function generateApnsJwt(keyId: string, teamId: string, privateKeyP8: stri
   const payloadB64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const unsignedToken = `${headerB64}.${payloadB64}`;
   
-  // Parse the P8 private key (PEM format)
-  const pemLines = privateKeyP8.split('\n');
-  const pemContents = pemLines
-    .filter(line => !line.startsWith('-----'))
-    .join('');
+  // Normalize the P8 private key - handle literal \n strings and various formats
+  let normalizedKey = privateKeyP8
+    .replace(/\\n/g, '\n')  // Convert literal \n to actual newlines
+    .replace(/\r\n/g, '\n') // Normalize Windows line endings
+    .replace(/\r/g, '\n')   // Normalize old Mac line endings
+    .trim();
+  
+  // Extract the base64 content between the PEM headers
+  const pemMatch = normalizedKey.match(/-----BEGIN PRIVATE KEY-----\s*([\s\S]*?)\s*-----END PRIVATE KEY-----/);
+  
+  let pemContents: string;
+  if (pemMatch) {
+    // Standard PEM format with headers
+    pemContents = pemMatch[1].replace(/\s/g, '');
+  } else {
+    // Try parsing as raw base64 without headers
+    pemContents = normalizedKey.replace(/-----[^-]+-----/g, '').replace(/\s/g, '');
+  }
+  
+  console.log('APNs key parsed, base64 length:', pemContents.length);
+  
+  if (!pemContents || pemContents.length < 100) {
+    throw new Error(`Invalid APNs key format: parsed content too short (${pemContents.length} chars)`);
+  }
+  
   const binaryString = atob(pemContents);
   const privateKeyBytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
