@@ -4,6 +4,7 @@ import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { setAuthItem } from '@/utils/authStorage';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LineUserData {
   lineUserId: string;
@@ -25,22 +26,83 @@ export const useDeepLinkHandler = () => {
         const path = url.host + url.pathname;
         
         console.log('[DeepLink] Path:', path);
+        console.log('[DeepLink] Host:', url.host);
+        console.log('[DeepLink] Pathname:', url.pathname);
         console.log('[DeepLink] Search params:', url.search);
 
-        // Handle LINE auth success callback
+        // Close the in-app browser if it's open
+        try {
+          await Browser.close();
+          console.log('[DeepLink] 📱 In-app browser closed');
+        } catch (e) {
+          console.log('[DeepLink] Browser.close not needed or failed:', e);
+        }
+
+        // Handle LINE callback with code/state (from LINE app redirect)
+        // thetroob://line-callback?code=xxx&state=yyy
+        if (url.host === 'line-callback') {
+          console.log('[DeepLink] 🔐 LINE callback detected');
+          const code = url.searchParams.get('code');
+          const state = url.searchParams.get('state');
+          
+          if (code) {
+            console.log('[DeepLink] 📡 Exchanging code for token...');
+            
+            // Call edge function to exchange code for token
+            const redirectUri = 'https://thetroob-mobile.lovable.app/auth/line/callback';
+            const { data, error: fnError } = await supabase.functions.invoke('line-auth', {
+              body: { code, redirectUri },
+            });
+            
+            if (fnError || data?.error) {
+              console.error('[DeepLink] ❌ LINE auth error:', fnError || data?.error);
+              toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถเข้าสู่ระบบ LINE ได้',
+              });
+              navigate('/', { replace: true });
+              return;
+            }
+            
+            console.log('[DeepLink] ✅ LINE user data received:', data.user.displayName);
+            
+            // Store LINE user data
+            await setAuthItem('line_user', JSON.stringify(data.user));
+            await setAuthItem('auth_login_type', 'line');
+            
+            // Create driver record
+            const lineDriver = {
+              id: data.user.lineUserId,
+              full_name: data.user.displayName,
+              avatar_url: data.user.pictureUrl || null,
+              loginType: 'line',
+              lineUser: data.user,
+            };
+            await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+            
+            console.log('[DeepLink] ✅ Auth data saved');
+            
+            // Dispatch auth event
+            window.dispatchEvent(new Event('auth_driver_updated'));
+            
+            toast({
+              title: 'เข้าสู่ระบบสำเร็จ',
+              description: `ยินดีต้อนรับ ${data.user.displayName}`,
+            });
+            
+            // Navigate to home
+            navigate('/home', { replace: true });
+            return;
+          }
+        }
+
+        // Handle LINE auth success callback (from Safari redirect with encoded data)
         if (path === 'line-auth-success' || url.host === 'line-auth-success') {
           const encodedData = url.searchParams.get('data');
           
-          // Close the in-app browser if it's open
-          try {
-            await Browser.close();
-            console.log('[DeepLink] 📱 In-app browser closed');
-          } catch (e) {
-            console.log('[DeepLink] Browser.close not needed or failed:', e);
-          }
-          
           if (encodedData) {
-            console.log('[DeepLink] 🔐 Processing LINE auth data');
+            console.log('[DeepLink] 🔐 Processing LINE auth data (encoded)');
             
             // Decode and parse user data
             const userData: LineUserData = JSON.parse(atob(decodeURIComponent(encodedData)));
