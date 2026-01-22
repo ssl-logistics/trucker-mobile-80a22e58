@@ -334,9 +334,10 @@ const SignIn = () => {
               console.log('[LINE Login] 🚀 Button clicked');
               
               // Generate random state for CSRF protection
-              const state = Math.random().toString(36).substring(2, 15);
+              // Include a prefix to identify it came from our app
+              const stateValue = Math.random().toString(36).substring(2, 15);
+              const state = `thetroob_${stateValue}`;
               sessionStorage.setItem('line_oauth_state', state);
-              // Fallback: some browsers/webviews can lose sessionStorage on redirect
               localStorage.setItem('line_oauth_state', state);
               console.log('[LINE Login] State generated:', state);
               

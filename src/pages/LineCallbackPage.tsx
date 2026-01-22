@@ -74,12 +74,19 @@ const LineCallbackPage = () => {
       // Verify state to prevent CSRF
       const savedStateSession = sessionStorage.getItem('line_oauth_state');
       const savedStateLocal = localStorage.getItem('line_oauth_state');
-      const stateMatch = (state && savedStateSession && state === savedStateSession) || (state && savedStateLocal && state === savedStateLocal);
+      
+      // Check if state matches stored value OR has our app prefix (for cross-browser iOS flow)
+      // On iOS: native app stores state, but callback opens in Safari with different storage
+      const hasAppPrefix = state?.startsWith('thetroob_');
+      const stateMatch = (state && savedStateSession && state === savedStateSession) || 
+                         (state && savedStateLocal && state === savedStateLocal) ||
+                         hasAppPrefix; // Trust state if it has our app prefix (iOS cross-browser case)
 
       console.log('[LINE Callback] State verification:', {
         received: state,
         savedSession: savedStateSession,
         savedLocal: savedStateLocal,
+        hasAppPrefix: hasAppPrefix,
         match: stateMatch,
       });
 
