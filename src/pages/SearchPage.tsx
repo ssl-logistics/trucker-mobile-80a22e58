@@ -362,8 +362,8 @@ export default function SearchPage() {
     <div className="min-h-screen bg-background">
       {/* Header with rounded corners */}
       <header 
-        className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden"
-        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+        className="text-gray-800 rounded-b-3xl shadow-lg overflow-hidden"
+        style={{ backgroundColor: 'rgb(220, 232, 245)', paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="flex items-center gap-3 px-4 py-4">
           <button onClick={() => navigate('/home')} className="p-1">
