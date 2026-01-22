@@ -58,5 +58,20 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to upload vehicle photos, profile pictures, expense receipts, and SOP check-in photos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs permission to save photos to your photo library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to your camera to take vehicle photos, expense receipts, and SOP check-in photos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs your location to track deliveries and show nearby jobs.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs your location to track deliveries even when the app is in the background.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>location</string>
+	</array>
 </dict>
 </plist>
