@@ -62,9 +62,12 @@ export const isNotificationPermissionDenied = async (): Promise<boolean> => {
 
 // Request permission and register for push notifications on native platforms
 export const registerNativePushNotifications = async (): Promise<string | null> => {
+  const platform = Capacitor.getPlatform();
+  console.log('[NativePush] ========================================');
   console.log('[NativePush] registerNativePushNotifications called');
-  console.log('[NativePush] Platform:', Capacitor.getPlatform());
+  console.log('[NativePush] Platform:', platform);
   console.log('[NativePush] isNativePlatform:', isNativePlatform());
+  console.log('[NativePush] ========================================');
 
   if (!isNativePlatform()) {
     console.log('[NativePush] Not running on native platform, skipping native push registration');
@@ -73,34 +76,48 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
 
   try {
     // Step 1: Check current permission status
-    console.log('[NativePush] Checking permissions...');
+    console.log('[NativePush] Step 1: Checking permissions...');
     let permStatus = await PushNotifications.checkPermissions();
-    console.log('[NativePush] Initial permission status:', permStatus.receive);
+    console.log('[NativePush] Initial permission status:', JSON.stringify(permStatus));
 
     // Step 2: Request permission if needed
     if (permStatus.receive === 'prompt') {
-      console.log('[NativePush] Requesting permissions...');
+      console.log('[NativePush] Step 2: Requesting permissions...');
       permStatus = await PushNotifications.requestPermissions();
-      console.log('[NativePush] After request, permission status:', permStatus.receive);
+      console.log('[NativePush] After request, permission status:', JSON.stringify(permStatus));
     }
 
     if (permStatus.receive !== 'granted') {
-      console.log('[NativePush] Push notification permission not granted:', permStatus.receive);
+      console.log('[NativePush] ❌ Push notification permission not granted:', permStatus.receive);
       return null;
     }
 
-    console.log('[NativePush] Permission granted, setting up listeners and registering...');
+    console.log('[NativePush] ✅ Permission granted! Setting up registration...');
 
-    // Step 3: Set up listeners BEFORE calling register()
-    // This is critical - iOS fires registration event very quickly
+    // Step 3: Remove all existing listeners first to prevent duplicates
+    console.log('[NativePush] Step 3: Removing existing listeners...');
+    try {
+      await PushNotifications.removeAllListeners();
+      console.log('[NativePush] Existing listeners removed');
+    } catch (e) {
+      console.log('[NativePush] No listeners to remove or error:', e);
+    }
+
+    // Step 4: Set up listeners and register
+    console.log('[NativePush] Step 4: Setting up new listeners and registering...');
+    
     return await new Promise<string | null>((resolve) => {
       let settled = false;
       let registrationHandle: any = null;
       let errorHandle: any = null;
 
-      const settle = (value: string | null) => {
-        if (settled) return;
+      const settle = (value: string | null, reason: string) => {
+        if (settled) {
+          console.log('[NativePush] Already settled, ignoring:', reason);
+          return;
+        }
         settled = true;
+        console.log('[NativePush] Settling with:', value ? 'token' : 'null', 'reason:', reason);
 
         try {
           clearTimeout(timeoutId);
@@ -108,63 +125,68 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
           // ignore
         }
 
-        // Clean up listeners
-        try {
-          registrationHandle?.remove?.();
-        } catch {
-          // ignore
-        }
-
-        try {
-          errorHandle?.remove?.();
-        } catch {
-          // ignore
-        }
+        // Clean up listeners after settling
+        setTimeout(() => {
+          try {
+            registrationHandle?.remove?.();
+          } catch { /* ignore */ }
+          try {
+            errorHandle?.remove?.();
+          } catch { /* ignore */ }
+        }, 100);
 
         resolve(value);
       };
 
-      // Timeout after 15 seconds
+      // Timeout after 20 seconds (increased for iOS cold start)
       const timeoutId = setTimeout(() => {
-        console.warn('[NativePush] Registration timed out (no token received after 15s)');
-        settle(null);
-      }, 15000);
+        console.warn('[NativePush] ⏰ Registration timed out (no token received after 20s)');
+        console.warn('[NativePush] This might happen if:');
+        console.warn('[NativePush] - APNs is not properly configured');
+        console.warn('[NativePush] - Push Notifications capability not enabled in Xcode');
+        console.warn('[NativePush] - Invalid provisioning profile');
+        settle(null, 'timeout');
+      }, 20000);
 
-      // Set up listeners first, then register
+      // Set up listeners before calling register
       (async () => {
         try {
-          console.log('[NativePush] Adding registration listeners...');
-          
-          // Add listeners in parallel
-          [registrationHandle, errorHandle] = await Promise.all([
-            PushNotifications.addListener('registration', (token: Token) => {
-              console.log('[NativePush] ✅ Registration SUCCESS!');
-              console.log('[NativePush] Token received:', token.value?.substring(0, 30) + '...');
-              settle(token.value);
-            }),
-            PushNotifications.addListener('registrationError', (error: any) => {
-              console.error('[NativePush] ❌ Registration ERROR:', JSON.stringify(error));
-              settle(null);
-            }),
-          ]);
+          console.log('[NativePush] Adding registration listener...');
+          registrationHandle = await PushNotifications.addListener('registration', (token: Token) => {
+            console.log('[NativePush] 🎉🎉🎉 Registration SUCCESS! 🎉🎉🎉');
+            console.log('[NativePush] Token value:', token.value);
+            console.log('[NativePush] Token length:', token.value?.length);
+            settle(token.value, 'registration_success');
+          });
+          console.log('[NativePush] Registration listener added');
 
-          console.log('[NativePush] Listeners added successfully');
-          
-          // Small delay to ensure listeners are fully ready (iOS timing issue)
-          await new Promise(r => setTimeout(r, 100));
-          
-          // Now register with APNs/FCM
-          console.log('[NativePush] Calling PushNotifications.register()...');
+          console.log('[NativePush] Adding error listener...');
+          errorHandle = await PushNotifications.addListener('registrationError', (error: any) => {
+            console.error('[NativePush] ❌❌❌ Registration ERROR! ❌❌❌');
+            console.error('[NativePush] Error details:', JSON.stringify(error));
+            settle(null, 'registration_error');
+          });
+          console.log('[NativePush] Error listener added');
+
+          // iOS specific: Wait a bit longer to ensure listeners are attached
+          // This is crucial for iOS where the native bridge might need more time
+          const delayMs = platform === 'ios' ? 300 : 100;
+          console.log(`[NativePush] Waiting ${delayMs}ms for listeners to be fully ready (${platform})...`);
+          await new Promise(r => setTimeout(r, delayMs));
+
+          // Now call register
+          console.log('[NativePush] 📱 Calling PushNotifications.register()...');
           await PushNotifications.register();
-          console.log('[NativePush] PushNotifications.register() completed');
+          console.log('[NativePush] PushNotifications.register() call completed');
+          console.log('[NativePush] Waiting for registration callback...');
         } catch (error) {
-          console.error('[NativePush] Failed to register:', error);
-          settle(null);
+          console.error('[NativePush] ❌ Failed in registration flow:', error);
+          settle(null, 'exception: ' + (error instanceof Error ? error.message : String(error)));
         }
       })();
     });
   } catch (error) {
-    console.error('Failed to register native push notifications:', error);
+    console.error('[NativePush] ❌ Top-level registration error:', error);
     return null;
   }
 };
@@ -259,57 +281,72 @@ export const hasNativePushTokenInDb = async (): Promise<boolean> => {
 
 // Save native push token to database (FCM format for Firebase)
 export const saveNativePushToken = async (token: string): Promise<void> => {
+  console.log('[NativePush] ========================================');
   console.log('[NativePush] saveNativePushToken called');
-  console.log('[NativePush] Token to save:', token?.substring(0, 30) + '...');
+  console.log('[NativePush] Token to save:', token?.substring(0, 50) + '...');
+  console.log('[NativePush] Token length:', token?.length);
+  console.log('[NativePush] ========================================');
+
+  if (!token) {
+    console.error('[NativePush] ❌ No token provided to save!');
+    throw new Error('No token provided');
+  }
 
   try {
     const { userId, source } = await getCurrentUserIdFromAnySource();
 
     if (!userId) {
       console.error('[NativePush] ❌ No user ID found from any source!');
+      console.error('[NativePush] Cannot save token without user ID');
       throw new Error('User not authenticated - no user ID found');
     }
 
     const platform = Capacitor.getPlatform(); // 'ios' or 'android'
 
-    console.log('[NativePush] Saving FCM token for user:', userId, 'platform:', platform, 'source:', source);
+    console.log('[NativePush] Saving FCM token:');
+    console.log('[NativePush] - User ID:', userId);
+    console.log('[NativePush] - Platform:', platform);
+    console.log('[NativePush] - Source:', source);
 
     // Use fcm:// prefix so backend can identify FCM tokens
     const endpoint = `fcm://${token}`;
-    console.log('[NativePush] Upserting to push_subscriptions...');
-    console.log('[NativePush] Data:', {
-      user_id: userId,
-      endpoint: endpoint.substring(0, 30) + '...',
-      p256dh: platform,
-    });
 
     // First, delete any existing FCM subscriptions for this user
     console.log('[NativePush] Deleting old FCM subscriptions for user...');
-    await supabase
+    const { error: deleteError } = await supabase
       .from('push_subscriptions')
       .delete()
       .eq('user_id', userId)
       .like('endpoint', 'fcm://%');
+    
+    if (deleteError) {
+      console.warn('[NativePush] Delete old tokens warning:', deleteError);
+    } else {
+      console.log('[NativePush] Old FCM tokens deleted');
+    }
 
     // Then insert the new token
     console.log('[NativePush] Inserting new FCM token...');
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('push_subscriptions')
       .insert({
         user_id: userId,
         endpoint: endpoint,
         p256dh: platform, // Store platform type
         auth: token, // Store the actual token
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error('[NativePush] ❌ Database error saving FCM token:', error);
       throw error;
     }
 
-    console.log('[NativePush] ✅ FCM token saved successfully!');
+    console.log('[NativePush] ✅✅✅ FCM token saved successfully! ✅✅✅');
+    console.log('[NativePush] Saved record ID:', data?.id);
   } catch (error) {
-    console.error('Failed to save FCM push token:', error);
+    console.error('[NativePush] ❌ Failed to save FCM push token:', error);
     throw error;
   }
 };
