@@ -407,9 +407,10 @@ export default function Home() {
       navigate('/');
     }
   };
-  return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
-      {/* Header and Search Bar - Sticky Together */}
-      <div className="sticky top-0 z-50">
+  return (
+    <div className="h-full flex flex-col bg-gradient-to-b from-blue-50 to-white">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 ios-fixed-header">
         <AppHeader 
           userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
           profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
@@ -418,7 +419,7 @@ export default function Home() {
         />
 
         {/* Search Bar */}
-        <div className="px-4 -mt-4 pb-4 ">
+        <div className="px-4 -mt-4 pb-4 bg-gradient-to-b from-transparent to-blue-50/80">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <Input placeholder={t('home.search')} className="pl-10 bg-white shadow-sm border-0" onClick={() => navigate('/search')} readOnly />
@@ -426,28 +427,32 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Jobs Section */}
-      <div className="px-4 mt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">{t('home.recommended')}</h2>
-          <span className="text-sm text-muted-foreground">{jobs.length} {t('home.items')}</span>
-        </div>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24">
+        {/* Jobs Section */}
+        <div className="px-4 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold">{t('home.recommended')}</h2>
+            <span className="text-sm text-muted-foreground">{jobs.length} {t('home.items')}</span>
+          </div>
 
-        <div className="space-y-4">
-          {jobs.map(job => (
-            <JobCard 
-              key={job.id} 
-              job={job} 
-              onAccept={handleAcceptJob}
-              autoOpenDetail={openJobOrderCode === job.order_code}
-              onDetailClosed={() => setOpenJobOrderCode(null)}
-            />
-          ))}
+          <div className="space-y-4">
+            {jobs.map(job => (
+              <JobCard 
+                key={job.id} 
+                job={job} 
+                onAccept={handleAcceptJob}
+                autoOpenDetail={openJobOrderCode === job.order_code}
+                onDetailClosed={() => setOpenJobOrderCode(null)}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
       <BottomNavigation />
 
       <ConfirmJobDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen} onConfirm={confirmJobAcceptance} job={selectedJob} isLoading={isAccepting} />
-    </div>;
+    </div>
+  );
 }

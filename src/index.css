@@ -105,8 +105,29 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground;
+    /* Prevent iOS overscroll bounce */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  body {
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+  
+  #root {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
   }
 }
 
@@ -127,6 +148,25 @@ All colors MUST be HSL.
   .pb-safe {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
   }
+  
+  /* iOS-safe scrollable container */
+  .ios-scroll-container {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Fixed header that won't move on iOS bounce */
+  .ios-fixed-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
 }
 
 /* Fixed bottom navigation - force it to stay fixed on iOS */
@@ -137,6 +177,9 @@ All colors MUST be HSL.
   right: 0 !important;
   -webkit-transform: translate3d(0, 0, 0) !important;
   transform: translate3d(0, 0, 0) !important;
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+  will-change: transform !important;
 }
 
 /* Page header with safe area */
