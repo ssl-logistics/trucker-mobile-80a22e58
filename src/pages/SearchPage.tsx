@@ -24,6 +24,85 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+// External API types
+interface ExternalTicketRoute {
+  id: string;
+  origin_name: string;
+  origin_lat: number;
+  origin_lng: number;
+  destination_name: string;
+  destination_lat: number;
+  destination_lng: number;
+  sequence: number;
+}
+
+interface ExternalTicketUser {
+  id: string;
+  full_name: string;
+  company_name?: string;
+  phone?: string;
+}
+
+interface ExternalTicket {
+  id: string;
+  ticket_number: string;
+  price: number;
+  price_type: string;
+  start_date: string;
+  start_time?: string;
+  status: string;
+  goods_type?: string;
+  goods_weight?: number;
+  notes?: string;
+  is_multi_destination: boolean;
+  routes: ExternalTicketRoute[];
+  customer?: ExternalTicketUser;
+  creator?: ExternalTicketUser;
+  vehicle_type?: {
+    id: string;
+    name: string;
+  };
+  bids?: Array<{
+    id: string;
+    contractor_id: string;
+    bid_price: number;
+    status: string;
+    created_at: string;
+  }>;
+}
+
+// Transform external ticket to job format
+const transformTicketToJob = (ticket: ExternalTicket): any => {
+  const originRoute = ticket.routes?.find(r => r.sequence === 1) || ticket.routes?.[0];
+  const destinationRoute = ticket.routes?.reduce((max, r) => r.sequence > (max?.sequence || 0) ? r : max, ticket.routes?.[0]);
+  
+  const employerName = ticket.customer?.company_name || ticket.customer?.full_name || 
+                       ticket.creator?.company_name || ticket.creator?.full_name || 'Unknown';
+
+  return {
+    id: ticket.id,
+    order_code: ticket.ticket_number,
+    employer_name: employerName,
+    job_type: 'งานสัญญาจ้าง',
+    transport_type: ticket.is_multi_destination ? 'หลายที่' : 'เที่ยวเดียว',
+    origin_location: originRoute?.origin_name || '',
+    destination_location: destinationRoute?.destination_name || '',
+    origin_lat: originRoute?.origin_lat || 0,
+    origin_lng: originRoute?.origin_lng || 0,
+    destination_lat: destinationRoute?.destination_lat || 0,
+    destination_lng: destinationRoute?.destination_lng || 0,
+    price: ticket.price || 0,
+    start_date: ticket.start_date || new Date().toISOString().split('T')[0],
+    start_time: ticket.start_time || '08:00',
+    status: 'open_for_bidding',
+    goods_type: ticket.goods_type || '',
+    goods_weight: ticket.goods_weight || 0,
+    notes: ticket.notes || '',
+    required_truck_type: ticket.vehicle_type?.name || '',
+    created_at: new Date().toISOString(),
+  };
+};
+
 export default function SearchPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -64,37 +143,59 @@ export default function SearchPage() {
   }, [searchQuery, domesticType, internationalType, province, district, minPrice, maxPrice]);
 
   const loadJobs = async () => {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('status', 'available')
-      .order('created_at', { ascending: false });
+    try {
+      // Fetch from list-tickets API
+      const { data, error } = await supabase.functions.invoke('list-tickets');
 
-    if (error) {
+      if (error) {
+        console.error('Error loading tickets:', error);
+        toast({
+          title: t('home.error_load'),
+          description: t('home.error_load_desc'),
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Parse tickets array from response
+      let ticketsData: ExternalTicket[] = [];
+      if (Array.isArray(data)) {
+        ticketsData = data;
+      } else if (data?.data && Array.isArray(data.data)) {
+        ticketsData = data.data;
+      } else if (data?.tickets && Array.isArray(data.tickets)) {
+        ticketsData = data.tickets;
+      }
+
+      // Transform tickets to job format
+      const jobs = ticketsData.map(transformTicketToJob);
+      
+      // Check which jobs user has already bid on
+      if (user) {
+        const userBids = ticketsData.flatMap(ticket => 
+          (ticket.bids || []).filter(bid => bid.contractor_id === user.id)
+        );
+        const biddedJobIds = new Set(userBids.map(bid => {
+          const ticket = ticketsData.find(t => t.bids?.some(b => b.id === bid.id));
+          return ticket?.id;
+        }));
+        
+        const jobsWithStatus = jobs.map(job => ({
+          ...job,
+          isAccepted: biddedJobIds.has(job.id)
+        }));
+        
+        setAllJobs(jobsWithStatus);
+      } else {
+        setAllJobs(jobs);
+      }
+    } catch (err) {
+      console.error('Error loading jobs:', err);
       toast({
         title: t('home.error_load'),
         description: t('home.error_load_desc'),
         variant: 'destructive',
       });
-    } else {
-      // Check which jobs user has already accepted
-      if (user) {
-        const { data: applications } = await supabase
-          .from('job_applications')
-          .select('job_id')
-          .eq('driver_id', user.id);
-
-        const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
-        
-        const jobsWithStatus = (data || []).map(job => ({
-          ...job,
-          isAccepted: acceptedJobIds.has(job.id)
-        }));
-        
-        setAllJobs(jobsWithStatus);
-      } else {
-        setAllJobs(data || []);
-      }
     }
   };
 
@@ -262,13 +363,16 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-blue-50 px-4 py-4 border-b">
-        <div className="flex items-center gap-3">
+      {/* Header with rounded corners */}
+      <header 
+        className="bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-b-3xl shadow-lg overflow-hidden"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
+        <div className="flex items-center gap-3 px-4 py-4">
           <button onClick={() => navigate('/home')} className="p-1">
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6 text-white" />
           </button>
-          <h1 className="text-lg font-semibold flex-1 text-center">{t('search.title')}</h1>
+          <h1 className="text-lg font-semibold flex-1 text-center text-white">{t('search.title')}</h1>
           <div className="w-6" />
         </div>
       </header>
