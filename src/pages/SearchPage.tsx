@@ -121,9 +121,6 @@ export default function SearchPage() {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
-  // Use translation keys for search suggestions
-  const getRecentSearches = () => [t('search.recentBangkok'), t('search.recentSamutprakan')];
-  const getPopularSearches = () => [t('search.popularBangkok'), t('search.popularWarehouse'), t('search.popularTransport'), t('search.popularShipping')];
 
   useEffect(() => {
     loadJobs();
@@ -422,36 +419,8 @@ export default function SearchPage() {
           )}
         </div>
       ) : (
-        <div className="px-4 py-6 space-y-6">
-          <div>
-            <h3 className="text-sm font-semibold mb-3">{t('search.recent')}</h3>
-            <div className="flex flex-wrap gap-2">
-              {getRecentSearches().map((term) => (
-                <button
-                  key={term}
-                  onClick={() => handleSearchTermClick(term)}
-                  className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm"
-                >
-                  {term}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold mb-3">{t('search.popular')}</h3>
-            <div className="flex flex-wrap gap-2">
-              {getPopularSearches().map((term) => (
-                <button
-                  key={term}
-                  onClick={() => handleSearchTermClick(term)}
-                  className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm"
-                >
-                  {term}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="px-4 py-6 text-center text-muted-foreground">
+          {t('search.start_search')}
         </div>
       )}
 
