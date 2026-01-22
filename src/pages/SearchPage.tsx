@@ -384,9 +384,10 @@ export default function SearchPage() {
           job.origin_location,
           job.destination_location,
           job.transport_type,
+          job.transport_type_label,
           job.order_code,
-          job.province,
-          job.district
+          job.goods_type,
+          job.equipment_list
         ];
         
         return fields.some(field => {
@@ -398,28 +399,63 @@ export default function SearchPage() {
       });
     }
 
-    // Filter by domestic type
+    // Filter by domestic type (เที่ยวเดียว / หลายที่)
     if (domesticType) {
-      filtered = filtered.filter(job => 
-        job.transport_type?.includes(domesticType)
-      );
+      filtered = filtered.filter(job => {
+        const transportType = job.transport_type?.toLowerCase() || '';
+        const transportLabel = job.transport_type_label?.toLowerCase() || '';
+        const sendMode = job.send_mode?.toLowerCase() || '';
+        
+        if (domesticType === 'เที่ยวเดียว') {
+          return transportType.includes('single') || 
+                 transportLabel.includes('เที่ยวเดียว') || 
+                 sendMode === 'single';
+        } else if (domesticType === 'หลายที่') {
+          return transportType.includes('multiple') || 
+                 transportLabel.includes('หลายที่') || 
+                 sendMode === 'multiple';
+        }
+        return true;
+      });
     }
 
-    // Filter by international type
+    // Filter by international type (ขาเข้า / ขาออก)
     if (internationalType) {
-      filtered = filtered.filter(job => 
-        job.transport_type?.includes(internationalType)
-      );
+      filtered = filtered.filter(job => {
+        const jobType = job.job_type?.toLowerCase() || '';
+        const transportLabel = job.transport_type_label?.toLowerCase() || '';
+        
+        if (internationalType === 'ขาเข้า') {
+          return jobType.includes('inbound') || 
+                 jobType.includes('import') ||
+                 transportLabel.includes('ขาเข้า');
+        } else if (internationalType === 'ขาออก') {
+          return jobType.includes('outbound') || 
+                 jobType.includes('export') ||
+                 transportLabel.includes('ขาออก');
+        }
+        return true;
+      });
     }
 
-    // Filter by province
+    // Filter by province (search in origin/destination locations)
     if (province) {
-      filtered = filtered.filter(job => job.province === province);
+      filtered = filtered.filter(job => {
+        const origin = job.origin_location?.toLowerCase() || '';
+        const destination = job.destination_location?.toLowerCase() || '';
+        const lowerProvince = province.toLowerCase();
+        return origin.includes(lowerProvince) || destination.includes(lowerProvince);
+      });
     }
 
-    // Filter by district
+    // Filter by district (search in origin/destination locations)
     if (district) {
-      filtered = filtered.filter(job => job.district === district);
+      filtered = filtered.filter(job => {
+        const origin = job.origin_location?.toLowerCase() || '';
+        const destination = job.destination_location?.toLowerCase() || '';
+        const lowerDistrict = district.toLowerCase();
+        return origin.includes(lowerDistrict) || destination.includes(lowerDistrict);
+      });
     }
 
     // Filter by price range
