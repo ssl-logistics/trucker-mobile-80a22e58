@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { App } from "@capacitor/app";
+import { Browser } from "@capacitor/browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -330,7 +331,7 @@ const SignIn = () => {
           <div className="flex justify-center">
           <button 
             type="button" 
-            onClick={() => {
+            onClick={async () => {
               console.log('[LINE Login] 🚀 Button clicked');
               
               // Generate random state for CSRF protection
@@ -343,28 +344,43 @@ const SignIn = () => {
               
               // LINE OAuth URL
               const LINE_CHANNEL_ID = '2008888039';
-              // IMPORTANT: For iOS native app, window.location.origin is "capacitor://localhost"
-              // which LINE does not accept. Use production URL instead.
-              const isCapacitor = window.location.origin.includes('capacitor://') || 
-                                  window.location.origin.includes('localhost');
-              const baseUrl = isCapacitor 
-                ? 'https://thetroob-mobile.lovable.app' 
-                : window.location.origin;
+              // Use production URL for redirect (LINE requires HTTPS)
+              const baseUrl = 'https://thetroob-mobile.lovable.app';
               const redirectUri = `${baseUrl}/auth/line/callback`;
               const scope = 'profile openid';
               
               console.log('[LINE Login] Config:', {
                 channelId: LINE_CHANNEL_ID,
                 redirectUri: redirectUri,
-                isCapacitor: isCapacitor,
-                originalOrigin: window.location.origin,
                 scope: scope,
               });
 
               const authUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
               
-              console.log('[LINE Login] Redirecting to:', authUrl);
-              window.location.href = authUrl;
+              console.log('[LINE Login] Opening in-app browser:', authUrl);
+              
+              // Check if running in Capacitor
+              const isCapacitor = !!(window as any).Capacitor?.isNativePlatform?.() || 
+                                  window.location.origin.includes('capacitor://');
+              
+              if (isCapacitor) {
+                // Use in-app browser for native app
+                try {
+                  await Browser.open({ 
+                    url: authUrl,
+                    presentationStyle: 'popover',
+                    toolbarColor: '#00B900',
+                  });
+                  console.log('[LINE Login] In-app browser opened');
+                } catch (err) {
+                  console.error('[LINE Login] Browser.open error:', err);
+                  // Fallback to window.location
+                  window.location.href = authUrl;
+                }
+              } else {
+                // Web browser - use regular redirect
+                window.location.href = authUrl;
+              }
             }}
             disabled={isLoggingIn}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#00B900] hover:bg-[#00A000] text-white font-medium transition-colors disabled:opacity-50"
