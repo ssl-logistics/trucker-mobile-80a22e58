@@ -67,7 +67,8 @@ let lastRegistrationTime = 0;
 const REGISTRATION_COOLDOWN_MS = 5000; // 5 second cooldown
 
 // Request permission and register for push notifications on native platforms
-export const registerNativePushNotifications = async (): Promise<string | null> => {
+// Set forceRegister=true to bypass cooldown (e.g., when user explicitly clicks Enable button)
+export const registerNativePushNotifications = async (forceRegister: boolean = false): Promise<string | null> => {
   // Prevent concurrent registration attempts - can cause native layer to freeze on Android
   if (registrationInFlight) {
     console.log('[NativePush] Registration already in flight, returning existing promise');
@@ -75,8 +76,9 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
   }
 
   // Prevent rapid re-registration (e.g., returning from Settings triggers multiple calls)
+  // But allow bypass if forceRegister is true (user explicitly clicked Enable)
   const now = Date.now();
-  if (now - lastRegistrationTime < REGISTRATION_COOLDOWN_MS) {
+  if (!forceRegister && now - lastRegistrationTime < REGISTRATION_COOLDOWN_MS) {
     console.log('[NativePush] Registration cooldown active, skipping (last:', now - lastRegistrationTime, 'ms ago)');
     return null;
   }
@@ -86,6 +88,7 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
   console.log('[NativePush] registerNativePushNotifications called');
   console.log('[NativePush] Platform:', platform);
   console.log('[NativePush] isNativePlatform:', isNativePlatform());
+  console.log('[NativePush] forceRegister:', forceRegister);
   console.log('[NativePush] ========================================');
 
   if (!isNativePlatform()) {

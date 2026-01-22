@@ -72,7 +72,8 @@ export const getPushPermissionStatus = async (): Promise<PushPermissionStatus> =
 };
 
 // Unified function to request permission and subscribe
-export const enablePushNotifications = async (): Promise<boolean> => {
+// Set forceRegister=true to bypass cooldown (e.g., when user explicitly clicks Enable button)
+export const enablePushNotifications = async (forceRegister: boolean = true): Promise<boolean> => {
   if (!isPushSupported()) {
     console.log('Push notifications not supported');
     return false;
@@ -81,8 +82,8 @@ export const enablePushNotifications = async (): Promise<boolean> => {
   try {
     if (isNativePlatform()) {
       // Native platform (iOS/Android)
-      console.log('[UnifiedPush] Starting native push registration...');
-      const token = await registerNativePushNotifications();
+      console.log('[UnifiedPush] Starting native push registration (force:', forceRegister, ')...');
+      const token = await registerNativePushNotifications(forceRegister);
       console.log('[UnifiedPush] Registration result, token:', token ? token.substring(0, 20) + '...' : null);
       
       if (token) {
@@ -178,7 +179,8 @@ export const initializePushNotifications = async (): Promise<void> => {
         
         if (!hasToken) {
           console.log('[UnifiedPush] Permission granted but no token in DB, auto-registering...');
-          const token = await registerNativePushNotifications();
+          // Use forceRegister=true to bypass cooldown for auto-registration
+          const token = await registerNativePushNotifications(true);
           if (token) {
             console.log('[UnifiedPush] Auto-registration got token, saving...');
             try {
