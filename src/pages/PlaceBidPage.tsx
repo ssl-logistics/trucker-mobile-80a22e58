@@ -121,6 +121,9 @@ export default function PlaceBidPage() {
     setIsSubmitting(true);
 
     try {
+      console.log('=== User object from login ===');
+      console.log('User:', JSON.stringify(user, null, 2));
+
       // Build payload for external create-bid API
       const payload = {
         ticket_id: jobId,
