@@ -50,7 +50,7 @@
     </div>
     <script>
       // LINE redirects here with ?code=...&state=...
-      // Forward query params to HashRouter callback page
+      // Check if native app can handle this - try deep link first
       (function () {
         var debugEl = document.getElementById('debug');
         function log(msg) {
@@ -60,7 +60,6 @@
         
         log('URL: ' + window.location.href);
         log('Search: ' + window.location.search);
-        log('Hash: ' + window.location.hash);
         
         var search = window.location.search || "";
         
@@ -73,16 +72,34 @@
           return;
         }
         
-        // For HashRouter: params go after the hash path
-        // Format: /#/auth/line/callback?code=xxx&state=yyy
-        var newUrl = window.location.origin + "/#/auth/line/callback" + search;
+        // Extract code and state from URL
+        var urlParams = new URLSearchParams(search);
+        var code = urlParams.get('code');
+        var state = urlParams.get('state');
         
-        log('Redirecting to: ' + newUrl);
+        log('Code: ' + (code ? code.substring(0, 20) + '...' : 'NONE'));
+        log('State: ' + state);
         
-        // Use replace to avoid back button issues
+        // Try to redirect to native app first using custom URL scheme
+        // This will work if the app is installed
+        var deepLinkUrl = 'thetroob://line-callback' + search;
+        log('Trying deep link: ' + deepLinkUrl);
+        
+        // Set a flag to track if we've been redirected
+        var redirected = false;
+        
+        // Try opening the native app
+        window.location.href = deepLinkUrl;
+        
+        // If still here after 1.5 seconds, fallback to web app (HashRouter)
         setTimeout(function() {
-          window.location.replace(newUrl);
-        }, 500);
+          if (!redirected) {
+            log('Deep link did not work, falling back to web...');
+            var newUrl = window.location.origin + "/#/auth/line/callback" + search;
+            log('Redirecting to: ' + newUrl);
+            window.location.replace(newUrl);
+          }
+        }, 1500);
       })();
     </script>
   </body>
