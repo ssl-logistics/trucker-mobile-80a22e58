@@ -4,10 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.thetroob.mobile',
   appName: 'thetroob-mobile',
   webDir: 'dist',
-  server: {
-    url: 'https://58dbc0b4-f7db-4735-aa15-2391efc8b797.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  // ⚠️ Comment out for production build - only use for development hot-reload
+  // server: {
+  //   url: 'https://58dbc0b4-f7db-4735-aa15-2391efc8b797.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true
+  // },
   plugins: {
     Camera: {
       presentationStyle: 'fullscreen'
