@@ -127,7 +127,9 @@ export default function PlaceBidPage() {
         contractor_id: user.id,
         bid_price: amount,
         payment_transaction_id: `TXN${Date.now()}`,
-        payment_slip_base64: slipBase64
+        payment_slip_base64: slipBase64,
+        freelancer_name: user.full_name || user.firstName + ' ' + user.lastName || '',
+        freelancer_phone: user.phone || ''
       };
 
       console.log('=== Submitting bid via proxy ===');
