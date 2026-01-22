@@ -355,31 +355,44 @@ const SignIn = () => {
                 scope: scope,
               });
 
-              const authUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
-              
-              console.log('[LINE Login] Opening in-app browser:', authUrl);
-              
-              // Check if running in Capacitor
+              // Check if running in Capacitor (native app)
               const isCapacitor = !!(window as any).Capacitor?.isNativePlatform?.() || 
                                   window.location.origin.includes('capacitor://');
               
+              // Web OAuth URL (fallback)
+              const webAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
+              
+              // LINE app URL scheme for native authentication
+              // This will open the LINE app directly if installed
+              const lineAppUrl = `line://authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
+              
+              console.log('[LINE Login] isCapacitor:', isCapacitor);
+              
               if (isCapacitor) {
-                // Use in-app browser for native app
+                // Try to open LINE app directly
+                console.log('[LINE Login] Trying LINE app URL:', lineAppUrl);
+                
                 try {
+                  // First try LINE app URL scheme
                   await Browser.open({ 
-                    url: authUrl,
+                    url: lineAppUrl,
                     presentationStyle: 'popover',
                     toolbarColor: '#00B900',
                   });
-                  console.log('[LINE Login] In-app browser opened');
+                  console.log('[LINE Login] LINE app opened');
                 } catch (err) {
-                  console.error('[LINE Login] Browser.open error:', err);
-                  // Fallback to window.location
-                  window.location.href = authUrl;
+                  console.error('[LINE Login] LINE app open error, falling back to web:', err);
+                  // Fallback to web OAuth
+                  await Browser.open({ 
+                    url: webAuthUrl,
+                    presentationStyle: 'popover',
+                    toolbarColor: '#00B900',
+                  });
                 }
               } else {
                 // Web browser - use regular redirect
-                window.location.href = authUrl;
+                console.log('[LINE Login] Web redirect:', webAuthUrl);
+                window.location.href = webAuthUrl;
               }
             }}
             disabled={isLoggingIn}
