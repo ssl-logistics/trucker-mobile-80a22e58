@@ -97,7 +97,22 @@ interface ExternalTicket {
     vehicle_code: string;
   };
   route: ExternalTicketRoute;
-  bids: unknown[];
+  bids: {
+    id: string;
+    status: string;
+    bid_price: number;
+    created_at: string;
+    updated_at: string;
+    contractor_id: string;
+    contractor?: {
+      id: string;
+      full_name: string;
+      company_name: string | null;
+      email: string | null;
+      phone: string | null;
+      user_type: string;
+    };
+  }[];
 }
 
 export default function BiddingPage() {
@@ -105,6 +120,7 @@ export default function BiddingPage() {
   const { user, loading: authLoading } = useAuth();
   const { t, language } = useLanguage();
   const [availableJobs, setAvailableJobs] = useState<BiddingJob[]>([]);
+  const [rawTickets, setRawTickets] = useState<ExternalTicket[]>([]);
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [activeTab, setActiveTab] = useState("bidding");
   const [searchQuery, setSearchQuery] = useState("");
@@ -228,12 +244,12 @@ export default function BiddingPage() {
     }
   }, [authLoading]);
 
-  // Load bids after jobs are loaded
+  // Load bids after rawTickets are loaded
   useEffect(() => {
-    if (user && availableJobs.length >= 0 && !isLoading) {
+    if (user && rawTickets.length > 0) {
       loadMyBids();
     }
-  }, [user, availableJobs, isLoading]);
+  }, [user, rawTickets]);
 
   const loadAvailableJobs = async () => {
     try {
@@ -253,26 +269,29 @@ export default function BiddingPage() {
 
         if (!localError && localData) {
           setAvailableJobs(localData);
+          setRawTickets([]);
         }
         return;
       }
 
-      // Transform external API data to match BiddingJob format
+      // Get tickets array from response
+      let ticketsData: ExternalTicket[] = [];
       if (data && Array.isArray(data)) {
-        const transformedJobs: BiddingJob[] = data.map((ticket: ExternalTicket) => transformTicketToJob(ticket));
-        setAvailableJobs(transformedJobs);
+        ticketsData = data;
       } else if (data && data.data && Array.isArray(data.data)) {
-        // Handle if response is wrapped in { success: true, data: [...] }
-        const transformedJobs: BiddingJob[] = data.data.map((ticket: ExternalTicket) => transformTicketToJob(ticket));
-        setAvailableJobs(transformedJobs);
+        ticketsData = data.data;
       } else if (data && data.tickets && Array.isArray(data.tickets)) {
-        // Handle if response is wrapped in { tickets: [...] }
-        const transformedJobs: BiddingJob[] = data.tickets.map((ticket: ExternalTicket) => transformTicketToJob(ticket));
-        setAvailableJobs(transformedJobs);
-      } else {
-        console.log('No tickets data in response:', data);
-        setAvailableJobs([]);
+        ticketsData = data.tickets;
       }
+
+      // Store raw tickets for bid extraction
+      setRawTickets(ticketsData);
+
+      // Transform to jobs
+      const transformedJobs: BiddingJob[] = ticketsData.map((ticket: ExternalTicket) => transformTicketToJob(ticket));
+      setAvailableJobs(transformedJobs);
+      
+      console.log('Loaded tickets:', ticketsData.length);
     } catch (err) {
       console.error('Error in loadAvailableJobs:', err);
       // Fallback to local database
@@ -284,62 +303,46 @@ export default function BiddingPage() {
 
       if (!localError && localData) {
         setAvailableJobs(localData);
+        setRawTickets([]);
       }
     }
   };
 
-  const loadMyBids = async () => {
-    if (!user) return;
-    
-    try {
-      // Fetch bids from external API
-      const { data, error } = await supabase.functions.invoke('get-my-bids', {
-        body: { contractor_id: user.id }
-      });
-
-      console.log('=== My Bids Response ===');
-      console.log('Data:', data);
-
-      if (error) {
-        console.error('Error fetching my bids:', error);
-        setMyBids([]);
-        return;
-      }
-
-      // Handle different response formats
-      let bidsData: any[] = [];
-      if (Array.isArray(data)) {
-        bidsData = data;
-      } else if (data?.data && Array.isArray(data.data)) {
-        bidsData = data.data;
-      } else if (data?.bids && Array.isArray(data.bids)) {
-        bidsData = data.bids;
-      }
-
-      console.log('Parsed bids:', bidsData);
-
-      // Transform bids to match Bid type
-      const transformedBids: Bid[] = bidsData.map((bid: any) => {
-        // Transform ticket data to job format
-        const ticket = bid.ticket || bid.job || {};
-        const jobData: BiddingJob = transformTicketToJob(ticket);
-
-        return {
-          id: bid.id || `bid-${Date.now()}`,
-          job_id: ticket.id || bid.ticket_id || '',
-          driver_id: user.id,
-          bid_amount: bid.bid_price || bid.bid_amount || 0,
-          status: bid.status || 'pending',
-          created_at: bid.created_at || new Date().toISOString(),
-          jobs: jobData
-        } as Bid;
-      });
-
-      setMyBids(transformedBids);
-    } catch (err) {
-      console.error('Error in loadMyBids:', err);
-      setMyBids([]);
+  const loadMyBids = () => {
+    if (!user || rawTickets.length === 0) {
+      // Check if we have tickets that might have bids
+      return;
     }
+    
+    console.log('=== Extracting My Bids from Tickets ===');
+    console.log('User ID:', user.id);
+    console.log('Raw tickets count:', rawTickets.length);
+
+    // Extract bids that belong to the current user from all tickets
+    const userBids: Bid[] = [];
+
+    rawTickets.forEach((ticket) => {
+      if (ticket.bids && Array.isArray(ticket.bids)) {
+        ticket.bids.forEach((bid) => {
+          if (bid.contractor_id === user.id) {
+            const jobData: BiddingJob = transformTicketToJob(ticket);
+            
+            userBids.push({
+              id: bid.id,
+              job_id: ticket.id,
+              driver_id: user.id,
+              bid_amount: bid.bid_price,
+              status: bid.status || 'pending',
+              created_at: bid.created_at,
+              jobs: jobData
+            } as Bid);
+          }
+        });
+      }
+    });
+
+    console.log('User bids found:', userBids.length);
+    setMyBids(userBids);
   };
 
   const handlePlaceBid = (jobId: string) => {
