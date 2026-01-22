@@ -111,19 +111,6 @@ export const PushNotificationPrompt = () => {
           setShowDeniedPrompt(true);
         }, 1200);
 
-        // Auto-open settings (best effort) once per day when we detect it's denied
-        const lastAutoOpen = localStorage.getItem('push_notification_denied_auto_open');
-        const shouldAutoOpen = !lastAutoOpen
-          ? true
-          : (new Date().getTime() - new Date(lastAutoOpen).getTime()) / (1000 * 60 * 60 * 24) >= 1;
-
-        if (shouldAutoOpen) {
-          localStorage.setItem('push_notification_denied_auto_open', new Date().toISOString());
-          setTimeout(() => {
-            void openNotificationSettings();
-          }, 1800);
-        }
-
         return;
       }
 
