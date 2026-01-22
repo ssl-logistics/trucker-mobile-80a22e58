@@ -53,9 +53,9 @@ export default defineConfig(({ mode }) => ({
       },
       includeAssets: ['favicon.ico', 'robots.txt'],
       manifest: {
-        name: 'SSL Marketplace',
-        short_name: 'SSL',
-        description: 'SSL Logistics Marketplace - โพสต์หารถและคนขับหางาน',
+        name: 'The Troob Mobile',
+        short_name: 'The Troob',
+        description: 'The Troob - แอปพลิเคชันสำหรับคนขับรถบรรทุก',
         theme_color: '#16a34a',
         background_color: '#16a34a',
         display: 'standalone',

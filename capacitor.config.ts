@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.thetroob.mobile',
-  appName: 'thetroob-mobile',
+  appName: 'The Troob Mobile',
   webDir: 'dist',
   // ⚠️ Comment out for production build - only use for development hot-reload
   // server: {
