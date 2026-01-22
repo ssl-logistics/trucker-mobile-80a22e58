@@ -70,25 +70,25 @@ export default function PlaceBidPage() {
         payment_slip_base64: null // Will be added when payment slip upload is implemented
       };
 
-      console.log('=== Submitting bid to external API ===');
+      console.log('=== Submitting bid via proxy ===');
       console.log('Payload:', JSON.stringify(payload, null, 2));
 
-      // POST to external create-bid API
-      const response = await fetch('https://zcahkrlhlydpiwawdlxh.supabase.co/functions/v1/create-bid', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+      // POST via our proxy edge function (adds API key securely)
+      const { data: result, error: invokeError } = await supabase.functions.invoke('create-bid-proxy', {
+        body: payload
       });
 
-      const result = await response.json();
+      if (invokeError) {
+        throw invokeError;
+      }
+
+      console.log('Proxy response:', result);
       console.log('External API response:', result);
 
       setIsSubmitting(false);
 
-      if (!response.ok) {
-        console.error('Error submitting bid:', result);
+      if (result?.error) {
+        console.error('Error submitting bid:', result.error);
         toast({
           title: t('placeBid.error'),
           description: result.error || t('placeBid.submitError'),
