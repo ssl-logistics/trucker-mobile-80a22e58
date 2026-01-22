@@ -367,9 +367,9 @@ export default function SearchPage() {
       >
         <div className="flex items-center gap-3 px-4 py-4">
           <button onClick={() => navigate('/home')} className="p-1">
-            <ChevronLeft className="w-6 h-6 text-white" />
+            <ChevronLeft className="w-6 h-6 text-black" />
           </button>
-          <h1 className="text-lg font-semibold flex-1 text-center text-white">{t('search.title')}</h1>
+          <h1 className="text-lg font-semibold flex-1 text-center text-black">{t('search.title')}</h1>
           <div className="w-6" />
         </div>
       </header>
