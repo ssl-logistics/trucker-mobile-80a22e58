@@ -220,16 +220,20 @@ export default function BiddingPage() {
     const loadData = async () => {
       setIsLoading(true);
       await loadAvailableJobs();
-      if (user) {
-        await loadMyBids();
-      }
       setIsLoading(false);
     };
 
     if (!authLoading) {
       loadData();
     }
-  }, [user, authLoading]);
+  }, [authLoading]);
+
+  // Load bids after jobs are loaded
+  useEffect(() => {
+    if (user && availableJobs.length >= 0 && !isLoading) {
+      loadMyBids();
+    }
+  }, [user, availableJobs, isLoading]);
 
   const loadAvailableJobs = async () => {
     try {
@@ -286,15 +290,114 @@ export default function BiddingPage() {
 
   const loadMyBids = async () => {
     if (!user) return;
-    const { data, error } = await supabase
+    
+    // Load bids from local database
+    const { data: localBids, error } = await supabase
       .from("job_bids")
-      .select("*, jobs(*)")
+      .select("*")
       .eq("driver_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      setMyBids(data as Bid[]);
+    if (error) {
+      console.error('Error loading bids:', error);
+      return;
     }
+
+    if (!localBids || localBids.length === 0) {
+      setMyBids([]);
+      return;
+    }
+
+    // For each bid, try to find job info from availableJobs or fetch from API
+    const bidsWithJobs: Bid[] = [];
+    
+    for (const bid of localBids) {
+      // First check if job exists in availableJobs
+      let jobData = availableJobs.find(j => j.id === bid.job_id);
+      
+      if (!jobData) {
+        // Try to get from local jobs table
+        const { data: localJob } = await supabase
+          .from("jobs")
+          .select("*")
+          .eq("id", bid.job_id)
+          .maybeSingle();
+        
+        if (localJob) {
+          jobData = localJob;
+        }
+      }
+
+      if (jobData) {
+        bidsWithJobs.push({
+          ...bid,
+          jobs: jobData
+        } as Bid);
+      } else {
+        // Create a placeholder job with basic info
+        const placeholderJob: BiddingJob = {
+          id: bid.job_id,
+          order_code: 'งานที่บิด',
+          employer_name: '-',
+          origin_location: '-',
+          destination_location: '-',
+          transport_type: '-',
+          job_type: 'งานประมูล',
+          price: bid.bid_amount,
+          start_date: new Date(bid.created_at).toISOString().split('T')[0],
+          start_time: '00:00',
+          status: 'open_for_bidding',
+          created_at: bid.created_at,
+          updated_at: bid.created_at,
+          origin_company_name: null,
+          destination_company_name: null,
+          origin_goods_type: null,
+          equipment_list: null,
+          safety_equipment: null,
+          assigned_role: null,
+          container_checkpoint: null,
+          container_checkpoint_code: null,
+          container_checkpoint_latitude: null,
+          container_checkpoint_longitude: null,
+          container_number: null,
+          container_number_2: null,
+          destination_address: null,
+          destination_bill_of_lading: null,
+          destination_contact_person: null,
+          destination_date: null,
+          destination_goods_quantity: null,
+          destination_goods_type: null,
+          destination_latitude: null,
+          destination_longitude: null,
+          destination_remarks: null,
+          destination_time: null,
+          district: null,
+          empty_container_date: null,
+          origin_address: null,
+          origin_bill_of_lading: null,
+          origin_contact_person: null,
+          origin_contact_role: null,
+          origin_goods_quantity: null,
+          origin_latitude: null,
+          origin_longitude: null,
+          origin_remarks: null,
+          province: null,
+          return_full_container_date: null,
+          return_full_container_location: null,
+          seal_number: null,
+          seal_number_2: null,
+          shipper_load: null,
+          tax_id: null,
+        };
+        
+        bidsWithJobs.push({
+          ...bid,
+          jobs: placeholderJob
+        } as Bid);
+      }
+    }
+
+    setMyBids(bidsWithJobs);
   };
 
   const handlePlaceBid = (jobId: string) => {
