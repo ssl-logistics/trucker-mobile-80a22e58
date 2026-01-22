@@ -17,9 +17,9 @@ serve(async (req) => {
     console.log('Payload:', JSON.stringify(payload, null, 2));
 
     // Get the API key from secrets
-    const apiKey = Deno.env.get('LIST_TICKETS_API_KEY');
+    const apiKey = Deno.env.get('CREATE_BID_API_KEY');
     if (!apiKey) {
-      console.error('LIST_TICKETS_API_KEY not configured');
+      console.error('CREATE_BID_API_KEY not configured');
       return new Response(
         JSON.stringify({ success: false, error: 'API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
