@@ -125,14 +125,15 @@ export default function PlaceBidPage() {
       console.log('User:', JSON.stringify(user, null, 2));
 
       // Build payload for external create-bid API
+      const freelancerName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
       const payload = {
         ticket_id: jobId,
         contractor_id: user.id,
         bid_price: amount,
         payment_transaction_id: `TXN${Date.now()}`,
         payment_slip_base64: slipBase64,
-        freelancer_name: user.full_name || '',
-        freelancer_phone: user.phone_number || ''
+        freelancer_name: freelancerName,
+        freelancer_phone: user.phone || ''
       };
 
       console.log('=== Submitting bid via proxy ===');
