@@ -161,6 +161,26 @@ export default function PlaceBidPage() {
           variant: 'destructive'
         });
       } else {
+        // Save bid to local database for history tracking
+        try {
+          const { error: saveError } = await supabase
+            .from('job_bids')
+            .insert({
+              job_id: jobId,
+              driver_id: user.id,
+              bid_amount: amount,
+              status: 'pending'
+            });
+          
+          if (saveError) {
+            console.warn('Warning: Could not save bid to local history:', saveError);
+          } else {
+            console.log('Bid saved to local history');
+          }
+        } catch (saveErr) {
+          console.warn('Warning: Error saving bid to local history:', saveErr);
+        }
+
         toast({
           title: t('placeBid.success'),
           description: t('placeBid.successMessage')
