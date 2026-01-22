@@ -25,8 +25,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: 'automatic',
-    preferredContentMode: 'mobile',
-    scheme: 'thetroob'
+    preferredContentMode: 'mobile'
   }
 };
 
