@@ -63,7 +63,7 @@ export function BottomNavigation() {
       id="bottom-navigation"
       style={{
         position: "fixed",
-        bottom: 24,
+        bottom: 0,
         left: 0,
         right: 0,
         zIndex: 2147483647,
@@ -72,11 +72,12 @@ export function BottomNavigation() {
         paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)",
         borderTopLeftRadius: "16px",
         borderTopRightRadius: "16px",
-        transform: "translateZ(0)",
-        WebkitTransform: "translateZ(0)",
+        transform: "translate3d(0, 0, 0)",
+        WebkitTransform: "translate3d(0, 0, 0)",
         backfaceVisibility: "hidden",
         WebkitBackfaceVisibility: "hidden",
         willChange: "transform",
+        isolation: "isolate",
       }}
     >
       <div style={{ 

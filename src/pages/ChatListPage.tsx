@@ -207,9 +207,9 @@ export default function ChatListPage() {
           {conversations.map(renderConversationItem)}
         </div>}
     </div>;
-  return <div className="min-h-screen bg-background pb-20">
+  return <div className="min-h-screen bg-background pb-24 overscroll-none">
       {/* Header */}
-      <div className="bg-[#DDEDFF] shadow-lg rounded-b-xl page-header-safe">
+      <div className="bg-[#DDEDFF] shadow-lg rounded-b-xl" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <h1 className="text-xl font-semibold text-[#153860] text-center px-4 py-3">{t('chat.title')}</h1>
       </div>
       

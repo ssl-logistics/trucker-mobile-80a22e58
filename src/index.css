@@ -110,12 +110,15 @@ All colors MUST be HSL.
     height: 100%;
     margin: 0;
     padding: 0;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
   
   #root {
     height: 100%;
     display: flex;
     flex-direction: column;
+    overscroll-behavior: none;
   }
 }
 
@@ -138,20 +141,21 @@ All colors MUST be HSL.
   }
 }
 
-/* Fixed bottom navigation */
+/* Fixed bottom navigation - prevent iOS overscroll bounce */
 #bottom-navigation {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 9999 !important;
+  z-index: 2147483647 !important;
+  transform: translate3d(0, 0, 0) !important;
+  -webkit-transform: translate3d(0, 0, 0) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  will-change: transform !important;
 }
 
-/* Page header with safe area */
+/* Page header with minimal safe area - just for notch */
 .page-header-safe {
   padding-top: env(safe-area-inset-top, 0px);
-  min-height: 85px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
 }
