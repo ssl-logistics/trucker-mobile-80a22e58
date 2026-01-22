@@ -356,46 +356,60 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
   }
 };
 
+// Track if listeners are already set up to prevent duplicates
+let listenersSetUp = false;
+
 // Setup push notification listeners
 export const setupNativePushListeners = (): void => {
   if (!isNativePlatform()) {
     return;
   }
 
+  // Prevent duplicate listener setup which can crash Android
+  if (listenersSetUp) {
+    console.log('[NativePush] Listeners already set up, skipping...');
+    return;
+  }
+
   console.log('[NativePush] Setting up push notification listeners...');
 
-  // Handle incoming push notifications when app is in foreground
-  PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-    console.log('[NativePush] Push notification received in foreground:', JSON.stringify(notification));
-    // You can show a local notification or update UI here
-  });
+  try {
+    // Handle incoming push notifications when app is in foreground
+    PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
+      console.log('[NativePush] Push notification received in foreground:', JSON.stringify(notification));
+      // You can show a local notification or update UI here
+    });
 
-  // Handle notification tap
-  PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
-    console.log('[NativePush] Push notification action performed:', JSON.stringify(notification));
-    
-    try {
-      const data = notification.notification.data;
-      console.log('[NativePush] Notification data:', JSON.stringify(data));
+    // Handle notification tap
+    PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
+      console.log('[NativePush] Push notification action performed:', JSON.stringify(notification));
       
-      // Navigate to appropriate page based on notification data
-      if (data?.url) {
-        console.log('[NativePush] Navigating to:', data.url);
-        // Use setTimeout to ensure navigation happens after app is ready
-        setTimeout(() => {
-          try {
-            window.location.hash = data.url;
-          } catch (navError) {
-            console.error('[NativePush] Navigation error:', navError);
-          }
-        }, 500);
+      try {
+        const data = notification.notification.data;
+        console.log('[NativePush] Notification data:', JSON.stringify(data));
+        
+        // Navigate to appropriate page based on notification data
+        if (data?.url) {
+          console.log('[NativePush] Navigating to:', data.url);
+          // Use setTimeout to ensure navigation happens after app is ready
+          setTimeout(() => {
+            try {
+              window.location.hash = data.url;
+            } catch (navError) {
+              console.error('[NativePush] Navigation error:', navError);
+            }
+          }, 500);
+        }
+      } catch (error) {
+        console.error('[NativePush] Error handling notification action:', error);
       }
-    } catch (error) {
-      console.error('[NativePush] Error handling notification action:', error);
-    }
-  });
+    });
 
-  console.log('[NativePush] Push notification listeners set up successfully');
+    listenersSetUp = true;
+    console.log('[NativePush] Push notification listeners set up successfully');
+  } catch (error) {
+    console.error('[NativePush] Failed to set up listeners:', error);
+  }
 };
 
 // Unregister from native push notifications
