@@ -408,9 +408,9 @@ export default function Home() {
     }
   };
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
       {/* Fixed Header */}
-      <div className="flex-shrink-0 ios-fixed-header">
+      <div className="sticky top-0 z-50 bg-gradient-to-b from-blue-50 to-blue-50">
         <AppHeader 
           userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
           profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
@@ -419,7 +419,7 @@ export default function Home() {
         />
 
         {/* Search Bar */}
-        <div className="px-4 -mt-4 pb-4 bg-gradient-to-b from-transparent to-blue-50/80">
+        <div className="px-4 -mt-4 pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <Input placeholder={t('home.search')} className="pl-10 bg-white shadow-sm border-0" onClick={() => navigate('/search')} readOnly />
@@ -428,7 +428,7 @@ export default function Home() {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24">
+      <div className="flex-1 pb-24">
         {/* Jobs Section */}
         <div className="px-4 mt-6">
           <div className="flex items-center justify-between mb-4">

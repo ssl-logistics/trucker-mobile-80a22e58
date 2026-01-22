@@ -60,9 +60,9 @@ export default function DashboardPage() {
     imageSrc: productBg
   }];
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
       {/* Fixed Header */}
-      <div className="flex-shrink-0 ios-fixed-header">
+      <div className="sticky top-0 z-50">
         <AppHeader 
           userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
           profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
@@ -72,7 +72,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24">
+      <div className="flex-1 pb-24">
         <div className="px-4 py-6 space-y-8">
           {dashboardItems.map(item => (
             <Card 
