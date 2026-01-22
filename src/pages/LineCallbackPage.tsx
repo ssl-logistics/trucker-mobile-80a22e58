@@ -14,6 +14,20 @@ interface LineUserData {
   email?: string;
 }
 
+// Check if running inside Capacitor native app
+const isRunningInCapacitor = () => {
+  return !!(window as any).Capacitor?.isNativePlatform?.() || 
+         window.location.origin.includes('capacitor://') ||
+         window.location.origin.includes('localhost');
+};
+
+// Check if this is Safari opened from LINE (not the native app)
+const isExternalBrowser = () => {
+  // If we're on the published URL in a browser, it's external
+  return window.location.origin.includes('thetroob-mobile.lovable.app') && 
+         !isRunningInCapacitor();
+};
+
 const LineCallbackPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -22,6 +36,7 @@ const LineCallbackPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [lineUserData, setLineUserData] = useState<LineUserData | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [redirectingToApp, setRedirectingToApp] = useState(false);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -155,6 +170,35 @@ const LineCallbackPage = () => {
           email: data.user.email || 'NO EMAIL',
         });
 
+        // Check if we're in external browser (Safari opened from iOS app)
+        // If so, redirect back to native app with user data
+        if (isExternalBrowser()) {
+          console.log('[LINE Callback] 📱 Detected external browser - redirecting to native app');
+          setRedirectingToApp(true);
+          setStatus('success');
+          
+          // Encode user data for URL
+          const userData = {
+            lineUserId: data.user.lineUserId,
+            displayName: data.user.displayName,
+            pictureUrl: data.user.pictureUrl || '',
+            statusMessage: data.user.statusMessage || '',
+          };
+          const encodedData = encodeURIComponent(btoa(JSON.stringify(userData)));
+          
+          // Redirect to native app using custom URL scheme
+          const deepLinkUrl = `thetroob://line-auth-success?data=${encodedData}`;
+          console.log('[LINE Callback] 🔗 Deep link URL:', deepLinkUrl);
+          
+          // Show message and redirect
+          setTimeout(() => {
+            window.location.href = deepLinkUrl;
+          }, 1000);
+          
+          return;
+        }
+
+        // Normal flow (running inside Capacitor or web)
         // Store LINE user data and login type (persistent across app restarts)
         console.log('[LINE Callback] 💾 Saving auth data to storage...');
         
@@ -268,7 +312,18 @@ const LineCallbackPage = () => {
       />
 
       <div className="text-center space-y-4">
-        {status === 'loading' ? (
+        {redirectingToApp ? (
+          <>
+            <div className="w-12 h-12 mx-auto rounded-full bg-[#00B900]/10 flex items-center justify-center">
+              <span className="text-2xl">📱</span>
+            </div>
+            <p className="text-lg font-medium text-[#00B900]">เข้าสู่ระบบสำเร็จ</p>
+            <p className="text-sm text-muted-foreground">กำลังกลับไปที่แอพ...</p>
+            <p className="text-xs text-muted-foreground mt-4">
+              หากไม่ถูกเปลี่ยนหน้าอัตโนมัติ กรุณากลับไปที่แอพ thetroob
+            </p>
+          </>
+        ) : status === 'loading' ? (
           <>
             <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#00B900]" />
             <p className="text-lg font-medium">กำลังเข้าสู่ระบบ LINE...</p>
