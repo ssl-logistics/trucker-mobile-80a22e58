@@ -165,18 +165,31 @@ const PushDebugPage = () => {
 
   const handleRegisterPush = async () => {
     setLoading(true);
-    addLog('Starting push registration via enablePushNotifications()...');
+    addLog('Starting push registration...');
+    addLog(`Platform: ${debugInfo.platform}, Native: ${debugInfo.isNative}`);
 
     try {
-      // Use unified function that handles both native and web
+      // Step 1: Check current permission
+      addLog('Step 1: Checking current permission...');
+      const currentPerm = await getPushPermissionStatus();
+      addLog(`Current permission: ${currentPerm}`);
+      
+      // Step 2: Call enablePushNotifications
+      addLog('Step 2: Calling enablePushNotifications()...');
       const result = await enablePushNotifications();
-      addLog(`Push registration result: ${result ? '✅ Success' : '❌ Failed'}`);
+      addLog(`enablePushNotifications result: ${result ? '✅ Success' : '❌ Failed'}`);
+      
+      // Step 3: Check permission again
+      addLog('Step 3: Checking permission after registration...');
+      const afterPerm = await getPushPermissionStatus();
+      addLog(`Permission after: ${afterPerm}`);
       
       // Reload debug info to show updated subscriptions
       await loadDebugInfo();
       
     } catch (error: any) {
-      addLog(`Error: ${error.message}`);
+      addLog(`❌ Error: ${error.message}`);
+      addLog(`Error stack: ${error.stack?.substring(0, 200) || 'no stack'}`);
     } finally {
       setLoading(false);
     }
