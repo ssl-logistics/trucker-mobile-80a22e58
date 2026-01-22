@@ -345,7 +345,7 @@ const SignIn = () => {
               // LINE OAuth URL
               const LINE_CHANNEL_ID = '2008888039';
               // Use production URL for redirect (LINE requires HTTPS)
-              const baseUrl = 'https://thetroob-mobile.lovable.app';
+              const baseUrl = 'https://mobile.thetroob.com';
               const redirectUri = `${baseUrl}/auth/line/callback`;
               const scope = 'profile openid';
               

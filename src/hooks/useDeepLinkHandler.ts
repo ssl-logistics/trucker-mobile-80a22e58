@@ -49,7 +49,7 @@ export const useDeepLinkHandler = () => {
             console.log('[DeepLink] 📡 Exchanging code for token...');
             
             // Call edge function to exchange code for token
-            const redirectUri = 'https://thetroob-mobile.lovable.app/auth/line/callback';
+            const redirectUri = 'https://mobile.thetroob.com/auth/line/callback';
             const { data, error: fnError } = await supabase.functions.invoke('line-auth', {
               body: { code, redirectUri },
             });
