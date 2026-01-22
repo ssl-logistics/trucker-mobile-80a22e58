@@ -67,6 +67,8 @@ export default function SettingsPage() {
     
     try {
       if (enabled) {
+        const platform = getPlatformName();
+
         // Check if notifications are supported
         if (!isPushSupported()) {
           toast({
@@ -74,6 +76,22 @@ export default function SettingsPage() {
             description: t('toast.browserNotSupported'),
             variant: "destructive",
           });
+          return;
+        }
+
+        // If permission is already denied, we can't re-prompt. Guide the user instead.
+        const perm = await getPushPermissionStatus();
+        if (perm === 'denied') {
+          toast({
+            title: t('toast.cannotEnableNotification'),
+            description: platform === 'Web'
+              ? t('toast.allowNotificationInBrowser')
+              : `Please enable notifications in your ${platform} settings`,
+            variant: 'destructive',
+          });
+          if (platform !== 'Web') {
+            await openNotificationSettings();
+          }
           return;
         }
 
@@ -86,7 +104,6 @@ export default function SettingsPage() {
             description: t('toast.notificationEnabledDesc'),
           });
         } else {
-          const platform = getPlatformName();
           toast({
             title: t('toast.cannotEnableNotification'),
             description: platform === 'Web' 
@@ -94,6 +111,9 @@ export default function SettingsPage() {
               : `Please enable notifications in your ${platform} settings`,
             variant: "destructive",
           });
+          if (platform !== 'Web') {
+            await openNotificationSettings();
+          }
         }
       } else {
         // Unsubscribe from push notifications
@@ -254,7 +274,7 @@ export default function SettingsPage() {
     {
       section: t('settings.general'),
       items: [
-        { icon: Bell, label: t('settings.notifications'), hasToggle: true },
+        { icon: Bell, label: t('settings.notifications'), hasToggle: true, path: '/notifications' },
         { icon: Bug, label: 'Push Debug', path: '/push-debug' },
       ]
     },
@@ -320,10 +340,14 @@ export default function SettingsPage() {
               <div key={itemIdx}>
                 {item.hasToggle ? (
                   <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => item.path && navigate(item.path)}
+                      className="flex items-center gap-3"
+                    >
                       <item.icon className="w-5 h-5 text-foreground" />
                       <span className="text-foreground">{item.label}</span>
-                    </div>
+                    </button>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-green-600">
                         {notificationsEnabled ? t('settings.notifications_enabled') : t('settings.notifications_disabled')}
