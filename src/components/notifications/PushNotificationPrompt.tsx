@@ -25,8 +25,9 @@ export const PushNotificationPrompt = () => {
   const waitingForSettingsReturn = useRef(false);
 
   // Function to check permission and register token if granted
-  const checkAndRegisterToken = useCallback(async () => {
-    console.log('[PushPrompt] Checking permission and registering token...');
+  // forceRegister bypasses cooldown when user explicitly enables notifications
+  const checkAndRegisterToken = useCallback(async (forceRegister: boolean = false) => {
+    console.log('[PushPrompt] Checking permission and registering token... force:', forceRegister);
     
     if (!isPushSupported()) {
       console.log('[PushPrompt] Push not supported');
@@ -41,9 +42,9 @@ export const PushNotificationPrompt = () => {
       const isSubscribed = await isPushEnabled();
       console.log('[PushPrompt] Already subscribed:', isSubscribed);
       
-      if (!isSubscribed) {
-        console.log('[PushPrompt] Not subscribed yet, enabling push notifications...');
-        const success = await enablePushNotifications();
+      if (!isSubscribed || forceRegister) {
+        console.log('[PushPrompt] Not subscribed yet or force register, enabling push notifications...');
+        const success = await enablePushNotifications(forceRegister);
         console.log('[PushPrompt] Enable result:', success);
         
         if (success) {
@@ -203,7 +204,8 @@ export const PushNotificationPrompt = () => {
           await new Promise(resolve => setTimeout(resolve, 1500));
           
           try {
-            const registered = await checkAndRegisterToken();
+            // Force register when returning from settings
+            const registered = await checkAndRegisterToken(true);
             console.log('[PushPrompt] Token registration after settings return:', registered);
             
             if (registered) {
