@@ -198,17 +198,22 @@ export const PushNotificationPrompt = () => {
           console.log('[PushPrompt] Returned from settings, checking permission...');
           waitingForSettingsReturn.current = false;
           
-          // Small delay to let the system update permission status
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Longer delay to let the system fully update permission status
+          // and avoid race conditions with other registration attempts
+          await new Promise(resolve => setTimeout(resolve, 1500));
           
-          const registered = await checkAndRegisterToken();
-          console.log('[PushPrompt] Token registration after settings return:', registered);
-          
-          if (registered) {
-            toast({
-              title: 'เปิดการแจ้งเตือนสำเร็จ!',
-              description: 'คุณจะได้รับการแจ้งเตือนเมื่อมีงานใหม่',
-            });
+          try {
+            const registered = await checkAndRegisterToken();
+            console.log('[PushPrompt] Token registration after settings return:', registered);
+            
+            if (registered) {
+              toast({
+                title: 'เปิดการแจ้งเตือนสำเร็จ!',
+                description: 'คุณจะได้รับการแจ้งเตือนเมื่อมีงานใหม่',
+              });
+            }
+          } catch (error) {
+            console.error('[PushPrompt] Error registering after settings return:', error);
           }
         }
       });

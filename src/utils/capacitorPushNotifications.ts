@@ -62,6 +62,9 @@ export const isNotificationPermissionDenied = async (): Promise<boolean> => {
 
 // Concurrency guard to prevent duplicate registration attempts (can crash Android)
 let registrationInFlight: Promise<string | null> | null = null;
+// Cooldown period to prevent rapid re-registration attempts after returning from Settings
+let lastRegistrationTime = 0;
+const REGISTRATION_COOLDOWN_MS = 5000; // 5 second cooldown
 
 // Request permission and register for push notifications on native platforms
 export const registerNativePushNotifications = async (): Promise<string | null> => {
@@ -69,6 +72,13 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
   if (registrationInFlight) {
     console.log('[NativePush] Registration already in flight, returning existing promise');
     return registrationInFlight;
+  }
+
+  // Prevent rapid re-registration (e.g., returning from Settings triggers multiple calls)
+  const now = Date.now();
+  if (now - lastRegistrationTime < REGISTRATION_COOLDOWN_MS) {
+    console.log('[NativePush] Registration cooldown active, skipping (last:', now - lastRegistrationTime, 'ms ago)');
+    return null;
   }
 
   const platform = Capacitor.getPlatform();
@@ -82,6 +92,8 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
     console.log('[NativePush] Not running on native platform, skipping native push registration');
     return null;
   }
+  // Mark registration start time
+  lastRegistrationTime = Date.now();
 
   // Create the registration promise
   registrationInFlight = (async (): Promise<string | null> => {
