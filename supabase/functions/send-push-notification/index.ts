@@ -145,24 +145,67 @@ async function sendApnsNotification(
       ...data,
     };
     
-    // Use production APNs endpoint
-    const apnsUrl = `https://api.push.apple.com/3/device/${deviceToken}`;
+    const headers = {
+      'Authorization': `bearer ${jwt}`,
+      'apns-topic': bundleId,
+      'apns-push-type': 'alert',
+      'apns-priority': '10',
+      'apns-expiration': '0',
+      'Content-Type': 'application/json',
+    };
     
-    const response = await fetch(apnsUrl, {
+    const bodyStr = JSON.stringify(apnsPayload);
+    
+    // Try production APNs endpoint first
+    const productionUrl = `https://api.push.apple.com/3/device/${deviceToken}`;
+    let response = await fetch(productionUrl, {
       method: 'POST',
-      headers: {
-        'Authorization': `bearer ${jwt}`,
-        'apns-topic': bundleId,
-        'apns-push-type': 'alert',
-        'apns-priority': '10',
-        'apns-expiration': '0',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(apnsPayload),
+      headers,
+      body: bodyStr,
     });
     
+    // If production returns BadDeviceToken, try sandbox (development builds)
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.log(`APNs production error ${response.status}: ${errorText}`);
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.reason === 'BadDeviceToken') {
+          console.log('Trying APNs sandbox endpoint for development token...');
+          const sandboxUrl = `https://api.sandbox.push.apple.com/3/device/${deviceToken}`;
+          response = await fetch(sandboxUrl, {
+            method: 'POST',
+            headers,
+            body: bodyStr,
+          });
+          
+          if (response.ok) {
+            console.log('APNs notification sent successfully via SANDBOX');
+            return { success: true };
+          }
+          
+          const sandboxError = await response.text();
+          console.error(`APNs sandbox error ${response.status}: ${sandboxError}`);
+          
+          // Parse sandbox error
+          try {
+            const sandboxErrorJson = JSON.parse(sandboxError);
+            if (sandboxErrorJson.reason === 'BadDeviceToken' || sandboxErrorJson.reason === 'Unregistered') {
+              return { success: false, error: 'TOKEN_EXPIRED' };
+            }
+          } catch (_) {
+            // Not JSON
+          }
+          return { success: false, error: sandboxError };
+        }
+      } catch (_) {
+        // Not JSON, continue with original error
+      }
+    }
+    
     if (response.ok) {
-      console.log('APNs notification sent successfully');
+      console.log('APNs notification sent successfully via PRODUCTION');
       return { success: true };
     }
     
