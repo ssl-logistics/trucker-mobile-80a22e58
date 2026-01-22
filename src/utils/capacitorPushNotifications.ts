@@ -254,32 +254,35 @@ const getCurrentUserIdFromAnySource = async (): Promise<CurrentUserIdResult> => 
   return { userId, source: authSource };
 };
 
-// Check if we already have a saved FCM token in DB for the current user
+// Check if we already have a saved push token in DB for the current user
 export const hasNativePushTokenInDb = async (): Promise<boolean> => {
   try {
     const { userId } = await getCurrentUserIdFromAnySource();
     if (!userId) return false;
 
+    const platform = Capacitor.getPlatform();
+    const prefix = platform === 'ios' ? 'apns://' : 'fcm://';
+
     const { data, error } = await supabase
       .from('push_subscriptions')
       .select('id')
       .eq('user_id', userId)
-      .like('endpoint', 'fcm://%')
+      .like('endpoint', `${prefix}%`)
       .limit(1);
 
     if (error) {
-      console.error('[NativePush] Failed to check existing FCM token:', error);
+      console.error('[NativePush] Failed to check existing push token:', error);
       return false;
     }
 
     return (data?.length ?? 0) > 0;
   } catch (error) {
-    console.error('[NativePush] Failed to check existing FCM token:', error);
+    console.error('[NativePush] Failed to check existing push token:', error);
     return false;
   }
 };
 
-// Save native push token to database (FCM format for Firebase)
+// Save native push token to database (APNs for iOS, FCM for Android)
 export const saveNativePushToken = async (token: string): Promise<void> => {
   console.log('[NativePush] ========================================');
   console.log('[NativePush] saveNativePushToken called');
@@ -302,31 +305,33 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
     }
 
     const platform = Capacitor.getPlatform(); // 'ios' or 'android'
+    
+    // Use apns:// for iOS, fcm:// for Android
+    const prefix = platform === 'ios' ? 'apns://' : 'fcm://';
+    const endpoint = `${prefix}${token}`;
 
-    console.log('[NativePush] Saving FCM token:');
+    console.log('[NativePush] Saving push token:');
     console.log('[NativePush] - User ID:', userId);
     console.log('[NativePush] - Platform:', platform);
+    console.log('[NativePush] - Prefix:', prefix);
     console.log('[NativePush] - Source:', source);
 
-    // Use fcm:// prefix so backend can identify FCM tokens
-    const endpoint = `fcm://${token}`;
-
-    // First, delete any existing FCM subscriptions for this user
-    console.log('[NativePush] Deleting old FCM subscriptions for user...');
+    // First, delete any existing subscriptions for this user on this platform
+    console.log(`[NativePush] Deleting old ${prefix} subscriptions for user...`);
     const { error: deleteError } = await supabase
       .from('push_subscriptions')
       .delete()
       .eq('user_id', userId)
-      .like('endpoint', 'fcm://%');
+      .like('endpoint', `${prefix}%`);
     
     if (deleteError) {
       console.warn('[NativePush] Delete old tokens warning:', deleteError);
     } else {
-      console.log('[NativePush] Old FCM tokens deleted');
+      console.log('[NativePush] Old tokens deleted');
     }
 
     // Then insert the new token
-    console.log('[NativePush] Inserting new FCM token...');
+    console.log('[NativePush] Inserting new push token...');
     const { data, error } = await supabase
       .from('push_subscriptions')
       .insert({
@@ -339,14 +344,14 @@ export const saveNativePushToken = async (token: string): Promise<void> => {
       .single();
 
     if (error) {
-      console.error('[NativePush] ❌ Database error saving FCM token:', error);
+      console.error('[NativePush] ❌ Database error saving push token:', error);
       throw error;
     }
 
-    console.log('[NativePush] ✅✅✅ FCM token saved successfully! ✅✅✅');
+    console.log(`[NativePush] ✅✅✅ ${platform.toUpperCase()} push token saved successfully! ✅✅✅`);
     console.log('[NativePush] Saved record ID:', data?.id);
   } catch (error) {
-    console.error('[NativePush] ❌ Failed to save FCM push token:', error);
+    console.error('[NativePush] ❌ Failed to save push token:', error);
     throw error;
   }
 };
@@ -417,16 +422,19 @@ export const unregisterNativePushNotifications = async (): Promise<void> => {
     }
     
     if (userId) {
+      const platform = Capacitor.getPlatform();
+      const prefix = platform === 'ios' ? 'apns://' : 'fcm://';
+      
       await supabase
         .from('push_subscriptions')
         .delete()
         .eq('user_id', userId)
-        .like('endpoint', 'fcm://%');
+        .like('endpoint', `${prefix}%`);
     }
     
-    console.log('Unregistered from FCM push notifications');
+    console.log('Unregistered from native push notifications');
   } catch (error) {
-    console.error('Failed to unregister FCM push notifications:', error);
+    console.error('Failed to unregister native push notifications:', error);
     throw error;
   }
 };
