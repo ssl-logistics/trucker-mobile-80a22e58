@@ -1,4 +1,12 @@
+/**
+ * Unified Push Notifications
+ * 
+ * This module provides a unified interface for push notifications
+ * across native (iOS/Android via Capacitor) and web platforms.
+ */
+
 import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
 import {
   isNativePlatform,
   registerNativePushNotifications,
@@ -38,12 +46,22 @@ export const getPushPermissionStatus = async (): Promise<PushPermissionStatus> =
   }
 
   if (isNativePlatform()) {
-    // Native can be explicitly denied (Android 13+ / iOS), or just not requested yet.
-    const denied = await isNotificationPermissionDenied();
-    if (denied) return 'denied';
-
-    const isEnabled = await checkNativePushStatus();
-    return isEnabled ? 'granted' : 'prompt';
+    try {
+      // Use Capacitor PushNotifications to check actual permission status
+      const permStatus = await PushNotifications.checkPermissions();
+      console.log('[UnifiedPush] Native permission status:', permStatus.receive);
+      
+      if (permStatus.receive === 'denied') {
+        return 'denied';
+      } else if (permStatus.receive === 'granted') {
+        return 'granted';
+      } else {
+        return 'prompt';
+      }
+    } catch (error) {
+      console.error('[UnifiedPush] Failed to check native permission:', error);
+      return 'prompt';
+    }
   }
 
   if (!('Notification' in window)) {
