@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { setAuthItem } from '@/utils/authStorage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,6 +30,14 @@ export const useDeepLinkHandler = () => {
         // Handle LINE auth success callback
         if (path === 'line-auth-success' || url.host === 'line-auth-success') {
           const encodedData = url.searchParams.get('data');
+          
+          // Close the in-app browser if it's open
+          try {
+            await Browser.close();
+            console.log('[DeepLink] 📱 In-app browser closed');
+          } catch (e) {
+            console.log('[DeepLink] Browser.close not needed or failed:', e);
+          }
           
           if (encodedData) {
             console.log('[DeepLink] 🔐 Processing LINE auth data');
