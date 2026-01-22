@@ -103,6 +103,8 @@ export default function SettingsPage() {
             title: t('toast.notificationEnabled'),
             description: t('toast.notificationEnabledDesc'),
           });
+          // User expectation: after enabling, go to Notifications page
+          navigate('/notifications');
         } else {
           toast({
             title: t('toast.cannotEnableNotification'),
