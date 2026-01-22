@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -11,6 +11,8 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Job = Database['public']['Tables']['jobs']['Row'];
 
+const DEPOSIT_AMOUNT = 100;
+
 export default function PlaceBidPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
@@ -19,6 +21,9 @@ export default function PlaceBidPage() {
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [job, setJob] = useState<Job | null>(null);
+  const [slipImage, setSlipImage] = useState<string | null>(null);
+  const [slipBase64, setSlipBase64] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (jobId) {
@@ -35,6 +40,51 @@ export default function PlaceBidPage() {
 
     if (!error && data) {
       setJob(data);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: t('placeBid.invalidFileType'),
+        description: t('placeBid.pleaseUploadImage'),
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: t('placeBid.fileTooLarge'),
+        description: t('placeBid.maxFileSize'),
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setSlipImage(previewUrl);
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setSlipBase64(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveSlip = () => {
+    setSlipImage(null);
+    setSlipBase64(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -58,6 +108,16 @@ export default function PlaceBidPage() {
       return;
     }
 
+    // Validate payment slip is uploaded
+    if (!slipBase64) {
+      toast({
+        title: t('placeBid.slipRequired'),
+        description: t('placeBid.pleaseUploadSlip'),
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -67,11 +127,11 @@ export default function PlaceBidPage() {
         contractor_id: user.id,
         bid_price: amount,
         payment_transaction_id: `TXN${Date.now()}`,
-        payment_slip_base64: null // Will be added when payment slip upload is implemented
+        payment_slip_base64: slipBase64
       };
 
       console.log('=== Submitting bid via proxy ===');
-      console.log('Payload:', JSON.stringify(payload, null, 2));
+      console.log('Payload:', JSON.stringify({ ...payload, payment_slip_base64: '[BASE64_IMAGE]' }, null, 2));
 
       // POST via our proxy edge function (adds API key securely)
       const { data: result, error: invokeError } = await supabase.functions.invoke('create-bid-proxy', {
@@ -131,8 +191,9 @@ export default function PlaceBidPage() {
       </header>
 
       {/* Content */}
-      <div className="px-4 py-6">
-        <div className="mb-6">
+      <div className="px-4 py-6 space-y-6">
+        {/* Bid Amount */}
+        <div>
           <label className="text-sm text-muted-foreground mb-2 block">
             {t('placeBid.priceLabel')} <span className="text-destructive">*</span>
           </label>
@@ -146,10 +207,63 @@ export default function PlaceBidPage() {
           />
         </div>
 
+        {/* Deposit Payment Section */}
+        <div className="bg-muted/50 rounded-lg p-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">{t('placeBid.depositAmount')}</span>
+            <span className="text-lg font-bold text-primary">฿{DEPOSIT_AMOUNT.toLocaleString()}</span>
+          </div>
+          
+          <p className="text-xs text-muted-foreground">
+            {t('placeBid.depositDescription')}
+          </p>
+
+          {/* Payment Slip Upload */}
+          <div>
+            <label className="text-sm text-muted-foreground mb-2 block">
+              {t('placeBid.paymentSlip')} <span className="text-destructive">*</span>
+            </label>
+            
+            {slipImage ? (
+              <div className="relative">
+                <img 
+                  src={slipImage} 
+                  alt="Payment slip" 
+                  className="w-full max-h-64 object-contain rounded-lg border"
+                />
+                <button
+                  onClick={handleRemoveSlip}
+                  className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+              >
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <ImageIcon className="w-10 h-10" />
+                  <span className="text-sm">{t('placeBid.uploadSlipHint')}</span>
+                </div>
+              </div>
+            )}
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </div>
+        </div>
+
         <Button 
           className="w-full" 
           onClick={handleSubmitBid}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !slipBase64}
         >
           {isSubmitting ? t('placeBid.submitting') : t('placeBid.confirm')}
         </Button>
