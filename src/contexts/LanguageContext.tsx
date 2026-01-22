@@ -307,6 +307,7 @@ const thTranslations: Record<string, string> = {
   'search.popularWarehouse': 'คลังสินค้า',
   'search.popularTransport': 'ขนส่ง',
   'search.popularShipping': 'ชิปปิ้ง',
+  'search.start_search': 'พิมพ์เพื่อค้นหางาน',
   
   // Profile Page
   'profile.title': 'โปรไฟล์',
@@ -1562,6 +1563,7 @@ const enTranslations: Record<string, string> = {
   'search.popularWarehouse': 'Warehouse',
   'search.popularTransport': 'Transport',
   'search.popularShipping': 'Shipping',
+  'search.start_search': 'Type to search for jobs',
   
   // Profile Page
   'profile.title': 'Profile',
@@ -2757,6 +2759,7 @@ const koTranslations: Record<string, string> = {
   'search.popularWarehouse': '창고',
   'search.popularTransport': '운송',
   'search.popularShipping': '배송',
+  'search.start_search': '작업을 검색하려면 입력하세요',
   
   // Profile Page
   'profile.title': '프로필',
@@ -4221,6 +4224,7 @@ const zhTranslations: Record<string, string> = {
   'search.popularWarehouse': '仓库',
   'search.popularTransport': '运输',
   'search.popularShipping': '物流',
+  'search.start_search': '输入搜索工作',
   
   // Job Action Buttons
   'jobActions.viewExpenses': '查看费用',
