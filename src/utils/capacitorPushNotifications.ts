@@ -72,11 +72,12 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
   }
 
   try {
-    // Request permission
+    // Step 1: Check current permission status
     console.log('[NativePush] Checking permissions...');
     let permStatus = await PushNotifications.checkPermissions();
     console.log('[NativePush] Initial permission status:', permStatus.receive);
 
+    // Step 2: Request permission if needed
     if (permStatus.receive === 'prompt') {
       console.log('[NativePush] Requesting permissions...');
       permStatus = await PushNotifications.requestPermissions();
@@ -88,9 +89,10 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
       return null;
     }
 
-    console.log('[NativePush] Permission granted, setting up listeners...');
+    console.log('[NativePush] Permission granted, setting up listeners and registering...');
 
-    // IMPORTANT: add listeners BEFORE calling register() to avoid missing fast events.
+    // Step 3: Set up listeners BEFORE calling register()
+    // This is critical - iOS fires registration event very quickly
     return await new Promise<string | null>((resolve) => {
       let settled = false;
       let registrationHandle: any = null;
@@ -106,6 +108,7 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
           // ignore
         }
 
+        // Clean up listeners
         try {
           registrationHandle?.remove?.();
         } catch {
@@ -121,14 +124,18 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
         resolve(value);
       };
 
+      // Timeout after 15 seconds
       const timeoutId = setTimeout(() => {
         console.warn('[NativePush] Registration timed out (no token received after 15s)');
         settle(null);
       }, 15000);
 
+      // Set up listeners first, then register
       (async () => {
         try {
           console.log('[NativePush] Adding registration listeners...');
+          
+          // Add listeners in parallel
           [registrationHandle, errorHandle] = await Promise.all([
             PushNotifications.addListener('registration', (token: Token) => {
               console.log('[NativePush] ✅ Registration SUCCESS!');
@@ -141,7 +148,13 @@ export const registerNativePushNotifications = async (): Promise<string | null> 
             }),
           ]);
 
-          console.log('[NativePush] Listeners added, calling PushNotifications.register()...');
+          console.log('[NativePush] Listeners added successfully');
+          
+          // Small delay to ensure listeners are fully ready (iOS timing issue)
+          await new Promise(r => setTimeout(r, 100));
+          
+          // Now register with APNs/FCM
+          console.log('[NativePush] Calling PushNotifications.register()...');
           await PushNotifications.register();
           console.log('[NativePush] PushNotifications.register() completed');
         } catch (error) {
