@@ -61,34 +61,37 @@ export default function PlaceBidPage() {
     setIsSubmitting(true);
 
     try {
-      // Get session for auth token
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: t('placeBid.error'),
-          description: t('placeBid.sessionExpired'),
-          variant: 'destructive'
-        });
-        setIsSubmitting(false);
-        return;
-      }
+      // Build payload for external create-bid API
+      const payload = {
+        ticket_id: jobId,
+        contractor_id: user.id,
+        bid_price: amount,
+        payment_transaction_id: `TXN${Date.now()}`,
+        payment_slip_base64: null // Will be added when payment slip upload is implemented
+      };
 
-      // Call send-bid edge function to save and forward bid
-      const { data, error } = await supabase.functions.invoke('send-bid', {
-        body: {
-          job_id: jobId,
-          bid_amount: amount
-        }
+      console.log('=== Submitting bid to external API ===');
+      console.log('Payload:', JSON.stringify(payload, null, 2));
+
+      // POST to external create-bid API
+      const response = await fetch('https://zcahkrlhlydpiwawdlxh.supabase.co/functions/v1/create-bid', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
+
+      const result = await response.json();
+      console.log('External API response:', result);
 
       setIsSubmitting(false);
 
-      if (error) {
-        console.error('Error submitting bid:', error);
+      if (!response.ok) {
+        console.error('Error submitting bid:', result);
         toast({
           title: t('placeBid.error'),
-          description: t('placeBid.submitError'),
+          description: result.error || t('placeBid.submitError'),
           variant: 'destructive'
         });
       } else {
