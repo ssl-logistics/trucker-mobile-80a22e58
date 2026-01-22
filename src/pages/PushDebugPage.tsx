@@ -174,13 +174,44 @@ const PushDebugPage = () => {
       const currentPerm = await getPushPermissionStatus();
       addLog(`Current permission: ${currentPerm}`);
       
-      // Step 2: Call enablePushNotifications
-      addLog('Step 2: Calling enablePushNotifications()...');
-      const result = await enablePushNotifications();
-      addLog(`enablePushNotifications result: ${result ? '✅ Success' : '❌ Failed'}`);
+      // Step 2: Import native registration directly for detailed logging
+      addLog('Step 2: Importing native push utilities...');
+      const { registerNativePushNotifications, saveNativePushToken, setupNativePushListeners } = await import('@/utils/capacitorPushNotifications');
       
-      // Step 3: Check permission again
-      addLog('Step 3: Checking permission after registration...');
+      // Step 3: Call native registration directly
+      addLog('Step 3: Calling registerNativePushNotifications()...');
+      addLog('⏳ Waiting for FCM token (up to 20s)...');
+      const startTime = Date.now();
+      
+      const token = await registerNativePushNotifications();
+      const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+      
+      if (token) {
+        addLog(`✅ Got token in ${duration}s!`);
+        addLog(`Token prefix: ${token.substring(0, 30)}...`);
+        addLog(`Token length: ${token.length}`);
+        
+        // Step 4: Save token
+        addLog('Step 4: Saving token to database...');
+        try {
+          await saveNativePushToken(token);
+          addLog('✅ Token saved to DB!');
+          setupNativePushListeners();
+          addLog('✅ Listeners set up!');
+        } catch (saveError: any) {
+          addLog(`❌ Save error: ${saveError.message}`);
+        }
+      } else {
+        addLog(`❌ No token after ${duration}s`);
+        addLog('⚠️ Possible causes:');
+        addLog('  - APNs key not uploaded to Firebase');
+        addLog('  - Push capability not enabled in Xcode');
+        addLog('  - Invalid provisioning profile');
+        addLog('  - Check Xcode console for [NativePush] logs');
+      }
+      
+      // Step 5: Check permission again
+      addLog('Step 5: Checking permission after...');
       const afterPerm = await getPushPermissionStatus();
       addLog(`Permission after: ${afterPerm}`);
       
