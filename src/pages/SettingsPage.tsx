@@ -167,10 +167,31 @@ export default function SettingsPage() {
         throw response.error;
       }
 
-      toast({
-        title: '✅ ส่งแจ้งเตือนแล้ว',
-        description: 'ถ้าไม่ได้รับภายใน 10 วินาที ให้ลองปิด-เปิด Notification ใหม่',
-      });
+      const result = response.data;
+      console.log('[PushDebug] ✅ Response:', JSON.stringify(result));
+
+      // Check if notification was actually sent successfully
+      if (result?.sent > 0) {
+        toast({
+          title: '✅ Test notification สำเร็จ',
+          description: 'การแจ้งเตือนถูกส่งไปยังอุปกรณ์ของคุณแล้ว',
+        });
+      } else if (result?.results?.[0]?.error) {
+        const errorMsg = result.results[0].error;
+        toast({
+          title: 'ส่งไม่สำเร็จ',
+          description: errorMsg === 'TOKEN_EXPIRED' 
+            ? 'Token หมดอายุ กรุณาปิด-เปิด Notification ใหม่'
+            : errorMsg,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'ไม่พบอุปกรณ์',
+          description: 'กรุณาปิด-เปิด Notification toggle ใหม่เพื่อลงทะเบียนอุปกรณ์',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       console.error('Test push error:', error);
       toast({
