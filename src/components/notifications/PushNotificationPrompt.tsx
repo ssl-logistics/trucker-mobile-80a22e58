@@ -401,30 +401,6 @@ export const PushNotificationPrompt = () => {
     return null;
   }
 
-  const handleEnableViaSettings = async () => {
-    setIsLoading(true);
-    waitingForSettingsReturn.current = true;
-    
-    try {
-      await openNotificationSettings();
-      
-      toast({
-        title: 'กรุณาเปิดการแจ้งเตือน',
-        description: 'เปิดสวิตช์การแจ้งเตือนสำหรับแอปนี้ แล้วกลับมาที่แอป',
-      });
-      
-      setShowPrompt(false);
-      localStorage.setItem('push_notification_last_prompt', new Date().toISOString());
-    } catch (error) {
-      console.error('Failed to open settings:', error);
-      waitingForSettingsReturn.current = false;
-      // Fallback to regular enable flow
-      await handleEnable();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96">
       <Card className="p-4 shadow-lg border-2 border-orange-500/30 bg-background">
@@ -444,11 +420,11 @@ export const PushNotificationPrompt = () => {
             <div className="flex gap-2">
               <Button
                 size="sm"
-                onClick={handleEnableViaSettings}
+                onClick={handleEnable}
                 disabled={isLoading}
                 className="flex-1 bg-orange-500 hover:bg-orange-600"
               >
-                <Settings className="w-4 h-4 mr-1" />
+                <Bell className="w-4 h-4 mr-1" />
                 {isLoading ? t('notification.enabling') : t('notification.enableButton')}
               </Button>
               <Button
