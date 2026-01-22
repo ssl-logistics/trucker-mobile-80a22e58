@@ -342,14 +342,21 @@ const SignIn = () => {
               
               // LINE OAuth URL
               const LINE_CHANNEL_ID = '2008888039';
-              // IMPORTANT: LINE does not accept redirect_uri with a "#" fragment.
-              // We redirect to a static page that forwards to our HashRouter callback.
-              const redirectUri = `${window.location.origin}/auth/line/callback`;
+              // IMPORTANT: For iOS native app, window.location.origin is "capacitor://localhost"
+              // which LINE does not accept. Use production URL instead.
+              const isCapacitor = window.location.origin.includes('capacitor://') || 
+                                  window.location.origin.includes('localhost');
+              const baseUrl = isCapacitor 
+                ? 'https://thetroob-mobile.lovable.app' 
+                : window.location.origin;
+              const redirectUri = `${baseUrl}/auth/line/callback`;
               const scope = 'profile openid';
               
               console.log('[LINE Login] Config:', {
                 channelId: LINE_CHANNEL_ID,
                 redirectUri: redirectUri,
+                isCapacitor: isCapacitor,
+                originalOrigin: window.location.origin,
                 scope: scope,
               });
 

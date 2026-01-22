@@ -99,8 +99,16 @@ const LineCallbackPage = () => {
       try {
         // Get the redirect URI that was used (must match exactly what was sent to LINE)
         // NOTE: Must NOT include a "#" fragment for LINE.
-        const redirectUri = `${window.location.origin}/auth/line/callback`;
+        // IMPORTANT: For iOS native app, window.location.origin is "capacitor://localhost"
+        // which LINE does not accept. Use production URL to match what was sent.
+        const isCapacitor = window.location.origin.includes('capacitor://') || 
+                            window.location.origin.includes('localhost');
+        const baseUrl = isCapacitor 
+          ? 'https://thetroob-mobile.lovable.app' 
+          : window.location.origin;
+        const redirectUri = `${baseUrl}/auth/line/callback`;
         console.log('[LINE Callback] 📡 Calling line-auth edge function with redirectUri:', redirectUri);
+        console.log('[LINE Callback] 📡 isCapacitor:', isCapacitor, 'originalOrigin:', window.location.origin);
 
         // Call edge function to exchange code for token
         const { data, error: fnError } = await supabase.functions.invoke('line-auth', {
