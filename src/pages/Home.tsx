@@ -409,19 +409,21 @@ export default function Home() {
   };
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
-      {/* Header - uses app-header-fixed internally */}
-      <AppHeader 
-        userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
-        profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
-        onSignOut={handleSignOut} 
-        showQuickMenu={true} 
-      />
+      {/* Header + Search wrapped together with rounded corners at bottom */}
+      <div className="rounded-b-3xl shadow-lg overflow-hidden">
+        <AppHeader 
+          userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
+          profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
+          onSignOut={handleSignOut} 
+          showQuickMenu={true} 
+        />
 
-      {/* Search Bar - separate from header */}
-      <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-blue-50">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-          <Input placeholder={t('home.search')} className="pl-10 bg-white shadow-sm border-0" onClick={() => navigate('/search')} readOnly />
+        {/* Search Bar - inside the rounded container */}
+        <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-[#d6e4f5]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            <Input placeholder={t('home.search')} className="pl-10 bg-white shadow-sm border-0" onClick={() => navigate('/search')} readOnly />
+          </div>
         </div>
       </div>
 
