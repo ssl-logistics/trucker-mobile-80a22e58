@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getAuthItem } from '@/utils/authStorage';
 
 export interface PushSubscriptionData {
   endpoint: string;
@@ -81,10 +82,14 @@ export const subscribeToPushNotifications = async (): Promise<PushSubscription> 
 // Save subscription to database
 export const savePushSubscription = async (subscription: PushSubscription): Promise<void> => {
   try {
+    // Our app may run with custom auth (driver_id) without backend-auth session.
+    // Prefer backend-auth user id, fall back to stored driver id.
     const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('User not authenticated');
+    const fallbackDriverId = await getAuthItem('auth_driver_id');
+    const userId = user?.id ?? fallbackDriverId;
+
+    if (!userId) {
+      throw new Error('Missing user id for push subscription');
     }
 
     const subscriptionData = subscription.toJSON();
@@ -96,7 +101,7 @@ export const savePushSubscription = async (subscription: PushSubscription): Prom
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert({
-        user_id: user.id,
+        user_id: userId,
         endpoint: subscriptionData.endpoint,
         p256dh: subscriptionData.keys.p256dh,
         auth: subscriptionData.keys.auth,
@@ -127,14 +132,16 @@ export const unsubscribeFromPushNotifications = async (): Promise<void> => {
       
       // Remove from database
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
+      const fallbackDriverId = await getAuthItem('auth_driver_id');
+      const userId = user?.id ?? fallbackDriverId;
+
+      if (userId) {
         const subscriptionData = subscription.toJSON();
         
         await supabase
           .from('push_subscriptions')
           .delete()
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .eq('endpoint', subscriptionData.endpoint);
       }
     }
