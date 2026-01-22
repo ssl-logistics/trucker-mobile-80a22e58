@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
 import { SwipeBackProvider } from "@/components/layout/SwipeBackProvider";
+import { DeepLinkListener } from "@/components/DeepLinkListener";
 
 import StartPage from "./pages/StartPage";
 import Register from "./pages/Register";
@@ -67,6 +68,7 @@ const App = () => (
             <Sonner />
             <HashRouter>
               <SwipeBackProvider>
+              <DeepLinkListener />
               <div className="min-h-screen">
               
               <PushNotificationPrompt />
