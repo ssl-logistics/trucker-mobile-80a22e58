@@ -259,25 +259,10 @@ const PushDebugPage = () => {
 
   // Auto-register push when page loads
   useEffect(() => {
-    const initAndRegister = async () => {
-      await loadDebugInfo();
-      
-      // Auto-register push if permission not denied
-      addLog('🚀 Auto-registering push on page load...');
-      const permStatus = await getPushPermissionStatus();
-      
-      if (permStatus === 'denied') {
-        addLog('⚠️ Permission denied - please enable in Settings');
-        return;
-      }
-      
-      // Wait a bit for debug info to load
-      setTimeout(() => {
-        handleRegisterPush();
-      }, 500);
-    };
-    
-    initAndRegister();
+    // NOTE: Do not auto-call native registration here.
+    // On Android, if Firebase isn't configured in the native project yet,
+    // calling register() can crash the app.
+    loadDebugInfo();
   }, []);
 
   return (
