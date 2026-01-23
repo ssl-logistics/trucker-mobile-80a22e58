@@ -110,16 +110,19 @@ export function MultiBidPaymentModal({
   };
 
   const handleSubmit = async () => {
-    // Validate all bid amounts
+    // Validate all bid amounts (skip free jobs)
     for (const job of selectedJobs) {
-      const amount = parseFloat(bidAmounts[job.id] || "0");
-      if (isNaN(amount) || amount <= 0) {
-        toast({
-          title: t("placeBid.invalidPrice"),
-          description: `${t("placeBid.enterValidPrice")} - ${job.order_code}`,
-          variant: "destructive",
-        });
-        return;
+      const isFreeJob = !job.price || job.price === 0;
+      if (!isFreeJob) {
+        const amount = parseFloat(bidAmounts[job.id] || "0");
+        if (isNaN(amount) || amount <= 0) {
+          toast({
+            title: t("placeBid.invalidPrice"),
+            description: `${t("placeBid.enterValidPrice")} - ${job.order_code}`,
+            variant: "destructive",
+          });
+          return;
+        }
       }
     }
 
@@ -142,10 +145,11 @@ export function MultiBidPaymentModal({
       // Submit bids for all selected jobs
       const results = await Promise.allSettled(
         selectedJobs.map(async (job) => {
+          const isFreeJob = !job.price || job.price === 0;
           const payload = {
             ticket_id: job.id,
             contractor_id: user.id,
-            bid_price: parseFloat(bidAmounts[job.id]),
+            bid_price: isFreeJob ? 0 : parseFloat(bidAmounts[job.id]),
             payment_transaction_id: `TXN${Date.now()}_${job.id.slice(0, 8)}`,
             payment_slip_base64: slipBase64,
             freelancer_name: freelancerName,
@@ -200,6 +204,8 @@ export function MultiBidPaymentModal({
   };
 
   const allBidsValid = selectedJobs.every((job) => {
+    // Free jobs don't need bid amount validation
+    if (!job.price || job.price === 0) return true;
     const amount = parseFloat(bidAmounts[job.id] || "0");
     return !isNaN(amount) && amount > 0;
   });
@@ -233,9 +239,9 @@ export function MultiBidPaymentModal({
                     <span className="opacity-80">{t("bidding.bankName")}:</span>
                     <span className="font-medium">{BANK_INFO.bankName}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div>
                     <span className="opacity-80">{t("bidding.accountName")}:</span>
-                    <span className="font-medium text-right text-xs">{BANK_INFO.accountName}</span>
+                    <span className="font-medium ml-2">{BANK_INFO.accountName}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="opacity-80">{t("bidding.accountNumber")}:</span>
@@ -261,38 +267,43 @@ export function MultiBidPaymentModal({
           {/* Bid Amounts for Each Job */}
           <div className="space-y-3">
             <p className="text-sm font-medium">{t("bidding.enterBidAmounts")}</p>
-            {selectedJobs.map((job) => (
-              <div key={job.id} className="bg-card border rounded-lg p-3 space-y-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{job.order_code}</p>
-                    <p className="text-xs text-muted-foreground truncate max-w-[180px]">
-                      {job.origin_location} → {job.destination_location}
-                    </p>
+            {selectedJobs.map((job) => {
+              const isFreeJob = !job.price || job.price === 0;
+              return (
+                <div key={job.id} className="bg-card border rounded-lg p-3 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{job.order_code}</p>
+                      <p className="text-xs text-muted-foreground truncate max-w-[180px]">
+                        {job.origin_location} → {job.destination_location}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">{t("bidding.startingPrice")}</p>
+                      <p className={`text-sm font-semibold ${isFreeJob ? "text-emerald-600" : "text-primary"}`}>
+                        {formatPrice(job.price)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">{t("bidding.startingPrice")}</p>
-                    <p className={`text-sm font-semibold ${job.price === 0 ? "text-emerald-600" : "text-primary"}`}>
-                      {formatPrice(job.price)}
-                    </p>
-                  </div>
+                  {!isFreeJob && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">฿</span>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        placeholder={t("placeBid.priceLabel")}
+                        value={bidAmounts[job.id] || ""}
+                        onChange={(e) => handleBidAmountChange(job.id, e.target.value)}
+                        className="flex-1"
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {t("bidding.biddingFee")}: <span className="font-medium text-foreground">฿{DEPOSIT_PER_JOB}</span>
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">฿</span>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    placeholder={t("placeBid.priceLabel")}
-                    value={bidAmounts[job.id] || ""}
-                    onChange={(e) => handleBidAmountChange(job.id, e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("bidding.biddingFee")}: <span className="font-medium text-foreground">฿{DEPOSIT_PER_JOB}</span>
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Payment Slip Upload */}
