@@ -26,6 +26,10 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'automatic',
     preferredContentMode: 'mobile'
+  },
+  android: {
+    allowMixedContent: true,
+    webContentsDebuggingEnabled: true
   }
 };
 
