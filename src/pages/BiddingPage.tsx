@@ -319,19 +319,24 @@ export default function BiddingPage() {
 
   const loadAcceptedJobs = async () => {
     try {
-      // Fetch accepted/completed jobs from external API
+      // Fetch accepted/completed jobs from edge function with bids_status parameter
       const { data, error } = await supabase.functions.invoke('list-tickets', {
-        body: null,
         method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: null,
       });
 
-      // Build URL with query params for accepted bids
+      // Unfortunately supabase.functions.invoke doesn't support query params directly
+      // So we need to use fetch with proper headers
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/list-tickets?bids_status=accepted`,
         {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
         }
@@ -342,16 +347,16 @@ export default function BiddingPage() {
         return;
       }
 
-      const data2 = await response.json();
+      const responseData = await response.json();
 
       // Get tickets array from response
       let ticketsData: ExternalTicket[] = [];
-      if (data2 && Array.isArray(data2)) {
-        ticketsData = data2;
-      } else if (data2 && data2.data && Array.isArray(data2.data)) {
-        ticketsData = data2.data;
-      } else if (data2 && data2.tickets && Array.isArray(data2.tickets)) {
-        ticketsData = data2.tickets;
+      if (responseData && Array.isArray(responseData)) {
+        ticketsData = responseData;
+      } else if (responseData && responseData.data && Array.isArray(responseData.data)) {
+        ticketsData = responseData.data;
+      } else if (responseData && responseData.tickets && Array.isArray(responseData.tickets)) {
+        ticketsData = responseData.tickets;
       }
 
       console.log('Loaded accepted tickets:', ticketsData.length);
