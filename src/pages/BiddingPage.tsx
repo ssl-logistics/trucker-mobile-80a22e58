@@ -320,10 +320,10 @@ export default function BiddingPage() {
   const loadAcceptedJobs = async () => {
     try {
       // Fetch accepted/completed jobs via backend function (uses LIST_TICKETS_API_KEY)
+      // Don't send status - let API return all tickets with accepted bids
       const { data: responseData, error } = await supabase.functions.invoke('list-tickets', {
         method: 'POST',
         body: {
-          status: 'completed',
           bids_status: 'accepted',
         },
       });

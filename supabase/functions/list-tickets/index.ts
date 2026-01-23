@@ -37,17 +37,25 @@ serve(async (req) => {
       }
     }
 
-    const status = (body?.status as string | undefined) ?? url.searchParams.get('status') ?? 'active';
-    const limit = (body?.limit as string | undefined) ?? url.searchParams.get('limit') ?? '50';
+    // Get parameters - don't default status if bids_status is provided
     const bidsStatus = (body?.bids_status as string | undefined) ?? url.searchParams.get('bids_status') ?? undefined;
+    const statusParam = (body?.status as string | undefined) ?? url.searchParams.get('status');
+    const limit = (body?.limit as string | undefined) ?? url.searchParams.get('limit') ?? '50';
+    
+    // Only default to 'active' if no bids_status filter is provided
+    const status = statusParam ?? (bidsStatus ? undefined : 'active');
 
     console.log(
-      `Fetching tickets from external API with status=${status}, limit=${limit}, bids_status=${bidsStatus || 'none'}`,
+      `Fetching tickets from external API with status=${status || 'not specified'}, limit=${limit}, bids_status=${bidsStatus || 'none'}`,
     );
 
     // Build external API URL with query params
     const externalUrl = new URL(EXTERNAL_API_URL);
-    externalUrl.searchParams.set('status', status);
+    
+    // Only set status if explicitly provided or defaulted
+    if (status) {
+      externalUrl.searchParams.set('status', status);
+    }
     externalUrl.searchParams.set('limit', limit);
     
     // Add bids_status if provided
