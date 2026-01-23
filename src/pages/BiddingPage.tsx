@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
@@ -851,8 +852,8 @@ export default function BiddingPage() {
         </DrawerContent>
       </Drawer>
 
-      {/* Floating Action Panel for Payment - Slides up from bottom */}
-      {selectedJobIds.size > 0 && (
+      {/* Floating Action Panel for Payment - Rendered via Portal */}
+      {selectedJobIds.size > 0 && createPortal(
         <div 
           className="fixed bottom-24 left-4 right-4 z-[99999] bg-background rounded-xl shadow-2xl border p-4"
           style={{
@@ -875,7 +876,8 @@ export default function BiddingPage() {
           >
             {t("bidding.proceedToPayment")}
           </Button>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Multi-Bid Payment Modal */}
