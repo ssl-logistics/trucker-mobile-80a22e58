@@ -525,17 +525,19 @@ export default function BiddingPage() {
     </div>
   );
 
-  const renderJobCard = (job: BiddingJob, bidAmount?: number, bidStatus?: string, bidCreatedAt?: string) => {
+  const renderJobCard = (job: BiddingJob, bidAmount?: number, bidStatus?: string, bidCreatedAt?: string, disableSelection?: boolean) => {
     const isSelected = selectedJobIds.has(job.id);
+    const isClickable = !disableSelection;
     
     return (
       <Card 
         key={job.id} 
         className={cn(
-          "overflow-hidden bg-card transition-all cursor-pointer",
-          isSelected && "ring-2 ring-primary"
+          "overflow-hidden bg-card transition-all",
+          isClickable && "cursor-pointer",
+          isSelected && !disableSelection && "ring-2 ring-primary"
         )}
-        onClick={() => toggleJobSelection(job.id)}
+        onClick={isClickable ? () => toggleJobSelection(job.id) : undefined}
       >
         <div className="flex items-center justify-between bg-white">
           <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl text-[#30503b]">
@@ -753,7 +755,7 @@ export default function BiddingPage() {
                 <div key={month}>
                   <div className="text-sm text-muted-foreground mb-2">{month}</div>
                   <div className="space-y-4">
-                    {bids.map((bid) => renderJobCard(bid.jobs, bid.bid_amount, bid.status, bid.created_at))}
+                    {bids.map((bid) => renderJobCard(bid.jobs, bid.bid_amount, bid.status, bid.created_at, true))}
                   </div>
                 </div>
               ))}
