@@ -82,6 +82,12 @@ export const PushNotificationPrompt = () => {
 
       // If permission is already granted, auto-register token
       if (status === 'granted') {
+        // Android safety: avoid auto-registering on startup because missing native
+        // Firebase setup can cause a fatal crash when register() is called.
+        if (Capacitor.getPlatform() === 'android') {
+          console.warn('[PushPrompt] Android detected: skipping auto token registration on startup (Firebase native config required).');
+          return;
+        }
         console.log('[PushPrompt] Permission already granted, auto-registering token...');
         const registered = await checkAndRegisterToken();
         console.log('[PushPrompt] Auto-register result:', registered);
@@ -204,6 +210,10 @@ export const PushNotificationPrompt = () => {
           await new Promise(resolve => setTimeout(resolve, 1500));
           
           try {
+            if (Capacitor.getPlatform() === 'android') {
+              console.warn('[PushPrompt] Android detected: skipping auto token registration after returning from settings (Firebase native config required).');
+              return;
+            }
             // Force register when returning from settings
             const registered = await checkAndRegisterToken(true);
             console.log('[PushPrompt] Token registration after settings return:', registered);
