@@ -125,6 +125,7 @@ export default function BiddingPage() {
   const { t, language } = useLanguage();
   const [availableJobs, setAvailableJobs] = useState<BiddingJob[]>([]);
   const [rawTickets, setRawTickets] = useState<ExternalTicket[]>([]);
+  const [acceptedTickets, setAcceptedTickets] = useState<ExternalTicket[]>([]);
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [activeTab, setActiveTab] = useState("bidding");
   const [searchQuery, setSearchQuery] = useState("");
@@ -243,7 +244,7 @@ export default function BiddingPage() {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await loadAvailableJobs();
+      await Promise.all([loadAvailableJobs(), loadAcceptedJobs()]);
       setIsLoading(false);
     };
 
@@ -252,12 +253,12 @@ export default function BiddingPage() {
     }
   }, [authLoading]);
 
-  // Load bids after rawTickets are loaded
+  // Load bids after rawTickets or acceptedTickets are loaded
   useEffect(() => {
-    if (user && rawTickets.length > 0) {
+    if (user && (rawTickets.length > 0 || acceptedTickets.length > 0)) {
       loadMyBids();
     }
-  }, [user, rawTickets]);
+  }, [user, rawTickets, acceptedTickets]);
 
   const loadAvailableJobs = async () => {
     try {
@@ -316,22 +317,70 @@ export default function BiddingPage() {
     }
   };
 
+  const loadAcceptedJobs = async () => {
+    try {
+      // Fetch accepted/completed jobs from external API
+      const { data, error } = await supabase.functions.invoke('list-tickets', {
+        body: null,
+        method: 'GET',
+      });
+
+      // Build URL with query params for accepted bids
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/list-tickets?bids_status=accepted`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Error fetching accepted tickets:', response.statusText);
+        return;
+      }
+
+      const data2 = await response.json();
+
+      // Get tickets array from response
+      let ticketsData: ExternalTicket[] = [];
+      if (data2 && Array.isArray(data2)) {
+        ticketsData = data2;
+      } else if (data2 && data2.data && Array.isArray(data2.data)) {
+        ticketsData = data2.data;
+      } else if (data2 && data2.tickets && Array.isArray(data2.tickets)) {
+        ticketsData = data2.tickets;
+      }
+
+      console.log('Loaded accepted tickets:', ticketsData.length);
+      setAcceptedTickets(ticketsData);
+    } catch (err) {
+      console.error('Error in loadAcceptedJobs:', err);
+    }
+  };
+
   const loadMyBids = () => {
-    if (!user || rawTickets.length === 0) {
+    if (!user) {
       return;
     }
     
     console.log('=== Extracting My Bids from Tickets ===');
     console.log('User ID:', user.id);
     console.log('Raw tickets count:', rawTickets.length);
+    console.log('Accepted tickets count:', acceptedTickets.length);
 
     // Extract bids that belong to the current user from all tickets
     const userBids: Bid[] = [];
+    const processedBidIds = new Set<string>();
 
+    // Process raw tickets (pending bids)
     rawTickets.forEach((ticket) => {
       if (ticket.bids && Array.isArray(ticket.bids)) {
         ticket.bids.forEach((bid) => {
-          if (bid.contractor_id === user.id) {
+          if (bid.contractor_id === user.id && !processedBidIds.has(bid.id)) {
+            processedBidIds.add(bid.id);
             const jobData: BiddingJob = transformTicketToJob(ticket);
             
             userBids.push({
@@ -340,6 +389,29 @@ export default function BiddingPage() {
               driver_id: user.id,
               bid_amount: bid.bid_price,
               status: bid.status || 'pending',
+              created_at: bid.created_at,
+              updated_at: bid.updated_at,
+              jobs: jobData
+            } as Bid);
+          }
+        });
+      }
+    });
+
+    // Process accepted tickets (completed/won bids)
+    acceptedTickets.forEach((ticket) => {
+      if (ticket.bids && Array.isArray(ticket.bids)) {
+        ticket.bids.forEach((bid) => {
+          if (bid.contractor_id === user.id && !processedBidIds.has(bid.id)) {
+            processedBidIds.add(bid.id);
+            const jobData: BiddingJob = transformTicketToJob(ticket);
+            
+            userBids.push({
+              id: bid.id,
+              job_id: ticket.id,
+              driver_id: user.id,
+              bid_amount: bid.bid_price,
+              status: bid.status || 'accepted',
               created_at: bid.created_at,
               updated_at: bid.updated_at,
               jobs: jobData
