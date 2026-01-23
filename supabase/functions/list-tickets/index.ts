@@ -24,13 +24,26 @@ serve(async (req) => {
       );
     }
 
-    // Parse query parameters from request
+    // Parse query parameters from request (and optional JSON body for POST callers)
     const url = new URL(req.url);
-    const status = url.searchParams.get('status') || 'active';
-    const limit = url.searchParams.get('limit') || '50';
-    const bidsStatus = url.searchParams.get('bids_status');
 
-    console.log(`Fetching tickets from external API with status=${status}, limit=${limit}, bids_status=${bidsStatus || 'none'}`);
+    let body: Record<string, unknown> | null = null;
+    const contentType = req.headers.get('content-type') || '';
+    if (req.method !== 'GET' && contentType.includes('application/json')) {
+      try {
+        body = await req.json();
+      } catch {
+        body = null;
+      }
+    }
+
+    const status = (body?.status as string | undefined) ?? url.searchParams.get('status') ?? 'active';
+    const limit = (body?.limit as string | undefined) ?? url.searchParams.get('limit') ?? '50';
+    const bidsStatus = (body?.bids_status as string | undefined) ?? url.searchParams.get('bids_status') ?? undefined;
+
+    console.log(
+      `Fetching tickets from external API with status=${status}, limit=${limit}, bids_status=${bidsStatus || 'none'}`,
+    );
 
     // Build external API URL with query params
     const externalUrl = new URL(EXTERNAL_API_URL);

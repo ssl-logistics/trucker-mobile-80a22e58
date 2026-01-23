@@ -319,35 +319,19 @@ export default function BiddingPage() {
 
   const loadAcceptedJobs = async () => {
     try {
-      // Fetch accepted/completed jobs from edge function with bids_status parameter
-      const { data, error } = await supabase.functions.invoke('list-tickets', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+      // Fetch accepted/completed jobs via backend function (uses LIST_TICKETS_API_KEY)
+      const { data: responseData, error } = await supabase.functions.invoke('list-tickets', {
+        method: 'POST',
+        body: {
+          status: 'completed',
+          bids_status: 'accepted',
         },
-        body: null,
       });
 
-      // Unfortunately supabase.functions.invoke doesn't support query params directly
-      // So we need to use fetch with proper headers
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/list-tickets?bids_status=accepted`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        console.error('Error fetching accepted tickets:', response.statusText);
+      if (error) {
+        console.error('Error fetching accepted tickets:', error);
         return;
       }
-
-      const responseData = await response.json();
 
       // Get tickets array from response
       let ticketsData: ExternalTicket[] = [];
