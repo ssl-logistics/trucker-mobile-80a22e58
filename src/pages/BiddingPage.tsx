@@ -851,9 +851,14 @@ export default function BiddingPage() {
         </DrawerContent>
       </Drawer>
 
-      {/* Floating Action Panel for Payment */}
+      {/* Floating Action Panel for Payment - Slides up from bottom */}
       {selectedJobIds.size > 0 && (
-        <div className="fixed bottom-24 left-4 right-4 z-[99999] bg-background rounded-xl shadow-2xl border p-4 animate-fade-in">
+        <div 
+          className="fixed bottom-24 left-4 right-4 z-[99999] bg-background rounded-xl shadow-2xl border p-4"
+          style={{
+            animation: 'slideUpBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+          }}
+        >
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-sm text-muted-foreground">{t("bidding.selectedJobs")}</p>
