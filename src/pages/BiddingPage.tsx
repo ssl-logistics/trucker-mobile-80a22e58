@@ -859,22 +859,33 @@ export default function BiddingPage() {
             animation: 'slideUpBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
           }}
         >
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <p className="text-xs text-muted-foreground">{t("bidding.selectedJobs")}</p>
-              <p className="text-sm font-bold">{selectedJobIds.size} {t("bidding.jobs")}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">{t("bidding.totalDeposit")}</p>
-              <p className="text-sm font-bold text-primary">฿{(selectedJobIds.size * 100).toLocaleString()}</p>
-            </div>
-          </div>
-          <Button 
-            className="w-full h-10 text-sm font-semibold"
-            onClick={handleMultiBid}
-          >
-            {t("bidding.proceedToPayment")}
-          </Button>
+          {selectedJobIds.size === 1 ? (
+            <Button 
+              className="w-full h-10 text-sm font-semibold"
+              onClick={handleMultiBid}
+            >
+              {t("bidding.placeBid")}
+            </Button>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-xs text-muted-foreground">{t("bidding.selectedJobs")}</p>
+                  <p className="text-sm font-bold">{selectedJobIds.size} {t("bidding.jobs")}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">{t("bidding.totalDeposit")}</p>
+                  <p className="text-sm font-bold text-primary">฿{(selectedJobIds.size * 100).toLocaleString()}</p>
+                </div>
+              </div>
+              <Button 
+                className="w-full h-10 text-sm font-semibold"
+                onClick={handleMultiBid}
+              >
+                {t("bidding.proceedToPayment")}
+              </Button>
+            </>
+          )}
         </div>,
         document.body
       )}
