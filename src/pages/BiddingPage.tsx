@@ -855,23 +855,23 @@ export default function BiddingPage() {
       {/* Floating Action Panel for Payment - Rendered via Portal */}
       {selectedJobIds.size > 0 && createPortal(
         <div 
-          className="fixed bottom-24 left-4 right-4 z-[99999] bg-background rounded-xl shadow-2xl border p-4"
+          className="fixed bottom-24 left-4 right-4 z-[99999] bg-background rounded-lg shadow-xl border p-3"
           style={{
             animation: 'slideUpBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
           }}
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-sm text-muted-foreground">{t("bidding.selectedJobs")}</p>
-              <p className="text-lg font-bold">{selectedJobIds.size} {t("bidding.jobs")}</p>
+              <p className="text-xs text-muted-foreground">{t("bidding.selectedJobs")}</p>
+              <p className="text-sm font-bold">{selectedJobIds.size} {t("bidding.jobs")}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">{t("bidding.totalDeposit")}</p>
-              <p className="text-lg font-bold text-primary">฿{(selectedJobIds.size * 100).toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">{t("bidding.totalDeposit")}</p>
+              <p className="text-sm font-bold text-primary">฿{(selectedJobIds.size * 100).toLocaleString()}</p>
             </div>
           </div>
           <Button 
-            className="w-full h-12 text-base font-semibold"
+            className="w-full h-10 text-sm font-semibold"
             onClick={handleMultiBid}
           >
             {t("bidding.proceedToPayment")}
