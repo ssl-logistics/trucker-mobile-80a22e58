@@ -187,7 +187,7 @@ export function MultiBidPaymentModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <img src={coinsIcon} alt="coins" className="w-6 h-6" />
-            {t("bidding.multiBidTitle")}
+            {selectedJobs.length === 1 ? t("bidding.placeBid") : t("bidding.multiBidTitle")}
           </DialogTitle>
         </DialogHeader>
 
