@@ -224,6 +224,15 @@ const thTranslations: Record<string, string> = {
   'bidding.multiBidPartialFail': 'ไม่สามารถส่งราคาเสนอได้',
   'bidding.jobs': 'งาน',
   'bidding.proceedToPayment': 'ดำเนินการชำระเงิน',
+  'bidding.bankTransferInfo': 'ข้อมูลการโอนเงิน',
+  'bidding.bankName': 'ธนาคาร',
+  'bidding.accountName': 'ชื่อบัญชี',
+  'bidding.accountNumber': 'เลขที่บัญชี',
+  'bidding.transferAmount': 'ยอดโอน',
+  'bidding.startingPrice': 'ราคาเริ่มต้น',
+  'bidding.biddingFee': 'ค่าบิดงาน',
+  'common.free': 'ฟรี',
+  'common.copied': 'คัดลอกแล้ว',
   
   // Income Page
   'income.title': 'รายได้ของฉัน',
@@ -1466,6 +1475,15 @@ const enTranslations: Record<string, string> = {
   'bidding.multiBidPartialFail': 'Failed to submit bids for',
   'bidding.jobs': 'jobs',
   'bidding.proceedToPayment': 'Proceed to Payment',
+  'bidding.bankTransferInfo': 'Bank Transfer Info',
+  'bidding.bankName': 'Bank',
+  'bidding.accountName': 'Account Name',
+  'bidding.accountNumber': 'Account Number',
+  'bidding.transferAmount': 'Transfer Amount',
+  'bidding.startingPrice': 'Starting Price',
+  'bidding.biddingFee': 'Bidding Fee',
+  'common.free': 'Free',
+  'common.copied': 'Copied',
   
   // Income Page
   'income.title': 'My Income',
@@ -2708,6 +2726,15 @@ const koTranslations: Record<string, string> = {
   'bidding.multiBidPartialFail': '입찰 실패',
   'bidding.jobs': '작업',
   'bidding.proceedToPayment': '결제 진행',
+  'bidding.bankTransferInfo': '계좌이체 정보',
+  'bidding.bankName': '은행',
+  'bidding.accountName': '예금주',
+  'bidding.accountNumber': '계좌번호',
+  'bidding.transferAmount': '이체금액',
+  'bidding.startingPrice': '시작가',
+  'bidding.biddingFee': '입찰 수수료',
+  'common.free': '무료',
+  'common.copied': '복사됨',
   
   // Income Page
   'income.title': '내 수입',
@@ -4499,6 +4526,15 @@ const zhTranslations: Record<string, string> = {
   'bidding.multiBidPartialFail': '竞标失败',
   'bidding.jobs': '个工作',
   'bidding.proceedToPayment': '继续付款',
+  'bidding.bankTransferInfo': '银行转账信息',
+  'bidding.bankName': '银行',
+  'bidding.accountName': '账户名',
+  'bidding.accountNumber': '账号',
+  'bidding.transferAmount': '转账金额',
+  'bidding.startingPrice': '起始价',
+  'bidding.biddingFee': '竞标费',
+  'common.free': '免费',
+  'common.copied': '已复制',
   
   // Place Bid Page
   'placeBid.pleaseEnterPrice': '请输入价格',

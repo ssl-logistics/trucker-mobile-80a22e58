@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { X, Image as ImageIcon } from "lucide-react";
+import { X, Image as ImageIcon, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,6 +15,7 @@ interface Job {
   employer_name: string;
   origin_location: string;
   destination_location: string;
+  price?: number;
 }
 
 interface MultiBidPaymentModalProps {
@@ -25,6 +26,13 @@ interface MultiBidPaymentModalProps {
 }
 
 const DEPOSIT_PER_JOB = 100;
+
+// Bank account info
+const BANK_INFO = {
+  bankName: "ธนาคารกสิกรไทย",
+  accountName: "บริษัท เอสเอสแอล โลจิสติกส์ จำกัด",
+  accountNumber: "719-1-01475-2",
+};
 
 export function MultiBidPaymentModal({
   open,
@@ -38,12 +46,27 @@ export function MultiBidPaymentModal({
   const [slipImage, setSlipImage] = useState<string | null>(null);
   const [slipBase64, setSlipBase64] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalDeposit = selectedJobs.length * DEPOSIT_PER_JOB;
 
   const handleBidAmountChange = (jobId: string, value: string) => {
     setBidAmounts((prev) => ({ ...prev, [jobId]: value }));
+  };
+
+  const handleCopyAccountNumber = async () => {
+    try {
+      await navigator.clipboard.writeText(BANK_INFO.accountNumber.replace(/-/g, ""));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({
+        title: t("common.copied"),
+        description: BANK_INFO.accountNumber,
+      });
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,6 +204,11 @@ export function MultiBidPaymentModal({
     return !isNaN(amount) && amount > 0;
   });
 
+  const formatPrice = (price?: number) => {
+    if (!price || price === 0) return t("common.free") || "ฟรี";
+    return `฿${price.toLocaleString()}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -192,14 +220,41 @@ export function MultiBidPaymentModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Selected Jobs Summary */}
-          <div className="bg-muted/50 rounded-lg p-3">
-            <p className="text-sm text-muted-foreground mb-2">
-              {t("bidding.selectedJobs")}: <span className="font-semibold text-foreground">{selectedJobs.length}</span>
-            </p>
-            <div className="flex justify-between items-center">
-              <span className="text-sm">{t("bidding.totalDeposit")}</span>
-              <span className="text-lg font-bold text-primary">฿{totalDeposit.toLocaleString()}</span>
+          {/* Bank Transfer Info */}
+          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl p-4 text-white">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-emerald-600 font-bold text-sm flex-shrink-0">
+                K
+              </div>
+              <div className="flex-1 space-y-2">
+                <p className="font-semibold">{t("bidding.bankTransferInfo")}</p>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="opacity-80">{t("bidding.bankName")}:</span>
+                    <span className="font-medium">{BANK_INFO.bankName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="opacity-80">{t("bidding.accountName")}:</span>
+                    <span className="font-medium text-right text-xs">{BANK_INFO.accountName}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="opacity-80">{t("bidding.accountNumber")}:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold">{BANK_INFO.accountNumber}</span>
+                      <button
+                        onClick={handleCopyAccountNumber}
+                        className="p-1 hover:bg-white/20 rounded transition-colors"
+                      >
+                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-white/20">
+                    <span className="opacity-80">{t("bidding.transferAmount")}:</span>
+                    <span className="font-bold text-lg">฿{totalDeposit.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -209,10 +264,16 @@ export function MultiBidPaymentModal({
             {selectedJobs.map((job) => (
               <div key={job.id} className="bg-card border rounded-lg p-3 space-y-2">
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">{job.order_code}</p>
                     <p className="text-xs text-muted-foreground truncate max-w-[180px]">
                       {job.origin_location} → {job.destination_location}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">{t("bidding.startingPrice")}</p>
+                    <p className={`text-sm font-semibold ${job.price === 0 ? "text-emerald-600" : "text-primary"}`}>
+                      {formatPrice(job.price)}
                     </p>
                   </div>
                 </div>
@@ -227,6 +288,9 @@ export function MultiBidPaymentModal({
                     className="flex-1"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("bidding.biddingFee")}: <span className="font-medium text-foreground">฿{DEPOSIT_PER_JOB}</span>
+                </p>
               </div>
             ))}
           </div>

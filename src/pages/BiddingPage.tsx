@@ -518,6 +518,7 @@ export default function BiddingPage() {
       employer_name: job.employer_name,
       origin_location: job.origin_location,
       destination_location: job.destination_location,
+      price: job.price,
     }));
 
   const EmptyState = () => (
