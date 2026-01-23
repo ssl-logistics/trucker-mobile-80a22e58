@@ -855,7 +855,7 @@ export default function BiddingPage() {
       {/* Floating Action Panel for Payment - Rendered via Portal */}
       {selectedJobIds.size > 0 && !showPaymentModal && createPortal(
         <div 
-          className="fixed bottom-24 left-5 right-5 z-[99999] bg-background rounded-lg shadow-xl border p-3"
+          className="fixed bottom-24 left-4 right-7 z-[99999] bg-background rounded-lg shadow-xl border p-3"
           style={{
             animation: 'slideUpBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
           }}
