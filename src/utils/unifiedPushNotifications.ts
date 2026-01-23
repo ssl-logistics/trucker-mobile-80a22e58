@@ -81,13 +81,6 @@ export const enablePushNotifications = async (forceRegister: boolean = true): Pr
 
   try {
     if (isNativePlatform()) {
-      // IMPORTANT (Android): If the native Android project is missing Firebase setup
-      // (google-services.json + Google Services Gradle plugin), calling
-      // PushNotifications.register() can crash the app with:
-      // "Default FirebaseApp is not initialized..."
-      // We still allow explicit registration attempts, but we avoid doing it
-      // automatically on app start (see initializePushNotifications).
-
       // Native platform (iOS/Android)
       console.log('[UnifiedPush] Starting native push registration (force:', forceRegister, ')...');
       const token = await registerNativePushNotifications(forceRegister);
@@ -174,13 +167,6 @@ export const getPlatformName = (): string => {
 export const initializePushNotifications = async (): Promise<void> => {
   if (isNativePlatform()) {
     setupNativePushListeners();
-
-    // Android safety: avoid auto-registration to prevent fatal crashes when Firebase
-    // isn't configured in the native Android project yet.
-    if (Capacitor.getPlatform() === 'android') {
-      console.warn('[UnifiedPush] Android detected: skipping auto-registration on app start (Firebase native config required).');
-      return;
-    }
     
     // Auto-register token if permission granted but no token in DB
     try {
