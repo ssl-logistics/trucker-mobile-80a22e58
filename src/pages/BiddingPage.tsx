@@ -409,7 +409,7 @@ export default function BiddingPage() {
   };
 
   const getBidStatusBadge = (status: string) => {
-    const statusConfig = {
+    const statusConfig: { [key: string]: { label: string; className: string } } = {
       pending: {
         label: t("bidding.statusPending"),
         className: "bg-yellow-50 text-yellow-700 hover:bg-yellow-100",
@@ -418,12 +418,24 @@ export default function BiddingPage() {
         label: t("bidding.statusAccepted"),
         className: "bg-green-50 text-green-700 hover:bg-green-100",
       },
+      won: {
+        label: t("bidding.statusWon") || "ชนะประมูล",
+        className: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+      },
+      completed: {
+        label: t("bidding.statusCompleted") || "เสร็จสิ้น",
+        className: "bg-blue-50 text-blue-700 hover:bg-blue-100",
+      },
       rejected: {
         label: t("bidding.statusRejected"),
         className: "bg-red-50 text-red-700 hover:bg-red-100",
       },
+      lost: {
+        label: t("bidding.statusLost") || "แพ้ประมูล",
+        className: "bg-gray-50 text-gray-700 hover:bg-gray-100",
+      },
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const config = statusConfig[status] || statusConfig.pending;
     return (
       <Badge variant="secondary" className={config.className}>
         {config.label}
