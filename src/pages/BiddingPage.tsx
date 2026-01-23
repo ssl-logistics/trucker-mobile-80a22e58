@@ -537,16 +537,16 @@ export default function BiddingPage() {
         )}
         onClick={() => toggleJobSelection(job.id)}
       >
-        <div className="flex items-center justify-between py-2 bg-white">
+        <div className="flex items-center justify-between px-3 py-2 bg-white">
           <div className="flex items-center gap-2">
-            <div className="flex-shrink-0 pl-3">
+            <div className="flex-shrink-0">
               {isSelected ? (
                 <CheckSquare className="w-5 h-5 text-primary" />
               ) : (
                 <Square className="w-5 h-5 text-muted-foreground" />
               )}
             </div>
-            <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-r-xl text-[#30503b]">
+            <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl text-[#30503b]">
               {t("job.order_code")} {job.order_code}
             </div>
           </div>
@@ -855,7 +855,7 @@ export default function BiddingPage() {
       {/* Floating Action Panel for Payment - Rendered via Portal */}
       {selectedJobIds.size > 0 && !showPaymentModal && createPortal(
         <div 
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-[99999] bg-background rounded-lg shadow-xl border p-3"
+          className="fixed bottom-24 left-4 right-4 z-[99999] bg-background rounded-lg shadow-xl border p-3"
           style={{
             animation: 'slideUpBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
           }}
