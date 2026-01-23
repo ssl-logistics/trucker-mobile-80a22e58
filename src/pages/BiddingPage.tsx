@@ -539,13 +539,6 @@ export default function BiddingPage() {
       >
         <div className="flex items-center justify-between px-3 py-2 bg-white">
           <div className="flex items-center gap-2">
-            <div className="flex-shrink-0">
-              {isSelected ? (
-                <CheckSquare className="w-5 h-5 text-primary" />
-              ) : (
-                <Square className="w-5 h-5 text-muted-foreground" />
-              )}
-            </div>
             <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl text-[#30503b]">
               {t("job.order_code")} {job.order_code}
             </div>
