@@ -726,27 +726,6 @@ export default function BiddingPage() {
             )}
           </div>
 
-          {/* Floating Action Button for Payment */}
-          {selectedJobIds.size > 0 && (
-            <div className="fixed bottom-24 left-4 right-4 z-40 bg-white rounded-xl shadow-2xl border p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("bidding.selectedJobs")}</p>
-                  <p className="text-lg font-bold">{selectedJobIds.size} {t("bidding.jobs")}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">{t("bidding.totalDeposit")}</p>
-                  <p className="text-lg font-bold text-primary">฿{(selectedJobIds.size * 100).toLocaleString()}</p>
-                </div>
-              </div>
-              <Button 
-                className="w-full h-12 text-base font-semibold"
-                onClick={handleMultiBid}
-              >
-                {t("bidding.proceedToPayment")}
-              </Button>
-            </div>
-          )}
         </TabsContent>
 
         {/* History Tab */}
@@ -871,6 +850,28 @@ export default function BiddingPage() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Floating Action Panel for Payment */}
+      {selectedJobIds.size > 0 && (
+        <div className="fixed bottom-24 left-4 right-4 z-[99999] bg-background rounded-xl shadow-2xl border p-4 animate-fade-in">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm text-muted-foreground">{t("bidding.selectedJobs")}</p>
+              <p className="text-lg font-bold">{selectedJobIds.size} {t("bidding.jobs")}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">{t("bidding.totalDeposit")}</p>
+              <p className="text-lg font-bold text-primary">฿{(selectedJobIds.size * 100).toLocaleString()}</p>
+            </div>
+          </div>
+          <Button 
+            className="w-full h-12 text-base font-semibold"
+            onClick={handleMultiBid}
+          >
+            {t("bidding.proceedToPayment")}
+          </Button>
+        </div>
+      )}
 
       {/* Multi-Bid Payment Modal */}
       <MultiBidPaymentModal
