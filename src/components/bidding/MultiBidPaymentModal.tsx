@@ -228,11 +228,7 @@ export function MultiBidPaymentModal({
         <div className="space-y-4">
           {/* Bank Transfer Info */}
           <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl p-4 text-white">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-emerald-600 font-bold text-sm flex-shrink-0">
-                K
-              </div>
-              <div className="flex-1 space-y-2">
+            <div className="space-y-2">
                 <p className="font-semibold">{t("bidding.bankTransferInfo")}</p>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
@@ -261,7 +257,6 @@ export function MultiBidPaymentModal({
                   </div>
                 </div>
               </div>
-            </div>
           </div>
 
           {/* Bid Amounts for Each Job */}
