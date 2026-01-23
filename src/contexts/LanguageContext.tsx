@@ -217,7 +217,7 @@ const thTranslations: Record<string, string> = {
   'bidding.pleaseSelectJobs': 'กรุณาเลือกงานที่ต้องการเสนอราคา',
   'bidding.multiBidTitle': 'เสนอราคาหลายงาน',
   'bidding.selectedJobs': 'งานที่เลือก',
-  'bidding.totalDeposit': 'ค่าเข้าร่วมรวม',
+  'bidding.totalDeposit': 'ค่าบิดงาน',
   'bidding.enterBidAmounts': 'กรอกราคาสำหรับแต่ละงาน',
   'bidding.confirmMultiBid': 'ยืนยันการเสนอราคา',
   'bidding.multiBidSuccess': 'ส่งราคาเสนอสำเร็จ',
