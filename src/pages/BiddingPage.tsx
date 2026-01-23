@@ -853,7 +853,7 @@ export default function BiddingPage() {
       </Drawer>
 
       {/* Floating Action Panel for Payment - Rendered via Portal */}
-      {selectedJobIds.size > 0 && createPortal(
+      {selectedJobIds.size > 0 && !showPaymentModal && createPortal(
         <div 
           className="fixed bottom-24 left-4 right-4 z-[99999] bg-background rounded-lg shadow-xl border p-3"
           style={{
