@@ -28,13 +28,19 @@ serve(async (req) => {
     const url = new URL(req.url);
     const status = url.searchParams.get('status') || 'active';
     const limit = url.searchParams.get('limit') || '50';
+    const bidsStatus = url.searchParams.get('bids_status');
 
-    console.log(`Fetching tickets from external API with status=${status}, limit=${limit}`);
+    console.log(`Fetching tickets from external API with status=${status}, limit=${limit}, bids_status=${bidsStatus || 'none'}`);
 
     // Build external API URL with query params
     const externalUrl = new URL(EXTERNAL_API_URL);
     externalUrl.searchParams.set('status', status);
     externalUrl.searchParams.set('limit', limit);
+    
+    // Add bids_status if provided
+    if (bidsStatus) {
+      externalUrl.searchParams.set('bids_status', bidsStatus);
+    }
 
     // Forward request to external API
     const response = await fetch(externalUrl.toString(), {
