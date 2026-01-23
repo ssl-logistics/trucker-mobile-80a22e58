@@ -223,6 +223,7 @@ const thTranslations: Record<string, string> = {
   'bidding.multiBidSuccess': 'ส่งราคาเสนอสำเร็จ',
   'bidding.multiBidPartialFail': 'ไม่สามารถส่งราคาเสนอได้',
   'bidding.jobs': 'งาน',
+  'bidding.proceedToPayment': 'ดำเนินการชำระเงิน',
   
   // Income Page
   'income.title': 'รายได้ของฉัน',
@@ -1464,6 +1465,7 @@ const enTranslations: Record<string, string> = {
   'bidding.multiBidSuccess': 'Bids submitted successfully for',
   'bidding.multiBidPartialFail': 'Failed to submit bids for',
   'bidding.jobs': 'jobs',
+  'bidding.proceedToPayment': 'Proceed to Payment',
   
   // Income Page
   'income.title': 'My Income',
@@ -2705,6 +2707,7 @@ const koTranslations: Record<string, string> = {
   'bidding.multiBidSuccess': '입찰 성공',
   'bidding.multiBidPartialFail': '입찰 실패',
   'bidding.jobs': '작업',
+  'bidding.proceedToPayment': '결제 진행',
   
   // Income Page
   'income.title': '내 수입',
@@ -4495,6 +4498,7 @@ const zhTranslations: Record<string, string> = {
   'bidding.multiBidSuccess': '竞标成功',
   'bidding.multiBidPartialFail': '竞标失败',
   'bidding.jobs': '个工作',
+  'bidding.proceedToPayment': '继续付款',
   
   // Place Bid Page
   'placeBid.pleaseEnterPrice': '请输入价格',
