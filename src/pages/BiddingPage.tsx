@@ -537,11 +537,9 @@ export default function BiddingPage() {
         )}
         onClick={() => toggleJobSelection(job.id)}
       >
-        <div className="flex items-center justify-between px-3 py-2 bg-white">
-          <div className="flex items-center gap-2">
-            <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl text-[#30503b]">
-              {t("job.order_code")} {job.order_code}
-            </div>
+        <div className="flex items-center justify-between py-2 bg-white">
+          <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl text-[#30503b]">
+            {t("job.order_code")} {job.order_code}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Clock className="w-3.5 h-3.5" />
