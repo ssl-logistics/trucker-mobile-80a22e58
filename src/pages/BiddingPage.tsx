@@ -431,8 +431,14 @@ export default function BiddingPage() {
     );
   };
 
-  // Filter available jobs
+  // Get set of job IDs that user has already bid on
+  const biddedJobIds = new Set(myBids.map((bid) => bid.job_id));
+
+  // Filter available jobs (exclude jobs user has already bid on)
   const filteredAvailableJobs = availableJobs.filter((job) => {
+    // Exclude jobs that user has already bid on
+    if (biddedJobIds.has(job.id)) return false;
+
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
