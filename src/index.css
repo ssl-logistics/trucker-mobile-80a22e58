@@ -169,6 +169,19 @@ All colors MUST be HSL.
   contain: layout style paint !important;
 }
 
+/* iOS Safe Area Background Color for Bottom Navigation */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-bottom, 0px);
+  background-color: #153860;
+  z-index: 2147483646;
+  pointer-events: none;
+}
+
 /* Page header with minimal safe area - just for notch */
 .page-header-safe {
   padding-top: env(safe-area-inset-top, 0px);
