@@ -10,6 +10,8 @@ import {
   X,
   CalendarIcon,
   Calendar as CalendarIconLucide,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import coinsIcon from "@/assets/coins-icon.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatDate as formatThaiDate } from "@/lib/dateUtils";
+import { MultiBidPaymentModal } from "@/components/bidding/MultiBidPaymentModal";
 import type { Database } from "@/integrations/supabase/types";
 
 type BiddingJob = Database["public"]["Tables"]["jobs"]["Row"];
@@ -127,6 +130,11 @@ export default function BiddingPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
+
+  // Multi-select state
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Filter states for bidding tab
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -310,7 +318,6 @@ export default function BiddingPage() {
 
   const loadMyBids = () => {
     if (!user || rawTickets.length === 0) {
-      // Check if we have tickets that might have bids
       return;
     }
     
@@ -334,6 +341,7 @@ export default function BiddingPage() {
               bid_amount: bid.bid_price,
               status: bid.status || 'pending',
               created_at: bid.created_at,
+              updated_at: bid.updated_at,
               jobs: jobData
             } as Bid);
           }
@@ -356,6 +364,52 @@ export default function BiddingPage() {
   const handleResetFilter = () => {
     setStartDate(undefined);
     setEndDate(undefined);
+  };
+
+  const toggleSelectMode = () => {
+    setIsSelectMode(!isSelectMode);
+    if (isSelectMode) {
+      setSelectedJobIds(new Set());
+    }
+  };
+
+  const toggleJobSelection = (jobId: string) => {
+    setSelectedJobIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(jobId)) {
+        newSet.delete(jobId);
+      } else {
+        newSet.add(jobId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllJobs = () => {
+    const allIds = new Set(filteredAvailableJobs.map((job) => job.id));
+    setSelectedJobIds(allIds);
+  };
+
+  const deselectAllJobs = () => {
+    setSelectedJobIds(new Set());
+  };
+
+  const handleMultiBid = () => {
+    if (selectedJobIds.size === 0) {
+      toast({
+        title: t("bidding.noJobsSelected"),
+        description: t("bidding.pleaseSelectJobs"),
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowPaymentModal(true);
+  };
+
+  const handleMultiBidSuccess = () => {
+    setSelectedJobIds(new Set());
+    setIsSelectMode(false);
+    loadAvailableJobs();
   };
 
   const getBidStatusBadge = (status: string) => {
@@ -453,6 +507,17 @@ export default function BiddingPage() {
 
   const groupedBids = groupBidsByMonth();
 
+  // Get selected jobs data for modal
+  const selectedJobsData = availableJobs
+    .filter((job) => selectedJobIds.has(job.id))
+    .map((job) => ({
+      id: job.id,
+      order_code: job.order_code,
+      employer_name: job.employer_name,
+      origin_location: job.origin_location,
+      destination_location: job.destination_location,
+    }));
+
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -464,121 +529,144 @@ export default function BiddingPage() {
     </div>
   );
 
-  const renderJobCard = (job: BiddingJob, bidAmount?: number, bidStatus?: string, bidCreatedAt?: string) => (
-    <Card key={job.id} className="overflow-hidden bg-card">
-      <div className="flex items-center justify-between px-3 py-2 bg-white">
-        <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
-          {t("job.order_code")} {job.order_code}
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="w-3.5 h-3.5" />
-          {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
-        </div>
-      </div>
-      <div className="p-4 space-y-3">
-        <div className="text-sm">
-          <span className="text-muted-foreground">{t("job.employer")} : </span>
-          <span className="font-medium">{job.employer_name}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {(job.transport_type?.includes("เที่ยวเดียว") || job.transport_type?.includes("หลายที่")) && (
-            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-              {t("job.domestic")}
-            </Badge>
-          )}
-          {(job.transport_type?.includes("ขาเข้า") || job.transport_type?.includes("ขาออก")) && (
-            <>
-              <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-                {t("job.international")}
-              </Badge>
-              {job.transport_type?.includes("ขาเข้า") && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                  {t("job.inbound")}
-                </Badge>
-              )}
-              {job.transport_type?.includes("ขาออก") && (
-                <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
-                  {t("job.outbound")}
-                </Badge>
-              )}
-            </>
-          )}
-        </div>
-        <div className="text-sm text-muted-foreground">{job.transport_type}</div>
-
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 flex gap-2">
-            <div className="flex flex-col items-center">
-              <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <div className="w-0.5 flex-1 border-l-2 border-dashed border-gray-300 my-1"></div>
-              <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
-            </div>
-            <div className="flex-1 space-y-2">
-              <div className="text-xs">
-                <div className="text-muted-foreground">{t("job.origin")}</div>
-                <div className="font-medium">{job.origin_location}</div>
+  const renderJobCard = (job: BiddingJob, bidAmount?: number, bidStatus?: string, bidCreatedAt?: string) => {
+    const isSelected = selectedJobIds.has(job.id);
+    
+    return (
+      <Card 
+        key={job.id} 
+        className={cn(
+          "overflow-hidden bg-card transition-all",
+          isSelectMode && "cursor-pointer",
+          isSelected && "ring-2 ring-primary"
+        )}
+        onClick={() => isSelectMode && toggleJobSelection(job.id)}
+      >
+        <div className="flex items-center justify-between px-3 py-2 bg-white">
+          <div className="flex items-center gap-2">
+            {isSelectMode && (
+              <div className="flex-shrink-0">
+                {isSelected ? (
+                  <CheckSquare className="w-5 h-5 text-primary" />
+                ) : (
+                  <Square className="w-5 h-5 text-muted-foreground" />
+                )}
               </div>
-              <div className="text-xs">
-                <div className="text-muted-foreground">{t("job.destination")}</div>
-                <div className="font-medium">{job.destination_location}</div>
-              </div>
+            )}
+            <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl text-[#30503b]">
+              {t("job.order_code")} {job.order_code}
             </div>
           </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="w-3.5 h-3.5" />
+            {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+          </div>
+        </div>
+        <div className="p-4 space-y-3">
+          <div className="text-sm">
+            <span className="text-muted-foreground">{t("job.employer")} : </span>
+            <span className="font-medium">{job.employer_name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {(job.transport_type?.includes("เที่ยวเดียว") || job.transport_type?.includes("หลายที่")) && (
+              <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                {t("job.domestic")}
+              </Badge>
+            )}
+            {(job.transport_type?.includes("ขาเข้า") || job.transport_type?.includes("ขาออก")) && (
+              <>
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+                  {t("job.international")}
+                </Badge>
+                {job.transport_type?.includes("ขาเข้า") && (
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                    {t("job.inbound")}
+                  </Badge>
+                )}
+                {job.transport_type?.includes("ขาออก") && (
+                  <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
+                    {t("job.outbound")}
+                  </Badge>
+                )}
+              </>
+            )}
+          </div>
+          <div className="text-sm text-muted-foreground">{job.transport_type}</div>
 
-          <div className="text-right space-y-2">
-            {bidAmount !== undefined ? (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-                <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-                <span className="text-lg font-bold text-teal-500">฿ {bidAmount.toLocaleString()}</span>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 flex gap-2">
+              <div className="flex flex-col items-center">
+                <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <div className="w-0.5 flex-1 border-l-2 border-dashed border-gray-300 my-1"></div>
+                <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
               </div>
-            ) : null}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-              <CalendarIconLucide className="w-4 h-4 text-gray-500" />
-              <div className="text-left">
-                <div className="text-xs text-[#375B7B]">{t("currentJobs.startJobDate")}</div>
-                <div className="text-xs font-medium">
-                  {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+              <div className="flex-1 space-y-2">
+                <div className="text-xs">
+                  <div className="text-muted-foreground">{t("job.origin")}</div>
+                  <div className="font-medium">{job.origin_location}</div>
+                </div>
+                <div className="text-xs">
+                  <div className="text-muted-foreground">{t("job.destination")}</div>
+                  <div className="font-medium">{job.destination_location}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-right space-y-2">
+              {bidAmount !== undefined ? (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
+                  <img src={coinsIcon} alt="coins" className="w-5 h-5" />
+                  <span className="text-lg font-bold text-teal-500">฿ {bidAmount.toLocaleString()}</span>
+                </div>
+              ) : null}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
+                <CalendarIconLucide className="w-4 h-4 text-gray-500" />
+                <div className="text-left">
+                  <div className="text-xs text-[#375B7B]">{t("currentJobs.startJobDate")}</div>
+                  <div className="text-xs font-medium">
+                    {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
+            <div>
+              <span className="text-[#375c7b]">{t("job.goodsType")} : </span>
+              <span>{job.origin_goods_type || "-"}</span>
+            </div>
+            <div>
+              <span className="text-[#375B7B]">{t("job.requiredTruck")} : </span>
+              <span>{job.equipment_list || "-"}</span>
+            </div>
+          </div>
+
+          {bidStatus && bidCreatedAt && (
+            <div className="flex items-center justify-between pt-2 border-t">
+              <span className="text-xs text-muted-foreground">
+                {t("bidding.bidAt")}{" "}
+                {new Date(bidCreatedAt).toLocaleString(language === "th" ? "th-TH" : "en-US", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+              {getBidStatusBadge(bidStatus)}
+            </div>
+          )}
+
+          {!bidAmount && !isSelectMode && (
+            <Button className="w-full h-11 text-base font-medium" onClick={() => handlePlaceBid(job.id)}>
+              {t("bidding.placeBid")}
+            </Button>
+          )}
         </div>
-
-        <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
-          <div>
-            <span className="text-[#375c7b]">{t("job.goodsType")} : </span>
-            <span>{job.origin_goods_type || "-"}</span>
-          </div>
-          <div>
-            <span className="text-[#375B7B]">{t("job.requiredTruck")} : </span>
-            <span>{job.equipment_list || "-"}</span>
-          </div>
-        </div>
-
-        {bidStatus && bidCreatedAt && (
-          <div className="flex items-center justify-between pt-2 border-t">
-            <span className="text-xs text-muted-foreground">
-              {t("bidding.bidAt")}{" "}
-              {new Date(bidCreatedAt).toLocaleString(language === "th" ? "th-TH" : "en-US", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-            {getBidStatusBadge(bidStatus)}
-          </div>
-        )}
-
-        {!bidAmount && (
-          <Button className="w-full h-11 text-base font-medium" onClick={() => handlePlaceBid(job.id)}>
-            {t("bidding.placeBid")}
-          </Button>
-        )}
-      </div>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
@@ -621,6 +709,30 @@ export default function BiddingPage() {
                 <Filter className="w-4 h-4" />
               </Button>
             </div>
+
+            {/* Select Mode Toggle */}
+            <div className="flex items-center justify-between mt-3">
+              <Button
+                variant={isSelectMode ? "default" : "outline"}
+                size="sm"
+                onClick={toggleSelectMode}
+                className="gap-2"
+              >
+                {isSelectMode ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                {isSelectMode ? t("bidding.cancelSelect") : t("bidding.selectMultiple")}
+              </Button>
+
+              {isSelectMode && (
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={selectAllJobs}>
+                    {t("bidding.selectAll")}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={deselectAllJobs}>
+                    {t("bidding.deselectAll")}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="px-4 py-4 space-y-4">
@@ -634,6 +746,18 @@ export default function BiddingPage() {
               filteredAvailableJobs.map((job) => renderJobCard(job))
             )}
           </div>
+
+          {/* Floating Action Button for Multi-Bid */}
+          {isSelectMode && selectedJobIds.size > 0 && (
+            <div className="fixed bottom-24 left-4 right-4 z-40">
+              <Button 
+                className="w-full h-14 text-lg font-semibold shadow-lg"
+                onClick={handleMultiBid}
+              >
+                {t("bidding.bidSelectedJobs")} ({selectedJobIds.size})
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         {/* History Tab */}
@@ -758,6 +882,14 @@ export default function BiddingPage() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Multi-Bid Payment Modal */}
+      <MultiBidPaymentModal
+        open={showPaymentModal}
+        onOpenChange={setShowPaymentModal}
+        selectedJobs={selectedJobsData}
+        onSuccess={handleMultiBidSuccess}
+      />
     </div>
   );
 }
