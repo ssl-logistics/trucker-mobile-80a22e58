@@ -131,8 +131,7 @@ export default function BiddingPage() {
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Multi-select state
-  const [isSelectMode, setIsSelectMode] = useState(false);
+  // Multi-select state - always enabled like shopping cart
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -366,11 +365,8 @@ export default function BiddingPage() {
     setEndDate(undefined);
   };
 
-  const toggleSelectMode = () => {
-    setIsSelectMode(!isSelectMode);
-    if (isSelectMode) {
-      setSelectedJobIds(new Set());
-    }
+  const clearSelection = () => {
+    setSelectedJobIds(new Set());
   };
 
   const toggleJobSelection = (jobId: string) => {
@@ -408,7 +404,6 @@ export default function BiddingPage() {
 
   const handleMultiBidSuccess = () => {
     setSelectedJobIds(new Set());
-    setIsSelectMode(false);
     loadAvailableJobs();
   };
 
@@ -536,23 +531,20 @@ export default function BiddingPage() {
       <Card 
         key={job.id} 
         className={cn(
-          "overflow-hidden bg-card transition-all",
-          isSelectMode && "cursor-pointer",
+          "overflow-hidden bg-card transition-all cursor-pointer",
           isSelected && "ring-2 ring-primary"
         )}
-        onClick={() => isSelectMode && toggleJobSelection(job.id)}
+        onClick={() => toggleJobSelection(job.id)}
       >
         <div className="flex items-center justify-between px-3 py-2 bg-white">
           <div className="flex items-center gap-2">
-            {isSelectMode && (
-              <div className="flex-shrink-0">
-                {isSelected ? (
-                  <CheckSquare className="w-5 h-5 text-primary" />
-                ) : (
-                  <Square className="w-5 h-5 text-muted-foreground" />
-                )}
-              </div>
-            )}
+            <div className="flex-shrink-0">
+              {isSelected ? (
+                <CheckSquare className="w-5 h-5 text-primary" />
+              ) : (
+                <Square className="w-5 h-5 text-muted-foreground" />
+              )}
+            </div>
             <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl text-[#30503b]">
               {t("job.order_code")} {job.order_code}
             </div>
@@ -657,12 +649,6 @@ export default function BiddingPage() {
               {getBidStatusBadge(bidStatus)}
             </div>
           )}
-
-          {!bidAmount && !isSelectMode && (
-            <Button className="w-full h-11 text-base font-medium" onClick={() => handlePlaceBid(job.id)}>
-              {t("bidding.placeBid")}
-            </Button>
-          )}
         </div>
       </Card>
     );
@@ -710,28 +696,21 @@ export default function BiddingPage() {
               </Button>
             </div>
 
-            {/* Select Mode Toggle */}
+            {/* Selection Controls */}
             <div className="flex items-center justify-between mt-3">
-              <Button
-                variant={isSelectMode ? "default" : "outline"}
-                size="sm"
-                onClick={toggleSelectMode}
-                className="gap-2"
-              >
-                {isSelectMode ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                {isSelectMode ? t("bidding.cancelSelect") : t("bidding.selectMultiple")}
-              </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckSquare className="w-4 h-4" />
+                <span>{t("bidding.selectedJobs")}: <span className="font-semibold text-foreground">{selectedJobIds.size}</span></span>
+              </div>
 
-              {isSelectMode && (
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={selectAllJobs}>
-                    {t("bidding.selectAll")}
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={deselectAllJobs}>
-                    {t("bidding.deselectAll")}
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={selectAllJobs}>
+                  {t("bidding.selectAll")}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={deselectAllJobs}>
+                  {t("bidding.deselectAll")}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -748,7 +727,7 @@ export default function BiddingPage() {
           </div>
 
           {/* Floating Action Button for Multi-Bid */}
-          {isSelectMode && selectedJobIds.size > 0 && (
+          {selectedJobIds.size > 0 && (
             <div className="fixed bottom-24 left-4 right-4 z-40">
               <Button 
                 className="w-full h-14 text-lg font-semibold shadow-lg"
