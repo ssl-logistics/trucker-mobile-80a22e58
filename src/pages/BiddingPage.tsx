@@ -528,129 +528,137 @@ export default function BiddingPage() {
   const renderJobCard = (job: BiddingJob, bidAmount?: number, bidStatus?: string, bidCreatedAt?: string) => {
     const isSelected = selectedJobIds.has(job.id);
     
+    // Determine if domestic or international based on transport_type
+    const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
+    const isSingleTrip = job.transport_type?.includes('เที่ยวเดียว');
+    const isMultipleLocations = job.transport_type?.includes('หลายที่');
+    const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+    const isInbound = job.transport_type?.includes('ขาเข้า');
+    const isOutbound = job.transport_type?.includes('ขาออก');
+    
     return (
       <Card 
         key={job.id} 
         className={cn(
-          "overflow-hidden bg-card transition-all cursor-pointer",
+          "p-4 pt-8 space-y-3 bg-card relative overflow-hidden cursor-pointer transition-all",
           isSelected && "ring-2 ring-primary"
         )}
         onClick={() => toggleJobSelection(job.id)}
       >
-        <div className="flex items-center justify-between px-3 py-2 bg-white">
-          <div className="flex items-center gap-2">
-            <div className="flex-shrink-0">
-              {isSelected ? (
-                <CheckSquare className="w-5 h-5 text-primary" />
-              ) : (
-                <Square className="w-5 h-5 text-muted-foreground" />
-              )}
-            </div>
-            <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl text-[#30503b]">
-              {t("job.order_code")} {job.order_code}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="w-3.5 h-3.5" />
-            {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
-          </div>
+        {/* Checkbox overlay */}
+        <div className="absolute top-2 left-2 z-10">
+          {isSelected ? (
+            <CheckSquare className="w-5 h-5 text-primary" />
+          ) : (
+            <Square className="w-5 h-5 text-muted-foreground" />
+          )}
         </div>
-        <div className="p-4 space-y-3">
-          <div className="text-sm">
-            <span className="text-muted-foreground">{t("job.employer")} : </span>
+
+        <div className="absolute top-0 left-8 px-3 py-1 rounded-br-xl bg-green-50 text-green-700 text-sm font-medium">
+          {t('job.order_code')} {job.order_code}
+        </div>
+        <div className="absolute top-0 right-0 px-3 py-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Clock className="w-4 h-4" />
+          {formatThaiDate(job.start_date, language)} {job.start_time ? `| ${job.start_time.substring(0, 5)}` : ''}
+        </div>
+
+        <div className="space-y-2">
+          <div className="text-base">
+            <span className="text-muted-foreground">{t('job.employer')} : </span>
             <span className="font-medium">{job.employer_name}</span>
           </div>
           <div className="flex items-center gap-2">
-            {(job.transport_type?.includes("เที่ยวเดียว") || job.transport_type?.includes("หลายที่")) && (
-              <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-                {t("job.domestic")}
-              </Badge>
-            )}
-            {(job.transport_type?.includes("ขาเข้า") || job.transport_type?.includes("ขาออก")) && (
+            {isDomestic && (
               <>
-                <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-                  {t("job.international")}
+                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                  {t('job.domestic')}
                 </Badge>
-                {job.transport_type?.includes("ขาเข้า") && (
-                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                    {t("job.inbound")}
+                {isSingleTrip && (
+                  <Badge variant="secondary" className="bg-teal-50 text-teal-700 hover:bg-teal-100">
+                    {t('job.single_trip')}
                   </Badge>
                 )}
-                {job.transport_type?.includes("ขาออก") && (
+                {isMultipleLocations && (
+                  <Badge variant="secondary" className="bg-cyan-50 text-cyan-700 hover:bg-cyan-100">
+                    {t('job.multiple_locations')}
+                  </Badge>
+                )}
+              </>
+            )}
+            {isInternational && (
+              <>
+                <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+                  {t('job.international')}
+                </Badge>
+                {isInbound && (
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                    {t('job.inbound')}
+                  </Badge>
+                )}
+                {isOutbound && (
                   <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
-                    {t("job.outbound")}
+                    {t('job.outbound')}
                   </Badge>
                 )}
               </>
             )}
           </div>
-          <div className="text-sm text-muted-foreground">{job.transport_type}</div>
+          <div className="text-base text-muted-foreground">
+            {job.transport_type}
+          </div>
 
           <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 flex gap-2">
-              <div className="flex flex-col items-center">
-                <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <div className="w-0.5 flex-1 border-l-2 border-dashed border-gray-300 my-1"></div>
-                <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
-              </div>
-              <div className="flex-1 space-y-2">
-                <div className="text-xs">
-                  <div className="text-muted-foreground">{t("job.origin")}</div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-start gap-2">
+                <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <div className="text-muted-foreground">{t('job.origin')}</div>
                   <div className="font-medium">{job.origin_location}</div>
                 </div>
-                <div className="text-xs">
-                  <div className="text-muted-foreground">{t("job.destination")}</div>
+              </div>
+              <div className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <div className="text-muted-foreground">{t('job.destination')}</div>
                   <div className="font-medium">{job.destination_location}</div>
                 </div>
               </div>
             </div>
-
-            <div className="text-right space-y-2">
-              {bidAmount !== undefined ? (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-                  <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-                  <span className="text-lg font-bold text-teal-500">฿ {bidAmount.toLocaleString()}</span>
-                </div>
-              ) : null}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-                <CalendarIconLucide className="w-4 h-4 text-gray-500" />
-                <div className="text-left">
-                  <div className="text-xs text-[#375B7B]">{t("currentJobs.startJobDate")}</div>
-                  <div className="text-xs font-medium">
-                    {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
-                  </div>
-                </div>
-              </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50">
+              <img src={coinsIcon} alt="coins" className="w-5 h-5" />
+              <span className="text-xl font-bold text-teal-700">฿ {job.price.toLocaleString()}</span>
             </div>
           </div>
 
-          <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
+          <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
             <div>
-              <span className="text-[#375c7b]">{t("job.goodsType")} : </span>
-              <span>{job.origin_goods_type || "-"}</span>
+              <span className="text-muted-foreground">{t('job.goods')} : </span>
+              <span>{job.origin_goods_type || '-'}</span>
             </div>
             <div>
-              <span className="text-[#375B7B]">{t("job.requiredTruck")} : </span>
-              <span>{job.equipment_list || "-"}</span>
+              <span className="text-muted-foreground">{t('job.requiredTruck')} : </span>
+              <span>{job.equipment_list || '-'}</span>
             </div>
           </div>
-
-          {bidStatus && bidCreatedAt && (
-            <div className="flex items-center justify-between pt-2 border-t">
-              <span className="text-xs text-muted-foreground">
-                {t("bidding.bidAt")}{" "}
-                {new Date(bidCreatedAt).toLocaleString(language === "th" ? "th-TH" : "en-US", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-              {getBidStatusBadge(bidStatus)}
-            </div>
-          )}
         </div>
+
+        {/* Bid Status for History Tab */}
+        {bidStatus && bidCreatedAt && (
+          <div className="flex items-center justify-between pt-2 border-t">
+            <span className="text-xs text-muted-foreground">
+              {t("bidding.bidAt")}{" "}
+              {new Date(bidCreatedAt).toLocaleString(language === "th" ? "th-TH" : "en-US", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            {getBidStatusBadge(bidStatus)}
+          </div>
+        )}
       </Card>
     );
   };
