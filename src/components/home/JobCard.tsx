@@ -193,24 +193,24 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
         <Button 
           variant="outline"
           onClick={handleViewDetail} 
-          className="flex-1 h-11 text-base font-medium"
+          className="flex-1 h-11 text-sm font-medium min-w-0"
         >
-          <Eye className="w-4 h-4 mr-2" />
-          {t('job.viewDetails')}
+          <Eye className="w-4 h-4 mr-1 flex-shrink-0" />
+          <span className="truncate">{t('job.viewDetails')}</span>
         </Button>
         {showCancelButton ? (
           <>
             <Button 
               onClick={() => onAccept(job)} 
-              className="flex-1 h-11 text-base font-medium"
+              className="flex-1 h-11 text-sm font-medium min-w-0"
               disabled={job.isAccepted}
             >
-              {job.isAccepted ? t('job.accepted') : t('job.accept')}
+              <span className="truncate">{job.isAccepted ? t('job.accepted') : t('job.accept')}</span>
             </Button>
             <Button 
               variant="destructive"
               onClick={() => onCancel?.(job)} 
-              className="flex-1 h-11 text-base font-medium"
+              className="h-11 text-sm font-medium px-3 flex-shrink-0"
             >
               {t('job.cancel')}
             </Button>
@@ -218,10 +218,10 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
         ) : (
           <Button 
             onClick={() => onAccept(job)} 
-            className="flex-1 h-11 text-base font-medium"
+            className="flex-1 h-11 text-sm font-medium min-w-0"
             disabled={job.isAccepted}
           >
-            {job.isAccepted ? t('job.accepted') : t('job.accept')}
+            <span className="truncate">{job.isAccepted ? t('job.accepted') : t('job.accept')}</span>
           </Button>
         )}
       </div>
