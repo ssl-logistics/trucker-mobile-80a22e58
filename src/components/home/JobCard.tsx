@@ -96,17 +96,17 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
   };
 
   return (
-    <Card className="p-4 pt-8 space-y-3 bg-card relative overflow-hidden">
-      <div className="absolute top-0 left-0 px-3 py-1 rounded-br-xl bg-green-50 text-green-700 text-sm font-medium">
+    <Card className="p-4 pt-8 space-y-3 bg-card relative overflow-hidden sm:p-5 sm:pt-10 lg:p-6 lg:pt-12">
+      <div className="absolute top-0 left-0 px-3 py-1 rounded-br-xl bg-green-50 text-green-700 text-sm font-medium sm:text-base sm:px-4">
         {t('job.order_code')} {job.order_code}
       </div>
-      <div className="absolute top-0 right-0 px-3 py-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Clock className="w-4 h-4" />
+      <div className="absolute top-0 right-0 px-3 py-1 flex items-center gap-1.5 text-sm text-muted-foreground sm:text-base sm:px-4">
+        <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
         {formatDate(job.start_date, language)} {job.pickup_time ? `| ${job.pickup_time.substring(0, 5)}` : ''}
       </div>
 
-      <div className="space-y-2">
-        <div className="text-base">
+      <div className="space-y-2 sm:space-y-3">
+        <div className="text-base sm:text-lg">
           <span className="text-muted-foreground">{isFactoryJob ? t('job.factory') : t('job.employer')} : </span>
           <span className="font-medium">{job.employer_name}</span>
         </div>
@@ -150,31 +150,31 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           {translateTransportType(job.transport_type_label || job.transport_type, language)}
         </div>
 
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 space-y-2">
-            <div className="flex items-start gap-2">
-              <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
+        <div className="flex items-start justify-between gap-4 sm:gap-6">
+          <div className="flex-1 space-y-2 sm:space-y-3">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
+              <div className="text-sm sm:text-base">
                 <div className="text-muted-foreground">{t('job.origin')}</div>
                 <div className="font-medium">{job.origin_location}</div>
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
+              <div className="text-sm sm:text-base">
                 <div className="text-muted-foreground">{t('job.destination')}</div>
                 <div className="font-medium">{job.destination_location}</div>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50">
-            <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-            <span className="text-xl font-bold text-teal-700">฿ {job.price.toLocaleString()}</span>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 sm:px-4 sm:py-2">
+            <img src={coinsIcon} alt="coins" className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="text-xl font-bold text-teal-700 sm:text-2xl">฿ {job.price.toLocaleString()}</span>
           </div>
         </div>
 
-        <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+        <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1 sm:p-4 sm:text-base sm:space-y-2">
           <div>
             <span className="text-muted-foreground">{t('job.goods')} : </span>
             <span>{translateGoodsType(job.goods_type, language)}</span>
@@ -190,21 +190,21 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 sm:gap-3">
         <Button 
           variant="outline"
           onClick={handleViewDetail} 
-          className="flex-1 h-11 text-sm font-medium min-w-0"
+          className="flex-1 h-11 text-sm font-medium min-w-0 sm:h-12 sm:text-base"
           disabled={isProcessing}
         >
-          <Eye className="w-4 h-4 mr-1 flex-shrink-0" />
+          <Eye className="w-4 h-4 mr-1 flex-shrink-0 sm:w-5 sm:h-5" />
           <span className="truncate">{t('job.viewDetails')}</span>
         </Button>
         {showCancelButton ? (
           <>
             <Button 
               onClick={() => onAccept(job)} 
-              className="flex-1 h-11 text-sm font-medium min-w-0"
+              className="flex-1 h-11 text-sm font-medium min-w-0 sm:h-12 sm:text-base"
               disabled={job.isAccepted || isProcessing}
             >
               {isProcessing ? (
@@ -219,7 +219,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             <Button 
               variant="destructive"
               onClick={() => onCancel?.(job)} 
-              className="h-11 text-sm font-medium px-3 flex-shrink-0"
+              className="h-11 text-sm font-medium px-3 flex-shrink-0 sm:h-12 sm:text-base sm:px-4"
               disabled={isProcessing}
             >
               {t('job.cancel')}
@@ -228,7 +228,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
         ) : (
           <Button 
             onClick={() => onAccept(job)} 
-            className="flex-1 h-11 text-sm font-medium min-w-0"
+            className="flex-1 h-11 text-sm font-medium min-w-0 sm:h-12 sm:text-base"
             disabled={job.isAccepted || isProcessing}
           >
             {isProcessing ? (
