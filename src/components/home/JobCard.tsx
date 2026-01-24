@@ -202,14 +202,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-center">
-              รายละเอียดงาน
+              {t('job.jobDetails')}
             </DialogTitle>
           </DialogHeader>
           
           <div className="py-4 space-y-4">
             {/* Order Code */}
             <div className="bg-primary/10 rounded-lg p-3 text-center">
-              <p className="text-xs text-muted-foreground">รหัสงาน</p>
+              <p className="text-xs text-muted-foreground">{t('job.orderCode')}</p>
               <p className="font-bold text-primary text-lg">{job.order_code}</p>
             </div>
 
@@ -220,7 +220,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
                   <MapPin className="w-4 h-4 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">ต้นทาง</p>
+                  <p className="text-xs text-muted-foreground">{t('job.origin')}</p>
                   <p className="font-medium">{job.origin_location}</p>
                 </div>
               </div>
@@ -230,7 +230,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
                   <MapPin className="w-4 h-4 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">ปลายทาง</p>
+                  <p className="text-xs text-muted-foreground">{t('job.destination')}</p>
                   <p className="font-medium">{job.destination_location}</p>
                 </div>
               </div>
@@ -240,7 +240,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
             <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
               <Banknote className="w-5 h-5 text-primary" />
               <div>
-                <p className="text-xs text-muted-foreground">ราคา</p>
+                <p className="text-xs text-muted-foreground">{t('job.price')}</p>
                 <p className="font-bold text-lg text-primary">฿{job.price.toLocaleString()}</p>
               </div>
             </div>
@@ -250,7 +250,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
               <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">วันที่</p>
+                  <p className="text-xs text-muted-foreground">{t('job.date')}</p>
                   <p className="font-medium text-sm">
                     {job.start_date ? formatDate(job.start_date, language) : '-'}
                   </p>
@@ -259,7 +259,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
               <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
                 <Clock className="w-4 h-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">เวลา</p>
+                  <p className="text-xs text-muted-foreground">{t('job.time')}</p>
                   <p className="font-medium text-sm">
                     {job.pickup_time ? job.pickup_time.substring(0, 5) : '-'}
                   </p>
@@ -271,7 +271,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
             <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">ประเภทงาน</p>
+                <p className="text-xs text-muted-foreground">{t('job.jobType')}</p>
                 <p className="font-medium">{job.job_type ? getJobTypeLabel(job.job_type) : '-'}</p>
               </div>
             </div>
@@ -280,7 +280,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
             <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">รูปแบบการส่ง</p>
+                <p className="text-xs text-muted-foreground">{t('job.transportMode')}</p>
                 <p className="font-medium">{job.transport_type_label || job.transport_type || '-'}</p>
               </div>
             </div>
@@ -290,7 +290,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
               <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
                 <Truck className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">ประเภทรถที่ต้องการ</p>
+                  <p className="text-xs text-muted-foreground">{t('job.requiredTruckType')}</p>
                   <p className="font-medium">{job.equipment_list}</p>
                 </div>
               </div>
@@ -299,28 +299,28 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
             {/* Goods Info */}
             <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
               <div>
-                <span className="text-muted-foreground">สินค้า : </span>
+                <span className="text-muted-foreground">{t('job.product')} : </span>
                 <span>{job.goods_type || '-'}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">น้ำหนัก : </span>
+                <span className="text-muted-foreground">{t('job.weight')} : </span>
                 <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${job.goods_unit || 'kg'}` : '-'}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">จำนวน : </span>
+                <span className="text-muted-foreground">{t('job.quantity')} : </span>
                 <span>{job.goods_quantity || '-'}</span>
               </div>
             </div>
 
             {/* Employer */}
             <div className="text-center text-sm text-muted-foreground">
-              ผู้ว่าจ้าง: <span className="font-medium text-foreground">{job.employer_name}</span>
+              {t('job.employerLabel')}: <span className="font-medium text-foreground">{job.employer_name}</span>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDetailModalOpen(false)} className="w-full">
-              ปิด
+              {t('job.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
