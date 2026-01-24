@@ -192,11 +192,10 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
       <div className="flex gap-2">
         <Button 
           variant="outline"
-          size="sm"
           onClick={handleViewDetail} 
-          className="h-9 text-sm font-medium"
+          className="flex-1 h-11 text-base font-medium"
         >
-          <Eye className="w-3.5 h-3.5 mr-1.5" />
+          <Eye className="w-4 h-4 mr-2" />
           {t('job.viewDetails')}
         </Button>
         {showCancelButton ? (
