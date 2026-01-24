@@ -491,7 +491,7 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
         },
         body: JSON.stringify({
           order_number: job.order_code,
@@ -547,7 +547,7 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
         },
         body: JSON.stringify({
           order_number: selectedFactoryJob.order_code,
