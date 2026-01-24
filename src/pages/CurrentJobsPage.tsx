@@ -101,33 +101,89 @@ export default function CurrentJobsPage() {
       // Get freelance_driver_id from user profile or external mapping
       const freelanceDriverId = user.id;
       
-      const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
-        {
+      // Fetch both company jobs and factory jobs in parallel
+      const [companyJobsResponse, factoryJobsResponse] = await Promise.all([
+        fetch(
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+          }
+        ),
+        supabase.functions.invoke('get-factory-assigned-jobs', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
-        }
-      );
+          body: null,
+        }).then(async () => {
+          // Use direct fetch for query params
+          const res = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&limit=50`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+            }
+          );
+          return res;
+        }).catch(() => null)
+      ]);
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error('Error loading accepted jobs:', result);
-        toast({
-          title: t('currentJobs.errorLoad'),
-          description: t('currentJobs.errorLoadDesc'),
-          variant: 'destructive'
-        });
-        setAcceptedJobs([]);
+      // Process company jobs
+      let companyJobs: AcceptedJob[] = [];
+      if (companyJobsResponse.ok) {
+        const companyResult = await companyJobsResponse.json();
+        console.log('Loaded company accepted jobs:', companyResult);
+        companyJobs = Array.isArray(companyResult) ? companyResult : (companyResult.data || []);
       } else {
-        console.log('Loaded accepted jobs:', result);
-        // Handle both array response and object with data property
-        const jobs = Array.isArray(result) ? result : (result.data || []);
-        setAcceptedJobs(jobs);
+        console.error('Error loading company accepted jobs:', await companyJobsResponse.text());
       }
+
+      // Process factory jobs - only include accepted ones
+      let factoryJobs: AcceptedJob[] = [];
+      try {
+        // Direct fetch for factory jobs
+        const factoryRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&limit=50`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+          }
+        );
+        
+        if (factoryRes.ok) {
+          const factoryResult = await factoryRes.json();
+          console.log('Loaded factory jobs:', factoryResult);
+          const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : (factoryResult.data || []);
+          
+          // Only include factory jobs that have been accepted
+          factoryJobs = allFactoryJobs
+            .filter((job: any) => job.freelance_accepted_at)
+            .map((job: any) => ({
+              ...job,
+              // Map factory job fields to match AcceptedJob interface
+              sender_name: job.factory_name || job.sender_name,
+              isFactoryJob: true,
+            }));
+        }
+      } catch (factoryError) {
+        console.error('Error loading factory jobs:', factoryError);
+      }
+
+      // Combine both job sources
+      const allJobs = [...companyJobs, ...factoryJobs];
+      console.log('Total current jobs:', allJobs.length, '(Company:', companyJobs.length, ', Factory:', factoryJobs.length, ')');
+      
+      setAcceptedJobs(allJobs);
     } catch (error) {
       console.error('Error fetching accepted jobs:', error);
       toast({
