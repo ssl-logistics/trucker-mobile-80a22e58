@@ -7,10 +7,31 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
+      padding: {
+        DEFAULT: "1rem",
+        sm: "1.5rem",
+        md: "2rem",
+        lg: "2.5rem",
+        xl: "3rem",
+        "2xl": "4rem",
       },
+      screens: {
+        sm: "640px",      // Mobile large
+        md: "768px",      // Tablet
+        lg: "1024px",     // Tablet landscape / Small laptop
+        xl: "1280px",     // Small monitor (17-19")
+        "2xl": "1536px",  // Standard monitor (21.5-24")
+        "3xl": "1920px",  // Large monitor (27-32"+)
+      },
+    },
+    screens: {
+      xs: "375px",        // Mobile small
+      sm: "640px",        // Mobile large / Tablet portrait
+      md: "768px",        // Tablet
+      lg: "1024px",       // Tablet landscape / Small laptop
+      xl: "1280px",       // Small monitor (17-19")
+      "2xl": "1536px",    // Standard monitor (21.5-24")
+      "3xl": "1920px",    // Large monitor (27-32"+)
     },
     extend: {
       colors: {

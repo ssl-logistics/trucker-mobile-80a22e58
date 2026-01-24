@@ -669,7 +669,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
       {/* Header + Search wrapped together with rounded corners at bottom */}
-      <div className="rounded-b-3xl shadow-lg overflow-hidden">
+      <div className="rounded-b-3xl shadow-lg overflow-hidden lg:rounded-none lg:shadow-none">
         <AppHeader 
           userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
           profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
@@ -678,32 +678,32 @@ export default function Home() {
         />
 
         {/* Search Bar - inside the rounded container */}
-        <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-[#d6e4f5]">
-          <div className="relative">
+        <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-[#d6e4f5] lg:px-6 xl:px-8">
+          <div className="relative max-w-2xl mx-auto lg:max-w-3xl xl:max-w-4xl">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <Input placeholder={t('home.search')} className="pl-10 bg-white shadow-sm border-0" onClick={() => navigate('/search')} readOnly />
           </div>
         </div>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 pb-24">
-        {/* Jobs Section */}
-        <div className="px-4 mt-6">
+      {/* Scrollable Content - Responsive container */}
+      <div className="flex-1 pb-24 lg:pb-8">
+        {/* Jobs Section - Centered with max-width on larger screens */}
+        <div className="px-4 mt-6 sm:px-6 lg:px-8 xl:px-10 max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">{t('home.recommended')}</h2>
-            <span className="text-sm text-muted-foreground">
+            <h2 className="text-lg font-bold sm:text-xl lg:text-2xl">{t('home.recommended')}</h2>
+            <span className="text-sm text-muted-foreground sm:text-base">
               {displayedJobs.length} {t('home.items')}
             </span>
           </div>
 
-          {/* Job Filter Buttons */}
-          <div className="flex gap-2 mb-4">
+          {/* Job Filter Buttons - Responsive sizing */}
+          <div className="flex gap-2 mb-4 sm:gap-3 lg:gap-4 max-w-md lg:max-w-lg">
             <Button
               variant={jobFilter === 'company' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setJobFilter(jobFilter === 'company' ? 'all' : 'company')}
-              className={`flex-1 ${jobFilter === 'company' ? 'bg-primary text-primary-foreground' : ''}`}
+              className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'company' ? 'bg-primary text-primary-foreground' : ''}`}
             >
               {t('home.companyJobs')}
             </Button>
@@ -711,19 +711,20 @@ export default function Home() {
               variant={jobFilter === 'factory' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setJobFilter(jobFilter === 'factory' ? 'all' : 'factory')}
-              className={`flex-1 ${jobFilter === 'factory' ? 'bg-primary text-primary-foreground' : ''}`}
+              className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'factory' ? 'bg-primary text-primary-foreground' : ''}`}
             >
               {t('home.factoryJobs')}
             </Button>
           </div>
 
-          <div className="space-y-4">
+          {/* Job Cards - Responsive grid */}
+          <div className="card-grid-responsive">
             {jobFilter === 'factory' && displayedJobs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <Search className="w-8 h-8 text-muted-foreground" />
+              <div className="flex flex-col items-center justify-center py-12 text-center col-span-full">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 sm:w-20 sm:h-20">
+                  <Search className="w-8 h-8 text-muted-foreground sm:w-10 sm:h-10" />
                 </div>
-                <p className="text-muted-foreground">{t('home.noFactoryJobs')}</p>
+                <p className="text-muted-foreground sm:text-lg">{t('home.noFactoryJobs')}</p>
               </div>
             ) : (
               displayedJobs.map(job => (
