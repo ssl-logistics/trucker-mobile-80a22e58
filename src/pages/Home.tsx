@@ -53,19 +53,14 @@ export default function Home() {
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
   const [jobFilter, setJobFilter] = useState<'all' | 'company' | 'factory'>('all');
 
-  // State for factory jobs (will be populated when API is available)
+  // State for factory jobs
   const [factoryJobs, setFactoryJobs] = useState<Job[]>([]);
-  
-  // TODO: Add factory jobs API when available
-  // const loadFactoryJobs = async () => {
-  //   const { data, error } = await supabase.functions.invoke('get-factory-jobs');
-  //   if (!error && data) setFactoryJobs(data);
-  // };
+  const [isLoadingFactoryJobs, setIsLoadingFactoryJobs] = useState(false);
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
     if (jobFilter === 'factory') {
-      return factoryJobs; // Empty array until API is ready
+      return factoryJobs;
     }
     // 'all' and 'company' both show company jobs (current API)
     return jobs;
@@ -73,10 +68,79 @@ export default function Home() {
 
   const displayedJobs = getDisplayedJobs();
 
+  // Load factory jobs from API
+  const loadFactoryJobs = async () => {
+    if (!user?.id) return;
+    
+    setIsLoadingFactoryJobs(true);
+    try {
+      const { data: responseData, error } = await supabase.functions.invoke('get-factory-assigned-jobs', {
+        body: null,
+        headers: {},
+      });
+
+      // Call with query params via URL
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${user.id}&limit=10`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Error loading factory jobs:', response.statusText);
+        return;
+      }
+
+      const result = await response.json();
+      console.log('Loaded factory jobs from API:', result);
+
+      // Transform API response to Job format
+      const apiJobs = result?.data || [];
+      
+      const transformedJobs: Job[] = apiJobs.map((item: any) => {
+        return {
+          id: item.id || String(Math.random()),
+          post_id: item.id || item.post_id || '',
+          order_code: item.order_number || item.order_code || item.quote_number || '',
+          job_type: item.job_type || item.shipment_type || 'domestic',
+          employer_name: item.factory_name || item.company_name || item.customer_name || '',
+          transport_type: item.send_mode || 'single',
+          transport_type_label: item.transport_type_label || item.send_mode_label || '',
+          origin_location: item.origin || item.from_location || '',
+          destination_location: item.destination || item.to_location || '',
+          destination_company_name: item.destination_company_name || null,
+          price: item.price || 0,
+          start_date: item.pickup_date || item.start_date || '',
+          pickup_time: item.pickup_time || item.start_time || '',
+          equipment_list: item.truck_type || item.vehicle_type || null,
+          safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
+          goods_type: item.product_name || item.goods_type || null,
+          goods_quantity: item.goods_quantity || item.quantity || null,
+          isAccepted: false,
+          origin_lat: item.origin_lat || undefined,
+          origin_lng: item.origin_lng || undefined,
+          destination_lat: item.destination_lat || undefined,
+          destination_lng: item.destination_lng || undefined
+        };
+      });
+
+      setFactoryJobs(transformedJobs);
+    } catch (err) {
+      console.error('Error fetching factory jobs:', err);
+    } finally {
+      setIsLoadingFactoryJobs(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       console.log('🔄 Loading jobs with userType:', userType, 'isInternalDriver:', isInternalDriver, 'isExternalDriver:', isExternalDriver);
       loadJobs();
+      loadFactoryJobs(); // Also load factory jobs
     }
   }, [user, userType, isInternalDriver, isExternalDriver]);
 
