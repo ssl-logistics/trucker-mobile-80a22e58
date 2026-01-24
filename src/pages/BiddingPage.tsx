@@ -354,18 +354,6 @@ export default function BiddingPage() {
     if (!user) {
       return;
     }
-    
-    console.log('=== Extracting My Bids from Tickets ===');
-    console.log('User ID:', user.id);
-    console.log('Raw tickets count:', rawTickets.length);
-    console.log('Accepted tickets count:', acceptedTickets.length);
-    
-    // Debug: Log all contractor IDs found
-    const allContractorIds = new Set<string>();
-    [...rawTickets, ...acceptedTickets].forEach(ticket => {
-      ticket.bids?.forEach(bid => allContractorIds.add(bid.contractor_id));
-    });
-    console.log('All contractor IDs in bids:', Array.from(allContractorIds));
 
     // Extract bids that belong to the current user from all tickets
     const userBids: Bid[] = [];
