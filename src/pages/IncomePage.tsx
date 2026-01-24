@@ -49,8 +49,8 @@ export default function IncomePage() {
     if (!user) return;
     setLoading(true);
     try {
-      // Fetch jobs and checkins in parallel
-      const [jobsRes, checkinsRes] = await Promise.all([
+      // Fetch company jobs, factory jobs, and checkins in parallel
+      const [companyJobsRes, factoryJobsRes, checkinsRes] = await Promise.all([
         fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
           {
@@ -62,19 +62,49 @@ export default function IncomePage() {
           }
         ),
         fetch(
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+          }
+        ),
+        fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
           { method: 'GET', headers: { 'Content-Type': 'application/json' } }
         ),
       ]);
 
-      if (!jobsRes.ok) {
-        throw new Error('Failed to fetch jobs');
+      if (!companyJobsRes.ok) {
+        console.error('Failed to fetch company jobs');
       }
 
-      const jobsJson = await jobsRes.json();
+      const companyJobsJson = await companyJobsRes.json();
+      const factoryJobsJson = await factoryJobsRes.json();
       const checkinsJson = await checkinsRes.json();
 
-      const allJobs: CompletedJob[] = jobsJson.data || [];
+      // Get company jobs
+      const companyJobs: CompletedJob[] = companyJobsJson.data || [];
+
+      // Get factory jobs - only those that have been accepted
+      const allFactoryJobs = factoryJobsJson.data || [];
+      const acceptedFactoryJobs: CompletedJob[] = allFactoryJobs
+        .filter((job: any) => job.freelance_accepted_at)
+        .map((job: any) => ({
+          id: job.id,
+          order_number: job.order_number || job.job_order_number,
+          sender_name: job.factory_name || job.sender_name,
+          destination_company_name: job.destination_company_name,
+          transport_price: job.transport_price || 0,
+          sender_pickup_date: job.sender_pickup_date || job.pickup_date,
+          status: job.status || 'accepted',
+        }));
+
+      // Combine company and factory jobs
+      const allJobs = [...companyJobs, ...acceptedFactoryJobs];
+
       const allCheckins = checkinsJson?.data || checkinsJson || [];
       const checkins = Array.isArray(allCheckins) ? allCheckins : [];
 
