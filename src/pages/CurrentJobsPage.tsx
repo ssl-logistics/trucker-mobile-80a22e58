@@ -172,12 +172,15 @@ export default function CurrentJobsPage() {
         console.log('Loaded factory jobs:', factoryResult);
         const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : (factoryResult.data || []);
 
-        // Track pending factory offers (not yet accepted OR awaiting_response status) 
+        // Track pending factory offers (awaiting_response AND not in_progress) 
         // to ensure they never appear in Current Jobs
         pendingFactoryOrderNumbers = new Set(
           allFactoryJobs
             .filter((job: any) => {
               const status = (job?.status || '').toLowerCase().trim();
+              // If status is "in_progress", it should go to Current Jobs
+              if (status === 'in_progress') return false;
+              // If status is "awaiting_response" or not yet accepted, keep in Factory Jobs
               const isAwaitingResponse = status === 'awaiting_response';
               const isNotAccepted = !job?.freelance_accepted_at;
               return isAwaitingResponse || isNotAccepted;
@@ -186,10 +189,13 @@ export default function CurrentJobsPage() {
             .filter(Boolean)
         );
         
-        // Only include factory jobs that have been accepted AND not awaiting_response
+        // Include factory jobs that are: accepted OR in_progress status
         factoryJobs = allFactoryJobs
           .filter((job: any) => {
             const status = (job?.status || '').toLowerCase().trim();
+            // Allow in_progress jobs to appear in Current Jobs
+            if (status === 'in_progress') return true;
+            // Otherwise, require accepted and not awaiting_response
             const isAccepted = Boolean(job.freelance_accepted_at);
             const isNotAwaitingResponse = status !== 'awaiting_response';
             return isAccepted && isNotAwaitingResponse;
