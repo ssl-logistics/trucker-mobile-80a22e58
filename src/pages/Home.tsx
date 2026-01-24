@@ -97,29 +97,39 @@ export default function Home() {
       const apiJobs = result?.data || [];
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
+        // Build origin/destination from province + district if not provided directly
+        const originLocation = item.origin || 
+          [item.sender_district, item.sender_province].filter(Boolean).join(', ') || 
+          item.from_location || '';
+        const destinationLocation = item.destination || 
+          [item.destination_district, item.destination_province].filter(Boolean).join(', ') || 
+          item.to_location || '';
+        
         return {
           id: item.id || String(Math.random()),
           post_id: item.id || item.post_id || '',
           order_code: item.order_number || item.order_code || item.quote_number || '',
           job_type: item.job_type || item.shipment_type || 'domestic',
           employer_name: item.factory_name || item.company_name || item.customer_name || '',
-          transport_type: item.send_mode || 'single',
+          transport_type: item.transport_mode || item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
-          origin_location: item.origin || item.from_location || '',
-          destination_location: item.destination || item.to_location || '',
-          destination_company_name: item.destination_company_name || null,
-          price: item.price || 0,
-          start_date: item.pickup_date || item.start_date || '',
-          pickup_time: item.pickup_time || item.start_time || '',
-          equipment_list: item.truck_type || item.vehicle_type || null,
+          origin_location: originLocation,
+          destination_location: destinationLocation,
+          destination_company_name: item.destination_company_name || item.destination_name || null,
+          price: item.transport_price || item.price || 0,
+          start_date: item.sender_pickup_date || item.pickup_date || item.start_date || '',
+          pickup_time: item.sender_pickup_time || item.pickup_time || item.start_time || '',
+          equipment_list: item.vehicle_type || item.truck_type || null,
           safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
           goods_type: item.product_name || item.goods_type || null,
-          goods_quantity: item.goods_quantity || item.quantity || null,
+          goods_quantity: item.product_quantity ? String(item.product_quantity) : (item.goods_quantity || null),
+          goods_weight: item.product_weight || null,
+          goods_unit: item.product_unit || null,
           isAccepted: false,
-          origin_lat: item.origin_lat || undefined,
-          origin_lng: item.origin_lng || undefined,
-          destination_lat: item.destination_lat || undefined,
-          destination_lng: item.destination_lng || undefined
+          origin_lat: item.sender_latitude || item.origin_lat || undefined,
+          origin_lng: item.sender_longitude || item.origin_lng || undefined,
+          destination_lat: item.destination_latitude || item.destination_lat || undefined,
+          destination_lng: item.destination_longitude || item.destination_lng || undefined
         };
       });
 
