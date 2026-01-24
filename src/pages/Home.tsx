@@ -74,11 +74,6 @@ export default function Home() {
     
     setIsLoadingFactoryJobs(true);
     try {
-      const { data: responseData, error } = await supabase.functions.invoke('get-factory-assigned-jobs', {
-        body: null,
-        headers: {},
-      });
-
       // Call with query params via URL
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${user.id}&limit=10`,
