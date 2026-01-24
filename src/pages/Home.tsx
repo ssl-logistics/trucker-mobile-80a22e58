@@ -100,9 +100,12 @@ export default function Home() {
       console.log('Loaded factory jobs from API:', result);
 
       // Transform API response to Job format
-      // NOTE: get-factory-assigned-jobs returns both pending offers and already accepted/in_progress jobs.
-      // We only want to show *not-yet-accepted* jobs in the "Factory Jobs" tab.
-      const apiJobs = (result?.data || []).filter((item: any) => !item?.freelance_accepted_at);
+      // NOTE: get-factory-assigned-jobs may return both pending offers and jobs already in progress.
+      // We only want to show jobs that are still awaiting the driver's response in the "Factory Jobs" tab.
+      const apiJobs = (result?.data || []).filter((item: any) => {
+        const status = (item?.status || '').toLowerCase().trim();
+        return status === 'awaiting_response';
+      });
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
         // Build origin/destination from province + district if not provided directly
