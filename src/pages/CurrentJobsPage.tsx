@@ -63,6 +63,9 @@ interface AcceptedJob {
   license_plate: string | null;
   freelance_bidder_id: string | null;
   freelance_bidder_name: string | null;
+  freelance_accepted_at?: string | null;
+  factory_name?: string | null;
+  isFactoryJob?: boolean;
   remarks: string | null;
   created_at: string;
   updated_at: string;
@@ -93,6 +96,31 @@ export default function CurrentJobsPage() {
     loadAcceptedJobs();
   }, [user]);
 
+  const dedupeJobs = (jobs: AcceptedJob[]) => {
+    const map = new Map<string, AcceptedJob>();
+
+    for (const job of jobs) {
+      // Dedupe by order number first (same order can arrive from multiple sources with different ids)
+      const key = job?.order_number || job?.id;
+      if (!key) continue;
+
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, job);
+        continue;
+      }
+
+      // Prefer the richer factory payload when duplicates occur across sources
+      const existingIsFactory = Boolean((existing as any)?.isFactoryJob);
+      const nextIsFactory = Boolean((job as any)?.isFactoryJob);
+      if (!existingIsFactory && nextIsFactory) {
+        map.set(key, job);
+      }
+    }
+
+    return Array.from(map.values());
+  };
+
   const loadAcceptedJobs = async () => {
     if (!user) return;
     setLoading(true);
@@ -105,12 +133,12 @@ export default function CurrentJobsPage() {
       // Fetch both company jobs and factory jobs in parallel
       const [companyJobsResponse, factoryJobsResponse] = await Promise.all([
         fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
+          `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
           {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+              'Authorization': `Bearer ${supabaseKey}`,
             },
           }
         ),
@@ -138,10 +166,19 @@ export default function CurrentJobsPage() {
 
       // Process factory jobs - only include accepted ones
       let factoryJobs: AcceptedJob[] = [];
+      let pendingFactoryOrderNumbers = new Set<string>();
       if (factoryJobsResponse && factoryJobsResponse.ok) {
         const factoryResult = await factoryJobsResponse.json();
         console.log('Loaded factory jobs:', factoryResult);
         const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : (factoryResult.data || []);
+
+        // Track pending factory offers to ensure they never appear in Current Jobs
+        pendingFactoryOrderNumbers = new Set(
+          allFactoryJobs
+            .filter((job: any) => !job?.freelance_accepted_at)
+            .map((job: any) => job?.order_number)
+            .filter(Boolean)
+        );
         
         // Only include factory jobs that have been accepted
         factoryJobs = allFactoryJobs
@@ -153,11 +190,16 @@ export default function CurrentJobsPage() {
           }));
       }
 
+      if (pendingFactoryOrderNumbers.size > 0) {
+        companyJobs = companyJobs.filter((job) => !pendingFactoryOrderNumbers.has(job.order_number));
+      }
+
       // Combine both job sources
       const allJobs = [...companyJobs, ...factoryJobs];
-      console.log('Total current jobs:', allJobs.length, '(Company:', companyJobs.length, ', Factory:', factoryJobs.length, ')');
-      
-      setAcceptedJobs(allJobs);
+      const uniqueJobs = dedupeJobs(allJobs);
+      console.log('Total current jobs:', uniqueJobs.length, '(Company:', companyJobs.length, ', Factory:', factoryJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
+
+      setAcceptedJobs(uniqueJobs);
     } catch (error) {
       console.error('Error fetching accepted jobs:', error);
       toast({
