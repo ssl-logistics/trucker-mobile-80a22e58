@@ -199,13 +199,22 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           {t('job.viewDetails')}
         </Button>
         {showCancelButton ? (
-          <Button 
-            variant="destructive"
-            onClick={() => onCancel?.(job)} 
-            className="flex-1 h-11 text-base font-medium"
-          >
-            {t('job.cancel')}
-          </Button>
+          <>
+            <Button 
+              onClick={() => onAccept(job)} 
+              className="flex-1 h-11 text-base font-medium"
+              disabled={job.isAccepted}
+            >
+              {job.isAccepted ? t('job.accepted') : t('job.accept')}
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => onCancel?.(job)} 
+              className="flex-1 h-11 text-base font-medium"
+            >
+              {t('job.cancel')}
+            </Button>
+          </>
         ) : (
           <Button 
             onClick={() => onAccept(job)} 
