@@ -48,9 +48,10 @@ interface JobCardProps {
   showCancelButton?: boolean;
   onCancel?: (job: Job) => void;
   isFactoryJob?: boolean;
+  isProcessing?: boolean; // Loading state for accept/cancel actions
 }
 
-export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed, showCancelButton = false, onCancel, isFactoryJob = false }: JobCardProps) => {
+export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed, showCancelButton = false, onCancel, isFactoryJob = false, isProcessing = false }: JobCardProps) => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -194,6 +195,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           variant="outline"
           onClick={handleViewDetail} 
           className="flex-1 h-11 text-sm font-medium min-w-0"
+          disabled={isProcessing}
         >
           <Eye className="w-4 h-4 mr-1 flex-shrink-0" />
           <span className="truncate">{t('job.viewDetails')}</span>
@@ -203,14 +205,22 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             <Button 
               onClick={() => onAccept(job)} 
               className="flex-1 h-11 text-sm font-medium min-w-0"
-              disabled={job.isAccepted}
+              disabled={job.isAccepted || isProcessing}
             >
-              <span className="truncate">{job.isAccepted ? t('job.accepted') : t('job.accept')}</span>
+              {isProcessing ? (
+                <span className="flex items-center gap-1">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="truncate">{t('job.processing') || 'กำลังดำเนินการ...'}</span>
+                </span>
+              ) : (
+                <span className="truncate">{job.isAccepted ? t('job.accepted') : t('job.accept')}</span>
+              )}
             </Button>
             <Button 
               variant="destructive"
               onClick={() => onCancel?.(job)} 
               className="h-11 text-sm font-medium px-3 flex-shrink-0"
+              disabled={isProcessing}
             >
               {t('job.cancel')}
             </Button>
@@ -219,9 +229,16 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           <Button 
             onClick={() => onAccept(job)} 
             className="flex-1 h-11 text-sm font-medium min-w-0"
-            disabled={job.isAccepted}
+            disabled={job.isAccepted || isProcessing}
           >
-            <span className="truncate">{job.isAccepted ? t('job.accepted') : t('job.accept')}</span>
+            {isProcessing ? (
+              <span className="flex items-center gap-1">
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="truncate">{t('job.processing') || 'กำลังดำเนินการ...'}</span>
+              </span>
+            ) : (
+              <span className="truncate">{job.isAccepted ? t('job.accepted') : t('job.accept')}</span>
+            )}
           </Button>
         )}
       </div>

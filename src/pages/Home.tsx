@@ -688,6 +688,7 @@ export default function Home() {
                   showCancelButton={jobFilter === 'factory'}
                   isFactoryJob={jobFilter === 'factory'}
                   onCancel={handleRejectFactoryJob}
+                  isProcessing={jobFilter === 'factory' ? isFactoryJobProcessing : isAccepting}
                 />
               ))
             )}
