@@ -305,9 +305,7 @@ export default function CurrentJobsPage() {
 
       {/* Content */}
       <div className="px-4 py-4">
-        {loading ? <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div> : filteredJobs.length === 0 ? <EmptyState /> : <div className="space-y-4">
+        {loading ? <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div> : filteredJobs.length === 0 ? <EmptyState /> : <div className="space-y-4">
             {filteredJobs.map(job => {
           const pickupDate = job.sender_pickup_date || '';
           const pickupTime = job.sender_pickup_time || '';
