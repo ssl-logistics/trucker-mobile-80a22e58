@@ -117,6 +117,9 @@ const thTranslations: Record<string, string> = {
   'home.sign_out_desc': 'การออกจากระบบจะทำให้คุณต้องล็อกอินเข้าสู่ระบบอีกครั้ง ในครั้งถัดไป กรุณายืนยันออกจากระบบ',
   'home.sign_out_btn': 'ออกจากระบบ',
   'home.cancel': 'ยกเลิก',
+  'home.companyJobs': 'งานบริษัท',
+  'home.factoryJobs': 'งานโรงงาน',
+  'home.allJobs': 'ทั้งหมด',
   
   // Job Card
   'job.order_code': 'รหัสออเดอร์',
@@ -1380,6 +1383,9 @@ const enTranslations: Record<string, string> = {
   'home.sign_out_desc': 'Signing out will require you to log in again next time. Please confirm sign out.',
   'home.sign_out_btn': 'Sign Out',
   'home.cancel': 'Cancel',
+  'home.companyJobs': 'Company Jobs',
+  'home.factoryJobs': 'Factory Jobs',
+  'home.allJobs': 'All',
   
   // Job Card
   'job.order_code': 'Order Code',
@@ -2643,6 +2649,9 @@ const koTranslations: Record<string, string> = {
   'home.sign_out_desc': '로그아웃하면 다음에 다시 로그인해야 합니다. 로그아웃을 확인해 주세요.',
   'home.sign_out_btn': '로그아웃',
   'home.cancel': '취소',
+  'home.companyJobs': '회사 작업',
+  'home.factoryJobs': '공장 작업',
+  'home.allJobs': '전체',
   
   // Job Card
   'job.order_code': '주문 코드',
@@ -4082,6 +4091,9 @@ const zhTranslations: Record<string, string> = {
   'home.sign_out_desc': '退出登录后，下次使用需要重新登录。请确认退出登录。',
   'home.sign_out_btn': '退出登录',
   'home.cancel': '取消',
+  'home.companyJobs': '公司工作',
+  'home.factoryJobs': '工厂工作',
+  'home.allJobs': '全部',
   'home.welcome': '欢迎',
   'home.available_jobs': '可用工作',
   'home.no_jobs': '暂无可用工作',

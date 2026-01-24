@@ -9,11 +9,11 @@ import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
-import { useUserRole as useUserRoleHook } from '@/hooks/useUserRole';
 interface Job {
   id: string;
   post_id?: string;
@@ -51,6 +51,31 @@ export default function Home() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
+  const [jobFilter, setJobFilter] = useState<'all' | 'company' | 'factory'>('all');
+
+  // Filter jobs based on selected filter (company/factory)
+  const filteredJobs = jobs.filter(job => {
+    if (jobFilter === 'all') return true;
+    
+    const employerName = (job.employer_name || '').toLowerCase();
+    
+    if (jobFilter === 'company') {
+      // Match jobs with "บริษัท" or "company" in employer name
+      return employerName.includes('บริษัท') || 
+             employerName.includes('company') || 
+             employerName.includes('บจก') ||
+             employerName.includes('หจก');
+    }
+    
+    if (jobFilter === 'factory') {
+      // Match jobs with "โรงงาน" or "factory" in employer name
+      return employerName.includes('โรงงาน') || 
+             employerName.includes('factory') ||
+             employerName.includes('โรง');
+    }
+    
+    return true;
+  });
 
   useEffect(() => {
     if (user) {
@@ -433,11 +458,33 @@ export default function Home() {
         <div className="px-4 mt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold">{t('home.recommended')}</h2>
-            <span className="text-sm text-muted-foreground">{jobs.length} {t('home.items')}</span>
+            <span className="text-sm text-muted-foreground">
+              {filteredJobs.length} {t('home.items')}
+            </span>
+          </div>
+
+          {/* Job Filter Buttons */}
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant={jobFilter === 'company' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setJobFilter(jobFilter === 'company' ? 'all' : 'company')}
+              className={`flex-1 ${jobFilter === 'company' ? 'bg-primary text-primary-foreground' : ''}`}
+            >
+              {t('home.companyJobs')}
+            </Button>
+            <Button
+              variant={jobFilter === 'factory' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setJobFilter(jobFilter === 'factory' ? 'all' : 'factory')}
+              className={`flex-1 ${jobFilter === 'factory' ? 'bg-primary text-primary-foreground' : ''}`}
+            >
+              {t('home.factoryJobs')}
+            </Button>
           </div>
 
           <div className="space-y-4">
-            {jobs.map(job => (
+            {filteredJobs.map(job => (
               <JobCard 
                 key={job.id} 
                 job={job} 
