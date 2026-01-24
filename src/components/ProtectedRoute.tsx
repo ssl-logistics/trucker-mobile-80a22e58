@@ -9,12 +9,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
+  // Don't show loading spinner here - let page components handle their own loading
+  // This prevents duplicate loading spinners from Suspense + ProtectedRoute + Page
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return null; // Let Suspense fallback handle initial loading
   }
 
   if (!user) {

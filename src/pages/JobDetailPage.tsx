@@ -279,11 +279,9 @@ export default function JobDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    // Don't render a full-page loader - the Suspense boundary already handles initial loading
+    // Only show inline skeleton or nothing to prevent duplicate loaders
+    return null;
   }
 
   if (!job || !user) {
