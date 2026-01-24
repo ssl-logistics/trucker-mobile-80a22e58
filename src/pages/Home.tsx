@@ -53,29 +53,25 @@ export default function Home() {
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
   const [jobFilter, setJobFilter] = useState<'all' | 'company' | 'factory'>('all');
 
-  // Filter jobs based on selected filter (company/factory)
-  const filteredJobs = jobs.filter(job => {
-    if (jobFilter === 'all') return true;
-    
-    const employerName = (job.employer_name || '').toLowerCase();
-    
-    if (jobFilter === 'company') {
-      // Match jobs with "บริษัท" or "company" in employer name
-      return employerName.includes('บริษัท') || 
-             employerName.includes('company') || 
-             employerName.includes('บจก') ||
-             employerName.includes('หจก');
-    }
-    
+  // State for factory jobs (will be populated when API is available)
+  const [factoryJobs, setFactoryJobs] = useState<Job[]>([]);
+  
+  // TODO: Add factory jobs API when available
+  // const loadFactoryJobs = async () => {
+  //   const { data, error } = await supabase.functions.invoke('get-factory-jobs');
+  //   if (!error && data) setFactoryJobs(data);
+  // };
+
+  // Get displayed jobs based on filter
+  const getDisplayedJobs = () => {
     if (jobFilter === 'factory') {
-      // Match jobs with "โรงงาน" or "factory" in employer name
-      return employerName.includes('โรงงาน') || 
-             employerName.includes('factory') ||
-             employerName.includes('โรง');
+      return factoryJobs; // Empty array until API is ready
     }
-    
-    return true;
-  });
+    // 'all' and 'company' both show company jobs (current API)
+    return jobs;
+  };
+
+  const displayedJobs = getDisplayedJobs();
 
   useEffect(() => {
     if (user) {
@@ -459,7 +455,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold">{t('home.recommended')}</h2>
             <span className="text-sm text-muted-foreground">
-              {filteredJobs.length} {t('home.items')}
+              {displayedJobs.length} {t('home.items')}
             </span>
           </div>
 
@@ -484,15 +480,24 @@ export default function Home() {
           </div>
 
           <div className="space-y-4">
-            {filteredJobs.map(job => (
-              <JobCard 
-                key={job.id} 
-                job={job} 
-                onAccept={handleAcceptJob}
-                autoOpenDetail={openJobOrderCode === job.order_code}
-                onDetailClosed={() => setOpenJobOrderCode(null)}
-              />
-            ))}
+            {jobFilter === 'factory' && displayedJobs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Search className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground">{t('home.noFactoryJobs')}</p>
+              </div>
+            ) : (
+              displayedJobs.map(job => (
+                <JobCard 
+                  key={job.id} 
+                  job={job} 
+                  onAccept={handleAcceptJob}
+                  autoOpenDetail={openJobOrderCode === job.order_code}
+                  onDetailClosed={() => setOpenJobOrderCode(null)}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
