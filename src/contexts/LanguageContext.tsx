@@ -120,6 +120,7 @@ const thTranslations: Record<string, string> = {
   'home.companyJobs': 'งานบริษัท',
   'home.factoryJobs': 'งานโรงงาน',
   'home.allJobs': 'ทั้งหมด',
+  'home.noFactoryJobs': 'ยังไม่มีงานโรงงานในขณะนี้',
   
   // Job Card
   'job.order_code': 'รหัสออเดอร์',
@@ -1386,6 +1387,7 @@ const enTranslations: Record<string, string> = {
   'home.companyJobs': 'Company Jobs',
   'home.factoryJobs': 'Factory Jobs',
   'home.allJobs': 'All',
+  'home.noFactoryJobs': 'No factory jobs available at this time',
   
   // Job Card
   'job.order_code': 'Order Code',
@@ -2652,6 +2654,7 @@ const koTranslations: Record<string, string> = {
   'home.companyJobs': '회사 작업',
   'home.factoryJobs': '공장 작업',
   'home.allJobs': '전체',
+  'home.noFactoryJobs': '현재 공장 작업이 없습니다',
   
   // Job Card
   'job.order_code': '주문 코드',
@@ -4094,6 +4097,7 @@ const zhTranslations: Record<string, string> = {
   'home.companyJobs': '公司工作',
   'home.factoryJobs': '工厂工作',
   'home.allJobs': '全部',
+  'home.noFactoryJobs': '目前没有工厂工作',
   'home.welcome': '欢迎',
   'home.available_jobs': '可用工作',
   'home.no_jobs': '暂无可用工作',
