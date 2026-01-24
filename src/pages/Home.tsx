@@ -516,8 +516,8 @@ export default function Home() {
         description: `${t('home.accept_factory_success_desc')} ${job.order_code}`
       });
 
-      // Reload factory jobs
-      loadFactoryJobs();
+      // Remove accepted job from list immediately
+      setFactoryJobs(prevJobs => prevJobs.filter(j => j.order_code !== job.order_code));
     } catch (err) {
       console.error('Error accepting factory job:', err);
       toast({
