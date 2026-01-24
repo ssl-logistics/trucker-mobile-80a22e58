@@ -559,6 +559,15 @@ export default function Home() {
                   onAccept={handleAcceptJob}
                   autoOpenDetail={openJobOrderCode === job.order_code}
                   onDetailClosed={() => setOpenJobOrderCode(null)}
+                  showCancelButton={jobFilter === 'factory'}
+                  onCancel={(job) => {
+                    // TODO: Implement cancel factory job API
+                    console.log('Cancel factory job:', job.order_code);
+                    toast({
+                      title: t('home.cancel_job'),
+                      description: `${t('home.cancel_job_desc')} ${job.order_code}`,
+                    });
+                  }}
                 />
               ))
             )}
