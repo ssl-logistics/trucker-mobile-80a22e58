@@ -98,8 +98,9 @@ export default function CurrentJobsPage() {
     setLoading(true);
     
     try {
-      // Get freelance_driver_id from user profile or external mapping
       const freelanceDriverId = user.id;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       
       // Fetch both company jobs and factory jobs in parallel
       const [companyJobsResponse, factoryJobsResponse] = await Promise.all([
@@ -113,26 +114,16 @@ export default function CurrentJobsPage() {
             },
           }
         ),
-        supabase.functions.invoke('get-factory-assigned-jobs', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: null,
-        }).then(async () => {
-          // Use direct fetch for query params
-          const res = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&limit=50`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              },
-            }
-          );
-          return res;
-        }).catch(() => null)
+        fetch(
+          `${supabaseUrl}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&limit=50`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+          }
+        ).catch(() => null)
       ]);
 
       // Process company jobs
@@ -147,36 +138,19 @@ export default function CurrentJobsPage() {
 
       // Process factory jobs - only include accepted ones
       let factoryJobs: AcceptedJob[] = [];
-      try {
-        // Direct fetch for factory jobs
-        const factoryRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&limit=50`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-          }
-        );
+      if (factoryJobsResponse && factoryJobsResponse.ok) {
+        const factoryResult = await factoryJobsResponse.json();
+        console.log('Loaded factory jobs:', factoryResult);
+        const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : (factoryResult.data || []);
         
-        if (factoryRes.ok) {
-          const factoryResult = await factoryRes.json();
-          console.log('Loaded factory jobs:', factoryResult);
-          const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : (factoryResult.data || []);
-          
-          // Only include factory jobs that have been accepted
-          factoryJobs = allFactoryJobs
-            .filter((job: any) => job.freelance_accepted_at)
-            .map((job: any) => ({
-              ...job,
-              // Map factory job fields to match AcceptedJob interface
-              sender_name: job.factory_name || job.sender_name,
-              isFactoryJob: true,
-            }));
-        }
-      } catch (factoryError) {
-        console.error('Error loading factory jobs:', factoryError);
+        // Only include factory jobs that have been accepted
+        factoryJobs = allFactoryJobs
+          .filter((job: any) => job.freelance_accepted_at)
+          .map((job: any) => ({
+            ...job,
+            sender_name: job.factory_name || job.sender_name,
+            isFactoryJob: true,
+          }));
       }
 
       // Combine both job sources
@@ -196,9 +170,9 @@ export default function CurrentJobsPage() {
     
     setLoading(false);
   };
+
   const handleApplyFilter = () => {
     setFilterOpen(false);
-    // Filter logic is applied in filteredApplications
   };
   const handleResetFilter = () => {
     setSelectedJobType('all');
