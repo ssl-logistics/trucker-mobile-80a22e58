@@ -173,11 +173,7 @@ export default function IncomePage() {
     });
     return grouped;
   };
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>;
-  }
+  // Loading state is now handled inline in the content area
   const allJobs = [...paidJobs, ...unpaidJobs];
   const allGrouped = groupJobsByMonth(allJobs);
   const paidGrouped = groupJobsByMonth(paidJobs);
@@ -225,7 +221,7 @@ export default function IncomePage() {
 
           {/* All Tab */}
           <TabsContent value="all" className="space-y-4">
-            {Object.keys(allGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">{t('income.noData')}</div> : Object.entries(allGrouped).map(([month, jobs]) => <div key={month}>
+            {loading ? <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div> : Object.keys(allGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">{t('income.noData')}</div> : Object.entries(allGrouped).map(([month, jobs]) => <div key={month}>
                   <div className="text-sm text-muted-foreground mb-2">{month}</div>
                   {jobs.map(income => <Card key={income.id} className="p-4 mb-3">
                       <div className="flex items-start justify-between mb-3">
@@ -250,7 +246,7 @@ export default function IncomePage() {
 
           {/* Paid Tab */}
           <TabsContent value="paid" className="space-y-4">
-            {Object.keys(paidGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">{t('income.noPaid')}</div> : Object.entries(paidGrouped).map(([month, jobs]) => <div key={month}>
+            {loading ? <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div> : Object.keys(paidGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">{t('income.noPaid')}</div> : Object.entries(paidGrouped).map(([month, jobs]) => <div key={month}>
                   <div className="text-sm text-muted-foreground mb-2">{month}</div>
                   {jobs.map(income => <Card key={income.id} className="p-4 mb-3">
                       <div className="flex items-start justify-between mb-3">
@@ -273,7 +269,7 @@ export default function IncomePage() {
 
           {/* Unpaid Tab */}
           <TabsContent value="unpaid" className="space-y-4">
-            {Object.keys(unpaidGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">{t('income.noUnpaid')}</div> : Object.entries(unpaidGrouped).map(([month, jobs]) => <div key={month}>
+            {loading ? <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div> : Object.keys(unpaidGrouped).length === 0 ? <div className="text-center py-8 text-muted-foreground">{t('income.noUnpaid')}</div> : Object.entries(unpaidGrouped).map(([month, jobs]) => <div key={month}>
                   <div className="text-sm text-muted-foreground mb-2">{month}</div>
                   {jobs.map(income => <Card key={income.id} className="p-4 mb-3">
                       <div className="flex items-start justify-between mb-3">
