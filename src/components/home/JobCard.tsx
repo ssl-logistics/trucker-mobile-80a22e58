@@ -10,6 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDate } from '@/lib/dateUtils';
+import { 
+  translateGoodsType, 
+  translateVehicleType, 
+  translateTransportType,
+  translateEquipmentList,
+  translateUnit 
+} from '@/utils/apiDataTranslations';
 
 interface Job {
   id: string;
@@ -166,14 +173,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
         <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
           <div>
             <span className="text-muted-foreground">{t('job.goods')} : </span>
-            <span>{job.goods_type || '-'}</span>
+            <span>{translateGoodsType(job.goods_type, language)}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">น้ำหนัก : </span>
-            <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${job.goods_unit || 'kg'}` : '-'}</span>
+            <span className="text-muted-foreground">{t('job.weight')} : </span>
+            <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${translateUnit(job.goods_unit, language)}` : '-'}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">จำนวน : </span>
+            <span className="text-muted-foreground">{t('job.quantity')} : </span>
             <span>{job.goods_quantity || '-'}</span>
           </div>
         </div>
@@ -281,7 +288,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">{t('job.transportMode')}</p>
-                <p className="font-medium">{job.transport_type_label || job.transport_type || '-'}</p>
+                <p className="font-medium">{translateTransportType(job.transport_type_label || job.transport_type, language)}</p>
               </div>
             </div>
 
@@ -291,7 +298,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
                 <Truck className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">{t('job.requiredTruckType')}</p>
-                  <p className="font-medium">{job.equipment_list}</p>
+                  <p className="font-medium">{translateEquipmentList(job.equipment_list, language)}</p>
                 </div>
               </div>
             )}
@@ -300,11 +307,11 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
             <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
               <div>
                 <span className="text-muted-foreground">{t('job.product')} : </span>
-                <span>{job.goods_type || '-'}</span>
+                <span>{translateGoodsType(job.goods_type, language)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">{t('job.weight')} : </span>
-                <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${job.goods_unit || 'kg'}` : '-'}</span>
+                <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${translateUnit(job.goods_unit, language)}` : '-'}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">{t('job.quantity')} : </span>
