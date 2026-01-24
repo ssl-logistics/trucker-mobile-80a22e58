@@ -122,10 +122,22 @@ export default function JobHistoryPage() {
     try {
       const freelanceDriverId = user.id;
 
-      // Fetch jobs + checkins in parallel
-      const [jobsRes, checkinsRes] = await Promise.all([
+      // Fetch company jobs, factory jobs, and checkins in parallel
+      const [companyJobsRes, factoryJobsRes, checkinsRes] = await Promise.all([
         fetch(
           `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
+            freelanceDriverId
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": "fld_sk_2026_xY9kWewT3xNySk8kGsRq_live",
+            },
+          }
+        ),
+        fetch(
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(
             freelanceDriverId
           )}`,
           {
@@ -144,13 +156,16 @@ export default function JobHistoryPage() {
         ),
       ]);
 
-      const jobsJson = await jobsRes.json();
+      const companyJobsJson = await companyJobsRes.json();
+      const factoryJobsJson = await factoryJobsRes.json();
       const checkinsJson = await checkinsRes.json();
 
-      if (!jobsRes.ok) {
-        console.error("Error loading jobs:", jobsJson);
-        setCompletedJobs([]);
-        return;
+      if (!companyJobsRes.ok) {
+        console.error("Error loading company jobs:", companyJobsJson);
+      }
+
+      if (!factoryJobsRes.ok) {
+        console.error("Error loading factory jobs:", factoryJobsJson);
       }
 
       if (!checkinsRes.ok) {
@@ -159,9 +174,46 @@ export default function JobHistoryPage() {
         return;
       }
 
-      const jobs: CompletedJob[] = Array.isArray(jobsJson)
-        ? jobsJson
-        : jobsJson.data || [];
+      // Get company jobs
+      const companyJobs: CompletedJob[] = Array.isArray(companyJobsJson)
+        ? companyJobsJson
+        : companyJobsJson.data || [];
+
+      // Get factory jobs - only those that have been accepted
+      const allFactoryJobs = factoryJobsJson.data || [];
+      const acceptedFactoryJobs = allFactoryJobs
+        .filter((job: any) => job.freelance_accepted_at)
+        .map((job: any) => ({
+          id: job.id,
+          order_number: job.order_number || job.job_order_number,
+          transport_type_id: null,
+          transport_mode: null,
+          status: job.status || 'accepted',
+          sender_name: job.factory_name || job.sender_name,
+          sender_address: job.sender_address || '',
+          sender_province: job.sender_province || job.origin_province || '',
+          sender_district: job.sender_district || job.origin_district || '',
+          sender_pickup_date: job.sender_pickup_date || job.pickup_date,
+          sender_pickup_time: job.sender_pickup_time || job.pickup_time || '00:00',
+          destination_name: job.destination_name || '',
+          destination_address: job.destination_address || '',
+          destination_province: job.destination_province || job.drop_off_province || '',
+          destination_district: job.destination_district || job.drop_off_district || '',
+          destination_delivery_date: job.destination_delivery_date || job.delivery_date,
+          destination_delivery_time: job.destination_delivery_time || job.delivery_time || '00:00',
+          destination_company_name: job.destination_company_name,
+          product_name: job.product_name || job.goods_name,
+          product_weight: job.product_weight || job.goods_weight,
+          product_quantity: job.product_quantity || job.goods_quantity,
+          product_unit: job.product_unit || 'kg',
+          vehicle_type: job.vehicle_type || job.truck_type,
+          transport_price: job.transport_price || 0,
+          created_at: job.created_at,
+          updated_at: job.updated_at,
+        }));
+
+      // Combine company and factory jobs
+      const allJobs = [...companyJobs, ...acceptedFactoryJobs];
 
       const allCheckins = checkinsJson?.data || checkinsJson || [];
       const checkins = Array.isArray(allCheckins) ? allCheckins : [];
@@ -178,7 +230,7 @@ export default function JobHistoryPage() {
           .map((c: any) => String(c.transport_order_id))
       );
 
-      const completed = jobs
+      const completed = allJobs
         .filter((job) => confirmedTransportIds.has(String(job.id)))
         .map((job) => ({ ...job, status: "completed" }));
 
