@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
+import { useMultiProcessingGuard } from '@/hooks/useProcessingGuard';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { RejectFactoryJobDialog } from '@/components/home/RejectFactoryJobDialog';
@@ -15,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
+import { deduplicateJobs } from '@/utils/jobDeduplication';
 interface Job {
   id: string;
   post_id?: string;
@@ -47,6 +49,10 @@ export default function Home() {
   const { t } = useLanguage();
   const { role, isInternalDriver, isExternalDriver } = useUserRole();
   const { vehiclePhoto } = useVehiclePhoto();
+  
+  // Global processing guard for all job actions
+  const { isProcessingKey, withGuard: withJobGuard } = useMultiProcessingGuard();
+  
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -62,6 +68,9 @@ export default function Home() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedFactoryJob, setSelectedFactoryJob] = useState<Job | null>(null);
   const [isFactoryJobProcessing, setIsFactoryJobProcessing] = useState(false);
+  
+  // Track processed order codes to prevent duplicates
+  const [processedOrderCodes, setProcessedOrderCodes] = useState<Set<string>>(new Set());
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
@@ -485,114 +494,153 @@ export default function Home() {
     }
   };
 
-  // Handle factory job accept
+  // Handle factory job accept with double-click and duplicate order protection
   const handleAcceptFactoryJob = async (job: Job) => {
-    if (!user || isFactoryJobProcessing) return;
+    if (!user) return;
     
-    setIsFactoryJobProcessing(true);
+    const orderCode = job.order_code;
     
-    try {
-      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-        },
-        body: JSON.stringify({
-          order_number: job.order_code,
-          freelance_driver_id: user.id,
-          action: 'accept'
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        toast({
-          title: t('home.error_factory_job'),
-          description: result.message || t('home.error_accept'),
-          variant: 'destructive'
-        });
-        return;
-      }
-
+    // Check if this order is already being processed or was already processed
+    if (processedOrderCodes.has(orderCode)) {
+      console.log(`[Home] Order ${orderCode} already processed, skipping`);
       toast({
-        title: t('home.accept_factory_success'),
-        description: `${t('home.accept_factory_success_desc')} ${job.order_code}`
-      });
-
-      // Remove accepted job from list immediately
-      setFactoryJobs(prevJobs => prevJobs.filter(j => j.order_code !== job.order_code));
-    } catch (err) {
-      console.error('Error accepting factory job:', err);
-      toast({
-        title: t('home.error_factory_job'),
-        description: t('home.error_accept'),
+        title: t('home.duplicate_order'),
+        description: t('home.order_already_processed') || 'งานนี้ถูกดำเนินการแล้ว',
         variant: 'destructive'
       });
-    } finally {
-      setIsFactoryJobProcessing(false);
+      return;
     }
+    
+    // Use processing guard to prevent double-clicks
+    await withJobGuard(`accept-factory-${orderCode}`, async () => {
+      setIsFactoryJobProcessing(true);
+      
+      try {
+        const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+          },
+          body: JSON.stringify({
+            order_number: orderCode,
+            freelance_driver_id: user.id,
+            action: 'accept'
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          toast({
+            title: t('home.error_factory_job'),
+            description: result.message || t('home.error_accept'),
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        // Mark as processed to prevent future duplicate submissions
+        setProcessedOrderCodes(prev => new Set([...prev, orderCode]));
+
+        toast({
+          title: t('home.accept_factory_success'),
+          description: `${t('home.accept_factory_success_desc')} ${orderCode}`
+        });
+
+        // Remove accepted job from list immediately
+        setFactoryJobs(prevJobs => prevJobs.filter(j => j.order_code !== orderCode));
+      } catch (err) {
+        console.error('Error accepting factory job:', err);
+        toast({
+          title: t('home.error_factory_job'),
+          description: t('home.error_accept'),
+          variant: 'destructive'
+        });
+      } finally {
+        setIsFactoryJobProcessing(false);
+      }
+    });
   };
 
   // Handle factory job reject - open dialog
   const handleRejectFactoryJob = (job: Job) => {
+    // Check if already processing
+    if (isProcessingKey(`reject-factory-${job.order_code}`)) {
+      console.log(`[Home] Reject for ${job.order_code} already in progress`);
+      return;
+    }
     setSelectedFactoryJob(job);
     setRejectDialogOpen(true);
   };
 
-  // Confirm factory job rejection with reason
+  // Confirm factory job rejection with reason - with double-click protection
   const confirmFactoryJobRejection = async (reason: string) => {
-    if (!selectedFactoryJob || !user || isFactoryJobProcessing) return;
+    if (!selectedFactoryJob || !user) return;
     
-    setIsFactoryJobProcessing(true);
+    const orderCode = selectedFactoryJob.order_code;
     
-    try {
-      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-        },
-        body: JSON.stringify({
-          order_number: selectedFactoryJob.order_code,
-          freelance_driver_id: user.id,
-          action: 'reject',
-          reject_reason: reason
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        toast({
-          title: t('home.error_factory_job'),
-          description: result.message || t('home.cancel_job'),
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      toast({
-        title: t('home.reject_factory_success'),
-        description: `${t('home.reject_factory_success_desc')} ${selectedFactoryJob.order_code}`
-      });
-
+    // Check if already processed
+    if (processedOrderCodes.has(orderCode)) {
+      console.log(`[Home] Order ${orderCode} already processed, skipping reject`);
       setRejectDialogOpen(false);
       setSelectedFactoryJob(null);
-      
-      // Reload factory jobs
-      loadFactoryJobs();
-    } catch (err) {
-      console.error('Error rejecting factory job:', err);
-      toast({
-        title: t('home.error_factory_job'),
-        description: t('home.cancel_job'),
-        variant: 'destructive'
-      });
-    } finally {
-      setIsFactoryJobProcessing(false);
+      return;
     }
+    
+    await withJobGuard(`reject-factory-${orderCode}`, async () => {
+      setIsFactoryJobProcessing(true);
+      
+      try {
+        const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+          },
+          body: JSON.stringify({
+            order_number: orderCode,
+            freelance_driver_id: user.id,
+            action: 'reject',
+            reject_reason: reason
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          toast({
+            title: t('home.error_factory_job'),
+            description: result.message || t('home.cancel_job'),
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        // Mark as processed
+        setProcessedOrderCodes(prev => new Set([...prev, orderCode]));
+
+        toast({
+          title: t('home.reject_factory_success'),
+          description: `${t('home.reject_factory_success_desc')} ${orderCode}`
+        });
+
+        setRejectDialogOpen(false);
+        setSelectedFactoryJob(null);
+        
+        // Reload factory jobs
+        loadFactoryJobs();
+      } catch (err) {
+        console.error('Error rejecting factory job:', err);
+        toast({
+          title: t('home.error_factory_job'),
+          description: t('home.cancel_job'),
+          variant: 'destructive'
+        });
+      } finally {
+        setIsFactoryJobProcessing(false);
+      }
+    });
   };
   const handleSignOut = async () => {
     try {
@@ -688,7 +736,11 @@ export default function Home() {
                   showCancelButton={jobFilter === 'factory'}
                   isFactoryJob={jobFilter === 'factory'}
                   onCancel={handleRejectFactoryJob}
-                  isProcessing={jobFilter === 'factory' ? isFactoryJobProcessing : isAccepting}
+                  isProcessing={
+                    jobFilter === 'factory' 
+                      ? (isProcessingKey(`accept-factory-${job.order_code}`) || isProcessingKey(`reject-factory-${job.order_code}`))
+                      : isAccepting
+                  }
                 />
               ))
             )}

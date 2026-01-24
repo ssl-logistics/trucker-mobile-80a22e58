@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
+import { deduplicateJobs } from '@/utils/jobDeduplication';
 // Interface for accepted jobs from external API
 interface AcceptedJob {
   id: string;
@@ -96,29 +97,18 @@ export default function CurrentJobsPage() {
     loadAcceptedJobs();
   }, [user]);
 
+  // Use centralized dedupe utility for order_number based deduplication
   const dedupeJobs = (jobs: AcceptedJob[]) => {
-    const map = new Map<string, AcceptedJob>();
-
-    for (const job of jobs) {
-      // Dedupe by order number first (same order can arrive from multiple sources with different ids)
-      const key = job?.order_number || job?.id;
-      if (!key) continue;
-
-      const existing = map.get(key);
-      if (!existing) {
-        map.set(key, job);
-        continue;
-      }
-
-      // Prefer the richer factory payload when duplicates occur across sources
-      const existingIsFactory = Boolean((existing as any)?.isFactoryJob);
-      const nextIsFactory = Boolean((job as any)?.isFactoryJob);
-      if (!existingIsFactory && nextIsFactory) {
-        map.set(key, job);
-      }
-    }
-
-    return Array.from(map.values());
+    // Transform to match utility interface and dedupe
+    const jobsWithOrderCode = jobs.map(job => ({
+      ...job,
+      order_code: job.order_number, // Map order_number to order_code for utility
+    }));
+    
+    const deduped = deduplicateJobs(jobsWithOrderCode);
+    
+    console.log(`[CurrentJobsPage] Deduped ${jobs.length} jobs to ${deduped.length}`);
+    return deduped as AcceptedJob[];
   };
 
   const loadAcceptedJobs = async () => {
