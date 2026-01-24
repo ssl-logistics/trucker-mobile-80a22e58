@@ -172,17 +172,28 @@ export default function CurrentJobsPage() {
         console.log('Loaded factory jobs:', factoryResult);
         const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : (factoryResult.data || []);
 
-        // Track pending factory offers to ensure they never appear in Current Jobs
+        // Track pending factory offers (not yet accepted OR awaiting_response status) 
+        // to ensure they never appear in Current Jobs
         pendingFactoryOrderNumbers = new Set(
           allFactoryJobs
-            .filter((job: any) => !job?.freelance_accepted_at)
+            .filter((job: any) => {
+              const status = (job?.status || '').toLowerCase().trim();
+              const isAwaitingResponse = status === 'awaiting_response';
+              const isNotAccepted = !job?.freelance_accepted_at;
+              return isAwaitingResponse || isNotAccepted;
+            })
             .map((job: any) => job?.order_number)
             .filter(Boolean)
         );
         
-        // Only include factory jobs that have been accepted
+        // Only include factory jobs that have been accepted AND not awaiting_response
         factoryJobs = allFactoryJobs
-          .filter((job: any) => job.freelance_accepted_at)
+          .filter((job: any) => {
+            const status = (job?.status || '').toLowerCase().trim();
+            const isAccepted = Boolean(job.freelance_accepted_at);
+            const isNotAwaitingResponse = status !== 'awaiting_response';
+            return isAccepted && isNotAwaitingResponse;
+          })
           .map((job: any) => ({
             ...job,
             sender_name: job.factory_name || job.sender_name,
