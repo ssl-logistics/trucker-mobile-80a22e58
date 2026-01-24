@@ -51,8 +51,13 @@ serve(async (req) => {
       );
     }
 
-    // Call external API to get accepted jobs
-    const jobsUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
+    // Call external API to get accepted company jobs
+    const companyJobsUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
+      freelanceDriverId
+    )}`;
+
+    // Call external API to get factory jobs (we'll filter for accepted ones)
+    const factoryJobsUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(
       freelanceDriverId
     )}`;
 
@@ -63,9 +68,16 @@ serve(async (req) => {
 
     console.log('Fetching job stats for driver:', freelanceDriverId);
 
-    // Fetch both jobs and check-ins in parallel
-    const [jobsResponse, checkinsResponse] = await Promise.all([
-      fetch(jobsUrl, {
+    // Fetch company jobs, factory jobs, and check-ins in parallel
+    const [companyJobsResponse, factoryJobsResponse, checkinsResponse] = await Promise.all([
+      fetch(companyJobsUrl, {
+        method: 'GET',
+        headers: {
+          'x-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+      }),
+      fetch(factoryJobsUrl, {
         method: 'GET',
         headers: {
           'x-api-key': apiKey,
@@ -81,32 +93,38 @@ serve(async (req) => {
       }),
     ]);
 
-    const jobsData = await jobsResponse.json();
+    const companyJobsData = await companyJobsResponse.json();
+    const factoryJobsData = await factoryJobsResponse.json();
     const checkinsData = await checkinsResponse.json();
 
-    if (!jobsResponse.ok) {
-      console.error('External API error (jobs):', jobsData);
+    if (!companyJobsResponse.ok) {
+      console.error('External API error (company jobs):', companyJobsData);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch jobs', details: jobsData }),
+        JSON.stringify({ error: 'Failed to fetch company jobs', details: companyJobsData }),
         {
-          status: jobsResponse.status,
+          status: companyJobsResponse.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
 
-    // Process jobs and check-ins data
-    const allJobs = jobsData.data || jobsData || [];
-    const checkins = checkinsData.data || checkinsData || [];
-
-    // Note: We no longer filter by is_express_rent because the accepted jobs API
-    // does not return this field. All accepted jobs should be counted.
-    const jobs = allJobs;
+    // Process company jobs
+    const companyJobs = companyJobsData.data || companyJobsData || [];
     
-    console.log(`Processing ${jobs.length} accepted jobs`);
+    // Process factory jobs - only include jobs that have been accepted (have freelance_accepted_at)
+    const allFactoryJobs = factoryJobsData.data || factoryJobsData || [];
+    const acceptedFactoryJobs = allFactoryJobs.filter((job: any) => job.freelance_accepted_at);
+    
+    console.log(`Company jobs: ${companyJobs.length}, Accepted factory jobs: ${acceptedFactoryJobs.length}`);
+
+    // Combine both company and factory jobs
+    const jobs = [...companyJobs, ...acceptedFactoryJobs];
+    const checkins = checkinsData.data || checkinsData || [];
+    
+    console.log(`Processing ${jobs.length} total accepted jobs (company + factory)`);
 
     // Log all job details for debugging
-    console.log('All jobs from API:', allJobs.length);
+    console.log('Total jobs from API (company + factory):', jobs.length);
     console.log('Jobs:', jobs.map((job: any, index: number) => ({
       index: index + 1,
       id: job.id,
