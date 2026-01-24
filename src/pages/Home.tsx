@@ -8,6 +8,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
+import { RejectFactoryJobDialog } from '@/components/home/RejectFactoryJobDialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -56,6 +57,11 @@ export default function Home() {
   // State for factory jobs
   const [factoryJobs, setFactoryJobs] = useState<Job[]>([]);
   const [isLoadingFactoryJobs, setIsLoadingFactoryJobs] = useState(false);
+  
+  // State for factory job actions
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedFactoryJob, setSelectedFactoryJob] = useState<Job | null>(null);
+  const [isFactoryJobProcessing, setIsFactoryJobProcessing] = useState(false);
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
@@ -473,6 +479,116 @@ export default function Home() {
       setIsAccepting(false);
     }
   };
+
+  // Handle factory job accept
+  const handleAcceptFactoryJob = async (job: Job) => {
+    if (!user || isFactoryJobProcessing) return;
+    
+    setIsFactoryJobProcessing(true);
+    
+    try {
+      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          order_number: job.order_code,
+          freelance_driver_id: user.id,
+          action: 'accept'
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        toast({
+          title: t('home.error_factory_job'),
+          description: result.message || t('home.error_accept'),
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      toast({
+        title: t('home.accept_factory_success'),
+        description: `${t('home.accept_factory_success_desc')} ${job.order_code}`
+      });
+
+      // Reload factory jobs
+      loadFactoryJobs();
+    } catch (err) {
+      console.error('Error accepting factory job:', err);
+      toast({
+        title: t('home.error_factory_job'),
+        description: t('home.error_accept'),
+        variant: 'destructive'
+      });
+    } finally {
+      setIsFactoryJobProcessing(false);
+    }
+  };
+
+  // Handle factory job reject - open dialog
+  const handleRejectFactoryJob = (job: Job) => {
+    setSelectedFactoryJob(job);
+    setRejectDialogOpen(true);
+  };
+
+  // Confirm factory job rejection with reason
+  const confirmFactoryJobRejection = async (reason: string) => {
+    if (!selectedFactoryJob || !user || isFactoryJobProcessing) return;
+    
+    setIsFactoryJobProcessing(true);
+    
+    try {
+      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          order_number: selectedFactoryJob.order_code,
+          freelance_driver_id: user.id,
+          action: 'reject',
+          reject_reason: reason
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        toast({
+          title: t('home.error_factory_job'),
+          description: result.message || t('home.cancel_job'),
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      toast({
+        title: t('home.reject_factory_success'),
+        description: `${t('home.reject_factory_success_desc')} ${selectedFactoryJob.order_code}`
+      });
+
+      setRejectDialogOpen(false);
+      setSelectedFactoryJob(null);
+      
+      // Reload factory jobs
+      loadFactoryJobs();
+    } catch (err) {
+      console.error('Error rejecting factory job:', err);
+      toast({
+        title: t('home.error_factory_job'),
+        description: t('home.cancel_job'),
+        variant: 'destructive'
+      });
+    } finally {
+      setIsFactoryJobProcessing(false);
+    }
+  };
   const handleSignOut = async () => {
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
@@ -561,19 +677,12 @@ export default function Home() {
                 <JobCard 
                   key={job.id} 
                   job={job} 
-                  onAccept={handleAcceptJob}
+                  onAccept={jobFilter === 'factory' ? handleAcceptFactoryJob : handleAcceptJob}
                   autoOpenDetail={openJobOrderCode === job.order_code}
                   onDetailClosed={() => setOpenJobOrderCode(null)}
                   showCancelButton={jobFilter === 'factory'}
                   isFactoryJob={jobFilter === 'factory'}
-                  onCancel={(job) => {
-                    // TODO: Implement cancel factory job API
-                    console.log('Cancel factory job:', job.order_code);
-                    toast({
-                      title: t('home.cancel_job'),
-                      description: `${t('home.cancel_job_desc')} ${job.order_code}`,
-                    });
-                  }}
+                  onCancel={handleRejectFactoryJob}
                 />
               ))
             )}
@@ -584,6 +693,14 @@ export default function Home() {
       <BottomNavigation />
 
       <ConfirmJobDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen} onConfirm={confirmJobAcceptance} job={selectedJob} isLoading={isAccepting} />
+      
+      <RejectFactoryJobDialog 
+        open={rejectDialogOpen} 
+        onOpenChange={setRejectDialogOpen} 
+        onConfirm={confirmFactoryJobRejection} 
+        orderCode={selectedFactoryJob?.order_code || ''} 
+        isLoading={isFactoryJobProcessing} 
+      />
     </div>
   );
 }
