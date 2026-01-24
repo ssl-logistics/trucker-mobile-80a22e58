@@ -61,14 +61,18 @@ export function RejectFactoryJobDialog({
           />
         </div>
 
-        <AlertDialogFooter className="flex-row gap-2">
-          <AlertDialogCancel onClick={handleCancel} disabled={isLoading}>
+        <AlertDialogFooter className="flex-row gap-2 sm:space-x-0">
+          <AlertDialogCancel 
+            onClick={handleCancel} 
+            disabled={isLoading}
+            className="flex-1 mt-0"
+          >
             {t('settings.cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={!reason.trim() || isLoading}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             {isLoading ? t('common.loading') : t('home.confirm_reject')}
           </AlertDialogAction>
