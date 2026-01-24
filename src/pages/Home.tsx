@@ -565,6 +565,7 @@ export default function Home() {
                   autoOpenDetail={openJobOrderCode === job.order_code}
                   onDetailClosed={() => setOpenJobOrderCode(null)}
                   showCancelButton={jobFilter === 'factory'}
+                  isFactoryJob={jobFilter === 'factory'}
                   onCancel={(job) => {
                     // TODO: Implement cancel factory job API
                     console.log('Cancel factory job:', job.order_code);

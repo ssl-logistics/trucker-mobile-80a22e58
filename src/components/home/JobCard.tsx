@@ -47,9 +47,10 @@ interface JobCardProps {
   onDetailClosed?: () => void;
   showCancelButton?: boolean;
   onCancel?: (job: Job) => void;
+  isFactoryJob?: boolean;
 }
 
-export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed, showCancelButton = false, onCancel }: JobCardProps) => {
+export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed, showCancelButton = false, onCancel, isFactoryJob = false }: JobCardProps) => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -105,7 +106,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
       <div className="space-y-2">
         <div className="text-base">
-          <span className="text-muted-foreground">{t('job.employer')} : </span>
+          <span className="text-muted-foreground">{isFactoryJob ? t('job.factory') : t('job.employer')} : </span>
           <span className="font-medium">{job.employer_name}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -145,7 +146,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           )}
         </div>
         <div className="text-base text-muted-foreground">
-          {job.transport_type_label || job.transport_type}
+          {translateTransportType(job.transport_type_label || job.transport_type, language)}
         </div>
 
         <div className="flex items-start justify-between gap-4">
