@@ -186,7 +186,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
           className="flex-1 h-11 text-base font-medium"
         >
           <Eye className="w-4 h-4 mr-2" />
-          ดูรายละเอียด
+          {t('job.viewDetails')}
         </Button>
         <Button 
           onClick={() => onAccept(job)} 

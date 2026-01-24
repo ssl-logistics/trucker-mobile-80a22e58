@@ -141,6 +141,7 @@ const thTranslations: Record<string, string> = {
   'job.deliveryDate': 'วันที่ส่ง',
   'job.accept': 'รับงานนี้',
   'job.accepted': 'รับงานนี้แล้ว',
+  'job.viewDetails': 'ดูรายละเอียด',
   
   // Confirm Job Dialog
   'confirm.title': 'ยืนยันการรับงาน',
@@ -1392,6 +1393,7 @@ const enTranslations: Record<string, string> = {
   'job.deliveryDate': 'Delivery Date',
   'job.accept': 'Accept Job',
   'job.accepted': 'Job Accepted',
+  'job.viewDetails': 'View Details',
   
   // Confirm Job Dialog
   'confirm.title': 'Confirm Job Acceptance',
@@ -2643,6 +2645,7 @@ const koTranslations: Record<string, string> = {
   'job.deliveryDate': '배송일',
   'job.accept': '이 작업 수락',
   'job.accepted': '이미 수락함',
+  'job.viewDetails': '상세보기',
   
   // Confirm Job Dialog
   'confirm.title': '작업 수락 확인',
@@ -4087,6 +4090,7 @@ const zhTranslations: Record<string, string> = {
   'job.deliveryDate': '交货日期',
   'job.accept': '接受工作',
   'job.accepted': '已接受此工作',
+  'job.viewDetails': '查看详情',
   
   // Confirm Job Dialog
   'confirm.title': '确认接受工作',
