@@ -45,9 +45,11 @@ interface JobCardProps {
   onAccept: (job: Job) => void;
   autoOpenDetail?: boolean;
   onDetailClosed?: () => void;
+  showCancelButton?: boolean;
+  onCancel?: (job: Job) => void;
 }
 
-export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed }: JobCardProps) => {
+export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed, showCancelButton = false, onCancel }: JobCardProps) => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -195,13 +197,23 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed 
           <Eye className="w-4 h-4 mr-2" />
           {t('job.viewDetails')}
         </Button>
-        <Button 
-          onClick={() => onAccept(job)} 
-          className="flex-1 h-11 text-base font-medium"
-          disabled={job.isAccepted}
-        >
-          {job.isAccepted ? t('job.accepted') : t('job.accept')}
-        </Button>
+        {showCancelButton ? (
+          <Button 
+            variant="destructive"
+            onClick={() => onCancel?.(job)} 
+            className="flex-1 h-11 text-base font-medium"
+          >
+            {t('job.cancel')}
+          </Button>
+        ) : (
+          <Button 
+            onClick={() => onAccept(job)} 
+            className="flex-1 h-11 text-base font-medium"
+            disabled={job.isAccepted}
+          >
+            {job.isAccepted ? t('job.accepted') : t('job.accept')}
+          </Button>
+        )}
       </div>
 
       {/* Job Detail Modal */}
