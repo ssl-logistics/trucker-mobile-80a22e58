@@ -719,12 +719,14 @@ export default function Home() {
 
           {/* Job Cards - Responsive grid */}
           <div className="card-grid-responsive">
-            {jobFilter === 'factory' && displayedJobs.length === 0 ? (
+            {displayedJobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center col-span-full">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 sm:w-20 sm:h-20">
                   <Search className="w-8 h-8 text-muted-foreground sm:w-10 sm:h-10" />
                 </div>
-                <p className="text-muted-foreground sm:text-lg">{t('home.noFactoryJobs')}</p>
+                <p className="text-muted-foreground sm:text-lg">
+                  {jobFilter === 'factory' ? t('home.noFactoryJobs') : t('home.noCompanyJobs')}
+                </p>
               </div>
             ) : (
               displayedJobs.map(job => (
