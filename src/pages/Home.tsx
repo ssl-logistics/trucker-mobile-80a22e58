@@ -58,7 +58,7 @@ export default function Home() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
-  const [jobFilter, setJobFilter] = useState<'all' | 'company' | 'factory'>('all');
+  const [jobFilter, setJobFilter] = useState<'all' | 'company' | 'factory'>('company');
 
   // State for factory jobs
   const [factoryJobs, setFactoryJobs] = useState<Job[]>([]);
