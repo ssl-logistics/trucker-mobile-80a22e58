@@ -49,9 +49,10 @@ interface JobCardProps {
   onCancel?: (job: Job) => void;
   isFactoryJob?: boolean;
   isProcessing?: boolean; // Loading state for accept/cancel actions
+  useStartJobLabel?: boolean; // Use "Start Job" instead of "Accept Job" for Internal/External drivers
 }
 
-export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed, showCancelButton = false, onCancel, isFactoryJob = false, isProcessing = false }: JobCardProps) => {
+export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed, showCancelButton = false, onCancel, isFactoryJob = false, isProcessing = false, useStartJobLabel = false }: JobCardProps) => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -213,7 +214,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <span className="truncate">{t('job.processing') || 'กำลังดำเนินการ...'}</span>
                 </span>
               ) : (
-                <span className="truncate">{job.isAccepted ? t('job.accepted') : t('job.accept')}</span>
+                <span className="truncate">{job.isAccepted ? t('job.accepted') : (useStartJobLabel ? t('job.startJob') : t('job.accept'))}</span>
               )}
             </Button>
             <Button 
@@ -237,7 +238,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <span className="truncate">{t('job.processing') || 'กำลังดำเนินการ...'}</span>
               </span>
             ) : (
-              <span className="truncate">{job.isAccepted ? t('job.accepted') : t('job.accept')}</span>
+              <span className="truncate">{job.isAccepted ? t('job.accepted') : (useStartJobLabel ? t('job.startJob') : t('job.accept'))}</span>
             )}
           </Button>
         )}
