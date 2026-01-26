@@ -742,7 +742,11 @@ export default function Home() {
         {/* Jobs Section - Centered with max-width on larger screens */}
         <div className="px-4 mt-6 sm:px-6 lg:px-8 xl:px-10 max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold sm:text-xl lg:text-2xl">{t('home.recommended')}</h2>
+            <h2 className="text-lg font-bold sm:text-xl lg:text-2xl">
+              {userType === 'internal_driver' || userType === 'external_driver' 
+                ? t('home.yourJobs') 
+                : t('home.recommended')}
+            </h2>
             <span className="text-sm text-muted-foreground sm:text-base">
               {displayedJobs.length} {t('home.items')}
             </span>
