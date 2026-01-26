@@ -81,6 +81,11 @@ export default function Home() {
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
+    // Internal/External drivers ONLY see their assigned factory jobs
+    if (isInternalDriver || isExternalDriver) {
+      return factoryJobs;
+    }
+    
     if (jobFilter === 'factory') {
       return factoryJobs;
     }
@@ -195,8 +200,15 @@ export default function Home() {
   useEffect(() => {
     if (user) {
       console.log('🔄 Loading jobs with userType:', userType, 'isInternalDriver:', isInternalDriver, 'isExternalDriver:', isExternalDriver);
-      loadJobs();
-      loadFactoryJobs(); // Also load factory jobs
+      
+      // Internal/External drivers ONLY load their assigned jobs from factory API
+      // Freelance drivers load both express-rent-posts and factory jobs
+      if (isInternalDriver || isExternalDriver) {
+        loadFactoryJobs(); // Only load assigned jobs for Internal/External drivers
+      } else {
+        loadJobs(); // Load express-rent-posts for Freelance drivers
+        loadFactoryJobs(); // Also load factory jobs for Freelance drivers
+      }
     }
   }, [user, userType, isInternalDriver, isExternalDriver]);
 
