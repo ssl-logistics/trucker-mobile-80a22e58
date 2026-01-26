@@ -47,7 +47,7 @@ export default function Home() {
   const location = useLocation();
   const { user, logout, setAuthTransitioning, userType } = useAuth();
   const { t } = useLanguage();
-  const { role, isInternalDriver, isExternalDriver, isFreelance } = useUserRole();
+  const { role, isInternalDriver, isExternalDriver, isFreelanceDriver } = useUserRole();
   const { vehiclePhoto } = useVehiclePhoto();
   
   // Global processing guard for all job actions
@@ -698,11 +698,11 @@ export default function Home() {
           </div>
 
           {/* Job Filter Buttons - Show based on user type */}
-          {/* Freelance: show both buttons, Internal: company only, External: factory only */}
-          {(isFreelance || isInternalDriver || isExternalDriver) && (
+          {/* FreelanceDriver: show both buttons, Internal: company only, External: factory only */}
+          {(isFreelanceDriver || isInternalDriver || isExternalDriver) && (
             <div className="flex gap-2 mb-4 sm:gap-3 lg:gap-4 max-w-md lg:max-w-lg">
-              {/* Company Jobs button - show for Freelance and Internal Driver */}
-              {(isFreelance || isInternalDriver) && (
+              {/* Company Jobs button - show for FreelanceDriver and Internal Driver */}
+              {(isFreelanceDriver || isInternalDriver) && (
                 <Button
                   variant={jobFilter === 'company' ? 'default' : 'outline'}
                   size="sm"
@@ -712,8 +712,8 @@ export default function Home() {
                   {t('home.companyJobs')}
                 </Button>
               )}
-              {/* Factory Jobs button - show for Freelance and External Driver */}
-              {(isFreelance || isExternalDriver) && (
+              {/* Factory Jobs button - show for FreelanceDriver and External Driver */}
+              {(isFreelanceDriver || isExternalDriver) && (
                 <Button
                   variant={jobFilter === 'factory' ? 'default' : 'outline'}
                   size="sm"
