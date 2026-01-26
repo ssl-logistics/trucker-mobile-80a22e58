@@ -59,8 +59,9 @@ export default function Home() {
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
   // Set default filter based on user type
+  // Internal/External drivers should see factory jobs by default (their assigned jobs)
   const getDefaultFilter = () => {
-    if (isInternalDriver) return 'company';
+    if (isInternalDriver) return 'factory';
     if (isExternalDriver) return 'factory';
     return 'company'; // default for freelance_driver
   };
@@ -134,10 +135,15 @@ export default function Home() {
       console.log('Loaded factory/driver jobs from API:', result, 'userType:', userType);
 
       // Transform API response to Job format
-      // NOTE: API may return both pending offers and jobs already in progress.
-      // We only want to show jobs that are still awaiting the driver's response in the "Factory Jobs" tab.
+      // For Internal/External drivers: Show all assigned jobs (including in_progress)
+      // For Freelance drivers: Only show jobs awaiting_response
       const apiJobs = (result?.data || []).filter((item: any) => {
         const status = (item?.status || '').toLowerCase().trim();
+        if (isInternalDriver || isExternalDriver) {
+          // Internal/External drivers see all their assigned jobs
+          return true;
+        }
+        // Freelance drivers only see jobs awaiting their response
         return status === 'awaiting_response';
       });
       
