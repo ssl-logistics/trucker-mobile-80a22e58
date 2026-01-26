@@ -76,8 +76,9 @@ export default function JobHistoryPage() {
 
   useEffect(() => {
     if (user) {
-      // Only load from external API - no local database
+      // Load from both external API and local database (for bid-won jobs)
       loadCompletedJobs();
+      loadJobHistory(); // Also load local job applications
     }
   }, [user]);
 
@@ -215,6 +216,68 @@ export default function JobHistoryPage() {
       // Combine company and factory jobs
       const allJobs = [...companyJobs, ...acceptedFactoryJobs];
 
+      // Also include local bid-won jobs that are completed
+      const { data: localCompletedBids } = await supabase
+        .from('job_applications')
+        .select(`
+          id,
+          status,
+          applied_at,
+          payment_completed_at,
+          jobs:job_id (
+            id,
+            order_code,
+            employer_name,
+            origin_location,
+            destination_location,
+            origin_address,
+            destination_address,
+            price,
+            start_date,
+            start_time,
+            destination_date,
+            destination_time,
+            job_type,
+            transport_type,
+            province,
+            district
+          )
+        `)
+        .eq('driver_id', user.id)
+        .not('payment_completed_at', 'is', null); // Only completed jobs
+
+      // Map local completed bid jobs to CompletedJob format
+      const localCompletedJobs: CompletedJob[] = (localCompletedBids || [])
+        .filter((app: any) => app.jobs !== null)
+        .map((app: any) => ({
+          id: app.jobs.id,
+          order_number: app.jobs.order_code,
+          transport_type_id: null,
+          transport_mode: app.jobs.transport_type,
+          status: 'completed',
+          sender_name: app.jobs.employer_name,
+          sender_address: app.jobs.origin_address || '',
+          sender_province: app.jobs.province || app.jobs.origin_location?.split(',')[0] || '',
+          sender_district: app.jobs.district || '',
+          sender_pickup_date: app.jobs.start_date,
+          sender_pickup_time: app.jobs.start_time || '00:00',
+          destination_name: '',
+          destination_address: app.jobs.destination_address || '',
+          destination_province: app.jobs.destination_location?.split(',')[0] || '',
+          destination_district: '',
+          destination_delivery_date: app.jobs.destination_date || app.jobs.start_date,
+          destination_delivery_time: app.jobs.destination_time || '00:00',
+          destination_company_name: null,
+          product_name: null,
+          product_weight: null,
+          product_quantity: null,
+          product_unit: null,
+          vehicle_type: null,
+          transport_price: app.jobs.price,
+          created_at: app.applied_at,
+          updated_at: app.payment_completed_at,
+        }));
+
       const allCheckins = checkinsJson?.data || checkinsJson || [];
       const checkins = Array.isArray(allCheckins) ? allCheckins : [];
 
@@ -230,11 +293,17 @@ export default function JobHistoryPage() {
           .map((c: any) => String(c.transport_order_id))
       );
 
-      const completed = allJobs
+      const completedFromApi = allJobs
         .filter((job) => confirmedTransportIds.has(String(job.id)))
         .map((job) => ({ ...job, status: "completed" }));
 
-      setCompletedJobs(completed);
+      // Merge API completed jobs with local completed bid jobs, dedupe by order_number
+      const allCompleted = [...completedFromApi, ...localCompletedJobs];
+      const uniqueCompleted = allCompleted.filter((job, index, self) =>
+        index === self.findIndex((j) => j.order_number === job.order_number)
+      );
+
+      setCompletedJobs(uniqueCompleted);
     } catch (error) {
       console.error("Error fetching completed jobs:", error);
       setCompletedJobs([]);

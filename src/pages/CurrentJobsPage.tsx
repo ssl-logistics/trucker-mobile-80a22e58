@@ -120,8 +120,8 @@ export default function CurrentJobsPage() {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       
-      // Fetch both company jobs and factory jobs in parallel
-      const [companyJobsResponse, factoryJobsResponse] = await Promise.all([
+      // Fetch company jobs, factory jobs, and local bid-won jobs in parallel
+      const [companyJobsResponse, factoryJobsResponse, localJobsResult] = await Promise.all([
         fetch(
           `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
           {
@@ -141,7 +141,37 @@ export default function CurrentJobsPage() {
               'Authorization': `Bearer ${supabaseKey}`,
             },
           }
-        ).catch(() => null)
+        ).catch(() => null),
+        // Fetch local job_applications for bid-won jobs
+        supabase
+          .from('job_applications')
+          .select(`
+            id,
+            status,
+            applied_at,
+            job_started_at,
+            payment_completed_at,
+            jobs:job_id (
+              id,
+              order_code,
+              employer_name,
+              origin_location,
+              destination_location,
+              origin_address,
+              destination_address,
+              price,
+              start_date,
+              start_time,
+              destination_date,
+              destination_time,
+              job_type,
+              transport_type,
+              province,
+              district
+            )
+          `)
+          .eq('driver_id', freelanceDriverId)
+          .in('status', ['accepted', 'in_progress', 'pending'])
       ]);
 
       // Process company jobs
@@ -201,10 +231,69 @@ export default function CurrentJobsPage() {
         companyJobs = companyJobs.filter((job) => !pendingFactoryOrderNumbers.has(job.order_number));
       }
 
-      // Combine both job sources
-      const allJobs = [...companyJobs, ...factoryJobs];
+      // Process local bid-won jobs from job_applications table
+      let localBidJobs: AcceptedJob[] = [];
+      if (localJobsResult.data && !localJobsResult.error) {
+        console.log('Loaded local bid-won jobs:', localJobsResult.data);
+        localBidJobs = localJobsResult.data
+          .filter((app: any) => app.jobs !== null && !app.payment_completed_at) // Exclude completed jobs
+          .map((app: any) => ({
+            id: app.jobs.id,
+            order_number: app.jobs.order_code,
+            transport_type_id: null,
+            transport_mode: app.jobs.transport_type,
+            status: app.status || 'accepted',
+            sender_name: app.jobs.employer_name,
+            sender_address: app.jobs.origin_address || '',
+            sender_latitude: null,
+            sender_longitude: null,
+            sender_province: app.jobs.province || app.jobs.origin_location?.split(',')[0] || '',
+            sender_district: app.jobs.district || '',
+            sender_pickup_date: app.jobs.start_date,
+            sender_pickup_time: app.jobs.start_time || '00:00',
+            sender_contact_name: '',
+            sender_contact_phone: '',
+            destination_name: '',
+            destination_address: app.jobs.destination_address || '',
+            destination_latitude: null,
+            destination_longitude: null,
+            destination_province: app.jobs.destination_location?.split(',')[0] || '',
+            destination_district: '',
+            destination_delivery_date: app.jobs.destination_date || app.jobs.start_date,
+            destination_delivery_time: app.jobs.destination_time || '00:00',
+            destination_contact_name: '',
+            destination_contact_phone: '',
+            destination_company_name: null,
+            product_name: null,
+            product_type: null,
+            product_category: null,
+            product_weight: null,
+            product_weight_value: null,
+            product_quantity: null,
+            product_unit: null,
+            vehicle_type: null,
+            vehicle_category: null,
+            transport_price: app.jobs.price,
+            driver_name: null,
+            driver_phone: null,
+            license_plate: null,
+            freelance_bidder_id: freelanceDriverId,
+            freelance_bidder_name: null,
+            freelance_accepted_at: app.applied_at,
+            factory_name: null,
+            isFactoryJob: false,
+            remarks: null,
+            created_at: app.applied_at,
+            updated_at: app.applied_at,
+          }));
+      } else if (localJobsResult.error) {
+        console.error('Error loading local bid jobs:', localJobsResult.error);
+      }
+
+      // Combine all job sources
+      const allJobs = [...companyJobs, ...factoryJobs, ...localBidJobs];
       const uniqueJobs = dedupeJobs(allJobs);
-      console.log('Total current jobs:', uniqueJobs.length, '(Company:', companyJobs.length, ', Factory:', factoryJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
+      console.log('Total current jobs:', uniqueJobs.length, '(Company:', companyJobs.length, ', Factory:', factoryJobs.length, ', Local Bids:', localBidJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
 
       setAcceptedJobs(uniqueJobs);
     } catch (error) {
