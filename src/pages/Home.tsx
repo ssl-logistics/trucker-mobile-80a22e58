@@ -201,13 +201,12 @@ export default function Home() {
     if (user) {
       console.log('🔄 Loading jobs with userType:', userType, 'isInternalDriver:', isInternalDriver, 'isExternalDriver:', isExternalDriver);
       
-      // Internal/External drivers ONLY load their assigned jobs from factory API
-      // Freelance drivers load both express-rent-posts and factory jobs
+      // Internal/External drivers ONLY use get-driver-assigned-jobs API
+      // Freelance drivers ONLY use get-express-rent-posts API (loadJobs)
       if (isInternalDriver || isExternalDriver) {
         loadFactoryJobs(); // Only load assigned jobs for Internal/External drivers
       } else {
-        loadJobs(); // Load express-rent-posts for Freelance drivers
-        loadFactoryJobs(); // Also load factory jobs for Freelance drivers
+        loadJobs(); // Freelance drivers ONLY use this API - no factory jobs
       }
     }
   }, [user, userType, isInternalDriver, isExternalDriver]);
