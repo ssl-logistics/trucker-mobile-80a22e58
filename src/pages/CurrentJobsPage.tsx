@@ -306,13 +306,18 @@ export default function CurrentJobsPage() {
   };
 
   // Filter jobs based on search and date filters
-  // Exclude completed/closed jobs - only show active jobs
-  const completedStatuses = ['completed', 'cancelled', 'closed', 'delivered', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
+  // For bid jobs (isBidJob=true), allow 'completed' and 'accepted' statuses
+  // For other jobs, exclude completed/closed jobs
+  const nonBidExcludedStatuses = ['completed', 'cancelled', 'closed', 'delivered', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
+  const bidExcludedStatuses = ['cancelled', 'closed', 'ยกเลิก', 'ปิดงาน']; // Allow completed/accepted for bid jobs
   
   const filteredJobs = acceptedJobs.filter((job: any) => {
-    // Filter out completed jobs
     const jobStatus = (job.status || '').toLowerCase().trim();
-    if (completedStatuses.some(s => jobStatus.includes(s.toLowerCase()))) {
+    const isBidJob = Boolean(job.isBidJob);
+    
+    // Use different exclusion list based on job type
+    const excludedStatuses = isBidJob ? bidExcludedStatuses : nonBidExcludedStatuses;
+    if (excludedStatuses.some(s => jobStatus.includes(s.toLowerCase()))) {
       return false;
     }
 
