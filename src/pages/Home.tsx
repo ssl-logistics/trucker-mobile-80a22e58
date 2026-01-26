@@ -89,33 +89,52 @@ export default function Home() {
 
   const displayedJobs = getDisplayedJobs();
 
-  // Load factory jobs from API
+  // Load factory/driver assigned jobs from API
+  // For internal/external drivers from factory company, use get-driver-assigned-jobs
+  // For freelance drivers, use get-factory-assigned-jobs
   const loadFactoryJobs = async () => {
     if (!user?.id) return;
     
     setIsLoadingFactoryJobs(true);
     try {
-      // Call with query params via URL
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${user.id}&limit=10`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-        }
-      );
+      let response: Response;
+      
+      // Determine which API to call based on user type
+      if (isInternalDriver || isExternalDriver) {
+        // Internal/External drivers use get-driver-assigned-jobs API
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=10`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+          }
+        );
+      } else {
+        // Freelance drivers use get-factory-assigned-jobs API
+        response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${user.id}&limit=10`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+          }
+        );
+      }
 
       if (!response.ok) {
-        console.error('Error loading factory jobs:', response.statusText);
+        console.error('Error loading factory/driver jobs:', response.statusText);
         return;
       }
 
       const result = await response.json();
-      console.log('Loaded factory jobs from API:', result);
+      console.log('Loaded factory/driver jobs from API:', result, 'userType:', userType);
 
       // Transform API response to Job format
-      // NOTE: get-factory-assigned-jobs may return both pending offers and jobs already in progress.
+      // NOTE: API may return both pending offers and jobs already in progress.
       // We only want to show jobs that are still awaiting the driver's response in the "Factory Jobs" tab.
       const apiJobs = (result?.data || []).filter((item: any) => {
         const status = (item?.status || '').toLowerCase().trim();
@@ -161,7 +180,7 @@ export default function Home() {
 
       setFactoryJobs(transformedJobs);
     } catch (err) {
-      console.error('Error fetching factory jobs:', err);
+      console.error('Error fetching factory/driver jobs:', err);
     } finally {
       setIsLoadingFactoryJobs(false);
     }
