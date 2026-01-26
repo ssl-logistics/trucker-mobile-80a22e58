@@ -58,7 +58,13 @@ export default function Home() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
-  const [jobFilter, setJobFilter] = useState<'all' | 'company' | 'factory'>('company');
+  // Set default filter based on user type
+  const getDefaultFilter = () => {
+    if (isInternalDriver) return 'company';
+    if (isExternalDriver) return 'factory';
+    return 'company'; // default for freelance_driver
+  };
+  const [jobFilter, setJobFilter] = useState<'all' | 'company' | 'factory'>(getDefaultFilter());
 
   // State for factory jobs
   const [factoryJobs, setFactoryJobs] = useState<Job[]>([]);
@@ -697,32 +703,26 @@ export default function Home() {
             </span>
           </div>
 
-          {/* Job Filter Buttons - Show based on user type */}
-          {/* FreelanceDriver: show both buttons, Internal: company only, External: factory only */}
-          {(isFreelanceDriver || isInternalDriver || isExternalDriver) && (
+          {/* Job Filter Buttons - Only show for FreelanceDriver (both buttons) */}
+          {/* Internal/External drivers don't see filter buttons - their jobs are filtered automatically */}
+          {isFreelanceDriver && (
             <div className="flex gap-2 mb-4 sm:gap-3 lg:gap-4 max-w-md lg:max-w-lg">
-              {/* Company Jobs button - show for FreelanceDriver and Internal Driver */}
-              {(isFreelanceDriver || isInternalDriver) && (
-                <Button
-                  variant={jobFilter === 'company' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setJobFilter(jobFilter === 'company' ? 'all' : 'company')}
-                  className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'company' ? 'bg-primary text-primary-foreground' : ''}`}
-                >
-                  {t('home.companyJobs')}
-                </Button>
-              )}
-              {/* Factory Jobs button - show for FreelanceDriver and External Driver */}
-              {(isFreelanceDriver || isExternalDriver) && (
-                <Button
-                  variant={jobFilter === 'factory' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setJobFilter(jobFilter === 'factory' ? 'all' : 'factory')}
-                  className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'factory' ? 'bg-primary text-primary-foreground' : ''}`}
-                >
-                  {t('home.factoryJobs')}
-                </Button>
-              )}
+              <Button
+                variant={jobFilter === 'company' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setJobFilter(jobFilter === 'company' ? 'all' : 'company')}
+                className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'company' ? 'bg-primary text-primary-foreground' : ''}`}
+              >
+                {t('home.companyJobs')}
+              </Button>
+              <Button
+                variant={jobFilter === 'factory' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setJobFilter(jobFilter === 'factory' ? 'all' : 'factory')}
+                className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'factory' ? 'bg-primary text-primary-foreground' : ''}`}
+              >
+                {t('home.factoryJobs')}
+              </Button>
             </div>
           )}
 
