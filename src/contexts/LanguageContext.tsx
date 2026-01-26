@@ -263,6 +263,7 @@ const thTranslations: Record<string, string> = {
   'bidding.startingPrice': 'ราคาเริ่มต้น',
   'bidding.biddingFee': 'ค่าบิดงาน',
   'common.free': 'ฟรี',
+  'common.noData': 'ไม่มีข้อมูล',
   'common.copied': 'คัดลอกแล้ว',
   
   // Income Page
@@ -1545,6 +1546,7 @@ const enTranslations: Record<string, string> = {
   'bidding.startingPrice': 'Starting Price',
   'bidding.biddingFee': 'Bidding Fee',
   'common.free': 'Free',
+  'common.noData': 'No data',
   'common.copied': 'Copied',
   
   // Income Page
@@ -2827,6 +2829,7 @@ const koTranslations: Record<string, string> = {
   'bidding.startingPrice': '시작가',
   'bidding.biddingFee': '입찰 수수료',
   'common.free': '무료',
+  'common.noData': '데이터 없음',
   'common.copied': '복사됨',
   
   // Income Page
@@ -4654,6 +4657,7 @@ const zhTranslations: Record<string, string> = {
   'bidding.startingPrice': '起始价',
   'bidding.biddingFee': '竞标费',
   'common.free': '免费',
+  'common.noData': '无数据',
   'common.copied': '已复制',
   
   // Place Bid Page
