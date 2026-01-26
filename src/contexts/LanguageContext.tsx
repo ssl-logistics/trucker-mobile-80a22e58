@@ -95,6 +95,7 @@ const thTranslations: Record<string, string> = {
   // Home Page
   'home.search': 'ค้นหา',
   'home.recommended': 'งานแนะนำสำหรับคุณ',
+  'home.yourJobs': 'งานสำหรับคุณ',
   'home.items': 'รายการ',
   'home.error_load': 'เกิดข้อผิดพลาด',
   'home.error_load_desc': 'ไม่สามารถโหลดข้อมูลงานได้',
@@ -1378,6 +1379,7 @@ const enTranslations: Record<string, string> = {
   // Home Page
   'home.search': 'Search',
   'home.recommended': 'Recommended Jobs for You',
+  'home.yourJobs': 'Jobs for You',
   'home.items': 'items',
   'home.error_load': 'Error',
   'home.error_load_desc': 'Unable to load jobs',
@@ -2661,6 +2663,7 @@ const koTranslations: Record<string, string> = {
   // Home Page
   'home.search': '검색',
   'home.recommended': '추천 작업',
+  'home.yourJobs': '귀하의 작업',
   'home.items': '항목',
   'home.error_load': '오류 발생',
   'home.error_load_desc': '작업 데이터를 불러올 수 없습니다',
@@ -4120,6 +4123,7 @@ const zhTranslations: Record<string, string> = {
   'home.title': '主页',
   'home.search': '搜索',
   'home.recommended': '为您推荐的工作',
+  'home.yourJobs': '您的工作',
   'home.items': '项',
   'home.error_load': '发生错误',
   'home.error_load_desc': '无法加载工作数据',
