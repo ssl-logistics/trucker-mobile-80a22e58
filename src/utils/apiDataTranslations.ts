@@ -27,6 +27,7 @@ const goodsTypeTranslations: Record<string, Record<Language, string>> = {
 
 // Vehicle Type translations
 const vehicleTypeTranslations: Record<string, Record<Language, string>> = {
+  // Thai formats
   'หัวลาก': { th: 'หัวลาก', en: 'Tractor Head', ko: '트랙터 헤드', zh: '牵引车头' },
   '10ล้อ': { th: '10ล้อ', en: '10-Wheeler', ko: '10륜 트럭', zh: '10轮卡车' },
   '10 ล้อ': { th: '10 ล้อ', en: '10-Wheeler', ko: '10륜 트럭', zh: '10轮卡车' },
@@ -38,12 +39,38 @@ const vehicleTypeTranslations: Record<string, Record<Language, string>> = {
   '12 ล้อ': { th: '12 ล้อ', en: '12-Wheeler', ko: '12륜 트럭', zh: '12轮卡车' },
   '18ล้อ': { th: '18ล้อ', en: '18-Wheeler', ko: '18륜 트럭', zh: '18轮卡车' },
   '18 ล้อ': { th: '18 ล้อ', en: '18-Wheeler', ko: '18륜 트럭', zh: '18轮卡车' },
+  '22ล้อ': { th: '22ล้อ', en: '22-Wheeler', ko: '22륜 트럭', zh: '22轮卡车' },
+  '22 ล้อ': { th: '22 ล้อ', en: '22-Wheeler', ko: '22륜 트럭', zh: '22轮卡车' },
+  '40ล้อ': { th: '40ล้อ', en: '40-Wheeler', ko: '40륜 트럭', zh: '40轮卡车' },
+  '40 ล้อ': { th: '40 ล้อ', en: '40-Wheeler', ko: '40륜 트럭', zh: '40轮卡车' },
   'รถกระบะ': { th: 'รถกระบะ', en: 'Pickup Truck', ko: '픽업트럭', zh: '皮卡车' },
   'รถตู้': { th: 'รถตู้', en: 'Van', ko: '밴', zh: '面包车' },
   'รถบรรทุก': { th: 'รถบรรทุก', en: 'Truck', ko: '트럭', zh: '卡车' },
   'รถพ่วง': { th: 'รถพ่วง', en: 'Trailer', ko: '트레일러', zh: '拖车' },
   'รถห้องเย็น': { th: 'รถห้องเย็น', en: 'Refrigerated Truck', ko: '냉장트럭', zh: '冷藏车' },
   'รถตู้คอนเทนเนอร์': { th: 'รถตู้คอนเทนเนอร์', en: 'Container Truck', ko: '컨테이너 트럭', zh: '集装箱卡车' },
+  // English formats (for reverse translation)
+  '10-Wheel Truck': { th: '10ล้อ', en: '10-Wheeler', ko: '10륜 트럭', zh: '10轮卡车' },
+  '10-Wheeler': { th: '10ล้อ', en: '10-Wheeler', ko: '10륜 트럭', zh: '10轮卡车' },
+  '6-Wheel Truck': { th: '6ล้อ', en: '6-Wheeler', ko: '6륜 트럭', zh: '6轮卡车' },
+  '6-Wheeler': { th: '6ล้อ', en: '6-Wheeler', ko: '6륜 트럭', zh: '6轮卡车' },
+  '4-Wheel Truck': { th: '4ล้อ', en: '4-Wheeler', ko: '4륜 트럭', zh: '4轮卡车' },
+  '4-Wheeler': { th: '4ล้อ', en: '4-Wheeler', ko: '4륜 트럭', zh: '4轮卡车' },
+  '12-Wheel Truck': { th: '12ล้อ', en: '12-Wheeler', ko: '12륜 트럭', zh: '12轮卡车' },
+  '12-Wheeler': { th: '12ล้อ', en: '12-Wheeler', ko: '12륜 트럭', zh: '12轮卡车' },
+  '18-Wheel Truck': { th: '18ล้อ', en: '18-Wheeler', ko: '18륜 트럭', zh: '18轮卡车' },
+  '18-Wheeler': { th: '18ล้อ', en: '18-Wheeler', ko: '18륜 트럭', zh: '18轮卡车' },
+  '22-Wheel Truck': { th: '22ล้อ', en: '22-Wheeler', ko: '22륜 트럭', zh: '22轮卡车' },
+  '22-Wheeler': { th: '22ล้อ', en: '22-Wheeler', ko: '22륜 트럭', zh: '22轮卡车' },
+  '40-Wheel Truck': { th: '40ล้อ', en: '40-Wheeler', ko: '40륜 트럭', zh: '40轮卡车' },
+  '40-Wheeler': { th: '40ล้อ', en: '40-Wheeler', ko: '40륜 트럭', zh: '40轮卡车' },
+  'Tractor Head': { th: 'หัวลาก', en: 'Tractor Head', ko: '트랙터 헤드', zh: '牵引车头' },
+  'Pickup Truck': { th: 'รถกระบะ', en: 'Pickup Truck', ko: '픽업트럭', zh: '皮卡车' },
+  'Van': { th: 'รถตู้', en: 'Van', ko: '밴', zh: '面包车' },
+  'Truck': { th: 'รถบรรทุก', en: 'Truck', ko: '트럭', zh: '卡车' },
+  'Trailer': { th: 'รถพ่วง', en: 'Trailer', ko: '트레일러', zh: '拖车' },
+  'Refrigerated Truck': { th: 'รถห้องเย็น', en: 'Refrigerated Truck', ko: '냉장트럭', zh: '冷藏车' },
+  'Container Truck': { th: 'รถตู้คอนเทนเนอร์', en: 'Container Truck', ko: '컨테이너 트럭', zh: '集装箱卡车' },
 };
 
 // Transport Type translations
