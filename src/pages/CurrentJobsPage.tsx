@@ -120,8 +120,8 @@ export default function CurrentJobsPage() {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       
-      // Fetch company jobs, factory jobs, and local bid-won jobs in parallel
-      const [companyJobsResponse, factoryJobsResponse, localJobsResult] = await Promise.all([
+      // Fetch company jobs, factory jobs, and bid-won jobs from API in parallel
+      const [companyJobsResponse, factoryJobsResponse, bidWonJobsResponse] = await Promise.all([
         fetch(
           `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
           {
@@ -142,36 +142,13 @@ export default function CurrentJobsPage() {
             },
           }
         ).catch(() => null),
-        // Fetch local job_applications for bid-won jobs
-        supabase
-          .from('job_applications')
-          .select(`
-            id,
-            status,
-            applied_at,
-            job_started_at,
-            payment_completed_at,
-            jobs:job_id (
-              id,
-              order_code,
-              employer_name,
-              origin_location,
-              destination_location,
-              origin_address,
-              destination_address,
-              price,
-              start_date,
-              start_time,
-              destination_date,
-              destination_time,
-              job_type,
-              transport_type,
-              province,
-              district
-            )
-          `)
-          .eq('driver_id', freelanceDriverId)
-          .in('status', ['accepted', 'in_progress', 'pending'])
+        // Fetch bid-won jobs from list-tickets API
+        supabase.functions.invoke('list-tickets', {
+          body: {
+            freelance_driver_id: freelanceDriverId,
+            bids_status: 'accepted', // Get all won bids
+          },
+        }).catch(() => null),
       ]);
 
       // Process company jobs
@@ -231,69 +208,75 @@ export default function CurrentJobsPage() {
         companyJobs = companyJobs.filter((job) => !pendingFactoryOrderNumbers.has(job.order_number));
       }
 
-      // Process local bid-won jobs from job_applications table
-      let localBidJobs: AcceptedJob[] = [];
-      if (localJobsResult.data && !localJobsResult.error) {
-        console.log('Loaded local bid-won jobs:', localJobsResult.data);
-        localBidJobs = localJobsResult.data
-          .filter((app: any) => app.jobs !== null && !app.payment_completed_at) // Exclude completed jobs
-          .map((app: any) => ({
-            id: app.jobs.id,
-            order_number: app.jobs.order_code,
+      // Process bid-won jobs from list-tickets API (not completed yet)
+      let bidWonJobs: AcceptedJob[] = [];
+      if (bidWonJobsResponse && bidWonJobsResponse.data) {
+        const bidData = bidWonJobsResponse.data;
+        console.log('Loaded bid-won jobs from API:', bidData);
+        const tickets = bidData.tickets || [];
+        
+        // Filter only accepted/won bids that are not completed
+        const completedStatuses = ['completed', 'delivered', 'cancelled', 'closed'];
+        bidWonJobs = tickets
+          .filter((ticket: any) => {
+            const status = (ticket.status || '').toLowerCase();
+            return !completedStatuses.includes(status);
+          })
+          .map((ticket: any) => ({
+            id: ticket.id,
+            order_number: ticket.order_code || ticket.post_code || ticket.ticket_code,
             transport_type_id: null,
-            transport_mode: app.jobs.transport_type,
-            status: app.status || 'accepted',
-            sender_name: app.jobs.employer_name,
-            sender_address: app.jobs.origin_address || '',
-            sender_latitude: null,
-            sender_longitude: null,
-            sender_province: app.jobs.province || app.jobs.origin_location?.split(',')[0] || '',
-            sender_district: app.jobs.district || '',
-            sender_pickup_date: app.jobs.start_date,
-            sender_pickup_time: app.jobs.start_time || '00:00',
-            sender_contact_name: '',
-            sender_contact_phone: '',
-            destination_name: '',
-            destination_address: app.jobs.destination_address || '',
-            destination_latitude: null,
-            destination_longitude: null,
-            destination_province: app.jobs.destination_location?.split(',')[0] || '',
-            destination_district: '',
-            destination_delivery_date: app.jobs.destination_date || app.jobs.start_date,
-            destination_delivery_time: app.jobs.destination_time || '00:00',
-            destination_contact_name: '',
-            destination_contact_phone: '',
-            destination_company_name: null,
-            product_name: null,
-            product_type: null,
+            transport_mode: ticket.transport_type || ticket.post_type,
+            status: ticket.status || 'accepted',
+            sender_name: ticket.company_name || ticket.employer_name || ticket.factory_name || '',
+            sender_address: ticket.sender_address || ticket.origin_address || '',
+            sender_latitude: ticket.origin_lat || null,
+            sender_longitude: ticket.origin_lng || null,
+            sender_province: ticket.origin?.split(',')[0]?.trim() || '',
+            sender_district: ticket.origin?.split(',')[1]?.trim() || '',
+            sender_pickup_date: ticket.pickup_date || ticket.start_date,
+            sender_pickup_time: ticket.pickup_time || ticket.start_time || '00:00',
+            sender_contact_name: ticket.sender_name || '',
+            sender_contact_phone: ticket.sender_phone || '',
+            destination_name: ticket.recipient_name || '',
+            destination_address: ticket.recipient_address || ticket.destination_address || '',
+            destination_latitude: ticket.destination_lat || null,
+            destination_longitude: ticket.destination_lng || null,
+            destination_province: ticket.destination?.split(',')[0]?.trim() || '',
+            destination_district: ticket.destination?.split(',')[1]?.trim() || '',
+            destination_delivery_date: ticket.delivery_date || ticket.destination_date || ticket.pickup_date,
+            destination_delivery_time: ticket.delivery_time || ticket.destination_time || '00:00',
+            destination_contact_name: ticket.recipient_name || '',
+            destination_contact_phone: ticket.recipient_phone || '',
+            destination_company_name: ticket.destination_company_name || null,
+            product_name: ticket.product_name || ticket.goods_type || null,
+            product_type: ticket.product_type || null,
             product_category: null,
-            product_weight: null,
+            product_weight: ticket.product_weight || null,
             product_weight_value: null,
-            product_quantity: null,
-            product_unit: null,
-            vehicle_type: null,
+            product_quantity: ticket.product_quantity || null,
+            product_unit: ticket.product_unit || null,
+            vehicle_type: ticket.truck_type || ticket.vehicle_type || null,
             vehicle_category: null,
-            transport_price: app.jobs.price,
+            transport_price: ticket.price || ticket.bid_amount || 0,
             driver_name: null,
             driver_phone: null,
             license_plate: null,
             freelance_bidder_id: freelanceDriverId,
             freelance_bidder_name: null,
-            freelance_accepted_at: app.applied_at,
-            factory_name: null,
+            freelance_accepted_at: ticket.bid_accepted_at || ticket.created_at,
+            factory_name: ticket.factory_name || null,
             isFactoryJob: false,
-            remarks: null,
-            created_at: app.applied_at,
-            updated_at: app.applied_at,
+            remarks: ticket.remarks || null,
+            created_at: ticket.created_at,
+            updated_at: ticket.updated_at || ticket.created_at,
           }));
-      } else if (localJobsResult.error) {
-        console.error('Error loading local bid jobs:', localJobsResult.error);
       }
 
       // Combine all job sources
-      const allJobs = [...companyJobs, ...factoryJobs, ...localBidJobs];
+      const allJobs = [...companyJobs, ...factoryJobs, ...bidWonJobs];
       const uniqueJobs = dedupeJobs(allJobs);
-      console.log('Total current jobs:', uniqueJobs.length, '(Company:', companyJobs.length, ', Factory:', factoryJobs.length, ', Local Bids:', localBidJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
+      console.log('Total current jobs:', uniqueJobs.length, '(Company:', companyJobs.length, ', Factory:', factoryJobs.length, ', Bid-Won:', bidWonJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
 
       setAcceptedJobs(uniqueJobs);
     } catch (error) {
