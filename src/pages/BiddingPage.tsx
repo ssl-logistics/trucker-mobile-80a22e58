@@ -172,8 +172,8 @@ export default function BiddingPage() {
         ? `${destDistrict.name}, ${destDistrict.province?.name || ''}`
         : '';
 
-    // Get current date as start_date (API doesn't provide specific date)
-    const today = new Date().toISOString().split('T')[0];
+    // API doesn't provide specific date - leave as empty string to indicate no data
+    const startDate = '';
 
     // Get employer name from customer or creator
     const employerName = 
@@ -199,8 +199,8 @@ export default function BiddingPage() {
       transport_type: ticket.route?.is_multi_destination ? 'ขนส่งหลายที่' : 'ขนส่งเที่ยวเดียว',
       job_type: 'งานประมูล',
       price: ticket.price || 0,
-      start_date: today,
-      start_time: '08:00',
+      start_date: startDate,
+      start_time: '',
       status: 'open_for_bidding',
       created_at: ticket.created_at || new Date().toISOString(),
       updated_at: ticket.updated_at || new Date().toISOString(),
@@ -620,7 +620,9 @@ export default function BiddingPage() {
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground pr-3">
             <Clock className="w-3.5 h-3.5" />
-            {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
+            {job.start_date && job.start_time 
+              ? `${formatThaiDate(job.start_date, language)} | ${job.start_time.substring(0, 5)}`
+              : t('common.noData') || 'ไม่มีข้อมูล'}
           </div>
         </div>
         <div className="p-4 space-y-3">
