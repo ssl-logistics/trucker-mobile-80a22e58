@@ -802,6 +802,7 @@ export default function Home() {
                       ? (isProcessingKey(`accept-factory-${job.order_code}`) || isProcessingKey(`reject-factory-${job.order_code}`))
                       : isAccepting
                   }
+                  useStartJobLabel={userType === 'internal_driver' || userType === 'external_driver'}
                 />
               ))
             )}
