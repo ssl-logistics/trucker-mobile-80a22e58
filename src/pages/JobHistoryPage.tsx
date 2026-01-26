@@ -122,9 +122,10 @@ export default function JobHistoryPage() {
     setLoading(true);
     try {
       const freelanceDriverId = user.id;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      // Fetch company jobs, factory jobs, and checkins in parallel
-      const [companyJobsRes, factoryJobsRes, checkinsRes] = await Promise.all([
+      // Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
+      const [companyJobsRes, factoryJobsRes, checkinsRes, bidWonJobsRes] = await Promise.all([
         fetch(
           `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
             freelanceDriverId
@@ -150,11 +151,18 @@ export default function JobHistoryPage() {
           }
         ),
         fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(
+          `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(
             freelanceDriverId
           )}&order_number=all`,
           { method: "GET", headers: { "Content-Type": "application/json" } }
         ),
+        // Fetch bid-won jobs from list-tickets API (includes completed status)
+        supabase.functions.invoke('list-tickets', {
+          body: {
+            freelance_driver_id: freelanceDriverId,
+            bids_status: 'accepted', // Get all won bids
+          },
+        }).catch(() => null),
       ]);
 
       const companyJobsJson = await companyJobsRes.json();
@@ -171,8 +179,6 @@ export default function JobHistoryPage() {
 
       if (!checkinsRes.ok) {
         console.error("Error loading checkins:", checkinsJson);
-        setCompletedJobs([]);
-        return;
       }
 
       // Get company jobs
@@ -216,67 +222,49 @@ export default function JobHistoryPage() {
       // Combine company and factory jobs
       const allJobs = [...companyJobs, ...acceptedFactoryJobs];
 
-      // Also include local bid-won jobs that are completed
-      const { data: localCompletedBids } = await supabase
-        .from('job_applications')
-        .select(`
-          id,
-          status,
-          applied_at,
-          payment_completed_at,
-          jobs:job_id (
-            id,
-            order_code,
-            employer_name,
-            origin_location,
-            destination_location,
-            origin_address,
-            destination_address,
-            price,
-            start_date,
-            start_time,
-            destination_date,
-            destination_time,
-            job_type,
-            transport_type,
-            province,
-            district
-          )
-        `)
-        .eq('driver_id', user.id)
-        .not('payment_completed_at', 'is', null); // Only completed jobs
-
-      // Map local completed bid jobs to CompletedJob format
-      const localCompletedJobs: CompletedJob[] = (localCompletedBids || [])
-        .filter((app: any) => app.jobs !== null)
-        .map((app: any) => ({
-          id: app.jobs.id,
-          order_number: app.jobs.order_code,
-          transport_type_id: null,
-          transport_mode: app.jobs.transport_type,
-          status: 'completed',
-          sender_name: app.jobs.employer_name,
-          sender_address: app.jobs.origin_address || '',
-          sender_province: app.jobs.province || app.jobs.origin_location?.split(',')[0] || '',
-          sender_district: app.jobs.district || '',
-          sender_pickup_date: app.jobs.start_date,
-          sender_pickup_time: app.jobs.start_time || '00:00',
-          destination_name: '',
-          destination_address: app.jobs.destination_address || '',
-          destination_province: app.jobs.destination_location?.split(',')[0] || '',
-          destination_district: '',
-          destination_delivery_date: app.jobs.destination_date || app.jobs.start_date,
-          destination_delivery_time: app.jobs.destination_time || '00:00',
-          destination_company_name: null,
-          product_name: null,
-          product_weight: null,
-          product_quantity: null,
-          product_unit: null,
-          vehicle_type: null,
-          transport_price: app.jobs.price,
-          created_at: app.applied_at,
-          updated_at: app.payment_completed_at,
-        }));
+      // Process bid-won jobs from list-tickets API - only completed ones for history
+      let bidCompletedJobs: CompletedJob[] = [];
+      if (bidWonJobsRes && bidWonJobsRes.data) {
+        const bidData = bidWonJobsRes.data;
+        console.log('Loaded bid-won jobs from API:', bidData);
+        const tickets = bidData.tickets || [];
+        
+        // Filter only completed bids for job history
+        const completedStatuses = ['completed', 'delivered'];
+        bidCompletedJobs = tickets
+          .filter((ticket: any) => {
+            const status = (ticket.status || '').toLowerCase();
+            return completedStatuses.includes(status);
+          })
+          .map((ticket: any) => ({
+            id: ticket.id,
+            order_number: ticket.order_code || ticket.post_code || ticket.ticket_code,
+            transport_type_id: null,
+            transport_mode: ticket.transport_type || ticket.post_type,
+            status: 'completed',
+            sender_name: ticket.company_name || ticket.employer_name || ticket.factory_name || '',
+            sender_address: ticket.sender_address || ticket.origin_address || '',
+            sender_province: ticket.origin?.split(',')[0]?.trim() || '',
+            sender_district: ticket.origin?.split(',')[1]?.trim() || '',
+            sender_pickup_date: ticket.pickup_date || ticket.start_date,
+            sender_pickup_time: ticket.pickup_time || ticket.start_time || '00:00',
+            destination_name: ticket.recipient_name || '',
+            destination_address: ticket.recipient_address || ticket.destination_address || '',
+            destination_province: ticket.destination?.split(',')[0]?.trim() || '',
+            destination_district: ticket.destination?.split(',')[1]?.trim() || '',
+            destination_delivery_date: ticket.delivery_date || ticket.destination_date || ticket.pickup_date,
+            destination_delivery_time: ticket.delivery_time || ticket.destination_time || '00:00',
+            destination_company_name: ticket.destination_company_name || null,
+            product_name: ticket.product_name || ticket.goods_type || null,
+            product_weight: ticket.product_weight || null,
+            product_quantity: ticket.product_quantity || null,
+            product_unit: ticket.product_unit || null,
+            vehicle_type: ticket.truck_type || ticket.vehicle_type || null,
+            transport_price: ticket.price || ticket.bid_amount || 0,
+            created_at: ticket.created_at,
+            updated_at: ticket.updated_at || ticket.created_at,
+          }));
+      }
 
       const allCheckins = checkinsJson?.data || checkinsJson || [];
       const checkins = Array.isArray(allCheckins) ? allCheckins : [];
@@ -297,12 +285,13 @@ export default function JobHistoryPage() {
         .filter((job) => confirmedTransportIds.has(String(job.id)))
         .map((job) => ({ ...job, status: "completed" }));
 
-      // Merge API completed jobs with local completed bid jobs, dedupe by order_number
-      const allCompleted = [...completedFromApi, ...localCompletedJobs];
+      // Merge API completed jobs with bid completed jobs, dedupe by order_number
+      const allCompleted = [...completedFromApi, ...bidCompletedJobs];
       const uniqueCompleted = allCompleted.filter((job, index, self) =>
         index === self.findIndex((j) => j.order_number === job.order_number)
       );
 
+      console.log('Total completed jobs:', uniqueCompleted.length, '(API:', completedFromApi.length, ', Bid:', bidCompletedJobs.length, ')');
       setCompletedJobs(uniqueCompleted);
     } catch (error) {
       console.error("Error fetching completed jobs:", error);
