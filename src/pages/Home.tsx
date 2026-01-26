@@ -58,14 +58,20 @@ export default function Home() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
-  // Set default filter based on user type
+  // Set default filter based on user type from AuthContext (more reliable than hooks)
   // Internal/External drivers should see factory jobs by default (their assigned jobs)
-  const getDefaultFilter = () => {
-    if (isInternalDriver) return 'factory';
-    if (isExternalDriver) return 'factory';
+  const getDefaultFilter = (): 'all' | 'company' | 'factory' => {
+    if (userType === 'internal_driver' || userType === 'external_driver') return 'factory';
     return 'company'; // default for freelance_driver
   };
   const [jobFilter, setJobFilter] = useState<'all' | 'company' | 'factory'>(getDefaultFilter());
+  
+  // Update filter when userType changes (e.g., after login)
+  useEffect(() => {
+    if (userType === 'internal_driver' || userType === 'external_driver') {
+      setJobFilter('factory');
+    }
+  }, [userType]);
 
   // State for factory jobs
   const [factoryJobs, setFactoryJobs] = useState<Job[]>([]);
@@ -82,7 +88,8 @@ export default function Home() {
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
     // Internal/External drivers ONLY see their assigned factory jobs
-    if (isInternalDriver || isExternalDriver) {
+    // Use userType directly for more reliable check
+    if (userType === 'internal_driver' || userType === 'external_driver') {
       return factoryJobs;
     }
     
@@ -201,15 +208,16 @@ export default function Home() {
     if (user) {
       console.log('🔄 Loading jobs with userType:', userType, 'isInternalDriver:', isInternalDriver, 'isExternalDriver:', isExternalDriver);
       
+      // Use userType directly for more reliable check
       // Internal/External drivers ONLY use get-driver-assigned-jobs API
       // Freelance drivers ONLY use get-express-rent-posts API (loadJobs)
-      if (isInternalDriver || isExternalDriver) {
+      if (userType === 'internal_driver' || userType === 'external_driver') {
         loadFactoryJobs(); // Only load assigned jobs for Internal/External drivers
-      } else {
+      } else if (userType === 'freelance_driver') {
         loadJobs(); // Freelance drivers ONLY use this API - no factory jobs
       }
     }
-  }, [user, userType, isInternalDriver, isExternalDriver]);
+  }, [user, userType]);
 
   // Handle openJobOrderCode from notifications navigation (state or query string)
   useEffect(() => {
