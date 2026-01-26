@@ -99,6 +99,9 @@ export default function Home() {
     try {
       let response: Response;
       
+      // Get API key from login session
+      const loginApiKey = localStorage.getItem('auth_api_key') || '';
+      
       // Determine which API to call based on user type
       if (isInternalDriver || isExternalDriver) {
         // Internal/External drivers use get-driver-assigned-jobs API
@@ -108,7 +111,7 @@ export default function Home() {
           {
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+              'x-api-key': loginApiKey,
             },
           }
         );
