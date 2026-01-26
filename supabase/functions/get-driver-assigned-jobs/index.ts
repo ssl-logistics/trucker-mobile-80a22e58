@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
 };
 
 serve(async (req) => {
@@ -12,14 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('TRUCKER_API_KEY');
+    // Get API key from request header
+    const apiKey = req.headers.get('x-api-key');
     
     if (!apiKey) {
-      console.error('TRUCKER_API_KEY not configured');
+      console.error('x-api-key header not provided');
       return new Response(
-        JSON.stringify({ error: 'API key not configured' }),
+        JSON.stringify({ error: 'x-api-key header is required' }),
         { 
-          status: 500, 
+          status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
