@@ -748,9 +748,9 @@ export default function Home() {
             </span>
           </div>
 
-          {/* Job Filter Buttons - Only show for FreelanceDriver (both buttons) */}
-          {/* Internal/External drivers don't see filter buttons - their jobs are filtered automatically */}
-          {isFreelanceDriver && (
+          {/* Job Filter Buttons - Only show for Freelance Driver */}
+          {/* Internal/External drivers don't see filter buttons - they only see their assigned jobs */}
+          {userType === 'freelance_driver' && (
             <div className="flex gap-2 mb-4 sm:gap-3 lg:gap-4 max-w-md lg:max-w-lg">
               <Button
                 variant={jobFilter === 'company' ? 'default' : 'outline'}
