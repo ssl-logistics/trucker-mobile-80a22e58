@@ -211,7 +211,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               {isProcessing ? (
                 <span className="flex items-center gap-1">
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span className="truncate">{t('job.processing') || 'กำลังดำเนินการ...'}</span>
+                  <span className="truncate">{t('job.processing')}</span>
                 </span>
               ) : (
                 <span className="truncate">{job.isAccepted ? t('job.accepted') : (useStartJobLabel ? t('job.startJob') : t('job.accept'))}</span>
@@ -235,7 +235,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             {isProcessing ? (
               <span className="flex items-center gap-1">
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span className="truncate">{t('job.processing') || 'กำลังดำเนินการ...'}</span>
+                <span className="truncate">{t('job.processing')}</span>
               </span>
             ) : (
               <span className="truncate">{job.isAccepted ? t('job.accepted') : (useStartJobLabel ? t('job.startJob') : t('job.accept'))}</span>
