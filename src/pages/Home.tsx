@@ -786,14 +786,14 @@ export default function Home() {
                 <JobCard 
                   key={job.id} 
                   job={job} 
-                  onAccept={jobFilter === 'factory' ? handleAcceptFactoryJob : handleAcceptJob}
+                  onAccept={jobFilter === 'factory' || userType === 'internal_driver' || userType === 'external_driver' ? handleAcceptFactoryJob : handleAcceptJob}
                   autoOpenDetail={openJobOrderCode === job.order_code}
                   onDetailClosed={() => setOpenJobOrderCode(null)}
-                  showCancelButton={jobFilter === 'factory'}
-                  isFactoryJob={jobFilter === 'factory'}
+                  showCancelButton={jobFilter === 'factory' && userType !== 'internal_driver'}
+                  isFactoryJob={jobFilter === 'factory' || userType === 'internal_driver' || userType === 'external_driver'}
                   onCancel={handleRejectFactoryJob}
                   isProcessing={
-                    jobFilter === 'factory' 
+                    jobFilter === 'factory' || userType === 'internal_driver' || userType === 'external_driver'
                       ? (isProcessingKey(`accept-factory-${job.order_code}`) || isProcessingKey(`reject-factory-${job.order_code}`))
                       : isAccepting
                   }
