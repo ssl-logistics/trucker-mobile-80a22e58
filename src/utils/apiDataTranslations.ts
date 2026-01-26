@@ -48,8 +48,12 @@ const vehicleTypeTranslations: Record<string, Record<Language, string>> = {
 
 // Transport Type translations
 const transportTypeTranslations: Record<string, Record<Language, string>> = {
-  'เที่ยวเดียว': { th: 'เที่ยวเดียว', en: 'Single Trip', ko: '단일 운행', zh: '单程' },
+  'เที่ยวเดียว': { th: 'ขนส่ง เที่ยวเดียว', en: 'Single Trip', ko: '단일 운행', zh: '单程' },
+  'single': { th: 'ขนส่ง เที่ยวเดียว', en: 'Single Trip', ko: '단일 운행', zh: '单程' },
+  'Single': { th: 'ขนส่ง เที่ยวเดียว', en: 'Single Trip', ko: '단일 운행', zh: '单程' },
   'หลายที่': { th: 'หลายที่', en: 'Multiple Locations', ko: '다중 목적지', zh: '多目的地' },
+  'multiple': { th: 'หลายที่', en: 'Multiple Locations', ko: '다중 목적지', zh: '多目的地' },
+  'Multiple': { th: 'หลายที่', en: 'Multiple Locations', ko: '다중 목적지', zh: '多目的地' },
   'ไป-กลับ': { th: 'ไป-กลับ', en: 'Round Trip', ko: '왕복', zh: '往返' },
   'ขาเข้า': { th: 'ขาเข้า', en: 'Inbound', ko: '인바운드', zh: '入境' },
   'ขาออก': { th: 'ขาออก', en: 'Outbound', ko: '아웃바운드', zh: '出境' },
