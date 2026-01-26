@@ -697,25 +697,32 @@ export default function Home() {
             </span>
           </div>
 
-          {/* Job Filter Buttons - Only show for freelance role */}
-          {isFreelance && (
+          {/* Job Filter Buttons - Show based on user type */}
+          {/* Freelance: show both buttons, Internal: company only, External: factory only */}
+          {(isFreelance || isInternalDriver || isExternalDriver) && (
             <div className="flex gap-2 mb-4 sm:gap-3 lg:gap-4 max-w-md lg:max-w-lg">
-              <Button
-                variant={jobFilter === 'company' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setJobFilter(jobFilter === 'company' ? 'all' : 'company')}
-                className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'company' ? 'bg-primary text-primary-foreground' : ''}`}
-              >
-                {t('home.companyJobs')}
-              </Button>
-              <Button
-                variant={jobFilter === 'factory' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setJobFilter(jobFilter === 'factory' ? 'all' : 'factory')}
-                className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'factory' ? 'bg-primary text-primary-foreground' : ''}`}
-              >
-                {t('home.factoryJobs')}
-              </Button>
+              {/* Company Jobs button - show for Freelance and Internal Driver */}
+              {(isFreelance || isInternalDriver) && (
+                <Button
+                  variant={jobFilter === 'company' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setJobFilter(jobFilter === 'company' ? 'all' : 'company')}
+                  className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'company' ? 'bg-primary text-primary-foreground' : ''}`}
+                >
+                  {t('home.companyJobs')}
+                </Button>
+              )}
+              {/* Factory Jobs button - show for Freelance and External Driver */}
+              {(isFreelance || isExternalDriver) && (
+                <Button
+                  variant={jobFilter === 'factory' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setJobFilter(jobFilter === 'factory' ? 'all' : 'factory')}
+                  className={`flex-1 sm:text-base lg:h-11 ${jobFilter === 'factory' ? 'bg-primary text-primary-foreground' : ''}`}
+                >
+                  {t('home.factoryJobs')}
+                </Button>
+              )}
             </div>
           )}
 
