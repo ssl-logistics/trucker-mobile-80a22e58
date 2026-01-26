@@ -208,55 +208,57 @@ export default function CurrentJobsPage() {
         companyJobs = companyJobs.filter((job) => !pendingFactoryOrderNumbers.has(job.order_number));
       }
 
-      // Process bid-won jobs from list-tickets API (not completed yet)
+      // Process bid-won jobs from list-tickets API
+      // Include both 'accepted' and 'completed' status to allow workflow continuation
       let bidWonJobs: AcceptedJob[] = [];
       if (bidWonJobsResponse && bidWonJobsResponse.data) {
         const bidData = bidWonJobsResponse.data;
         console.log('Loaded bid-won jobs from API:', bidData);
-        const tickets = bidData.tickets || [];
+        const tickets = bidData.data || bidData.tickets || [];
         
-        // Filter only accepted/won bids that are not completed
-        const completedStatuses = ['completed', 'delivered', 'cancelled', 'closed'];
+        // Include accepted and completed status jobs for workflow
+        // Only exclude cancelled and closed
+        const excludedStatuses = ['cancelled', 'closed'];
         bidWonJobs = tickets
           .filter((ticket: any) => {
             const status = (ticket.status || '').toLowerCase();
-            return !completedStatuses.includes(status);
+            return !excludedStatuses.includes(status);
           })
           .map((ticket: any) => ({
             id: ticket.id,
-            order_number: ticket.order_code || ticket.post_code || ticket.ticket_code,
+            order_number: ticket.ticket_number || ticket.order_code || ticket.post_code || ticket.ticket_code,
             transport_type_id: null,
             transport_mode: ticket.transport_type || ticket.post_type,
             status: ticket.status || 'accepted',
-            sender_name: ticket.company_name || ticket.employer_name || ticket.factory_name || '',
-            sender_address: ticket.sender_address || ticket.origin_address || '',
-            sender_latitude: ticket.origin_lat || null,
-            sender_longitude: ticket.origin_lng || null,
-            sender_province: ticket.origin?.split(',')[0]?.trim() || '',
-            sender_district: ticket.origin?.split(',')[1]?.trim() || '',
-            sender_pickup_date: ticket.pickup_date || ticket.start_date,
-            sender_pickup_time: ticket.pickup_time || ticket.start_time || '00:00',
-            sender_contact_name: ticket.sender_name || '',
-            sender_contact_phone: ticket.sender_phone || '',
-            destination_name: ticket.recipient_name || '',
-            destination_address: ticket.recipient_address || ticket.destination_address || '',
-            destination_latitude: ticket.destination_lat || null,
-            destination_longitude: ticket.destination_lng || null,
-            destination_province: ticket.destination?.split(',')[0]?.trim() || '',
-            destination_district: ticket.destination?.split(',')[1]?.trim() || '',
-            destination_delivery_date: ticket.delivery_date || ticket.destination_date || ticket.pickup_date,
-            destination_delivery_time: ticket.delivery_time || ticket.destination_time || '00:00',
-            destination_contact_name: ticket.recipient_name || '',
-            destination_contact_phone: ticket.recipient_phone || '',
-            destination_company_name: ticket.destination_company_name || null,
-            product_name: ticket.product_name || ticket.goods_type || null,
+            sender_name: ticket.customer?.company_name || ticket.company_name || ticket.employer_name || ticket.factory_name || '',
+            sender_address: ticket.pickup_location?.address || ticket.sender_address || ticket.origin_address || '',
+            sender_latitude: ticket.pickup_location?.latitude || ticket.origin_lat || null,
+            sender_longitude: ticket.pickup_location?.longitude || ticket.origin_lng || null,
+            sender_province: ticket.pickup_location?.province || ticket.origin?.split(',')[0]?.trim() || '',
+            sender_district: ticket.pickup_location?.district || ticket.origin?.split(',')[1]?.trim() || '',
+            sender_pickup_date: ticket.pickup_location?.date || ticket.pickup_date || ticket.start_date,
+            sender_pickup_time: ticket.pickup_location?.time || ticket.pickup_time || ticket.start_time || '00:00',
+            sender_contact_name: ticket.pickup_location?.contact_name || ticket.sender_name || '',
+            sender_contact_phone: ticket.pickup_location?.contact_phone || ticket.sender_phone || '',
+            destination_name: ticket.dropoff_location?.name || ticket.recipient_name || '',
+            destination_address: ticket.dropoff_location?.address || ticket.recipient_address || ticket.destination_address || '',
+            destination_latitude: ticket.dropoff_location?.latitude || ticket.destination_lat || null,
+            destination_longitude: ticket.dropoff_location?.longitude || ticket.destination_lng || null,
+            destination_province: ticket.dropoff_location?.province || ticket.destination?.split(',')[0]?.trim() || '',
+            destination_district: ticket.dropoff_location?.district || ticket.destination?.split(',')[1]?.trim() || '',
+            destination_delivery_date: ticket.dropoff_location?.date || ticket.delivery_date || ticket.destination_date || ticket.pickup_date,
+            destination_delivery_time: ticket.dropoff_location?.time || ticket.delivery_time || ticket.destination_time || '00:00',
+            destination_contact_name: ticket.dropoff_location?.contact_name || ticket.recipient_name || '',
+            destination_contact_phone: ticket.dropoff_location?.contact_phone || ticket.recipient_phone || '',
+            destination_company_name: ticket.dropoff_location?.company_name || ticket.destination_company_name || null,
+            product_name: ticket.product || ticket.product_name || ticket.goods_type || null,
             product_type: ticket.product_type || null,
             product_category: null,
-            product_weight: ticket.product_weight || null,
+            product_weight: ticket.weight_tons || ticket.product_weight || null,
             product_weight_value: null,
-            product_quantity: ticket.product_quantity || null,
+            product_quantity: ticket.trips_per_month || ticket.product_quantity || null,
             product_unit: ticket.product_unit || null,
-            vehicle_type: ticket.truck_type || ticket.vehicle_type || null,
+            vehicle_type: ticket.vehicle_type?.name || ticket.truck_type || ticket.vehicle_type || null,
             vehicle_category: null,
             transport_price: ticket.price || ticket.bid_amount || 0,
             driver_name: null,
@@ -267,7 +269,8 @@ export default function CurrentJobsPage() {
             freelance_accepted_at: ticket.bid_accepted_at || ticket.created_at,
             factory_name: ticket.factory_name || null,
             isFactoryJob: false,
-            remarks: ticket.remarks || null,
+            isBidJob: true, // Mark as bid job for UI distinction
+            remarks: ticket.notes || ticket.remarks || null,
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
           }));
