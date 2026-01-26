@@ -132,8 +132,15 @@ serve(async (req) => {
 
     console.log('Successfully updated bid status:', updatedBid);
 
-    // If bid is accepted/won, update the job status
+    // If bid is accepted/won, update the job status and send notification
     if (payload.status === 'accepted' || payload.status === 'won') {
+      // Get job details for notification
+      const { data: jobData } = await supabase
+        .from('jobs')
+        .select('order_code, origin_location, destination_location')
+        .eq('id', updatedBid.job_id)
+        .single();
+
       const { error: jobUpdateError } = await supabase
         .from('jobs')
         .update({ status: 'assigned' })
@@ -161,6 +168,63 @@ serve(async (req) => {
         console.warn('Warning: Failed to create job application:', applicationError);
       } else {
         console.log('Job application created for driver');
+      }
+
+      // Create notification in database
+      const notifOrderCode = jobData?.order_code || payload.order_code || payload.post_code || 'N/A';
+      const notificationData = {
+        user_id: updatedBid.driver_id,
+        title_th: '🎉 การเสนอราคาสำเร็จ!',
+        title_en: '🎉 Bid Won!',
+        title_ko: '🎉 입찰 성공!',
+        title_zh: '🎉 竞标成功!',
+        description_th: `ยินดีด้วย! คุณชนะการประมูลงาน ${notifOrderCode}`,
+        description_en: `Congratulations! You won the bid for job ${notifOrderCode}`,
+        description_ko: `축하합니다! ${notifOrderCode} 작업 입찰에 성공했습니다`,
+        description_zh: `恭喜！您赢得了工作 ${notifOrderCode} 的竞标`,
+        notification_type: 'bid_won',
+        reference_id: updatedBid.job_id,
+        reference_type: 'job',
+        is_read: false
+      };
+
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert(notificationData);
+
+      if (notifError) {
+        console.warn('Warning: Failed to create notification:', notifError);
+      } else {
+        console.log('Notification created for driver');
+      }
+
+      // Send push notification
+      try {
+        const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseServiceKey}`
+          },
+          body: JSON.stringify({
+            user_id: updatedBid.driver_id,
+            title: '🎉 การเสนอราคาสำเร็จ!',
+            body: `ยินดีด้วย! คุณชนะการประมูลงาน ${notifOrderCode}`,
+            data: {
+              type: 'bid_won',
+              job_id: updatedBid.job_id,
+              url: '/bidding'
+            }
+          })
+        });
+
+        if (pushResponse.ok) {
+          console.log('Push notification sent successfully');
+        } else {
+          console.warn('Push notification failed:', await pushResponse.text());
+        }
+      } catch (pushError) {
+        console.warn('Warning: Failed to send push notification:', pushError);
       }
     }
 
