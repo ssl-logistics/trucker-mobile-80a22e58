@@ -230,6 +230,16 @@ const thTranslations: Record<string, string> = {
   'jobStatus.completed': 'เสร็จสิ้น',
   'jobStatus.delivered': 'ส่งแล้ว',
 
+  // Bid Job Detail Page
+  'bidJob.title': 'รายละเอียดงานประมูล',
+  'bidJob.notFound': 'ไม่พบข้อมูลงาน',
+  'bidJob.yourBid': 'ราคาที่เสนอของคุณ',
+  'bidJob.distance': 'ระยะทาง',
+  'bidJob.tripsPerMonth': 'จำนวนเที่ยว/เดือน',
+  'bidJob.dates': 'วันที่',
+  'bidJob.createdAt': 'สร้างเมื่อ',
+  'bidJob.updatedAt': 'อัปเดตเมื่อ',
+
   // Bidding Page
   'bidding.title': 'เสนอราคา',
   'bidding.biddingTab': 'เสนอราคา',
@@ -1516,6 +1526,16 @@ const enTranslations: Record<string, string> = {
   'jobStatus.completed': 'Completed',
   'jobStatus.delivered': 'Delivered',
 
+  // Bid Job Detail Page
+  'bidJob.title': 'Bid Job Details',
+  'bidJob.notFound': 'Job not found',
+  'bidJob.yourBid': 'Your bid price',
+  'bidJob.distance': 'Distance',
+  'bidJob.tripsPerMonth': 'Trips per month',
+  'bidJob.dates': 'Dates',
+  'bidJob.createdAt': 'Created at',
+  'bidJob.updatedAt': 'Updated at',
+
   // Bidding Page
   'bidding.title': 'Bidding',
   'bidding.biddingTab': 'Bidding',
@@ -2801,6 +2821,16 @@ const koTranslations: Record<string, string> = {
   'jobStatus.inProgress': '진행 중',
   'jobStatus.completed': '완료',
   'jobStatus.delivered': '배송 완료',
+
+  // Bid Job Detail Page
+  'bidJob.title': '입찰 작업 상세',
+  'bidJob.notFound': '작업을 찾을 수 없습니다',
+  'bidJob.yourBid': '입찰 가격',
+  'bidJob.distance': '거리',
+  'bidJob.tripsPerMonth': '월간 운행 횟수',
+  'bidJob.dates': '날짜',
+  'bidJob.createdAt': '생성일',
+  'bidJob.updatedAt': '수정일',
 
   // Bidding Page
   'bidding.title': '입찰',
@@ -4262,6 +4292,16 @@ const zhTranslations: Record<string, string> = {
   'jobStatus.inProgress': '进行中',
   'jobStatus.completed': '已完成',
   'jobStatus.delivered': '已送达',
+
+  // Bid Job Detail Page
+  'bidJob.title': '投标工作详情',
+  'bidJob.notFound': '未找到工作',
+  'bidJob.yourBid': '您的出价',
+  'bidJob.distance': '距离',
+  'bidJob.tripsPerMonth': '每月行程数',
+  'bidJob.dates': '日期',
+  'bidJob.createdAt': '创建于',
+  'bidJob.updatedAt': '更新于',
 
   // Job History Page
   'jobHistory.title': '工作历史',

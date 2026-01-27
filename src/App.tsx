@@ -75,6 +75,7 @@ const SearchPage = lazyWithPreload(() => import("./pages/SearchPage"));
 const ApiTestPage = lazyWithPreload(() => import("./pages/ApiTestPage"));
 const LineCallbackPage = lazyWithPreload(() => import("./pages/LineCallbackPage"));
 const PushDebugPage = lazyWithPreload(() => import("./pages/PushDebugPage"));
+const BidJobDetailPage = lazyWithPreload(() => import("./pages/BidJobDetailPage"));
 
 // Export pages for preloading from other components
 export const preloadablePages = {
@@ -176,6 +177,7 @@ const App = () => (
                     <Route path="/income" element={<ProtectedRoute><IncomePage /></ProtectedRoute>} />
                     <Route path="/job/:jobId/route-expenses" element={<ProtectedRoute><JobRouteExpensesPage /></ProtectedRoute>} />
                     <Route path="/job-history" element={<ProtectedRoute><JobHistoryPage /></ProtectedRoute>} />
+                    <Route path="/bid-job/:ticketId" element={<ProtectedRoute><BidJobDetailPage /></ProtectedRoute>} />
                     <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                     <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetailPage /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />

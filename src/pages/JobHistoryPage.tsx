@@ -62,6 +62,10 @@ interface CompletedJob {
   transport_price: number;
   created_at: string;
   updated_at: string;
+  // Flag to identify bid jobs vs transport jobs
+  isBidJob?: boolean;
+  // For bid jobs, store the ticket_number for navigation
+  ticket_number?: string;
 }
 
 export default function JobHistoryPage() {
@@ -370,6 +374,9 @@ export default function JobHistoryPage() {
               transport_price: bidPrice,
               created_at: ticket.created_at,
               updated_at: ticket.updated_at || ticket.created_at,
+              // Mark as bid job for correct navigation
+              isBidJob: true,
+              ticket_number: ticket.ticket_number,
             };
           });
         
@@ -538,7 +545,14 @@ export default function JobHistoryPage() {
               <>
                 {/* Completed jobs from external API */}
                 {filteredCompletedJobs.map(job => (
-                  <Card key={job.id} className="overflow-hidden bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/job/${job.order_number}?from=history`)}>
+                  <Card key={job.id} className="overflow-hidden bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
+                    // Navigate to correct page based on job type
+                    if (job.isBidJob && job.ticket_number) {
+                      navigate(`/bid-job/${job.ticket_number}`);
+                    } else {
+                      navigate(`/job/${job.order_number}?from=history`);
+                    }
+                  }}>
                     <div className="flex items-center justify-between px-3 py-2 bg-white">
                       <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
                         {t('job.order_code')} {job.order_number}
