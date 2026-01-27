@@ -404,8 +404,8 @@ export default function DomesticJobDetail({
                     <Button size="sm" onClick={() => {
                     if (pickupSopCompleted || jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.order_code}/pickup-summary`);
-                    } else if (pickupCheckedIn) {
-                      // Already checked in, go to SOP page
+                    } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
+                      // Already checked in (from API or local state), go to SOP page
                       navigate(`/job/${job.order_code}/sop`);
                     } else {
                       // Not checked in yet, go to check-in page
