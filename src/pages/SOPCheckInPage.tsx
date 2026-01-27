@@ -174,7 +174,7 @@ export default function SOPCheckInPage() {
           foundJob = result.data.find((j: any) => j.order_number === jobId);
         }
       } else {
-        // For Freelance drivers, try get-freelance-accepted-jobs first
+        // For Freelance drivers, use get-freelance-accepted-jobs
         const response = await fetch(
           `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
           {
@@ -185,54 +185,15 @@ export default function SOPCheckInPage() {
           }
         );
 
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Freelance job API response:', result);
-          
-          if (result.success && result.data) {
-            foundJob = result.data.find((j: any) => j.order_number === jobId);
-          }
+        if (!response.ok) {
+          throw new Error('Failed to fetch job details');
         }
+
+        const result = await response.json();
+        console.log('Freelance job API response:', result);
         
-        // Fallback: If not found in freelance-accepted-jobs, try Bid jobs (list-tickets)
-        if (!foundJob) {
-          console.log('Job not found in freelance-accepted-jobs, trying list-tickets for Bid jobs...');
-          const ticketResponse = await supabase.functions.invoke('list-tickets', {
-            body: {
-              freelance_driver_id: user.id,
-              bids_status: 'accepted',
-            },
-          });
-
-          if (ticketResponse.data?.success && ticketResponse.data?.data) {
-            const tickets = ticketResponse.data.data || [];
-            const foundTicket = tickets.find(
-              (t: any) => t.ticket_number === jobId || t.id === jobId
-            );
-            
-            if (foundTicket) {
-              console.log('Found Bid job ticket:', foundTicket);
-              // Map ticket to job format
-              const originDistrict = foundTicket.route?.origin_district;
-              const employer =
-                foundTicket.customer?.company_name ||
-                foundTicket.customer?.full_name ||
-                foundTicket.creator?.company_name ||
-                foundTicket.creator?.full_name ||
-                '-';
-
-              foundJob = {
-                id: foundTicket.id,
-                order_number: foundTicket.ticket_number,
-                sender_name: employer,
-                sender_district: originDistrict?.name || '-',
-                sender_province: originDistrict?.province?.name || '-',
-                sender_pickup_date: foundTicket.created_at?.split('T')[0],
-                sender_pickup_time: '00:00',
-                isBidJob: true,
-              };
-            }
-          }
+        if (result.success && result.data) {
+          foundJob = result.data.find((j: any) => j.order_number === jobId);
         }
       }
       
@@ -240,7 +201,7 @@ export default function SOPCheckInPage() {
         // Map API response to JobDetail interface
         const mappedJob: JobDetail = {
           id: foundJob.id,
-          order_code: foundJob.order_number || foundJob.ticket_number,
+          order_code: foundJob.order_number,
           employer_name: foundJob.sender_name || foundJob.factory_name,
           origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
           origin_company_name: foundJob.sender_name || foundJob.factory_name,
