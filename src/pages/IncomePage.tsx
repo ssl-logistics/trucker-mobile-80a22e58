@@ -6,8 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "@/hooks/use-toast";
-
 interface CompletedJob {
   id: string;
   order_number: string;
@@ -34,6 +34,7 @@ export default function IncomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [loading, setLoading] = useState(true);
   const [paidJobs, setPaidJobs] = useState<IncomeJob[]>([]);
@@ -43,16 +44,83 @@ export default function IncomePage() {
     if (user) {
       loadIncomeData();
     }
-  }, [user]);
+  }, [user, isInternalDriver, isExternalDriver]);
 
   const loadIncomeData = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Fetch company jobs, factory jobs, and checkins in parallel
+      const driverId = user.id;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+      // For Internal/External drivers, use get-driver-assigned-jobs API
+      if (isInternalDriver || isExternalDriver) {
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        
+        const [jobsRes, checkinsRes] = await Promise.all([
+          fetch(
+            `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=100`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": "fld_sk_2026_xY9kWewT3xNySk8kGsRq_live",
+              },
+            }
+          ),
+          fetch(
+            `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?driver_id=${driverId}&driver_type=${driverType}&order_number=all`,
+            { method: "GET", headers: { "Content-Type": "application/json" } }
+          ),
+        ]);
+
+        const jobsJson = await jobsRes.json();
+        const checkinsJson = await checkinsRes.json();
+
+        const allJobs = jobsJson.data || [];
+        const allCheckins = checkinsJson?.data || [];
+
+        // Get transport_order_ids that have delivery_confirmed
+        const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
+        const confirmedTransportIds = new Set(
+          allCheckins
+            .filter(
+              (c: any) =>
+                c[driverIdField] === driverId &&
+                c.checkin_type === "delivery_confirmed" &&
+                c.transport_order_id
+            )
+            .map((c: any) => String(c.transport_order_id))
+        );
+
+        // Filter jobs with delivery_confirmed for income
+        const finishedJobs = allJobs.filter((job: any) => confirmedTransportIds.has(String(job.id)));
+
+        const paid: IncomeJob[] = finishedJobs.map((job: any) => ({
+          id: job.id,
+          jobId: job.order_number,
+          jobTitle: job.destination_company_name || job.factory_name || job.sender_name,
+          employer: job.factory_name || job.sender_name,
+          amount: job.transport_price || 0,
+          status: "paid" as const,
+          date: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
+          month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
+            month: "long"
+          }),
+          orderCode: job.order_number
+        }));
+
+        console.log('Total income jobs for internal/external driver:', paid.length);
+        setPaidJobs(paid);
+        setUnpaidJobs([]);
+        setLoading(false);
+        return;
+      }
+
+      // For Freelance drivers: Fetch company jobs, factory jobs, and checkins in parallel
       const [companyJobsRes, factoryJobsRes, checkinsRes] = await Promise.all([
         fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+          `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
           {
             method: 'GET',
             headers: {
@@ -72,7 +140,7 @@ export default function IncomePage() {
           }
         ),
         fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
+          `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
           { method: 'GET', headers: { 'Content-Type': 'application/json' } }
         ),
       ]);

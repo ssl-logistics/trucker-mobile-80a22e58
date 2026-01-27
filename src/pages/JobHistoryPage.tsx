@@ -9,10 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { formatDate } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
-
 interface JobApplication {
   id: string;
   applied_at: string;
@@ -68,6 +68,7 @@ export default function JobHistoryPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +81,7 @@ export default function JobHistoryPage() {
       loadCompletedJobs();
       loadJobHistory(); // Also load local job applications
     }
-  }, [user]);
+  }, [user, isInternalDriver, isExternalDriver]);
 
   const loadJobHistory = async () => {
     try {
@@ -121,10 +122,89 @@ export default function JobHistoryPage() {
 
     setLoading(true);
     try {
-      const freelanceDriverId = user.id;
+      const driverId = user.id;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      // Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
+      // For Internal/External drivers, use get-driver-assigned-jobs API
+      if (isInternalDriver || isExternalDriver) {
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        
+        const [jobsRes, checkinsRes] = await Promise.all([
+          fetch(
+            `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=100`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": "fld_sk_2026_xY9kWewT3xNySk8kGsRq_live",
+              },
+            }
+          ),
+          fetch(
+            `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?driver_id=${driverId}&driver_type=${driverType}&order_number=all`,
+            { method: "GET", headers: { "Content-Type": "application/json" } }
+          ),
+        ]);
+
+        const jobsJson = await jobsRes.json();
+        const checkinsJson = await checkinsRes.json();
+
+        const allJobs = jobsJson.data || [];
+        const allCheckins = checkinsJson?.data || [];
+
+        // Get transport_order_ids that have delivery_confirmed
+        const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
+        const confirmedTransportIds = new Set(
+          allCheckins
+            .filter(
+              (c: any) =>
+                c[driverIdField] === driverId &&
+                c.checkin_type === "delivery_confirmed" &&
+                c.transport_order_id
+            )
+            .map((c: any) => String(c.transport_order_id))
+        );
+
+        // Filter jobs with delivery_confirmed
+        const completedFromApi: CompletedJob[] = allJobs
+          .filter((job: any) => confirmedTransportIds.has(String(job.id)))
+          .map((job: any) => ({
+            id: job.id,
+            order_number: job.order_number,
+            transport_type_id: job.transport_type_id,
+            transport_mode: job.transport_mode,
+            status: 'completed',
+            sender_name: job.factory_name || job.sender_name,
+            sender_address: job.sender_address || '',
+            sender_province: job.sender_province || '',
+            sender_district: job.sender_district || '',
+            sender_pickup_date: job.sender_pickup_date,
+            sender_pickup_time: job.sender_pickup_time || '00:00',
+            destination_name: job.destination_name || '',
+            destination_address: job.destination_address || '',
+            destination_province: job.destination_province || '',
+            destination_district: job.destination_district || '',
+            destination_delivery_date: job.destination_delivery_date,
+            destination_delivery_time: job.destination_delivery_time || '00:00',
+            destination_company_name: job.destination_company_name,
+            product_name: job.product_name,
+            product_weight: job.product_weight,
+            product_quantity: job.product_quantity,
+            product_unit: job.product_unit,
+            vehicle_type: job.vehicle_type,
+            transport_price: job.transport_price || 0,
+            created_at: job.created_at,
+            updated_at: job.updated_at,
+          }));
+
+        console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
+        setCompletedJobs(completedFromApi);
+        setLoading(false);
+        return;
+      }
+
+      // For Freelance drivers: Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
+      const freelanceDriverId = driverId;
       const [companyJobsRes, factoryJobsRes, checkinsRes, bidWonJobsRes] = await Promise.all([
         fetch(
           `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(

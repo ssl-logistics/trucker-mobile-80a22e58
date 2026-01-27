@@ -126,23 +126,56 @@ export default function CurrentJobsPage() {
       // For Internal/External drivers, only use get-driver-assigned-jobs API
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const response = await fetch(
-          `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${freelanceDriverId}&driver_type=${driverType}&limit=50`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-            },
-          }
-        );
+        
+        // Fetch jobs and check-ins in parallel
+        const [jobsResponse, checkinsResponse] = await Promise.all([
+          fetch(
+            `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${freelanceDriverId}&driver_type=${driverType}&limit=50`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+              },
+            }
+          ),
+          fetch(
+            `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?driver_id=${freelanceDriverId}&driver_type=${driverType}&order_number=all`,
+            {
+              headers: { 'Content-Type': 'application/json' },
+            }
+          ),
+        ]);
 
-        if (response.ok) {
-          const result = await response.json();
+        if (jobsResponse.ok) {
+          const result = await jobsResponse.json();
           console.log('Loaded driver assigned jobs for current jobs:', result);
           
+          // Get check-ins to filter out jobs with delivery_confirmed
+          let confirmedTransportIds = new Set<string>();
+          if (checkinsResponse.ok) {
+            const checkinsResult = await checkinsResponse.json();
+            const allCheckins = checkinsResult?.data || [];
+            const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
+            confirmedTransportIds = new Set(
+              allCheckins
+                .filter(
+                  (c: any) =>
+                    c[driverIdField] === freelanceDriverId &&
+                    c.checkin_type === 'delivery_confirmed' &&
+                    c.transport_order_id
+                )
+                .map((c: any) => String(c.transport_order_id))
+            );
+            console.log('Jobs with delivery_confirmed (to exclude from Current Jobs):', confirmedTransportIds.size);
+          }
+          
           const apiJobs = result.data || [];
+          // Filter out jobs that have delivery_confirmed (completed POD)
+          const activeJobs = apiJobs.filter((job: any) => !confirmedTransportIds.has(String(job.id)));
+          console.log('Active jobs after filtering completed:', activeJobs.length, '(excluded:', apiJobs.length - activeJobs.length, ')');
+          
           // Map to AcceptedJob format
-          const mappedJobs: AcceptedJob[] = apiJobs.map((job: any) => ({
+          const mappedJobs: AcceptedJob[] = activeJobs.map((job: any) => ({
             id: job.id,
             order_number: job.order_number,
             transport_type_id: job.transport_type_id,
@@ -193,7 +226,7 @@ export default function CurrentJobsPage() {
 
           setAcceptedJobs(mappedJobs);
         } else {
-          console.error('Error loading driver assigned jobs:', await response.text());
+          console.error('Error loading driver assigned jobs:', await jobsResponse.text());
           setAcceptedJobs([]);
         }
         
