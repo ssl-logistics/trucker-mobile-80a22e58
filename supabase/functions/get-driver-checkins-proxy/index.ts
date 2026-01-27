@@ -13,12 +13,16 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const freelanceDriverId = url.searchParams.get('freelance_driver_id');
+    const driverType = url.searchParams.get('driver_type') || 'freelance';
+    const driverId = url.searchParams.get('driver_id');
     const orderNumber = url.searchParams.get('order_number');
 
-    if (!freelanceDriverId) {
+    // Support legacy parameter for backwards compatibility
+    const freelanceDriverId = url.searchParams.get('freelance_driver_id');
+
+    if (!driverId && !freelanceDriverId) {
       return new Response(
-        JSON.stringify({ error: 'freelance_driver_id is required' }),
+        JSON.stringify({ error: 'driver_id or freelance_driver_id is required' }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -26,12 +30,25 @@ serve(async (req) => {
       );
     }
 
-    console.log('Fetching check-ins for driver:', freelanceDriverId, 'order:', orderNumber);
+    console.log('Fetching check-ins for driver:', driverId || freelanceDriverId, 'type:', driverType, 'order:', orderNumber);
 
-    // Forward all query params to external API
-    // (allows optional filters like checkin_type, limit, offset, etc.)
+    // Build forward URL with appropriate driver ID parameter
     const forwardUrl = new URL('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-checkins');
-    forwardUrl.search = url.search;
+    
+    // Set the appropriate driver ID parameter based on driver type
+    if (driverType === 'internal' && driverId) {
+      forwardUrl.searchParams.set('internal_driver_id', driverId);
+    } else if (driverType === 'external' && driverId) {
+      forwardUrl.searchParams.set('external_driver_id', driverId);
+    } else {
+      forwardUrl.searchParams.set('freelance_driver_id', driverId || freelanceDriverId || '');
+    }
+    
+    // Add other query params
+    if (orderNumber) {
+      forwardUrl.searchParams.set('order_number', orderNumber);
+    }
+    forwardUrl.searchParams.set('driver_type', driverType);
 
     // Forward request to external API
     const response = await fetch(forwardUrl.toString(), {

@@ -14,7 +14,30 @@ serve(async (req) => {
   try {
     const body = await req.json();
     
-    console.log('Proxying check-in request:', body);
+    // Determine driver type and set appropriate ID fields
+    const driverType = body.driver_type || 'freelance';
+    const requestBody: Record<string, unknown> = {
+      order_number: body.order_number,
+      checkin_type: body.checkin_type,
+      driver_name: body.driver_name,
+      driver_phone: body.driver_phone,
+      driver_avatar: body.driver_avatar,
+      latitude: body.latitude,
+      longitude: body.longitude,
+      notes: body.notes,
+      driver_type: driverType,
+    };
+
+    // Set the appropriate driver ID field based on driver type
+    if (driverType === 'internal') {
+      requestBody.internal_driver_id = body.driver_id;
+    } else if (driverType === 'external') {
+      requestBody.external_driver_id = body.driver_id;
+    } else {
+      requestBody.freelance_driver_id = body.driver_id;
+    }
+    
+    console.log('Proxying check-in request:', requestBody);
 
     // Forward request to external API
     const response = await fetch(
@@ -25,7 +48,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(requestBody)
       }
     );
 
