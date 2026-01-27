@@ -147,13 +147,15 @@ export default function Home() {
       console.log('Loaded factory/driver jobs from API:', result, 'userType:', userType);
 
       // Transform API response to Job format
-      // For Internal/External drivers: Show all assigned jobs (including in_progress)
+      // For Internal/External drivers: Only show jobs that are NOT yet started (awaiting_response, assigned, pending)
       // For Freelance drivers: Only show jobs awaiting_response
       const apiJobs = (result?.data || []).filter((item: any) => {
         const status = (item?.status || '').toLowerCase().trim();
         if (isInternalDriver || isExternalDriver) {
-          // Internal/External drivers see all their assigned jobs
-          return true;
+          // Internal/External drivers only see jobs NOT yet started
+          // Filter out: in_progress, completed, delivered, cancelled, closed
+          const activeStatuses = ['in_progress', 'completed', 'delivered', 'cancelled', 'closed', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
+          return !activeStatuses.includes(status);
         }
         // Freelance drivers only see jobs awaiting their response
         return status === 'awaiting_response';
