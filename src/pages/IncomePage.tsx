@@ -202,24 +202,44 @@ export default function IncomePage() {
       // Only show jobs with delivery_confirmed in income
       const finishedJobs = allJobs.filter(job => confirmedTransportIds.has(String(job.id)));
 
-      // Process bid-won jobs that are marked as completed
+      // Get order_numbers (ticket_numbers) that have delivery_confirmed for bid jobs
+      const confirmedOrderNumbers = new Set(
+        checkins
+          .filter(
+            (c: any) =>
+              c.freelance_driver_id === user.id &&
+              c.checkin_type === 'delivery_confirmed'
+          )
+          .map((c: any) => {
+            // Support both nested and flat structure
+            const orderNum = c.transport_orders?.order_number || c.order_number;
+            return orderNum;
+          })
+          .filter(Boolean)
+      );
+
+      console.log('Confirmed order numbers for bid jobs:', Array.from(confirmedOrderNumbers));
+
+      // Process bid-won jobs - only show if POD (delivery_confirmed) is completed
       let bidCompletedJobs: IncomeJob[] = [];
       if (bidWonJobsRes && bidWonJobsRes.data) {
         const bidData = bidWonJobsRes.data;
         const tickets = bidData.data || bidData.tickets || [];
         
-        // Filter only completed tickets where current user has an accepted bid
-        const completedStatuses = ['completed', 'delivered'];
+        // Filter only tickets where current user has an accepted bid AND has delivery_confirmed check-in
         bidCompletedJobs = tickets
           .filter((ticket: any) => {
-            const status = (ticket.status || '').toLowerCase();
-            if (!completedStatuses.includes(status)) return false;
+            const ticketNumber = ticket.ticket_number;
             
             // Check if current user has an accepted bid on this ticket
             const userAcceptedBid = ticket.bids?.find((b: any) => 
               b.status === 'accepted' && b.contractor_id === user.id
             );
-            return !!userAcceptedBid;
+            if (!userAcceptedBid) return false;
+            
+            // Check if POD (delivery_confirmed) has been completed for this ticket
+            const hasPodConfirmed = confirmedOrderNumbers.has(ticketNumber);
+            return hasPodConfirmed;
           })
           .map((ticket: any) => {
             const customer = ticket.customer || {};
@@ -249,7 +269,7 @@ export default function IncomePage() {
             };
           });
         
-        console.log(`Found ${bidCompletedJobs.length} completed bid jobs for income`);
+        console.log(`Found ${bidCompletedJobs.length} bid jobs with POD confirmed for income`);
       }
 
       // Process the transport jobs data
