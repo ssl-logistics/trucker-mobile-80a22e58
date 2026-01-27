@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
@@ -112,6 +113,7 @@ export default function JobRouteExpensesPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [destinations, setDestinations] = useState<JobDestination[]>([]);
@@ -120,31 +122,91 @@ export default function JobRouteExpensesPage() {
 
   useEffect(() => {
     loadJobData();
-  }, [jobId, user]);
+  }, [jobId, user, isInternalDriver, isExternalDriver]);
 
   const loadJobData = async () => {
     if (!user || !jobId) return;
 
     setLoading(true);
     try {
-      // Fetch job data from external API (same as job history and income)
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
+      let allJobs: ApiJobDetail[] = [];
+
+      // For Internal/External drivers, use get-driver-assigned-jobs API
+      if (isInternalDriver || isExternalDriver) {
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=100`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch job data');
         }
-      );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch job data');
+        const result = await response.json();
+        const apiJobs = result.data || [];
+        
+        // Map factory jobs to ApiJobDetail format
+        allJobs = apiJobs.map((job: any) => ({
+          id: job.id,
+          order_number: job.order_number,
+          transport_type_id: job.transport_type_id,
+          transport_mode: job.transport_mode,
+          status: job.status,
+          sender_name: job.factory_name || job.sender_name,
+          sender_address: job.sender_address,
+          sender_province: job.sender_province,
+          sender_district: job.sender_district,
+          sender_pickup_date: job.sender_pickup_date,
+          sender_pickup_time: job.sender_pickup_time,
+          sender_contact_name: job.sender_contact_name,
+          sender_contact_phone: job.sender_contact_phone,
+          destination_name: job.destination_name,
+          destination_address: job.destination_address,
+          destination_province: job.destination_province,
+          destination_district: job.destination_district,
+          destination_delivery_date: job.destination_delivery_date,
+          destination_delivery_time: job.destination_delivery_time,
+          destination_contact_name: job.destination_contact_name,
+          destination_contact_phone: job.destination_contact_phone,
+          destination_company_name: job.destination_company_name,
+          product_name: job.product_name,
+          product_type: job.product_type,
+          product_weight: job.product_weight,
+          product_quantity: job.product_quantity,
+          product_unit: job.product_unit,
+          vehicle_type: job.vehicle_type,
+          transport_price: job.transport_price,
+          remarks: job.remarks,
+          created_at: job.created_at,
+          updated_at: job.updated_at,
+        }));
+      } else {
+        // For Freelance drivers, use get-freelance-accepted-jobs API
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch job data');
+        }
+
+        const result = await response.json();
+        allJobs = result.data || [];
       }
-
-      const result = await response.json();
-      const allJobs: ApiJobDetail[] = result.data || [];
 
       // Find the specific job by ID (order_number)
       const apiJob = allJobs.find(j => j.order_number === jobId || j.id === jobId);
