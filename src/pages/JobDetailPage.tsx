@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
 import InternationalJobDetail from '@/components/job-detail/InternationalJobDetail';
@@ -111,8 +112,9 @@ export default function JobDetailPage() {
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userType } = useAuth();
   const { t } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,7 +123,7 @@ export default function JobDetailPage() {
     if (user && jobId) {
       loadJobDetail();
     }
-  }, [jobId, user, location.key]);
+  }, [jobId, user, location.key, userType]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
@@ -129,46 +131,68 @@ export default function JobDetailPage() {
     setLoading(true);
 
     try {
-      // Fetch only from external API - no local database
-      const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-          },
-        }
-      );
+      let response: Response;
+      
+      // Use different API based on driver type
+      if (isInternalDriver || isExternalDriver) {
+        // Internal/External drivers use get-driver-assigned-jobs API
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+          }
+        );
+      } else {
+        // Freelance drivers use get-freelance-accepted-jobs API
+        response = await fetch(
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+          }
+        );
+      }
 
       if (!response.ok) {
         throw new Error('Failed to fetch job details');
       }
 
       const result = await response.json();
-      console.log('External API response:', result);
+      console.log('Job API response:', result, 'userType:', userType);
 
       if (result.success && result.data) {
         // Find the specific job by order_number
-        const foundJob = result.data.find((j: AcceptedJobAPI) => j.order_number === jobId);
+        const foundJob = result.data.find((j: any) => j.order_number === jobId);
 
         if (foundJob) {
           // Map API response to JobDetail interface
+          // Handle different field names from different APIs
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
-            job_type: 'domestic',
-            employer_name: foundJob.sender_name,
-            transport_type: 'เที่ยวเดียว',
-            origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
+            job_type: foundJob.job_type || foundJob.transport_category || 'domestic',
+            employer_name: foundJob.factory_name || foundJob.sender_name || '',
+            transport_type: foundJob.transport_mode || 'เที่ยวเดียว',
+            origin_location: foundJob.sender_district && foundJob.sender_province 
+              ? `${foundJob.sender_district}, ${foundJob.sender_province}` 
+              : (foundJob.sender_address || ''),
             origin_address: foundJob.sender_address,
             origin_company_name: foundJob.sender_name,
-            destination_location: `${foundJob.destination_district}, ${foundJob.destination_province}`,
+            destination_location: foundJob.destination_district && foundJob.destination_province 
+              ? `${foundJob.destination_district}, ${foundJob.destination_province}` 
+              : (foundJob.destination_address || ''),
             destination_address: foundJob.destination_address,
-            destination_company_name: foundJob.destination_company_name,
+            destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
             price: foundJob.transport_price,
             start_date: foundJob.sender_pickup_date,
             start_time: foundJob.sender_pickup_time,
-            equipment_list: null,
+            equipment_list: foundJob.vehicle_type || null,
             safety_equipment: null,
             container_checkpoint: null,
             container_checkpoint_code: null,
