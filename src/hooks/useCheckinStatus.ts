@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface CheckinRecord {
   order_number: string;
@@ -9,83 +12,23 @@ export interface CheckinRecord {
   longitude?: number;
 }
 
-const CHECKIN_STORAGE_KEY = 'driver_checkins';
-
 export const useCheckinStatus = (orderNumber: string | undefined, driverId: string | undefined) => {
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
   const [containerCheckedIn, setContainerCheckedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { isInternalDriver, isExternalDriver } = useUserRole();
+  const { user } = useAuth();
 
-  // Get all checkins from localStorage
-  const getStoredCheckins = useCallback((): CheckinRecord[] => {
-    try {
-      const stored = localStorage.getItem(CHECKIN_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }, []);
+  // Determine driver type for API calls
+  const getDriverType = useCallback((): string => {
+    if (isInternalDriver) return 'internal';
+    if (isExternalDriver) return 'external';
+    return 'freelance';
+  }, [isInternalDriver, isExternalDriver]);
 
-  // Save a checkin to localStorage
-  const saveCheckin = useCallback((checkin: CheckinRecord) => {
-    try {
-      const checkins = getStoredCheckins();
-      
-      // Check if already exists
-      const existingIndex = checkins.findIndex(
-        c => c.order_number === checkin.order_number && 
-             c.checkin_type === checkin.checkin_type &&
-             c.driver_id === checkin.driver_id
-      );
-
-      if (existingIndex >= 0) {
-        checkins[existingIndex] = checkin;
-      } else {
-        checkins.push(checkin);
-      }
-
-      localStorage.setItem(CHECKIN_STORAGE_KEY, JSON.stringify(checkins));
-      console.log('[useCheckinStatus] Saved checkin:', checkin);
-
-      // Update state immediately
-      if (checkin.checkin_type === 'pickup') setPickupCheckedIn(true);
-      if (checkin.checkin_type === 'delivery') setDeliveryCheckedIn(true);
-      if (checkin.checkin_type === 'container') setContainerCheckedIn(true);
-
-      return true;
-    } catch (error) {
-      console.error('[useCheckinStatus] Error saving checkin:', error);
-      return false;
-    }
-  }, [getStoredCheckins]);
-
-  // Check if a specific checkin exists
-  const hasCheckedIn = useCallback((checkinType: 'pickup' | 'delivery' | 'container'): boolean => {
-    if (!orderNumber || !driverId) return false;
-    
-    const checkins = getStoredCheckins();
-    return checkins.some(
-      c => c.order_number === orderNumber && 
-           c.checkin_type === checkinType &&
-           c.driver_id === driverId
-    );
-  }, [orderNumber, driverId, getStoredCheckins]);
-
-  // Get checkin record
-  const getCheckinRecord = useCallback((checkinType: 'pickup' | 'delivery' | 'container'): CheckinRecord | null => {
-    if (!orderNumber || !driverId) return null;
-    
-    const checkins = getStoredCheckins();
-    return checkins.find(
-      c => c.order_number === orderNumber && 
-           c.checkin_type === checkinType &&
-           c.driver_id === driverId
-    ) || null;
-  }, [orderNumber, driverId, getStoredCheckins]);
-
-  // Load checkin status on mount
-  useEffect(() => {
+  // Fetch check-in status from API
+  const fetchCheckinStatus = useCallback(async () => {
     if (!orderNumber || !driverId) {
       setLoading(false);
       return;
@@ -93,21 +36,131 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
 
     setLoading(true);
     
-    const pickup = hasCheckedIn('pickup');
-    const delivery = hasCheckedIn('delivery');
-    const container = hasCheckedIn('container');
+    try {
+      const driverType = getDriverType();
+      
+      // Build query params
+      const params = new URLSearchParams();
+      params.set('driver_id', driverId);
+      params.set('driver_type', driverType);
+      params.set('order_number', orderNumber);
+      
+      console.log('[useCheckinStatus] Fetching check-in status from API:', {
+        driverId,
+        driverType,
+        orderNumber
+      });
 
-    console.log('[useCheckinStatus] Loaded status for', orderNumber, {
-      pickup,
-      delivery,
-      container
-    });
+      const { data, error } = await supabase.functions.invoke('get-driver-checkins-proxy', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: null,
+      });
 
-    setPickupCheckedIn(pickup);
-    setDeliveryCheckedIn(delivery);
-    setContainerCheckedIn(container);
-    setLoading(false);
-  }, [orderNumber, driverId, hasCheckedIn]);
+      // Use fetch directly for GET with query params
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?${params.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+
+      const result = await response.json();
+      
+      console.log('[useCheckinStatus] API response:', result);
+
+      if (result.success && Array.isArray(result.data)) {
+        // Filter checkins for this specific order and driver
+        const checkins = result.data.filter((checkin: any) => {
+          // Match by order_number and driver_id
+          const matchesOrder = checkin.order_number === orderNumber;
+          
+          // Match driver ID based on driver type
+          let matchesDriver = false;
+          if (isInternalDriver) {
+            matchesDriver = checkin.internal_driver_id === driverId;
+          } else if (isExternalDriver) {
+            matchesDriver = checkin.external_driver_id === driverId;
+          } else {
+            matchesDriver = checkin.freelance_driver_id === driverId;
+          }
+          
+          return matchesOrder && matchesDriver;
+        });
+
+        console.log('[useCheckinStatus] Filtered checkins:', checkins);
+
+        // Set states based on checkin types found
+        const hasPickup = checkins.some((c: any) => c.checkin_type === 'pickup');
+        const hasDelivery = checkins.some((c: any) => c.checkin_type === 'delivery');
+        const hasContainer = checkins.some((c: any) => c.checkin_type === 'container');
+
+        console.log('[useCheckinStatus] Status from API:', {
+          pickup: hasPickup,
+          delivery: hasDelivery,
+          container: hasContainer
+        });
+
+        setPickupCheckedIn(hasPickup);
+        setDeliveryCheckedIn(hasDelivery);
+        setContainerCheckedIn(hasContainer);
+      } else {
+        console.log('[useCheckinStatus] No checkins found from API');
+        setPickupCheckedIn(false);
+        setDeliveryCheckedIn(false);
+        setContainerCheckedIn(false);
+      }
+    } catch (error) {
+      console.error('[useCheckinStatus] Error fetching check-in status:', error);
+      // On error, reset states
+      setPickupCheckedIn(false);
+      setDeliveryCheckedIn(false);
+      setContainerCheckedIn(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [orderNumber, driverId, getDriverType, isInternalDriver, isExternalDriver]);
+
+  // Save a checkin (for optimistic update after successful POST)
+  const saveCheckin = useCallback((checkin: CheckinRecord) => {
+    console.log('[useCheckinStatus] Optimistic update for checkin:', checkin);
+    
+    // Update state immediately for optimistic UI
+    if (checkin.checkin_type === 'pickup') setPickupCheckedIn(true);
+    if (checkin.checkin_type === 'delivery') setDeliveryCheckedIn(true);
+    if (checkin.checkin_type === 'container') setContainerCheckedIn(true);
+
+    return true;
+  }, []);
+
+  // Check if a specific checkin exists
+  const hasCheckedIn = useCallback((checkinType: 'pickup' | 'delivery' | 'container'): boolean => {
+    if (checkinType === 'pickup') return pickupCheckedIn;
+    if (checkinType === 'delivery') return deliveryCheckedIn;
+    if (checkinType === 'container') return containerCheckedIn;
+    return false;
+  }, [pickupCheckedIn, deliveryCheckedIn, containerCheckedIn]);
+
+  // Get checkin record (simplified - returns null since we don't store full records)
+  const getCheckinRecord = useCallback((checkinType: 'pickup' | 'delivery' | 'container'): CheckinRecord | null => {
+    return null;
+  }, []);
+
+  // Refetch function to manually refresh status
+  const refetch = useCallback(() => {
+    fetchCheckinStatus();
+  }, [fetchCheckinStatus]);
+
+  // Load checkin status on mount and when dependencies change
+  useEffect(() => {
+    fetchCheckinStatus();
+  }, [fetchCheckinStatus]);
 
   return {
     pickupCheckedIn,
@@ -117,5 +170,6 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
     saveCheckin,
     hasCheckedIn,
     getCheckinRecord,
+    refetch,
   };
 };
