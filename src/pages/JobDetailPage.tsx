@@ -235,7 +235,45 @@ export default function JobDetailPage() {
 
           setJobApplication(jobApplicationData);
         } else {
-          // Not in accepted jobs list (e.g. new job notification). Try local DB and redirect.
+          // Not found in transport jobs, try Bid Jobs (list-tickets API)
+          console.log('Job not found in transport jobs, trying bid jobs for:', jobId);
+          const bidJobFound = await loadBidJobDetail();
+          
+          if (!bidJobFound) {
+            // Not in accepted jobs list. Try local DB and redirect.
+            try {
+              const { data: localJob, error: localJobError } = await supabase
+                .from('jobs')
+                .select('id, order_code, status')
+                .or(`id.eq.${jobId},order_code.eq.${jobId}`)
+                .maybeSingle();
+
+              if (!localJobError && localJob?.order_code) {
+                if (localJob.status === 'open_for_bidding') {
+                  navigate(`/bidding/${localJob.id}`, { replace: true });
+                  return;
+                }
+
+                navigate('/home', { state: { openJobOrderCode: localJob.order_code }, replace: true });
+                return;
+              }
+            } catch (e) {
+              console.error('Local job redirect failed:', e);
+            }
+
+            toast({
+              title: t('jobDetail.error'),
+              description: t('jobDetail.notFound'),
+              variant: 'destructive',
+            });
+          }
+        }
+      } else {
+        // External API did not return data. Try bid jobs first, then local DB.
+        console.log('Transport API returned no data, trying bid jobs');
+        const bidJobFound = await loadBidJobDetail();
+        
+        if (!bidJobFound) {
           try {
             const { data: localJob, error: localJobError } = await supabase
               .from('jobs')
@@ -262,33 +300,6 @@ export default function JobDetailPage() {
             variant: 'destructive',
           });
         }
-      } else {
-        // External API did not return data. Try local DB and redirect.
-        try {
-          const { data: localJob, error: localJobError } = await supabase
-            .from('jobs')
-            .select('id, order_code, status')
-            .or(`id.eq.${jobId},order_code.eq.${jobId}`)
-            .maybeSingle();
-
-          if (!localJobError && localJob?.order_code) {
-            if (localJob.status === 'open_for_bidding') {
-              navigate(`/bidding/${localJob.id}`, { replace: true });
-              return;
-            }
-
-            navigate('/home', { state: { openJobOrderCode: localJob.order_code }, replace: true });
-            return;
-          }
-        } catch (e) {
-          console.error('Local job redirect failed:', e);
-        }
-
-        toast({
-          title: t('jobDetail.error'),
-          description: t('jobDetail.notFound'),
-          variant: 'destructive',
-        });
       }
     } catch (error) {
       console.error('Error loading job detail:', error);
@@ -299,6 +310,118 @@ export default function JobDetailPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load bid job details from list-tickets API
+  const loadBidJobDetail = async (): Promise<boolean> => {
+    if (!user || !jobId) return false;
+
+    try {
+      const bidResponse = await supabase.functions.invoke('list-tickets', {
+        body: {
+          freelance_driver_id: user.id,
+          bids_status: 'accepted',
+        },
+      });
+
+      if (bidResponse.data) {
+        const tickets = bidResponse.data.data || bidResponse.data.tickets || [];
+        
+        // Find ticket by ticket_number
+        const foundTicket = tickets.find((ticket: any) => {
+          const ticketNumber = ticket.ticket_number || ticket.order_code || ticket.post_code;
+          return ticketNumber === jobId;
+        });
+
+        if (foundTicket) {
+          // Check if current user has an accepted bid
+          const userAcceptedBid = foundTicket.bids?.find((b: any) => 
+            b.status === 'accepted' && b.contractor_id === user.id
+          );
+
+          if (!userAcceptedBid) {
+            console.log('User does not have an accepted bid on this ticket');
+            return false;
+          }
+
+          console.log('Found bid job:', foundTicket);
+
+          // Map ticket to JobDetail
+          const customer = foundTicket.customer || {};
+          const creator = foundTicket.creator || {};
+          const route = foundTicket.route || {};
+          const originDistrict = route.origin_district || {};
+          const destDistrict = route.destination_district || {};
+
+          const mappedJob: JobDetail = {
+            id: foundTicket.id,
+            order_code: foundTicket.ticket_number,
+            job_type: 'domestic',
+            employer_name: customer.company_name || customer.full_name || creator.company_name || creator.full_name || '',
+            transport_type: 'เที่ยวเดียว',
+            origin_location: originDistrict.name && originDistrict.province?.name
+              ? `${originDistrict.name}, ${originDistrict.province.name}`
+              : '',
+            origin_address: null,
+            origin_company_name: customer.company_name || customer.full_name || '',
+            destination_location: destDistrict.name && destDistrict.province?.name
+              ? `${destDistrict.name}, ${destDistrict.province.name}`
+              : '',
+            destination_address: null,
+            destination_company_name: null,
+            price: userAcceptedBid.bid_price || foundTicket.price || 0,
+            start_date: foundTicket.pickup_date || foundTicket.created_at?.split('T')[0] || '',
+            start_time: '08:00:00',
+            equipment_list: foundTicket.vehicle_type?.name || null,
+            safety_equipment: null,
+            container_checkpoint: null,
+            container_checkpoint_code: null,
+            empty_container_date: null,
+            container_number: null,
+            container_number_2: null,
+            seal_number: null,
+            seal_number_2: null,
+            origin_contact_person: customer.full_name || null,
+            origin_contact_role: customer.phone || null,
+            origin_bill_of_lading: null,
+            origin_goods_type: foundTicket.product || null,
+            origin_goods_quantity: foundTicket.weight_tons ? `${foundTicket.weight_tons} ตัน` : null,
+            origin_remarks: foundTicket.notes || null,
+            destination_contact_person: null,
+            destination_bill_of_lading: null,
+            destination_goods_type: foundTicket.product || null,
+            destination_goods_quantity: foundTicket.weight_tons ? `${foundTicket.weight_tons} ตัน` : null,
+            destination_time: null,
+            destination_date: null,
+            destination_remarks: foundTicket.notes || null,
+            tax_id: null,
+          };
+
+          setJob(mappedJob);
+
+          // Create job application based on ticket status
+          const ticketStatus = (foundTicket.status || '').toLowerCase();
+          const jobApplicationData: JobApplication = {
+            checked_in_at: null,
+            sop_completed_at: null,
+            job_started_at: ['in_progress', 'in_transit', 'completed', 'delivered'].includes(ticketStatus) ? new Date().toISOString() : null,
+            delivery_checked_in_at: ['delivered', 'completed'].includes(ticketStatus) ? new Date().toISOString() : null,
+            delivery_sop_completed_at: ticketStatus === 'completed' ? new Date().toISOString() : null,
+            container_checked_in_at: null,
+            container_sop_completed_at: null,
+            status: foundTicket.status,
+          };
+
+          setJobApplication(jobApplicationData);
+          return true;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error loading bid job detail:', error);
+      return false;
     }
   };
 
