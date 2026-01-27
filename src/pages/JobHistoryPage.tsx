@@ -307,7 +307,7 @@ export default function JobHistoryPage() {
       if (bidWonJobsRes && bidWonJobsRes.data) {
         const bidData = bidWonJobsRes.data;
         console.log('Loaded bid-won jobs from API:', bidData);
-        const tickets = bidData.tickets || [];
+        const tickets = bidData.data || bidData.tickets || [];
         
         // Filter only completed bids for job history
         const completedStatuses = ['completed', 'delivered'];
@@ -316,34 +316,52 @@ export default function JobHistoryPage() {
             const status = (ticket.status || '').toLowerCase();
             return completedStatuses.includes(status);
           })
-          .map((ticket: any) => ({
-            id: ticket.id,
-            order_number: ticket.order_code || ticket.post_code || ticket.ticket_code,
-            transport_type_id: null,
-            transport_mode: ticket.transport_type || ticket.post_type,
-            status: 'completed',
-            sender_name: ticket.company_name || ticket.employer_name || ticket.factory_name || '',
-            sender_address: ticket.sender_address || ticket.origin_address || '',
-            sender_province: ticket.origin?.split(',')[0]?.trim() || '',
-            sender_district: ticket.origin?.split(',')[1]?.trim() || '',
-            sender_pickup_date: ticket.pickup_date || ticket.start_date,
-            sender_pickup_time: ticket.pickup_time || ticket.start_time || '00:00',
-            destination_name: ticket.recipient_name || '',
-            destination_address: ticket.recipient_address || ticket.destination_address || '',
-            destination_province: ticket.destination?.split(',')[0]?.trim() || '',
-            destination_district: ticket.destination?.split(',')[1]?.trim() || '',
-            destination_delivery_date: ticket.delivery_date || ticket.destination_date || ticket.pickup_date,
-            destination_delivery_time: ticket.delivery_time || ticket.destination_time || '00:00',
-            destination_company_name: ticket.destination_company_name || null,
-            product_name: ticket.product_name || ticket.goods_type || null,
-            product_weight: ticket.product_weight || null,
-            product_quantity: ticket.product_quantity || null,
-            product_unit: ticket.product_unit || null,
-            vehicle_type: ticket.truck_type || ticket.vehicle_type || null,
-            transport_price: ticket.price || ticket.bid_amount || 0,
-            created_at: ticket.created_at,
-            updated_at: ticket.updated_at || ticket.created_at,
-          }));
+          .map((ticket: any) => {
+            // Extract location info from route object (list-tickets API structure)
+            const route = ticket.route || {};
+            const originDistrict = route.origin_district || {};
+            const destinationDistrict = route.destination_district || {};
+            const originProvince = originDistrict.province || {};
+            const destProvince = destinationDistrict.province || {};
+            
+            // Extract employer/company name from customer or creator
+            const customer = ticket.customer || {};
+            const creator = ticket.creator || {};
+            const employerName = customer.company_name || customer.full_name || creator.company_name || creator.full_name || '';
+            
+            // Get accepted bid price
+            const acceptedBid = ticket.bids?.find((b: any) => b.status === 'accepted');
+            const bidPrice = acceptedBid?.bid_price || ticket.price || 0;
+            
+            return {
+              id: ticket.id,
+              order_number: ticket.ticket_number || ticket.order_code || ticket.post_code,
+              transport_type_id: null,
+              transport_mode: ticket.transport_type || ticket.post_type,
+              status: 'completed',
+              sender_name: employerName,
+              sender_address: '',
+              sender_province: originProvince.name || '',
+              sender_district: originDistrict.name || '',
+              sender_pickup_date: ticket.pickup_date || ticket.start_date || ticket.created_at?.split('T')[0],
+              sender_pickup_time: ticket.pickup_time || ticket.start_time || '00:00',
+              destination_name: '',
+              destination_address: '',
+              destination_province: destProvince.name || '',
+              destination_district: destinationDistrict.name || '',
+              destination_delivery_date: ticket.delivery_date || ticket.destination_date || ticket.created_at?.split('T')[0],
+              destination_delivery_time: ticket.delivery_time || ticket.destination_time || '00:00',
+              destination_company_name: ticket.destination_company_name || null,
+              product_name: ticket.product || ticket.product_name || null,
+              product_weight: ticket.weight_tons || ticket.product_weight || null,
+              product_quantity: ticket.trips_per_month || ticket.product_quantity || null,
+              product_unit: ticket.product_unit || 'ตัน',
+              vehicle_type: ticket.vehicle_type?.name || ticket.truck_type || null,
+              transport_price: bidPrice,
+              created_at: ticket.created_at,
+              updated_at: ticket.updated_at || ticket.created_at,
+            };
+          });
       }
 
       const allCheckins = checkinsJson?.data || checkinsJson || [];
