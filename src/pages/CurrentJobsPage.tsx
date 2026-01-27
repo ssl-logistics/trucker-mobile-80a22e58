@@ -234,8 +234,8 @@ export default function CurrentJobsPage() {
         return;
       }
       
-      // For Freelance drivers: Fetch company jobs, factory jobs, and bid-won jobs from API in parallel
-      const [companyJobsResponse, factoryJobsResponse, bidWonJobsResponse] = await Promise.all([
+      // For Freelance drivers: Fetch company jobs, factory jobs, bid-won jobs, AND check-ins from API in parallel
+      const [companyJobsResponse, factoryJobsResponse, bidWonJobsResponse, checkinsResponse] = await Promise.all([
         fetch(
           `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
           {
@@ -263,14 +263,47 @@ export default function CurrentJobsPage() {
             bids_status: 'accepted', // Get all won bids
           },
         }).catch(() => null),
+        // Fetch check-ins for filtering completed jobs
+        fetch(
+          `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&order_number=all`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        ).catch(() => null),
       ]);
+
+      // Get confirmed transport IDs from check-ins (delivery_confirmed = POD done)
+      let confirmedOrderNumbers = new Set<string>();
+      if (checkinsResponse && checkinsResponse.ok) {
+        const checkinsResult = await checkinsResponse.json();
+        const allCheckins = checkinsResult?.data || [];
+        
+        // Get order numbers that have delivery_confirmed
+        confirmedOrderNumbers = new Set(
+          allCheckins
+            .filter(
+              (c: any) =>
+                c.freelance_driver_id === freelanceDriverId &&
+                c.checkin_type === 'delivery_confirmed'
+            )
+            .map((c: any) => {
+              // Get order_number from either transport_orders.order_number or order_number field
+              return c.transport_orders?.order_number || c.order_number || '';
+            })
+            .filter(Boolean)
+        );
+        console.log('Jobs with delivery_confirmed (to exclude from Current Jobs):', confirmedOrderNumbers.size);
+      }
 
       // Process company jobs
       let companyJobs: AcceptedJob[] = [];
       if (companyJobsResponse.ok) {
         const companyResult = await companyJobsResponse.json();
         console.log('Loaded company accepted jobs:', companyResult);
-        companyJobs = Array.isArray(companyResult) ? companyResult : (companyResult.data || []);
+        const allCompanyJobs = Array.isArray(companyResult) ? companyResult : (companyResult.data || []);
+        // Filter out jobs that have delivery_confirmed
+        companyJobs = allCompanyJobs.filter((job: any) => !confirmedOrderNumbers.has(job.order_number));
       } else {
         console.error('Error loading company accepted jobs:', await companyJobsResponse.text());
       }
@@ -301,8 +334,12 @@ export default function CurrentJobsPage() {
         );
         
         // Include factory jobs that are: accepted OR in_progress status
+        // AND not delivery_confirmed yet
         factoryJobs = allFactoryJobs
           .filter((job: any) => {
+            // Skip if already delivery_confirmed
+            if (confirmedOrderNumbers.has(job.order_number)) return false;
+            
             const status = (job?.status || '').toLowerCase().trim();
             // Allow in_progress jobs to appear in Current Jobs
             if (status === 'in_progress') return true;
@@ -323,20 +360,35 @@ export default function CurrentJobsPage() {
       }
 
       // Process bid-won jobs from list-tickets API
-      // Include both 'accepted' and 'completed' status to allow workflow continuation
+      // Show ALL accepted bid jobs EXCEPT those with delivery_confirmed check-in
       let bidWonJobs: AcceptedJob[] = [];
       if (bidWonJobsResponse && bidWonJobsResponse.data) {
         const bidData = bidWonJobsResponse.data;
         console.log('Loaded bid-won jobs from API:', bidData);
         const tickets = bidData.data || bidData.tickets || [];
         
-        // Include accepted and completed status jobs for workflow
-        // Only exclude cancelled and closed
+        // Only exclude cancelled and closed, NOT completed
+        // Completed jobs should still show until delivery_confirmed
         const excludedStatuses = ['cancelled', 'closed'];
         bidWonJobs = tickets
           .filter((ticket: any) => {
+            const ticketNumber = ticket.ticket_number || ticket.order_code || ticket.post_code || '';
             const status = (ticket.status || '').toLowerCase();
-            return !excludedStatuses.includes(status);
+            
+            // Skip if this ticket already has delivery_confirmed
+            if (confirmedOrderNumbers.has(ticketNumber)) {
+              console.log(`Bid job ${ticketNumber} excluded - has delivery_confirmed`);
+              return false;
+            }
+            
+            // Skip cancelled/closed
+            if (excludedStatuses.includes(status)) return false;
+            
+            // Check if current user has an accepted bid on this ticket
+            const userAcceptedBid = ticket.bids?.find((b: any) => 
+              b.status === 'accepted' && b.contractor_id === freelanceDriverId
+            );
+            return !!userAcceptedBid;
           })
           .map((ticket: any) => ({
             id: ticket.id,
@@ -348,18 +400,18 @@ export default function CurrentJobsPage() {
             sender_address: ticket.pickup_location?.address || ticket.sender_address || ticket.origin_address || '',
             sender_latitude: ticket.pickup_location?.latitude || ticket.origin_lat || null,
             sender_longitude: ticket.pickup_location?.longitude || ticket.origin_lng || null,
-            sender_province: ticket.pickup_location?.province || ticket.origin?.split(',')[0]?.trim() || '',
-            sender_district: ticket.pickup_location?.district || ticket.origin?.split(',')[1]?.trim() || '',
-            sender_pickup_date: ticket.pickup_location?.date || ticket.pickup_date || ticket.start_date,
+            sender_province: ticket.route?.origin_district?.province?.name || ticket.pickup_location?.province || '',
+            sender_district: ticket.route?.origin_district?.name || ticket.pickup_location?.district || '',
+            sender_pickup_date: ticket.pickup_location?.date || ticket.pickup_date || ticket.start_date || ticket.created_at?.split('T')[0],
             sender_pickup_time: ticket.pickup_location?.time || ticket.pickup_time || ticket.start_time || '00:00',
-            sender_contact_name: ticket.pickup_location?.contact_name || ticket.sender_name || '',
-            sender_contact_phone: ticket.pickup_location?.contact_phone || ticket.sender_phone || '',
+            sender_contact_name: ticket.customer?.full_name || ticket.pickup_location?.contact_name || ticket.sender_name || '',
+            sender_contact_phone: ticket.customer?.phone || ticket.pickup_location?.contact_phone || ticket.sender_phone || '',
             destination_name: ticket.dropoff_location?.name || ticket.recipient_name || '',
             destination_address: ticket.dropoff_location?.address || ticket.recipient_address || ticket.destination_address || '',
             destination_latitude: ticket.dropoff_location?.latitude || ticket.destination_lat || null,
             destination_longitude: ticket.dropoff_location?.longitude || ticket.destination_lng || null,
-            destination_province: ticket.dropoff_location?.province || ticket.destination?.split(',')[0]?.trim() || '',
-            destination_district: ticket.dropoff_location?.district || ticket.destination?.split(',')[1]?.trim() || '',
+            destination_province: ticket.route?.destination_district?.province?.name || ticket.dropoff_location?.province || '',
+            destination_district: ticket.route?.destination_district?.name || ticket.dropoff_location?.district || '',
             destination_delivery_date: ticket.dropoff_location?.date || ticket.delivery_date || ticket.destination_date || ticket.pickup_date,
             destination_delivery_time: ticket.dropoff_location?.time || ticket.delivery_time || ticket.destination_time || '00:00',
             destination_contact_name: ticket.dropoff_location?.contact_name || ticket.recipient_name || '',
@@ -374,7 +426,7 @@ export default function CurrentJobsPage() {
             product_unit: ticket.product_unit || null,
             vehicle_type: ticket.vehicle_type?.name || ticket.truck_type || ticket.vehicle_type || null,
             vehicle_category: null,
-            transport_price: ticket.price || ticket.bid_amount || 0,
+            transport_price: ticket.bids?.find((b: any) => b.status === 'accepted' && b.contractor_id === freelanceDriverId)?.bid_price || ticket.price || 0,
             driver_name: null,
             driver_phone: null,
             license_plate: null,
@@ -388,6 +440,8 @@ export default function CurrentJobsPage() {
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
           }));
+        
+        console.log(`Bid jobs for Current Jobs: ${bidWonJobs.length} (excluded ${tickets.length - bidWonJobs.length} with delivery_confirmed or wrong user)`);
       }
 
       // Combine all job sources

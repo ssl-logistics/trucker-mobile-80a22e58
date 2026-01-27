@@ -306,27 +306,60 @@ export default function JobHistoryPage() {
       // Combine company and factory jobs
       const allJobs = [...companyJobs, ...acceptedFactoryJobs];
 
-      // Process bid-won jobs from list-tickets API - only completed ones for history
-      // Filter by current user's contractor_id to show only their own completed bids
+      const allCheckins = checkinsJson?.data || checkinsJson || [];
+      const checkins = Array.isArray(allCheckins) ? allCheckins : [];
+
+      // ✅ Completed = มี delivery_confirmed ของ transport_order_id (POD ส่งแล้ว)
+      const confirmedTransportIds = new Set(
+        checkins
+          .filter(
+            (c: any) =>
+              c.freelance_driver_id === freelanceDriverId &&
+              c.checkin_type === "delivery_confirmed" &&
+              c.transport_order_id
+          )
+          .map((c: any) => String(c.transport_order_id))
+      );
+
+      const completedFromApi = allJobs
+        .filter((job) => confirmedTransportIds.has(String(job.id)))
+        .map((job) => ({ ...job, status: "completed" }));
+
+      // Process bid-won jobs from list-tickets API
+      // Only show bid jobs that have delivery_confirmed check-in (not just status=completed)
       let bidCompletedJobs: CompletedJob[] = [];
       if (bidWonJobsRes && bidWonJobsRes.data) {
         const bidData = bidWonJobsRes.data;
         console.log('Loaded bid-won jobs from API:', bidData);
         const tickets = bidData.data || bidData.tickets || [];
         
-        // Filter only completed tickets where current user has an accepted bid
-        const completedStatuses = ['completed', 'delivered'];
+        // Get order numbers that have delivery_confirmed from check-ins
+        const confirmedOrderNumbers = new Set(
+          checkins
+            .filter(
+              (c: any) =>
+                c.freelance_driver_id === freelanceDriverId &&
+                c.checkin_type === 'delivery_confirmed'
+            )
+            .map((c: any) => c.transport_orders?.order_number || c.order_number || '')
+            .filter(Boolean)
+        );
+        
+        console.log('Bid job order numbers with delivery_confirmed:', Array.from(confirmedOrderNumbers));
+        
+        // Filter tickets where current user has an accepted bid AND has delivery_confirmed
         bidCompletedJobs = tickets
           .filter((ticket: any) => {
-            const status = (ticket.status || '').toLowerCase();
-            // Check if this ticket is completed
-            if (!completedStatuses.includes(status)) return false;
+            const ticketNumber = ticket.ticket_number || '';
             
             // Check if current user has an accepted bid on this ticket
             const userAcceptedBid = ticket.bids?.find((b: any) => 
               b.status === 'accepted' && b.contractor_id === freelanceDriverId
             );
-            return !!userAcceptedBid;
+            if (!userAcceptedBid) return false;
+            
+            // Only show in history if has delivery_confirmed check-in
+            return confirmedOrderNumbers.has(ticketNumber);
           })
           .map((ticket: any) => {
             // Extract location info from route object (list-tickets API structure)
@@ -380,27 +413,8 @@ export default function JobHistoryPage() {
             };
           });
         
-        console.log(`Found ${bidCompletedJobs.length} completed bid jobs for user ${freelanceDriverId}`);
+        console.log(`Found ${bidCompletedJobs.length} completed bid jobs for user ${freelanceDriverId} (with delivery_confirmed)`);
       }
-
-      const allCheckins = checkinsJson?.data || checkinsJson || [];
-      const checkins = Array.isArray(allCheckins) ? allCheckins : [];
-
-      // ✅ Completed = มี delivery_confirmed ของ transport_order_id (POD ส่งแล้ว)
-      const confirmedTransportIds = new Set(
-        checkins
-          .filter(
-            (c: any) =>
-              c.freelance_driver_id === freelanceDriverId &&
-              c.checkin_type === "delivery_confirmed" &&
-              c.transport_order_id
-          )
-          .map((c: any) => String(c.transport_order_id))
-      );
-
-      const completedFromApi = allJobs
-        .filter((job) => confirmedTransportIds.has(String(job.id)))
-        .map((job) => ({ ...job, status: "completed" }));
 
       // Merge API completed jobs with bid completed jobs, dedupe by order_number
       const allCompleted = [...completedFromApi, ...bidCompletedJobs];
