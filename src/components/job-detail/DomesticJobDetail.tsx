@@ -174,9 +174,15 @@ export default function DomesticJobDetail({
           setDeliverySopCompleted(true);
         }
 
-        // Fetch SOP status from external API using freelance_driver_id
+        // Fetch SOP status from external API (role-aware driver id param)
+        const sopDriverIdParam = isInternalDriver
+          ? `internal_driver_id=${encodeURIComponent(userId)}`
+          : isExternalDriver
+            ? `external_driver_id=${encodeURIComponent(userId)}`
+            : `freelance_driver_id=${encodeURIComponent(userId)}`;
+
         const sopResponse = await fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${userId}&order_number=${job.order_code}`,
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
           {
             headers: {
               'Content-Type': 'application/json',
