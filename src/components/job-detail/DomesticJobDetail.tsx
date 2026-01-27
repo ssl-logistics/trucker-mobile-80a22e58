@@ -324,13 +324,13 @@ export default function DomesticJobDetail({
               id: 'fallback',
               sequence_number: 1
             }]).map((dest, index) => {
-              // For fallback, use actual check-in status from API (deliveryCheckedIn)
-              // NOT jobApplication?.delivery_checked_in_at which is derived from API status and may be incorrect
+              // For fallback, use ONLY actual check-in status from API
+              // NOT jobApplication data which is derived from external API status and may be incorrect for Bid Jobs
               const isPodCompleted = dest.id === 'fallback' 
-                ? !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at)
+                ? deliverySopCompleted  // Use ONLY actual API check-in status
                 : !!dest.sop_completed_at;
               const isCheckedIn = dest.id === 'fallback'
-                ? deliveryCheckedIn  // Use actual check-in status from API
+                ? deliveryCheckedIn  // Use ONLY actual API check-in status
                 : !!dest.checked_in_at;
               
               return <div key={dest.id} className="relative flex justify-center" style={{
@@ -489,7 +489,8 @@ export default function DomesticJobDetail({
               }) :
             // Fallback to original single destination from jobs table
             (() => {
-              const isPodCompleted = !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at);
+              // Use ONLY actual check-in status from API, NOT jobApplication data
+              const isPodCompleted = deliverySopCompleted;
               
               return (
                 <Card className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
