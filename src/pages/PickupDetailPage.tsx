@@ -144,8 +144,16 @@ export default function PickupDetailPage() {
     if (!job || !user) return;
     
     try {
+      // Determine the correct driver ID parameter based on driver type
+      let driverIdParam = `freelance_driver_id=${user.id}`;
+      if (isInternalDriver) {
+        driverIdParam = `internal_driver_id=${user.id}`;
+      } else if (isExternalDriver) {
+        driverIdParam = `external_driver_id=${user.id}`;
+      }
+      
       const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${user.id}&order_number=${job.order_code}`,
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${driverIdParam}&order_number=${job.order_code}`,
         {
           headers: {
             'Content-Type': 'application/json',
