@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +72,7 @@ export default function DomesticJobDetail({
   const navigate = useNavigate();
   const location = useLocation();
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const {
     t,
     language
@@ -102,10 +104,25 @@ export default function DomesticJobDetail({
         console.log('Current userId:', userId, 'Order code:', job.order_code);
         
         // Fetch check-in status
-        const checkinResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${userId}&order_number=${job.order_code}`,
-          { method: 'GET', headers: { 'Content-Type': 'application/json' } }
-        );
+        const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        const checkinUrl =
+          (isInternalDriver || isExternalDriver)
+            ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${encodeURIComponent(
+                userId
+              )}&driver_type=${driverType}&order_number=${encodeURIComponent(job.order_code)}`
+            : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(
+                userId
+              )}&order_number=${encodeURIComponent(job.order_code)}`;
+
+        const checkinResponse = await fetch(checkinUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(isInternalDriver || isExternalDriver
+              ? { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }
+              : {}),
+          },
+        });
         const checkinResult = await checkinResponse.json();
         console.log('Fetched check-in status:', checkinResult);
         
@@ -113,13 +130,31 @@ export default function DomesticJobDetail({
         console.log('All checkins from API:', allCheckins.length, 'items');
         console.log('Current job.id (transport_order_id to match):', job.id);
         
-        // Filter checkins by matching transport_order_id with job.id
-        // The external API doesn't properly filter by order_number, so we filter by transport_order_id
-        const checkins = Array.isArray(allCheckins) 
+        // Filter checkins for this specific order & current driver (support internal/external/freelance)
+        const checkins = Array.isArray(allCheckins)
           ? allCheckins.filter((c: any) => {
-              const matchesUser = c.freelance_driver_id === userId;
-              const matchesOrder = c.transport_order_id === job.id;
-              console.log('Checkin transport_order_id:', c.transport_order_id, 'job.id:', job.id, 'matchesOrder:', matchesOrder, 'matchesUser:', matchesUser);
+              const matchesUser = isInternalDriver
+                ? c.internal_driver_id === userId
+                : isExternalDriver
+                  ? c.external_driver_id === userId
+                  : c.freelance_driver_id === userId;
+
+              const matchesOrder =
+                c.transport_order_id === job.id ||
+                c.order_number === job.order_code ||
+                c.transport_orders?.order_number === job.order_code;
+
+              console.log(
+                'Checkin transport_order_id:',
+                c.transport_order_id,
+                'job.id:',
+                job.id,
+                'matchesOrder:',
+                matchesOrder,
+                'matchesUser:',
+                matchesUser
+              );
+
               return matchesUser && matchesOrder;
             })
           : [];
@@ -177,7 +212,7 @@ export default function DomesticJobDetail({
     if (userId && job.order_code) {
       fetchStatuses();
     }
-  }, [userId, job.order_code]);
+  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
 
   useEffect(() => {
     // Calculate card heights for step positioning
