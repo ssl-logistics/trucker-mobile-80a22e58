@@ -30,6 +30,7 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
   // Fetch check-in status from API
   const fetchCheckinStatus = useCallback(async () => {
     if (!orderNumber || !driverId) {
+      console.log('[useCheckinStatus] Missing orderNumber or driverId, skipping fetch');
       setLoading(false);
       return;
     }
@@ -48,15 +49,8 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
       console.log('[useCheckinStatus] Fetching check-in status from API:', {
         driverId,
         driverType,
-        orderNumber
-      });
-
-      const { data, error } = await supabase.functions.invoke('get-driver-checkins-proxy', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: null,
+        orderNumber,
+        url: `get-driver-checkins-proxy?${params.toString()}`
       });
 
       // Use fetch directly for GET with query params
