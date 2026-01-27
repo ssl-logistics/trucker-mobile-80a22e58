@@ -4,6 +4,7 @@ import { ChevronLeft, Phone, MapPin, Camera, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
@@ -83,6 +84,7 @@ export default function DeliveryDetailPage() {
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [destination, setDestination] = useState<JobDestination | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
@@ -104,7 +106,7 @@ export default function DeliveryDetailPage() {
 
   useEffect(() => {
     loadJobDetail();
-  }, [jobId, destinationId, user]);
+  }, [jobId, destinationId, user, isInternalDriver, isExternalDriver]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
@@ -112,16 +114,23 @@ export default function DeliveryDetailPage() {
     setLoading(true);
     
     try {
-      // Fetch from external API using order_number
-      const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
-          }
+      let apiUrl: string;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      
+      // Use different API based on driver type
+      if (isInternalDriver || isExternalDriver) {
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        apiUrl = `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`;
+      } else {
+        apiUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`;
+      }
+      
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
         }
-      );
+      });
 
       if (!response.ok) {
         throw new Error('Failed to fetch job details');
@@ -138,8 +147,8 @@ export default function DeliveryDetailPage() {
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
-            employer_name: foundJob.destination_name || foundJob.destination_company_name,
-            destination_location: `${foundJob.destination_district}, ${foundJob.destination_province}`,
+            employer_name: foundJob.factory_name || foundJob.destination_name || foundJob.destination_company_name,
+            destination_location: `${foundJob.destination_district || ''}, ${foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
             start_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date,
             start_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time,
             destination_latitude: foundJob.destination_latitude,
