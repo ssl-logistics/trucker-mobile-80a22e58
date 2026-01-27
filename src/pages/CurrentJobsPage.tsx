@@ -74,14 +74,17 @@ interface AcceptedJob {
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
   const {
-    user
+    user,
+    userType
   } = useAuth();
   const {
     t,
     language
   } = useLanguage();
   const {
-    role
+    role,
+    isInternalDriver,
+    isExternalDriver
   } = useUserRole();
   const [acceptedJobs, setAcceptedJobs] = useState<AcceptedJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +98,7 @@ export default function CurrentJobsPage() {
   const [endDate, setEndDate] = useState<Date | undefined>();
   useEffect(() => {
     loadAcceptedJobs();
-  }, [user]);
+  }, [user, userType]);
 
   // Use centralized dedupe utility for order_number based deduplication
   const dedupeJobs = (jobs: AcceptedJob[]) => {
@@ -120,7 +123,85 @@ export default function CurrentJobsPage() {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       
-      // Fetch company jobs, factory jobs, and bid-won jobs from API in parallel
+      // For Internal/External drivers, only use get-driver-assigned-jobs API
+      if (isInternalDriver || isExternalDriver) {
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        const response = await fetch(
+          `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${freelanceDriverId}&driver_type=${driverType}&limit=50`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Loaded driver assigned jobs for current jobs:', result);
+          
+          const apiJobs = result.data || [];
+          // Map to AcceptedJob format
+          const mappedJobs: AcceptedJob[] = apiJobs.map((job: any) => ({
+            id: job.id,
+            order_number: job.order_number,
+            transport_type_id: job.transport_type_id,
+            transport_mode: job.transport_mode,
+            status: job.status,
+            sender_name: job.factory_name || job.sender_name || '',
+            sender_address: job.sender_address || '',
+            sender_latitude: job.sender_latitude,
+            sender_longitude: job.sender_longitude,
+            sender_province: job.sender_province || '',
+            sender_district: job.sender_district || '',
+            sender_pickup_date: job.sender_pickup_date || '',
+            sender_pickup_time: job.sender_pickup_time || '',
+            sender_contact_name: job.sender_contact_name || '',
+            sender_contact_phone: job.sender_contact_phone || '',
+            destination_name: job.destination_name || '',
+            destination_address: job.destination_address || '',
+            destination_latitude: job.destination_latitude,
+            destination_longitude: job.destination_longitude,
+            destination_province: job.destination_province || '',
+            destination_district: job.destination_district || '',
+            destination_delivery_date: job.destination_delivery_date || '',
+            destination_delivery_time: job.destination_delivery_time || '',
+            destination_contact_name: job.destination_contact_name || '',
+            destination_contact_phone: job.destination_contact_phone || '',
+            destination_company_name: job.destination_company_name,
+            product_name: job.product_name,
+            product_type: job.product_type,
+            product_category: job.product_category,
+            product_weight: job.product_weight,
+            product_weight_value: job.product_weight_value,
+            product_quantity: job.product_quantity,
+            product_unit: job.product_unit,
+            vehicle_type: job.vehicle_type,
+            vehicle_category: job.vehicle_category,
+            transport_price: job.transport_price || 0,
+            driver_name: job.driver_name,
+            driver_phone: job.driver_phone,
+            license_plate: job.license_plate,
+            freelance_bidder_id: null,
+            freelance_bidder_name: null,
+            factory_name: job.factory_name,
+            isFactoryJob: true,
+            remarks: job.remarks,
+            created_at: job.created_at,
+            updated_at: job.updated_at,
+          }));
+
+          setAcceptedJobs(mappedJobs);
+        } else {
+          console.error('Error loading driver assigned jobs:', await response.text());
+          setAcceptedJobs([]);
+        }
+        
+        setLoading(false);
+        return;
+      }
+      
+      // For Freelance drivers: Fetch company jobs, factory jobs, and bid-won jobs from API in parallel
       const [companyJobsResponse, factoryJobsResponse, bidWonJobsResponse] = await Promise.all([
         fetch(
           `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
