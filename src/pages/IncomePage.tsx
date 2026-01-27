@@ -224,8 +224,9 @@ export default function IncomePage() {
       setLoading(false);
     }
   };
-  const handleViewJobDetail = (jobId: string) => {
-    navigate(`/job/${jobId}/route-expenses`);
+  const handleViewJobDetail = (jobId: string, orderNumber: string) => {
+    // Use order_number for navigation as the route expects it
+    navigate(`/job/${orderNumber}/route-expenses`);
   };
 
   // Group jobs by month
@@ -305,7 +306,7 @@ export default function IncomePage() {
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button onClick={() => handleViewJobDetail(income.jobId)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                      <button onClick={() => handleViewJobDetail(income.id, income.orderCode)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         {t('income.viewDetails')}
                       </button>
                     </Card>)}
@@ -328,7 +329,7 @@ export default function IncomePage() {
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button onClick={() => handleViewJobDetail(income.jobId)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                      <button onClick={() => handleViewJobDetail(income.id, income.orderCode)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         {t('income.viewDetails')}
                       </button>
                     </Card>)}
@@ -351,7 +352,7 @@ export default function IncomePage() {
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button onClick={() => handleViewJobDetail(income.jobId)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                      <button onClick={() => handleViewJobDetail(income.id, income.orderCode)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         {t('income.viewDetails')}
                       </button>
                     </Card>)}
