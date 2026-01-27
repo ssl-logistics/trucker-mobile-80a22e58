@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Phone, MapPin, Camera, Check } from "lucide-react";
+import { ChevronLeft, Phone, MapPin, Camera, Check, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useCheckinStatus } from "@/hooks/useCheckinStatus";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
@@ -100,6 +101,12 @@ export default function DeliveryDetailPage() {
   
   // GPS tracking hook
   const { stopTracking } = useGpsTracking();
+  
+  // Check-in status hook
+  const { deliveryCheckedIn, saveCheckin } = useCheckinStatus(
+    job?.order_code || jobId,
+    user?.id
+  );
   
   // Get presigned URL for POD photo
   const { url: presignedPodPhotoUrl } = usePresignedImageUrl(jobApplication?.pod_photo_url);
@@ -497,6 +504,16 @@ export default function DeliveryDetailPage() {
       stopTracking();
       console.log('[DeliveryDetailPage] GPS tracking stopped');
 
+      // Save check-in to localStorage
+      saveCheckin({
+        order_number: job.order_code,
+        checkin_type: 'delivery',
+        driver_id: user.id,
+        checked_in_at: new Date().toISOString(),
+        latitude: latitude,
+        longitude: longitude
+      });
+
       toast({
         title: t('delivery.checkInSuccess'),
         description: t('pickup.checkInSuccessMessage'),
@@ -517,8 +534,8 @@ export default function DeliveryDetailPage() {
     }
   };
 
-  // Determine which check-in status to use
-  const isCheckedIn = destination ? !!destination.checked_in_at : !!jobApplication?.delivery_checked_in_at;
+  // Determine which check-in status to use - prioritize localStorage for reliability
+  const isCheckedIn = deliveryCheckedIn || (destination ? !!destination.checked_in_at : !!jobApplication?.delivery_checked_in_at);
   const checkedInAt = destination ? destination.checked_in_at : jobApplication?.delivery_checked_in_at;
   const isSopCompleted = destination ? !!destination.sop_completed_at : !!jobApplication?.delivery_sop_completed_at;
   
