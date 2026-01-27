@@ -67,6 +67,7 @@ interface AcceptedJob {
   freelance_accepted_at?: string | null;
   factory_name?: string | null;
   isFactoryJob?: boolean;
+  isBidJob?: boolean; // Flag for bid jobs - navigate to /bid-job/:ticketNumber
   remarks: string | null;
   created_at: string;
   updated_at: string;
@@ -635,7 +636,14 @@ export default function CurrentJobsPage() {
                       </div>
                     </div>
 
-                    <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => navigate(`/job/${job.order_number}`)}>
+                    <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => {
+                      // Navigate to correct page based on job type
+                      if (job.isBidJob) {
+                        navigate(`/bid-job/${job.order_number}`);
+                      } else {
+                        navigate(`/job/${job.order_number}`);
+                      }
+                    }}>
                       {t('currentJobs.viewDetails')}
                     </Button>
                   </div>
