@@ -342,19 +342,31 @@ export default function DeliveryDetailPage() {
     let podSubmitSuccess = false;
     let podApiResponse: any = null;
     
+    // Determine driver type for POD submission
+    const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+    
     try {
-      const podPayload = {
+      const podPayload: Record<string, unknown> = {
         order_number: job.order_code,
         checkin_type: 'delivery_confirmed',
-        freelance_driver_id: user.id,
         driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
         driver_phone: user.phone_number || user.phone || '',
         driver_avatar: user.avatar_url || user.profile_photo_url || '',
         latitude: podLatitude,
         longitude: podLongitude,
         notes: 'จัดส่งสำเร็จ',
-        photo_url: photoUrl
+        photo_url: photoUrl,
+        driver_type: driverType,
       };
+
+      // Set the appropriate driver ID field based on driver type
+      if (driverType === 'internal') {
+        podPayload.internal_driver_id = user.id;
+      } else if (driverType === 'external') {
+        podPayload.external_driver_id = user.id;
+      } else {
+        podPayload.freelance_driver_id = user.id;
+      }
       
       console.log('=== Sending POD to external API ===');
       console.log('Payload:', JSON.stringify(podPayload, null, 2));
@@ -444,6 +456,9 @@ export default function DeliveryDetailPage() {
         }
       }
 
+      // Determine driver type
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+
       // Call check-in API via proxy with checkin_type: 'delivery'
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
@@ -455,7 +470,8 @@ export default function DeliveryDetailPage() {
           body: JSON.stringify({
             order_number: job.order_code,
             checkin_type: 'delivery',
-            freelance_driver_id: user.id,
+            driver_id: user.id,
+            driver_type: driverType,
             driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
             driver_phone: user.phone_number || user.phone || '',
             driver_avatar: user.avatar_url || user.profile_photo_url || '',

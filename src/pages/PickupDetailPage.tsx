@@ -199,6 +199,9 @@ export default function PickupDetailPage() {
         }
       }
 
+      // Determine driver type
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+
       // Call check-in API via proxy
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
@@ -210,7 +213,8 @@ export default function PickupDetailPage() {
           body: JSON.stringify({
             order_number: job.order_number || job.order_code,
             checkin_type: 'pickup',
-            freelance_driver_id: user.id,
+            driver_id: user.id,
+            driver_type: driverType,
             driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
             driver_phone: user.phone_number || user.phone || '',
             driver_avatar: user.avatar_url || user.profile_photo_url || '',
