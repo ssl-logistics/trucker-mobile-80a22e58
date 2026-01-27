@@ -682,7 +682,8 @@ export default function BiddingPage() {
                   <span className="text-lg font-bold text-teal-500">฿ {bidAmount.toLocaleString()}</span>
                 </div>
               ) : null}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
+              {/* Start date hidden - API data not available yet */}
+              {/* <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
                 <CalendarIconLucide className="w-4 h-4 text-gray-500" />
                 <div className="text-left">
                   <div className="text-xs text-[#375B7B]">{t("currentJobs.startJobDate")}</div>
@@ -690,7 +691,7 @@ export default function BiddingPage() {
                     {formatThaiDate(job.start_date, language)} | {job.start_time.substring(0, 5)}
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
 
