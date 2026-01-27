@@ -4,6 +4,7 @@ import { ChevronLeft, Wallet, Receipt } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -28,6 +29,9 @@ interface IncomeJob {
   date: string;
   month: string;
   orderCode: string;
+  // Flag for bid jobs
+  isBidJob?: boolean;
+  ticketNumber?: string;
 }
 
 export default function IncomePage() {
@@ -117,8 +121,8 @@ export default function IncomePage() {
         return;
       }
 
-      // For Freelance drivers: Fetch company jobs, factory jobs, and checkins in parallel
-      const [companyJobsRes, factoryJobsRes, checkinsRes] = await Promise.all([
+      // For Freelance drivers: Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
+      const [companyJobsRes, factoryJobsRes, checkinsRes, bidWonJobsRes] = await Promise.all([
         fetch(
           `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
           {
@@ -143,6 +147,13 @@ export default function IncomePage() {
           `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
           { method: 'GET', headers: { 'Content-Type': 'application/json' } }
         ),
+        // Fetch bid-won jobs from list-tickets API
+        supabase.functions.invoke('list-tickets', {
+          body: {
+            freelance_driver_id: user.id,
+            bids_status: 'accepted',
+          },
+        }).catch(() => null),
       ]);
 
       if (!companyJobsRes.ok) {
@@ -191,7 +202,57 @@ export default function IncomePage() {
       // Only show jobs with delivery_confirmed in income
       const finishedJobs = allJobs.filter(job => confirmedTransportIds.has(String(job.id)));
 
-      // Process the data
+      // Process bid-won jobs that are marked as completed
+      let bidCompletedJobs: IncomeJob[] = [];
+      if (bidWonJobsRes && bidWonJobsRes.data) {
+        const bidData = bidWonJobsRes.data;
+        const tickets = bidData.data || bidData.tickets || [];
+        
+        // Filter only completed tickets where current user has an accepted bid
+        const completedStatuses = ['completed', 'delivered'];
+        bidCompletedJobs = tickets
+          .filter((ticket: any) => {
+            const status = (ticket.status || '').toLowerCase();
+            if (!completedStatuses.includes(status)) return false;
+            
+            // Check if current user has an accepted bid on this ticket
+            const userAcceptedBid = ticket.bids?.find((b: any) => 
+              b.status === 'accepted' && b.contractor_id === user.id
+            );
+            return !!userAcceptedBid;
+          })
+          .map((ticket: any) => {
+            const customer = ticket.customer || {};
+            const creator = ticket.creator || {};
+            const employerName = customer.company_name || customer.full_name || creator.company_name || creator.full_name || '';
+            
+            const acceptedBid = ticket.bids?.find((b: any) => 
+              b.status === 'accepted' && b.contractor_id === user.id
+            );
+            const bidPrice = acceptedBid?.bid_price || ticket.price || 0;
+            const pickupDate = ticket.pickup_date || ticket.created_at?.split('T')[0] || new Date().toISOString().split('T')[0];
+            
+            return {
+              id: ticket.id,
+              jobId: ticket.ticket_number,
+              jobTitle: employerName,
+              employer: employerName,
+              amount: bidPrice,
+              status: "paid" as const,
+              date: new Date(pickupDate).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
+              month: new Date(pickupDate).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
+                month: "long"
+              }),
+              orderCode: ticket.ticket_number,
+              isBidJob: true,
+              ticketNumber: ticket.ticket_number,
+            };
+          });
+        
+        console.log(`Found ${bidCompletedJobs.length} completed bid jobs for income`);
+      }
+
+      // Process the transport jobs data
       const paid: IncomeJob[] = [];
 
       finishedJobs.forEach((job) => {
@@ -206,12 +267,20 @@ export default function IncomePage() {
           month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
             month: "long"
           }),
-          orderCode: job.order_number
+          orderCode: job.order_number,
+          isBidJob: false,
         };
         paid.push(incomeJob);
       });
 
-      setPaidJobs(paid);
+      // Combine transport jobs and bid jobs, deduplicate by orderCode
+      const allPaidJobs = [...paid, ...bidCompletedJobs];
+      const uniquePaidJobs = allPaidJobs.filter((job, index, self) =>
+        index === self.findIndex((j) => j.orderCode === job.orderCode)
+      );
+
+      console.log('Total income jobs:', uniquePaidJobs.length, '(Transport:', paid.length, ', Bid:', bidCompletedJobs.length, ')');
+      setPaidJobs(uniquePaidJobs);
       setUnpaidJobs([]);
     } catch (error) {
       console.error("Error loading income data:", error);
@@ -224,9 +293,13 @@ export default function IncomePage() {
       setLoading(false);
     }
   };
-  const handleViewJobDetail = (jobId: string, orderNumber: string) => {
-    // Use order_number for navigation as the route expects it
-    navigate(`/job/${orderNumber}/route-expenses`);
+  const handleViewJobDetail = (income: IncomeJob) => {
+    // Navigate to correct page based on job type
+    if (income.isBidJob && income.ticketNumber) {
+      navigate(`/bid-job/${income.ticketNumber}`);
+    } else {
+      navigate(`/job/${income.orderCode}/route-expenses`);
+    }
   };
 
   // Group jobs by month
@@ -306,7 +379,7 @@ export default function IncomePage() {
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button onClick={() => handleViewJobDetail(income.id, income.orderCode)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                      <button onClick={() => handleViewJobDetail(income)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         {t('income.viewDetails')}
                       </button>
                     </Card>)}
@@ -329,7 +402,7 @@ export default function IncomePage() {
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button onClick={() => handleViewJobDetail(income.id, income.orderCode)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                      <button onClick={() => handleViewJobDetail(income)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         {t('income.viewDetails')}
                       </button>
                     </Card>)}
@@ -352,7 +425,7 @@ export default function IncomePage() {
                           ฿ {income.amount.toLocaleString()}
                         </div>
                       </div>
-                      <button onClick={() => handleViewJobDetail(income.id, income.orderCode)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
+                      <button onClick={() => handleViewJobDetail(income)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
                         {t('income.viewDetails')}
                       </button>
                     </Card>)}
