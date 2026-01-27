@@ -620,8 +620,8 @@ export default function BiddingPage() {
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground pr-3">
             <Clock className="w-3.5 h-3.5" />
-            {job.start_date && job.start_time 
-              ? `${formatThaiDate(job.start_date, language)} | ${job.start_time.substring(0, 5)}`
+            {job.created_at 
+              ? formatThaiDate(job.created_at.split('T')[0], language)
               : t('common.noData') || 'ไม่มีข้อมูล'}
           </div>
         </div>
