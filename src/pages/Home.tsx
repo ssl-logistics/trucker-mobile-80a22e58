@@ -153,8 +153,8 @@ export default function Home() {
         const status = (item?.status || '').toLowerCase().trim();
         if (isInternalDriver || isExternalDriver) {
           // Internal/External drivers only see jobs NOT yet started
-          // Filter out: in_progress, completed, delivered, cancelled, closed
-          const activeStatuses = ['in_progress', 'completed', 'delivered', 'cancelled', 'closed', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
+          // Filter out: in_progress, in_transit, completed, delivered, cancelled, closed
+          const activeStatuses = ['in_progress', 'in_transit', 'completed', 'delivered', 'cancelled', 'closed', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
           return !activeStatuses.includes(status);
         }
         // Freelance drivers only see jobs awaiting their response
