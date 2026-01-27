@@ -388,7 +388,8 @@ export default function CurrentJobsPage() {
 
   // Filter jobs based on search and date filters
   // Exclude completed/closed jobs - only show active jobs
-  const completedStatuses = ['completed', 'cancelled', 'closed', 'delivered', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
+  // Note: 'delivered' and 'ส่งแล้ว' are kept to allow drivers to see recently delivered jobs
+  const completedStatuses = ['completed', 'cancelled', 'closed', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
   
   const filteredJobs = acceptedJobs.filter((job: any) => {
     // Filter out completed jobs
