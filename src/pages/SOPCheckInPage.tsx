@@ -277,6 +277,13 @@ export default function SOPCheckInPage() {
 
       const imageUrl = uploadData.url;
 
+      // Build request body with appropriate driver ID field based on driver type
+      const driverIdField = isInternalDriver 
+        ? { internal_driver_id: user.id }
+        : isExternalDriver 
+          ? { external_driver_id: user.id }
+          : { freelance_driver_id: user.id };
+
       // Call driver-sop API
       const response = await fetch(
         'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/driver-sop',
@@ -288,7 +295,7 @@ export default function SOPCheckInPage() {
           },
           body: JSON.stringify({
             order_number: job.order_code,
-            freelance_driver_id: user.id,
+            ...driverIdField,
             product_images: [imageUrl],
             status: 'pickup'
           })
