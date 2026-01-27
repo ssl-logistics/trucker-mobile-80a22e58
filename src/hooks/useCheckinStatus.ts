@@ -72,8 +72,10 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
       if (result.success && Array.isArray(result.data)) {
         // Filter checkins for this specific order and driver
         const checkins = result.data.filter((checkin: any) => {
-          // Match by order_number and driver_id
-          const matchesOrder = checkin.order_number === orderNumber;
+          // Match by order_number (support both flat and nested structure from API)
+          const matchesOrder = 
+            checkin.order_number === orderNumber || 
+            checkin.transport_orders?.order_number === orderNumber;
           
           // Match driver ID based on driver type
           let matchesDriver = false;
