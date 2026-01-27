@@ -303,18 +303,26 @@ export default function JobHistoryPage() {
       const allJobs = [...companyJobs, ...acceptedFactoryJobs];
 
       // Process bid-won jobs from list-tickets API - only completed ones for history
+      // Filter by current user's contractor_id to show only their own completed bids
       let bidCompletedJobs: CompletedJob[] = [];
       if (bidWonJobsRes && bidWonJobsRes.data) {
         const bidData = bidWonJobsRes.data;
         console.log('Loaded bid-won jobs from API:', bidData);
         const tickets = bidData.data || bidData.tickets || [];
         
-        // Filter only completed bids for job history
+        // Filter only completed tickets where current user has an accepted bid
         const completedStatuses = ['completed', 'delivered'];
         bidCompletedJobs = tickets
           .filter((ticket: any) => {
             const status = (ticket.status || '').toLowerCase();
-            return completedStatuses.includes(status);
+            // Check if this ticket is completed
+            if (!completedStatuses.includes(status)) return false;
+            
+            // Check if current user has an accepted bid on this ticket
+            const userAcceptedBid = ticket.bids?.find((b: any) => 
+              b.status === 'accepted' && b.contractor_id === freelanceDriverId
+            );
+            return !!userAcceptedBid;
           })
           .map((ticket: any) => {
             // Extract location info from route object (list-tickets API structure)
@@ -329,8 +337,10 @@ export default function JobHistoryPage() {
             const creator = ticket.creator || {};
             const employerName = customer.company_name || customer.full_name || creator.company_name || creator.full_name || '';
             
-            // Get accepted bid price
-            const acceptedBid = ticket.bids?.find((b: any) => b.status === 'accepted');
+            // Get accepted bid price for this user
+            const acceptedBid = ticket.bids?.find((b: any) => 
+              b.status === 'accepted' && b.contractor_id === freelanceDriverId
+            );
             const bidPrice = acceptedBid?.bid_price || ticket.price || 0;
             
             return {
@@ -362,6 +372,8 @@ export default function JobHistoryPage() {
               updated_at: ticket.updated_at || ticket.created_at,
             };
           });
+        
+        console.log(`Found ${bidCompletedJobs.length} completed bid jobs for user ${freelanceDriverId}`);
       }
 
       const allCheckins = checkinsJson?.data || checkinsJson || [];
