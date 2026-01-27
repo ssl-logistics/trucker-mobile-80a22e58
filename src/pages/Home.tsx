@@ -545,9 +545,21 @@ export default function Home() {
     }
   };
 
+  // Handle starting an assigned job (Internal/External drivers)
+  // These drivers already have the job assigned, so just navigate to job detail
+  const handleStartAssignedJob = (job: Job) => {
+    navigate(`/job/${job.order_code}`);
+  };
+
   // Handle factory job accept with double-click and duplicate order protection
   const handleAcceptFactoryJob = async (job: Job) => {
     if (!user) return;
+    
+    // For Internal/External drivers, jobs are already assigned - just navigate to job detail
+    if (userType === 'internal_driver' || userType === 'external_driver') {
+      handleStartAssignedJob(job);
+      return;
+    }
     
     const orderCode = job.order_code;
     
