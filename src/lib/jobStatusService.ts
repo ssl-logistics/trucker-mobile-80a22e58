@@ -30,6 +30,9 @@ interface SendJobStatusParams {
   sealNumber?: string;
   containerNumber2?: string;
   sealNumber2?: string;
+  // Optional driver info - if provided, skip Supabase lookup
+  driverName?: string;
+  driverPhone?: string;
 }
 
 export async function sendJobStatus({ 
@@ -42,26 +45,52 @@ export async function sendJobStatus({
   containerNumber,
   sealNumber,
   containerNumber2,
-  sealNumber2
+  sealNumber2,
+  driverName,
+  driverPhone
 }: SendJobStatusParams): Promise<boolean> {
   try {
-    // Get driver profile info
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('full_name, phone_number')
-      .eq('id', userId)
-      .single();
+    let finalDriverName = driverName;
+    let finalDriverPhone = driverPhone;
 
-    if (profileError || !profile) {
-      console.error('Error fetching driver profile:', profileError);
+    // If driver info not provided, try to get from Supabase profiles
+    if (!finalDriverName || !finalDriverPhone) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, phone_number')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profile) {
+        finalDriverName = finalDriverName || profile.full_name;
+        finalDriverPhone = finalDriverPhone || profile.phone_number;
+      }
+    }
+
+    // If still no driver info, try to get from localStorage (for internal/external drivers)
+    if (!finalDriverName || !finalDriverPhone) {
+      try {
+        const storedDriver = localStorage.getItem('auth_driver');
+        if (storedDriver) {
+          const driverData = JSON.parse(storedDriver);
+          finalDriverName = finalDriverName || driverData.full_name || driverData.first_name + ' ' + driverData.last_name || '';
+          finalDriverPhone = finalDriverPhone || driverData.phone || driverData.phone_number || '';
+        }
+      } catch (e) {
+        console.error('Error parsing stored driver data:', e);
+      }
+    }
+
+    if (!finalDriverName || !finalDriverPhone) {
+      console.error('Could not get driver info from any source');
       return false;
     }
 
     const payload: any = {
       external_job_id: orderCode,
       status: STATUS_LABELS[status],
-      driver_name: profile.full_name,
-      driver_phone: profile.phone_number,
+      driver_name: finalDriverName,
+      driver_phone: finalDriverPhone,
     };
 
     // Add destination_id or sequence_number if provided
