@@ -474,14 +474,16 @@ export default function CurrentJobsPage() {
   };
 
   // Filter jobs based on search and date filters
-  // Exclude completed/closed jobs - only show active jobs
-  // Note: 'delivered' and 'ส่งแล้ว' are kept to allow drivers to see recently delivered jobs
-  const completedStatuses = ['completed', 'cancelled', 'closed', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
+  // Note: We no longer filter by 'completed' status here because:
+  // 1. For Bid Jobs, 'completed' from external API just means the bid was accepted
+  // 2. The real completion check is done via delivery_confirmed check-in
+  // 3. Jobs with delivery_confirmed are already filtered out during data loading
+  const excludedStatuses = ['cancelled', 'closed', 'ยกเลิก', 'ปิดงาน'];
   
   const filteredJobs = acceptedJobs.filter((job: any) => {
-    // Filter out completed jobs
+    // Only filter out cancelled/closed jobs, NOT completed
     const jobStatus = (job.status || '').toLowerCase().trim();
-    if (completedStatuses.some(s => jobStatus.includes(s.toLowerCase()))) {
+    if (excludedStatuses.some(s => jobStatus.includes(s.toLowerCase()))) {
       return false;
     }
 
