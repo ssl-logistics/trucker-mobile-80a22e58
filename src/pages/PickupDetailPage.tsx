@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Phone, MapPin } from 'lucide-react';
+import { ChevronLeft, Phone, MapPin, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useCheckinStatus } from '@/hooks/useCheckinStatus';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
@@ -50,6 +51,12 @@ export default function PickupDetailPage() {
   
   // Initialize GPS tracking hook
   const { startTracking } = useGpsTracking();
+  
+  // Check-in status hook
+  const { pickupCheckedIn, saveCheckin, loading: checkinStatusLoading } = useCheckinStatus(
+    job?.order_code || jobId,
+    user?.id
+  );
   
   useEffect(() => {
     loadJobDetail();
@@ -297,21 +304,15 @@ export default function PickupDetailPage() {
         console.warn('⚠️ No room_code found/created for order:', job.order_code);
       }
 
-      // Also send job status update
-      await sendJobStatus({
-        jobId: job.id,
-        orderCode: job.order_code,
-        userId: user.id,
-        status: 'pickup_checked_in',
-        sequenceNumber: 2
+      // Save check-in to localStorage
+      saveCheckin({
+        order_number: job.order_number || job.order_code,
+        checkin_type: 'pickup',
+        driver_id: user.id,
+        checked_in_at: new Date().toISOString(),
+        latitude: latitude,
+        longitude: longitude
       });
-
-      // Start GPS tracking after successful check-in
-      if (roomCode) {
-        // Pass roomCode and orderCode directly to startTracking
-        startTracking(roomCode, job.order_code);
-        console.log('[PickupDetailPage] GPS tracking started for room:', roomCode);
-      }
       
       toast({
         title: t('pickup.checkInSuccess'),
@@ -419,10 +420,17 @@ export default function PickupDetailPage() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-        <Button className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700" onClick={() => setShowConfirmDialog(true)}>
-          <MapPin className="w-5 h-5 mr-2" />
-          {t('pickup.checkIn')}
-        </Button>
+        {pickupCheckedIn ? (
+          <div className="flex items-center justify-center gap-2 text-green-600 py-3">
+            <CheckCircle className="w-6 h-6" />
+            <span className="text-base font-medium">เช็คอินสำเร็จแล้ว</span>
+          </div>
+        ) : (
+          <Button className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700" onClick={() => setShowConfirmDialog(true)}>
+            <MapPin className="w-5 h-5 mr-2" />
+            {t('pickup.checkIn')}
+          </Button>
+        )}
       </div>
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
