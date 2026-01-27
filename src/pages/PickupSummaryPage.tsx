@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
@@ -29,6 +30,7 @@ export default function PickupSummaryPage() {
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,18 +48,29 @@ export default function PickupSummaryPage() {
     setLoading(true);
 
     try {
-      const freelanceDriverId = user.id;
+      const driverId = user.id;
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
       // Fetch job detail from external API
-      const jobResponse = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${freelanceDriverId}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
-          }
-        }
-      );
+      const jobResponse = (isInternalDriver || isExternalDriver)
+        ? await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=50`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+              }
+            }
+          )
+        : await fetch(
+            `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${driverId}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+              }
+            }
+          );
 
       if (jobResponse.ok) {
         const jobResult = await jobResponse.json();
@@ -67,7 +80,7 @@ export default function PickupSummaryPage() {
             setJob({
               id: foundJob.order_number,
               order_code: foundJob.order_number,
-              employer_name: foundJob.sender_name || '',
+              employer_name: foundJob.sender_name || foundJob.factory_name || '',
               origin_location: foundJob.sender_address || '',
               start_date: foundJob.sender_pickup_date || '',
               start_time: foundJob.sender_pickup_time || '',
@@ -78,10 +91,15 @@ export default function PickupSummaryPage() {
 
       // Fetch check-in data from proxy API
       const checkinResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${freelanceDriverId}&order_number=${jobId}`,
+        (isInternalDriver || isExternalDriver)
+          ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${encodeURIComponent(driverId)}&driver_type=${driverType}&order_number=${encodeURIComponent(jobId)}`
+          : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(driverId)}&order_number=${encodeURIComponent(jobId)}`,
         {
           headers: {
             'Content-Type': 'application/json',
+            ...(isInternalDriver || isExternalDriver
+              ? { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }
+              : {}),
           }
         }
       );
@@ -102,8 +120,14 @@ export default function PickupSummaryPage() {
       }
 
       // Fetch SOP data from API
+      const driverIdParam = isInternalDriver
+        ? `internal_driver_id=${encodeURIComponent(driverId)}`
+        : isExternalDriver
+          ? `external_driver_id=${encodeURIComponent(driverId)}`
+          : `freelance_driver_id=${encodeURIComponent(driverId)}`;
+
       const sopResponse = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${freelanceDriverId}&order_number=${jobId}`,
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${driverIdParam}&order_number=${encodeURIComponent(jobId)}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -111,6 +135,7 @@ export default function PickupSummaryPage() {
           }
         }
       );
+
 
       if (sopResponse.ok) {
         const sopResult = await sopResponse.json();

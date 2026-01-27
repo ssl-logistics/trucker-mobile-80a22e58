@@ -103,9 +103,15 @@ export default function SOPCheckInPage() {
     if (!user || !job) return;
 
     try {
-      // Fetch SOP status using freelance_driver_id as primary param
+      // Fetch SOP status (role-aware driver id param)
+      const sopDriverIdParam = isInternalDriver
+        ? `internal_driver_id=${encodeURIComponent(user.id)}`
+        : isExternalDriver
+          ? `external_driver_id=${encodeURIComponent(user.id)}`
+          : `freelance_driver_id=${encodeURIComponent(user.id)}`;
+
       const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?freelance_driver_id=${user.id}&order_number=${job.order_code}`,
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
         {
           headers: {
             'Content-Type': 'application/json',
