@@ -171,16 +171,18 @@ export default function DeliveryDetailPage() {
           };
           setJob(mappedJob);
 
-          // Check for delivery check-in status from API
-          try {
-            const checkinsResponse = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${user.id}&order_number=${jobId}`,
-              {
-                headers: {
-                  'Content-Type': 'application/json',
+            // Check for delivery check-in status from API
+            try {
+              // Build query params based on driver type
+              const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+              const checkinsResponse = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${user.id}&driver_type=${driverType}&order_number=${jobId}`,
+                {
+                  headers: {
+                    'Content-Type': 'application/json',
+                  }
                 }
-              }
-            );
+              );
             
             let deliveryCheckinTime: string | null = null;
             let deliveryConfirmedTime: string | null = null;
@@ -189,10 +191,16 @@ export default function DeliveryDetailPage() {
             if (checkinsResponse.ok) {
               const checkinsResult = await checkinsResponse.json();
               if (checkinsResult.success && Array.isArray(checkinsResult.data)) {
-                // Filter checkins by transport_order_id matching job.id (foundJob.id)
-                const filteredCheckins = checkinsResult.data.filter(
-                  (c: any) => c.transport_order_id === foundJob.id && c.freelance_driver_id === user.id
-                );
+                // Filter checkins by transport_order_id matching job.id (foundJob.id) and appropriate driver ID
+                const filteredCheckins = checkinsResult.data.filter((c: any) => {
+                  const matchesOrder = c.transport_order_id === foundJob.id;
+                  const matchesUser = isInternalDriver 
+                    ? c.internal_driver_id === user.id 
+                    : isExternalDriver 
+                      ? c.external_driver_id === user.id 
+                      : c.freelance_driver_id === user.id;
+                  return matchesOrder && matchesUser;
+                });
                 console.log('Filtered delivery checkins for order', foundJob.id, ':', filteredCheckins.length);
                 
                 const deliveryCheckin = filteredCheckins.find((c: any) => c.checkin_type === 'delivery');
