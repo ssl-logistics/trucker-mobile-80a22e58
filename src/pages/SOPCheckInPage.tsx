@@ -4,6 +4,7 @@ import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
@@ -43,6 +44,7 @@ export default function SOPCheckInPage() {
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -89,7 +91,7 @@ export default function SOPCheckInPage() {
 
   useEffect(() => {
     loadJobDetail();
-  }, [jobId, user]);
+  }, [jobId, user, isInternalDriver, isExternalDriver]);
 
   useEffect(() => {
     if (job && user) {
@@ -140,42 +142,69 @@ export default function SOPCheckInPage() {
     setLoading(true);
     
     try {
-      // Fetch from external API using order_code
-      const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+      let foundJob: any = null;
+
+      // For Internal/External drivers, use get-driver-assigned-jobs
+      if (isInternalDriver || isExternalDriver) {
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+            }
           }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch job details');
         }
-      );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch job details');
-      }
-
-      const result = await response.json();
-      
-      if (result.success && result.data) {
-        // Find the specific job by order_number
-        const foundJob = result.data.find((j: any) => j.order_number === jobId);
+        const result = await response.json();
+        console.log('Internal/External job API response:', result);
         
-        if (foundJob) {
-          // Map API response to JobDetail interface
-          const mappedJob: JobDetail = {
-            id: foundJob.id,
-            order_code: foundJob.order_number,
-            employer_name: foundJob.sender_name,
-            origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
-            origin_company_name: foundJob.sender_name,
-            start_date: foundJob.sender_pickup_date,
-            start_time: foundJob.sender_pickup_time,
-          };
-          setJob(mappedJob);
-        } else {
-          throw new Error('Job not found');
+        if (result.success && result.data) {
+          foundJob = result.data.find((j: any) => j.order_number === jobId);
         }
+      } else {
+        // For Freelance drivers, use get-freelance-accepted-jobs
+        const response = await fetch(
+          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch job details');
+        }
+
+        const result = await response.json();
+        console.log('Freelance job API response:', result);
+        
+        if (result.success && result.data) {
+          foundJob = result.data.find((j: any) => j.order_number === jobId);
+        }
+      }
+      
+      if (foundJob) {
+        // Map API response to JobDetail interface
+        const mappedJob: JobDetail = {
+          id: foundJob.id,
+          order_code: foundJob.order_number,
+          employer_name: foundJob.sender_name || foundJob.factory_name,
+          origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
+          origin_company_name: foundJob.sender_name || foundJob.factory_name,
+          start_date: foundJob.sender_pickup_date,
+          start_time: foundJob.sender_pickup_time,
+        };
+        setJob(mappedJob);
+      } else {
+        throw new Error('Job not found');
       }
     } catch (error) {
       console.error('Error loading job detail:', error);
