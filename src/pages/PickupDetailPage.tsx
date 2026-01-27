@@ -4,6 +4,7 @@ import { ChevronLeft, Phone, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
@@ -36,16 +37,10 @@ interface JobDetail {
 }
 export default function PickupDetailPage() {
   const navigate = useNavigate();
-  const {
-    jobId
-  } = useParams();
-  const {
-    user
-  } = useAuth();
-  const {
-    t,
-    language
-  } = useLanguage();
+  const { jobId } = useParams();
+  const { user } = useAuth();
+  const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
@@ -58,7 +53,7 @@ export default function PickupDetailPage() {
   
   useEffect(() => {
     loadJobDetail();
-  }, [jobId, user]);
+  }, [jobId, user, isInternalDriver, isExternalDriver]);
   
   useEffect(() => {
     if (job && user) {
@@ -70,16 +65,23 @@ export default function PickupDetailPage() {
     setLoading(true);
     
     try {
-      // Fetch from external API using order_code
-      const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
-          }
+      let apiUrl: string;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      
+      // Use different API based on driver type
+      if (isInternalDriver || isExternalDriver) {
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        apiUrl = `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`;
+      } else {
+        apiUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`;
+      }
+      
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
         }
-      );
+      });
 
       if (!response.ok) {
         throw new Error('Failed to fetch job details');
@@ -96,8 +98,9 @@ export default function PickupDetailPage() {
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
-            employer_name: foundJob.sender_name,
-            origin_location: `${foundJob.sender_district}, ${foundJob.sender_province}`,
+            order_number: foundJob.order_number,
+            employer_name: foundJob.factory_name || foundJob.sender_name,
+            origin_location: `${foundJob.sender_district || ''}, ${foundJob.sender_province || ''}`.replace(/^, |, $/g, ''),
             start_date: foundJob.sender_pickup_date,
             start_time: foundJob.sender_pickup_time,
             origin_latitude: foundJob.sender_latitude,
@@ -107,8 +110,10 @@ export default function PickupDetailPage() {
             origin_contact_person: foundJob.sender_contact_name,
             origin_contact_role: foundJob.sender_contact_phone,
             origin_goods_type: foundJob.product_name,
-            origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null, origin_remarks: foundJob.remarks,
-            origin_address: foundJob.sender_address, origin_company_name: foundJob.sender_name,
+            origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
+            origin_remarks: foundJob.remarks,
+            origin_address: foundJob.sender_address,
+            origin_company_name: foundJob.factory_name || foundJob.sender_name,
           };
           setJob(mappedJob);
         } else {
