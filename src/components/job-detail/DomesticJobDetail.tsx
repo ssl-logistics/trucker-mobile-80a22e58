@@ -324,12 +324,13 @@ export default function DomesticJobDetail({
               id: 'fallback',
               sequence_number: 1
             }]).map((dest, index) => {
-              // For fallback, use jobApplication's delivery status
+              // For fallback, use actual check-in status from API (deliveryCheckedIn)
+              // NOT jobApplication?.delivery_checked_in_at which is derived from API status and may be incorrect
               const isPodCompleted = dest.id === 'fallback' 
                 ? !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at)
                 : !!dest.sop_completed_at;
               const isCheckedIn = dest.id === 'fallback'
-                ? !!jobApplication?.delivery_checked_in_at
+                ? deliveryCheckedIn  // Use actual check-in status from API
                 : !!dest.checked_in_at;
               
               return <div key={dest.id} className="relative flex justify-center" style={{
