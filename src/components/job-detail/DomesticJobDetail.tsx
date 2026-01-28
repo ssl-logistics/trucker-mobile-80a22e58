@@ -401,15 +401,19 @@ export default function DomesticJobDetail({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]">
-                      <Phone className="w-4 h-4" />
-                      <span className="text-xs">{t('jobDetail.call')}</span>
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]">
-                      <img src={routeIcon} alt="route" className="w-4 h-4" />
-                      <span className="text-xs">{t('jobDetail.route')}</span>
-                    </Button>
+                  <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                    {new URLSearchParams(location.search).get('from') !== 'history' && (
+                      <>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]">
+                          <Phone className="w-4 h-4" />
+                          <span className="text-xs">{t('jobDetail.call')}</span>
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]">
+                          <img src={routeIcon} alt="route" className="w-4 h-4" />
+                          <span className="text-xs">{t('jobDetail.route')}</span>
+                        </Button>
+                      </>
+                    )}
                     <Button size="sm" onClick={() => {
                     const fromParam = new URLSearchParams(location.search).get('from');
                     const queryString = fromParam ? `?from=${fromParam}` : '';
@@ -534,15 +538,19 @@ export default function DomesticJobDetail({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
-                        <Phone className="w-4 h-4" />
-                        <span className="text-xs">{t('jobDetail.call')}</span>
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
-                        <img src={routeIcon} alt="route" className="w-4 h-4" />
-                        <span className="text-xs">{t('jobDetail.route')}</span>
-                      </Button>
+                    <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                      {new URLSearchParams(location.search).get('from') !== 'history' && (
+                        <>
+                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                            <Phone className="w-4 h-4" />
+                            <span className="text-xs">{t('jobDetail.call')}</span>
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                            <img src={routeIcon} alt="route" className="w-4 h-4" />
+                            <span className="text-xs">{t('jobDetail.route')}</span>
+                          </Button>
+                        </>
+                      )}
                       <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => navigate(`/job/${job.order_code}/delivery`)} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                         <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
