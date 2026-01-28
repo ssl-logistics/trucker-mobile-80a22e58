@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Phone, MapPin, Camera, Check, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -82,6 +82,7 @@ interface JobApplication {
 
 export default function DeliveryDetailPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -591,7 +592,10 @@ export default function DeliveryDetailPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.order_code}`)} className="p-1">
+          <button onClick={() => {
+            const fromParam = new URLSearchParams(location.search).get('from');
+            navigate(`/job/${job.order_code}${fromParam ? `?from=${fromParam}` : ''}`);
+          }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('delivery.deliveryTo')} {displayCompanyName}</h1>
@@ -600,7 +604,9 @@ export default function DeliveryDetailPage() {
       </header>
 
       <div className="px-4 py-6 space-y-6">
-        <JobActionButtons jobId={jobId} />
+        {new URLSearchParams(location.search).get('from') !== 'history' && (
+          <JobActionButtons jobId={jobId} />
+        )}
 
         {isCheckedIn && checkedInAt && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
