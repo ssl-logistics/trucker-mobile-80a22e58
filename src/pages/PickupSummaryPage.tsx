@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,6 +27,8 @@ interface SOPData {
 
 export default function PickupSummaryPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromHistory = new URLSearchParams(location.search).get('from') === 'history';
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -232,10 +234,12 @@ export default function PickupSummaryPage() {
 
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
-        {/* Action Buttons */}
-        <div className="bg-white rounded-xl p-4">
-          <JobActionButtons jobId={jobId} />
-        </div>
+        {/* Action Buttons - Hidden when viewing from history */}
+        {!fromHistory && (
+          <div className="bg-white rounded-xl p-4">
+            <JobActionButtons jobId={jobId} />
+          </div>
+        )}
 
         {/* Check-in Status */}
         {sopData?.checked_in_at && (
