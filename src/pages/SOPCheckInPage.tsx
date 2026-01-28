@@ -28,6 +28,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
 
 interface JobDetail {
   id: string;
@@ -46,6 +47,7 @@ export default function SOPCheckInPage() {
   const { t, language } = useLanguage();
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
+  const [isBidJob, setIsBidJob] = useState(false);
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
@@ -198,6 +200,7 @@ export default function SOPCheckInPage() {
       }
       
       if (foundJob) {
+        setIsBidJob(false);
         // Map API response to JobDetail interface
         const mappedJob: JobDetail = {
           id: foundJob.id,
@@ -210,7 +213,22 @@ export default function SOPCheckInPage() {
         };
         setJob(mappedJob);
       } else {
-        throw new Error('Job not found');
+        // Fallback: try to load as Bid job (ticket_number)
+        const tickets = await fetchAcceptedBidTickets(50);
+        const ticket = tickets.find((t) => t.ticket_number === jobId || t.id === jobId);
+        if (!ticket) throw new Error('Job not found');
+
+        setIsBidJob(true);
+        const mapped = mapBidTicketToPickupLikeJobDetail(ticket);
+        setJob({
+          id: mapped.id,
+          order_code: mapped.order_code,
+          employer_name: mapped.employer_name,
+          origin_location: mapped.origin_location,
+          origin_company_name: mapped.origin_company_name,
+          start_date: mapped.start_date,
+          start_time: mapped.start_time,
+        });
       }
     } catch (error) {
       console.error('Error loading job detail:', error);
@@ -318,7 +336,7 @@ export default function SOPCheckInPage() {
         description: t('sop.sopSuccessMessage'),
       });
 
-      navigate(`/job/${job.order_code}`);
+      navigate(isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`);
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({

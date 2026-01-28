@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useGpsTracking } from '@/hooks/useGpsTracking';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
+import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -43,6 +44,7 @@ export default function PickupDetailPage() {
   const { t, language } = useLanguage();
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
+  const [isBidJob, setIsBidJob] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -101,6 +103,7 @@ export default function PickupDetailPage() {
         const foundJob = result.data.find((j: any) => j.order_number === jobId);
         
         if (foundJob) {
+          setIsBidJob(false);
           // Map API response to JobDetail interface
           const mappedJob: JobDetail = {
             id: foundJob.id,
@@ -124,7 +127,13 @@ export default function PickupDetailPage() {
           };
           setJob(mappedJob);
         } else {
-          throw new Error('Job not found');
+          // Fallback: try to load as Bid job (ticket_number)
+          const tickets = await fetchAcceptedBidTickets(50);
+          const ticket = tickets.find((t) => t.ticket_number === jobId || t.id === jobId);
+          if (!ticket) throw new Error('Job not found');
+
+          setIsBidJob(true);
+          setJob(mapBidTicketToPickupLikeJobDetail(ticket) as unknown as JobDetail);
         }
       }
     } catch (error) {
@@ -331,7 +340,7 @@ export default function PickupDetailPage() {
         description: t('pickup.checkInSuccessMessage')
       });
       setShowConfirmDialog(false);
-      navigate(`/job/${job.order_code}`);
+      navigate(isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`);
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
@@ -366,7 +375,7 @@ export default function PickupDetailPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.order_code}`)} className="p-1">
+          <button onClick={() => navigate(isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('pickup.title')} {job.origin_company_name || ''}</h1>
