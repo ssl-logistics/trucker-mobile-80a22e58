@@ -411,14 +411,16 @@ export default function DomesticJobDetail({
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
                     <Button size="sm" onClick={() => {
+                    const fromParam = new URLSearchParams(location.search).get('from');
+                    const queryString = fromParam ? `?from=${fromParam}` : '';
                     if (pickupSopCompleted || jobApplication?.sop_completed_at) {
-                      navigate(`/job/${job.order_code}/pickup-summary`);
+                      navigate(`/job/${job.order_code}/pickup-summary${queryString}`);
                     } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
                       // Already checked in (from API or local state), go to SOP page
-                      navigate(`/job/${job.order_code}/sop`);
+                      navigate(`/job/${job.order_code}/sop${queryString}`);
                     } else {
                       // Not checked in yet, go to check-in page
-                      navigate(`/job/${job.order_code}/pickup`);
+                      navigate(`/job/${job.order_code}/pickup${queryString}`);
                     }
                   }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isLoadingCheckinStatus}>
                       {isLoadingCheckinStatus ? (
