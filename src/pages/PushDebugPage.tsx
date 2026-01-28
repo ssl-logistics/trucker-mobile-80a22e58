@@ -2,20 +2,21 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, RefreshCw, Bell, Smartphone, Database, User } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Bell, Smartphone, Database, User, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { getAuthItem } from '@/utils/authStorage';
 import {
   isPushSupported,
   getPushPermissionStatus,
-  enablePushNotifications,
   getPlatformName,
 } from '@/utils/unifiedPushNotifications';
 import { isNativePlatform } from '@/utils/capacitorPushNotifications';
 
 interface DebugInfo {
   platform: string;
+  nativePlatform: string;
   isNative: boolean;
   isPushSupported: boolean;
   permissionStatus: string;
@@ -23,12 +24,16 @@ interface DebugInfo {
   userIdSource: string;
   subscriptions: any[];
   lastError: string | null;
+  hasFCMToken: boolean;
+  hasAPNsToken: boolean;
+  hasWebToken: boolean;
 }
 
 const PushDebugPage = () => {
   const navigate = useNavigate();
   const [debugInfo, setDebugInfo] = useState<DebugInfo>({
     platform: '',
+    nativePlatform: '',
     isNative: false,
     isPushSupported: false,
     permissionStatus: 'loading...',
@@ -36,6 +41,9 @@ const PushDebugPage = () => {
     userIdSource: 'none',
     subscriptions: [],
     lastError: null,
+    hasFCMToken: false,
+    hasAPNsToken: false,
+    hasWebToken: false,
   });
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
@@ -44,6 +52,20 @@ const PushDebugPage = () => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 49)]);
     console.log(`[PushDebug] ${message}`);
+  };
+
+  const getTokenType = (endpoint: string): 'fcm' | 'apns' | 'web' => {
+    if (endpoint.startsWith('fcm://')) return 'fcm';
+    if (endpoint.startsWith('apns://')) return 'apns';
+    return 'web';
+  };
+
+  const getTokenLabel = (type: 'fcm' | 'apns' | 'web'): string => {
+    switch (type) {
+      case 'fcm': return 'FCM (Android)';
+      case 'apns': return 'APNs (iOS)';
+      case 'web': return 'Web Push';
+    }
   };
 
   const loadDebugInfo = async () => {
@@ -55,8 +77,9 @@ const PushDebugPage = () => {
       const platform = getPlatformName();
       const isNative = isNativePlatform();
       const supported = isPushSupported();
+      const nativePlatform = Capacitor.getPlatform(); // 'ios', 'android', or 'web'
       
-      addLog(`Platform: ${platform}, Native: ${isNative}, Supported: ${supported}`);
+      addLog(`Platform: ${platform}, Native: ${isNative}, Capacitor: ${nativePlatform}`);
 
       // Permission status
       let permStatus = 'unknown';
@@ -126,6 +149,10 @@ const PushDebugPage = () => {
 
       // Get subscriptions from database
       let subscriptions: any[] = [];
+      let hasFCMToken = false;
+      let hasAPNsToken = false;
+      let hasWebToken = false;
+
       if (userId) {
         const { data, error } = await supabase
           .from('push_subscriptions')
@@ -138,14 +165,26 @@ const PushDebugPage = () => {
           subscriptions = data || [];
           addLog(`Found ${subscriptions.length} subscriptions in DB`);
           subscriptions.forEach((sub, i) => {
-            const isFCM = sub.endpoint.startsWith('fcm://');
-            addLog(`  [${i}] ${isFCM ? 'FCM' : 'Web'}: ${sub.endpoint.substring(0, 40)}...`);
+            const tokenType = getTokenType(sub.endpoint);
+            if (tokenType === 'fcm') hasFCMToken = true;
+            if (tokenType === 'apns') hasAPNsToken = true;
+            if (tokenType === 'web') hasWebToken = true;
+            addLog(`  [${i}] ${getTokenLabel(tokenType)}: ${sub.endpoint.substring(0, 40)}...`);
           });
         }
       }
 
+      // Check if current platform has correct token
+      if (nativePlatform === 'android' && !hasFCMToken) {
+        addLog('⚠️ Android detected but NO FCM token in DB!');
+      }
+      if (nativePlatform === 'ios' && !hasAPNsToken) {
+        addLog('⚠️ iOS detected but NO APNs token in DB!');
+      }
+
       setDebugInfo({
         platform,
+        nativePlatform,
         isNative,
         isPushSupported: supported,
         permissionStatus: permStatus,
@@ -153,6 +192,9 @@ const PushDebugPage = () => {
         userIdSource,
         subscriptions,
         lastError: null,
+        hasFCMToken,
+        hasAPNsToken,
+        hasWebToken,
       });
 
     } catch (error: any) {
@@ -166,7 +208,7 @@ const PushDebugPage = () => {
   const handleRegisterPush = async () => {
     setLoading(true);
     addLog('Starting push registration...');
-    addLog(`Platform: ${debugInfo.platform}, Native: ${debugInfo.isNative}`);
+    addLog(`Platform: ${debugInfo.platform}, Native: ${debugInfo.isNative}, Capacitor: ${debugInfo.nativePlatform}`);
 
     try {
       // Step 1: Check current permission
@@ -180,14 +222,17 @@ const PushDebugPage = () => {
       
       // Step 3: Call native registration directly
       addLog('Step 3: Calling registerNativePushNotifications()...');
-      addLog('⏳ Waiting for FCM token (up to 20s)...');
+      
+      const expectedTokenType = debugInfo.nativePlatform === 'ios' ? 'APNs' : 'FCM';
+      addLog(`⏳ Waiting for ${expectedTokenType} token (up to 20s)...`);
+      
       const startTime = Date.now();
       
       const token = await registerNativePushNotifications();
       const duration = ((Date.now() - startTime) / 1000).toFixed(1);
       
       if (token) {
-        addLog(`✅ Got token in ${duration}s!`);
+        addLog(`✅ Got ${expectedTokenType} token in ${duration}s!`);
         addLog(`Token prefix: ${token.substring(0, 30)}...`);
         addLog(`Token length: ${token.length}`);
         
@@ -202,12 +247,24 @@ const PushDebugPage = () => {
           addLog(`❌ Save error: ${saveError.message}`);
         }
       } else {
-        addLog(`❌ No token after ${duration}s`);
-        addLog('⚠️ Possible causes:');
-        addLog('  - APNs key not uploaded to Firebase');
-        addLog('  - Push capability not enabled in Xcode');
-        addLog('  - Invalid provisioning profile');
-        addLog('  - Check Xcode console for [NativePush] logs');
+        addLog(`❌ No ${expectedTokenType} token after ${duration}s`);
+        
+        if (debugInfo.nativePlatform === 'android') {
+          addLog('');
+          addLog('🔧 ANDROID FCM TROUBLESHOOTING:');
+          addLog('1. Check google-services.json is in android/app/');
+          addLog('2. Check android/build.gradle has Firebase plugin');
+          addLog('3. Check android/app/build.gradle has Firebase deps');
+          addLog('4. Run: npx cap sync android && cd android && ./gradlew clean');
+          addLog('5. Check logcat for Firebase/FCM errors');
+        } else if (debugInfo.nativePlatform === 'ios') {
+          addLog('');
+          addLog('🔧 iOS APNs TROUBLESHOOTING:');
+          addLog('1. Enable Push Notifications capability in Xcode');
+          addLog('2. Check provisioning profile has Push Notifications');
+          addLog('3. Upload APNs key to Firebase Console');
+          addLog('4. Check Xcode console for [NativePush] logs');
+        }
       }
       
       // Step 5: Check permission again
@@ -249,6 +306,21 @@ const PushDebugPage = () => {
         addLog(`❌ Error: ${error.message}`);
       } else {
         addLog(`✅ Response: ${JSON.stringify(data)}`);
+        
+        // Check if sent to correct platform
+        if (data?.results) {
+          const types = data.results.map((r: any) => r.type).join(', ');
+          addLog(`📤 Sent via: ${types}`);
+          
+          if (debugInfo.nativePlatform === 'android' && !types.includes('fcm')) {
+            addLog('⚠️ Android device but no FCM notification sent!');
+            addLog('   This means no FCM token is registered.');
+          }
+          if (debugInfo.nativePlatform === 'ios' && !types.includes('apns')) {
+            addLog('⚠️ iOS device but no APNs notification sent!');
+            addLog('   This means no APNs token is registered.');
+          }
+        }
       }
     } catch (error: any) {
       addLog(`Error: ${error.message}`);
@@ -280,6 +352,11 @@ const PushDebugPage = () => {
     initAndRegister();
   }, []);
 
+  // Determine if there's a token mismatch warning
+  const hasTokenMismatch = 
+    (debugInfo.nativePlatform === 'android' && !debugInfo.hasFCMToken && debugInfo.subscriptions.length > 0) ||
+    (debugInfo.nativePlatform === 'ios' && !debugInfo.hasAPNsToken && debugInfo.subscriptions.length > 0);
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-lg mx-auto space-y-4">
@@ -299,6 +376,29 @@ const PushDebugPage = () => {
           </Button>
         </div>
 
+        {/* Token Mismatch Warning */}
+        {hasTokenMismatch && (
+          <Card className="border-destructive bg-destructive/10">
+            <CardContent className="pt-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-destructive">Token Type Mismatch!</p>
+                  <p className="text-muted-foreground mt-1">
+                    {debugInfo.nativePlatform === 'android' 
+                      ? 'You are on Android but only have APNs (iOS) token. FCM token is required for Android push notifications.'
+                      : 'You are on iOS but only have FCM (Android) token. APNs token is required for iOS push notifications.'
+                    }
+                  </p>
+                  <p className="text-muted-foreground mt-1">
+                    Click "Register Push" to get the correct token.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Platform Info */}
         <Card>
           <CardHeader className="pb-2">
@@ -315,15 +415,21 @@ const PushDebugPage = () => {
               </Badge>
             </div>
             <div className="flex justify-between">
+              <span>Capacitor Platform:</span>
+              <Badge variant="outline">
+                {debugInfo.nativePlatform || 'web'}
+              </Badge>
+            </div>
+            <div className="flex justify-between">
               <span>Native:</span>
               <Badge variant={debugInfo.isNative ? 'default' : 'outline'}>
                 {debugInfo.isNative ? 'Yes' : 'No'}
               </Badge>
             </div>
             <div className="flex justify-between">
-              <span>Push Supported:</span>
-              <Badge variant={debugInfo.isPushSupported ? 'default' : 'destructive'}>
-                {debugInfo.isPushSupported ? 'Yes' : 'No'}
+              <span>Expected Token Type:</span>
+              <Badge variant="default">
+                {debugInfo.nativePlatform === 'ios' ? 'APNs' : debugInfo.nativePlatform === 'android' ? 'FCM' : 'Web Push'}
               </Badge>
             </div>
           </CardContent>
@@ -383,22 +489,43 @@ const PushDebugPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
+            {/* Token summary */}
+            <div className="flex gap-2 flex-wrap mb-2">
+              <Badge variant={debugInfo.hasFCMToken ? 'default' : 'outline'}>
+                FCM: {debugInfo.hasFCMToken ? '✓' : '✗'}
+              </Badge>
+              <Badge variant={debugInfo.hasAPNsToken ? 'default' : 'outline'}>
+                APNs: {debugInfo.hasAPNsToken ? '✓' : '✗'}
+              </Badge>
+              <Badge variant={debugInfo.hasWebToken ? 'default' : 'outline'}>
+                Web: {debugInfo.hasWebToken ? '✓' : '✗'}
+              </Badge>
+            </div>
+
             {debugInfo.subscriptions.length === 0 ? (
               <p className="text-muted-foreground">No subscriptions found</p>
             ) : (
-              debugInfo.subscriptions.map((sub, i) => {
-                const isFCM = sub.endpoint.startsWith('fcm://');
+              debugInfo.subscriptions.map((sub) => {
+                const tokenType = getTokenType(sub.endpoint);
+                const isCorrectForPlatform = 
+                  (debugInfo.nativePlatform === 'android' && tokenType === 'fcm') ||
+                  (debugInfo.nativePlatform === 'ios' && tokenType === 'apns') ||
+                  (debugInfo.nativePlatform === 'web' && tokenType === 'web');
+                
                 return (
-                  <div key={sub.id} className="p-2 bg-muted rounded text-xs">
+                  <div key={sub.id} className={`p-2 rounded text-xs ${isCorrectForPlatform ? 'bg-muted' : 'bg-yellow-500/10 border border-yellow-500/30'}`}>
                     <div className="flex justify-between mb-1">
-                      <Badge variant={isFCM ? 'default' : 'secondary'}>
-                        {isFCM ? 'FCM (Native)' : 'Web Push'}
+                      <Badge variant={tokenType === 'fcm' ? 'default' : tokenType === 'apns' ? 'secondary' : 'outline'}>
+                        {getTokenLabel(tokenType)}
                       </Badge>
                       <span className="text-muted-foreground">
                         {new Date(sub.created_at).toLocaleDateString()}
                       </span>
                     </div>
                     <p className="font-mono truncate">{sub.endpoint.substring(0, 50)}...</p>
+                    {!isCorrectForPlatform && (
+                      <p className="text-yellow-600 mt-1">⚠️ Wrong token type for {debugInfo.nativePlatform}</p>
+                    )}
                   </div>
                 );
               })
@@ -442,6 +569,37 @@ const PushDebugPage = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Android Setup Guide */}
+        {debugInfo.nativePlatform === 'android' && !debugInfo.hasFCMToken && (
+          <Card className="border-blue-500/30 bg-blue-500/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">🔧 Android FCM Setup Required</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs space-y-2">
+              <p><strong>1.</strong> Copy <code>google-services.json</code> to <code>android/app/</code></p>
+              <p><strong>2.</strong> In <code>android/build.gradle</code> add:</p>
+              <pre className="bg-muted p-2 rounded overflow-x-auto">
+{`buildscript {
+  dependencies {
+    classpath 'com.google.gms:google-services:4.4.0'
+  }
+}`}
+              </pre>
+              <p><strong>3.</strong> In <code>android/app/build.gradle</code> add:</p>
+              <pre className="bg-muted p-2 rounded overflow-x-auto">
+{`apply plugin: 'com.google.gms.google-services'
+
+dependencies {
+  implementation platform('com.google.firebase:firebase-bom:32.7.0')
+  implementation 'com.google.firebase:firebase-messaging'
+}`}
+              </pre>
+              <p><strong>4.</strong> Run: <code>npx cap sync android</code></p>
+              <p><strong>5.</strong> Rebuild the app</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
