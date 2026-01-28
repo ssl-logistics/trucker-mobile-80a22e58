@@ -404,12 +404,14 @@ export default function InternationalJobDetail({
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
                     <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => {
+                    const fromParam = new URLSearchParams(location.search).get('from');
+                    const queryString = fromParam ? `?from=${fromParam}` : '';
                     if (jobApplication?.sop_completed_at) {
-                      navigate(`/job/${job.id}/pickup-summary`);
+                      navigate(`/job/${job.id}/pickup-summary${queryString}`);
                     } else if (jobApplication?.checked_in_at) {
-                      navigate(`/job/${job.id}/sop`);
+                      navigate(`/job/${job.id}/sop${queryString}`);
                     } else {
-                      navigate(`/job/${job.id}/pickup`);
+                      navigate(`/job/${job.id}/pickup${queryString}`);
                     }
                   }} disabled={!jobApplication?.container_sop_completed_at}>
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
