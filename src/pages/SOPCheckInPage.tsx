@@ -367,7 +367,10 @@ export default function SOPCheckInPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.order_code}/pickup`)} className="p-1">
+          <button onClick={() => {
+            const fromParam = new URLSearchParams(location.search).get('from');
+            navigate(`/job/${job.order_code}${fromParam ? `?from=${fromParam}` : ''}`);
+          }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('sop.title')} {job.origin_company_name || ''}</h1>
