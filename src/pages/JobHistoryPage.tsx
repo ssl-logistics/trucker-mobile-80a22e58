@@ -562,7 +562,7 @@ export default function JobHistoryPage() {
                   <Card key={job.id} className="overflow-hidden bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
                     // Navigate to correct page based on job type
                     if (job.isBidJob && job.ticket_number) {
-                      navigate(`/bid-job/${job.ticket_number}`);
+                      navigate(`/bid-job/${job.ticket_number}?from=history`);
                     } else {
                       navigate(`/job/${job.order_number}?from=history`);
                     }
