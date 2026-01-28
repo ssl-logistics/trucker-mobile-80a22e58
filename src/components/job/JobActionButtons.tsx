@@ -15,10 +15,12 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
   const location = useLocation();
   const { t } = useLanguage();
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  
+  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-3">
+      <div className={`grid gap-3 ${isFromHistory ? 'grid-cols-2' : 'grid-cols-3'}`}>
         <button 
           className="flex flex-col items-center gap-1 text-[#0A8778]"
           onClick={() => navigate(`/job/${jobId}/expenses`)}
@@ -35,13 +37,15 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
           <span className="text-xs font-medium">{t('jobActions.addExpense')}</span>
         </button>
 
-        <button 
-          className="flex flex-col items-center gap-1 text-[#0A8778]"
-          onClick={() => setIsReportDrawerOpen(true)}
-        >
-          <img src={reportProblemIcon} alt="" className="w-8 h-8" />
-          <span className="text-xs font-medium">{t('jobActions.reportProblem')}</span>
-        </button>
+        {!isFromHistory && (
+          <button 
+            className="flex flex-col items-center gap-1 text-[#0A8778]"
+            onClick={() => setIsReportDrawerOpen(true)}
+          >
+            <img src={reportProblemIcon} alt="" className="w-8 h-8" />
+            <span className="text-xs font-medium">{t('jobActions.reportProblem')}</span>
+          </button>
+        )}
       </div>
 
       <ReportProblemDrawer
