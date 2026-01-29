@@ -99,10 +99,7 @@ export default function JobExpensesPage() {
   const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
   const getExpenseTypeLabel = (expense: Expense) => {
-    // Use expense_name if available, otherwise translate expense_type
-    if (expense.expense_name) {
-      return expense.expense_name;
-    }
+    // Always prioritize translation based on expense_type
     const typeMap: Record<string, string> = {
       'fuel': t('expenses.types.fuel'),
       'toll': t('expenses.types.toll'),
@@ -112,7 +109,9 @@ export default function JobExpensesPage() {
       'parking': t('expenses.types.parking'),
       'other': t('expenses.types.other'),
     };
-    return typeMap[expense.expense_type] || expense.expense_type;
+    
+    // Use translated type if available, otherwise fall back to expense_name or expense_type
+    return typeMap[expense.expense_type] || expense.expense_name || expense.expense_type;
   };
 
   if (loading) {
