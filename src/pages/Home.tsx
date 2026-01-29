@@ -553,9 +553,11 @@ export default function Home() {
   // These drivers already have the job assigned, so just navigate to job detail
   const handleStartAssignedJob = (job: Job) => {
     // Show success toast similar to accepting a job
+    const titleKey = t('home.start_job_success');
+    const descKey = t('home.start_job_success_desc');
     toast({
-      title: t('home.start_job_success') || 'เริ่มงานสำเร็จ',
-      description: `${t('home.start_job_success_desc') || 'คุณได้เริ่มงาน'} ${job.order_code}`
+      title: titleKey !== 'home.start_job_success' ? titleKey : 'เริ่มงานสำเร็จ',
+      description: `${descKey !== 'home.start_job_success_desc' ? descKey : 'คุณได้เริ่มงาน'} ${job.order_code}`
     });
     navigate(`/job/${job.order_code}`);
   };
