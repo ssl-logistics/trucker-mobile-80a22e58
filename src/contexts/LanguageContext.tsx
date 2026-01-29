@@ -1333,6 +1333,7 @@ const thTranslations: Record<string, string> = {
   'expenses.types.port': 'ค่าใช้จ่ายท่าเรือ',
   'expenses.types.food': 'ค่าอาหาร',
   'expenses.types.maintenance': 'ค่าซ่อมบำรุง',
+  'expenses.types.parking': 'ค่าจอดรถ',
   'expenses.types.other': 'อื่นๆ',
   
   // Job Types
@@ -2631,6 +2632,7 @@ const enTranslations: Record<string, string> = {
   'expenses.types.port': 'Port Fee',
   'expenses.types.food': 'Food',
   'expenses.types.maintenance': 'Maintenance',
+  'expenses.types.parking': 'Parking',
   'expenses.types.other': 'Other',
   
   // Job Types
@@ -3996,6 +3998,7 @@ const koTranslations: Record<string, string> = {
   'expenses.types.port': '항구비',
   'expenses.types.food': '식비',
   'expenses.types.maintenance': '유지보수',
+  'expenses.types.parking': '주차비',
   'expenses.types.other': '기타',
   
   // Job Types
@@ -5349,6 +5352,7 @@ const zhTranslations: Record<string, string> = {
   'expenses.types.port': '港口费',
   'expenses.types.food': '餐饮费',
   'expenses.types.maintenance': '维修费',
+  'expenses.types.parking': '停车费',
   'expenses.types.other': '其他',
   
   // Job Types
