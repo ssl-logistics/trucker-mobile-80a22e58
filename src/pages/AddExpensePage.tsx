@@ -190,17 +190,25 @@ const AddExpensePage = () => {
       return;
     }
     
-    console.log('Starting expense submission...');
+    console.log('Starting expense submission to external API...');
     setIsSubmitting(true);
     
     try {
-      // Upload receipt photos and save expenses
+      // Get driver type from user role
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      const driverType = roleData?.role === 'freelance' ? 'external' : 'internal';
+      
       for (const expense of expenses) {
         if (!expense.receiptPhoto) continue;
         
         console.log('Processing expense:', expense.id, expense.type);
         
-        // Upload photo to storage
+        // Upload photo to storage first to get URL
         const fileExt = expense.receiptPhoto.name.split('.').pop();
         const fileName = `${user.id}/${jobId}_${expense.id}_${Date.now()}.${fileExt}`;
         
@@ -222,46 +230,44 @@ const AddExpensePage = () => {
         
         console.log('Public URL:', publicUrl);
         
-        // Save expense to database
         // Use custom type if "other" is selected
         const expenseType = expense.type === "other" ? expense.customType : expense.type;
         
-        const { error: insertError } = await supabase
-          .from('expenses')
-          .insert({
-            job_id: jobId,
+        // Send expense to external API via proxy
+        const response = await supabase.functions.invoke('add-expense-proxy', {
+          body: {
+            order_number: jobId,
             driver_id: user.id,
+            driver_type: driverType,
             expense_type: expenseType,
             amount: parseFloat(expense.amount),
-            receipt_photo_url: publicUrl
-          });
+            receipt_photo_url: publicUrl,
+            notes: ''
+          }
+        });
         
-        if (insertError) {
-          console.error('Insert error:', insertError);
-          throw new Error(`${t('expense.saveError')}: ${insertError.message}`);
+        if (response.error) {
+          console.error('API error:', response.error);
+          throw new Error(`${t('expense.saveError')}: ${response.error.message}`);
         }
         
-        console.log('Expense saved successfully');
+        console.log('Expense sent to external API successfully:', response.data);
       }
       
-      console.log('All expenses saved successfully');
+      console.log('All expenses sent to external API successfully');
       
       toast({
         title: t('expense.success'),
         description: `${t('expense.successDesc')} ${calculateTotal()} ${t('expense.baht')}`,
       });
       
-      console.log('About to navigate back...');
-      
       // Navigate back to the page we came from
       setTimeout(() => {
         navigate(returnPath);
-        console.log('Navigate called');
       }, 100);
       
-      console.log('Navigate called');
     } catch (error) {
-      console.error('Error saving expenses:', error);
+      console.error('Error sending expenses:', error);
       toast({
         title: t('expense.error'),
         description: error instanceof Error ? error.message : t('expense.errorDesc'),
@@ -269,7 +275,6 @@ const AddExpensePage = () => {
       });
     } finally {
       setIsSubmitting(false);
-      console.log('Submission complete');
     }
   };
 
