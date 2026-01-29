@@ -189,13 +189,17 @@ export default function CurrentJobsPage() {
           
           const apiJobs = result.data || [];
           
-          // CRITICAL: Only show jobs that the driver has ACTUALLY started
-          // A job is considered "started" only when there's at least one check-in record
-          // This prevents jobs from appearing in Current Jobs just because API status is 'in_progress'
+          // Show jobs that have status 'in_transit' OR have check-in records (already started)
+          // This allows jobs to appear in Current Jobs when:
+          // 1. Driver clicked "Start Job" and status was updated to 'in_transit'
+          // 2. Driver has done any check-in (pickup, delivery, etc.)
           const startedJobs = apiJobs.filter((job: any) => {
-            return startedTransportIds.has(String(job.id));
+            const status = (job.status || '').toLowerCase();
+            const hasCheckIn = startedTransportIds.has(String(job.id));
+            const isInTransit = status === 'in_transit';
+            return hasCheckIn || isInTransit;
           });
-          console.log('Jobs with actual check-in records:', startedJobs.length, '(excluded not-yet-started:', apiJobs.length - startedJobs.length, ')');
+          console.log('Jobs with in_transit status or check-in records:', startedJobs.length, '(excluded not-yet-started:', apiJobs.length - startedJobs.length, ')');
           
           // Filter out jobs that have delivery_confirmed (completed POD)
           const activeJobs = startedJobs.filter((job: any) => !confirmedTransportIds.has(String(job.id)));

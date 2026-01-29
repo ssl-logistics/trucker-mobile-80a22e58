@@ -550,19 +550,60 @@ export default function Home() {
   };
 
   // Handle starting an assigned job (Internal/External drivers)
-  // These drivers already have the job assigned - mark as started locally and stay on Home page
-  const handleStartAssignedJob = (job: Job) => {
-    // Show success toast
-    const titleKey = t('home.start_job_success');
-    const descKey = t('home.start_job_success_desc');
-    toast({
-      title: titleKey !== 'home.start_job_success' ? titleKey : 'เริ่มงานสำเร็จ',
-      description: `${descKey !== 'home.start_job_success_desc' ? descKey : 'คุณได้เริ่มงาน'} ${job.order_code}`
-    });
+  // These drivers already have the job assigned - update status to in_transit via API
+  const handleStartAssignedJob = async (job: Job) => {
+    if (!user) return;
     
-    // Remove this job from the local list so it disappears from "Jobs for You"
-    // The job will appear in Current Jobs since it already has an active status (in_progress, in_transit, etc.)
-    setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
+    try {
+      // Determine driver type for the API call
+      const driverType = userType === 'internal_driver' ? 'internal' : 'external';
+      
+      // Update the order status to 'in_transit' via the external API
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-order-status`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+          },
+          body: JSON.stringify({
+            order_id: job.id,
+            order_number: job.order_code,
+            status: 'in_transit',
+            driver_id: user.id,
+            driver_type: driverType,
+          }),
+        }
+      );
+      
+      const result = await response.json();
+      console.log('[Home] Update order status result:', result);
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update status');
+      }
+      
+      // Show success toast
+      const titleKey = t('home.start_job_success');
+      const descKey = t('home.start_job_success_desc');
+      toast({
+        title: titleKey !== 'home.start_job_success' ? titleKey : 'เริ่มงานสำเร็จ',
+        description: `${descKey !== 'home.start_job_success_desc' ? descKey : 'คุณได้เริ่มงาน'} ${job.order_code}`
+      });
+      
+      // Remove this job from the local list so it disappears from "Jobs for You"
+      // The job will appear in Current Jobs since status is now 'in_transit'
+      setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
+      
+    } catch (error) {
+      console.error('[Home] Error updating order status:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถเริ่มงานได้ กรุณาลองใหม่อีกครั้ง',
+        variant: 'destructive'
+      });
+    }
   };
 
   // Handle factory job accept with double-click and duplicate order protection
