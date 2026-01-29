@@ -320,18 +320,56 @@ export default function ReportProblemDrawer({
                   </Label>
                 </div>
                 
-                {selectedType === "pause-work" && (
-                  <div className="ml-7">
-                    <Label className="text-sm">
-                      {t('reportProblem.specifyReason')} <span className="text-red-500">*</span>
-                    </Label>
-                    <Textarea
-                      placeholder={t('reportProblem.reasonPlaceholder')}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      className="mt-1 min-h-[120px]"
-                      disabled={isSubmitting}
-                    />
+              {selectedType === "pause-work" && (
+                  <div className="ml-7 space-y-3">
+                    <div>
+                      <Label className="text-sm">
+                        {t('reportProblem.specifyReason')} <span className="text-red-500">*</span>
+                      </Label>
+                      <Textarea
+                        placeholder={t('reportProblem.reasonPlaceholder')}
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        className="mt-1 min-h-[100px]"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm">
+                        {t('reportProblem.uploadPhoto')} ({t('reportProblem.optional')})
+                      </Label>
+                      <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={handlePhotoChange}
+                          className="hidden"
+                          id="photo-upload-pause"
+                          disabled={isSubmitting}
+                        />
+                        <label htmlFor="photo-upload-pause" className="cursor-pointer block">
+                          {photoPreview ? (
+                            <img 
+                              src={photoPreview} 
+                              alt="Preview" 
+                              className="max-h-40 mx-auto rounded-lg object-cover"
+                            />
+                          ) : (
+                            <>
+                              <Camera className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm text-gray-500">{t('reportProblem.clickToTakeOptional')}</p>
+                            </>
+                          )}
+                        </label>
+                        {photo && (
+                          <p className="mt-2 text-xs text-green-600">
+                            {t('reportProblem.fileSelected')}: {photo.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -345,18 +383,56 @@ export default function ReportProblemDrawer({
                   </Label>
                 </div>
                 
-                {selectedType === "report-issue" && (
-                  <div className="ml-7">
-                    <Label className="text-sm">
-                      {t('reportProblem.specifyReason')} <span className="text-red-500">*</span>
-                    </Label>
-                    <Textarea
-                      placeholder={t('reportProblem.reasonPlaceholder')}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      className="mt-1 min-h-[120px]"
-                      disabled={isSubmitting}
-                    />
+              {selectedType === "report-issue" && (
+                  <div className="ml-7 space-y-3">
+                    <div>
+                      <Label className="text-sm">
+                        {t('reportProblem.specifyReason')} <span className="text-red-500">*</span>
+                      </Label>
+                      <Textarea
+                        placeholder={t('reportProblem.reasonPlaceholder')}
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        className="mt-1 min-h-[100px]"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm">
+                        {t('reportProblem.uploadPhoto')} ({t('reportProblem.optional')})
+                      </Label>
+                      <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={handlePhotoChange}
+                          className="hidden"
+                          id="photo-upload-issue"
+                          disabled={isSubmitting}
+                        />
+                        <label htmlFor="photo-upload-issue" className="cursor-pointer block">
+                          {photoPreview ? (
+                            <img 
+                              src={photoPreview} 
+                              alt="Preview" 
+                              className="max-h-40 mx-auto rounded-lg object-cover"
+                            />
+                          ) : (
+                            <>
+                              <Camera className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm text-gray-500">{t('reportProblem.clickToTakeOptional')}</p>
+                            </>
+                          )}
+                        </label>
+                        {photo && (
+                          <p className="mt-2 text-xs text-green-600">
+                            {t('reportProblem.fileSelected')}: {photo.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
