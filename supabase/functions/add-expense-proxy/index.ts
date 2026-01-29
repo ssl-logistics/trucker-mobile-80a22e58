@@ -12,15 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    // Get API key from request header
-    const apiKey = req.headers.get('x-api-key');
+    // Get API key from environment
+    const apiKey = Deno.env.get('EXPRESS_RENT_API_KEY');
     
     if (!apiKey) {
-      console.error('x-api-key header not provided');
+      console.error('EXPRESS_RENT_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'x-api-key header is required' }),
+        JSON.stringify({ error: 'API key not configured' }),
         { 
-          status: 401, 
+          status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
