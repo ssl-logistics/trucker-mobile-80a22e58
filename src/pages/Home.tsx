@@ -147,15 +147,17 @@ export default function Home() {
       console.log('Loaded factory/driver jobs from API:', result, 'userType:', userType);
 
       // Transform API response to Job format
-      // For Internal/External drivers: Only show jobs that are NOT yet started (awaiting_response, assigned, pending)
+      // For Internal/External drivers: Show ALL assigned jobs (so driver can decide to start or not)
+      // Jobs will be hidden from Home only after driver explicitly starts them via "เริ่มงาน" button
       // For Freelance drivers: Only show jobs awaiting_response
       const apiJobs = (result?.data || []).filter((item: any) => {
         const status = (item?.status || '').toLowerCase().trim();
         if (isInternalDriver || isExternalDriver) {
-          // Internal/External drivers only see jobs NOT yet started
-          // Filter out: in_progress, in_transit, completed, delivered, cancelled, closed
-          const activeStatuses = ['in_progress', 'in_transit', 'completed', 'delivered', 'cancelled', 'closed', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
-          return !activeStatuses.includes(status);
+          // Internal/External drivers see all assigned jobs EXCEPT completed/cancelled/closed ones
+          // This includes: pending, assigned, in_progress, in_transit, picked_up, loading, unloading, delivering
+          // Only hide truly finished or cancelled jobs
+          const finishedStatuses = ['completed', 'delivered', 'cancelled', 'closed', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
+          return !finishedStatuses.includes(status);
         }
         // Freelance drivers only see jobs awaiting their response
         return status === 'awaiting_response';
