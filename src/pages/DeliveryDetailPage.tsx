@@ -605,7 +605,7 @@ export default function DeliveryDetailPage() {
 
       <div className="px-4 py-6 space-y-6">
         {new URLSearchParams(location.search).get('from') !== 'history' && (
-          <JobActionButtons jobId={jobId} />
+          <JobActionButtons jobId={jobId} orderNumber={jobId} />
         )}
 
         {isCheckedIn && checkedInAt && (

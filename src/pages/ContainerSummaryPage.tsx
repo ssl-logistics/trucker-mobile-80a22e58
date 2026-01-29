@@ -124,7 +124,7 @@ export default function ContainerSummaryPage() {
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
         {/* Action Buttons */}
-        <JobActionButtons jobId={jobId} />
+        <JobActionButtons jobId={jobId} orderNumber={jobId} />
 
         {/* Check-in Status */}
         {application?.container_checked_in_at && (

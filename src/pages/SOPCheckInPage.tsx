@@ -379,7 +379,7 @@ export default function SOPCheckInPage() {
       </header>
 
       <div className="px-4 py-6 space-y-6">
-        <JobActionButtons jobId={jobId} />
+        <JobActionButtons jobId={jobId} orderNumber={jobId} />
 
         <Card className="p-4 bg-green-50 border-green-200">
           <div className="flex items-center gap-3">

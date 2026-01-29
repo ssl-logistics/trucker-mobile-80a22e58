@@ -1,7 +1,10 @@
-import { useState } from "react";
-import { Camera, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Camera } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { getAuthItem } from "@/utils/authStorage";
 import {
   Drawer,
   DrawerClose,
@@ -18,6 +21,7 @@ interface ReportProblemDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   jobId?: string;
+  orderNumber?: string;
 }
 
 type ProblemType = "partial-delivery" | "pause-work" | "report-issue";
@@ -26,14 +30,62 @@ export default function ReportProblemDrawer({
   open,
   onOpenChange,
   jobId,
+  orderNumber,
 }: ReportProblemDrawerProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedType, setSelectedType] = useState<ProblemType | "">("");
   const [reason, setReason] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
-  const handleSubmit = () => {
+  // Get current location when drawer opens
+  useEffect(() => {
+    if (open && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    }
+  }, [open]);
+
+  const uploadPhoto = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `problem-${Date.now()}.${fileExt}`;
+      const filePath = `problem-reports/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('expense-receipts')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        return null;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('expense-receipts')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!selectedType || !reason) {
       toast({
         title: t('reportProblem.error'),
@@ -43,29 +95,151 @@ export default function ReportProblemDrawer({
       return;
     }
 
-    // TODO: Submit to backend
-    console.log({ selectedType, reason, photo, jobId });
-    
-    // Reset and close
-    setSelectedType("");
-    setReason("");
-    setPhoto(null);
-    onOpenChange(false);
+    // For partial-delivery, photo is required
+    if (selectedType === 'partial-delivery' && !photo) {
+      toast({
+        title: t('reportProblem.error'),
+        description: t('reportProblem.photoRequired'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!orderNumber) {
+      toast({
+        title: t('reportProblem.error'),
+        description: 'Order number is missing',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Get driver info from storage
+      const driverId = user?.id || await getAuthItem('auth_driver_id');
+      const userType = await getAuthItem('auth_user_type');
+      
+      // Map user type to driver type
+      let driverType = 'freelance';
+      if (userType === 'internal_driver') {
+        driverType = 'internal';
+      } else if (userType === 'external_driver') {
+        driverType = 'external';
+      }
+
+      // Upload photo if exists
+      let photoUrl: string | null = null;
+      if (photo) {
+        photoUrl = await uploadPhoto(photo);
+        if (!photoUrl) {
+          toast({
+            title: t('reportProblem.error'),
+            description: t('reportProblem.uploadFailed'),
+            variant: 'destructive',
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Prepare request body
+      const requestBody: Record<string, any> = {
+        order_number: orderNumber,
+        driver_id: driverId,
+        driver_type: driverType,
+        problem_type: selectedType,
+        reason: reason,
+        reported_at: new Date().toISOString(),
+      };
+
+      if (photoUrl) {
+        requestBody.photo_url = photoUrl;
+      }
+
+      if (location) {
+        requestBody.latitude = location.latitude;
+        requestBody.longitude = location.longitude;
+      }
+
+      console.log('Submitting problem report:', requestBody);
+
+      // Call the proxy API
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-problem-proxy`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      const data = await response.json();
+      console.log('API response:', data);
+
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || 'Failed to submit report');
+      }
+
+      toast({
+        title: t('reportProblem.success'),
+        description: t('reportProblem.submitSuccess'),
+      });
+
+      // Reset form and close
+      setSelectedType("");
+      setReason("");
+      setPhoto(null);
+      setPhotoPreview(null);
+      onOpenChange(false);
+
+    } catch (error) {
+      console.error('Error submitting problem report:', error);
+      toast({
+        title: t('reportProblem.error'),
+        description: error instanceof Error ? error.message : t('reportProblem.submitFailed'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPhoto(e.target.files[0]);
+      const file = e.target.files[0];
+      setPhoto(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleClose = () => {
+    if (!isSubmitting) {
+      setSelectedType("");
+      setReason("");
+      setPhoto(null);
+      setPhotoPreview(null);
+      onOpenChange(false);
     }
   };
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={handleClose}>
       <DrawerContent className="max-h-[90vh]">
         <DrawerHeader className="border-b">
           <div className="flex items-center justify-between">
             <DrawerTitle className="text-lg font-semibold">{t('reportProblem.title')}</DrawerTitle>
-            <DrawerClose className="text-2xl text-gray-500">×</DrawerClose>
+            <DrawerClose className="text-2xl text-gray-500" disabled={isSubmitting}>×</DrawerClose>
           </div>
         </DrawerHeader>
 
@@ -77,7 +251,7 @@ export default function ReportProblemDrawer({
               {/* ส่งมอบสินค้าบางส่วน */}
               <div className="border rounded-lg p-4 mb-3">
                 <div className="flex items-center space-x-3 mb-3">
-                  <RadioGroupItem value="partial-delivery" id="partial-delivery" />
+                  <RadioGroupItem value="partial-delivery" id="partial-delivery" disabled={isSubmitting} />
                   <Label htmlFor="partial-delivery" className="text-base font-normal cursor-pointer">
                     {t('reportProblem.partialDelivery')}
                   </Label>
@@ -94,6 +268,7 @@ export default function ReportProblemDrawer({
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
                         className="mt-1 min-h-[80px]"
+                        disabled={isSubmitting}
                       />
                     </div>
                     
@@ -101,17 +276,29 @@ export default function ReportProblemDrawer({
                       <Label className="text-sm">
                         {t('reportProblem.uploadPhoto')} <span className="text-red-500">*</span>
                       </Label>
-                      <div className="mt-2 border-2 border-dashed rounded-lg p-8 text-center">
+                      <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
                         <input
                           type="file"
                           accept="image/*"
+                          capture="environment"
                           onChange={handlePhotoChange}
                           className="hidden"
                           id="photo-upload"
+                          disabled={isSubmitting}
                         />
-                        <label htmlFor="photo-upload" className="cursor-pointer">
-                          <Camera className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                          <p className="text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: `${t('reportProblem.clickToTake')}<br />${t('reportProblem.productPhoto')}` }} />
+                        <label htmlFor="photo-upload" className="cursor-pointer block">
+                          {photoPreview ? (
+                            <img 
+                              src={photoPreview} 
+                              alt="Preview" 
+                              className="max-h-40 mx-auto rounded-lg object-cover"
+                            />
+                          ) : (
+                            <>
+                              <Camera className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm text-gray-500" dangerouslySetInnerHTML={{ __html: `${t('reportProblem.clickToTake')}<br />${t('reportProblem.productPhoto')}` }} />
+                            </>
+                          )}
                         </label>
                         {photo && (
                           <p className="mt-2 text-xs text-green-600">
@@ -127,7 +314,7 @@ export default function ReportProblemDrawer({
               {/* หยุดงานชั่วคราว */}
               <div className="border rounded-lg p-4 mb-3">
                 <div className="flex items-center space-x-3 mb-3">
-                  <RadioGroupItem value="pause-work" id="pause-work" />
+                  <RadioGroupItem value="pause-work" id="pause-work" disabled={isSubmitting} />
                   <Label htmlFor="pause-work" className="text-base font-normal cursor-pointer">
                     {t('reportProblem.pauseWork')}
                   </Label>
@@ -143,6 +330,7 @@ export default function ReportProblemDrawer({
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       className="mt-1 min-h-[120px]"
+                      disabled={isSubmitting}
                     />
                   </div>
                 )}
@@ -151,7 +339,7 @@ export default function ReportProblemDrawer({
               {/* แจ้งปัญหา */}
               <div className="border rounded-lg p-4 mb-3">
                 <div className="flex items-center space-x-3 mb-3">
-                  <RadioGroupItem value="report-issue" id="report-issue" />
+                  <RadioGroupItem value="report-issue" id="report-issue" disabled={isSubmitting} />
                   <Label htmlFor="report-issue" className="text-base font-normal cursor-pointer">
                     {t('reportProblem.reportIssue')}
                   </Label>
@@ -167,28 +355,22 @@ export default function ReportProblemDrawer({
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       className="mt-1 min-h-[120px]"
+                      disabled={isSubmitting}
                     />
                   </div>
                 )}
               </div>
             </RadioGroup>
           </div>
-
-          <Button
-            variant="outline"
-            className="w-full border-2 border-primary text-primary"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            {t('reportProblem.downloadVehicleChange')}
-          </Button>
         </div>
 
         <div className="p-4 border-t">
           <Button
             className="w-full bg-primary text-white"
             onClick={handleSubmit}
+            disabled={isSubmitting}
           >
-            {t('reportProblem.confirm')}
+            {isSubmitting ? t('reportProblem.submitting') : t('reportProblem.confirm')}
           </Button>
         </div>
       </DrawerContent>

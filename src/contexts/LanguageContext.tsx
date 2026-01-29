@@ -603,6 +603,13 @@ const thTranslations: Record<string, string> = {
   'reportProblem.downloadVehicleChange': 'ดาวน์โหลดใบเปลี่ยนรถ',
   'reportProblem.confirm': 'ยืนยัน',
   'reportProblem.fillAllFields': 'กรุณากรอกข้อมูลให้ครบถ้วน',
+  'reportProblem.error': 'เกิดข้อผิดพลาด',
+  'reportProblem.photoRequired': 'กรุณาถ่ายรูปสินค้า',
+  'reportProblem.uploadFailed': 'อัพโหลดรูปไม่สำเร็จ',
+  'reportProblem.success': 'สำเร็จ',
+  'reportProblem.submitSuccess': 'แจ้งปัญหาสำเร็จ',
+  'reportProblem.submitFailed': 'แจ้งปัญหาไม่สำเร็จ',
+  'reportProblem.submitting': 'กำลังส่ง...',
   
   // Job Action Buttons
   'jobActions.viewExpenses': 'ดูค่าใช้จ่าย',
@@ -1932,6 +1939,13 @@ const enTranslations: Record<string, string> = {
   'reportProblem.downloadVehicleChange': 'Download Vehicle Change Form',
   'reportProblem.confirm': 'Confirm',
   'reportProblem.fillAllFields': 'Please fill in all fields',
+  'reportProblem.error': 'Error',
+  'reportProblem.photoRequired': 'Please take a product photo',
+  'reportProblem.uploadFailed': 'Upload failed',
+  'reportProblem.success': 'Success',
+  'reportProblem.submitSuccess': 'Problem reported successfully',
+  'reportProblem.submitFailed': 'Failed to report problem',
+  'reportProblem.submitting': 'Submitting...',
   
   // Job Action Buttons
   'jobActions.viewExpenses': 'View Expenses',
@@ -3085,6 +3099,13 @@ const koTranslations: Record<string, string> = {
   'reportProblem.downloadVehicleChange': '차량 변경 양식 다운로드',
   'reportProblem.confirm': '확인',
   'reportProblem.fillAllFields': '모든 필드를 입력해 주세요',
+  'reportProblem.error': '오류',
+  'reportProblem.photoRequired': '상품 사진을 촬영해 주세요',
+  'reportProblem.uploadFailed': '업로드 실패',
+  'reportProblem.success': '성공',
+  'reportProblem.submitSuccess': '문제가 성공적으로 신고되었습니다',
+  'reportProblem.submitFailed': '문제 신고 실패',
+  'reportProblem.submitting': '제출 중...',
   
   // Register Page
   'register.steps.terms': '이용약관 및 정책',
@@ -4371,9 +4392,6 @@ const zhTranslations: Record<string, string> = {
   'validation.containerTypeRequired': '请至少选择一种集装箱类型',
   'validation.profilePhotoRequired': '请上传司机照片',
   
-  // Report Problem
-  'reportProblem.error': '错误',
-  'reportProblem.fillAllFields': '请填写所有必填项',
   
   // Job Detail Page
   'jobDetail.error': '错误',
@@ -4457,8 +4475,15 @@ const zhTranslations: Record<string, string> = {
   'reportProblem.reportIssue': '报告问题',
   'reportProblem.downloadVehicleChange': '下载换车文件',
   'reportProblem.confirm': '确认',
+  'reportProblem.fillAllFields': '请填写所有必填项',
+  'reportProblem.error': '错误',
+  'reportProblem.photoRequired': '请拍摄产品照片',
+  'reportProblem.uploadFailed': '上传失败',
+  'reportProblem.success': '成功',
+  'reportProblem.submitSuccess': '问题报告成功',
+  'reportProblem.submitFailed': '问题报告失败',
+  'reportProblem.submitting': '提交中...',
   
-  // Search Page
   'search.title': '搜索',
   'search.search': '搜索',
   'search.results': '搜索结果',

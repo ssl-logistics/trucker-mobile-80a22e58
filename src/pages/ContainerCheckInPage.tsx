@@ -149,7 +149,7 @@ export default function ContainerCheckInPage() {
       </header>
 
       <div className="px-4 py-6 space-y-6">
-        <JobActionButtons jobId={jobId} />
+        <JobActionButtons jobId={jobId} orderNumber={jobId} />
 
         <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('container.emptyContainerPoint')}</div>

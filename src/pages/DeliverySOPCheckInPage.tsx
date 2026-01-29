@@ -258,7 +258,7 @@ export default function DeliverySOPCheckInPage() {
       {/* Content */}
       <div className="px-4 py-6 space-y-6">
         {/* Action Buttons */}
-        <JobActionButtons jobId={jobId} />
+        <JobActionButtons jobId={jobId} orderNumber={jobId} />
 
         {/* Check-in Success Banner */}
         <Card className="p-4 bg-green-50 border-green-200">
