@@ -171,9 +171,19 @@ export default function CurrentJobsPage() {
           }
           
           const apiJobs = result.data || [];
+          
+          // Status filter: Only show jobs that have been STARTED (in_progress, in_transit, picked_up, etc.)
+          // Exclude jobs that are still pending/assigned but not yet started by the driver
+          const startedStatuses = ['in_progress', 'in_transit', 'picked_up', 'loading', 'unloading', 'delivering'];
+          const startedJobs = apiJobs.filter((job: any) => {
+            const status = (job.status || '').toLowerCase().trim();
+            return startedStatuses.includes(status);
+          });
+          console.log('Jobs with started status:', startedJobs.length, '(excluded pending/assigned:', apiJobs.length - startedJobs.length, ')');
+          
           // Filter out jobs that have delivery_confirmed (completed POD)
-          const activeJobs = apiJobs.filter((job: any) => !confirmedTransportIds.has(String(job.id)));
-          console.log('Active jobs after filtering completed:', activeJobs.length, '(excluded:', apiJobs.length - activeJobs.length, ')');
+          const activeJobs = startedJobs.filter((job: any) => !confirmedTransportIds.has(String(job.id)));
+          console.log('Active jobs after filtering completed:', activeJobs.length, '(excluded:', startedJobs.length - activeJobs.length, ')');
           
           // Map to AcceptedJob format
           const mappedJobs: AcceptedJob[] = activeJobs.map((job: any) => ({
