@@ -153,11 +153,9 @@ export default function Home() {
       const apiJobs = (result?.data || []).filter((item: any) => {
         const status = (item?.status || '').toLowerCase().trim();
         if (isInternalDriver || isExternalDriver) {
-          // Internal/External drivers see all assigned jobs EXCEPT completed/cancelled/closed ones
-          // This includes: pending, assigned, in_progress, in_transit, picked_up, loading, unloading, delivering
-          // Only hide truly finished or cancelled jobs
-          const finishedStatuses = ['completed', 'delivered', 'cancelled', 'closed', 'ส่งแล้ว', 'ยกเลิก', 'ปิดงาน', 'จบงาน'];
-          return !finishedStatuses.includes(status);
+          // Internal/External drivers see only jobs with 'in_progress' status
+          // Jobs with 'in_transit' status are shown in Current Jobs page
+          return status === 'in_progress';
         }
         // Freelance drivers only see jobs awaiting their response
         return status === 'awaiting_response';
