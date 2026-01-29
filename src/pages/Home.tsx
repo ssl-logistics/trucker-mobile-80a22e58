@@ -552,6 +552,11 @@ export default function Home() {
   // Handle starting an assigned job (Internal/External drivers)
   // These drivers already have the job assigned, so just navigate to job detail
   const handleStartAssignedJob = (job: Job) => {
+    // Show success toast similar to accepting a job
+    toast({
+      title: t('home.start_job_success') || 'เริ่มงานสำเร็จ',
+      description: `${t('home.start_job_success_desc') || 'คุณได้เริ่มงาน'} ${job.order_code}`
+    });
     navigate(`/job/${job.order_code}`);
   };
 
