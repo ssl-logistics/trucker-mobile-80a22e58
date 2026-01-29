@@ -514,6 +514,7 @@ export default function InternationalJobDetail({
         open={isReportDrawerOpen}
         onOpenChange={setIsReportDrawerOpen}
         jobId={job.id}
+        orderNumber={job.order_code}
       />
     </div>;
 }
