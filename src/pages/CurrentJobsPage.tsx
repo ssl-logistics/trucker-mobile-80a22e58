@@ -151,12 +151,15 @@ export default function CurrentJobsPage() {
           const result = await jobsResponse.json();
           console.log('Loaded driver assigned jobs for current jobs:', result);
           
-          // Get check-ins to filter out jobs with delivery_confirmed
+          // Get check-ins to determine which jobs are actually started and which are completed
           let confirmedTransportIds = new Set<string>();
+          let startedTransportIds = new Set<string>();
           if (checkinsResponse.ok) {
             const checkinsResult = await checkinsResponse.json();
             const allCheckins = checkinsResult?.data || [];
             const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
+            
+            // Jobs with delivery_confirmed are completed - exclude from Current Jobs
             confirmedTransportIds = new Set(
               allCheckins
                 .filter(
@@ -167,24 +170,36 @@ export default function CurrentJobsPage() {
                 )
                 .map((c: any) => String(c.transport_order_id))
             );
+            
+            // Jobs with ANY check-in record are actually started by the driver
+            // This is the source of truth - if driver has checked in, they've started the job
+            startedTransportIds = new Set(
+              allCheckins
+                .filter(
+                  (c: any) =>
+                    c[driverIdField] === freelanceDriverId &&
+                    c.transport_order_id
+                )
+                .map((c: any) => String(c.transport_order_id))
+            );
+            
             console.log('Jobs with delivery_confirmed (to exclude from Current Jobs):', confirmedTransportIds.size);
+            console.log('Jobs with any check-in (actually started):', startedTransportIds.size);
           }
           
           const apiJobs = result.data || [];
           
-          // Status filter: Only show jobs that have been STARTED (in_progress, in_transit, picked_up, etc.)
-          // Exclude jobs that are still pending/assigned but not yet started by the driver
-          const startedStatuses = ['in_progress', 'in_transit', 'picked_up', 'loading', 'unloading', 'delivering'];
+          // CRITICAL: Only show jobs that the driver has ACTUALLY started
+          // A job is considered "started" only when there's at least one check-in record
+          // This prevents jobs from appearing in Current Jobs just because API status is 'in_progress'
           const startedJobs = apiJobs.filter((job: any) => {
-            const status = (job.status || '').toLowerCase().trim();
-            return startedStatuses.includes(status);
+            return startedTransportIds.has(String(job.id));
           });
-          console.log('Jobs with started status:', startedJobs.length, '(excluded pending/assigned:', apiJobs.length - startedJobs.length, ')');
+          console.log('Jobs with actual check-in records:', startedJobs.length, '(excluded not-yet-started:', apiJobs.length - startedJobs.length, ')');
           
           // Filter out jobs that have delivery_confirmed (completed POD)
           const activeJobs = startedJobs.filter((job: any) => !confirmedTransportIds.has(String(job.id)));
-          console.log('Active jobs after filtering completed:', activeJobs.length, '(excluded:', startedJobs.length - activeJobs.length, ')');
-          
+          console.log('Active jobs after filtering completed:', activeJobs.length, '(excluded:', startedJobs.length - activeJobs.length, ')')
           // Map to AcceptedJob format
           const mappedJobs: AcceptedJob[] = activeJobs.map((job: any) => ({
             id: job.id,
