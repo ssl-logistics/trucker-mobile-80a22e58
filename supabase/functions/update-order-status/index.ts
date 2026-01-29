@@ -28,7 +28,7 @@ serve(async (req) => {
 
     // Parse request body
     const body = await req.json();
-    const { order_id, order_number, status, driver_id, driver_type } = body;
+    const { order_id, order_number, status, driver_id, driver_type, notes } = body;
 
     if (!order_id && !order_number) {
       return new Response(
@@ -77,6 +77,7 @@ serve(async (req) => {
         status,
         driver_id,
         driver_type,
+        notes,
       }),
     });
 
