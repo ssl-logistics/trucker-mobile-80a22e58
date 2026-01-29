@@ -550,56 +550,19 @@ export default function Home() {
   };
 
   // Handle starting an assigned job (Internal/External drivers)
-  // These drivers already have the job assigned, create a check-in record to move job to Current Jobs
-  const handleStartAssignedJob = async (job: Job) => {
-    if (!user) return;
+  // These drivers already have the job assigned - mark as started locally and stay on Home page
+  const handleStartAssignedJob = (job: Job) => {
+    // Show success toast
+    const titleKey = t('home.start_job_success');
+    const descKey = t('home.start_job_success_desc');
+    toast({
+      title: titleKey !== 'home.start_job_success' ? titleKey : 'เริ่มงานสำเร็จ',
+      description: `${descKey !== 'home.start_job_success_desc' ? descKey : 'คุณได้เริ่มงาน'} ${job.order_code}`
+    });
     
-    try {
-      // Determine driver type for the API call
-      const driverType = userType === 'internal_driver' ? 'internal' : 'external';
-      
-      // Create a "started" check-in record via the driver-checkin-proxy
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            transport_order_id: job.id,
-            order_number: job.order_code,
-            driver_id: user.id,
-            driver_type: driverType,
-            checkin_type: 'started',
-            notes: 'เริ่มงาน',
-          }),
-        }
-      );
-      
-      const result = await response.json();
-      console.log('[Home] Start job check-in result:', result);
-      
-      // Show success toast
-      const titleKey = t('home.start_job_success');
-      const descKey = t('home.start_job_success_desc');
-      toast({
-        title: titleKey !== 'home.start_job_success' ? titleKey : 'เริ่มงานสำเร็จ',
-        description: `${descKey !== 'home.start_job_success_desc' ? descKey : 'คุณได้เริ่มงาน'} ${job.order_code}`
-      });
-      
-      // Remove this job from the local list so it disappears from "Jobs for You"
-      setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
-      
-    } catch (error) {
-      console.error('[Home] Error starting job:', error);
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถเริ่มงานได้ กรุณาลองใหม่อีกครั้ง',
-        variant: 'destructive'
-      });
-    }
+    // Remove this job from the local list so it disappears from "Jobs for You"
+    // The job will appear in Current Jobs since it already has an active status (in_progress, in_transit, etc.)
+    setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
   };
 
   // Handle factory job accept with double-click and duplicate order protection
