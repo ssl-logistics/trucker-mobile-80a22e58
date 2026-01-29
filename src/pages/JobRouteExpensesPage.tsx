@@ -7,7 +7,6 @@ import boxIcon from '@/assets/box-icon.png';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -266,18 +265,44 @@ export default function JobRouteExpensesPage() {
           sop_completed_at: ['delivered', 'completed'].includes(apiJob.status) ? new Date().toISOString() : null,
         };
         setDestinations([destination]);
-        // Load expenses using the actual UUID from API
-        const { data: expensesData, error: expensesError } = await supabase
-          .from('expenses')
-          .select('*')
-          .eq('job_id', apiJob.id)
-          .eq('driver_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (expensesError) {
-          console.error('Error loading expenses:', expensesError);
+        // Load expenses from external API via proxy
+        const driverType = (isInternalDriver || isExternalDriver) 
+          ? (isInternalDriver ? 'internal' : 'external') 
+          : 'freelance';
+        
+        try {
+          const expensesResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-expenses-proxy?order_number=${encodeURIComponent(apiJob.order_number)}&driver_id=${encodeURIComponent(user.id)}&driver_type=${driverType}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              },
+            }
+          );
+          
+          if (expensesResponse.ok) {
+            const expensesResult = await expensesResponse.json();
+            console.log('Expenses from API:', expensesResult);
+            
+            // Map external API response to our Expense interface
+            const mappedExpenses: Expense[] = (expensesResult.data || []).map((exp: any) => ({
+              id: exp.id,
+              expense_type: exp.expense_type,
+              amount: exp.amount,
+              receipt_photo_url: exp.receipt_photo_url,
+              created_at: exp.created_at,
+            }));
+            setExpenses(mappedExpenses);
+          } else {
+            console.error('Failed to fetch expenses from API:', expensesResponse.status);
+            setExpenses([]);
+          }
+        } catch (expError) {
+          console.error('Error loading expenses from API:', expError);
+          setExpenses([]);
         }
-        setExpenses(expensesData || []);
       } else {
         // Job not found in API
         setJob(null);
