@@ -92,7 +92,7 @@ serve(async (req) => {
     console.log(`Adding expense: order_number=${order_number}, driver_id=${driver_id}, expense_type=${expense_type}, amount=${amount}`);
 
     // Forward the request to the external API
-    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/add-expense`;
+    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/transport-expenses`;
     
     const response = await fetch(externalUrl, {
       method: 'POST',
