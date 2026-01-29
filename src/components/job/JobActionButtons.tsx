@@ -8,9 +8,10 @@ import reportProblemIcon from '@/assets/report-problem-icon.svg';
 
 interface JobActionButtonsProps {
   jobId?: string;
+  orderNumber?: string;
 }
 
-export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
+export default function JobActionButtons({ jobId, orderNumber }: JobActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -22,7 +23,7 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
     <>
       <div className={`grid gap-3 ${isFromHistory ? 'grid-cols-2' : 'grid-cols-3'}`}>
         <button 
-          className="flex flex-col items-center gap-1 text-[#0A8778]"
+          className="flex flex-col items-center gap-1 text-primary"
           onClick={() => navigate(`/job/${jobId}/expenses`)}
         >
           <img src={expenseViewIcon} alt="" className="w-8 h-8" />
@@ -30,7 +31,7 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
         </button>
 
         <button 
-          className="flex flex-col items-center gap-1 text-[#0A8778]"
+          className="flex flex-col items-center gap-1 text-primary"
           onClick={() => navigate(`/job/${jobId}/add-expense`, { state: { returnPath: location.pathname } })}
         >
           <img src={expenseAddIcon} alt="" className="w-8 h-8" />
@@ -39,7 +40,7 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
 
         {!isFromHistory && (
           <button 
-            className="flex flex-col items-center gap-1 text-[#0A8778]"
+            className="flex flex-col items-center gap-1 text-primary"
             onClick={() => setIsReportDrawerOpen(true)}
           >
             <img src={reportProblemIcon} alt="" className="w-8 h-8" />
@@ -52,6 +53,7 @@ export default function JobActionButtons({ jobId }: JobActionButtonsProps) {
         open={isReportDrawerOpen}
         onOpenChange={setIsReportDrawerOpen}
         jobId={jobId}
+        orderNumber={orderNumber}
       />
     </>
   );

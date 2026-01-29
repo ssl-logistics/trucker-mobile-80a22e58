@@ -237,7 +237,7 @@ export default function PickupSummaryPage() {
         {/* Action Buttons - Hidden when viewing from history */}
         {!fromHistory && (
           <div className="bg-white rounded-xl p-4">
-            <JobActionButtons jobId={jobId} />
+            <JobActionButtons jobId={jobId} orderNumber={jobId} />
           </div>
         )}
 
