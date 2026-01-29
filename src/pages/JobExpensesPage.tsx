@@ -64,16 +64,23 @@ export default function JobExpensesPage() {
       console.log('Expenses API response:', result);
 
       if (result.success && result.data) {
-        // Map API response to our Expense interface
-        const mappedExpenses: Expense[] = result.data.map((exp: any) => ({
-          id: exp.id,
-          expense_type: exp.expense_type,
-          expense_name: exp.expense_name,
-          amount: exp.amount,
-          slip_url: exp.slip_url,
-          created_at: exp.created_at,
-        }));
-        setExpenses(mappedExpenses);
+        // API returns { expenses: [...], total, count } or direct array
+        const expenseArray = result.data.expenses || result.data;
+        
+        if (Array.isArray(expenseArray)) {
+          // Map API response to our Expense interface
+          const mappedExpenses: Expense[] = expenseArray.map((exp: any) => ({
+            id: exp.id,
+            expense_type: exp.expense_type,
+            expense_name: exp.expense_name,
+            amount: exp.amount,
+            slip_url: exp.slip_url,
+            created_at: exp.created_at,
+          }));
+          setExpenses(mappedExpenses);
+        } else {
+          setExpenses([]);
+        }
       } else {
         setExpenses([]);
       }

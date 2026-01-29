@@ -66,7 +66,7 @@ serve(async (req) => {
     }
 
     // Forward the request to the external API
-    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-transport-expenses?${queryParams.toString()}`;
+    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/transport-expenses?${queryParams.toString()}`;
     
     console.log(`Calling external API: ${externalUrl}`);
     
