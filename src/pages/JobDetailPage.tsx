@@ -18,9 +18,15 @@ interface JobDetail {
   origin_location: string;
   origin_address: string | null;
   origin_company_name: string | null;
+  origin_latitude: number | null;
+  origin_longitude: number | null;
+  origin_contact_phone: string | null;
   destination_location: string;
   destination_address: string | null;
   destination_company_name: string | null;
+  destination_latitude: number | null;
+  destination_longitude: number | null;
+  destination_contact_phone: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -184,11 +190,17 @@ export default function JobDetailPage() {
               : (foundJob.sender_address || ''),
             origin_address: foundJob.sender_address,
             origin_company_name: foundJob.sender_name,
+            origin_latitude: foundJob.sender_latitude || null,
+            origin_longitude: foundJob.sender_longitude || null,
+            origin_contact_phone: foundJob.sender_contact_phone || null,
             destination_location: foundJob.destination_district && foundJob.destination_province 
               ? `${foundJob.destination_district}, ${foundJob.destination_province}` 
               : (foundJob.destination_address || ''),
             destination_address: foundJob.destination_address,
             destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
+            destination_latitude: foundJob.destination_latitude || null,
+            destination_longitude: foundJob.destination_longitude || null,
+            destination_contact_phone: foundJob.destination_contact_phone || null,
             price: foundJob.transport_price,
             start_date: foundJob.sender_pickup_date,
             start_time: foundJob.sender_pickup_time,
@@ -202,7 +214,7 @@ export default function JobDetailPage() {
             seal_number: null,
             seal_number_2: null,
             origin_contact_person: foundJob.sender_contact_name,
-            origin_contact_role: foundJob.sender_contact_phone,
+            origin_contact_role: null,
             origin_bill_of_lading: null,
             origin_goods_type: foundJob.product_name,
             origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
@@ -365,11 +377,17 @@ export default function JobDetailPage() {
               : '',
             origin_address: null,
             origin_company_name: customer.company_name || customer.full_name || '',
+            origin_latitude: route.origin_latitude || null,
+            origin_longitude: route.origin_longitude || null,
+            origin_contact_phone: customer.phone || null,
             destination_location: destDistrict.name && destDistrict.province?.name
               ? `${destDistrict.name}, ${destDistrict.province.name}`
               : '',
             destination_address: null,
             destination_company_name: null,
+            destination_latitude: route.destination_latitude || null,
+            destination_longitude: route.destination_longitude || null,
+            destination_contact_phone: null,
             price: userAcceptedBid.bid_price || foundTicket.price || 0,
             start_date: foundTicket.pickup_date || foundTicket.created_at?.split('T')[0] || '',
             start_time: '08:00:00',
@@ -383,7 +401,7 @@ export default function JobDetailPage() {
             seal_number: null,
             seal_number_2: null,
             origin_contact_person: customer.full_name || null,
-            origin_contact_role: customer.phone || null,
+            origin_contact_role: null,
             origin_bill_of_lading: null,
             origin_goods_type: foundTicket.product || null,
             origin_goods_quantity: foundTicket.weight_tons ? `${foundTicket.weight_tons} ตัน` : null,
