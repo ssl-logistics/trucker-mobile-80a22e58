@@ -27,6 +27,9 @@ interface MultiBidPaymentModalProps {
   onSuccess: () => void;
 }
 
+// Default bidding fee per job (required)
+const BIDDING_FEE_PER_JOB = 100;
+
 // Bank account info
 const BANK_INFO = {
   bankName: "ธนาคารกสิกรไทย",
@@ -53,7 +56,10 @@ export function MultiBidPaymentModal({
   const [paidHintJobs, setPaidHintJobs] = useState<Set<string>>(new Set());
   const [pendingPaymentJobId, setPendingPaymentJobId] = useState<string | null>(null);
 
-  // Calculate total hint fees (only for jobs that have price_hint set)
+  // Calculate total bidding fees (100 THB per job - always required)
+  const totalBiddingFees = selectedJobs.length * BIDDING_FEE_PER_JOB;
+
+  // Calculate total hint fees (optional - only for viewing market price)
   const totalHintFees = selectedJobs.reduce((sum, job) => {
     return sum + (job.price_hint || 0);
   }, 0);
@@ -225,8 +231,8 @@ export function MultiBidPaymentModal({
     return sum + (isNaN(amount) ? 0 : amount);
   }, 0);
 
-  // Grand total = total bid amount (hint fees are optional and separate)
-  const grandTotal = totalBidAmount;
+  // Grand total = total bid amount + bidding fees (hint fees are optional and separate)
+  const grandTotal = totalBidAmount + totalBiddingFees;
 
   const formatPrice = (price?: number | null) => {
     if (!price || price === 0) return t("common.free") || "ฟรี";
@@ -269,12 +275,20 @@ export function MultiBidPaymentModal({
                       </button>
                     </div>
                   </div>
+                  <div className="flex justify-between pt-1 border-t border-white/20">
+                    <span className="opacity-80">{t("bidding.biddingFeeTotal")}:</span>
+                    <span className="font-bold">฿{totalBiddingFees.toLocaleString()}</span>
+                  </div>
                   {totalHintFees > 0 && (
-                    <div className="flex justify-between pt-1 border-t border-white/20">
-                      <span className="opacity-80">{t("bidding.hintFeeTotal")}:</span>
-                      <span className="font-bold text-lg">฿{totalHintFees.toLocaleString()}</span>
+                    <div className="flex justify-between">
+                      <span className="opacity-80">{t("bidding.hintFeeTotal")} ({t("bidding.optional")}):</span>
+                      <span className="font-medium">฿{totalHintFees.toLocaleString()}</span>
                     </div>
                   )}
+                  <div className="flex justify-between pt-1 border-t border-white/20">
+                    <span className="opacity-80">{t("bidding.transferAmount")}:</span>
+                    <span className="font-bold text-lg">฿{totalBiddingFees.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
           </div>
@@ -393,24 +407,26 @@ export function MultiBidPaymentModal({
           </div>
 
           {/* Total Summary */}
-          {totalBidAmount > 0 && (
-            <div className="bg-primary/10 rounded-xl p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("bidding.yourBidTotal")}</span>
-                <span className="font-medium">฿{totalBidAmount.toLocaleString()}</span>
-              </div>
-              {totalHintFees > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("bidding.hintFeeTotal")}</span>
-                  <span className="font-medium">฿{totalHintFees.toLocaleString()}</span>
-                </div>
-              )}
-              <div className="border-t border-primary/20 pt-2 flex justify-between">
-                <span className="font-semibold">{t("bidding.grandTotal")}</span>
-                <span className="font-bold text-lg text-primary">฿{grandTotal.toLocaleString()}</span>
-              </div>
+          <div className="bg-primary/10 rounded-xl p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{t("bidding.yourBidTotal")}</span>
+              <span className="font-medium">฿{totalBidAmount.toLocaleString()}</span>
             </div>
-          )}
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{t("bidding.biddingFee")} ({selectedJobs.length} {t("bidding.jobs")} × ฿{BIDDING_FEE_PER_JOB})</span>
+              <span className="font-medium">฿{totalBiddingFees.toLocaleString()}</span>
+            </div>
+            {totalHintFees > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{t("bidding.hintFeeTotal")} ({t("bidding.optional")})</span>
+                <span className="font-medium">฿{totalHintFees.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="border-t border-primary/20 pt-2 flex justify-between">
+              <span className="font-semibold">{t("bidding.grandTotal")}</span>
+              <span className="font-bold text-lg text-primary">฿{grandTotal.toLocaleString()}</span>
+            </div>
+          </div>
 
           {/* Payment Slip Upload */}
           <div className="space-y-2">
