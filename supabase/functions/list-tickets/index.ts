@@ -40,13 +40,14 @@ serve(async (req) => {
     // Get parameters - don't default status if bids_status is provided
     const bidsStatus = (body?.bids_status as string | undefined) ?? url.searchParams.get('bids_status') ?? undefined;
     const statusParam = (body?.status as string | undefined) ?? url.searchParams.get('status');
-    const limit = (body?.limit as string | undefined) ?? url.searchParams.get('limit') ?? '50';
+    const limit = (body?.limit as string | undefined) ?? url.searchParams.get('limit') ?? '10';
+    const createdByRole = (body?.created_by_role as string | undefined) ?? url.searchParams.get('created_by_role') ?? 'trucking_company';
     
     // Only default to 'active' if no bids_status filter is provided
     const status = statusParam ?? (bidsStatus ? undefined : 'active');
 
     console.log(
-      `Fetching tickets from external API with status=${status || 'not specified'}, limit=${limit}, bids_status=${bidsStatus || 'none'}`,
+      `Fetching tickets from external API with status=${status || 'not specified'}, limit=${limit}, bids_status=${bidsStatus || 'none'}, created_by_role=${createdByRole}`,
     );
 
     // Build external API URL with query params
@@ -57,6 +58,11 @@ serve(async (req) => {
       externalUrl.searchParams.set('status', status);
     }
     externalUrl.searchParams.set('limit', limit);
+    
+    // Add created_by_role parameter (default to trucking_company for bidding jobs)
+    if (createdByRole) {
+      externalUrl.searchParams.set('created_by_role', createdByRole);
+    }
     
     // Add bids_status if provided
     if (bidsStatus) {
