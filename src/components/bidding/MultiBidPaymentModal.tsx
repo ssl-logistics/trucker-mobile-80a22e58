@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { X, Image as ImageIcon, Copy, Check, Lock, Eye, Loader2 } from "lucide-react";
+import { X, Image as ImageIcon, Copy, Check, Lock, Eye, Loader2, AlertCircle, CheckCircle2, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useOCR } from "@/hooks/useOCR";
 import coinsIcon from "@/assets/coins-icon.png";
 
 interface Job {
@@ -35,10 +36,24 @@ const BANK_INFO = {
   bankName: "ธนาคารกสิกรไทย",
   accountName: "บริษัท เอสเอสแอล โลจิสติกส์ จำกัด",
   accountNumber: "719-1-01475-2",
+  accountNumberNormalized: "7191014752",
 };
 
 // Hint payment API endpoint
 const HINT_API_URL = "https://zcahkrlhlydpiwawdlxh.supabase.co/functions/v1/submit-price-hint";
+
+// OCR validation result interface
+interface OCRValidation {
+  isValidating: boolean;
+  validated: boolean;
+  amountMatches: boolean | null;
+  accountMatches: boolean | null;
+  extractedAmount: number | null;
+  extractedAccount: string | null;
+  extractedBankName: string | null;
+  extractedReceiverName: string | null;
+  error: string | null;
+}
 
 export function MultiBidPaymentModal({
   open,
@@ -48,6 +63,7 @@ export function MultiBidPaymentModal({
 }: MultiBidPaymentModalProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { extractFromBase64 } = useOCR();
   const [bidAmounts, setBidAmounts] = useState<Record<string, string>>({});
   const [slipImage, setSlipImage] = useState<string | null>(null);
   const [slipBase64, setSlipBase64] = useState<string | null>(null);
@@ -64,6 +80,19 @@ export function MultiBidPaymentModal({
   const [hintSlipPreview, setHintSlipPreview] = useState<string | null>(null);
   const [isPayingHint, setIsPayingHint] = useState(false);
   const hintFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // OCR validation state for hint payment
+  const [hintOCRValidation, setHintOCRValidation] = useState<OCRValidation>({
+    isValidating: false,
+    validated: false,
+    amountMatches: null,
+    accountMatches: null,
+    extractedAmount: null,
+    extractedAccount: null,
+    extractedBankName: null,
+    extractedReceiverName: null,
+    error: null,
+  });
 
   // Calculate total bidding fees (100 THB per job - always required)
   const totalBiddingFees = selectedJobs.length * BIDDING_FEE_PER_JOB;
@@ -91,8 +120,8 @@ export function MultiBidPaymentModal({
     }
   };
 
-  // Handle hint slip file selection
-  const handleHintSlipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle hint slip file selection with OCR validation
+  const handleHintSlipChange = async (e: React.ChangeEvent<HTMLInputElement>, expectedHintFee: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -118,8 +147,62 @@ export function MultiBidPaymentModal({
     setHintSlipPreview(previewUrl);
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setHintSlipBase64(reader.result as string);
+    reader.onloadend = async () => {
+      const base64 = reader.result as string;
+      setHintSlipBase64(base64);
+      
+      // Reset and start OCR validation
+      setHintOCRValidation({
+        isValidating: true,
+        validated: false,
+        amountMatches: null,
+        accountMatches: null,
+        extractedAmount: null,
+        extractedAccount: null,
+        extractedBankName: null,
+        extractedReceiverName: null,
+        error: null,
+      });
+      
+      try {
+        const result = await extractFromBase64(base64, 'payment_slip', {
+          expected_amount: expectedHintFee,
+          expected_account_number: BANK_INFO.accountNumberNormalized,
+        });
+        
+        if (result.success && result.data) {
+          setHintOCRValidation({
+            isValidating: false,
+            validated: true,
+            amountMatches: result.data.amount_matches ?? null,
+            accountMatches: result.data.account_matches ?? null,
+            extractedAmount: result.data.amount ?? null,
+            extractedAccount: result.data.account_number ?? null,
+            extractedBankName: result.data.bank_name ?? null,
+            extractedReceiverName: result.data.receiver_name ?? null,
+            error: null,
+          });
+        } else {
+          setHintOCRValidation({
+            isValidating: false,
+            validated: false,
+            amountMatches: null,
+            accountMatches: null,
+            extractedAmount: null,
+            extractedAccount: null,
+            extractedBankName: null,
+            extractedReceiverName: null,
+            error: result.error || "OCR validation failed",
+          });
+        }
+      } catch (err) {
+        console.error("OCR error:", err);
+        setHintOCRValidation(prev => ({
+          ...prev,
+          isValidating: false,
+          error: "Failed to validate slip",
+        }));
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -167,6 +250,19 @@ export function MultiBidPaymentModal({
         title: t("bidding.hintPaid"),
         description: t("bidding.priceNowVisible"),
       });
+      
+      // Reset OCR validation
+      setHintOCRValidation({
+        isValidating: false,
+        validated: false,
+        amountMatches: null,
+        accountMatches: null,
+        extractedAmount: null,
+        extractedAccount: null,
+        extractedBankName: null,
+        extractedReceiverName: null,
+        error: null,
+      });
     } catch (err) {
       console.error("Error submitting hint payment:", err);
       toast({
@@ -184,6 +280,17 @@ export function MultiBidPaymentModal({
     setPendingPaymentJobId(null);
     setHintSlipBase64(null);
     setHintSlipPreview(null);
+    setHintOCRValidation({
+      isValidating: false,
+      validated: false,
+      amountMatches: null,
+      accountMatches: null,
+      extractedAmount: null,
+      extractedAccount: null,
+      extractedBankName: null,
+      extractedReceiverName: null,
+      error: null,
+    });
     if (hintFileInputRef.current) {
       hintFileInputRef.current.value = "";
     }
@@ -447,40 +554,59 @@ export function MultiBidPaymentModal({
                   
                   {/* Hint payment section for viewing market price */}
                   {isPendingPayment && !hasPaidHint && (
-                    <div className="bg-accent/50 border border-border rounded-xl p-4 space-y-3">
+                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 space-y-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                          <Eye className="w-4 h-4 text-primary-foreground" />
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-sm">
+                          <Eye className="w-4 h-4 text-white" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold">
+                          <p className="text-sm font-semibold text-amber-900">
                             {t("bidding.payHintToViewPrice")}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("bidding.hintFee")}: <span className="font-bold text-foreground">฿{hintFee}</span>
+                          <p className="text-xs text-amber-700">
+                            {t("bidding.hintFee")}: <span className="font-bold">฿{hintFee}</span>
                           </p>
                         </div>
                       </div>
                       
                       {/* Hint slip upload */}
                       <div className="space-y-2">
-                        <p className="text-xs font-medium">{t("placeBid.paymentSlip")}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium text-amber-900">{t("placeBid.paymentSlip")}</p>
+                          {hintOCRValidation.isValidating && (
+                            <div className="flex items-center gap-1 text-xs text-amber-600">
+                              <ScanLine className="w-3 h-3 animate-pulse" />
+                              <span>กำลังตรวจสอบสลิป...</span>
+                            </div>
+                          )}
+                        </div>
                         {hintSlipPreview ? (
                           <div className="relative">
                             <img
                               src={hintSlipPreview}
                               alt="Hint payment slip"
-                              className="w-full max-h-32 object-contain rounded-lg border"
+                              className="w-full max-h-32 object-contain rounded-lg border border-amber-200"
                             />
                             <button
                               onClick={() => {
                                 setHintSlipPreview(null);
                                 setHintSlipBase64(null);
+                                setHintOCRValidation({
+                                  isValidating: false,
+                                  validated: false,
+                                  amountMatches: null,
+                                  accountMatches: null,
+                                  extractedAmount: null,
+                                  extractedAccount: null,
+                                  extractedBankName: null,
+                                  extractedReceiverName: null,
+                                  error: null,
+                                });
                                 if (hintFileInputRef.current) {
                                   hintFileInputRef.current.value = "";
                                 }
                               }}
-                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 shadow-sm"
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -488,9 +614,9 @@ export function MultiBidPaymentModal({
                         ) : (
                           <div
                             onClick={() => hintFileInputRef.current?.click()}
-                            className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                            className="border-2 border-dashed border-amber-300 rounded-lg p-4 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-100/50 transition-colors"
                           >
-                            <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                            <div className="flex flex-col items-center gap-1 text-amber-600">
                               <ImageIcon className="w-6 h-6" />
                               <span className="text-xs">{t("placeBid.uploadSlipHint")}</span>
                             </div>
@@ -500,31 +626,129 @@ export function MultiBidPaymentModal({
                           ref={hintFileInputRef}
                           type="file"
                           accept="image/*"
-                          onChange={handleHintSlipChange}
+                          onChange={(e) => handleHintSlipChange(e, hintFee)}
                           className="hidden"
                         />
+                        
+                        {/* OCR Validation Results */}
+                        {hintSlipPreview && hintOCRValidation.validated && (
+                          <div className="space-y-2 p-3 bg-white/80 rounded-lg border border-amber-200">
+                            <p className="text-xs font-semibold text-amber-900 flex items-center gap-1">
+                              <ScanLine className="w-3.5 h-3.5" />
+                              ผลการตรวจสอบสลิป
+                            </p>
+                            
+                            {/* Amount check */}
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-amber-800">ยอดโอน:</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">
+                                  {hintOCRValidation.extractedAmount !== null 
+                                    ? `฿${hintOCRValidation.extractedAmount.toLocaleString()}` 
+                                    : "ไม่พบข้อมูล"}
+                                </span>
+                                {hintOCRValidation.amountMatches === true && (
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                )}
+                                {hintOCRValidation.amountMatches === false && (
+                                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Account check */}
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-amber-800">เลขบัญชีปลายทาง:</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium font-mono text-[11px]">
+                                  {hintOCRValidation.extractedAccount || "ไม่พบข้อมูล"}
+                                </span>
+                                {hintOCRValidation.accountMatches === true && (
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                )}
+                                {hintOCRValidation.accountMatches === false && (
+                                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Bank & receiver name */}
+                            {hintOCRValidation.extractedBankName && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-amber-800">ธนาคาร:</span>
+                                <span className="font-medium">{hintOCRValidation.extractedBankName}</span>
+                              </div>
+                            )}
+                            
+                            {/* Validation summary */}
+                            {(hintOCRValidation.amountMatches === false || hintOCRValidation.accountMatches === false) && (
+                              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-xs text-red-700 font-medium flex items-center gap-1">
+                                  <AlertCircle className="w-3.5 h-3.5" />
+                                  ข้อมูลไม่ตรงกัน
+                                </p>
+                                <ul className="text-xs text-red-600 mt-1 space-y-0.5 ml-4">
+                                  {hintOCRValidation.amountMatches === false && (
+                                    <li>• ยอดโอนไม่ตรงกับค่า Hint (ต้องการ ฿{hintFee})</li>
+                                  )}
+                                  {hintOCRValidation.accountMatches === false && (
+                                    <li>• เลขบัญชีไม่ตรงกับบัญชีบริษัท ({BANK_INFO.accountNumber})</li>
+                                  )}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {hintOCRValidation.amountMatches === true && hintOCRValidation.accountMatches === true && (
+                              <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                <p className="text-xs text-emerald-700 font-medium flex items-center gap-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  ข้อมูลถูกต้อง พร้อมชำระ
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* OCR Error */}
+                        {hintOCRValidation.error && (
+                          <div className="p-2 bg-amber-100 border border-amber-200 rounded-lg">
+                            <p className="text-xs text-amber-700">
+                              ไม่สามารถตรวจสอบสลิปอัตโนมัติได้ กรุณาตรวจสอบด้วยตนเอง
+                            </p>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          variant="ghost"
+                          variant="outline"
                           onClick={handleCancelHintPayment}
-                          className="flex-1"
-                          disabled={isPayingHint}
+                          className="flex-1 border-amber-300 text-amber-700 hover:bg-amber-100"
+                          disabled={isPayingHint || hintOCRValidation.isValidating}
                         >
                           {t("common.cancel")}
                         </Button>
                         <Button
                           size="sm"
                           onClick={() => handlePayHint(job.id, hintFee)}
-                          disabled={!hintSlipBase64 || isPayingHint}
-                          className="flex-1"
+                          disabled={
+                            !hintSlipBase64 || 
+                            isPayingHint || 
+                            hintOCRValidation.isValidating ||
+                            (hintOCRValidation.validated && (hintOCRValidation.amountMatches === false || hintOCRValidation.accountMatches === false))
+                          }
+                          className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
                         >
                           {isPayingHint ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                               {t("placeBid.submitting")}
+                            </>
+                          ) : hintOCRValidation.isValidating ? (
+                            <>
+                              <ScanLine className="w-4 h-4 mr-1.5 animate-pulse" />
+                              กำลังตรวจสอบ...
                             </>
                           ) : (
                             <>
