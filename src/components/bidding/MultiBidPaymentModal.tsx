@@ -656,53 +656,24 @@ export function MultiBidPaymentModal({
                               </div>
                             </div>
                             
-                            {/* Account check */}
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-amber-800">เลขบัญชีปลายทาง:</span>
-                              <div className="flex items-center gap-1">
-                                <span className="font-medium font-mono text-[11px]">
-                                  {hintOCRValidation.extractedAccount || "ไม่พบข้อมูล"}
-                                </span>
-                                {hintOCRValidation.accountMatches === true && (
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                )}
-                                {hintOCRValidation.accountMatches === false && (
-                                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Bank & receiver name */}
-                            {hintOCRValidation.extractedBankName && (
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-amber-800">ธนาคาร:</span>
-                                <span className="font-medium">{hintOCRValidation.extractedBankName}</span>
-                              </div>
-                            )}
-                            
-                            {/* Validation summary */}
-                            {(hintOCRValidation.amountMatches === false || hintOCRValidation.accountMatches === false) && (
+                            {/* Validation summary - only check amount for now */}
+                            {hintOCRValidation.amountMatches === false && (
                               <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
                                 <p className="text-xs text-red-700 font-medium flex items-center gap-1">
                                   <AlertCircle className="w-3.5 h-3.5" />
-                                  ข้อมูลไม่ตรงกัน
+                                  ยอดเงินไม่ตรงกัน
                                 </p>
-                                <ul className="text-xs text-red-600 mt-1 space-y-0.5 ml-4">
-                                  {hintOCRValidation.amountMatches === false && (
-                                    <li>• ยอดโอนไม่ตรงกับค่า Hint (ต้องการ ฿{hintFee})</li>
-                                  )}
-                                  {hintOCRValidation.accountMatches === false && (
-                                    <li>• เลขบัญชีไม่ตรงกับบัญชีบริษัท ({BANK_INFO.accountNumber})</li>
-                                  )}
-                                </ul>
+                                <p className="text-xs text-red-600 mt-1">
+                                  ยอดโอนไม่ตรงกับค่า Hint (ต้องการ ฿{hintFee})
+                                </p>
                               </div>
                             )}
                             
-                            {hintOCRValidation.amountMatches === true && hintOCRValidation.accountMatches === true && (
+                            {hintOCRValidation.amountMatches === true && (
                               <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                                 <p className="text-xs text-emerald-700 font-medium flex items-center gap-1">
                                   <CheckCircle2 className="w-3.5 h-3.5" />
-                                  ข้อมูลถูกต้อง พร้อมชำระ
+                                  ยอดเงินถูกต้อง พร้อมชำระ
                                 </p>
                               </div>
                             )}
@@ -736,7 +707,7 @@ export function MultiBidPaymentModal({
                             !hintSlipBase64 || 
                             isPayingHint || 
                             hintOCRValidation.isValidating ||
-                            (hintOCRValidation.validated && (hintOCRValidation.amountMatches === false || hintOCRValidation.accountMatches === false))
+                            (hintOCRValidation.validated && hintOCRValidation.amountMatches === false)
                           }
                           className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
                         >
