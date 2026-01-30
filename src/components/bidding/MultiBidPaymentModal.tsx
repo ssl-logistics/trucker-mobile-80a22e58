@@ -300,7 +300,7 @@ export function MultiBidPaymentModal({
                       ) : (
                         <button
                           onClick={() => setPendingPaymentJobId(job.id)}
-                          className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 text-xs font-medium transition-colors"
                         >
                           <Lock className="w-3 h-3" />
                           {t("bidding.payToViewPrice")}
@@ -311,26 +311,32 @@ export function MultiBidPaymentModal({
                   
                   {/* Deposit payment section for viewing price */}
                   {isPendingPayment && !hasPaidDeposit && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
-                      <p className="text-sm font-medium text-amber-800">
-                        {t("bidding.payDepositToViewPrice")}
-                      </p>
-                      <p className="text-xs text-amber-700">
-                        {t("bidding.depositAmount")}: ฿{DEPOSIT_PER_JOB}
-                      </p>
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+                          <Eye className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-amber-900">
+                            {t("bidding.payDepositToViewPrice")}
+                          </p>
+                          <p className="text-xs text-amber-600">
+                            {t("bidding.depositAmount")}: <span className="font-bold">฿{DEPOSIT_PER_JOB}</span>
+                          </p>
+                        </div>
+                      </div>
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => setPendingPaymentJobId(null)}
-                          className="flex-1"
+                          className="flex-1 text-muted-foreground hover:text-foreground"
                         >
                           {t("common.cancel")}
                         </Button>
                         <Button
                           size="sm"
                           onClick={() => {
-                            // Simulate payment approval - in real app, this would call API
                             setPaidDepositJobs(prev => new Set([...prev, job.id]));
                             setPendingPaymentJobId(null);
                             toast({
@@ -338,9 +344,9 @@ export function MultiBidPaymentModal({
                               description: t("bidding.priceNowVisible"),
                             });
                           }}
-                          className="flex-1 bg-amber-600 hover:bg-amber-700"
+                          className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md"
                         >
-                          <Eye className="w-4 h-4 mr-1" />
+                          <Eye className="w-4 h-4 mr-1.5" />
                           {t("bidding.payAndView")}
                         </Button>
                       </div>
