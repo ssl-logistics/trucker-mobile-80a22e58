@@ -305,25 +305,30 @@ export default function CurrentJobsPage() {
 
       // Get confirmed transport IDs from check-ins (delivery_confirmed = POD done)
       let confirmedOrderNumbers = new Set<string>();
+      let confirmedTransportIds = new Set<string>();
       if (checkinsResponse && checkinsResponse.ok) {
         const checkinsResult = await checkinsResponse.json();
         const allCheckins = checkinsResult?.data || [];
         
-        // Get order numbers that have delivery_confirmed
-        confirmedOrderNumbers = new Set(
-          allCheckins
-            .filter(
-              (c: any) =>
-                c.freelance_driver_id === freelanceDriverId &&
-                c.checkin_type === 'delivery_confirmed'
-            )
-            .map((c: any) => {
-              // Get order_number from either transport_orders.order_number or order_number field
-              return c.transport_orders?.order_number || c.order_number || '';
-            })
-            .filter(Boolean)
-        );
-        console.log('Jobs with delivery_confirmed (to exclude from Current Jobs):', confirmedOrderNumbers.size);
+        // Get both order numbers AND transport_order_ids that have delivery_confirmed
+        allCheckins
+          .filter(
+            (c: any) =>
+              c.freelance_driver_id === freelanceDriverId &&
+              c.checkin_type === 'delivery_confirmed'
+          )
+          .forEach((c: any) => {
+            // Get order_number from either transport_orders.order_number or order_number field
+            const orderNumber = c.transport_orders?.order_number || c.order_number || '';
+            if (orderNumber) {
+              confirmedOrderNumbers.add(orderNumber);
+            }
+            // Also track transport_order_id directly for matching by ID
+            if (c.transport_order_id) {
+              confirmedTransportIds.add(String(c.transport_order_id));
+            }
+          });
+        console.log('Jobs with delivery_confirmed (to exclude from Current Jobs):', confirmedOrderNumbers.size, 'by order_number,', confirmedTransportIds.size, 'by transport_id');
       }
 
       // Process company jobs
@@ -332,8 +337,10 @@ export default function CurrentJobsPage() {
         const companyResult = await companyJobsResponse.json();
         console.log('Loaded company accepted jobs:', companyResult);
         const allCompanyJobs = Array.isArray(companyResult) ? companyResult : (companyResult.data || []);
-        // Filter out jobs that have delivery_confirmed
-        companyJobs = allCompanyJobs.filter((job: any) => !confirmedOrderNumbers.has(job.order_number));
+        // Filter out jobs that have delivery_confirmed (by order_number or id)
+        companyJobs = allCompanyJobs.filter((job: any) => 
+          !confirmedOrderNumbers.has(job.order_number) && !confirmedTransportIds.has(String(job.id))
+        );
       } else {
         console.error('Error loading company accepted jobs:', await companyJobsResponse.text());
       }
@@ -368,8 +375,8 @@ export default function CurrentJobsPage() {
         // AND not delivery_confirmed yet
         factoryJobs = allFactoryJobs
           .filter((job: any) => {
-            // Skip if already delivery_confirmed
-            if (confirmedOrderNumbers.has(job.order_number)) return false;
+            // Skip if already delivery_confirmed (check both order_number and id)
+            if (confirmedOrderNumbers.has(job.order_number) || confirmedTransportIds.has(String(job.id))) return false;
             
             const status = (job?.status || '').toLowerCase().trim();
             
