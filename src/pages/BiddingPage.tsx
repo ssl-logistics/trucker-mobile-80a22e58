@@ -940,12 +940,12 @@ export default function BiddingPage() {
             </Button>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-2">
-                <div>
+              <div className="grid grid-cols-2 gap-3 mb-2">
+                <div className="bg-muted/50 rounded-lg p-2.5">
                   <p className="text-xs text-muted-foreground">{t("bidding.selectedJobs")}</p>
                   <p className="text-sm font-bold">{selectedJobIds.size} {t("bidding.jobs")}</p>
                 </div>
-                <div className="text-right">
+                <div className="bg-muted/50 rounded-lg p-2.5 text-right">
                   <p className="text-xs text-muted-foreground">{t("bidding.totalDeposit")}</p>
                   <p className="text-sm font-bold text-primary">฿{(selectedJobIds.size * 100).toLocaleString()}</p>
                 </div>
