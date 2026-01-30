@@ -40,7 +40,8 @@ const BANK_INFO = {
 };
 
 // Hint payment API endpoint
-const HINT_API_URL = "https://zcahkrlhlydpiwawdlxh.supabase.co/functions/v1/submit-price-hint";
+// Use our edge function proxy instead of calling external API directly
+// This ensures API key is kept secure on the server side
 
 // OCR validation result interface
 interface OCRValidation {
@@ -220,24 +221,19 @@ export function MultiBidPaymentModal({
 
     setIsPayingHint(true);
     try {
-      const response = await fetch(HINT_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      // Call our edge function proxy which adds API key securely
+      const { data, error } = await supabase.functions.invoke("submit-price-hint", {
+        body: {
           ticket_id: jobId,
           contractor_id: user.id,
           price_hint: hintFee,
           transaction_id: `TXN${Date.now()}_HINT_${jobId.slice(0, 8)}`,
           slip_base64: hintSlipBase64,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        throw new Error(data.error || "Failed to submit hint payment");
+      if (error) {
+        throw error;
       }
 
       // Mark as paid and reveal market price
