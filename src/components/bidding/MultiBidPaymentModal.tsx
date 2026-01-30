@@ -210,6 +210,17 @@ export function MultiBidPaymentModal({
     return !isNaN(amount) && amount > 0;
   });
 
+  // Calculate total bid amount
+  const totalBidAmount = selectedJobs.reduce((sum, job) => {
+    const isFreeJob = !job.price || job.price === 0;
+    if (isFreeJob) return sum;
+    const amount = parseFloat(bidAmounts[job.id] || "0");
+    return sum + (isNaN(amount) ? 0 : amount);
+  }, 0);
+
+  // Grand total = total bid amount + deposit fees
+  const grandTotal = totalBidAmount + totalDeposit;
+
   const formatPrice = (price?: number) => {
     if (!price || price === 0) return t("common.free") || "ฟรี";
     return `฿${price.toLocaleString()}`;
@@ -300,6 +311,24 @@ export function MultiBidPaymentModal({
               );
             })}
           </div>
+
+          {/* Total Summary */}
+          {totalBidAmount > 0 && (
+            <div className="bg-primary/10 rounded-xl p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{t("bidding.yourBidTotal")}</span>
+                <span className="font-medium">฿{totalBidAmount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{t("bidding.biddingFeeTotal")}</span>
+                <span className="font-medium">฿{totalDeposit.toLocaleString()}</span>
+              </div>
+              <div className="border-t border-primary/20 pt-2 flex justify-between">
+                <span className="font-semibold">{t("bidding.grandTotal")}</span>
+                <span className="font-bold text-lg text-primary">฿{grandTotal.toLocaleString()}</span>
+              </div>
+            </div>
+          )}
 
           {/* Payment Slip Upload */}
           <div className="space-y-2">
