@@ -16,6 +16,8 @@ interface Job {
   origin_location: string;
   destination_location: string;
   price?: number;
+  price_hint?: number | null; // Fee to reveal market price (ค่า Hint)
+  market_price?: number | null; // The market/middle price (ราคากลาง)
 }
 
 interface MultiBidPaymentModalProps {
@@ -24,8 +26,6 @@ interface MultiBidPaymentModalProps {
   selectedJobs: Job[];
   onSuccess: () => void;
 }
-
-const DEPOSIT_PER_JOB = 100;
 
 // Bank account info
 const BANK_INFO = {
@@ -49,11 +49,14 @@ export function MultiBidPaymentModal({
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Track which jobs have paid deposit to view price
-  const [paidDepositJobs, setPaidDepositJobs] = useState<Set<string>>(new Set());
+  // Track which jobs have paid hint fee to view market price
+  const [paidHintJobs, setPaidHintJobs] = useState<Set<string>>(new Set());
   const [pendingPaymentJobId, setPendingPaymentJobId] = useState<string | null>(null);
 
-  const totalDeposit = selectedJobs.length * DEPOSIT_PER_JOB;
+  // Calculate total hint fees (only for jobs that have price_hint set)
+  const totalHintFees = selectedJobs.reduce((sum, job) => {
+    return sum + (job.price_hint || 0);
+  }, 0);
 
   const handleBidAmountChange = (jobId: string, value: string) => {
     setBidAmounts((prev) => ({ ...prev, [jobId]: value }));
@@ -222,10 +225,10 @@ export function MultiBidPaymentModal({
     return sum + (isNaN(amount) ? 0 : amount);
   }, 0);
 
-  // Grand total = total bid amount + deposit fees
-  const grandTotal = totalBidAmount + totalDeposit;
+  // Grand total = total bid amount (hint fees are optional and separate)
+  const grandTotal = totalBidAmount;
 
-  const formatPrice = (price?: number) => {
+  const formatPrice = (price?: number | null) => {
     if (!price || price === 0) return t("common.free") || "ฟรี";
     return `฿${price.toLocaleString()}`;
   };
@@ -266,10 +269,12 @@ export function MultiBidPaymentModal({
                       </button>
                     </div>
                   </div>
-                  <div className="flex justify-between pt-1 border-t border-white/20">
-                    <span className="opacity-80">{t("bidding.transferAmount")}:</span>
-                    <span className="font-bold text-lg">฿{totalDeposit.toLocaleString()}</span>
-                  </div>
+                  {totalHintFees > 0 && (
+                    <div className="flex justify-between pt-1 border-t border-white/20">
+                      <span className="opacity-80">{t("bidding.hintFeeTotal")}:</span>
+                      <span className="font-bold text-lg">฿{totalHintFees.toLocaleString()}</span>
+                    </div>
+                  )}
                 </div>
               </div>
           </div>
@@ -278,9 +283,11 @@ export function MultiBidPaymentModal({
           <div className="space-y-3">
             <p className="text-sm font-medium">{t("bidding.enterBidAmounts")}</p>
             {selectedJobs.map((job) => {
-              const isFreeJob = !job.price || job.price === 0;
-              const hasPaidDeposit = paidDepositJobs.has(job.id);
+              const isFreeJob = !job.market_price && (!job.price || job.price === 0);
+              const hasPaidHint = paidHintJobs.has(job.id);
               const isPendingPayment = pendingPaymentJobId === job.id;
+              const hintFee = job.price_hint || 0;
+              const marketPrice = job.market_price;
               
               return (
                 <div key={job.id} className="bg-card border rounded-lg p-3 space-y-2">
@@ -292,10 +299,10 @@ export function MultiBidPaymentModal({
                       </p>
                     </div>
                     <div className="text-right flex flex-col items-end">
-                      <p className="text-xs text-muted-foreground">{t("bidding.startingPrice")}</p>
-                      {hasPaidDeposit || isFreeJob ? (
+                      <p className="text-xs text-muted-foreground">{t("bidding.marketPrice")}</p>
+                      {hasPaidHint || isFreeJob || !marketPrice ? (
                         <p className={`text-sm font-semibold ${isFreeJob ? "text-emerald-600" : "text-primary"}`}>
-                          {formatPrice(job.price)}
+                          {marketPrice ? formatPrice(marketPrice) : formatPrice(job.price)}
                         </p>
                       ) : (
                         <div className="flex items-center gap-1 text-sm font-semibold text-muted-foreground">
@@ -306,19 +313,19 @@ export function MultiBidPaymentModal({
                     </div>
                   </div>
                   
-                  {/* Pay to view price button - shown when price is hidden */}
-                  {!hasPaidDeposit && !isFreeJob && !isPendingPayment && (
+                  {/* Pay to view price button - shown when price is hidden and has hint fee */}
+                  {!hasPaidHint && marketPrice && hintFee > 0 && !isPendingPayment && (
                     <button
                       onClick={() => setPendingPaymentJobId(job.id)}
                       className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 text-xs font-medium transition-colors"
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      {t("bidding.payToViewPrice")}
+                      {t("bidding.payToViewPrice")} (฿{hintFee})
                     </button>
                   )}
                   
-                  {/* Deposit payment section for viewing price */}
-                  {isPendingPayment && !hasPaidDeposit && (
+                  {/* Hint payment section for viewing market price */}
+                  {isPendingPayment && !hasPaidHint && (
                     <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 space-y-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
@@ -326,10 +333,10 @@ export function MultiBidPaymentModal({
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-amber-900">
-                            {t("bidding.payDepositToViewPrice")}
+                            {t("bidding.payHintToViewPrice")}
                           </p>
                           <p className="text-xs text-amber-600">
-                            {t("bidding.depositAmount")}: <span className="font-bold">฿{DEPOSIT_PER_JOB}</span>
+                            {t("bidding.hintFee")}: <span className="font-bold">฿{hintFee}</span>
                           </p>
                         </div>
                       </div>
@@ -345,10 +352,10 @@ export function MultiBidPaymentModal({
                         <Button
                           size="sm"
                           onClick={() => {
-                            setPaidDepositJobs(prev => new Set([...prev, job.id]));
+                            setPaidHintJobs(prev => new Set([...prev, job.id]));
                             setPendingPaymentJobId(null);
                             toast({
-                              title: t("bidding.depositPaid"),
+                              title: t("bidding.hintPaid"),
                               description: t("bidding.priceNowVisible"),
                             });
                           }}
@@ -374,9 +381,12 @@ export function MultiBidPaymentModal({
                       />
                     </div>
                   )}
-                  <p className="text-xs text-muted-foreground">
-                    {t("bidding.biddingFee")}: <span className="font-medium text-foreground">฿{DEPOSIT_PER_JOB}</span>
-                  </p>
+                  {hintFee > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {t("bidding.hintFee")}: <span className="font-medium text-foreground">฿{hintFee}</span>
+                      {hasPaidHint && <span className="text-emerald-600 ml-1">({t("common.paid")})</span>}
+                    </p>
+                  )}
                 </div>
               );
             })}
@@ -389,10 +399,12 @@ export function MultiBidPaymentModal({
                 <span className="text-muted-foreground">{t("bidding.yourBidTotal")}</span>
                 <span className="font-medium">฿{totalBidAmount.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("bidding.biddingFeeTotal")}</span>
-                <span className="font-medium">฿{totalDeposit.toLocaleString()}</span>
-              </div>
+              {totalHintFees > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t("bidding.hintFeeTotal")}</span>
+                  <span className="font-medium">฿{totalHintFees.toLocaleString()}</span>
+                </div>
+              )}
               <div className="border-t border-primary/20 pt-2 flex justify-between">
                 <span className="font-semibold">{t("bidding.grandTotal")}</span>
                 <span className="font-bold text-lg text-primary">฿{grandTotal.toLocaleString()}</span>

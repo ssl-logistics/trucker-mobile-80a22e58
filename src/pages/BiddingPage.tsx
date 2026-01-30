@@ -85,6 +85,8 @@ interface ExternalTicket {
   weight_tons: number;
   trips_per_month: number;
   price: number | null;
+  price_hint: number | null; // Fee to reveal market_price
+  market_price: number | null; // The middle/market price (revealed after paying hint)
   price_unit: string;
   price_type: string;
   distance_km: number;
@@ -577,17 +579,23 @@ export default function BiddingPage() {
 
   const groupedBids = groupBidsByMonth();
 
-  // Get selected jobs data for modal
+  // Get selected jobs data for modal - include price_hint and market_price from raw tickets
   const selectedJobsData = availableJobs
     .filter((job) => selectedJobIds.has(job.id))
-    .map((job) => ({
-      id: job.id,
-      order_code: job.order_code,
-      employer_name: job.employer_name,
-      origin_location: job.origin_location,
-      destination_location: job.destination_location,
-      price: job.price,
-    }));
+    .map((job) => {
+      // Find the raw ticket to get price_hint and market_price
+      const rawTicket = rawTickets.find(t => t.id === job.id);
+      return {
+        id: job.id,
+        order_code: job.order_code,
+        employer_name: job.employer_name,
+        origin_location: job.origin_location,
+        destination_location: job.destination_location,
+        price: job.price,
+        price_hint: rawTicket?.price_hint ?? null,
+        market_price: rawTicket?.market_price ?? null,
+      };
+    });
 
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-20 px-4">
