@@ -429,7 +429,22 @@ export default function PickupDetailPage() {
         </div>
 
         <div className="space-y-3 pt-4">
-          <Button variant="outline" className="w-full h-12 text-base border-[#153860]">
+          <Button 
+            variant="outline" 
+            className="w-full h-12 text-base border-[#153860]"
+            onClick={() => {
+              const phone = job.origin_contact_role;
+              if (phone) {
+                window.location.href = `tel:${phone}`;
+              } else {
+                toast({
+                  title: t('pickup.error'),
+                  description: t('jobDetail.noPhoneNumber'),
+                  variant: 'destructive'
+                });
+              }
+            }}
+          >
             <Phone className="w-5 h-5 mr-2" />
             {t('pickup.call')}
           </Button>
