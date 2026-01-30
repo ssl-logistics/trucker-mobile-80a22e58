@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { X, Image as ImageIcon, Copy, Check, Lock, Eye } from "lucide-react";
+import { X, Image as ImageIcon, Copy, Check, Lock, Eye, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -37,6 +37,9 @@ const BANK_INFO = {
   accountNumber: "719-1-01475-2",
 };
 
+// Hint payment API endpoint
+const HINT_API_URL = "https://zcahkrlhlydpiwawdlxh.supabase.co/functions/v1/submit-price-hint";
+
 export function MultiBidPaymentModal({
   open,
   onOpenChange,
@@ -55,6 +58,12 @@ export function MultiBidPaymentModal({
   // Track which jobs have paid hint fee to view market price
   const [paidHintJobs, setPaidHintJobs] = useState<Set<string>>(new Set());
   const [pendingPaymentJobId, setPendingPaymentJobId] = useState<string | null>(null);
+  
+  // Hint payment slip state (separate from main bidding slip)
+  const [hintSlipBase64, setHintSlipBase64] = useState<string | null>(null);
+  const [hintSlipPreview, setHintSlipPreview] = useState<string | null>(null);
+  const [isPayingHint, setIsPayingHint] = useState(false);
+  const hintFileInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate total bidding fees (100 THB per job - always required)
   const totalBiddingFees = selectedJobs.length * BIDDING_FEE_PER_JOB;
@@ -79,6 +88,104 @@ export function MultiBidPaymentModal({
       });
     } catch (err) {
       console.error("Failed to copy:", err);
+    }
+  };
+
+  // Handle hint slip file selection
+  const handleHintSlipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: t("placeBid.invalidFileType"),
+        description: t("placeBid.pleaseUploadImage"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: t("placeBid.fileTooLarge"),
+        description: t("placeBid.maxFileSize"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setHintSlipPreview(previewUrl);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setHintSlipBase64(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Submit hint payment to API
+  const handlePayHint = async (jobId: string, hintFee: number) => {
+    if (!user || !hintSlipBase64) {
+      toast({
+        title: t("placeBid.slipRequired"),
+        description: t("placeBid.pleaseUploadSlip"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPayingHint(true);
+    try {
+      const response = await fetch(HINT_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ticket_id: jobId,
+          contractor_id: user.id,
+          price_hint: hintFee,
+          transaction_id: `TXN${Date.now()}_HINT_${jobId.slice(0, 8)}`,
+          slip_base64: hintSlipBase64,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || "Failed to submit hint payment");
+      }
+
+      // Mark as paid and reveal market price
+      setPaidHintJobs(prev => new Set([...prev, jobId]));
+      setPendingPaymentJobId(null);
+      setHintSlipBase64(null);
+      setHintSlipPreview(null);
+      
+      toast({
+        title: t("bidding.hintPaid"),
+        description: t("bidding.priceNowVisible"),
+      });
+    } catch (err) {
+      console.error("Error submitting hint payment:", err);
+      toast({
+        title: t("placeBid.error"),
+        description: err instanceof Error ? err.message : t("placeBid.submitError"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPayingHint(false);
+    }
+  };
+
+  // Clear hint slip when canceling
+  const handleCancelHintPayment = () => {
+    setPendingPaymentJobId(null);
+    setHintSlipBase64(null);
+    setHintSlipPreview(null);
+    if (hintFileInputRef.current) {
+      hintFileInputRef.current.value = "";
     }
   };
 
@@ -340,43 +447,91 @@ export function MultiBidPaymentModal({
                   
                   {/* Hint payment section for viewing market price */}
                   {isPendingPayment && !hasPaidHint && (
-                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 space-y-3">
+                    <div className="bg-accent/50 border border-border rounded-xl p-4 space-y-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
-                          <Eye className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                          <Eye className="w-4 h-4 text-primary-foreground" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-amber-900">
+                          <p className="text-sm font-semibold">
                             {t("bidding.payHintToViewPrice")}
                           </p>
-                          <p className="text-xs text-amber-600">
-                            {t("bidding.hintFee")}: <span className="font-bold">฿{hintFee}</span>
+                          <p className="text-xs text-muted-foreground">
+                            {t("bidding.hintFee")}: <span className="font-bold text-foreground">฿{hintFee}</span>
                           </p>
                         </div>
                       </div>
+                      
+                      {/* Hint slip upload */}
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium">{t("placeBid.paymentSlip")}</p>
+                        {hintSlipPreview ? (
+                          <div className="relative">
+                            <img
+                              src={hintSlipPreview}
+                              alt="Hint payment slip"
+                              className="w-full max-h-32 object-contain rounded-lg border"
+                            />
+                            <button
+                              onClick={() => {
+                                setHintSlipPreview(null);
+                                setHintSlipBase64(null);
+                                if (hintFileInputRef.current) {
+                                  hintFileInputRef.current.value = "";
+                                }
+                              }}
+                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => hintFileInputRef.current?.click()}
+                            className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                          >
+                            <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                              <ImageIcon className="w-6 h-6" />
+                              <span className="text-xs">{t("placeBid.uploadSlipHint")}</span>
+                            </div>
+                          </div>
+                        )}
+                        <input
+                          ref={hintFileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleHintSlipChange}
+                          className="hidden"
+                        />
+                      </div>
+                      
                       <div className="flex gap-2">
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setPendingPaymentJobId(null)}
-                          className="flex-1 text-muted-foreground hover:text-foreground"
+                          onClick={handleCancelHintPayment}
+                          className="flex-1"
+                          disabled={isPayingHint}
                         >
                           {t("common.cancel")}
                         </Button>
                         <Button
                           size="sm"
-                          onClick={() => {
-                            setPaidHintJobs(prev => new Set([...prev, job.id]));
-                            setPendingPaymentJobId(null);
-                            toast({
-                              title: t("bidding.hintPaid"),
-                              description: t("bidding.priceNowVisible"),
-                            });
-                          }}
-                          className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md"
+                          onClick={() => handlePayHint(job.id, hintFee)}
+                          disabled={!hintSlipBase64 || isPayingHint}
+                          className="flex-1"
                         >
-                          <Eye className="w-4 h-4 mr-1.5" />
-                          {t("bidding.payAndView")}
+                          {isPayingHint ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                              {t("placeBid.submitting")}
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-4 h-4 mr-1.5" />
+                              {t("bidding.payAndView")}
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
