@@ -54,11 +54,11 @@ serve(async (req) => {
       });
     }
     
-    // Handle POST request - submit payment
+    // Handle POST request - submit payment or check status
     if (req.method === 'POST') {
       const body = await req.json();
       
-      const { ticket_id, contractor_id, price_hint, transaction_id, slip_base64 } = body;
+      const { ticket_id, contractor_id, price_hint, transaction_id, slip_base64, action } = body;
       
       if (!ticket_id || !contractor_id) {
         return new Response(
@@ -67,6 +67,32 @@ serve(async (req) => {
         );
       }
 
+      // If action is 'check_status', use GET to external API
+      if (action === 'check_status') {
+        console.log(`Checking hint payment status for ticket: ${ticket_id}, contractor: ${contractor_id}`);
+        
+        const externalUrl = new URL(EXTERNAL_API_URL);
+        externalUrl.searchParams.set('ticket_id', ticket_id);
+        externalUrl.searchParams.set('contractor_id', contractor_id);
+
+        const response = await fetch(externalUrl.toString(), {
+          method: 'GET',
+          headers: {
+            'x-api-key': API_KEY,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        console.log('External API (check status) response:', JSON.stringify(data));
+        
+        return new Response(JSON.stringify(data), {
+          status: response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Otherwise, submit payment via POST
       console.log(`Submitting hint payment for ticket: ${ticket_id}, contractor: ${contractor_id}`);
 
       const response = await fetch(EXTERNAL_API_URL, {

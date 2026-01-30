@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, Image as ImageIcon, Copy, Check, Lock, Eye, Loader2, AlertCircle, CheckCircle2, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +74,7 @@ export function MultiBidPaymentModal({
   
   // Track which jobs have paid hint fee to view market price
   const [paidHintJobs, setPaidHintJobs] = useState<Set<string>>(new Set());
+  const [checkingHintStatus, setCheckingHintStatus] = useState(false);
   const [pendingPaymentJobId, setPendingPaymentJobId] = useState<string | null>(null);
   
   // Hint payment slip state (separate from main bidding slip)
@@ -94,6 +95,53 @@ export function MultiBidPaymentModal({
     extractedReceiverName: null,
     error: null,
   });
+
+  // Check hint payment status when modal opens
+  useEffect(() => {
+    const checkHintPaymentStatus = async () => {
+      if (!open || !user || selectedJobs.length === 0) return;
+      
+      setCheckingHintStatus(true);
+      const paidJobIds = new Set<string>();
+      
+      try {
+        // Check payment status for each job that has a hint fee
+        const jobsWithHint = selectedJobs.filter(job => job.price_hint && job.price_hint > 0 && job.market_price);
+        
+        await Promise.all(
+          jobsWithHint.map(async (job) => {
+            try {
+              // Use POST with action: 'check_status' since supabase.functions.invoke always uses POST
+              const { data, error } = await supabase.functions.invoke('submit-price-hint', {
+                body: {
+                  ticket_id: job.id,
+                  contractor_id: user.id,
+                  action: 'check_status',
+                },
+              });
+              
+              if (!error && data?.paid === true) {
+                paidJobIds.add(job.id);
+                console.log(`Hint already paid for ticket ${job.id}`);
+              }
+            } catch (err) {
+              console.error(`Error checking hint status for ${job.id}:`, err);
+            }
+          })
+        );
+        
+        if (paidJobIds.size > 0) {
+          setPaidHintJobs(prev => new Set([...prev, ...paidJobIds]));
+        }
+      } catch (err) {
+        console.error('Error checking hint payment statuses:', err);
+      } finally {
+        setCheckingHintStatus(false);
+      }
+    };
+    
+    checkHintPaymentStatus();
+  }, [open, user, selectedJobs]);
 
   // Calculate total bidding fees (100 THB per job - always required)
   const totalBiddingFees = selectedJobs.length * BIDDING_FEE_PER_JOB;
