@@ -8,7 +8,9 @@ const corsHeaders = {
 
 interface OCRRequest {
   image_base64: string;
-  extraction_type: 'container_seal' | 'expense_amount' | 'general';
+  extraction_type: 'container_seal' | 'expense_amount' | 'payment_slip' | 'general';
+  expected_amount?: number;
+  expected_account_number?: string;
 }
 
 interface OCRResponse {
@@ -19,6 +21,11 @@ interface OCRResponse {
     container_number_2?: string;
     seal_number_2?: string;
     amount?: number;
+    account_number?: string;
+    bank_name?: string;
+    receiver_name?: string;
+    amount_matches?: boolean;
+    account_matches?: boolean;
     raw_text?: string;
   };
   error?: string;
@@ -36,7 +43,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { image_base64, extraction_type }: OCRRequest = await req.json();
+    const { image_base64, extraction_type, expected_amount, expected_account_number }: OCRRequest = await req.json();
 
     if (!image_base64) {
       throw new Error('image_base64 is required');
@@ -75,6 +82,29 @@ Return ONLY a JSON object in this exact format (no markdown, no explanation):
 }
 
 If you cannot find the amount, use null for amount. Return only the number without currency symbols.`;
+    } else if (extraction_type === 'payment_slip') {
+      prompt = `Analyze this Thai bank transfer payment slip image and extract the following information:
+
+Look for:
+1. Transfer amount (จำนวนเงิน, ยอดโอน, Amount) - the amount that was transferred
+2. Destination account number (เลขบัญชีปลายทาง, บัญชีผู้รับ) - the account number money was sent TO
+3. Bank name (ธนาคาร) - the receiving bank
+4. Receiver name (ชื่อผู้รับ, ชื่อบัญชี) - name of the account holder receiving the money
+
+This is a Thai bank transfer slip (สลิปโอนเงิน). Common Thai banks include: กสิกรไทย, กรุงเทพ, ไทยพาณิชย์, กรุงไทย, กรุงศรี, ทหารไทยธนชาต, ออมสิน
+
+Return ONLY a JSON object in this exact format (no markdown, no explanation):
+{
+  "amount": numeric_value_or_null,
+  "account_number": "destination account number as string or null",
+  "bank_name": "receiving bank name or null",
+  "receiver_name": "receiver account name or null"
+}
+
+IMPORTANT: 
+- For amount, return ONLY the numeric value (e.g., 500, not "500 บาท")
+- For account_number, remove all dashes and spaces (e.g., "7191014752" not "719-1-01475-2")
+- Be precise and extract from the DESTINATION/RECEIVER section, not the sender`;
     } else {
       prompt = `Extract all visible text from this image and return it as:
 {
@@ -136,6 +166,22 @@ If you cannot find the amount, use null for amount. Return only the number witho
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
       extractedData = { raw_text: content };
+    }
+
+    // For payment_slip, add validation checks
+    if (extraction_type === 'payment_slip') {
+      // Check if amount matches expected amount
+      if (expected_amount !== undefined && extractedData.amount !== undefined) {
+        extractedData.amount_matches = Math.abs(extractedData.amount - expected_amount) < 0.01;
+      }
+      
+      // Check if account number matches expected account
+      if (expected_account_number && extractedData.account_number) {
+        // Normalize both account numbers (remove dashes and spaces)
+        const normalizedExpected = expected_account_number.replace(/[-\s]/g, '');
+        const normalizedExtracted = extractedData.account_number.replace(/[-\s]/g, '');
+        extractedData.account_matches = normalizedExpected === normalizedExtracted;
+      }
     }
 
     const result: OCRResponse = {

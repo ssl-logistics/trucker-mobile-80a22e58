@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type OCRExtractionType = 'container_seal' | 'expense_amount' | 'general';
+export type OCRExtractionType = 'container_seal' | 'expense_amount' | 'payment_slip' | 'general';
 
 interface ContainerSealData {
   container_number?: string | null;
@@ -15,16 +15,30 @@ interface ExpenseData {
   raw_text?: string;
 }
 
+interface PaymentSlipData {
+  amount?: number | null;
+  account_number?: string | null;
+  bank_name?: string | null;
+  receiver_name?: string | null;
+  amount_matches?: boolean;
+  account_matches?: boolean;
+}
+
 interface OCRResult {
   success: boolean;
-  data?: ContainerSealData & ExpenseData & { raw_text?: string };
+  data?: ContainerSealData & ExpenseData & PaymentSlipData & { raw_text?: string };
   error?: string;
+}
+
+interface OCROptions {
+  expected_amount?: number;
+  expected_account_number?: string;
 }
 
 interface UseOCRReturn {
   extracting: boolean;
-  extractFromImage: (imageFile: File, extractionType: OCRExtractionType) => Promise<OCRResult>;
-  extractFromBase64: (base64: string, extractionType: OCRExtractionType) => Promise<OCRResult>;
+  extractFromImage: (imageFile: File, extractionType: OCRExtractionType, options?: OCROptions) => Promise<OCRResult>;
+  extractFromBase64: (base64: string, extractionType: OCRExtractionType, options?: OCROptions) => Promise<OCRResult>;
 }
 
 export function useOCR(): UseOCRReturn {
@@ -41,7 +55,8 @@ export function useOCR(): UseOCRReturn {
 
   const extractFromBase64 = useCallback(async (
     base64: string, 
-    extractionType: OCRExtractionType
+    extractionType: OCRExtractionType,
+    options?: OCROptions
   ): Promise<OCRResult> => {
     setExtracting(true);
     
@@ -50,6 +65,8 @@ export function useOCR(): UseOCRReturn {
         body: {
           image_base64: base64,
           extraction_type: extractionType,
+          expected_amount: options?.expected_amount,
+          expected_account_number: options?.expected_account_number,
         },
       });
 
@@ -72,11 +89,12 @@ export function useOCR(): UseOCRReturn {
 
   const extractFromImage = useCallback(async (
     imageFile: File, 
-    extractionType: OCRExtractionType
+    extractionType: OCRExtractionType,
+    options?: OCROptions
   ): Promise<OCRResult> => {
     try {
       const base64 = await fileToBase64(imageFile);
-      return extractFromBase64(base64, extractionType);
+      return extractFromBase64(base64, extractionType, options);
     } catch (err) {
       console.error('Error converting file to base64:', err);
       return { 
