@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { X, Image as ImageIcon, Copy, Check } from "lucide-react";
+import { X, Image as ImageIcon, Copy, Check, Lock, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -48,6 +48,10 @@ export function MultiBidPaymentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Track which jobs have paid deposit to view price
+  const [paidDepositJobs, setPaidDepositJobs] = useState<Set<string>>(new Set());
+  const [pendingPaymentJobId, setPendingPaymentJobId] = useState<string | null>(null);
 
   const totalDeposit = selectedJobs.length * DEPOSIT_PER_JOB;
 
@@ -275,6 +279,9 @@ export function MultiBidPaymentModal({
             <p className="text-sm font-medium">{t("bidding.enterBidAmounts")}</p>
             {selectedJobs.map((job) => {
               const isFreeJob = !job.price || job.price === 0;
+              const hasPaidDeposit = paidDepositJobs.has(job.id);
+              const isPendingPayment = pendingPaymentJobId === job.id;
+              
               return (
                 <div key={job.id} className="bg-card border rounded-lg p-3 space-y-2">
                   <div className="flex justify-between items-start">
@@ -286,12 +293,61 @@ export function MultiBidPaymentModal({
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">{t("bidding.startingPrice")}</p>
-                      <p className={`text-sm font-semibold ${isFreeJob ? "text-emerald-600" : "text-primary"}`}>
-                        {formatPrice(job.price)}
-                      </p>
+                      {hasPaidDeposit || isFreeJob ? (
+                        <p className={`text-sm font-semibold ${isFreeJob ? "text-emerald-600" : "text-primary"}`}>
+                          {formatPrice(job.price)}
+                        </p>
+                      ) : (
+                        <button
+                          onClick={() => setPendingPaymentJobId(job.id)}
+                          className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium"
+                        >
+                          <Lock className="w-3 h-3" />
+                          {t("bidding.payToViewPrice")}
+                        </button>
+                      )}
                     </div>
                   </div>
-                  {!isFreeJob && (
+                  
+                  {/* Deposit payment section for viewing price */}
+                  {isPendingPayment && !hasPaidDeposit && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+                      <p className="text-sm font-medium text-amber-800">
+                        {t("bidding.payDepositToViewPrice")}
+                      </p>
+                      <p className="text-xs text-amber-700">
+                        {t("bidding.depositAmount")}: ฿{DEPOSIT_PER_JOB}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setPendingPaymentJobId(null)}
+                          className="flex-1"
+                        >
+                          {t("common.cancel")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            // Simulate payment approval - in real app, this would call API
+                            setPaidDepositJobs(prev => new Set([...prev, job.id]));
+                            setPendingPaymentJobId(null);
+                            toast({
+                              title: t("bidding.depositPaid"),
+                              description: t("bidding.priceNowVisible"),
+                            });
+                          }}
+                          className="flex-1 bg-amber-600 hover:bg-amber-700"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          {t("bidding.payAndView")}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!isFreeJob && hasPaidDeposit && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">฿</span>
                       <Input
