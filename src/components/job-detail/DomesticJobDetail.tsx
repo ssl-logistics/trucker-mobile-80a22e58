@@ -30,9 +30,15 @@ interface JobDetail {
   origin_location: string;
   origin_address: string | null;
   origin_company_name: string | null;
+  origin_latitude: number | null;
+  origin_longitude: number | null;
+  origin_contact_phone: string | null;
   destination_location: string;
   destination_address: string | null;
   destination_company_name: string | null;
+  destination_latitude: number | null;
+  destination_longitude: number | null;
+  destination_contact_phone: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -404,11 +410,48 @@ export default function DomesticJobDetail({
                   <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
                     {new URLSearchParams(location.search).get('from') !== 'history' && (
                       <>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]"
+                          onClick={() => {
+                            const phone = job.origin_contact_phone;
+                            if (phone) {
+                              window.location.href = `tel:${phone}`;
+                            } else {
+                              toast({
+                                title: t('jobDetail.error'),
+                                description: t('jobDetail.noPhoneNumber'),
+                                variant: 'destructive'
+                              });
+                            }
+                          }}
+                        >
                           <Phone className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]"
+                          onClick={() => {
+                            const lat = job.origin_latitude;
+                            const lng = job.origin_longitude;
+                            if (lat && lng) {
+                              const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                              window.open(url, '_blank');
+                            } else if (job.origin_address) {
+                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.origin_address)}`;
+                              window.open(url, '_blank');
+                            } else {
+                              toast({
+                                title: t('jobDetail.error'),
+                                description: t('jobDetail.noLocation'),
+                                variant: 'destructive'
+                              });
+                            }
+                          }}
+                        >
                           <img src={routeIcon} alt="route" className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>

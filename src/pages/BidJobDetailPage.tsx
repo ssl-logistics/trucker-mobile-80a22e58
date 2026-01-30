@@ -25,6 +25,10 @@ interface BidTicket {
   route: {
     id: string;
     route_code: string;
+    origin_latitude?: number | null;
+    origin_longitude?: number | null;
+    destination_latitude?: number | null;
+    destination_longitude?: number | null;
     origin_district: {
       id: string;
       name: string;
@@ -76,9 +80,15 @@ interface JobDetail {
   origin_location: string;
   origin_address: string | null;
   origin_company_name: string | null;
+  origin_latitude: number | null;
+  origin_longitude: number | null;
+  origin_contact_phone: string | null;
   destination_location: string;
   destination_address: string | null;
   destination_company_name: string | null;
+  destination_latitude: number | null;
+  destination_longitude: number | null;
+  destination_contact_phone: string | null;
   price: number;
   start_date: string;
   start_time: string;
@@ -214,9 +224,15 @@ export default function BidJobDetailPage() {
       origin_location: originLocation,
       origin_address: null,
       origin_company_name: ticket.customer?.company_name || null,
+      origin_latitude: ticket.route?.origin_latitude || null,
+      origin_longitude: ticket.route?.origin_longitude || null,
+      origin_contact_phone: ticket.customer?.phone || null,
       destination_location: destLocation,
       destination_address: null,
       destination_company_name: null,
+      destination_latitude: ticket.route?.destination_latitude || null,
+      destination_longitude: ticket.route?.destination_longitude || null,
+      destination_contact_phone: null,
       price: bidPrice,
       start_date: ticket.created_at.split('T')[0],
       start_time: '00:00',
@@ -230,7 +246,7 @@ export default function BidJobDetailPage() {
       seal_number: null,
       seal_number_2: null,
       origin_contact_person: ticket.customer?.full_name || null,
-      origin_contact_role: ticket.customer?.phone || null,
+      origin_contact_role: null,
       origin_bill_of_lading: null,
       origin_goods_type: ticket.product,
       origin_goods_quantity: ticket.weight_tons ? `${ticket.weight_tons} ตัน` : null,
