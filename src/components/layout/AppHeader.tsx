@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Power, Loader2 } from "lucide-react";
+import { Bell, Power, Loader2, Building2, Factory, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,8 +29,28 @@ export function AppHeader({
     t
   } = useLanguage();
   const {
-    canAccessBidding
+    canAccessBidding,
+    userType,
+    isInternalDriver,
+    isExternalDriver,
+    isFreelanceDriver
   } = useUserRole();
+
+  // Get user type label and icon
+  const getUserTypeInfo = () => {
+    if (isInternalDriver) {
+      return { label: t('home.internal_driver'), icon: Factory, color: 'bg-purple-500' };
+    }
+    if (isExternalDriver) {
+      return { label: t('home.external_driver'), icon: Building2, color: 'bg-orange-500' };
+    }
+    if (isFreelanceDriver) {
+      return { label: t('home.freelance_driver'), icon: Truck, color: 'bg-green-500' };
+    }
+    return null;
+  };
+
+  const userTypeInfo = getUserTypeInfo();
   
   // Get presigned URL for S3 profile photos
   const { url: presignedProfilePhoto, isLoading: isPhotoLoading } = usePresignedImageUrl(profilePhoto);
@@ -71,7 +91,15 @@ export function AppHeader({
               </Avatar>
               <div className="min-w-fit h-11 rounded-xl bg-slate-100 px-3 py-1">
                 <div className="text-xs opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
-                <div className="font-semibold text-sm text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-sm text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</span>
+                  {userTypeInfo && (
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-white ${userTypeInfo.color}`}>
+                      <userTypeInfo.icon className="w-2.5 h-2.5" />
+                      {userTypeInfo.label}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-1">
