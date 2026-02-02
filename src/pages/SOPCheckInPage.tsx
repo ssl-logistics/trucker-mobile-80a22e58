@@ -286,10 +286,10 @@ export default function SOPCheckInPage() {
   };
 
   const handleConfirmClick = () => {
-    if (!photoFile) {
+    if (!photoFile || !docPhotoFile) {
       toast({
         title: t('sop.photoRequired'),
-        description: t('sop.photoRequiredMessage'),
+        description: 'กรุณาอัพโหลดรูปสินค้าและรูปเอกสารให้ครบ',
         variant: 'destructive'
       });
       return;
@@ -461,7 +461,7 @@ export default function SOPCheckInPage() {
         {/* Document Photo Upload */}
         <div className="space-y-2">
           <Label className="text-base">
-            อัพโหลดรูปเอกสาร
+            อัพโหลดรูปเอกสาร <span className="text-destructive">*</span>
           </Label>
           
           <button
@@ -492,7 +492,7 @@ export default function SOPCheckInPage() {
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={uploading || !photoFile}
+          disabled={uploading || !photoFile || !docPhotoFile}
         >
           {t('sop.confirmSOP')}
         </Button>
