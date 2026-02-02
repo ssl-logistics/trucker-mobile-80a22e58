@@ -416,11 +416,12 @@ export function MultiBidPaymentModal({
       // Submit bids for all selected jobs
       const results = await Promise.allSettled(
         selectedJobs.map(async (job) => {
-          const isFreeJob = !job.price || job.price === 0;
+          // Always send the entered bid amount (or 0 if not entered)
+          const bidAmount = parseFloat(bidAmounts[job.id] || "0");
           const payload = {
             ticket_id: job.id,
             contractor_id: user.id,
-            bid_price: isFreeJob ? 0 : parseFloat(bidAmounts[job.id]),
+            bid_price: isNaN(bidAmount) ? 0 : bidAmount,
             payment_transaction_id: `TXN${Date.now()}_${job.id.slice(0, 8)}`,
             payment_slip_base64: slipBase64,
             freelancer_name: freelancerName,
