@@ -237,7 +237,7 @@ export default function PickupSummaryPage() {
           <button onClick={() => navigate(`/job/${job.order_code}${fromHistory ? '?from=history' : ''}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('pickupSummary.sopInfo') || 'ข้อมูล SOP'}</h1>
+          <h1 className="text-lg font-semibold">ข้อมูล SOP</h1>
           <div className="w-6" />
         </div>
       </header>
