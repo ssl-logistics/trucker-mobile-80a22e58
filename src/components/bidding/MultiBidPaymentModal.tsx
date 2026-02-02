@@ -539,7 +539,7 @@ export function MultiBidPaymentModal({
                   </div>
                   <div className="flex justify-between pt-1 border-t border-white/20">
                     <span className="opacity-80">{t("bidding.transferAmount")}:</span>
-                    <span className="font-bold text-lg">฿{totalBiddingFees.toLocaleString()}</span>
+                    <span className="font-bold text-lg">฿{grandTotal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
