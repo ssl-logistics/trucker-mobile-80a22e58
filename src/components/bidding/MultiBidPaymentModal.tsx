@@ -537,12 +537,6 @@ export function MultiBidPaymentModal({
                     <span className="opacity-80">{t("bidding.biddingFeeTotal")}:</span>
                     <span className="font-bold">฿{totalBiddingFees.toLocaleString()}</span>
                   </div>
-                  {totalHintFees > 0 && (
-                    <div className="flex justify-between">
-                      <span className="opacity-80">{t("bidding.hintFeeTotal")} ({t("bidding.optional")}):</span>
-                      <span className="font-medium">฿{totalHintFees.toLocaleString()}</span>
-                    </div>
-                  )}
                   <div className="flex justify-between pt-1 border-t border-white/20">
                     <span className="opacity-80">{t("bidding.transferAmount")}:</span>
                     <span className="font-bold text-lg">฿{totalBiddingFees.toLocaleString()}</span>
