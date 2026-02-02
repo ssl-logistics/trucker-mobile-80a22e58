@@ -414,6 +414,7 @@ export default function DomesticJobDetail({
                           variant="outline" 
                           size="sm" 
                           className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]"
+                          disabled={pickupSopCompleted || !!jobApplication?.sop_completed_at}
                           onClick={() => {
                             const phone = job.origin_contact_phone;
                             if (phone) {
@@ -434,6 +435,7 @@ export default function DomesticJobDetail({
                           variant="outline" 
                           size="sm" 
                           className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]"
+                          disabled={pickupSopCompleted || !!jobApplication?.sop_completed_at}
                           onClick={() => {
                             const lat = job.origin_latitude;
                             const lng = job.origin_longitude;
