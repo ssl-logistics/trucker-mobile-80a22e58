@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface OCRRequest {
   image_base64: string;
-  extraction_type: 'container_seal' | 'expense_amount' | 'payment_slip' | 'general';
+  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'general';
   expected_amount?: number;
   expected_account_number?: string;
 }
@@ -82,6 +82,44 @@ Return ONLY a JSON object in this exact format (no markdown, no explanation):
 }
 
 If you cannot find the amount, use null for amount. Return only the number without currency symbols.`;
+    } else if (extraction_type === 'expense_detailed') {
+      prompt = `Analyze this Thai receipt/bill/tax invoice image and extract ALL financial information.
+
+This is a receipt from a logistics/transport service (port fees, container handling, gate fees, etc.)
+
+Extract the following:
+1. Grand Total / ยอดรวมทั้งสิ้น / จำนวนเงินรวมทั้งสิ้น - The final total amount to pay
+2. Subtotal / รวมเป็นเงิน / Charges - Amount before VAT
+3. VAT / ภาษีมูลค่าเพิ่ม - Tax amount (usually 7%)
+4. Line items - Each individual charge with description and amount
+
+Common line items include:
+- Gate out / Gate in / ค่าผ่านประตู
+- Container handling / ค่ายกตู้ / Lift on/off
+- Additional services / บริการเพิ่มเติม
+- Drop Empty / คืนตู้เปล่า
+- Admission fee / ค่าเข้า
+- Storage / ค่าฝากตู้
+
+Return ONLY a JSON object in this exact format (no markdown, no explanation):
+{
+  "grand_total": numeric_value_or_null,
+  "subtotal": numeric_value_or_null,
+  "vat": numeric_value_or_null,
+  "line_items": [
+    {"description": "item description", "amount": numeric_value},
+    {"description": "another item", "amount": numeric_value}
+  ],
+  "container_number": "container number if found or null",
+  "receipt_number": "receipt/invoice number if found or null",
+  "receipt_date": "date if found or null"
+}
+
+IMPORTANT:
+- All amounts should be numeric values only (no currency symbols, no commas)
+- Extract all individual line items you can find
+- grand_total should be the final payable amount (after VAT)
+- If there's only one total, use it as grand_total`;
     } else if (extraction_type === 'payment_slip') {
       prompt = `Analyze this Thai bank transfer payment slip image and extract the following information:
 
