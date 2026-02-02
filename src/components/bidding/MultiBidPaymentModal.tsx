@@ -892,7 +892,7 @@ export function MultiBidPaymentModal({
             })}
           </div>
 
-          {/* Total Summary */}
+          {/* Total Summary - ค่า Hint ไม่รวมในบิลเพราะเป็นแบบสมัครใจ */}
           <div className="bg-primary/10 rounded-xl p-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t("bidding.yourBidTotal")}</span>
@@ -902,12 +902,6 @@ export function MultiBidPaymentModal({
               <span className="text-muted-foreground">{t("bidding.biddingFee")} ({selectedJobs.length} {t("bidding.jobs")} × ฿{BIDDING_FEE_PER_JOB})</span>
               <span className="font-medium">฿{totalBiddingFees.toLocaleString()}</span>
             </div>
-            {totalHintFees > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("bidding.hintFeeTotal")} ({t("bidding.optional")})</span>
-                <span className="font-medium">฿{totalHintFees.toLocaleString()}</span>
-              </div>
-            )}
             <div className="border-t border-primary/20 pt-2 flex justify-between">
               <span className="font-semibold">{t("bidding.grandTotal")}</span>
               <span className="font-bold text-lg text-primary">฿{grandTotal.toLocaleString()}</span>
