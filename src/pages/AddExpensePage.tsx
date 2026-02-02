@@ -112,50 +112,89 @@ const AddExpensePage = () => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setExpenses(prev => prev.map(exp => 
-          exp.id === id 
-            ? { ...exp, receiptPhoto: file, receiptPreview: reader.result as string } 
-            : exp
-        ));
-      };
-      reader.readAsDataURL(file);
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
       
-      // Run OCR extraction for detailed expense info
+      const receiptPreview = await base64Promise;
+      
+      // Update current expense with photo and start OCR
       setExpenses(prev => prev.map(exp => 
         exp.id === id 
-          ? { ...exp, ocrExtracting: true, ocrAmount: null, ocrRawText: null, ocrDetailed: null, showOCRDetails: false } 
+          ? { ...exp, receiptPhoto: file, receiptPreview, ocrExtracting: true, ocrAmount: null, ocrRawText: null, ocrDetailed: null, showOCRDetails: false } 
           : exp
       ));
       
       // Use expense_detailed for more comprehensive extraction
       const result = await extractFromImage(file, 'expense_detailed');
       
-      setExpenses(prev => prev.map(exp => {
-        if (exp.id === id) {
-          if (result.success && result.data) {
-            const detailedData = result.data as OCRDetailedResult;
-            const grandTotal = detailedData.grand_total;
+      if (result.success && result.data) {
+        const detailedData = result.data as OCRDetailedResult;
+        const lineItems = detailedData.line_items || [];
+        
+        // If OCR found multiple line items, create separate expense fields
+        if (lineItems.length > 1) {
+          toast({
+            title: "OCR สำเร็จ",
+            description: `พบ ${lineItems.length} รายการค่าใช้จ่าย`,
+          });
+          
+          setExpenses(prev => {
+            const currentIndex = prev.findIndex(exp => exp.id === id);
+            if (currentIndex === -1) return prev;
             
-            if (grandTotal) {
-              toast({
-                title: "OCR สำเร็จ",
-                description: `พบยอดรวม: ${grandTotal.toLocaleString()} บาท`,
-              });
-            }
+            // Create new expenses for each line item (using same receipt)
+            const newExpenses: ExpenseItem[] = lineItems.map((item, idx) => ({
+              id: idx === 0 ? id : `${id}_${idx}`,
+              type: 'port' as string | undefined, // Default to port fee for logistics receipts
+              customType: "",
+              amount: String(item.amount),
+              receiptPhoto: file,
+              receiptPreview: receiptPreview,
+              ocrAmount: item.amount,
+              ocrRawText: item.description,
+              ocrExtracting: false,
+              ocrDetailed: idx === 0 ? detailedData : null, // Only first item shows full OCR details
+              showOCRDetails: idx === 0,
+            }));
             
-            return { 
-              ...exp, 
-              ocrExtracting: false, 
-              ocrAmount: grandTotal || null,
-              ocrDetailed: detailedData,
-              showOCRDetails: true
-            };
+            // Replace current expense with new ones
+            return [
+              ...prev.slice(0, currentIndex),
+              ...newExpenses,
+              ...prev.slice(currentIndex + 1)
+            ];
+          });
+        } else {
+          // Single item or just total - update normally
+          const grandTotal = detailedData.grand_total;
+          if (grandTotal) {
+            toast({
+              title: "OCR สำเร็จ",
+              description: `พบยอดรวม: ${grandTotal.toLocaleString()} บาท`,
+            });
           }
-          return { ...exp, ocrExtracting: false };
+          
+          setExpenses(prev => prev.map(exp => 
+            exp.id === id
+              ? { 
+                  ...exp, 
+                  ocrExtracting: false, 
+                  ocrAmount: grandTotal || null,
+                  ocrDetailed: detailedData,
+                  showOCRDetails: true,
+                  amount: grandTotal ? String(grandTotal) : exp.amount
+                }
+              : exp
+          ));
         }
-        return exp;
-      }));
+      } else {
+        // OCR failed - just stop extracting
+        setExpenses(prev => prev.map(exp => 
+          exp.id === id ? { ...exp, ocrExtracting: false } : exp
+        ));
+      }
     }
   };
 
@@ -314,10 +353,22 @@ const AddExpensePage = () => {
 
       {/* Form */}
       <div className="px-4 py-4 space-y-6">
-        {expenses.map((expense, index) => (
+        {expenses.map((expense, index) => {
+          // Check if this expense is a child item from OCR split (id contains underscore)
+          const isOCRChildItem = expense.id.includes('_');
+          
+          return (
           <div key={expense.id} className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium">{t('expense.expense')} {index + 1}</h3>
+              <div>
+                <h3 className="font-medium">{t('expense.expense')} {index + 1}</h3>
+                {/* Show OCR description if available */}
+                {expense.ocrRawText && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    OCR: {expense.ocrRawText}
+                  </p>
+                )}
+              </div>
               {expenses.length > 1 && (
                 <button
                   type="button"
@@ -373,44 +424,64 @@ const AddExpensePage = () => {
               </div>
             )}
 
-            {/* Receipt Photo */}
+            {/* Receipt Photo - Show smaller for child items */}
             <div className="space-y-2">
               <Label>
                 {t('expense.uploadReceipt')} <span className="text-red-500">*</span>
               </Label>
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => handlePhotoSelect(expense.id, e)}
-                  className="hidden"
-                  id={`photo-${expense.id}`}
-                />
-                <label
-                  htmlFor={`photo-${expense.id}`}
-                  className="block cursor-pointer"
-                >
-                  {expense.receiptPreview ? (
-                    <div className="relative rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
-                      <img
-                        src={expense.receiptPreview}
-                        alt="Receipt preview"
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md">
-                        <Pencil className="w-4 h-4 text-gray-600" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 transition-colors">
-                      <Camera className="w-8 h-8 mb-2" />
-                      <p className="text-sm">{t('expense.clickToTake')}</p>
-                      <p className="text-xs">{t('expense.receiptPhoto')}</p>
-                    </div>
+              
+              {isOCRChildItem ? (
+                // Show smaller thumbnail for child items (from same receipt)
+                <div className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg border">
+                  {expense.receiptPreview && (
+                    <img
+                      src={expense.receiptPreview}
+                      alt="Receipt"
+                      className="w-12 h-12 object-cover rounded"
+                    />
                   )}
-                </label>
-              </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-muted-foreground truncate">
+                      ใช้ใบเสร็จเดียวกันกับรายการก่อนหน้า
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                // Normal photo upload for main items
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => handlePhotoSelect(expense.id, e)}
+                    className="hidden"
+                    id={`photo-${expense.id}`}
+                  />
+                  <label
+                    htmlFor={`photo-${expense.id}`}
+                    className="block cursor-pointer"
+                  >
+                    {expense.receiptPreview ? (
+                      <div className="relative rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
+                        <img
+                          src={expense.receiptPreview}
+                          alt="Receipt preview"
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md">
+                          <Pencil className="w-4 h-4 text-gray-600" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 transition-colors">
+                        <Camera className="w-8 h-8 mb-2" />
+                        <p className="text-sm">{t('expense.clickToTake')}</p>
+                        <p className="text-xs">{t('expense.receiptPhoto')}</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              )}
               
               {/* OCR Extracting Status */}
               {expense.ocrExtracting && (
@@ -542,7 +613,8 @@ const AddExpensePage = () => {
               <div className="border-b border-gray-200 my-6" />
             )}
           </div>
-        ))}
+        );
+        })}
 
         {/* Add More Button */}
         <Button
