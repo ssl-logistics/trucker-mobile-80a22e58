@@ -870,13 +870,6 @@ export function MultiBidPaymentModal({
                       />
                     </div>
                   )}
-                  {/* Show hint fee only if there's a market price to reveal */}
-                  {hintFee > 0 && marketPrice && (
-                    <p className="text-xs text-muted-foreground">
-                      {t("bidding.hintFee")}: <span className="font-medium text-foreground">฿{hintFee}</span>
-                      {hasPaidHint && <span className="text-emerald-600 ml-1">({t("common.paid")})</span>}
-                    </p>
-                  )}
                   {/* Always show bidding fee */}
                   <p className="text-xs text-muted-foreground">
                     {t("bidding.biddingFee")}: <span className="font-medium text-foreground">฿{BIDDING_FEE_PER_JOB}</span>
