@@ -136,6 +136,9 @@ const thTranslations: Record<string, string> = {
   'home.reject_factory_success': 'ปฏิเสธงานโรงงานสำเร็จ',
   'home.reject_factory_success_desc': 'คุณได้ปฏิเสธงานโรงงาน',
   'home.error_factory_job': 'ไม่สามารถดำเนินการได้',
+  'home.internal_driver': 'พนักงานบริษัท',
+  'home.external_driver': 'พนักงานภายนอก',
+  'home.freelance_driver': 'ฟรีแลนซ์',
   'common.loading': 'กำลังโหลด...',
   
   // Job Card
@@ -1464,6 +1467,9 @@ const enTranslations: Record<string, string> = {
   'home.reject_factory_success': 'Factory Job Rejected',
   'home.reject_factory_success_desc': 'You have rejected factory job',
   'home.error_factory_job': 'Unable to process request',
+  'home.internal_driver': 'Company Driver',
+  'home.external_driver': 'External Driver',
+  'home.freelance_driver': 'Freelance',
   'common.loading': 'Loading...',
   
   // Job Card
@@ -2792,6 +2798,9 @@ const koTranslations: Record<string, string> = {
   'home.reject_factory_success': '공장 작업 거부 완료',
   'home.reject_factory_success_desc': '공장 작업을 거부했습니다',
   'home.error_factory_job': '요청을 처리할 수 없습니다',
+  'home.internal_driver': '회사 운전사',
+  'home.external_driver': '외부 운전사',
+  'home.freelance_driver': '프리랜서',
   'common.loading': '로딩 중...',
   
   // Job Card
@@ -4296,6 +4305,9 @@ const zhTranslations: Record<string, string> = {
   'home.reject_factory_success': '工厂工作拒绝成功',
   'home.reject_factory_success_desc': '您已拒绝工厂工作',
   'home.error_factory_job': '无法处理请求',
+  'home.internal_driver': '公司司机',
+  'home.external_driver': '外部司机',
+  'home.freelance_driver': '自由职业者',
   'home.welcome': '欢迎',
   'home.available_jobs': '可用工作',
   'home.no_jobs': '暂无可用工作',
