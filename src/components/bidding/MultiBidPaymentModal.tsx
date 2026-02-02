@@ -481,10 +481,8 @@ export function MultiBidPaymentModal({
     return !isNaN(amount) && amount > 0;
   });
 
-  // Calculate total bid amount
+  // Calculate total bid amount from all entered bid amounts
   const totalBidAmount = selectedJobs.reduce((sum, job) => {
-    const isFreeJob = !job.price || job.price === 0;
-    if (isFreeJob) return sum;
     const amount = parseFloat(bidAmounts[job.id] || "0");
     return sum + (isNaN(amount) ? 0 : amount);
   }, 0);
