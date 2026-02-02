@@ -133,30 +133,62 @@ const AddExpensePage = () => {
         const detailedData = result.data as OCRDetailedResult;
         const lineItems = detailedData.line_items || [];
         
-        if (lineItems.length > 0) {
+        // If OCR found multiple line items, create separate expense fields
+        if (lineItems.length > 1) {
           toast({
             title: "OCR สำเร็จ",
             description: `พบ ${lineItems.length} รายการค่าใช้จ่าย`,
           });
-        } else if (detailedData.grand_total) {
-          toast({
-            title: "OCR สำเร็จ",
-            description: `พบยอดรวม: ${detailedData.grand_total.toLocaleString()} บาท`,
+          
+          setExpenses(prev => {
+            const currentIndex = prev.findIndex(exp => exp.id === id);
+            if (currentIndex === -1) return prev;
+            
+            // Create new expenses for each line item (using same receipt)
+            const newExpenses: ExpenseItem[] = lineItems.map((item, idx) => ({
+              id: idx === 0 ? id : `${id}_${idx}`,
+              type: 'port' as string | undefined, // Default to port fee for logistics receipts
+              customType: "",
+              amount: String(item.amount),
+              receiptPhoto: file,
+              receiptPreview: receiptPreview,
+              ocrAmount: item.amount,
+              ocrRawText: item.description,
+              ocrExtracting: false,
+              ocrDetailed: idx === 0 ? detailedData : null, // Only first item shows full OCR details
+              showOCRDetails: idx === 0,
+            }));
+            
+            // Replace current expense with new ones
+            return [
+              ...prev.slice(0, currentIndex),
+              ...newExpenses,
+              ...prev.slice(currentIndex + 1)
+            ];
           });
+        } else {
+          // Single item or just total - update normally
+          const grandTotal = detailedData.grand_total;
+          if (grandTotal) {
+            toast({
+              title: "OCR สำเร็จ",
+              description: `พบยอดรวม: ${grandTotal.toLocaleString()} บาท`,
+            });
+          }
+          
+          setExpenses(prev => prev.map(exp => 
+            exp.id === id
+              ? { 
+                  ...exp, 
+                  ocrExtracting: false, 
+                  ocrAmount: grandTotal || null,
+                  ocrDetailed: detailedData,
+                  showOCRDetails: true,
+                  amount: grandTotal ? String(grandTotal) : exp.amount
+                }
+              : exp
+          ));
         }
-        
-        // Update with OCR details - don't auto-fill amount, let user choose
-        setExpenses(prev => prev.map(exp => 
-          exp.id === id
-            ? { 
-                ...exp, 
-                ocrExtracting: false, 
-                ocrAmount: detailedData.grand_total || null,
-                ocrDetailed: detailedData,
-                showOCRDetails: true,
-              }
-            : exp
-        ));
       } else {
         // OCR failed - just stop extracting
         setExpenses(prev => prev.map(exp => 
@@ -321,16 +353,19 @@ const AddExpensePage = () => {
 
       {/* Form */}
       <div className="px-4 py-4 space-y-6">
-        {expenses.map((expense, index) => (
+        {expenses.map((expense, index) => {
+          // Check if this expense is a child item from OCR split (id contains underscore)
+          const isOCRChildItem = expense.id.includes('_');
+          
+          return (
           <div key={expense.id} className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium">{t('expense.expense')} {index + 1}</h3>
-                {/* Show OCR description if user selected a line item */}
+                {/* Show OCR description if available */}
                 {expense.ocrRawText && (
-                  <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1">
-                    <Scan className="w-3 h-3" />
-                    {expense.ocrRawText}
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    OCR: {expense.ocrRawText}
                   </p>
                 )}
               </div>
@@ -389,45 +424,64 @@ const AddExpensePage = () => {
               </div>
             )}
 
-            {/* Receipt Photo */}
+            {/* Receipt Photo - Show smaller for child items */}
             <div className="space-y-2">
               <Label>
                 {t('expense.uploadReceipt')} <span className="text-red-500">*</span>
               </Label>
               
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => handlePhotoSelect(expense.id, e)}
-                  className="hidden"
-                  id={`photo-${expense.id}`}
-                />
-                <label
-                  htmlFor={`photo-${expense.id}`}
-                  className="block cursor-pointer"
-                >
-                  {expense.receiptPreview ? (
-                    <div className="relative rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
-                      <img
-                        src={expense.receiptPreview}
-                        alt="Receipt preview"
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md">
-                        <Pencil className="w-4 h-4 text-gray-600" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 transition-colors">
-                      <Camera className="w-8 h-8 mb-2" />
-                      <p className="text-sm">{t('expense.clickToTake')}</p>
-                      <p className="text-xs">{t('expense.receiptPhoto')}</p>
-                    </div>
+              {isOCRChildItem ? (
+                // Show smaller thumbnail for child items (from same receipt)
+                <div className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg border">
+                  {expense.receiptPreview && (
+                    <img
+                      src={expense.receiptPreview}
+                      alt="Receipt"
+                      className="w-12 h-12 object-cover rounded"
+                    />
                   )}
-                </label>
-              </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-muted-foreground truncate">
+                      ใช้ใบเสร็จเดียวกันกับรายการก่อนหน้า
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                // Normal photo upload for main items
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => handlePhotoSelect(expense.id, e)}
+                    className="hidden"
+                    id={`photo-${expense.id}`}
+                  />
+                  <label
+                    htmlFor={`photo-${expense.id}`}
+                    className="block cursor-pointer"
+                  >
+                    {expense.receiptPreview ? (
+                      <div className="relative rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
+                        <img
+                          src={expense.receiptPreview}
+                          alt="Receipt preview"
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md">
+                          <Pencil className="w-4 h-4 text-gray-600" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 transition-colors">
+                        <Camera className="w-8 h-8 mb-2" />
+                        <p className="text-sm">{t('expense.clickToTake')}</p>
+                        <p className="text-xs">{t('expense.receiptPhoto')}</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              )}
               
               {/* OCR Extracting Status */}
               {expense.ocrExtracting && (
@@ -471,29 +525,15 @@ const AddExpensePage = () => {
                     </div>
                   )}
                   
-                  {/* Line Items - Each with "Use" button */}
+                  {/* Line Items */}
                   {expense.ocrDetailed.line_items && expense.ocrDetailed.line_items.length > 0 && (
                     <div className="space-y-1.5">
-                      <p className="text-xs font-medium text-green-700">รายการค่าใช้จ่าย:</p>
-                      <div className="space-y-2">
+                      <p className="text-xs font-medium text-green-700">รายการ:</p>
+                      <div className="space-y-1 bg-white/50 rounded p-2">
                         {expense.ocrDetailed.line_items.map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-2 bg-white/70 rounded-lg p-2 border border-green-200">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs text-green-800 truncate">{item.description}</p>
-                              <p className="text-sm font-semibold text-green-900">฿{item.amount.toLocaleString()}</p>
-                            </div>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              className="h-8 px-3 text-xs border-green-400 text-green-700 hover:bg-green-100"
-                              onClick={() => {
-                                handleExpenseChange(expense.id, 'amount', String(item.amount));
-                                handleExpenseChange(expense.id, 'ocrRawText', item.description);
-                              }}
-                            >
-                              ใช้ค่านี้
-                            </Button>
+                          <div key={idx} className="flex justify-between text-xs">
+                            <span className="text-green-800 truncate flex-1 mr-2">{item.description}</span>
+                            <span className="font-medium text-green-900 whitespace-nowrap">฿{item.amount.toLocaleString()}</span>
                           </div>
                         ))}
                       </div>
@@ -515,24 +555,27 @@ const AddExpensePage = () => {
                       </div>
                     )}
                     {expense.ocrDetailed.grand_total && (
-                      <div className="flex items-center justify-between pt-1 border-t border-green-200">
-                        <div>
-                          <span className="text-xs text-green-700">ยอดรวมทั้งสิ้น:</span>
-                          <p className="text-sm font-bold text-green-900">฿{expense.ocrDetailed.grand_total.toLocaleString()}</p>
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700"
-                          onClick={() => {
-                            handleExpenseChange(expense.id, 'amount', String(expense.ocrDetailed?.grand_total || 0));
-                          }}
-                        >
-                          ใช้ยอดรวม
-                        </Button>
+                      <div className="flex justify-between text-sm font-bold pt-1 border-t border-green-200">
+                        <span className="text-green-800">ยอดรวมทั้งสิ้น:</span>
+                        <span className="text-green-900">฿{expense.ocrDetailed.grand_total.toLocaleString()}</span>
                       </div>
                     )}
                   </div>
+                  
+                  {/* Apply Button */}
+                  {expense.ocrDetailed.grand_total && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      onClick={() => {
+                        handleExpenseChange(expense.id, 'amount', String(expense.ocrDetailed?.grand_total || 0));
+                        handleExpenseChange(expense.id, 'showOCRDetails', false);
+                      }}
+                    >
+                      ใช้ยอดรวม ฿{expense.ocrDetailed.grand_total.toLocaleString()}
+                    </Button>
+                  )}
                 </div>
               )}
               
@@ -570,7 +613,8 @@ const AddExpensePage = () => {
               <div className="border-b border-gray-200 my-6" />
             )}
           </div>
-        ))}
+        );
+        })}
 
         {/* Add More Button */}
         <Button
