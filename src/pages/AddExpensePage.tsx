@@ -514,7 +514,7 @@ const AddExpensePage = () => {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="w-full text-green-600 border-green-300 hover:bg-green-50"
+                  className="w-full text-green-600 border-green-300 hover:bg-green-50 hover:text-black"
                   onClick={() => handleExpenseChange(expense.id, 'showOCRDetails', true)}
                 >
                   <Scan className="w-4 h-4 mr-2" />
