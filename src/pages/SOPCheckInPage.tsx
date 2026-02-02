@@ -51,6 +51,8 @@ export default function SOPCheckInPage() {
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
+  const [docPhotoFile, setDocPhotoFile] = useState<File | null>(null);
+  const [docPhotoPreview, setDocPhotoPreview] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -243,6 +245,8 @@ export default function SOPCheckInPage() {
     }
   };
 
+  const [activePhotoType, setActivePhotoType] = useState<'product' | 'document'>('product');
+
   const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -254,17 +258,31 @@ export default function SOPCheckInPage() {
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        setPhotoFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPhotoPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        if (activePhotoType === 'product') {
+          setPhotoFile(file);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPhotoPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        } else {
+          setDocPhotoFile(file);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setDocPhotoPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        }
       }
     };
     
     input.click();
     setDrawerOpen(false);
+  };
+
+  const openPhotoDrawer = (type: 'product' | 'document') => {
+    setActivePhotoType(type);
+    setDrawerOpen(true);
   };
 
   const handleConfirmClick = () => {
@@ -285,21 +303,38 @@ export default function SOPCheckInPage() {
     setUploading(true);
 
     try {
-      // First upload image to S3 via edge function
+      // Upload product image to S3
       const formData = new FormData();
       formData.append('file', photoFile);
       formData.append('folder', 'mobile/sop-photos');
-      formData.append('filename', `${user.id}-${job.order_code}-${Date.now()}`);
+      formData.append('filename', `${user.id}-${job.order_code}-product-${Date.now()}`);
 
       const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
         body: formData
       });
 
       if (uploadError || !uploadData?.url) {
-        throw new Error('Failed to upload image');
+        throw new Error('Failed to upload product image');
       }
 
-      const imageUrl = uploadData.url;
+      const productImageUrl = uploadData.url;
+
+      // Upload document image if provided
+      let documentImageUrl: string | null = null;
+      if (docPhotoFile) {
+        const docFormData = new FormData();
+        docFormData.append('file', docPhotoFile);
+        docFormData.append('folder', 'mobile/sop-docs');
+        docFormData.append('filename', `${user.id}-${job.order_code}-doc-${Date.now()}`);
+
+        const { data: docUploadData, error: docUploadError } = await supabase.functions.invoke('upload-to-s3', {
+          body: docFormData
+        });
+
+        if (!docUploadError && docUploadData?.url) {
+          documentImageUrl = docUploadData.url;
+        }
+      }
 
       // Build request body with appropriate driver ID field based on driver type
       const driverIdField = isInternalDriver 
@@ -308,7 +343,7 @@ export default function SOPCheckInPage() {
           ? { external_driver_id: user.id }
           : { freelance_driver_id: user.id };
 
-      // Call driver-sop API
+      // Call driver-sop API with both images
       const response = await fetch(
         'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/driver-sop',
         {
@@ -320,7 +355,8 @@ export default function SOPCheckInPage() {
           body: JSON.stringify({
             order_number: job.order_code,
             ...driverIdField,
-            product_images: [imageUrl],
+            product_images: [productImageUrl],
+            document_images: documentImageUrl ? [documentImageUrl] : [],
             status: 'pickup'
           })
         }
@@ -395,27 +431,57 @@ export default function SOPCheckInPage() {
           </div>
         </Card>
 
+        {/* Product Photo Upload */}
         <div className="space-y-2">
           <Label className="text-base">
-            {t('sop.uploadPhoto')} <span className="text-red-500">*</span>
+            {t('sop.uploadPhoto')} <span className="text-destructive">*</span>
           </Label>
           
           <button
-            onClick={() => setDrawerOpen(true)}
-            className="w-full h-64 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-white"
+            onClick={() => openPhotoDrawer('product')}
+            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card"
           >
             {photoPreview ? (
               <img 
                 src={photoPreview} 
-                alt="Preview" 
+                alt="Product Preview" 
                 className="w-full h-full object-cover rounded-lg"
               />
             ) : (
               <>
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                  <Camera className="w-8 h-8 text-muted-foreground" />
+                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+                  <Camera className="w-7 h-7 text-muted-foreground" />
                 </div>
                 <p className="text-sm text-muted-foreground text-center px-4" dangerouslySetInnerHTML={{ __html: `${t('sop.clickToTake')}<br />${t('sop.productPhoto')}` }} />
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Document Photo Upload */}
+        <div className="space-y-2">
+          <Label className="text-base">
+            อัพโหลดรูปเอกสาร
+          </Label>
+          
+          <button
+            onClick={() => openPhotoDrawer('document')}
+            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card"
+          >
+            {docPhotoPreview ? (
+              <img 
+                src={docPhotoPreview} 
+                alt="Document Preview" 
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+                  <ImageIcon className="w-7 h-7 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground text-center px-4">
+                  กดเพื่อถ่ายหรือเลือก<br />รูปเอกสาร
+                </p>
               </>
             )}
           </button>
