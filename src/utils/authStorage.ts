@@ -8,6 +8,7 @@ export const AUTH_KEYS = [
   "auth_login_type",
   "line_user",
   "auth_api_key",
+  "auth_employer_type",
 ] as const;
 
 export type AuthKey = (typeof AUTH_KEYS)[number];

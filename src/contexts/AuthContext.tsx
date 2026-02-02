@@ -26,6 +26,7 @@ interface AuthContextType {
   loading: boolean;
   role: string;
   userType: string;
+  employerType: string | null;
   isAuthenticated: boolean;
   isAuthTransitioning: boolean;
   authTransitionMessage: string;
@@ -39,6 +40,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   role: 'freelance',
   userType: 'freelance_driver',
+  employerType: null,
   isAuthenticated: false,
   isAuthTransitioning: false,
   authTransitionMessage: '',
@@ -64,6 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<string>('freelance');
   const [userType, setUserType] = useState<string>('freelance_driver');
+  const [employerType, setEmployerType] = useState<string | null>(null);
   const [isAuthTransitioning, setIsAuthTransitioning] = useState(false);
   const [authTransitionMessage, setAuthTransitionMessage] = useState('');
 
@@ -82,12 +85,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Keep both stores in sync (useful after upgrades)
       await syncAuthFromLocalStorageToNative();
 
-      const [driverData, userRole, userType, lineUserData, loginType] = await Promise.all([
+      const [driverData, userRole, userType, lineUserData, loginType, storedEmployerType] = await Promise.all([
         getAuthItem('auth_driver'),
         getAuthItem('user_role'),
         getAuthItem('auth_user_type'),
         getAuthItem('line_user'),
         getAuthItem('auth_login_type'),
+        getAuthItem('auth_employer_type'),
       ]);
 
       const parsedDriver = driverData && driverData !== 'null' ? safeJsonParse<any>(driverData) : null;
@@ -130,6 +134,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         // Store userType directly for feature access control
         setUserType(userType || 'freelance_driver');
+        
+        // Store employer type for internal/external drivers
+        setEmployerType(storedEmployerType || null);
 
         // Map user_type to role for backward compatibility
         let mappedRole = 'freelance';
@@ -148,11 +155,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Not authenticated (we require a valid stored auth_driver)
         setUser(null);
         setRole('freelance');
+        setEmployerType(null);
       }
     } catch (error) {
       console.error('Error loading user from storage:', error);
       setUser(null);
       setRole('freelance');
+      setEmployerType(null);
     } finally {
       setLoading(false);
     }
@@ -167,6 +176,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     sessionStorage.removeItem('line_oauth_state');
     setUser(null);
     setRole('freelance');
+    setEmployerType(null);
   };
 
   const refreshUser = async () => {
@@ -264,6 +274,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loading,
     role,
     userType,
+    employerType,
     isAuthenticated: !!user,
     isAuthTransitioning,
     authTransitionMessage,

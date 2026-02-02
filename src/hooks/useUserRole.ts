@@ -2,16 +2,19 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export type UserRole = 'freelance' | 'company' | 'factory' | 'internal_driver' | 'external_driver' | null;
 export type UserType = 'freelance_driver' | 'internal_driver' | 'external_driver' | 'company' | 'factory' | null;
+export type EmployerType = 'factory' | 'company' | null;
 
 export const useUserRole = () => {
-  const { role, userType, loading } = useAuth();
+  const { role, userType, employerType, loading } = useAuth();
   
   const userRole = role as UserRole;
   const currentUserType = userType as UserType;
+  const currentEmployerType = employerType as EmployerType;
 
   return { 
     role: userRole, 
     userType: currentUserType,
+    employerType: currentEmployerType,
     loading, 
     isFreelance: userRole === 'freelance', 
     isCompany: userRole === 'company', 

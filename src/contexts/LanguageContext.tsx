@@ -139,6 +139,10 @@ const thTranslations: Record<string, string> = {
   'home.internal_driver': 'พนักงานบริษัท',
   'home.external_driver': 'พนักงานภายนอก',
   'home.freelance_driver': 'ฟรีแลนซ์',
+  'home.factory_employee': 'พนักงานโรงงาน',
+  'home.company_employee': 'พนักงานบริษัท',
+  'home.factory_contractor': 'ผู้รับเหมาโรงงาน',
+  'home.company_contractor': 'ผู้รับเหมาบริษัท',
   'common.loading': 'กำลังโหลด...',
   
   // Job Card
@@ -1470,6 +1474,10 @@ const enTranslations: Record<string, string> = {
   'home.internal_driver': 'Company Driver',
   'home.external_driver': 'External Driver',
   'home.freelance_driver': 'Freelance',
+  'home.factory_employee': 'Factory Employee',
+  'home.company_employee': 'Company Employee',
+  'home.factory_contractor': 'Factory Contractor',
+  'home.company_contractor': 'Company Contractor',
   'common.loading': 'Loading...',
   
   // Job Card
@@ -2801,6 +2809,10 @@ const koTranslations: Record<string, string> = {
   'home.internal_driver': '회사 운전사',
   'home.external_driver': '외부 운전사',
   'home.freelance_driver': '프리랜서',
+  'home.factory_employee': '공장 직원',
+  'home.company_employee': '회사 직원',
+  'home.factory_contractor': '공장 계약자',
+  'home.company_contractor': '회사 계약자',
   'common.loading': '로딩 중...',
   
   // Job Card
@@ -4308,6 +4320,10 @@ const zhTranslations: Record<string, string> = {
   'home.internal_driver': '公司司机',
   'home.external_driver': '外部司机',
   'home.freelance_driver': '自由职业者',
+  'home.factory_employee': '工厂员工',
+  'home.company_employee': '公司员工',
+  'home.factory_contractor': '工厂承包商',
+  'home.company_contractor': '公司承包商',
   'home.welcome': '欢迎',
   'home.available_jobs': '可用工作',
   'home.no_jobs': '暂无可用工作',
