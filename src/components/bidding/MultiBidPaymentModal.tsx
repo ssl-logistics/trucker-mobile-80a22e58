@@ -870,17 +870,6 @@ export function MultiBidPaymentModal({
                           className="flex-1"
                         />
                       </div>
-                      {/* Show total for this job: bid amount + bidding fee */}
-                      {bidAmounts[job.id] && parseFloat(bidAmounts[job.id]) > 0 && (
-                        <div className="bg-primary/10 rounded-lg p-2 flex justify-between items-center">
-                          <span className="text-xs text-muted-foreground">
-                            ยอดรวมงานนี้ (฿{parseFloat(bidAmounts[job.id]).toLocaleString()} + ฿{BIDDING_FEE_PER_JOB})
-                          </span>
-                          <span className="text-sm font-bold text-primary">
-                            ฿{(parseFloat(bidAmounts[job.id]) + BIDDING_FEE_PER_JOB).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   )}
                   {/* Always show bidding fee */}
