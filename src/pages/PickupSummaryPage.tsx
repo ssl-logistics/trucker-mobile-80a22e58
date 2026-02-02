@@ -23,6 +23,7 @@ interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   sop_photo_url: string | null;
+  doc_photo_url: string | null;
 }
 
 export default function PickupSummaryPage() {
@@ -37,6 +38,7 @@ export default function PickupSummaryPage() {
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
   const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
+  const { url: docPhotoUrl } = usePresignedImageUrl(sopData?.doc_photo_url || null);
 
   useEffect(() => {
     if (user && jobId) {
@@ -151,11 +153,16 @@ export default function PickupSummaryPage() {
             // Get the first product image as SOP photo
             const productImages = pickupSOP.product_images || [];
             const photoUrl = productImages.length > 0 ? productImages[0] : null;
+            
+            // Get the first document image
+            const documentImages = pickupSOP.document_images || [];
+            const docUrl = documentImages.length > 0 ? documentImages[0] : null;
 
             setSopData({
               checked_in_at: checkedInAt || pickupSOP.checked_in_at || null,
               sop_completed_at: pickupSOP.recorded_at || pickupSOP.created_at || null,
               sop_photo_url: photoUrl,
+              doc_photo_url: docUrl,
             });
           } else {
             // No SOP yet, but might have check-in
@@ -163,6 +170,7 @@ export default function PickupSummaryPage() {
               checked_in_at: checkedInAt,
               sop_completed_at: null,
               sop_photo_url: null,
+              doc_photo_url: null,
             });
           }
         } else {
@@ -171,6 +179,7 @@ export default function PickupSummaryPage() {
             checked_in_at: checkedInAt,
             sop_completed_at: null,
             sop_photo_url: null,
+            doc_photo_url: null,
           });
         }
       } else {
@@ -179,6 +188,7 @@ export default function PickupSummaryPage() {
           checked_in_at: checkedInAt,
           sop_completed_at: null,
           sop_photo_url: null,
+          doc_photo_url: null,
         });
       }
 
@@ -269,12 +279,25 @@ export default function PickupSummaryPage() {
               </div>
             </div>
 
-            {/* SOP Photo */}
-            {sopPhotoUrl && (
-              <div className="mt-4">
-                <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <img src={sopPhotoUrl} alt="SOP Photo" className="w-full h-full object-cover" />
-                </div>
+            {/* SOP Photos */}
+            {(sopPhotoUrl || docPhotoUrl) && (
+              <div className="mt-4 space-y-3">
+                {sopPhotoUrl && (
+                  <div>
+                    <p className="text-sm font-medium text-green-800 mb-2">รูปสินค้า</p>
+                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+                      <img src={sopPhotoUrl} alt="Product Photo" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                )}
+                {docPhotoUrl && (
+                  <div>
+                    <p className="text-sm font-medium text-green-800 mb-2">รูปเอกสาร</p>
+                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+                      <img src={docPhotoUrl} alt="Document Photo" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </Card>
