@@ -31,17 +31,32 @@ export function AppHeader({
   const {
     canAccessBidding,
     userType,
+    employerType,
     isInternalDriver,
     isExternalDriver,
     isFreelanceDriver
   } = useUserRole();
 
-  // Get user type label and icon
+  // Get user type label and icon based on employer_type for internal/external drivers
   const getUserTypeInfo = () => {
     if (isInternalDriver) {
+      // For internal drivers, show based on employer_type
+      if (employerType === 'factory') {
+        return { label: t('home.factory_employee'), icon: Factory, color: 'bg-purple-500' };
+      } else if (employerType === 'company') {
+        return { label: t('home.company_employee'), icon: Building2, color: 'bg-blue-500' };
+      }
+      // Default fallback
       return { label: t('home.internal_driver'), icon: Factory, color: 'bg-purple-500' };
     }
     if (isExternalDriver) {
+      // For external drivers, show based on employer_type
+      if (employerType === 'factory') {
+        return { label: t('home.factory_contractor'), icon: Factory, color: 'bg-orange-500' };
+      } else if (employerType === 'company') {
+        return { label: t('home.company_contractor'), icon: Building2, color: 'bg-amber-500' };
+      }
+      // Default fallback
       return { label: t('home.external_driver'), icon: Building2, color: 'bg-orange-500' };
     }
     if (isFreelanceDriver) {
