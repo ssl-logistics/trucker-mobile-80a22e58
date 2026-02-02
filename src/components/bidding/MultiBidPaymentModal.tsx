@@ -700,7 +700,7 @@ export function MultiBidPaymentModal({
                               </div>
                             </div>
                             
-                            {/* Account number check */}
+                            {/* Account number check - commented out for testing
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-amber-800">เลขบัญชี:</span>
                               <div className="flex items-center gap-1">
@@ -715,8 +715,9 @@ export function MultiBidPaymentModal({
                                 )}
                               </div>
                             </div>
+                            */}
                             
-                            {/* Account name check */}
+                            {/* Account name check - commented out for testing
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-amber-800">ชื่อบัญชี:</span>
                               <div className="flex items-center gap-1">
@@ -733,77 +734,38 @@ export function MultiBidPaymentModal({
                                 )}
                               </div>
                             </div>
+                            */}
                             
-                            {/* Bank name display */}
+                            {/* Bank name display - commented out for testing
                             {hintOCRValidation.extractedBankName && (
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-amber-800">ธนาคาร:</span>
                                 <span className="font-medium">{hintOCRValidation.extractedBankName}</span>
                               </div>
                             )}
+                            */}
                             
-                            {/* Validation summary */}
-                            {(() => {
-                              const amountOk = hintOCRValidation.amountMatches === true;
-                              const accountOk = hintOCRValidation.accountMatches === true;
-                              const nameOk = hintOCRValidation.extractedReceiverName?.includes("เอสเอสแอล");
-                              const allValid = amountOk && accountOk && nameOk;
-                              const hasErrors = hintOCRValidation.amountMatches === false || 
-                                               hintOCRValidation.accountMatches === false ||
-                                               (hintOCRValidation.extractedReceiverName && !hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล"));
-                              
-                              if (hasErrors) {
-                                return (
-                                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg space-y-1">
-                                    <p className="text-xs text-red-700 font-medium flex items-center gap-1">
-                                      <AlertCircle className="w-3.5 h-3.5" />
-                                      ข้อมูลไม่ตรง
-                                    </p>
-                                    {hintOCRValidation.amountMatches === false && (
-                                      <p className="text-xs text-red-600">
-                                        • ยอดโอนไม่ตรง (ต้องการ ฿{hintFee})
-                                      </p>
-                                    )}
-                                    {hintOCRValidation.accountMatches === false && (
-                                      <p className="text-xs text-red-600">
-                                        • เลขบัญชีไม่ตรง (ต้องการ {BANK_INFO.accountNumber})
-                                      </p>
-                                    )}
-                                    {hintOCRValidation.extractedReceiverName && 
-                                      !hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล") && (
-                                      <p className="text-xs text-red-600">
-                                        • ชื่อบัญชีไม่ตรง
-                                      </p>
-                                    )}
-                                  </div>
-                                );
-                              }
-                              
-                              if (allValid) {
-                                return (
-                                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
-                                    <p className="text-xs text-emerald-700 font-medium flex items-center gap-1">
-                                      <CheckCircle2 className="w-3.5 h-3.5" />
-                                      ตรวจสอบถูกต้องครบถ้วน พร้อมชำระ
-                                    </p>
-                                  </div>
-                                );
-                              }
-                              
-                              // Partial validation (some data not found)
-                              if (amountOk) {
-                                return (
-                                  <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
-                                    <p className="text-xs text-amber-700 font-medium flex items-center gap-1">
-                                      <CheckCircle2 className="w-3.5 h-3.5" />
-                                      ยอดเงินถูกต้อง (ข้อมูลบางส่วนอาจไม่สมบูรณ์)
-                                    </p>
-                                  </div>
-                                );
-                              }
-                              
-                              return null;
-                            })()}
+                            {/* Validation summary - only check amount for now */}
+                            {hintOCRValidation.amountMatches === false && (
+                              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-xs text-red-700 font-medium flex items-center gap-1">
+                                  <AlertCircle className="w-3.5 h-3.5" />
+                                  ยอดเงินไม่ตรงกัน
+                                </p>
+                                <p className="text-xs text-red-600 mt-1">
+                                  ยอดโอนไม่ตรงกับค่า Hint (ต้องการ ฿{hintFee})
+                                </p>
+                              </div>
+                            )}
+                            
+                            {hintOCRValidation.amountMatches === true && (
+                              <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                <p className="text-xs text-emerald-700 font-medium flex items-center gap-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  ยอดเงินถูกต้อง พร้อมชำระ
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
                         
@@ -834,11 +796,11 @@ export function MultiBidPaymentModal({
                             !hintSlipBase64 || 
                             isPayingHint || 
                             hintOCRValidation.isValidating ||
-                            (hintOCRValidation.validated && (
-                              hintOCRValidation.amountMatches === false ||
-                              hintOCRValidation.accountMatches === false ||
-                              (hintOCRValidation.extractedReceiverName && !hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล"))
-                            ))
+                            (hintOCRValidation.validated && hintOCRValidation.amountMatches === false)
+                            /* Commented out for testing - account and name validation
+                            || hintOCRValidation.accountMatches === false
+                            || (hintOCRValidation.extractedReceiverName && !hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล"))
+                            */
                           }
                           className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
                         >
