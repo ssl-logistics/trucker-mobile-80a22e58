@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.report-problem-proxy]
 verify_jwt = false
+
+[functions.chatbot-assistant]
+verify_jwt = false
