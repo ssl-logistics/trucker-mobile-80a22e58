@@ -12,7 +12,8 @@ interface Expense {
   expense_type: string;
   expense_name?: string;
   amount: number;
-  slip_url?: string;
+  slip_url?: string;       // รูปแรก (backward compatible)
+  slip_urls?: string[];    // รูปทั้งหมด
   created_at: string;
 }
 
@@ -75,6 +76,7 @@ export default function JobExpensesPage() {
             expense_name: exp.expense_name,
             amount: exp.amount,
             slip_url: exp.slip_url,
+            slip_urls: exp.slip_urls || (exp.slip_url ? [exp.slip_url] : []), // ใช้ slip_urls ถ้ามี, ไม่งั้น fallback เป็น slip_url
             created_at: exp.created_at,
           }));
           setExpenses(mappedExpenses);
@@ -163,27 +165,40 @@ export default function JobExpensesPage() {
                   {getExpenseTypeLabel(expense)} : ฿ {Number(expense.amount).toLocaleString()}
                 </div>
                 
-                {/* Receipt Image with Click Overlay */}
-                {expense.slip_url && (
-                  <div 
-                    className="relative rounded-lg overflow-hidden bg-muted cursor-pointer"
-                    onClick={() => setSelectedImage(expense.slip_url || null)}
-                  >
-                    <img 
-                      src={expense.slip_url} 
-                      alt={`${t('expenses.receipt')} ${getExpenseTypeLabel(expense)}`}
-                      className="w-full h-auto max-h-[300px] object-cover"
-                    />
-                    {/* Overlay with "Click to view" text */}
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                      <span className="text-white text-lg font-medium">
-                        {t('expenses.clickToView')}
-                      </span>
-                    </div>
-                    {/* Camera icon button */}
-                    <button className="absolute top-3 right-3 w-10 h-10 rounded-full bg-background/90 flex items-center justify-center shadow-md">
-                      <Camera className="w-5 h-5 text-muted-foreground" />
-                    </button>
+                {/* Receipt Images - แสดงทุกรูปจาก slip_urls */}
+                {expense.slip_urls && expense.slip_urls.length > 0 && (
+                  <div className="space-y-3">
+                    {expense.slip_urls.map((imageUrl, imgIndex) => (
+                      <div 
+                        key={imgIndex}
+                        className="relative rounded-lg overflow-hidden bg-muted cursor-pointer"
+                        onClick={() => setSelectedImage(imageUrl)}
+                      >
+                        <img 
+                          src={imageUrl} 
+                          alt={`${t('expenses.receipt')} ${getExpenseTypeLabel(expense)} (${imgIndex + 1})`}
+                          className="w-full h-auto max-h-[300px] object-cover"
+                        />
+                        {/* Overlay with "Click to view" text */}
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <span className="text-white text-lg font-medium">
+                            {t('expenses.clickToView')}
+                          </span>
+                        </div>
+                        {/* Image counter badge */}
+                        {expense.slip_urls && expense.slip_urls.length > 1 && (
+                          <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-background/90 shadow-md">
+                            <span className="text-xs font-medium text-foreground">
+                              {imgIndex + 1}/{expense.slip_urls.length}
+                            </span>
+                          </div>
+                        )}
+                        {/* Camera icon button */}
+                        <button className="absolute top-3 right-3 w-10 h-10 rounded-full bg-background/90 flex items-center justify-center shadow-md">
+                          <Camera className="w-5 h-5 text-muted-foreground" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
