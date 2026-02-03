@@ -156,7 +156,15 @@ const SignIn = () => {
       const vehicle = result.data?.vehicle || null;
       const userType = result.data?.user_type || null;
       const loginApiKey = result.data?.api_key || null;
-      const employerType = result.data?.employer_type || result.data?.company_type || null; // 'factory' or 'company'
+      
+      // Debug: ดูว่า API ส่งอะไรมาบ้าง
+      console.log('[Login Debug] Full API response:', result.data);
+      console.log('[Login Debug] user_type:', userType);
+      console.log('[Login Debug] employer_type:', result.data?.employer_type);
+      console.log('[Login Debug] company_type:', result.data?.company_type);
+      
+      // เช็ค user_type ก่อน แล้วค่อยใช้ company_type สำหรับ internal/external driver
+      const employerType = result.data?.company_type || null; // 'factory' or 'company'
       
       // For internal_driver and external_driver, merge vehicle data into driver object
       if (driver && vehicle && (userType === 'internal_driver' || userType === 'external_driver')) {
