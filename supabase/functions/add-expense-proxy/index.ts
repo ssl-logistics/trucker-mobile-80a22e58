@@ -34,8 +34,10 @@ serve(async (req) => {
       driver_type, 
       expense_type, 
       amount, 
-      receipt_photo_url, 
-      notes 
+      receipt_photo_url,
+      receipt_photo_urls,
+      notes,
+      ocr_data
     } = body;
 
     // Validate required fields
@@ -90,6 +92,9 @@ serve(async (req) => {
     }
 
     console.log(`Adding expense: order_number=${order_number}, driver_id=${driver_id}, expense_type=${expense_type}, amount=${amount}`);
+    if (ocr_data) {
+      console.log('OCR data included:', JSON.stringify(ocr_data));
+    }
 
     // Forward the request to the external API
     const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/transport-expenses`;
@@ -107,7 +112,9 @@ serve(async (req) => {
         expense_type,
         amount: Number(amount),
         receipt_photo_url,
+        receipt_photo_urls,
         notes,
+        ocr_data,
       }),
     });
 
