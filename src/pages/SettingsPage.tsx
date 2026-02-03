@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug, Bot } from 'lucide-react';
-import { ChatbotDrawer } from '@/components/chatbot/ChatbotDrawer';
+import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -47,7 +46,6 @@ export default function SettingsPage() {
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSendingTestPush, setIsSendingTestPush] = useState(false);
-  const [showChatbot, setShowChatbot] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -280,7 +278,6 @@ export default function SettingsPage() {
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true, path: '/notifications' },
         { icon: HelpCircle, label: 'แนะนำการใช้งาน', hasRestartTour: true },
-        { icon: Bot, label: 'ผู้ช่วย AI', hasChatbot: true },
         { icon: Bug, label: 'Push Debug', path: '/push-debug' },
       ]
     },
@@ -383,17 +380,6 @@ export default function SettingsPage() {
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </button>
-                ) : item.hasChatbot ? (
-                  <button
-                    onClick={() => setShowChatbot(true)}
-                    className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon className="w-5 h-5 text-foreground" />
-                      <span className="text-foreground">{item.label}</span>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                  </button>
                 ) : item.hasTestPush ? (
                   <button
                     onClick={handleTestPush}
@@ -477,9 +463,6 @@ export default function SettingsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Chatbot Drawer */}
-      <ChatbotDrawer open={showChatbot} onOpenChange={setShowChatbot} />
 
       <BottomNavigation />
     </div>
