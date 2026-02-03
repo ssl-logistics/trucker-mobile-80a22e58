@@ -10,6 +10,7 @@ import { PushNotificationPrompt } from "@/components/notifications/PushNotificat
 import { SwipeBackProvider } from "@/components/layout/SwipeBackProvider";
 import { DeepLinkListener } from "@/components/DeepLinkListener";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { Loader2 } from "lucide-react";
 
 // Preloadable lazy import helper
@@ -141,6 +142,7 @@ const App = () => (
               <DeepLinkListener />
               <div className="min-h-screen">
                 <PushNotificationPrompt />
+                <FloatingChatbot />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     <Route path="/" element={<StartPage />} />
