@@ -10,27 +10,44 @@ interface Position {
 }
 
 // Safe zones - areas where the button can be dragged
-const BOTTOM_NAV_HEIGHT = 56; // Bottom navigation height (actual nav ~56px)
 const BUTTON_SIZE = 48;
+const NAV_GAP = 8; // keep a small gap above the bottom navigation
+
+function getBottomLimitY() {
+  const nav = document.getElementById("bottom-navigation");
+  if (nav) {
+    const rect = nav.getBoundingClientRect();
+    // The highest Y (top) the button can have without overlapping the nav
+    return Math.max(0, rect.top - BUTTON_SIZE - NAV_GAP);
+  }
+
+  // Fallback when nav isn't mounted yet
+  return Math.max(0, window.innerHeight - 80 - BUTTON_SIZE - NAV_GAP);
+}
+
+function clampPosition(pos: Position, bottomLimitY: number): Position {
+  const maxX = window.innerWidth - BUTTON_SIZE;
+  return {
+    x: Math.min(Math.max(0, pos.x), maxX),
+    y: Math.min(Math.max(0, pos.y), bottomLimitY),
+  };
+}
 
 function getInitialPosition(): Position {
   try {
     const saved = localStorage.getItem(POSITION_KEY);
     if (saved) {
       const pos = JSON.parse(saved);
+      const bottomLimitY = getBottomLimitY();
       // Validate position is within safe zones
-      const maxX = window.innerWidth - BUTTON_SIZE;
-      const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
-      return {
-        x: Math.min(Math.max(0, pos.x), maxX),
-        y: Math.min(Math.max(0, pos.y), maxY),
-      };
+      return clampPosition({ x: pos.x, y: pos.y }, bottomLimitY);
     }
   } catch {}
   // Default: bottom right (above bottom nav)
+  const bottomLimitY = getBottomLimitY();
   return {
     x: window.innerWidth - 64,
-    y: window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE - 20,
+    y: bottomLimitY,
   };
 }
 
@@ -44,16 +61,38 @@ export function FloatingChatbot() {
 
   // Update position on window resize
   useEffect(() => {
-    const handleResize = () => {
-      const maxX = window.innerWidth - BUTTON_SIZE;
-      const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
-      setPosition(prev => ({
-        x: Math.min(Math.max(0, prev.x), maxX),
-        y: Math.min(Math.max(0, prev.y), maxY),
-      }));
+    const updateBounds = () => {
+      const bottomLimitY = getBottomLimitY();
+      setPosition((prev) => clampPosition(prev, bottomLimitY));
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    // Initial clamp (and also covers the case where nav mounts slightly later)
+    updateBounds();
+
+    // Watch for nav mounting/unmounting and size changes
+    let ro: ResizeObserver | undefined;
+    const attachResizeObserver = () => {
+      const navEl = document.getElementById("bottom-navigation");
+      if (!navEl || !("ResizeObserver" in window)) return;
+      ro ??= new ResizeObserver(updateBounds);
+      ro.disconnect();
+      ro.observe(navEl);
+      updateBounds();
+    };
+    attachResizeObserver();
+
+    const mo = new MutationObserver(() => attachResizeObserver());
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener("resize", updateBounds);
+    window.visualViewport?.addEventListener("resize", updateBounds);
+
+    return () => {
+      window.removeEventListener("resize", updateBounds);
+      window.visualViewport?.removeEventListener("resize", updateBounds);
+      ro?.disconnect();
+      mo.disconnect();
+    };
   }, []);
 
   const handleStart = (clientX: number, clientY: number) => {
@@ -79,11 +118,11 @@ export function FloatingChatbot() {
     }
 
     // Constrain to safe zones (avoid bottom nav only)
+    const bottomLimitY = getBottomLimitY();
     const maxX = window.innerWidth - BUTTON_SIZE;
-    const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
 
     const newX = Math.min(Math.max(0, dragRef.current.startPosX + deltaX), maxX);
-    const newY = Math.min(Math.max(0, dragRef.current.startPosY + deltaY), maxY);
+    const newY = Math.min(Math.max(0, dragRef.current.startPosY + deltaY), bottomLimitY);
 
     setPosition({ x: newX, y: newY });
   };
