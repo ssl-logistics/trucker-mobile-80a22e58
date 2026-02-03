@@ -255,7 +255,7 @@ const SignIn = () => {
   }}>
       {/* Hero Section with Truck Image */}
       <div className="relative h-[40vh] flex-shrink-0">
-        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-fill " src="/lovable-uploads/e621f1f8-6b0a-4d89-bbc1-5a883f8f9ecb.png" />
+        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-cover" src="/lovable-uploads/login-background-2.png" />
       </div>
 
       {/* Login Form */}
