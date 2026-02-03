@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
+import { HomeTour } from '@/components/onboarding/HomeTour';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
 interface Job {
@@ -805,7 +806,7 @@ export default function Home() {
       {/* Scrollable Content - Responsive container */}
       <div className="flex-1 pb-24 lg:pb-8">
         {/* Jobs Section - Centered with max-width on larger screens */}
-        <div className="px-4 mt-6 sm:px-6 lg:px-8 xl:px-10 max-w-7xl mx-auto">
+        <div data-tour="available-jobs" className="px-4 mt-6 sm:px-6 lg:px-8 xl:px-10 max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold sm:text-xl lg:text-2xl">
               {userType === 'internal_driver' || userType === 'external_driver' 
@@ -876,6 +877,9 @@ export default function Home() {
       </div>
 
       <BottomNavigation />
+
+      {/* Onboarding Tour */}
+      <HomeTour />
 
       <ConfirmJobDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen} onConfirm={confirmJobAcceptance} job={selectedJob} isLoading={isAccepting} />
       

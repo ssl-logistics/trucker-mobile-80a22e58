@@ -61,6 +61,7 @@ export function BottomNavigation() {
   const navContent = (
     <nav
       id="bottom-navigation"
+      data-tour="bottom-nav"
       style={{
         position: "fixed",
         bottom: 0,
