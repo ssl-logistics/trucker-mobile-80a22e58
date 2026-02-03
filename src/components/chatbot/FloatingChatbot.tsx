@@ -56,7 +56,7 @@ export function FloatingChatbot() {
   const [position, setPosition] = useState<Position>(getInitialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const pointerIdRef = useRef<number | null>(null);
   const hasMoved = useRef(false);
 
   // Update position on window resize
@@ -136,49 +136,33 @@ export function FloatingChatbot() {
     setIsDragging(false);
   };
 
-  // Mouse events
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // Pointer events (works for both mouse + touch and keeps tracking even if finger leaves the button)
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    pointerIdRef.current = e.pointerId;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
     handleStart(e.clientX, e.clientY);
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        handleMove(e.clientX, e.clientY);
-      }
-    };
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragRef.current) return;
+    if (pointerIdRef.current !== null && e.pointerId !== pointerIdRef.current) return;
+    handleMove(e.clientX, e.clientY);
+  };
 
-    const handleMouseUp = () => {
-      if (isDragging) {
-        handleEnd();
-      }
-    };
-
-    if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+  const handlePointerUpOrCancel = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (pointerIdRef.current !== null && e.pointerId !== pointerIdRef.current) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
     }
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDragging, position]);
-
-  // Touch events
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleStart(touch.clientX, touch.clientY);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleMove(touch.clientX, touch.clientY);
-  };
-
-  const handleTouchEnd = () => {
     handleEnd();
+    pointerIdRef.current = null;
   };
 
   const handleClick = () => {
@@ -191,11 +175,10 @@ export function FloatingChatbot() {
   return (
     <>
       <button
-        ref={buttonRef}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUpOrCancel}
+        onPointerCancel={handlePointerUpOrCancel}
         onClick={handleClick}
         className={`fixed z-[9999] w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center transition-shadow ${
           isDragging ? "shadow-xl scale-110" : "hover:shadow-xl"
