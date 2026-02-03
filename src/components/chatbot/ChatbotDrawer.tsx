@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { Send, Bot, User, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -185,59 +185,59 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
-        <SheetHeader className="px-4 py-3 border-b">
-          <SheetTitle className="flex items-center gap-2">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[340px] w-[90%] h-[400px] flex flex-col p-0 gap-0 rounded-2xl">
+        <DialogHeader className="px-4 py-3 border-b flex-shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
             <Bot className="w-5 h-5 text-primary" />
             ผู้ช่วย AI
-          </SheetTitle>
-        </SheetHeader>
+          </DialogTitle>
+        </DialogHeader>
 
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-          <div className="space-y-4">
+        <ScrollArea className="flex-1 p-3" ref={scrollRef}>
+          <div className="space-y-3">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${
+                className={`flex gap-2 ${
                   message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
                 {message.role === "assistant" && (
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-primary" />
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-3.5 h-3.5 text-primary" />
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                  className={`max-w-[85%] rounded-xl px-3 py-2 ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-xs whitespace-pre-wrap leading-relaxed">{message.content}</p>
                 </div>
                 {message.role === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                    <User className="w-3.5 h-3.5" />
                   </div>
                 )}
               </div>
             ))}
             {isLoading && (
-              <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-4 h-4 text-primary" />
+              <div className="flex gap-2 justify-start">
+                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <div className="bg-muted rounded-2xl px-4 py-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                <div className="bg-muted rounded-xl px-3 py-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 </div>
               </div>
             )}
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t bg-background">
+        <div className="p-3 border-t bg-background flex-shrink-0">
           <div className="flex gap-2">
             <Input
               value={input}
@@ -245,18 +245,19 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
               onKeyPress={handleKeyPress}
               placeholder="พิมพ์ข้อความ..."
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 h-9 text-sm"
             />
             <Button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="icon"
+              className="h-9 w-9"
             >
               <Send className="w-4 h-4" />
             </Button>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
