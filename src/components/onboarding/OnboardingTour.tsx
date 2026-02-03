@@ -136,18 +136,6 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   };
 
   if (!isVisible) {
-    // Show help button to restart tour
-    if (hasCompleted) {
-      return (
-        <button
-          onClick={handleRestart}
-          className="fixed bottom-24 right-4 z-50 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-all"
-          aria-label="Restart tour"
-        >
-          <HelpCircle className="w-6 h-6" />
-        </button>
-      );
-    }
     return null;
   }
 

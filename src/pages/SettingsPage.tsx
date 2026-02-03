@@ -277,6 +277,7 @@ export default function SettingsPage() {
       section: t('settings.general'),
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true, path: '/notifications' },
+        { icon: HelpCircle, label: t('settings.usage_guide') || 'แนะนำการใช้งาน', hasRestartTour: true },
         { icon: Bug, label: 'Push Debug', path: '/push-debug' },
       ]
     },
@@ -285,7 +286,7 @@ export default function SettingsPage() {
       items: [
         { icon: Globe, label: t('settings.language'), path: '/language' },
         { icon: Info, label: t('settings.terms'), path: '/terms' },
-        { icon: HelpCircle, label: t('settings.contact'), path: '/contact' },
+        { icon: Info, label: t('settings.contact'), path: '/contact' },
       ]
     }
   ];
@@ -361,6 +362,24 @@ export default function SettingsPage() {
                       />
                     </div>
                   </div>
+                ) : item.hasRestartTour ? (
+                  <button
+                    onClick={() => {
+                      // Clear tour completion flag and navigate to home
+                      localStorage.removeItem('home-tour-completed');
+                      navigate('/home');
+                      toast({
+                        description: 'เริ่มแนะนำการใช้งานใหม่',
+                      });
+                    }}
+                    className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon className="w-5 h-5 text-foreground" />
+                      <span className="text-foreground">{item.label}</span>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  </button>
                 ) : item.hasTestPush ? (
                   <button
                     onClick={handleTestPush}
