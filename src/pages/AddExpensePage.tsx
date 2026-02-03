@@ -464,7 +464,7 @@ const AddExpensePage = () => {
               
               {/* OCR Summary */}
               {expense.receiptPhotos.length > 0 && !isAnyPhotoExtracting(expense) && getTotalOCRAmount(expense) > 0 && expense.showOCRDetails && (
-                <div className="p-3 bg-green-50 rounded-lg border border-green-200 space-y-2">
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200 space-y-3">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-green-800 flex items-center gap-1">
                       <Scan className="w-4 h-4" />
@@ -481,18 +481,40 @@ const AddExpensePage = () => {
                     </Button>
                   </div>
                   
-                  {/* Individual amounts */}
-                  <div className="space-y-1 bg-white/50 rounded p-2">
+                  {/* Individual receipts with line items */}
+                  <div className="space-y-3">
                     {expense.receiptPhotos.filter(p => p.ocrAmount).map((photo, idx) => (
-                      <div key={photo.id} className="flex justify-between text-xs">
-                        <span className="text-green-800">ใบเสร็จ {idx + 1}</span>
-                        <span className="font-medium text-green-900">฿{photo.ocrAmount?.toLocaleString()}</span>
+                      <div key={photo.id} className="bg-white/50 rounded p-2 space-y-1.5">
+                        <div className="flex justify-between text-xs font-medium border-b border-green-200 pb-1">
+                          <span className="text-green-800">ใบเสร็จ {idx + 1}</span>
+                          <span className="text-green-900">฿{photo.ocrAmount?.toLocaleString()}</span>
+                        </div>
+                        
+                        {/* Line items from this receipt */}
+                        {photo.ocrDetailed?.line_items && photo.ocrDetailed.line_items.length > 0 && (
+                          <div className="space-y-0.5 pl-2">
+                            {photo.ocrDetailed.line_items.map((item, itemIdx) => (
+                              <div key={itemIdx} className="flex justify-between text-xs">
+                                <span className="text-green-700 truncate flex-1 mr-2">• {item.description}</span>
+                                <span className="text-green-800 whitespace-nowrap">฿{item.amount.toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Receipt info */}
+                        {(photo.ocrDetailed?.receipt_number || photo.ocrDetailed?.container_number) && (
+                          <div className="text-xs text-green-600 pt-1">
+                            {photo.ocrDetailed.receipt_number && <span>เลขที่: {photo.ocrDetailed.receipt_number} </span>}
+                            {photo.ocrDetailed.container_number && <span>ตู้: {photo.ocrDetailed.container_number}</span>}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                   
                   {/* Total */}
-                  <div className="flex justify-between text-sm font-bold pt-1 border-t border-green-200">
+                  <div className="flex justify-between text-sm font-bold pt-2 border-t border-green-200">
                     <span className="text-green-800">ยอดรวมทั้งหมด:</span>
                     <span className="text-green-900">฿{getTotalOCRAmount(expense).toLocaleString()}</span>
                   </div>
