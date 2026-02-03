@@ -218,8 +218,8 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
                   <p className="text-xs whitespace-pre-wrap leading-relaxed">{message.content}</p>
                 </div>
                 {message.role === "user" && (
-                  <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                    <User className="w-3.5 h-3.5" />
+                  <div className="w-7 h-7 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                    <User className="w-3.5 h-3.5 text-secondary" />
                   </div>
                 )}
               </div>
