@@ -10,7 +10,7 @@ interface Position {
 }
 
 // Safe zones - areas where the button can be dragged
-const BOTTOM_NAV_HEIGHT = 80; // Bottom navigation height
+const BOTTOM_NAV_HEIGHT = 70; // Bottom navigation height (matches actual nav height)
 const BUTTON_SIZE = 48;
 
 function getInitialPosition(): Position {
