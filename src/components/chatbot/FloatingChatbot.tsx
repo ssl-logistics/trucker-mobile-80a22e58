@@ -21,8 +21,10 @@ function getBottomLimitY() {
     return Math.max(0, rect.top - BUTTON_SIZE - NAV_GAP);
   }
 
-  // Fallback when nav isn't mounted yet
-  return Math.max(0, window.innerHeight - 80 - BUTTON_SIZE - NAV_GAP);
+  // No nav present - allow button to go almost to the bottom (just small margin)
+  const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0', 10);
+  const bottomMargin = Math.max(16, safeAreaBottom); // 16px minimum margin at bottom
+  return Math.max(0, window.innerHeight - BUTTON_SIZE - bottomMargin);
 }
 
 function clampPosition(pos: Position, bottomLimitY: number): Position {
