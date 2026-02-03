@@ -10,7 +10,6 @@ interface Position {
 }
 
 // Safe zones - areas where the button can be dragged
-const HEADER_HEIGHT = 120; // Header + safe area
 const BOTTOM_NAV_HEIGHT = 80; // Bottom navigation height
 const BUTTON_SIZE = 48;
 
@@ -21,11 +20,10 @@ function getInitialPosition(): Position {
       const pos = JSON.parse(saved);
       // Validate position is within safe zones
       const maxX = window.innerWidth - BUTTON_SIZE;
-      const minY = HEADER_HEIGHT;
       const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
       return {
         x: Math.min(Math.max(0, pos.x), maxX),
-        y: Math.min(Math.max(minY, pos.y), maxY),
+        y: Math.min(Math.max(0, pos.y), maxY),
       };
     }
   } catch {}
@@ -48,11 +46,10 @@ export function FloatingChatbot() {
   useEffect(() => {
     const handleResize = () => {
       const maxX = window.innerWidth - BUTTON_SIZE;
-      const minY = HEADER_HEIGHT;
       const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
       setPosition(prev => ({
         x: Math.min(Math.max(0, prev.x), maxX),
-        y: Math.min(Math.max(minY, prev.y), maxY),
+        y: Math.min(Math.max(0, prev.y), maxY),
       }));
     };
     window.addEventListener("resize", handleResize);
@@ -81,13 +78,12 @@ export function FloatingChatbot() {
       hasMoved.current = true;
     }
 
-    // Constrain to safe zones (avoid header and bottom nav)
+    // Constrain to safe zones (avoid bottom nav only)
     const maxX = window.innerWidth - BUTTON_SIZE;
-    const minY = HEADER_HEIGHT;
     const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
 
     const newX = Math.min(Math.max(0, dragRef.current.startPosX + deltaX), maxX);
-    const newY = Math.min(Math.max(minY, dragRef.current.startPosY + deltaY), maxY);
+    const newY = Math.min(Math.max(0, dragRef.current.startPosY + deltaY), maxY);
 
     setPosition({ x: newX, y: newY });
   };
