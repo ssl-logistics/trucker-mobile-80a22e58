@@ -9,24 +9,30 @@ interface Position {
   y: number;
 }
 
+// Safe zones - areas where the button can be dragged
+const HEADER_HEIGHT = 120; // Header + safe area
+const BOTTOM_NAV_HEIGHT = 80; // Bottom navigation height
+const BUTTON_SIZE = 48;
+
 function getInitialPosition(): Position {
   try {
     const saved = localStorage.getItem(POSITION_KEY);
     if (saved) {
       const pos = JSON.parse(saved);
-      // Validate position is within viewport
-      const maxX = window.innerWidth - 48;
-      const maxY = window.innerHeight - 48;
+      // Validate position is within safe zones
+      const maxX = window.innerWidth - BUTTON_SIZE;
+      const minY = HEADER_HEIGHT;
+      const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
       return {
         x: Math.min(Math.max(0, pos.x), maxX),
-        y: Math.min(Math.max(0, pos.y), maxY),
+        y: Math.min(Math.max(minY, pos.y), maxY),
       };
     }
   } catch {}
-  // Default: bottom right
+  // Default: bottom right (above bottom nav)
   return {
     x: window.innerWidth - 64,
-    y: window.innerHeight - 140,
+    y: window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE - 20,
   };
 }
 
@@ -41,9 +47,12 @@ export function FloatingChatbot() {
   // Update position on window resize
   useEffect(() => {
     const handleResize = () => {
+      const maxX = window.innerWidth - BUTTON_SIZE;
+      const minY = HEADER_HEIGHT;
+      const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
       setPosition(prev => ({
-        x: Math.min(prev.x, window.innerWidth - 48),
-        y: Math.min(prev.y, window.innerHeight - 48),
+        x: Math.min(Math.max(0, prev.x), maxX),
+        y: Math.min(Math.max(minY, prev.y), maxY),
       }));
     };
     window.addEventListener("resize", handleResize);
@@ -72,8 +81,13 @@ export function FloatingChatbot() {
       hasMoved.current = true;
     }
 
-    const newX = Math.min(Math.max(0, dragRef.current.startPosX + deltaX), window.innerWidth - 48);
-    const newY = Math.min(Math.max(0, dragRef.current.startPosY + deltaY), window.innerHeight - 48);
+    // Constrain to safe zones (avoid header and bottom nav)
+    const maxX = window.innerWidth - BUTTON_SIZE;
+    const minY = HEADER_HEIGHT;
+    const maxY = window.innerHeight - BOTTOM_NAV_HEIGHT - BUTTON_SIZE;
+
+    const newX = Math.min(Math.max(0, dragRef.current.startPosX + deltaX), maxX);
+    const newY = Math.min(Math.max(minY, dragRef.current.startPosY + deltaY), maxY);
 
     setPosition({ x: newX, y: newY });
   };
