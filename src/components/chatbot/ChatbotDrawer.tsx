@@ -190,7 +190,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
         <DialogHeader className="px-4 py-3 flex-shrink-0 bg-secondary relative">
           <DialogTitle className="flex items-center gap-2 text-base text-white">
             <Bot className="w-5 h-5 text-white" />
-            Trucker AI
+            The Trucker
           </DialogTitle>
           <button 
             onClick={() => onOpenChange(false)}
