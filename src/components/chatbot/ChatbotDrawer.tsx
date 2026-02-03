@@ -187,9 +187,9 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[340px] w-[90%] h-[400px] flex flex-col p-0 gap-0 rounded-2xl">
-        <DialogHeader className="px-4 py-3 border-b flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <Bot className="w-5 h-5 text-primary" />
+        <DialogHeader className="px-4 py-3 border-b border-secondary/20 flex-shrink-0 bg-secondary">
+          <DialogTitle className="flex items-center gap-2 text-base text-white">
+            <Bot className="w-5 h-5 text-white" />
             ผู้ช่วย AI
           </DialogTitle>
         </DialogHeader>
@@ -204,14 +204,14 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
                 }`}
               >
                 {message.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-3.5 h-3.5 text-primary" />
+                  <div className="w-7 h-7 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-3.5 h-3.5 text-secondary" />
                   </div>
                 )}
                 <div
                   className={`max-w-[85%] rounded-xl px-3 py-2 ${
                     message.role === "user"
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-secondary text-white"
                       : "bg-muted"
                   }`}
                 >
@@ -226,11 +226,11 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
             ))}
             {isLoading && (
               <div className="flex gap-2 justify-start">
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-3.5 h-3.5 text-primary" />
+                <div className="w-7 h-7 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-3.5 h-3.5 text-secondary" />
                 </div>
                 <div className="bg-muted rounded-xl px-3 py-2">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-secondary" />
                 </div>
               </div>
             )}
@@ -251,7 +251,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="icon"
-              className="h-9 w-9"
+              className="h-9 w-9 bg-secondary hover:bg-secondary/90 text-white"
             >
               <Send className="w-4 h-4" />
             </Button>
