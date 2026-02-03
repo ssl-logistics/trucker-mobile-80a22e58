@@ -79,7 +79,7 @@ export function AppHeader({
     const dayKeys = ['home.sunday', 'home.monday', 'home.tuesday', 'home.wednesday', 'home.thursday', 'home.friday', 'home.saturday'];
     return t(dayKeys[new Date().getDay()]);
   };
-  return <header className="app-header-fixed bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg overflow-hidden">
+  return <header data-tour="header" className="app-header-fixed bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg overflow-hidden">
       <div className="relative overflow-hidden" style={{
       paddingTop: "env(safe-area-inset-top, 0px)"
     }}>
@@ -154,7 +154,12 @@ export function AppHeader({
           icon: jobHistoryIcon,
           labelKey: "home.job_history",
           path: "/job-history"
-        }].filter(item => !item.showForFreelanceOnly || canAccessBidding).map(item => <button key={item.labelKey} onClick={() => item.path && navigate(item.path)} className="flex flex-col items-center gap-2">
+        }].filter(item => !item.showForFreelanceOnly || canAccessBidding).map(item => <button 
+          key={item.labelKey} 
+          onClick={() => item.path && navigate(item.path)} 
+          className="flex flex-col items-center gap-2"
+          data-tour={item.labelKey === "home.bidding" ? "bidding-menu" : item.labelKey === "home.current_jobs" ? "current-jobs-menu" : undefined}
+        >
                 <div className="w-16 h-16 flex items-center justify-center">
                   <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" />
                 </div>
