@@ -147,6 +147,8 @@ All colors MUST be HSL.
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
     overscroll-behavior-y: contain;
+    /* Keep page content scrollable above the fixed BottomNavigation */
+    padding-bottom: var(--bottom-nav-height, 0px);
   }
 }
 
