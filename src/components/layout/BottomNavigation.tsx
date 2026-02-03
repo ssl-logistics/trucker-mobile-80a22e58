@@ -3,7 +3,7 @@ import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { createPortal } from "react-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
 import DashboardIcon from "@/assets/dashboard-icon.svg";
@@ -19,6 +19,7 @@ export function BottomNavigation() {
   const { t } = useLanguage();
   const { canAccessDashboard } = useUserRole();
   const [mounted, setMounted] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
   
   useEffect(() => {
     setMounted(true);
@@ -57,10 +58,40 @@ export function BottomNavigation() {
       customActiveIcon: SettingsIconActive,
     },
   ].filter((item) => !item.showForFreelanceOnly || canAccessDashboard);
+
+  // Expose bottom navigation height to the scroll container so content can scroll above it.
+  // This prevents the last part of the page from being hidden behind the fixed nav.
+  useEffect(() => {
+    if (!mounted) return;
+
+    const el = navRef.current;
+    if (!el) return;
+
+    const setVar = () => {
+      const height = Math.ceil(el.getBoundingClientRect().height);
+      document.documentElement.style.setProperty("--bottom-nav-height", `${height}px`);
+    };
+
+    setVar();
+
+    const ro = "ResizeObserver" in window ? new ResizeObserver(setVar) : null;
+    ro?.observe(el);
+
+    window.addEventListener("resize", setVar);
+    window.visualViewport?.addEventListener("resize", setVar);
+
+    return () => {
+      window.removeEventListener("resize", setVar);
+      window.visualViewport?.removeEventListener("resize", setVar);
+      ro?.disconnect();
+      document.documentElement.style.setProperty("--bottom-nav-height", "0px");
+    };
+  }, [mounted, navItems.length]);
   
   const navContent = (
     <nav
       id="bottom-navigation"
+      ref={navRef}
       data-tour="bottom-nav"
       style={{
         position: "fixed",
