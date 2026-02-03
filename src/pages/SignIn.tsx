@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Bot } from "lucide-react";
+import { ChatbotDrawer } from "@/components/chatbot/ChatbotDrawer";
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,7 @@ const SignIn = () => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   // Get app version from native app - immediate fallback for web
   useEffect(() => {
@@ -440,6 +442,18 @@ const SignIn = () => {
       <div className="absolute bottom-2 right-4 text-xs text-muted-foreground/60">
         v{appVersion}
       </div>
+
+      {/* Floating Chatbot Button */}
+      <button
+        onClick={() => setShowChatbot(true)}
+        className="fixed bottom-20 right-4 z-50 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
+        aria-label="ผู้ช่วย AI"
+      >
+        <Bot className="w-6 h-6" />
+      </button>
+
+      {/* Chatbot Drawer */}
+      <ChatbotDrawer open={showChatbot} onOpenChange={setShowChatbot} />
     </div>;
 };
 export default SignIn;
