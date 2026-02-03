@@ -248,8 +248,14 @@ const AddExpensePage = () => {
       for (const expense of expenses) {
         if (expense.receiptPhotos.length === 0) continue;
         
-        // Upload all photos and collect URLs
+        // Upload all photos and collect URLs, and build OCR data
         const photoUrls: string[] = [];
+        const ocrReceipts: Array<{
+          receipt_number: string | null;
+          container_number: string | null;
+          total: number;
+          line_items: Array<{ description: string; amount: number }>;
+        }> = [];
         
         for (const photo of expense.receiptPhotos) {
           const fileExt = photo.file.name.split('.').pop();
@@ -268,12 +274,28 @@ const AddExpensePage = () => {
             .getPublicUrl(fileName);
           
           photoUrls.push(publicUrl);
+          
+          // Collect OCR data for this receipt
+          if (photo.ocrAmount || photo.ocrDetailed) {
+            ocrReceipts.push({
+              receipt_number: photo.ocrDetailed?.receipt_number || null,
+              container_number: photo.ocrDetailed?.container_number || null,
+              total: photo.ocrAmount || 0,
+              line_items: photo.ocrDetailed?.line_items || [],
+            });
+          }
         }
         
         const expenseType = expense.type === "other" ? expense.customType : expense.type;
+        const totalOCRAmount = getTotalOCRAmount(expense);
         
-        // Send expense to external API with first photo URL (main receipt)
-        // Additional photos are stored but primary URL is the first one
+        // Build ocr_data object
+        const ocrData = ocrReceipts.length > 0 ? {
+          total_amount: totalOCRAmount,
+          receipts: ocrReceipts,
+        } : null;
+        
+        // Send expense to external API with OCR data
         const response = await supabase.functions.invoke('add-expense-proxy', {
           body: {
             order_number: jobId,
@@ -281,9 +303,10 @@ const AddExpensePage = () => {
             driver_type: driverType,
             expense_type: expenseType,
             amount: parseFloat(expense.amount),
-            receipt_photo_url: photoUrls[0], // Primary photo
+            receipt_photo_url: photoUrls[0], // Primary photo (backward compatibility)
             receipt_photo_urls: photoUrls, // All photos
-            notes: photoUrls.length > 1 ? `มี ${photoUrls.length} ใบเสร็จ` : ''
+            notes: photoUrls.length > 1 ? `มี ${photoUrls.length} ใบเสร็จ` : '',
+            ocr_data: ocrData, // OCR extracted data
           }
         });
         
