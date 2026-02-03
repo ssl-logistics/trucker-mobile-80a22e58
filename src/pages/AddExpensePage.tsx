@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2 } from "lucide-react";
+import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2, X } from "lucide-react";
 import confirmSuccessIcon from "@/assets/confirm-success-icon.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,17 +43,21 @@ interface OCRDetailedResult {
   receipt_date?: string | null;
 }
 
+interface ReceiptPhoto {
+  id: string;
+  file: File;
+  preview: string;
+  ocrAmount: number | null;
+  ocrDetailed: OCRDetailedResult | null;
+  ocrExtracting: boolean;
+}
+
 interface ExpenseItem {
   id: string;
   type: string | undefined;
   customType: string;
   amount: string;
-  receiptPhoto: File | null;
-  receiptPreview: string | null;
-  ocrAmount: number | null;
-  ocrRawText: string | null;
-  ocrExtracting: boolean;
-  ocrDetailed: OCRDetailedResult | null;
+  receiptPhotos: ReceiptPhoto[];
   showOCRDetails: boolean;
 }
 
@@ -73,8 +77,9 @@ const AddExpensePage = () => {
     { value: "parking", label: t('expense.parkingFee') },
     { value: "other", label: t('expense.other') },
   ];
+  
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
-    { id: "1", type: undefined, customType: "", amount: "", receiptPhoto: null, receiptPreview: null, ocrAmount: null, ocrRawText: null, ocrExtracting: false, ocrDetailed: null, showOCRDetails: false },
+    { id: "1", type: undefined, customType: "", amount: "", receiptPhotos: [], showOCRDetails: false },
   ]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,12 +90,7 @@ const AddExpensePage = () => {
       type: undefined,
       customType: "",
       amount: "",
-      receiptPhoto: null,
-      receiptPreview: null,
-      ocrAmount: null,
-      ocrRawText: null,
-      ocrExtracting: false,
-      ocrDetailed: null,
+      receiptPhotos: [],
       showOCRDetails: false,
     };
     setExpenses([...expenses, newExpense]);
@@ -108,76 +108,105 @@ const AddExpensePage = () => {
     ));
   };
 
-  const handlePhotoSelect = async (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (expenseId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      const photoId = String(Date.now());
+      
       const reader = new FileReader();
       reader.onloadend = () => {
+        const newPhoto: ReceiptPhoto = {
+          id: photoId,
+          file,
+          preview: reader.result as string,
+          ocrAmount: null,
+          ocrDetailed: null,
+          ocrExtracting: true,
+        };
+        
         setExpenses(prev => prev.map(exp => 
-          exp.id === id 
-            ? { ...exp, receiptPhoto: file, receiptPreview: reader.result as string } 
+          exp.id === expenseId 
+            ? { ...exp, receiptPhotos: [...exp.receiptPhotos, newPhoto] }
             : exp
         ));
       };
       reader.readAsDataURL(file);
       
-      // Run OCR extraction for detailed expense info
-      setExpenses(prev => prev.map(exp => 
-        exp.id === id 
-          ? { ...exp, ocrExtracting: true, ocrAmount: null, ocrRawText: null, ocrDetailed: null, showOCRDetails: false } 
-          : exp
-      ));
-      
-      // Use expense_detailed for more comprehensive extraction
+      // Run OCR extraction
       const result = await extractFromImage(file, 'expense_detailed');
       
       setExpenses(prev => prev.map(exp => {
-        if (exp.id === id) {
-          if (result.success && result.data) {
-            const detailedData = result.data as OCRDetailedResult;
-            const grandTotal = detailedData.grand_total;
-            
-            if (grandTotal) {
-              toast({
-                title: "OCR สำเร็จ",
-                description: `พบยอดรวม: ${grandTotal.toLocaleString()} บาท`,
-              });
+        if (exp.id === expenseId) {
+          const updatedPhotos = exp.receiptPhotos.map(photo => {
+            if (photo.id === photoId) {
+              if (result.success && result.data) {
+                const detailedData = result.data as OCRDetailedResult;
+                const grandTotal = detailedData.grand_total;
+                
+                if (grandTotal) {
+                  toast({
+                    title: "OCR สำเร็จ",
+                    description: `พบยอด: ${grandTotal.toLocaleString()} บาท`,
+                  });
+                }
+                
+                return { 
+                  ...photo, 
+                  ocrExtracting: false, 
+                  ocrAmount: grandTotal || null,
+                  ocrDetailed: detailedData,
+                };
+              }
+              return { ...photo, ocrExtracting: false };
             }
-            
-            return { 
-              ...exp, 
-              ocrExtracting: false, 
-              ocrAmount: grandTotal || null,
-              ocrDetailed: detailedData,
-              showOCRDetails: true
-            };
-          }
-          return { ...exp, ocrExtracting: false };
+            return photo;
+          });
+          
+          // Auto-calculate total from all OCR amounts
+          const totalOCR = updatedPhotos.reduce((sum, p) => sum + (p.ocrAmount || 0), 0);
+          
+          return { 
+            ...exp, 
+            receiptPhotos: updatedPhotos,
+            amount: totalOCR > 0 ? String(totalOCR) : exp.amount,
+            showOCRDetails: true,
+          };
         }
         return exp;
       }));
     }
   };
 
+  const handleRemovePhoto = (expenseId: string, photoId: string) => {
+    setExpenses(prev => prev.map(exp => {
+      if (exp.id === expenseId) {
+        const updatedPhotos = exp.receiptPhotos.filter(p => p.id !== photoId);
+        const totalOCR = updatedPhotos.reduce((sum, p) => sum + (p.ocrAmount || 0), 0);
+        return { 
+          ...exp, 
+          receiptPhotos: updatedPhotos,
+          amount: totalOCR > 0 ? String(totalOCR) : (updatedPhotos.length === 0 ? "" : exp.amount),
+        };
+      }
+      return exp;
+    }));
+  };
+
   const calculateTotal = () => {
     return expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
   };
 
+  const getTotalOCRAmount = (expense: ExpenseItem) => {
+    return expense.receiptPhotos.reduce((sum, p) => sum + (p.ocrAmount || 0), 0);
+  };
+
+  const isAnyPhotoExtracting = (expense: ExpenseItem) => {
+    return expense.receiptPhotos.some(p => p.ocrExtracting);
+  };
+
   const validateForm = () => {
-    console.log('Validating expenses:', expenses);
     for (const expense of expenses) {
-      console.log('Checking expense:', { 
-        id: expense.id, 
-        type: expense.type, 
-        amount: expense.amount, 
-        hasPhoto: !!expense.receiptPhoto 
-      });
-      if (!expense.type || !expense.amount || !expense.receiptPhoto) {
-        console.log('Validation failed - missing:', {
-          missingType: !expense.type,
-          missingAmount: !expense.amount,
-          missingPhoto: !expense.receiptPhoto
-        });
+      if (!expense.type || !expense.amount || expense.receiptPhotos.length === 0) {
         toast({
           title: t('expense.fillAllFields'),
           description: t('expense.fillAllFieldsDesc'),
@@ -185,7 +214,6 @@ const AddExpensePage = () => {
         });
         return false;
       }
-      // Validate custom type if "other" is selected
       if (expense.type === "other" && !expense.customType.trim()) {
         toast({
           title: t('expense.fillAllFields'),
@@ -204,16 +232,11 @@ const AddExpensePage = () => {
   };
 
   const handleConfirm = async () => {
-    if (!user || !jobId) {
-      console.log('Missing user or jobId:', { user, jobId });
-      return;
-    }
+    if (!user || !jobId) return;
     
-    console.log('Starting expense submission to external API...');
     setIsSubmitting(true);
     
     try {
-      // Get driver type from user role
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
@@ -223,36 +246,34 @@ const AddExpensePage = () => {
       const driverType = roleData?.role === 'freelance' ? 'external' : 'internal';
       
       for (const expense of expenses) {
-        if (!expense.receiptPhoto) continue;
+        if (expense.receiptPhotos.length === 0) continue;
         
-        console.log('Processing expense:', expense.id, expense.type);
+        // Upload all photos and collect URLs
+        const photoUrls: string[] = [];
         
-        // Upload photo to storage first to get URL
-        const fileExt = expense.receiptPhoto.name.split('.').pop();
-        const fileName = `${user.id}/${jobId}_${expense.id}_${Date.now()}.${fileExt}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('expense-receipts')
-          .upload(fileName, expense.receiptPhoto);
-        
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          throw new Error(`${t('expense.uploadError')}: ${uploadError.message}`);
+        for (const photo of expense.receiptPhotos) {
+          const fileExt = photo.file.name.split('.').pop();
+          const fileName = `${user.id}/${jobId}_${expense.id}_${photo.id}_${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('expense-receipts')
+            .upload(fileName, photo.file);
+          
+          if (uploadError) {
+            throw new Error(`${t('expense.uploadError')}: ${uploadError.message}`);
+          }
+          
+          const { data: { publicUrl } } = supabase.storage
+            .from('expense-receipts')
+            .getPublicUrl(fileName);
+          
+          photoUrls.push(publicUrl);
         }
         
-        console.log('Upload success:', uploadData);
-        
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('expense-receipts')
-          .getPublicUrl(fileName);
-        
-        console.log('Public URL:', publicUrl);
-        
-        // Use custom type if "other" is selected
         const expenseType = expense.type === "other" ? expense.customType : expense.type;
         
-        // Send expense to external API via proxy
+        // Send expense to external API with first photo URL (main receipt)
+        // Additional photos are stored but primary URL is the first one
         const response = await supabase.functions.invoke('add-expense-proxy', {
           body: {
             order_number: jobId,
@@ -260,27 +281,22 @@ const AddExpensePage = () => {
             driver_type: driverType,
             expense_type: expenseType,
             amount: parseFloat(expense.amount),
-            receipt_photo_url: publicUrl,
-            notes: ''
+            receipt_photo_url: photoUrls[0], // Primary photo
+            receipt_photo_urls: photoUrls, // All photos
+            notes: photoUrls.length > 1 ? `มี ${photoUrls.length} ใบเสร็จ` : ''
           }
         });
         
         if (response.error) {
-          console.error('API error:', response.error);
           throw new Error(`${t('expense.saveError')}: ${response.error.message}`);
         }
-        
-        console.log('Expense sent to external API successfully:', response.data);
       }
-      
-      console.log('All expenses sent to external API successfully');
       
       toast({
         title: t('expense.success'),
         description: `${t('expense.successDesc')} ${calculateTotal()} ${t('expense.baht')}`,
       });
       
-      // Navigate back to the page we came from
       setTimeout(() => {
         navigate(returnPath);
       }, 100);
@@ -298,13 +314,13 @@ const AddExpensePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-muted pb-20">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
+      <header className="bg-background border-b sticky top-0 z-10">
         <div className="px-4 py-4 flex items-center gap-3">
           <button
             onClick={() => navigate(returnPath)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-muted rounded-full transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -322,7 +338,7 @@ const AddExpensePage = () => {
                 <button
                   type="button"
                   onClick={() => handleRemoveExpense(expense.id)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                  className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors"
                   aria-label={t('expense.delete')}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -333,7 +349,7 @@ const AddExpensePage = () => {
             {/* Expense Type - Select */}
             <div className="space-y-2">
               <Label>
-                {t('expense.type')} <span className="text-red-500">*</span>
+                {t('expense.type')} <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={expense.type}
@@ -357,11 +373,11 @@ const AddExpensePage = () => {
               </Select>
             </div>
 
-            {/* Custom Type Input - shown when "other" is selected */}
+            {/* Custom Type Input */}
             {expense.type === "other" && (
               <div className="space-y-2">
                 <Label htmlFor={`custom-type-${expense.id}`}>
-                  {t('expense.customTypeName')} <span className="text-red-500">*</span>
+                  {t('expense.customTypeName')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id={`custom-type-${expense.id}`}
@@ -373,60 +389,86 @@ const AddExpensePage = () => {
               </div>
             )}
 
-            {/* Receipt Photo */}
+            {/* Receipt Photos - Multiple */}
             <div className="space-y-2">
               <Label>
-                {t('expense.uploadReceipt')} <span className="text-red-500">*</span>
+                {t('expense.uploadReceipt')} <span className="text-destructive">*</span>
+                {expense.receiptPhotos.length > 0 && (
+                  <span className="ml-2 text-muted-foreground text-sm">
+                    ({expense.receiptPhotos.length} รูป)
+                  </span>
+                )}
               </Label>
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => handlePhotoSelect(expense.id, e)}
-                  className="hidden"
-                  id={`photo-${expense.id}`}
-                />
-                <label
-                  htmlFor={`photo-${expense.id}`}
-                  className="block cursor-pointer"
-                >
-                  {expense.receiptPreview ? (
-                    <div className="relative rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
-                      <img
-                        src={expense.receiptPreview}
-                        alt="Receipt preview"
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md">
-                        <Pencil className="w-4 h-4 text-gray-600" />
+              
+              {/* Photo Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {expense.receiptPhotos.map((photo) => (
+                  <div key={photo.id} className="relative rounded-lg overflow-hidden border border-border">
+                    <img
+                      src={photo.preview}
+                      alt="Receipt"
+                      className="w-full h-32 object-cover"
+                    />
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhoto(expense.id, photo.id)}
+                      className="absolute top-1 right-1 bg-background/90 rounded-full p-1 shadow-md"
+                    >
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                    {/* OCR Status */}
+                    {photo.ocrExtracting && (
+                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
                       </div>
-                    </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 transition-colors">
-                      <Camera className="w-8 h-8 mb-2" />
-                      <p className="text-sm">{t('expense.clickToTake')}</p>
-                      <p className="text-xs">{t('expense.receiptPhoto')}</p>
-                    </div>
-                  )}
-                </label>
+                    )}
+                    {/* OCR Amount Badge */}
+                    {photo.ocrAmount && !photo.ocrExtracting && (
+                      <div className="absolute bottom-1 left-1 bg-green-600 text-white text-xs px-2 py-0.5 rounded">
+                        ฿{photo.ocrAmount.toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {/* Add Photo Button */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => handlePhotoSelect(expense.id, e)}
+                    className="hidden"
+                    id={`photo-${expense.id}`}
+                  />
+                  <label
+                    htmlFor={`photo-${expense.id}`}
+                    className="block cursor-pointer h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground/50 transition-colors"
+                  >
+                    <Camera className="w-6 h-6 mb-1" />
+                    <p className="text-xs">
+                      {expense.receiptPhotos.length === 0 ? t('expense.clickToTake') : 'เพิ่มรูป'}
+                    </p>
+                  </label>
+                </div>
               </div>
               
               {/* OCR Extracting Status */}
-              {expense.ocrExtracting && (
+              {isAnyPhotoExtracting(expense) && (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
                   <span className="text-sm text-blue-700">กำลังอ่านข้อมูลจากใบเสร็จ...</span>
                 </div>
               )}
               
-              {/* OCR Detailed Results */}
-              {expense.ocrDetailed && expense.showOCRDetails && !expense.ocrExtracting && (
-                <div className="p-3 bg-green-50 rounded-lg border border-green-200 space-y-3">
+              {/* OCR Summary */}
+              {expense.receiptPhotos.length > 0 && !isAnyPhotoExtracting(expense) && getTotalOCRAmount(expense) > 0 && expense.showOCRDetails && (
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200 space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-green-800 flex items-center gap-1">
                       <Scan className="w-4 h-4" />
-                      ข้อมูลที่ OCR อ่านได้:
+                      รวมยอด OCR จาก {expense.receiptPhotos.filter(p => p.ocrAmount).length} ใบเสร็จ:
                     </p>
                     <Button
                       type="button"
@@ -439,86 +481,48 @@ const AddExpensePage = () => {
                     </Button>
                   </div>
                   
-                  {/* Receipt Info */}
-                  {(expense.ocrDetailed.receipt_number || expense.ocrDetailed.receipt_date) && (
-                    <div className="text-xs text-green-700 space-y-0.5">
-                      {expense.ocrDetailed.receipt_number && (
-                        <p>เลขที่ใบเสร็จ: {expense.ocrDetailed.receipt_number}</p>
-                      )}
-                      {expense.ocrDetailed.receipt_date && (
-                        <p>วันที่: {expense.ocrDetailed.receipt_date}</p>
-                      )}
-                      {expense.ocrDetailed.container_number && (
-                        <p>หมายเลขตู้: {expense.ocrDetailed.container_number}</p>
-                      )}
-                    </div>
-                  )}
+                  {/* Individual amounts */}
+                  <div className="space-y-1 bg-white/50 rounded p-2">
+                    {expense.receiptPhotos.filter(p => p.ocrAmount).map((photo, idx) => (
+                      <div key={photo.id} className="flex justify-between text-xs">
+                        <span className="text-green-800">ใบเสร็จ {idx + 1}</span>
+                        <span className="font-medium text-green-900">฿{photo.ocrAmount?.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
                   
-                  {/* Line Items */}
-                  {expense.ocrDetailed.line_items && expense.ocrDetailed.line_items.length > 0 && (
-                    <div className="space-y-1.5">
-                      <p className="text-xs font-medium text-green-700">รายการ:</p>
-                      <div className="space-y-1 bg-white/50 rounded p-2">
-                        {expense.ocrDetailed.line_items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between text-xs">
-                            <span className="text-green-800 truncate flex-1 mr-2">{item.description}</span>
-                            <span className="font-medium text-green-900 whitespace-nowrap">฿{item.amount.toLocaleString()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Subtotal, VAT, Grand Total */}
-                  <div className="border-t border-green-200 pt-2 space-y-1">
-                    {expense.ocrDetailed.subtotal && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-green-700">รวมก่อน VAT:</span>
-                        <span className="font-medium text-green-800">฿{expense.ocrDetailed.subtotal.toLocaleString()}</span>
-                      </div>
-                    )}
-                    {expense.ocrDetailed.vat && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-green-700">VAT 7%:</span>
-                        <span className="font-medium text-green-800">฿{expense.ocrDetailed.vat.toLocaleString()}</span>
-                      </div>
-                    )}
-                    {expense.ocrDetailed.grand_total && (
-                      <div className="flex justify-between text-sm font-bold pt-1 border-t border-green-200">
-                        <span className="text-green-800">ยอดรวมทั้งสิ้น:</span>
-                        <span className="text-green-900">฿{expense.ocrDetailed.grand_total.toLocaleString()}</span>
-                      </div>
-                    )}
+                  {/* Total */}
+                  <div className="flex justify-between text-sm font-bold pt-1 border-t border-green-200">
+                    <span className="text-green-800">ยอดรวมทั้งหมด:</span>
+                    <span className="text-green-900">฿{getTotalOCRAmount(expense).toLocaleString()}</span>
                   </div>
                   
                   {/* Apply Button */}
-                  {expense.ocrDetailed.grand_total && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="w-full bg-green-600 hover:bg-green-700"
-                      onClick={() => {
-                        handleExpenseChange(expense.id, 'amount', String(expense.ocrDetailed?.grand_total || 0));
-                        handleExpenseChange(expense.id, 'showOCRDetails', false);
-                      }}
-                    >
-                      ใช้ยอดรวม ฿{expense.ocrDetailed.grand_total.toLocaleString()}
-                    </Button>
-                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={() => {
+                      handleExpenseChange(expense.id, 'amount', String(getTotalOCRAmount(expense)));
+                      handleExpenseChange(expense.id, 'showOCRDetails', false);
+                    }}
+                  >
+                    ใช้ยอดรวม ฿{getTotalOCRAmount(expense).toLocaleString()}
+                  </Button>
                 </div>
               )}
               
-              {/* Show OCR Button when details are hidden */}
-              {expense.ocrDetailed && !expense.showOCRDetails && !expense.ocrExtracting && (
+              {/* Show OCR Button when hidden */}
+              {expense.receiptPhotos.length > 0 && !expense.showOCRDetails && !isAnyPhotoExtracting(expense) && getTotalOCRAmount(expense) > 0 && (
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="w-full text-green-600 border-green-300 hover:bg-green-50 hover:text-black"
+                  className="w-full text-green-600 border-green-300 hover:bg-green-50 hover:text-foreground"
                   onClick={() => handleExpenseChange(expense.id, 'showOCRDetails', true)}
                 >
                   <Scan className="w-4 h-4 mr-2" />
-                  ดูข้อมูล OCR (ยอดรวม: ฿{expense.ocrDetailed.grand_total?.toLocaleString() || '-'})
+                  ดูข้อมูล OCR (รวม: ฿{getTotalOCRAmount(expense).toLocaleString()})
                 </Button>
               )}
             </div>
@@ -526,7 +530,7 @@ const AddExpensePage = () => {
             {/* Amount */}
             <div className="space-y-2">
               <Label htmlFor={`amount-${expense.id}`}>
-                {t('expense.price')} <span className="text-red-500">*</span>
+                {t('expense.price')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id={`amount-${expense.id}`}
@@ -534,12 +538,12 @@ const AddExpensePage = () => {
                 placeholder="0"
                 value={expense.amount}
                 onChange={(e) => handleExpenseChange(expense.id, "amount", e.target.value)}
-                className={expense.ocrAmount !== null ? "border-green-300 ring-1 ring-green-200" : ""}
+                className={getTotalOCRAmount(expense) > 0 ? "border-green-300 ring-1 ring-green-200" : ""}
               />
             </div>
 
             {index < expenses.length - 1 && (
-              <div className="border-b border-gray-200 my-6" />
+              <div className="border-b border-border my-6" />
             )}
           </div>
         ))}
@@ -556,7 +560,7 @@ const AddExpensePage = () => {
       </div>
 
       {/* Submit Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
         <Button
           className="w-full"
           size="lg"
@@ -581,27 +585,27 @@ const AddExpensePage = () => {
             <div className="flex justify-center">
               <img src={confirmSuccessIcon} alt="Success" className="w-14 h-14" />
             </div>
-            <AlertDialogTitle className="text-center text-base font-semibold text-gray-800">
+            <AlertDialogTitle className="text-center text-base font-semibold text-foreground">
               {t('expense.confirmTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="text-center space-y-1">
-                <p className="text-sm text-gray-600">{t('expense.totalAmount')}</p>
-                <p className="text-2xl font-bold text-[#0A8778]">
+                <p className="text-sm text-muted-foreground">{t('expense.totalAmount')}</p>
+                <p className="text-2xl font-bold text-primary">
                   {calculateTotal()} {t('expense.baht')}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {t('expense.checkDetails')}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row justify-center gap-8 mt-4 sm:justify-center">
-            <AlertDialogCancel className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-gray-500 font-medium text-sm">
+            <AlertDialogCancel className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-muted-foreground font-medium text-sm">
               {t('expense.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
-              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-[#153860] font-semibold text-sm underline"
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-primary font-semibold text-sm underline"
               onClick={handleConfirm}
               disabled={isSubmitting}
             >
