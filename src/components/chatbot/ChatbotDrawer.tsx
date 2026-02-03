@@ -186,12 +186,18 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[340px] w-[90%] h-[400px] flex flex-col p-0 gap-0 rounded-2xl">
-        <DialogHeader className="px-4 py-3 border-b border-secondary/20 flex-shrink-0 bg-secondary">
+      <DialogContent className="max-w-[340px] w-[90%] h-[400px] flex flex-col p-0 gap-0 rounded-2xl border-0 overflow-hidden [&>button]:hidden">
+        <DialogHeader className="px-4 py-3 flex-shrink-0 bg-secondary relative">
           <DialogTitle className="flex items-center gap-2 text-base text-white">
             <Bot className="w-5 h-5 text-white" />
             ผู้ช่วย AI
           </DialogTitle>
+          <button 
+            onClick={() => onOpenChange(false)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </DialogHeader>
 
         <ScrollArea className="flex-1 p-3" ref={scrollRef}>
