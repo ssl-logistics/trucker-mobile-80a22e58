@@ -17,14 +17,12 @@ function getBottomLimitY() {
   const nav = document.getElementById("bottom-navigation");
   if (nav) {
     const rect = nav.getBoundingClientRect();
-    // The highest Y (top) the button can have without overlapping the nav
+    // Cannot overlap nav - stop just above it
     return Math.max(0, rect.top - BUTTON_SIZE - NAV_GAP);
   }
 
-  // No nav present - allow button to go almost to the bottom (just small margin)
-  const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0', 10);
-  const bottomMargin = Math.max(16, safeAreaBottom); // 16px minimum margin at bottom
-  return Math.max(0, window.innerHeight - BUTTON_SIZE - bottomMargin);
+  // No nav - can go all the way to bottom (just keep button fully visible)
+  return window.innerHeight - BUTTON_SIZE;
 }
 
 function clampPosition(pos: Position, bottomLimitY: number): Position {
