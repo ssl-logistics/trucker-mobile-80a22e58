@@ -54,6 +54,10 @@ interface JobDetail {
   destination_time: string | null;
   destination_date: string | null;
   // Container info for international jobs
+  container_checkpoint?: string | null;
+  container_checkpoint_time?: string | null;
+  empty_container_date?: string | null;
+  equipment_list?: string | null;
   container_number?: string | null;
   container_number_2?: string | null;
   seal_number?: string | null;
@@ -369,6 +373,111 @@ export default function DomesticJobDetail({
 
             {/* Right Content Column */}
             <div className="flex-1 space-y-3">
+              {/* Empty Container Pickup Card - Only for international jobs */}
+              {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
+                <Card className="p-4 border-2 rounded-2xl border-teal-500 bg-[#F6FFFE]">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-sm text-[#225795]">จุดรับตู้เปล่า</h3>
+                      </div>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
+                        รอเช็คอิน
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm font-medium text-[#225795] mb-2">
+                      {job.container_checkpoint || '-'}
+                    </div>
+
+                    <div className="space-y-1 text-sm mb-3">
+                      <div className="flex">
+                        <span className="text-[#454545] min-w-[130px]">วัน/เวลาเรือถึง</span>
+                        <span className="text-[#454545]">: {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-[#454545] min-w-[130px]">วันเริ่มเข้ารับตู้เปล่า</span>
+                        <span className="text-[#454545]">: {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-[#454545] min-w-[130px]">ผู้รับสินค้า</span>
+                        <span className="text-[#454545]">: {job.origin_company_name || '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-[#454545] min-w-[130px]">จำนวนและชนิดตู้</span>
+                        <span className="text-[#454545]">: {job.equipment_list || '-'}</span>
+                      </div>
+                    </div>
+
+                    {/* Container/Seal info */}
+                    <div className="space-y-2">
+                      {/* Container 1 */}
+                      <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">1</span>
+                          <span className="font-medium text-teal-700">เลขตู้คอนเทนเนอร์ : </span>
+                          <span className="font-bold">{job.container_number || '-'}</span>
+                        </div>
+                        <div className="ml-7">
+                          <span className="text-teal-700">เลขซีล : </span>
+                          <span className="font-bold">{job.seal_number || '-'}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Container 2 - only show if there's data */}
+                      {(job.container_number_2 || job.seal_number_2) && (
+                        <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">2</span>
+                            <span className="font-medium text-teal-700">เลขตู้คอนเทนเนอร์ : </span>
+                            <span className="font-bold">{job.container_number_2 || '-'}</span>
+                          </div>
+                          <div className="ml-7">
+                            <span className="text-teal-700">เลขซีล : </span>
+                            <span className="font-bold">{job.seal_number_2 || '-'}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-10 flex items-center justify-center gap-2 border-[#153860]"
+                        onClick={() => {
+                          // Open navigation to container checkpoint
+                          if (job.container_checkpoint) {
+                            const query = encodeURIComponent(job.container_checkpoint);
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                          } else {
+                            toast({
+                              title: t('jobDetail.error'),
+                              description: 'ไม่พบข้อมูลสถานที่รับตู้เปล่า',
+                              variant: 'destructive'
+                            });
+                          }
+                        }}
+                      >
+                        <img src={routeIcon} alt="route" className="w-4 h-4" />
+                        <span className="text-xs text-[#153860]">เส้นทาง</span>
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+                        onClick={() => {
+                          // Navigate to container check-in page
+                          navigate(`/container-checkin/${job.order_code}`);
+                        }}
+                      >
+                        <img src={statusIcon} alt="status" className="w-4 h-4" />
+                        <span className="text-xs">อัปเดตสถานะ</span>
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
               {/* Pickup Point Card */}
               <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : 'border-teal-500 bg-[#F6FFFE]'}`}>
                 <div>
@@ -412,38 +521,6 @@ export default function DomesticJobDetail({
                     </div>
                   </div>
 
-                  {/* Container/Seal info for international jobs */}
-                  {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
-                    <div className="space-y-2 mt-3">
-                      {/* Container 1 */}
-                      <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">1</span>
-                          <span className="font-medium text-teal-700">เลขตู้คอนเทนเนอร์ : </span>
-                          <span className="font-bold">{job.container_number || '-'}</span>
-                        </div>
-                        <div className="ml-7">
-                          <span className="text-teal-700">เลขซีล : </span>
-                          <span className="font-bold">{job.seal_number || '-'}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Container 2 - only show if there's data */}
-                      {(job.container_number_2 || job.seal_number_2) && (
-                        <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">2</span>
-                            <span className="font-medium text-teal-700">เลขตู้คอนเทนเนอร์ : </span>
-                            <span className="font-bold">{job.container_number_2 || '-'}</span>
-                          </div>
-                          <div className="ml-7">
-                            <span className="text-teal-700">เลขซีล : </span>
-                            <span className="font-bold">{job.seal_number_2 || '-'}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
                     {new URLSearchParams(location.search).get('from') !== 'history' && (
