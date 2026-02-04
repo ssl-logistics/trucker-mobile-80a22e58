@@ -122,6 +122,9 @@ export default function DomesticJobDetail({
   const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
   const [ocrResult, setOcrResult] = useState<{ container_number: string | null; seal_number: string | null } | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [verifiedContainerNumber, setVerifiedContainerNumber] = useState<string | null>(null);
+  const [verifiedSealNumber, setVerifiedSealNumber] = useState<string | null>(null);
+  const [isOcrVerified, setIsOcrVerified] = useState(false);
   
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
@@ -244,15 +247,11 @@ export default function DomesticJobDetail({
           description: t('containerSealVerification.matchedMessage') || 'เลขตู้และซีลตรงกับระบบ',
         });
         
+        // Update local state with verified data - stay on this page
+        setVerifiedContainerNumber(ocrResult.container_number);
+        setVerifiedSealNumber(ocrResult.seal_number);
+        setIsOcrVerified(true);
         setShowOcrConfirmDialog(false);
-        // Navigate to container SOP page with verified data pre-filled
-        navigate(`/container-sop/${job.order_code}`, {
-          state: {
-            verifiedContainer: ocrResult.container_number,
-            verifiedSeal: ocrResult.seal_number,
-            ocrVerified: true,
-          }
-        });
       } else {
         // Show mismatch error
         const mismatchMessage = verifyResult?.has_containers_in_db 
@@ -609,15 +608,23 @@ export default function DomesticJobDetail({
                     {/* Container/Seal info */}
                     <div className="space-y-2">
                       {/* Container 1 */}
-                      <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">1</span>
-                          <span className="font-medium text-teal-700">{t('jobDetail.containerNumber')} : </span>
-                          <span className="font-bold">{job.container_number || '-'}</span>
+                      <div className={`rounded-lg p-3 space-y-1.5 text-sm ${isOcrVerified ? 'bg-green-50 border border-green-300' : 'bg-teal-50 border border-teal-200'}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${isOcrVerified ? 'bg-green-500' : 'bg-teal-500'} text-white text-[10px] font-bold`}>1</span>
+                            <span className={`font-medium ${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.containerNumber')} : </span>
+                            <span className="font-bold">{verifiedContainerNumber || job.container_number || '-'}</span>
+                          </div>
+                          {isOcrVerified && (
+                            <div className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium">
+                              <CheckCircle className="w-3 h-3" />
+                              {t('containerSealVerification.verified')}
+                            </div>
+                          )}
                         </div>
                         <div className="ml-7">
-                          <span className="text-teal-700">{t('jobDetail.sealNumber')} : </span>
-                          <span className="font-bold">{job.seal_number || '-'}</span>
+                          <span className={`${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.sealNumber')} : </span>
+                          <span className="font-bold">{verifiedSealNumber || job.seal_number || '-'}</span>
                         </div>
                       </div>
                       
@@ -638,7 +645,12 @@ export default function DomesticJobDetail({
                     </div>
 
                     <div className="mt-3">
-                      {emptyContainerCheckedIn ? (
+                      {isOcrVerified ? (
+                        <div className="flex items-center justify-center gap-2 p-3 bg-green-100 rounded-lg border border-green-300">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <span className="text-sm font-medium text-green-700">{t('jobDetail.ocrCompleted') || 'สแกน OCR เสร็จสิ้น'}</span>
+                        </div>
+                      ) : emptyContainerCheckedIn ? (
                         <Button 
                           size="sm" 
                           className="w-full h-10 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
