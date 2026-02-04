@@ -619,18 +619,10 @@ export default function DomesticJobDetail({
                     <div className="space-y-2">
                       {/* Container 1 */}
                       <div className={`rounded-lg p-3 space-y-1.5 text-sm ${isOcrVerified ? 'bg-green-50 border border-green-300' : 'bg-teal-50 border border-teal-200'}`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${isOcrVerified ? 'bg-green-500' : 'bg-teal-500'} text-white text-[10px] font-bold`}>1</span>
-                            <span className={`font-medium ${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.containerNumber')} : </span>
-                            <span className="font-bold">{verifiedContainerNumber || job.container_number || '-'}</span>
-                          </div>
-                          {isOcrVerified && (
-                            <div className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium">
-                              <CheckCircle className="w-3 h-3" />
-                              {t('containerSealVerification.verified')}
-                            </div>
-                          )}
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${isOcrVerified ? 'bg-green-500' : 'bg-teal-500'} text-white text-[10px] font-bold`}>1</span>
+                          <span className={`font-medium ${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.containerNumber')} : </span>
+                          <span className="font-bold">{verifiedContainerNumber || job.container_number || '-'}</span>
                         </div>
                         <div className="ml-7">
                           <span className={`${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.sealNumber')} : </span>
