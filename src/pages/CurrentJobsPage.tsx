@@ -643,13 +643,19 @@ export default function CurrentJobsPage() {
                         <div className="flex-1 space-y-2">
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.origin')}</div>
-                            <div className="font-medium">{job.sender_province}, {job.sender_district}</div>
-                            <div className="text-muted-foreground text-[10px] line-clamp-1">{job.sender_address}</div>
+                            <div className="font-medium">
+                              {job.sender_province && job.sender_district 
+                                ? `${job.sender_province}, ${job.sender_district}` 
+                                : job.sender_address || '-'}
+                            </div>
                           </div>
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.destination')}</div>
-                            <div className="font-medium">{job.destination_province}, {job.destination_district}</div>
-                            <div className="text-muted-foreground text-[10px] line-clamp-1">{job.destination_address}</div>
+                            <div className="font-medium">
+                              {job.destination_province && job.destination_district 
+                                ? `${job.destination_province}, ${job.destination_district}` 
+                                : job.destination_address || '-'}
+                            </div>
                           </div>
                         </div>
                       </div>
