@@ -122,6 +122,7 @@ export default function InternationalJobDetail({
         });
         const checkinResult = await checkinResponse.json();
         console.log('[InternationalJobDetail] Fetched check-in status:', checkinResult);
+        console.log('[InternationalJobDetail] Job info - id:', job.id, 'order_code:', job.order_code, 'userId:', userId);
         
         const allCheckins = checkinResult?.data || [];
         
@@ -134,10 +135,14 @@ export default function InternationalJobDetail({
                   ? c.external_driver_id === userId
                   : c.freelance_driver_id === userId;
 
+              // Match by transport_order_id (UUID) or order_number
+              // Note: transport_orders may be null, so we check the transport_order_id directly
               const matchesOrder =
                 c.transport_order_id === job.id ||
                 c.order_number === job.order_code ||
                 c.transport_orders?.order_number === job.order_code;
+
+              console.log('[InternationalJobDetail] Checking checkin:', c.id, 'type:', c.checkin_type, 'matchesUser:', matchesUser, 'matchesOrder:', matchesOrder, 'transport_order_id:', c.transport_order_id);
 
               return matchesUser && matchesOrder;
             })
