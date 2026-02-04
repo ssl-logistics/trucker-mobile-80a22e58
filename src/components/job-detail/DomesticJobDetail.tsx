@@ -387,7 +387,7 @@ export default function DomesticJobDetail({
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
         {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className={`grid gap-2 ${job.job_type === 'international' ? 'grid-cols-2' : 'grid-cols-3'}`}>
           <Card className="p-2 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
             <img src={coinsIcon} alt="price" className="w-6 h-6 mb-1" />
             <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {job.price.toLocaleString()}</div>
