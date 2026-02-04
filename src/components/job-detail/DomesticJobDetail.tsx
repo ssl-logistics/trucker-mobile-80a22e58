@@ -166,8 +166,8 @@ export default function DomesticJobDetail({
       
       // Run OCR extraction
       toast({
-        title: "กำลังประมวลผล OCR",
-        description: "รอสักครู่...",
+        title: t('ocr.processing'),
+        description: t('common.pleaseWait') || 'รอสักครู่...',
       });
       
       const result = await extractFromImage(file, 'container_seal');
@@ -175,15 +175,15 @@ export default function DomesticJobDetail({
       if (result.success && result.data) {
         // Navigate to container SOP page with OCR data
         toast({
-          title: "OCR สำเร็จ",
-          description: `เลขตู้: ${result.data.container_number || '-'}, เลขซีล: ${result.data.seal_number || '-'}`,
+          title: t('ocr.success'),
+          description: `${t('ocr.containerNumber')}: ${result.data.container_number || '-'}, ${t('ocr.sealNumber')}: ${result.data.seal_number || '-'}`,
         });
         
         // Navigate to container SOP page to complete the process
         navigate(`/container-sop/${job.order_code}`);
       } else if (result.error) {
         toast({
-          title: "OCR ไม่สำเร็จ",
+          title: t('ocr.failed'),
           description: result.error,
           variant: "destructive",
         });
@@ -191,8 +191,8 @@ export default function DomesticJobDetail({
     } catch (error) {
       console.error('OCR error:', error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถประมวลผล OCR ได้",
+        title: t('ocr.error'),
+        description: t('ocr.errorDesc'),
         variant: "destructive",
       });
     } finally {
@@ -557,7 +557,7 @@ export default function DomesticJobDetail({
                             <Scan className="w-4 h-4" />
                           )}
                           <span className="text-xs">
-                            {(isProcessingOcr || extracting) ? 'กำลังประมวลผล...' : 'สแกน OCR'}
+                            {(isProcessingOcr || extracting) ? t('ocr.processing') : t('ocr.scanButton')}
                           </span>
                         </Button>
                       ) : (
@@ -573,14 +573,14 @@ export default function DomesticJobDetail({
                               } else {
                                 toast({
                                   title: t('jobDetail.error'),
-                                  description: 'ไม่พบข้อมูลสถานที่รับตู้เปล่า',
+                                  description: t('containerCheckin.noLocationFound'),
                                   variant: 'destructive'
                                 });
                               }
                             }}
                           >
                             <img src={routeIcon} alt="route" className="w-4 h-4" />
-                            <span className="text-xs text-[#153860]">เส้นทาง</span>
+                            <span className="text-xs text-[#153860]">{t('jobDetail.route')}</span>
                           </Button>
                           <Button 
                             size="sm" 
@@ -590,7 +590,7 @@ export default function DomesticJobDetail({
                             }}
                           >
                             <img src={statusIcon} alt="status" className="w-4 h-4" />
-                            <span className="text-xs">อัปเดตสถานะ</span>
+                            <span className="text-xs">{t('jobDetail.updateStatus')}</span>
                           </Button>
                         </div>
                       )}

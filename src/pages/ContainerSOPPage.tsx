@@ -127,8 +127,8 @@ const ContainerSOPPage = () => {
       }
       
       toast({
-        title: "OCR สำเร็จ",
-        description: "ตรวจสอบและยืนยันข้อมูลที่อ่านได้",
+        title: t('ocr.success'),
+        description: t('ocr.successDesc'),
       });
     } else if (result.error) {
       setOcrError(result.error);
@@ -351,54 +351,54 @@ const ContainerSOPPage = () => {
           <Card className="p-4 space-y-4 bg-white">
             <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
               <Scan className="w-4 h-4" />
-              ข้อมูลเลขตู้ / เลขซิล
+              {t('ocr.containerSealInfo')}
             </div>
             
             <OCRInputField
               id="container-number"
-              label="เลขตู้ (Container No.)"
+              label={t('ocr.containerNumber')}
               value={containerNumber}
               onChange={setContainerNumber}
               ocrValue={ocrContainerNumber}
               isExtracting={extracting}
-              placeholder="เช่น MSCU1234567"
+              placeholder={t('ocr.containerPlaceholder')}
             />
             
             <OCRInputField
               id="seal-number"
-              label="เลขซิล (Seal No.)"
+              label={t('ocr.sealNumber')}
               value={sealNumber}
               onChange={setSealNumber}
               ocrValue={ocrSealNumber}
               isExtracting={extracting}
-              placeholder="เช่น TH123456"
+              placeholder={t('ocr.sealPlaceholder')}
             />
             
             {/* Second container/seal for dual shipments */}
             {(ocrContainerNumber2 || containerNumber2) && (
               <>
                 <div className="border-t pt-4">
-                  <p className="text-xs text-muted-foreground mb-3">ตู้ที่ 2 (ถ้ามี)</p>
+                  <p className="text-xs text-muted-foreground mb-3">{t('ocr.container2Label')}</p>
                 </div>
                 
                 <OCRInputField
                   id="container-number-2"
-                  label="เลขตู้ที่ 2"
+                  label={t('ocr.containerNumber2')}
                   value={containerNumber2}
                   onChange={setContainerNumber2}
                   ocrValue={ocrContainerNumber2}
                   isExtracting={extracting}
-                  placeholder="เช่น MSCU7654321"
+                  placeholder={t('ocr.containerPlaceholder')}
                 />
                 
                 <OCRInputField
                   id="seal-number-2"
-                  label="เลขซิลที่ 2"
+                  label={t('ocr.sealNumber2')}
                   value={sealNumber2}
                   onChange={setSealNumber2}
                   ocrValue={ocrSealNumber2}
                   isExtracting={extracting}
-                  placeholder="เช่น TH654321"
+                  placeholder={t('ocr.sealPlaceholder')}
                 />
               </>
             )}
