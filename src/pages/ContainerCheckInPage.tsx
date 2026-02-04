@@ -50,6 +50,7 @@ export default function ContainerCheckInPage() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   
   // Editable container fields for inbound
   const [container1Number, setContainer1Number] = useState('');
@@ -137,6 +138,9 @@ export default function ContainerCheckInPage() {
             equipment_list: foundJob.vehicle_type || foundJob.equipment_list || null,
           };
           setJob(mappedJob);
+          
+          // Check if already checked in for empty_container
+          await checkExistingCheckin(foundJob.id, foundJob.order_number);
         } else {
           console.error('[ContainerCheckInPage] Job not found for jobId:', jobId);
           throw new Error('Job not found');
@@ -154,6 +158,63 @@ export default function ContainerCheckInPage() {
       navigate(`/job/${jobId}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Check if driver already checked in for empty_container
+  const checkExistingCheckin = async (transportOrderId: string, orderNumber: string) => {
+    try {
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+      const checkinUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${encodeURIComponent(user!.id)}&driver_type=${driverType}&order_number=${encodeURIComponent(orderNumber)}`;
+
+      const checkinResponse = await fetch(checkinUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+      });
+      
+      const checkinResult = await checkinResponse.json();
+      console.log('[ContainerCheckInPage] Check-in status result:', checkinResult);
+      
+      const allCheckins = checkinResult?.data || [];
+      
+      // Filter checkins for this specific order & current driver
+      const checkins = Array.isArray(allCheckins)
+        ? allCheckins.filter((c: any) => {
+            const matchesUser = isInternalDriver
+              ? c.internal_driver_id === user!.id
+              : isExternalDriver
+                ? c.external_driver_id === user!.id
+                : c.freelance_driver_id === user!.id;
+
+            const matchesOrder =
+              c.transport_order_id === transportOrderId ||
+              c.order_number === orderNumber ||
+              c.transport_orders?.order_number === orderNumber;
+
+            return matchesUser && matchesOrder;
+          })
+        : [];
+
+      // Check if already checked in for empty_container
+      const hasEmptyContainerCheckin = checkins.some((c: any) => c.checkin_type === 'empty_container');
+      console.log('[ContainerCheckInPage] Has empty_container checkin:', hasEmptyContainerCheckin);
+      
+      if (hasEmptyContainerCheckin) {
+        setAlreadyCheckedIn(true);
+        // Redirect to SOP page since already checked in
+        toast({
+          title: 'เช็คอินแล้ว',
+          description: 'คุณได้เช็คอินจุดรับตู้เปล่าไปแล้ว กำลังไปหน้า SOP...',
+        });
+        setTimeout(() => {
+          navigate(`/container-sop/${orderNumber}`);
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('[ContainerCheckInPage] Error checking existing checkin:', error);
     }
   };
   
