@@ -484,16 +484,9 @@ export default function DomesticJobDetail({
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.emptyContainerPickup')}</h3>
                       </div>
-                      {isLoadingCheckinStatus ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                          <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
-                          {t('common.loading')}
-                        </span>
-                      ) : (
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                          {emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
-                        </span>
-                      )}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
+                      </span>
                     </div>
                     
                     <div className="text-sm font-medium text-[#225795] mb-2">
@@ -592,16 +585,11 @@ export default function DomesticJobDetail({
                           <Button 
                             size="sm" 
                             className="h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
-                            disabled={isLoadingCheckinStatus}
                             onClick={() => {
                               navigate(`/job/${job.order_code}/container-checkin`);
                             }}
                           >
-                            {isLoadingCheckinStatus ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <img src={statusIcon} alt="status" className="w-4 h-4" />
-                            )}
+                            <img src={statusIcon} alt="status" className="w-4 h-4" />
                             <span className="text-xs">{t('jobDetail.updateStatus')}</span>
                           </Button>
                         </div>

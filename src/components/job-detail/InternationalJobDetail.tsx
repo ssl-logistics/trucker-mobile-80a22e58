@@ -342,16 +342,9 @@ export default function InternationalJobDetail({
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.containerCheckpoint')}</h3>
                     </div>
-                    {isLoadingCheckinStatus ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                        <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-1" />
-                        {t('common.loading')}
-                      </span>
-                    ) : jobApplication?.job_started_at && (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                    {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
-                      </span>
-                    )}
+                      </span>}
                   </div>
 
                   <h4 className="font-semibold text-base text-[#225795] mb-2">
@@ -427,11 +420,11 @@ export default function InternationalJobDetail({
                   )}
 
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null || isLoadingCheckinStatus}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.job_started_at || jobApplication?.container_sop_completed_at !== null}>
                       <img src={routeIcon} alt="route" className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
-                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={!jobApplication?.job_started_at || isLoadingCheckinStatus} onClick={() => {
+                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={!jobApplication?.job_started_at} onClick={() => {
                     if (jobApplication?.container_sop_completed_at) {
                       navigate(`/job/${job.id}/container-summary`);
                     } else if (emptyContainerCheckedIn) {
@@ -440,11 +433,7 @@ export default function InternationalJobDetail({
                       navigate(`/job/${job.id}/container-checkin`);
                     }
                   }}>
-                      {isLoadingCheckinStatus ? (
-                        <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      )}
+                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       <span className="text-xs">{jobApplication?.container_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
@@ -460,16 +449,9 @@ export default function InternationalJobDetail({
                         {isInbound ? t('jobDetail.unloadingPoint') : t('jobDetail.loadingPoint')}
                       </h3>
                     </div>
-                    {isLoadingCheckinStatus ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                        <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-1" />
-                        {t('common.loading')}
-                      </span>
-                    ) : jobApplication?.container_sop_completed_at && (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : pickupCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                        {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
-                      </span>
-                    )}
+                    {jobApplication?.container_sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
+                      </span>}
                   </div>
 
                   <h4 className="font-semibold text-base text-[#225795] mb-2">
@@ -500,11 +482,11 @@ export default function InternationalJobDetail({
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.container_sop_completed_at || isLoadingCheckinStatus}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.container_sop_completed_at}>
                       <Phone className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.call')}</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.container_sop_completed_at || isLoadingCheckinStatus}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.container_sop_completed_at}>
                       <img src={routeIcon} alt="route" className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
@@ -513,17 +495,13 @@ export default function InternationalJobDetail({
                     const queryString = fromParam ? `?from=${fromParam}` : '';
                     if (jobApplication?.sop_completed_at) {
                       navigate(`/job/${job.id}/pickup-summary${queryString}`);
-                    } else if (pickupCheckedIn) {
+                    } else if (jobApplication?.checked_in_at) {
                       navigate(`/job/${job.id}/sop${queryString}`);
                     } else {
                       navigate(`/job/${job.id}/pickup${queryString}`);
                     }
-                  }} disabled={!jobApplication?.container_sop_completed_at || isLoadingCheckinStatus}>
-                      {isLoadingCheckinStatus ? (
-                        <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      )}
+                  }} disabled={!jobApplication?.container_sop_completed_at}>
+                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
@@ -539,16 +517,9 @@ export default function InternationalJobDetail({
                         {isInbound ? t('jobDetail.emptyReturn') : t('jobDetail.fullReturn')}
                       </h3>
                     </div>
-                    {isLoadingCheckinStatus ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                        <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-1" />
-                        {t('common.loading')}
-                      </span>
-                    ) : jobApplication?.sop_completed_at && (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                        {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
-                      </span>
-                    )}
+                    {jobApplication?.sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
+                      </span>}
                   </div>
 
                   <h4 className="font-semibold text-base text-[#225795] mb-2">
@@ -587,49 +558,25 @@ export default function InternationalJobDetail({
 
                   <div className="grid grid-cols-3 gap-2">
                     {isInbound ? <>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.sop_completed_at || isLoadingCheckinStatus}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.sop_completed_at}>
                           <Phone className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at || isLoadingCheckinStatus}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at}>
                           <img src={routeIcon} alt="route" className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => {
-                          if (jobApplication?.delivery_sop_completed_at) {
-                            navigate(`/job/${job.id}/delivery-summary`);
-                          } else if (deliveryCheckedIn) {
-                            navigate(`/job/${job.id}/delivery-sop`);
-                          } else {
-                            navigate(`/job/${job.id}/delivery`);
-                          }
-                        }} disabled={!jobApplication?.sop_completed_at || isLoadingCheckinStatus}>
-                          {isLoadingCheckinStatus ? (
-                            <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                          )}
+                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
+                          <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </> : <>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at || isLoadingCheckinStatus}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at}>
                           <img src={routeIcon} alt="route" className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent col-span-2" onClick={() => {
-                          if (jobApplication?.delivery_sop_completed_at) {
-                            navigate(`/job/${job.id}/delivery-summary`);
-                          } else if (deliveryCheckedIn) {
-                            navigate(`/job/${job.id}/delivery-sop`);
-                          } else {
-                            navigate(`/job/${job.id}/delivery`);
-                          }
-                        }} disabled={!jobApplication?.sop_completed_at || isLoadingCheckinStatus}>
-                          {isLoadingCheckinStatus ? (
-                            <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                          )}
+                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent col-span-2" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
+                          <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </>}
