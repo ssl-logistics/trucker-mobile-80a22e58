@@ -359,7 +359,11 @@ export default function DomesticJobDetail({
             <ChevronLeft className="w-6 h-6" />
           </button>
           <div className="flex-1 text-center">
-            <h1 className="text-xl font-semibold">{job.order_code}</h1>
+            <h1 className="text-xl font-semibold">
+              {job.order_code}
+              {job.transport_type?.includes('ขาเข้า') && ` (${t('jobDetail.inbound')})`}
+              {job.transport_type?.includes('ขาออก') && ` (${t('jobDetail.outbound')})`}
+            </h1>
             <div className="flex items-center justify-center gap-2 mt-1">
               <Badge 
                 variant="secondary" 
