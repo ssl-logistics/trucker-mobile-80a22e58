@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
+import { translateJobType } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
 // Interface for accepted jobs from external API
 interface AcceptedJob {
@@ -68,6 +69,7 @@ interface AcceptedJob {
   factory_name?: string | null;
   isFactoryJob?: boolean;
   isBidJob?: boolean; // Flag for bid jobs - navigate to /bid-job/:ticketNumber
+  job_type?: string | null; // domestic or international
   remarks: string | null;
   created_at: string;
   updated_at: string;
@@ -618,10 +620,14 @@ export default function CurrentJobsPage() {
                       <span className="font-medium">{job.sender_name}</span>
                     </div>
                     
-                    {job.vehicle_type && (
-                      <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-                        {getTranslatedVehicleType(job.vehicle_type, t)}
-                      </Badge>
+                    {job.job_type && (
+                      <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
+                        job.job_type === 'domestic' || job.job_type === 'ในประเทศ' || job.job_type === 'ภายในประเทศ'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {translateJobType(job.job_type, language)}
+                      </span>
                     )}
 
                     <div className="flex items-start justify-between gap-4">
