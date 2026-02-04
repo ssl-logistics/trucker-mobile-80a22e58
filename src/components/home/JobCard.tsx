@@ -14,6 +14,7 @@ import {
   translateGoodsType, 
   translateVehicleType, 
   translateTransportType,
+  translateJobType,
   translateEquipmentList,
   translateUnit 
 } from '@/utils/apiDataTranslations';
@@ -148,7 +149,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           )}
         </div>
         <div className="text-base text-muted-foreground">
-          {translateTransportType(job.transport_type_label || job.transport_type, language)}
+          {translateJobType(job.job_type, language)}
         </div>
 
         <div className="flex items-start justify-between gap-4 sm:gap-6">
