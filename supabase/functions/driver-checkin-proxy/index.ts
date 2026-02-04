@@ -26,6 +26,11 @@ serve(async (req) => {
       longitude: body.longitude,
       notes: body.notes,
       driver_type: driverType,
+      // Include container fields for empty_container check-in
+      container_number: body.container_number,
+      seal_number: body.seal_number,
+      container_number_2: body.container_number_2,
+      seal_number_2: body.seal_number_2,
     };
 
     // Set the appropriate driver ID field based on driver type
