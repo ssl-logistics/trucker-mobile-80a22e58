@@ -55,6 +55,7 @@ interface JobDetail {
   destination_date: string | null;
   destination_remarks: string | null;
   tax_id: string | null;
+  booking_number?: string | null;
 }
 
 interface JobApplication {
@@ -255,6 +256,7 @@ export default function JobDetailPage() {
             destination_remarks: foundJob.remarks,
             tax_id: null,
             container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || null,
+            booking_number: foundJob.booking_number || null,
           };
 
           setJob(mappedJob);
