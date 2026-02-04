@@ -95,10 +95,12 @@ const transportTypeTranslations: Record<string, Record<Language, string>> = {
 
 // Job Type translations (domestic/international)
 const jobTypeTranslations: Record<string, Record<Language, string>> = {
-  'ในประเทศ': { th: 'ในประเทศ', en: 'Domestic', ko: '국내', zh: '国内' },
-  'domestic': { th: 'ในประเทศ', en: 'Domestic', ko: '국내', zh: '国内' },
-  'ระหว่างประเทศ': { th: 'ระหว่างประเทศ', en: 'International', ko: '국제', zh: '国际' },
-  'international': { th: 'ระหว่างประเทศ', en: 'International', ko: '국제', zh: '国际' },
+  'ในประเทศ': { th: 'ภายในประเทศ', en: 'Domestic', ko: '국내', zh: '国内' },
+  'domestic': { th: 'ภายในประเทศ', en: 'Domestic', ko: '국내', zh: '国内' },
+  'ภายในประเทศ': { th: 'ภายในประเทศ', en: 'Domestic', ko: '국내', zh: '国内' },
+  'ระหว่างประเทศ': { th: 'ภายนอกประเทศ', en: 'International', ko: '국제', zh: '国际' },
+  'international': { th: 'ภายนอกประเทศ', en: 'International', ko: '국제', zh: '国际' },
+  'ภายนอกประเทศ': { th: 'ภายนอกประเทศ', en: 'International', ko: '국제', zh: '国际' },
 };
 
 // Container Type translations
