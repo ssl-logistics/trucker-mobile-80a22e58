@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useCheckinStatus } from '@/hooks/useCheckinStatus';
 import { toast } from '@/hooks/use-toast';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
 import InternationalJobDetail from '@/components/job-detail/InternationalJobDetail';
@@ -126,11 +127,36 @@ export default function JobDetailPage() {
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Use checkin status hook to get real-time status from API
+  const { 
+    pickupCheckedIn, 
+    deliveryCheckedIn, 
+    containerCheckedIn, 
+    emptyContainerCheckedIn,
+    loading: checkinLoading,
+    refetch: refetchCheckinStatus 
+  } = useCheckinStatus(jobId, user?.id);
+
   useEffect(() => {
     if (user && jobId) {
       loadJobDetail();
     }
   }, [jobId, user, location.key, userType]);
+
+  // Update jobApplication when checkin status changes from API
+  useEffect(() => {
+    if (!checkinLoading && jobApplication) {
+      setJobApplication(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          checked_in_at: pickupCheckedIn ? (prev.checked_in_at || new Date().toISOString()) : null,
+          delivery_checked_in_at: deliveryCheckedIn ? (prev.delivery_checked_in_at || new Date().toISOString()) : null,
+          container_checked_in_at: (containerCheckedIn || emptyContainerCheckedIn) ? (prev.container_checked_in_at || new Date().toISOString()) : null,
+        };
+      });
+    }
+  }, [pickupCheckedIn, deliveryCheckedIn, containerCheckedIn, emptyContainerCheckedIn, checkinLoading]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
@@ -466,19 +492,24 @@ export default function JobDetailPage() {
   const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
   const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
 
+  const handleUpdate = () => {
+    loadJobDetail();
+    refetchCheckinStatus();
+  };
+
   return isDomestic ? (
     <DomesticJobDetail 
       job={job} 
       jobApplication={jobApplication} 
       userId={user.id}
-      onUpdate={loadJobDetail}
+      onUpdate={handleUpdate}
     />
   ) : isInternational ? (
     <InternationalJobDetail 
       job={job} 
       jobApplication={jobApplication} 
       userId={user.id}
-      onUpdate={loadJobDetail}
+      onUpdate={handleUpdate}
     />
   ) : (
     // Default to DomesticJobDetail if transport type is unknown
@@ -486,7 +517,7 @@ export default function JobDetailPage() {
       job={job} 
       jobApplication={jobApplication} 
       userId={user.id}
-      onUpdate={loadJobDetail}
+      onUpdate={handleUpdate}
     />
   );
 }
