@@ -262,152 +262,154 @@ export default function ContainerCheckInPage() {
   if (!job) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate(`/job/${job.order_code}`)} className="absolute left-0 p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold text-center">จุดรับตู้เปล่า</h1>
+          <div className="text-center">
+            <h1 className="text-base font-semibold">จุดรับตู้เปล่า</h1>
+            <p className="text-xs opacity-80">{job.container_checkpoint || job.origin_location || '-'}</p>
+          </div>
         </div>
       </header>
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-4 space-y-4">
+        {/* Action Buttons */}
         <JobActionButtons jobId={job.id} orderNumber={job.order_code} />
 
-        {/* Location Info Card */}
-        <Card className="p-4 border-2 rounded-2xl border-teal-500 bg-[#F6FFFE]">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base text-[#225795]">จุดรับตู้เปล่า</h3>
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
-                รอเช็คอิน
-              </span>
-            </div>
-            
-            <div className="text-sm font-medium text-[#225795]">
-              {job.container_checkpoint || job.origin_location || '-'}
-            </div>
+        {/* Main Card */}
+        <Card className="overflow-hidden border-0 shadow-md rounded-2xl">
+          {/* Card Header */}
+          <div className="bg-[#E8F4F8] px-4 py-3">
+            <p className="text-sm font-medium text-[#225795]">จุดรับตู้สินค้า</p>
+            <p className="text-base font-semibold text-[#225795]">{job.container_checkpoint || job.origin_location || '-'}</p>
+          </div>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex">
-                <span className="text-[#454545] min-w-[130px]">วัน/เวลาเรือถึง</span>
-                <span className="text-[#454545]">: {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}</span>
+          {/* Map Section */}
+          <div className="relative">
+            {job.container_checkpoint_latitude && job.container_checkpoint_longitude ? (
+              <div className="h-40">
+                <GoogleMap 
+                  latitude={job.container_checkpoint_latitude}
+                  longitude={job.container_checkpoint_longitude}
+                  markerLabel={job.container_checkpoint || 'จุดรับตู้เปล่า'}
+                  showRoute={false}
+                />
               </div>
-              <div className="flex">
-                <span className="text-[#454545] min-w-[130px]">วันเริ่มเข้ารับตู้เปล่า</span>
-                <span className="text-[#454545]">: {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}</span>
+            ) : (
+              <div className="w-full h-40 bg-muted flex items-center justify-center">
+                <div className="text-center">
+                  <MapPin className="w-10 h-10 text-muted-foreground mx-auto mb-1" />
+                  <p className="text-xs text-muted-foreground">ไม่พบพิกัด</p>
+                </div>
               </div>
-              <div className="flex">
-                <span className="text-[#454545] min-w-[130px]">ผู้รับสินค้า</span>
-                <span className="text-[#454545]">: {job.origin_company_name || '-'}</span>
-              </div>
-              <div className="flex">
-                <span className="text-[#454545] min-w-[130px]">จำนวนและชนิดตู้</span>
-                <span className="text-[#454545]">: {job.equipment_list || '-'}</span>
-              </div>
+            )}
+          </div>
+
+          {/* Info Section */}
+          <div className="p-4 space-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground">วัน/เวลาเรือถึง</p>
+              <p className="text-sm font-semibold text-[#225795]">
+                {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">วันเริ่มเข้ารับตู้เปล่า</p>
+              <p className="text-sm font-semibold text-[#225795]">
+                {job.container_checkpoint_code || 'LCB B1'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">วันเริ่มรับตู้เปล่า (FIRST DATE PICK UP CTNR)</p>
+              <p className="text-sm font-semibold text-[#225795]">
+                {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}
+              </p>
             </div>
           </div>
         </Card>
 
-        {/* Interactive Map */}
-        {job.container_checkpoint_latitude && job.container_checkpoint_longitude ? (
-          <GoogleMap 
-            latitude={job.container_checkpoint_latitude}
-            longitude={job.container_checkpoint_longitude}
-            markerLabel={job.container_checkpoint || 'จุดรับตู้เปล่า'}
-            showRoute={true}
-          />
-        ) : (
-          <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">{t('container.map')}</p>
-            </div>
-          </div>
-        )}
-
         {/* Container 1 */}
-        <Card className="p-4 bg-teal-50 border-2 border-teal-200 rounded-2xl">
-          <div className="flex items-start gap-2 mb-3">
-            <div className="bg-teal-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
-              1
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="bg-[#225795] text-white rounded-md px-2 py-0.5 text-xs font-bold">
+              ตู้ที่ 1
             </div>
-            <h3 className="font-semibold text-base text-teal-700">ตู้คอนเทนเนอร์ 1</h3>
           </div>
-          <div className="space-y-3">
+          <div className="bg-white rounded-xl border p-4 space-y-3">
             <div>
-              <p className="text-sm text-teal-700 mb-1">เลขตู้คอนเทนเนอร์</p>
+              <p className="text-xs text-muted-foreground mb-1">เลขตู้คอนเทนเนอร์ (Container No.)</p>
               {isInbound ? (
                 <Input 
                   value={container1Number} 
                   onChange={(e) => setContainer1Number(e.target.value)}
                   placeholder="กรอกเลขตู้คอนเทนเนอร์"
-                  className="h-10"
+                  className="h-10 text-sm font-semibold"
                 />
               ) : (
-                <p className="font-bold">{job.container_number || '-'}</p>
+                <p className="text-sm font-bold text-[#225795]">{job.container_number || '-'}</p>
               )}
             </div>
             <div>
-              <p className="text-sm text-teal-700 mb-1">เลขซีล</p>
+              <p className="text-xs text-muted-foreground mb-1">เลขซีล (Seal No.)</p>
               {isInbound ? (
                 <Input 
                   value={container1Seal} 
                   onChange={(e) => setContainer1Seal(e.target.value)}
                   placeholder="กรอกเลขซีล"
-                  className="h-10"
+                  className="h-10 text-sm font-semibold"
                 />
               ) : (
-                <p className="font-bold">{job.seal_number || '-'}</p>
+                <p className="text-sm font-bold text-[#225795]">{job.seal_number || '-'}</p>
               )}
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Container 2 */}
-        <Card className="p-4 bg-teal-50 border-2 border-teal-200 rounded-2xl">
-          <div className="flex items-start gap-2 mb-3">
-            <div className="bg-teal-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
-              2
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="bg-[#225795] text-white rounded-md px-2 py-0.5 text-xs font-bold">
+              ตู้ที่ 2
             </div>
-            <h3 className="font-semibold text-base text-teal-700">ตู้คอนเทนเนอร์ 2</h3>
           </div>
-          <div className="space-y-3">
+          <div className="bg-white rounded-xl border p-4 space-y-3">
             <div>
-              <p className="text-sm text-teal-700 mb-1">เลขตู้คอนเทนเนอร์</p>
+              <p className="text-xs text-muted-foreground mb-1">เลขตู้คอนเทนเนอร์ (Container No.)</p>
               {isInbound ? (
                 <Input 
                   value={container2Number} 
                   onChange={(e) => setContainer2Number(e.target.value)}
                   placeholder="กรอกเลขตู้คอนเทนเนอร์"
-                  className="h-10"
+                  className="h-10 text-sm font-semibold"
                 />
               ) : (
-                <p className="font-bold">{job.container_number_2 || '-'}</p>
+                <p className="text-sm font-bold text-[#225795]">{job.container_number_2 || '-'}</p>
               )}
             </div>
             <div>
-              <p className="text-sm text-teal-700 mb-1">เลขซีล</p>
+              <p className="text-xs text-muted-foreground mb-1">เลขซีล (Seal No.)</p>
               {isInbound ? (
                 <Input 
                   value={container2Seal} 
                   onChange={(e) => setContainer2Seal(e.target.value)}
                   placeholder="กรอกเลขซีล"
-                  className="h-10"
+                  className="h-10 text-sm font-semibold"
                 />
               ) : (
-                <p className="font-bold">{job.seal_number_2 || '-'}</p>
+                <p className="text-sm font-bold text-[#225795]">{job.seal_number_2 || '-'}</p>
               )}
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Route Button */}
         <Button 
           variant="outline" 
-          className="w-full h-12 text-base border-[#153860]" 
+          className="w-full h-11 text-sm border-[#225795] text-[#225795] rounded-full" 
           onClick={() => {
             if (job.container_checkpoint_latitude && job.container_checkpoint_longitude) {
               const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_checkpoint_latitude},${job.container_checkpoint_longitude}`;
@@ -424,15 +426,15 @@ export default function ContainerCheckInPage() {
             }
           }}
         >
-          <img src={routeIcon} alt="Route" className="w-5 h-5 mr-2" />
-          {t('container.route')}
+          <img src={routeIcon} alt="Route" className="w-4 h-4 mr-2" />
+          เส้นทาง
         </Button>
       </div>
 
       {/* Fixed Bottom Check-in Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t safe-area-bottom">
         <Button 
-          className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700" 
+          className="w-full h-12 text-base bg-[#00B8D4] hover:bg-[#00A0BC] rounded-full" 
           onClick={() => setShowConfirmDialog(true)}
           disabled={isCheckingIn}
         >
@@ -441,7 +443,7 @@ export default function ContainerCheckInPage() {
           ) : (
             <MapPin className="w-5 h-5 mr-2" />
           )}
-          เช็คอินจุดรับตู้เปล่า
+          เช็คอิน
         </Button>
       </div>
 
