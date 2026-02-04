@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Phone, CheckCircle, Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
+import ContainerSealVerificationDialog from './ContainerSealVerificationDialog';
 import { formatDate } from '@/lib/dateUtils';
 import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
@@ -86,6 +87,8 @@ export default function InternationalJobDetail({
     card3: 0
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  const [isContainerVerificationOpen, setIsContainerVerificationOpen] = useState(false);
+  const [containerVerificationCompleted, setContainerVerificationCompleted] = useState(false);
   const isInbound = job.transport_type?.includes('ขาเข้า');
   const isOutbound = job.transport_type?.includes('ขาออก');
   useEffect(() => {
@@ -501,20 +504,50 @@ export default function InternationalJobDetail({
         </div>
       </div>
 
-      {/* Bottom Button */}
-      {!jobApplication?.job_started_at && <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-          <Button className="w-full h-12 text-base text-white" style={{
-        background: 'linear-gradient(90deg, #245D9E 0%, #1A4271 100%)'
-      }} onClick={handleStartJob}>
+      {/* Container Verification Button - Show after job started but before container verification */}
+      {jobApplication?.job_started_at && !containerVerificationCompleted && !jobApplication?.container_checked_in_at && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t safe-area-inset-bottom">
+          <Button 
+            className="w-full h-14 text-base text-white"
+            style={{ background: 'linear-gradient(90deg, #0A8778 0%, #065F54 100%)' }}
+            onClick={() => setIsContainerVerificationOpen(true)}
+          >
+            <Camera className="w-5 h-5 mr-2" />
+            {t('jobDetail.verifyContainerSeal') || 'ยืนยันเลขตู้/เลขซีล'}
+          </Button>
+        </div>
+      )}
+
+      {/* Bottom Button - Start Job */}
+      {!jobApplication?.job_started_at && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+          <Button 
+            className="w-full h-12 text-base text-white" 
+            style={{ background: 'linear-gradient(90deg, #245D9E 0%, #1A4271 100%)' }}
+            onClick={handleStartJob}
+          >
             {t('jobDetail.startJobNow')}
           </Button>
-        </div>}
+        </div>
+      )}
 
       <ReportProblemDrawer
         open={isReportDrawerOpen}
         onOpenChange={setIsReportDrawerOpen}
         jobId={job.id}
         orderNumber={job.order_code}
+      />
+
+      <ContainerSealVerificationDialog
+        open={isContainerVerificationOpen}
+        onOpenChange={setIsContainerVerificationOpen}
+        orderCode={job.order_code}
+        jobId={job.id}
+        userId={userId}
+        onSuccess={() => {
+          setContainerVerificationCompleted(true);
+          onUpdate();
+        }}
       />
     </div>;
 }
