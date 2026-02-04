@@ -53,6 +53,11 @@ interface JobDetail {
   destination_remarks: string | null;
   destination_time: string | null;
   destination_date: string | null;
+  // Container info for international jobs
+  container_number?: string | null;
+  container_number_2?: string | null;
+  seal_number?: string | null;
+  seal_number_2?: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -406,6 +411,39 @@ export default function DomesticJobDetail({
                       <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
                     </div>
                   </div>
+
+                  {/* Container/Seal info for international jobs */}
+                  {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
+                    <div className="space-y-2 mt-3">
+                      {/* Container 1 */}
+                      <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">1</span>
+                          <span className="font-medium text-teal-700">เลขตู้คอนเทนเนอร์ : </span>
+                          <span className="font-bold">{job.container_number || '-'}</span>
+                        </div>
+                        <div className="ml-7">
+                          <span className="text-teal-700">เลขซีล : </span>
+                          <span className="font-bold">{job.seal_number || '-'}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Container 2 - only show if there's data */}
+                      {(job.container_number_2 || job.seal_number_2) && (
+                        <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">2</span>
+                            <span className="font-medium text-teal-700">เลขตู้คอนเทนเนอร์ : </span>
+                            <span className="font-bold">{job.container_number_2 || '-'}</span>
+                          </div>
+                          <div className="ml-7">
+                            <span className="text-teal-700">เลขซีล : </span>
+                            <span className="font-bold">{job.seal_number_2 || '-'}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
                     {new URLSearchParams(location.search).get('from') !== 'history' && (
