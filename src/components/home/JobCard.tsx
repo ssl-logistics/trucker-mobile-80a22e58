@@ -148,9 +148,13 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             </>
           )}
         </div>
-        <div className="text-base text-muted-foreground">
+        <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
+          job.job_type === 'domestic' || job.job_type === 'ในประเทศ' || job.job_type === 'ภายในประเทศ'
+            ? 'bg-blue-100 text-blue-700'
+            : 'bg-orange-100 text-orange-700'
+        }`}>
           {translateJobType(job.job_type, language)}
-        </div>
+        </span>
 
         <div className="flex items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 space-y-2 sm:space-y-3">
