@@ -466,8 +466,8 @@ export default function DomesticJobDetail({
                         size="sm" 
                         className="h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
                         onClick={() => {
-                          // Navigate to container check-in page
-                          navigate(`/container-checkin/${job.order_code}`);
+                          // Navigate to container check-in page (must match route: /job/:jobId/container-checkin)
+                          navigate(`/job/${job.order_code}/container-checkin`);
                         }}
                       >
                         <img src={statusIcon} alt="status" className="w-4 h-4" />
