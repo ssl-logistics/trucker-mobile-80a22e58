@@ -577,8 +577,18 @@ export default function DomesticJobDetail({
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.emptyContainerPickup')}</h3>
                       </div>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                        {emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
+                        isOcrVerified 
+                          ? 'text-green-600 bg-green-50' 
+                          : emptyContainerCheckedIn 
+                            ? 'text-purple-600 bg-purple-50' 
+                            : 'text-orange-500 bg-[#FFF7E6]'
+                      }`}>
+                        {isOcrVerified 
+                          ? t('jobDetail.completed') 
+                          : emptyContainerCheckedIn 
+                            ? t('jobDetail.waitingOCR') 
+                            : t('jobDetail.waitingCheckIn')}
                       </span>
                     </div>
                     
