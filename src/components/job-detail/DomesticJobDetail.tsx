@@ -396,10 +396,12 @@ export default function DomesticJobDetail({
             <img src={routeIcon} alt="route" className="w-5 h-5 mb-1" />
             <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{destinations.length > 0 ? destinations.length + 1 : 2}</span></div>
           </Card>
-          <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
-            <img src={boxIcon} alt="goods" className="w-5 h-5 mb-1" />
-            <div className="text-xs text-gray-700 text-center">{t('jobDetail.totalGoods')} : <span className="font-semibold">{job.origin_goods_quantity || '-'}</span></div>
-          </Card>
+          {job.job_type !== 'international' && (
+            <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
+              <img src={boxIcon} alt="goods" className="w-5 h-5 mb-1" />
+              <div className="text-xs text-gray-700 text-center">{t('jobDetail.totalGoods')} : <span className="font-semibold">{job.origin_goods_quantity || '-'}</span></div>
+            </Card>
+          )}
         </div>
 
         {/* Report Problem Button - Hidden when viewing from history */}
