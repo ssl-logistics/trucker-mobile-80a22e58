@@ -1051,6 +1051,20 @@ const thTranslations: Record<string, string> = {
   'ocr.noContainerFound': 'ไม่พบเลขตู้',
   'ocr.tryAgain': 'กรุณาถ่ายรูปใหม่',
   
+  // Container Seal Verification
+  'containerSealVerification.verifying': 'กำลังตรวจสอบ...',
+  'containerSealVerification.verified': 'ตรวจสอบสำเร็จ',
+  'containerSealVerification.verifyFailed': 'ตรวจสอบไม่สำเร็จ',
+  'containerSealVerification.matchedMessage': 'เลขตู้และซีลตรงกับระบบ',
+  'containerSealVerification.notMatched': 'ไม่ตรงกัน',
+  'containerSealVerification.containerMismatch': 'เลขตู้/ซีลไม่ตรงกับระบบ',
+  'containerSealVerification.noContainerInDb': 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ',
+  'containerSealVerification.ocrSuccess': 'OCR สำเร็จ',
+  'containerSealVerification.ocrSuccessDesc': 'ตรวจสอบและยืนยันข้อมูลที่อ่านได้',
+  'containerSealVerification.ocrError': 'OCR ล้มเหลว',
+  'containerSealVerification.requiredFields': 'กรุณากรอกข้อมูล',
+  'containerSealVerification.containerRequired': 'กรุณากรอกเลขตู้',
+  
   // Container Check-in Page
   'containerCheckin.title': 'จุดรับตู้เปล่า',
   'containerCheckin.alreadyCheckedIn': 'เช็คอินแล้ว',
@@ -2590,6 +2604,20 @@ const enTranslations: Record<string, string> = {
   'ocr.enterSealNumber': 'Enter seal number',
   'ocr.noContainerFound': 'No container number found',
   'ocr.tryAgain': 'Please take a photo again',
+  
+  // Container Seal Verification
+  'containerSealVerification.verifying': 'Verifying...',
+  'containerSealVerification.verified': 'Verification Successful',
+  'containerSealVerification.verifyFailed': 'Verification Failed',
+  'containerSealVerification.matchedMessage': 'Container and seal numbers match the system',
+  'containerSealVerification.notMatched': 'Not Matched',
+  'containerSealVerification.containerMismatch': 'Container/Seal number does not match system',
+  'containerSealVerification.noContainerInDb': 'Container not registered in the system yet',
+  'containerSealVerification.ocrSuccess': 'OCR Successful',
+  'containerSealVerification.ocrSuccessDesc': 'Please verify and confirm the extracted data',
+  'containerSealVerification.ocrError': 'OCR Failed',
+  'containerSealVerification.requiredFields': 'Please fill in the information',
+  'containerSealVerification.containerRequired': 'Please enter container number',
   
   // Container Check-in Page
   'containerCheckin.title': 'Empty Container Pickup',
@@ -4257,6 +4285,20 @@ const koTranslations: Record<string, string> = {
   'ocr.noContainerFound': '컨테이너 번호를 찾을 수 없습니다',
   'ocr.tryAgain': '다시 사진을 찍어주세요',
   
+  // Container Seal Verification
+  'containerSealVerification.verifying': '확인 중...',
+  'containerSealVerification.verified': '확인 성공',
+  'containerSealVerification.verifyFailed': '확인 실패',
+  'containerSealVerification.matchedMessage': '컨테이너와 봉인 번호가 시스템과 일치합니다',
+  'containerSealVerification.notMatched': '일치하지 않음',
+  'containerSealVerification.containerMismatch': '컨테이너/봉인 번호가 시스템과 일치하지 않습니다',
+  'containerSealVerification.noContainerInDb': '시스템에 등록되지 않은 컨테이너입니다',
+  'containerSealVerification.ocrSuccess': 'OCR 성공',
+  'containerSealVerification.ocrSuccessDesc': '추출된 데이터를 확인하고 승인해 주세요',
+  'containerSealVerification.ocrError': 'OCR 실패',
+  'containerSealVerification.requiredFields': '정보를 입력해주세요',
+  'containerSealVerification.containerRequired': '컨테이너 번호를 입력해주세요',
+  
   // Container Check-in Page
   'containerCheckin.title': '빈 컨테이너 픽업',
   'containerCheckin.alreadyCheckedIn': '이미 체크인됨',
@@ -4914,6 +4956,20 @@ const zhTranslations: Record<string, string> = {
   'ocr.enterSealNumber': '输入封条号',
   'ocr.noContainerFound': '未找到集装箱号',
   'ocr.tryAgain': '请重新拍照',
+  
+  // Container Seal Verification
+  'containerSealVerification.verifying': '验证中...',
+  'containerSealVerification.verified': '验证成功',
+  'containerSealVerification.verifyFailed': '验证失败',
+  'containerSealVerification.matchedMessage': '集装箱和封条号与系统匹配',
+  'containerSealVerification.notMatched': '不匹配',
+  'containerSealVerification.containerMismatch': '集装箱/封条号与系统不符',
+  'containerSealVerification.noContainerInDb': '系统中尚未登记该集装箱',
+  'containerSealVerification.ocrSuccess': 'OCR 成功',
+  'containerSealVerification.ocrSuccessDesc': '请确认提取的数据',
+  'containerSealVerification.ocrError': 'OCR 失败',
+  'containerSealVerification.requiredFields': '请填写信息',
+  'containerSealVerification.containerRequired': '请输入集装箱号',
   
   // Container Check-in Page Additional
   'containerCheckin.title': '空集装箱取货点',
