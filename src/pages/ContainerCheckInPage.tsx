@@ -103,8 +103,16 @@ export default function ContainerCheckInPage() {
       console.log('Container check-in API result:', result);
       
       if (result.success && result.data) {
-        // Find the specific job by order_number
-        const foundJob = result.data.find((j: any) => j.order_number === jobId);
+        // Find the specific job by order_number OR id (jobId could be either)
+        const foundJob = result.data.find((j: any) => 
+          j.order_number === jobId || 
+          j.id === jobId || 
+          String(j.id) === jobId
+        );
+        
+        console.log('[ContainerCheckInPage] Looking for jobId:', jobId);
+        console.log('[ContainerCheckInPage] Available jobs:', result.data.map((j: any) => ({ id: j.id, order_number: j.order_number })));
+        console.log('[ContainerCheckInPage] Found job:', foundJob);
         
         if (foundJob) {
           // Map API response to JobDetail interface
@@ -130,6 +138,7 @@ export default function ContainerCheckInPage() {
           };
           setJob(mappedJob);
         } else {
+          console.error('[ContainerCheckInPage] Job not found for jobId:', jobId);
           throw new Error('Job not found');
         }
       } else {
