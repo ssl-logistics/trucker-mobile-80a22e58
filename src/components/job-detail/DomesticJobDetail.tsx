@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -118,6 +118,9 @@ export default function DomesticJobDetail({
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   const [showOcrDrawer, setShowOcrDrawer] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
+  const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
+  const [ocrResult, setOcrResult] = useState<{ container_number: string | null; seal_number: string | null } | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
   
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
@@ -174,77 +177,12 @@ export default function DomesticJobDetail({
       const result = await extractFromImage(file, 'container_seal');
       
       if (result.success && result.data) {
-        const containerNo = result.data.container_number;
-        const sealNo = result.data.seal_number;
+        const containerNo = result.data.container_number || null;
+        const sealNo = result.data.seal_number || null;
         
-        toast({
-          title: t('ocr.success'),
-          description: `${t('ocr.containerNumber')}: ${containerNo || '-'}, ${t('ocr.sealNumber')}: ${sealNo || '-'}`,
-        });
-        
-        // Verify container/seal with external API
-        if (containerNo) {
-          toast({
-            title: t('containerSealVerification.verifying') || 'กำลังตรวจสอบ...',
-            description: t('common.pleaseWait') || 'รอสักครู่...',
-          });
-          
-          try {
-            const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-container', {
-              body: {
-                order_number: job.order_code,
-                container_no: containerNo,
-                seal_no: sealNo || null,
-              },
-            });
-            
-            if (verifyError) {
-              console.error('Verify container error:', verifyError);
-              toast({
-                title: t('containerSealVerification.verifyFailed') || 'ตรวจสอบไม่สำเร็จ',
-                description: verifyError.message,
-                variant: "destructive",
-              });
-              return;
-            }
-            
-            console.log('Verify container result:', verifyResult);
-            
-            if (verifyResult?.matched) {
-              toast({
-                title: t('containerSealVerification.verified') || 'ตรวจสอบสำเร็จ',
-                description: t('containerSealVerification.matchedMessage') || 'เลขตู้และซีลตรงกับระบบ',
-              });
-              
-              // Navigate to container SOP page to complete the process
-              navigate(`/container-sop/${job.order_code}`);
-            } else {
-              // Show mismatch error
-              const mismatchMessage = verifyResult?.has_containers_in_db 
-                ? (t('containerSealVerification.containerMismatch') || 'เลขตู้/ซีลไม่ตรงกับระบบ')
-                : (t('containerSealVerification.noContainerInDb') || 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ');
-              
-              toast({
-                title: t('containerSealVerification.notMatched') || 'ไม่ตรงกัน',
-                description: mismatchMessage,
-                variant: "destructive",
-              });
-            }
-          } catch (verifyErr) {
-            console.error('Verify container exception:', verifyErr);
-            toast({
-              title: t('containerSealVerification.verifyFailed') || 'ตรวจสอบไม่สำเร็จ',
-              description: t('common.tryAgain') || 'กรุณาลองใหม่อีกครั้ง',
-              variant: "destructive",
-            });
-          }
-        } else {
-          toast({
-            title: t('ocr.noContainerFound') || 'ไม่พบเลขตู้',
-            description: t('ocr.tryAgain') || 'กรุณาถ่ายรูปใหม่',
-            variant: "destructive",
-          });
-        }
+        // Store OCR result and show confirmation dialog
+        setOcrResult({ container_number: containerNo, seal_number: sealNo });
+        setShowOcrConfirmDialog(true);
       } else if (result.error) {
         toast({
           title: t('ocr.failed'),
@@ -262,6 +200,80 @@ export default function DomesticJobDetail({
     } finally {
       setIsProcessingOcr(false);
     }
+  };
+
+  // Handle OCR confirmation - verify with API
+  const handleConfirmOcr = async () => {
+    if (!ocrResult?.container_number) {
+      toast({
+        title: t('ocr.noContainerFound') || 'ไม่พบเลขตู้',
+        description: t('ocr.tryAgain') || 'กรุณาถ่ายรูปใหม่',
+        variant: "destructive",
+      });
+      setShowOcrConfirmDialog(false);
+      return;
+    }
+
+    setIsVerifying(true);
+    
+    try {
+      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-container', {
+        body: {
+          order_number: job.order_code,
+          container_no: ocrResult.container_number,
+          seal_no: ocrResult.seal_number || null,
+        },
+      });
+      
+      if (verifyError) {
+        console.error('Verify container error:', verifyError);
+        toast({
+          title: t('containerSealVerification.verifyFailed') || 'ตรวจสอบไม่สำเร็จ',
+          description: verifyError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log('Verify container result:', verifyResult);
+      
+      if (verifyResult?.matched) {
+        toast({
+          title: t('containerSealVerification.verified') || 'ตรวจสอบสำเร็จ',
+          description: t('containerSealVerification.matchedMessage') || 'เลขตู้และซีลตรงกับระบบ',
+        });
+        
+        setShowOcrConfirmDialog(false);
+        // Navigate to container SOP page to complete the process
+        navigate(`/container-sop/${job.order_code}`);
+      } else {
+        // Show mismatch error
+        const mismatchMessage = verifyResult?.has_containers_in_db 
+          ? (t('containerSealVerification.containerMismatch') || 'เลขตู้/ซีลไม่ตรงกับระบบ')
+          : (t('containerSealVerification.noContainerInDb') || 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ');
+        
+        toast({
+          title: t('containerSealVerification.notMatched') || 'ไม่ตรงกัน',
+          description: mismatchMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (verifyErr) {
+      console.error('Verify container exception:', verifyErr);
+      toast({
+        title: t('containerSealVerification.verifyFailed') || 'ตรวจสอบไม่สำเร็จ',
+        description: t('common.tryAgain') || 'กรุณาลองใหม่อีกครั้ง',
+        variant: "destructive",
+      });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Handle cancel OCR confirmation
+  const handleCancelOcr = () => {
+    setShowOcrConfirmDialog(false);
+    setOcrResult(null);
   };
 
   // Fetch check-in status and SOP status from external APIs
@@ -974,6 +986,64 @@ export default function DomesticJobDetail({
                 {t('sop.cancel')}
               </Button>
             </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* OCR Confirmation Dialog */}
+      <Drawer open={showOcrConfirmDialog} onOpenChange={setShowOcrConfirmDialog}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">{t('ocr.confirmTitle') || 'ยืนยันข้อมูล OCR'}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-4">
+            <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-teal-700 font-bold text-sm">1</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-teal-700 font-medium">{t('ocr.containerNumber') || 'เลขตู้คอนเทนเนอร์'}</p>
+                  <p className="text-lg font-bold text-teal-900">{ocrResult?.container_number || '-'}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-teal-700 font-bold text-sm">2</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-teal-700 font-medium">{t('ocr.sealNumber') || 'เลขซีล'}</p>
+                  <p className="text-lg font-bold text-teal-900">{ocrResult?.seal_number || '-'}</p>
+                </div>
+              </div>
+            </div>
+            
+            <p className="text-center text-sm text-muted-foreground">
+              {t('ocr.confirmPrompt') || 'ข้อมูลด้านบนถูกต้องหรือไม่?'}
+            </p>
+          </div>
+          <DrawerFooter className="flex-row gap-3">
+            <Button 
+              variant="outline" 
+              className="flex-1 h-12 gap-2"
+              onClick={handleCancelOcr}
+              disabled={isVerifying}
+            >
+              <XCircle className="w-5 h-5" />
+              {t('ocr.retake') || 'ถ่ายใหม่'}
+            </Button>
+            <Button 
+              className="flex-1 h-12 gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+              onClick={handleConfirmOcr}
+              disabled={isVerifying}
+            >
+              {isVerifying ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <CheckCircle className="w-5 h-5" />
+              )}
+              {isVerifying ? (t('containerSealVerification.verifying') || 'กำลังตรวจสอบ...') : (t('ocr.confirm') || 'ถูกต้อง')}
+            </Button>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
