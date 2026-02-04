@@ -72,6 +72,23 @@ const AddExpensePage = () => {
   const { extractFromImage } = useOCR();
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
   
+  // English names for API submission
+  const expenseTypeEnglishMap: Record<string, string> = {
+    fuel: "Fuel",
+    fuel_drop: "Fuel Drop",
+    drop_empty: "Drop Empty Container",
+    drop_loaded: "Drop Loaded Container",
+    pickup_container: "Pickup Container",
+    wash_container: "Wash Container",
+    return_container: "Return Container",
+    repair_container: "Repair Container",
+    port: "Port Fee",
+    overtime: "Overtime",
+    toll: "Toll Fee",
+    parking: "Parking Fee",
+    other: "Other",
+  };
+
   const expenseTypes = [
     { value: "fuel", label: t('expense.fuel') },
     { value: "fuel_drop", label: t('expense.fuelDrop') },
@@ -296,7 +313,10 @@ const AddExpensePage = () => {
           }
         }
         
-        const expenseType = expense.type === "other" ? expense.customType : expense.type;
+        // Send English expense type to API
+        const expenseType = expense.type === "other" 
+          ? expense.customType 
+          : expenseTypeEnglishMap[expense.type || ""] || expense.type;
         const totalOCRAmount = getTotalOCRAmount(expense);
         
         // Build ocr_data object
