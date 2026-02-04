@@ -72,8 +72,17 @@ const AddExpensePage = () => {
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
   
   const expenseTypes = [
-    { value: "toll", label: t('expense.tollFee') },
+    { value: "fuel", label: t('expense.fuel') },
+    { value: "fuel_drop", label: t('expense.fuelDrop') },
+    { value: "drop_empty", label: t('expense.dropEmpty') },
+    { value: "drop_loaded", label: t('expense.dropLoaded') },
+    { value: "pickup_container", label: t('expense.pickupContainer') },
+    { value: "wash_container", label: t('expense.washContainer') },
+    { value: "return_container", label: t('expense.returnContainer') },
+    { value: "repair_container", label: t('expense.repairContainer') },
     { value: "port", label: t('expense.portFee') },
+    { value: "overtime", label: t('expense.overtime') },
+    { value: "toll", label: t('expense.tollFee') },
     { value: "parking", label: t('expense.parkingFee') },
     { value: "other", label: t('expense.other') },
   ];
