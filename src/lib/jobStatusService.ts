@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export type JobStatusType = 
+  | 'empty_container_checked_in'
   | 'container_checked_in'
   | 'container_sop_completed'
   | 'pickup_checked_in'
@@ -10,8 +11,9 @@ export type JobStatusType =
   | 'delivery_confirmed';
 
 const STATUS_LABELS: Record<JobStatusType, string> = {
-  container_checked_in: 'เช็คอินจุดรับตู้เปล่าสำเร็จ',
-  container_sop_completed: 'ดำเนินการจุดรับตู้เปล่าสำเร็จ',
+  empty_container_checked_in: 'เช็คอินจุดรับตู้เปล่าสำเร็จ',
+  container_checked_in: 'เช็คอินจุดรับตู้สำเร็จ',
+  container_sop_completed: 'ดำเนินการจุดรับตู้สำเร็จ',
   pickup_checked_in: 'เช็คอินจุดรับสินค้าสำเร็จ',
   pickup_sop_completed: 'ดำเนินการจุดรับสินค้าสำเร็จ',
   delivery_checked_in: 'เช็คอินจุดส่งสินค้าสำเร็จ',
