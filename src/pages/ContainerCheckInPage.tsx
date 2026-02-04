@@ -369,42 +369,44 @@ export default function ContainerCheckInPage() {
           </div>
         </div>
 
-        {/* Container 2 */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="bg-[#225795] text-white rounded-md px-2 py-0.5 text-xs font-bold">
-              ตู้ที่ 2
+        {/* Container 2 - Only show if data exists */}
+        {(job.container_number_2 || job.seal_number_2 || (isInbound && (container2Number || container2Seal))) && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="bg-[#225795] text-white rounded-md px-2 py-0.5 text-xs font-bold">
+                ตู้ที่ 2
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border p-4 space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">เลขตู้คอนเทนเนอร์ (Container No.)</p>
+                {isInbound ? (
+                  <Input 
+                    value={container2Number} 
+                    onChange={(e) => setContainer2Number(e.target.value)}
+                    placeholder="กรอกเลขตู้คอนเทนเนอร์"
+                    className="h-10 text-sm font-semibold"
+                  />
+                ) : (
+                  <p className="text-sm font-bold text-[#225795]">{job.container_number_2 || '-'}</p>
+                )}
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">เลขซีล (Seal No.)</p>
+                {isInbound ? (
+                  <Input 
+                    value={container2Seal} 
+                    onChange={(e) => setContainer2Seal(e.target.value)}
+                    placeholder="กรอกเลขซีล"
+                    className="h-10 text-sm font-semibold"
+                  />
+                ) : (
+                  <p className="text-sm font-bold text-[#225795]">{job.seal_number_2 || '-'}</p>
+                )}
+              </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl border p-4 space-y-3">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">เลขตู้คอนเทนเนอร์ (Container No.)</p>
-              {isInbound ? (
-                <Input 
-                  value={container2Number} 
-                  onChange={(e) => setContainer2Number(e.target.value)}
-                  placeholder="กรอกเลขตู้คอนเทนเนอร์"
-                  className="h-10 text-sm font-semibold"
-                />
-              ) : (
-                <p className="text-sm font-bold text-[#225795]">{job.container_number_2 || '-'}</p>
-              )}
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">เลขซีล (Seal No.)</p>
-              {isInbound ? (
-                <Input 
-                  value={container2Seal} 
-                  onChange={(e) => setContainer2Seal(e.target.value)}
-                  placeholder="กรอกเลขซีล"
-                  className="h-10 text-sm font-semibold"
-                />
-              ) : (
-                <p className="text-sm font-bold text-[#225795]">{job.seal_number_2 || '-'}</p>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Route Button */}
         <Button 
