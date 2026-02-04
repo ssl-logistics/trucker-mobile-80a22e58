@@ -174,14 +174,77 @@ export default function DomesticJobDetail({
       const result = await extractFromImage(file, 'container_seal');
       
       if (result.success && result.data) {
-        // Navigate to container SOP page with OCR data
+        const containerNo = result.data.container_number;
+        const sealNo = result.data.seal_number;
+        
         toast({
           title: t('ocr.success'),
-          description: `${t('ocr.containerNumber')}: ${result.data.container_number || '-'}, ${t('ocr.sealNumber')}: ${result.data.seal_number || '-'}`,
+          description: `${t('ocr.containerNumber')}: ${containerNo || '-'}, ${t('ocr.sealNumber')}: ${sealNo || '-'}`,
         });
         
-        // Navigate to container SOP page to complete the process
-        navigate(`/container-sop/${job.order_code}`);
+        // Verify container/seal with external API
+        if (containerNo) {
+          toast({
+            title: t('containerSealVerification.verifying') || 'กำลังตรวจสอบ...',
+            description: t('common.pleaseWait') || 'รอสักครู่...',
+          });
+          
+          try {
+            const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-container', {
+              body: {
+                order_number: job.order_code,
+                container_no: containerNo,
+                seal_no: sealNo || null,
+              },
+            });
+            
+            if (verifyError) {
+              console.error('Verify container error:', verifyError);
+              toast({
+                title: t('containerSealVerification.verifyFailed') || 'ตรวจสอบไม่สำเร็จ',
+                description: verifyError.message,
+                variant: "destructive",
+              });
+              return;
+            }
+            
+            console.log('Verify container result:', verifyResult);
+            
+            if (verifyResult?.matched) {
+              toast({
+                title: t('containerSealVerification.verified') || 'ตรวจสอบสำเร็จ',
+                description: t('containerSealVerification.matchedMessage') || 'เลขตู้และซีลตรงกับระบบ',
+              });
+              
+              // Navigate to container SOP page to complete the process
+              navigate(`/container-sop/${job.order_code}`);
+            } else {
+              // Show mismatch error
+              const mismatchMessage = verifyResult?.has_containers_in_db 
+                ? (t('containerSealVerification.containerMismatch') || 'เลขตู้/ซีลไม่ตรงกับระบบ')
+                : (t('containerSealVerification.noContainerInDb') || 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ');
+              
+              toast({
+                title: t('containerSealVerification.notMatched') || 'ไม่ตรงกัน',
+                description: mismatchMessage,
+                variant: "destructive",
+              });
+            }
+          } catch (verifyErr) {
+            console.error('Verify container exception:', verifyErr);
+            toast({
+              title: t('containerSealVerification.verifyFailed') || 'ตรวจสอบไม่สำเร็จ',
+              description: t('common.tryAgain') || 'กรุณาลองใหม่อีกครั้ง',
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: t('ocr.noContainerFound') || 'ไม่พบเลขตู้',
+            description: t('ocr.tryAgain') || 'กรุณาถ่ายรูปใหม่',
+            variant: "destructive",
+          });
+        }
       } else if (result.error) {
         toast({
           title: t('ocr.failed'),
