@@ -34,6 +34,7 @@ interface JobDetail {
   safety_equipment: string | null;
   container_checkpoint: string | null;
   container_checkpoint_code: string | null;
+  container_checkpoint_time: string | null;
   empty_container_date: string | null;
   container_number: string | null;
   container_number_2: string | null;
@@ -204,18 +205,18 @@ export default function JobDetailPage() {
             price: foundJob.transport_price,
             start_date: foundJob.sender_pickup_date,
             start_time: foundJob.sender_pickup_time,
-            equipment_list: foundJob.vehicle_type || null,
+            equipment_list: foundJob.vehicle_type || foundJob.equipment_list || null,
             safety_equipment: null,
-            container_checkpoint: null,
-            container_checkpoint_code: null,
-            empty_container_date: null,
+            container_checkpoint: foundJob.container_checkpoint || null,
+            container_checkpoint_code: foundJob.container_checkpoint_code || null,
+            empty_container_date: foundJob.empty_container_date || null,
             container_number: foundJob.container_number || null,
             container_number_2: foundJob.container_number_2 || null,
             seal_number: foundJob.seal_number || null,
             seal_number_2: foundJob.seal_number_2 || null,
             origin_contact_person: foundJob.sender_contact_name,
             origin_contact_role: null,
-            origin_bill_of_lading: null,
+            origin_bill_of_lading: foundJob.bill_of_lading || null,
             origin_goods_type: foundJob.product_name,
             origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
             origin_remarks: foundJob.remarks,
@@ -227,6 +228,7 @@ export default function JobDetailPage() {
             destination_date: foundJob.destination_delivery_date,
             destination_remarks: foundJob.remarks,
             tax_id: null,
+            container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || null,
           };
 
           setJob(mappedJob);
@@ -395,6 +397,7 @@ export default function JobDetailPage() {
             safety_equipment: null,
             container_checkpoint: null,
             container_checkpoint_code: null,
+            container_checkpoint_time: null,
             empty_container_date: null,
             container_number: null,
             container_number_2: null,
