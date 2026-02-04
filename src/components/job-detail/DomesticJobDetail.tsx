@@ -482,7 +482,7 @@ export default function DomesticJobDetail({
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm text-[#225795]">จุดรับตู้เปล่า</h3>
+                        <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.emptyContainerPickup')}</h3>
                       </div>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
@@ -495,19 +495,19 @@ export default function DomesticJobDetail({
 
                     <div className="space-y-1 text-sm mb-3">
                       <div className="flex">
-                        <span className="text-[#454545] min-w-[130px]">วัน/เวลาเรือถึง</span>
+                        <span className="text-[#454545] min-w-[130px]">{t('jobDetail.shipArrivalDateTime')}</span>
                         <span className="text-[#454545]">: {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-[#454545] min-w-[130px]">วันเริ่มเข้ารับตู้เปล่า</span>
+                        <span className="text-[#454545] min-w-[130px]">{t('jobDetail.emptyContainerPickupDate')}</span>
                         <span className="text-[#454545]">: {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-[#454545] min-w-[130px]">ผู้รับสินค้า</span>
+                        <span className="text-[#454545] min-w-[130px]">{t('jobDetail.receiver')}</span>
                         <span className="text-[#454545]">: {job.origin_company_name || '-'}</span>
                       </div>
                       <div className="flex">
-                        <span className="text-[#454545] min-w-[130px]">จำนวนและชนิดตู้</span>
+                        <span className="text-[#454545] min-w-[130px]">{t('jobDetail.containerTypeQty')}</span>
                         <span className="text-[#454545]">: {job.equipment_list || '-'}</span>
                       </div>
                     </div>
@@ -518,11 +518,11 @@ export default function DomesticJobDetail({
                       <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">1</span>
-                          <span className="font-medium text-teal-700">เลขตู้คอนเทนเนอร์ : </span>
+                          <span className="font-medium text-teal-700">{t('jobDetail.containerNumber')} : </span>
                           <span className="font-bold">{job.container_number || '-'}</span>
                         </div>
                         <div className="ml-7">
-                          <span className="text-teal-700">เลขซีล : </span>
+                          <span className="text-teal-700">{t('jobDetail.sealNumber')} : </span>
                           <span className="font-bold">{job.seal_number || '-'}</span>
                         </div>
                       </div>
@@ -532,11 +532,11 @@ export default function DomesticJobDetail({
                         <div className="rounded-lg p-3 space-y-1.5 text-sm bg-teal-50 border border-teal-200">
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px] font-bold">2</span>
-                            <span className="font-medium text-teal-700">เลขตู้คอนเทนเนอร์ : </span>
+                            <span className="font-medium text-teal-700">{t('jobDetail.containerNumber')} : </span>
                             <span className="font-bold">{job.container_number_2 || '-'}</span>
                           </div>
                           <div className="ml-7">
-                            <span className="text-teal-700">เลขซีล : </span>
+                            <span className="text-teal-700">{t('jobDetail.sealNumber')} : </span>
                             <span className="font-bold">{job.seal_number_2 || '-'}</span>
                           </div>
                         </div>
