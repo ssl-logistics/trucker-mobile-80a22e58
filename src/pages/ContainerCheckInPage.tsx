@@ -206,8 +206,8 @@ export default function ContainerCheckInPage() {
         setAlreadyCheckedIn(true);
         // Redirect to SOP page since already checked in
         toast({
-          title: 'เช็คอินแล้ว',
-          description: 'คุณได้เช็คอินจุดรับตู้เปล่าไปแล้ว กำลังไปหน้า SOP...',
+          title: t('containerCheckin.alreadyCheckedIn'),
+          description: t('containerCheckin.alreadyCheckedInDesc'),
         });
         setTimeout(() => {
           navigate(`/container-sop/${orderNumber}`);
@@ -265,7 +265,7 @@ export default function ContainerCheckInPage() {
             driver_avatar: user.avatar_url || user.profile_photo_url || '',
             latitude: latitude,
             longitude: longitude,
-            notes: 'ถึงจุดรับตู้เปล่าแล้ว',
+            notes: t('containerCheckin.arrivalNote'),
             container_number: container1Number,
             seal_number: container1Seal,
             container_number_2: container2Number,
@@ -331,7 +331,7 @@ export default function ContainerCheckInPage() {
             <ChevronLeft className="w-6 h-6" />
           </button>
           <div className="text-center">
-            <h1 className="text-base font-semibold">จุดรับตู้เปล่า</h1>
+            <h1 className="text-base font-semibold">{t('containerCheckin.title')}</h1>
             <p className="text-xs opacity-80">{job.container_checkpoint || job.origin_location || '-'}</p>
           </div>
         </div>
@@ -345,7 +345,7 @@ export default function ContainerCheckInPage() {
         <Card className="overflow-hidden border-0 shadow-md rounded-2xl">
           {/* Card Header */}
           <div className="bg-[#E8F4F8] px-4 py-3">
-            <p className="text-sm font-medium text-[#225795]">จุดรับตู้สินค้า</p>
+            <p className="text-sm font-medium text-[#225795]">{t('jobDetail.emptyContainerPickup')}</p>
             <p className="text-base font-semibold text-[#225795]">{job.container_checkpoint || job.origin_location || '-'}</p>
           </div>
 
@@ -356,7 +356,7 @@ export default function ContainerCheckInPage() {
                 <GoogleMap 
                   latitude={job.container_checkpoint_latitude}
                   longitude={job.container_checkpoint_longitude}
-                  markerLabel={job.container_checkpoint || 'จุดรับตู้เปล่า'}
+                  markerLabel={job.container_checkpoint || t('containerCheckin.title')}
                   showRoute={false}
                 />
               </div>
@@ -364,7 +364,7 @@ export default function ContainerCheckInPage() {
               <div className="w-full h-40 bg-muted flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="w-10 h-10 text-muted-foreground mx-auto mb-1" />
-                  <p className="text-xs text-muted-foreground">ไม่พบพิกัด</p>
+                  <p className="text-xs text-muted-foreground">{t('jobDetail.noLocation')}</p>
                 </div>
               </div>
             )}
@@ -397,17 +397,17 @@ export default function ContainerCheckInPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="bg-[#225795] text-white rounded-md px-2 py-0.5 text-xs font-bold">
-              ตู้ที่ 1
+              {t('container.pair')} 1
             </div>
           </div>
           <div className="bg-white rounded-xl border p-4 space-y-3">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">เลขตู้คอนเทนเนอร์ (Container No.)</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('ocr.containerNumber')}</p>
               {isInbound ? (
                 <Input 
                   value={container1Number} 
                   onChange={(e) => setContainer1Number(e.target.value)}
-                  placeholder="กรอกเลขตู้คอนเทนเนอร์"
+                  placeholder={t('container.enterContainerNo')}
                   className="h-10 text-sm font-semibold"
                 />
               ) : (
@@ -415,12 +415,12 @@ export default function ContainerCheckInPage() {
               )}
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">เลขซีล (Seal No.)</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('ocr.sealNumber')}</p>
               {isInbound ? (
                 <Input 
                   value={container1Seal} 
                   onChange={(e) => setContainer1Seal(e.target.value)}
-                  placeholder="กรอกเลขซีล"
+                  placeholder={t('container.enterSealNo')}
                   className="h-10 text-sm font-semibold"
                 />
               ) : (
@@ -435,17 +435,17 @@ export default function ContainerCheckInPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="bg-[#225795] text-white rounded-md px-2 py-0.5 text-xs font-bold">
-                ตู้ที่ 2
+                {t('container.pair')} 2
               </div>
             </div>
             <div className="bg-white rounded-xl border p-4 space-y-3">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">เลขตู้คอนเทนเนอร์ (Container No.)</p>
+                <p className="text-xs text-muted-foreground mb-1">{t('ocr.containerNumber')}</p>
                 {isInbound ? (
                   <Input 
                     value={container2Number} 
                     onChange={(e) => setContainer2Number(e.target.value)}
-                    placeholder="กรอกเลขตู้คอนเทนเนอร์"
+                    placeholder={t('container.enterContainerNo')}
                     className="h-10 text-sm font-semibold"
                   />
                 ) : (
@@ -453,12 +453,12 @@ export default function ContainerCheckInPage() {
                 )}
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">เลขซีล (Seal No.)</p>
+                <p className="text-xs text-muted-foreground mb-1">{t('ocr.sealNumber')}</p>
                 {isInbound ? (
                   <Input 
                     value={container2Seal} 
                     onChange={(e) => setContainer2Seal(e.target.value)}
-                    placeholder="กรอกเลขซีล"
+                    placeholder={t('container.enterSealNo')}
                     className="h-10 text-sm font-semibold"
                   />
                 ) : (
@@ -483,7 +483,7 @@ export default function ContainerCheckInPage() {
             } else {
               toast({
                 title: t('container.error'),
-                description: 'ไม่พบข้อมูลสถานที่',
+                description: t('containerCheckin.noLocationFound'),
                 variant: 'destructive'
               });
             }

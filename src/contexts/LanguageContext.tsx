@@ -144,6 +144,7 @@ const thTranslations: Record<string, string> = {
   'home.factory_contractor': 'ผู้รับเหมาโรงงาน',
   'home.company_contractor': 'ผู้รับเหมาบริษัท',
   'common.loading': 'กำลังโหลด...',
+  'common.pleaseWait': 'รอสักครู่...',
   
   // Job Card
   'job.order_code': 'รหัสออเดอร์',
@@ -1021,6 +1022,30 @@ const thTranslations: Record<string, string> = {
   'containerSop.noData': 'ไม่พบข้อมูลงาน',
   'containerSop.loading': 'กำลังโหลด...',
   
+  // OCR Common
+  'ocr.scanButton': 'สแกน OCR',
+  'ocr.processing': 'กำลังประมวลผล...',
+  'ocr.success': 'OCR สำเร็จ',
+  'ocr.successDesc': 'ตรวจสอบและยืนยันข้อมูลที่อ่านได้',
+  'ocr.failed': 'OCR ไม่สำเร็จ',
+  'ocr.error': 'เกิดข้อผิดพลาด',
+  'ocr.errorDesc': 'ไม่สามารถประมวลผล OCR ได้',
+  'ocr.containerSealInfo': 'ข้อมูลเลขตู้ / เลขซีล',
+  'ocr.containerNumber': 'เลขตู้ (Container No.)',
+  'ocr.sealNumber': 'เลขซีล (Seal No.)',
+  'ocr.containerNumber2': 'เลขตู้ที่ 2',
+  'ocr.sealNumber2': 'เลขซีลที่ 2',
+  'ocr.container2Label': 'ตู้ที่ 2 (ถ้ามี)',
+  'ocr.containerPlaceholder': 'เช่น MSCU1234567',
+  'ocr.sealPlaceholder': 'เช่น TH123456',
+  
+  // Container Check-in Page
+  'containerCheckin.title': 'จุดรับตู้เปล่า',
+  'containerCheckin.alreadyCheckedIn': 'เช็คอินแล้ว',
+  'containerCheckin.alreadyCheckedInDesc': 'คุณได้เช็คอินจุดรับตู้เปล่าไปแล้ว กำลังไปหน้า SOP...',
+  'containerCheckin.arrivalNote': 'ถึงจุดรับตู้เปล่าแล้ว',
+  'containerCheckin.noLocationFound': 'ไม่พบข้อมูลสถานที่รับตู้เปล่า',
+  
   // Vehicle Info Page
   'vehicle.title': 'ข้อมูลรถ',
   'vehicle.dataTab': 'ข้อมูลรถ',
@@ -1480,6 +1505,7 @@ const enTranslations: Record<string, string> = {
   'home.factory_contractor': 'Factory Contractor',
   'home.company_contractor': 'Company Contractor',
   'common.loading': 'Loading...',
+  'common.pleaseWait': 'Please wait...',
   
   // Job Card
   'job.order_code': 'Order Code',
@@ -2515,6 +2541,29 @@ const enTranslations: Record<string, string> = {
   'containerSop.noData': 'Job data not found',
   'containerSop.loading': 'Loading...',
   
+  // OCR Common
+  'ocr.scanButton': 'Scan OCR',
+  'ocr.processing': 'Processing...',
+  'ocr.success': 'OCR Successful',
+  'ocr.successDesc': 'Please verify the extracted data',
+  'ocr.failed': 'OCR Failed',
+  'ocr.error': 'Error occurred',
+  'ocr.errorDesc': 'Unable to process OCR',
+  'ocr.containerSealInfo': 'Container / Seal Information',
+  'ocr.containerNumber': 'Container No.',
+  'ocr.sealNumber': 'Seal No.',
+  'ocr.containerNumber2': 'Container No. 2',
+  'ocr.sealNumber2': 'Seal No. 2',
+  'ocr.container2Label': 'Container 2 (if any)',
+  'ocr.containerPlaceholder': 'e.g. MSCU1234567',
+  'ocr.sealPlaceholder': 'e.g. TH123456',
+  
+  // Container Check-in Page
+  'containerCheckin.title': 'Empty Container Pickup',
+  'containerCheckin.alreadyCheckedIn': 'Already Checked In',
+  'containerCheckin.alreadyCheckedInDesc': 'You have already checked in. Redirecting to SOP page...',
+  'containerCheckin.arrivalNote': 'Arrived at empty container pickup',
+  'containerCheckin.noLocationFound': 'Empty container pickup location not found',
   // Vehicle Info Page
   'vehicle.title': 'Vehicle Information',
   'vehicle.dataTab': 'Vehicle Data',
@@ -2816,6 +2865,7 @@ const koTranslations: Record<string, string> = {
   'home.factory_contractor': '공장 계약자',
   'home.company_contractor': '회사 계약자',
   'common.loading': '로딩 중...',
+  'common.pleaseWait': '잠시만 기다려주세요...',
   
   // Job Card
   'job.order_code': '주문 코드',
@@ -4127,6 +4177,30 @@ const koTranslations: Record<string, string> = {
   'notification.enableButton': '알림 활성화',
   'notification.later': '나중에',
   
+  // OCR Common
+  'ocr.scanButton': 'OCR 스캔',
+  'ocr.processing': '처리 중...',
+  'ocr.success': 'OCR 성공',
+  'ocr.successDesc': '추출된 데이터를 확인하세요',
+  'ocr.failed': 'OCR 실패',
+  'ocr.error': '오류 발생',
+  'ocr.errorDesc': 'OCR을 처리할 수 없습니다',
+  'ocr.containerSealInfo': '컨테이너 / 봉인 정보',
+  'ocr.containerNumber': '컨테이너 번호',
+  'ocr.sealNumber': '봉인 번호',
+  'ocr.containerNumber2': '컨테이너 번호 2',
+  'ocr.sealNumber2': '봉인 번호 2',
+  'ocr.container2Label': '컨테이너 2 (해당시)',
+  'ocr.containerPlaceholder': '예: MSCU1234567',
+  'ocr.sealPlaceholder': '예: TH123456',
+  
+  // Container Check-in Page
+  'containerCheckin.title': '빈 컨테이너 픽업',
+  'containerCheckin.alreadyCheckedIn': '이미 체크인됨',
+  'containerCheckin.alreadyCheckedInDesc': '이미 체크인했습니다. SOP 페이지로 이동합니다...',
+  'containerCheckin.arrivalNote': '빈 컨테이너 픽업 지점 도착',
+  'containerCheckin.noLocationFound': '빈 컨테이너 픽업 위치를 찾을 수 없습니다',
+  
   // App Update
   'app.newVersion': '새 버전이 있습니다! 업데이트하려면 확인을 클릭하세요',
 };
@@ -4750,6 +4824,30 @@ const zhTranslations: Record<string, string> = {
   'container.loadError': '无法加载工作数据',
   'container.defaultCheckpoint': '林查班港, 泰国',
   
+  // OCR Common
+  'ocr.scanButton': '扫描 OCR',
+  'ocr.processing': '处理中...',
+  'ocr.success': 'OCR 成功',
+  'ocr.successDesc': '请验证提取的数据',
+  'ocr.failed': 'OCR 失败',
+  'ocr.error': '发生错误',
+  'ocr.errorDesc': '无法处理 OCR',
+  'ocr.containerSealInfo': '集装箱 / 封条信息',
+  'ocr.containerNumber': '集装箱号',
+  'ocr.sealNumber': '封条号',
+  'ocr.containerNumber2': '集装箱号 2',
+  'ocr.sealNumber2': '封条号 2',
+  'ocr.container2Label': '集装箱 2（如有）',
+  'ocr.containerPlaceholder': '例如 MSCU1234567',
+  'ocr.sealPlaceholder': '例如 TH123456',
+  
+  // Container Check-in Page Additional
+  'containerCheckin.title': '空集装箱取货点',
+  'containerCheckin.alreadyCheckedIn': '已签到',
+  'containerCheckin.alreadyCheckedInDesc': '您已签到。正在跳转到 SOP 页面...',
+  'containerCheckin.arrivalNote': '到达空集装箱取货点',
+  'containerCheckin.noLocationFound': '未找到空集装箱取货位置',
+  
   // Add Expense Page
   'expense.title': '添加费用',
   'expense.expense': '费用',
@@ -5104,6 +5202,7 @@ const zhTranslations: Record<string, string> = {
   'common.filter': '筛选',
   'common.sort': '排序',
   'common.loading': '加载中...',
+  'common.pleaseWait': '请稍候...',
   'common.error': '错误',
   'common.success': '成功',
   'common.yes': '是',
