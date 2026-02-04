@@ -262,8 +262,13 @@ export default function DomesticJobDetail({
           <div className="flex-1 text-center">
             <h1 className="text-xl font-semibold">{job.order_code}</h1>
             <div className="flex items-center justify-center gap-2 mt-1">
-              <Badge variant="secondary" className="text-white text-xs bg-blue-500">
-                {t('jobDetail.domestic')}
+              <Badge 
+                variant="secondary" 
+                className={`text-white text-xs ${
+                  job.job_type === 'international' ? 'bg-orange-500' : 'bg-blue-500'
+                }`}
+              >
+                {job.job_type === 'international' ? t('jobDetail.international') : t('jobDetail.domestic')}
               </Badge>
             </div>
           </div>
