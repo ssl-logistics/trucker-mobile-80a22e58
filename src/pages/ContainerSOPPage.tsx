@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan } from "lucide-react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -47,10 +47,18 @@ interface JobDetail {
 const ContainerSOPPage = () => {
   const navigate = useNavigate();
   const { jobId } = useParams();
+  const location = useLocation();
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { extractFromImage, extracting } = useOCR();
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
+  
+  // Get verified data from navigation state (passed from OCR verification)
+  const verifiedData = location.state as { 
+    verifiedContainer?: string; 
+    verifiedSeal?: string; 
+    ocrVerified?: boolean;
+  } | null;
   
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,16 +69,17 @@ const ContainerSOPPage = () => {
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   
-  // OCR fields
-  const [containerNumber, setContainerNumber] = useState("");
-  const [sealNumber, setSealNumber] = useState("");
+  // OCR fields - initialize with verified data if available
+  const [containerNumber, setContainerNumber] = useState(verifiedData?.verifiedContainer || "");
+  const [sealNumber, setSealNumber] = useState(verifiedData?.verifiedSeal || "");
   const [containerNumber2, setContainerNumber2] = useState("");
   const [sealNumber2, setSealNumber2] = useState("");
-  const [ocrContainerNumber, setOcrContainerNumber] = useState<string | null>(null);
-  const [ocrSealNumber, setOcrSealNumber] = useState<string | null>(null);
+  const [ocrContainerNumber, setOcrContainerNumber] = useState<string | null>(verifiedData?.verifiedContainer || null);
+  const [ocrSealNumber, setOcrSealNumber] = useState<string | null>(verifiedData?.verifiedSeal || null);
   const [ocrContainerNumber2, setOcrContainerNumber2] = useState<string | null>(null);
   const [ocrSealNumber2, setOcrSealNumber2] = useState<string | null>(null);
   const [ocrError, setOcrError] = useState<string | null>(null);
+  const [isOcrVerified] = useState(verifiedData?.ocrVerified || false);
 
   useEffect(() => {
     if (jobId && user) {
@@ -172,7 +181,8 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmClick = () => {
-    if (!photoFile) {
+    // Allow confirmation if OCR is verified (from job detail page) OR if photo is taken
+    if (!photoFile && !isOcrVerified) {
       toast({
         title: t('sop.photoRequired'),
         description: t('containerSop.photoRequiredMessage'),
@@ -184,37 +194,43 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmSOP = async () => {
-    if (!photoFile || !jobId || !user) return;
+    // Allow if OCR verified (even without photoFile) or if photoFile exists
+    if ((!photoFile && !isOcrVerified) || !jobId || !user) return;
 
     setUploading(true);
     try {
-      // Upload photo to storage
-      const fileExt = photoFile.name.split('.').pop();
-      const fileName = `${jobId}_${Date.now()}.${fileExt}`;
-      const filePath = `container-photos/${fileName}`;
+      let publicUrl = '';
+      
+      // Only upload photo if a new one was taken (photoFile exists)
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${jobId}_${Date.now()}.${fileExt}`;
+        const filePath = `container-photos/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('pickup_sop_photos')
-        .upload(filePath, photoFile);
+        const { error: uploadError } = await supabase.storage
+          .from('pickup_sop_photos')
+          .upload(filePath, photoFile);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('pickup_sop_photos')
-        .getPublicUrl(filePath);
+        // Get public URL
+        const { data } = supabase.storage
+          .from('pickup_sop_photos')
+          .getPublicUrl(filePath);
+        publicUrl = data.publicUrl;
 
-      // Save to database
-      const { error: dbError } = await supabase
-        .from('pickup_sop_photos')
-        .insert({
-          job_id: jobId,
-          driver_id: user.id,
-          photo_url: publicUrl,
-          photo_type: 'container'
-        });
+        // Save to database only if photo was uploaded
+        const { error: dbError } = await supabase
+          .from('pickup_sop_photos')
+          .insert({
+            job_id: jobId,
+            driver_id: user.id,
+            photo_url: publicUrl,
+            photo_type: 'container'
+          });
 
-      if (dbError) throw dbError;
+        if (dbError) throw dbError;
+      }
 
       // Update job application status
       const { error: updateError } = await supabase
@@ -346,12 +362,20 @@ const ContainerSOPPage = () => {
           )}
         </div>
         
-        {/* OCR Input Fields */}
-        {photoFile && (
+        {/* OCR Input Fields - Show when photo taken OR when verified from job detail */}
+        {(photoFile || isOcrVerified) && (
           <Card className="p-4 space-y-4 bg-white">
-            <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
-              <Scan className="w-4 h-4" />
-              {t('ocr.containerSealInfo')}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
+                <Scan className="w-4 h-4" />
+                {t('ocr.containerSealInfo')}
+              </div>
+              {isOcrVerified && (
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                  <BadgeCheck className="w-3.5 h-3.5" />
+                  {t('containerSealVerification.verified') || 'ยืนยันแล้ว'}
+                </div>
+              )}
             </div>
             
             <OCRInputField
@@ -410,7 +434,7 @@ const ContainerSOPPage = () => {
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={uploading || !photoFile}
+          disabled={uploading || (!photoFile && !isOcrVerified)}
         >
           {uploading ? t('sop.saving') : t('containerSop.confirmButton')}
         </Button>

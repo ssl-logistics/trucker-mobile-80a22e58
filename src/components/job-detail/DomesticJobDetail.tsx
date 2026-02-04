@@ -245,8 +245,14 @@ export default function DomesticJobDetail({
         });
         
         setShowOcrConfirmDialog(false);
-        // Navigate to container SOP page to complete the process
-        navigate(`/container-sop/${job.order_code}`);
+        // Navigate to container SOP page with verified data pre-filled
+        navigate(`/container-sop/${job.order_code}`, {
+          state: {
+            verifiedContainer: ocrResult.container_number,
+            verifiedSeal: ocrResult.seal_number,
+            ocrVerified: true,
+          }
+        });
       } else {
         // Show mismatch error
         const mismatchMessage = verifyResult?.has_containers_in_db 
