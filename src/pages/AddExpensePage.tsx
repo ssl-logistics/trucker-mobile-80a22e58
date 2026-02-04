@@ -8,6 +8,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -396,10 +397,13 @@ const AddExpensePage = () => {
                   <SelectValue placeholder={t('expense.selectType')} />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50" position="popper" sideOffset={4}>
-                  {expenseTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value} className="cursor-pointer">
-                      {type.label}
-                    </SelectItem>
+                  {expenseTypes.map((type, idx) => (
+                    <div key={type.value}>
+                      <SelectItem value={type.value} className="cursor-pointer">
+                        {type.label}
+                      </SelectItem>
+                      {idx < expenseTypes.length - 1 && <SelectSeparator />}
+                    </div>
                   ))}
                 </SelectContent>
               </Select>
