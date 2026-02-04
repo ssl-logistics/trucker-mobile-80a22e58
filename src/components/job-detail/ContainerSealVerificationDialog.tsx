@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Image as ImageIcon, CheckCircle, Loader2 } from 'lucide-react';
+import { Camera, Image as ImageIcon, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOCR } from '@/hooks/useOCR';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
@@ -42,6 +42,20 @@ interface OCRResult {
   seal_number_2?: string | null;
 }
 
+interface VerificationResult {
+  success: boolean;
+  matched: boolean;
+  container_matched: boolean;
+  seal_matched: boolean;
+  container_no?: string;
+  seal_no?: string;
+  booking_no?: string;
+  container_index?: number;
+  message?: string;
+  has_containers_in_db?: boolean;
+  error?: string;
+}
+
 export default function ContainerSealVerificationDialog({
   open,
   onOpenChange,
@@ -58,6 +72,7 @@ export default function ContainerSealVerificationDialog({
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   // OCR extracted values
   const [containerNumber, setContainerNumber] = useState('');
@@ -68,6 +83,9 @@ export default function ContainerSealVerificationDialog({
   const [ocrSealNumber, setOcrSealNumber] = useState<string | null>(null);
   const [ocrContainerNumber2, setOcrContainerNumber2] = useState<string | null>(null);
   const [ocrSealNumber2, setScrSealNumber2] = useState<string | null>(null);
+
+  // Verification state
+  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
 
   const resetState = () => {
     setPhotoFile(null);
@@ -80,10 +98,42 @@ export default function ContainerSealVerificationDialog({
     setOcrSealNumber(null);
     setOcrContainerNumber2(null);
     setScrSealNumber2(null);
+    setVerificationResult(null);
+  };
+
+  // Verify container with API
+  const verifyContainer = async (containerNo: string, sealNo?: string): Promise<VerificationResult | null> => {
+    try {
+      setVerifying(true);
+      console.log('Verifying container:', { orderCode, containerNo, sealNo });
+
+      const { data, error } = await supabase.functions.invoke('verify-container', {
+        body: {
+          order_number: orderCode,
+          container_no: containerNo,
+          seal_no: sealNo || null,
+        },
+      });
+
+      if (error) {
+        console.error('Verify container error:', error);
+        return null;
+      }
+
+      console.log('Verification result:', data);
+      return data as VerificationResult;
+    } catch (err) {
+      console.error('Verification error:', err);
+      return null;
+    } finally {
+      setVerifying(false);
+    }
   };
 
   const processImage = async (file: File) => {
     setPhotoFile(file);
+    setVerificationResult(null);
+    
     const reader = new FileReader();
     reader.onloadend = () => {
       setPhotoPreview(reader.result as string);
@@ -95,13 +145,18 @@ export default function ContainerSealVerificationDialog({
     
     if (result.success && result.data) {
       const data = result.data as OCRResult;
+      let extractedContainer = '';
+      let extractedSeal = '';
+
       if (data.container_number) {
         setOcrContainerNumber(data.container_number);
         setContainerNumber(data.container_number);
+        extractedContainer = data.container_number;
       }
       if (data.seal_number) {
         setOcrSealNumber(data.seal_number);
         setSealNumber(data.seal_number);
+        extractedSeal = data.seal_number;
       }
       if (data.container_number_2) {
         setOcrContainerNumber2(data.container_number_2);
@@ -116,12 +171,66 @@ export default function ContainerSealVerificationDialog({
         title: t('containerSealVerification.ocrSuccess') || 'OCR สำเร็จ',
         description: t('containerSealVerification.ocrSuccessDesc') || 'ตรวจสอบและยืนยันข้อมูลที่อ่านได้',
       });
+
+      // Auto-verify if container number was extracted
+      if (extractedContainer) {
+        const verifyResult = await verifyContainer(extractedContainer, extractedSeal);
+        if (verifyResult) {
+          setVerificationResult(verifyResult);
+          
+          if (verifyResult.matched) {
+            toast({
+              title: t('containerSealVerification.verified') || 'ยืนยันสำเร็จ',
+              description: verifyResult.message || 'เลขตู้และซีลตรงกับระบบ',
+            });
+          } else {
+            toast({
+              title: t('containerSealVerification.notMatched') || 'ไม่ตรงกับระบบ',
+              description: verifyResult.has_containers_in_db 
+                ? (t('containerSealVerification.containerMismatch') || 'เลขตู้/ซีลไม่ตรงกับที่ลงทะเบียนในระบบ')
+                : (t('containerSealVerification.noContainerInDB') || 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ'),
+              variant: 'destructive',
+            });
+          }
+        }
+      }
     } else if (result.error) {
       toast({
         title: t('containerSealVerification.ocrError') || 'OCR ล้มเหลว',
         description: result.error,
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleManualVerify = async () => {
+    if (!containerNumber) {
+      toast({
+        title: t('containerSealVerification.requiredFields') || 'กรุณากรอกข้อมูล',
+        description: t('containerSealVerification.containerRequired') || 'กรุณากรอกเลขตู้',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const result = await verifyContainer(containerNumber, sealNumber);
+    if (result) {
+      setVerificationResult(result);
+      
+      if (result.matched) {
+        toast({
+          title: t('containerSealVerification.verified') || 'ยืนยันสำเร็จ',
+          description: result.message || 'เลขตู้และซีลตรงกับระบบ',
+        });
+      } else {
+        toast({
+          title: t('containerSealVerification.notMatched') || 'ไม่ตรงกับระบบ',
+          description: result.has_containers_in_db 
+            ? (t('containerSealVerification.containerMismatch') || 'เลขตู้/ซีลไม่ตรงกับที่ลงทะเบียนในระบบ')
+            : (t('containerSealVerification.noContainerInDB') || 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ'),
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -219,6 +328,7 @@ export default function ContainerSealVerificationDialog({
           container_number_2: containerNumber2 || null,
           seal_number_2: sealNumber2 || null,
           photo_url: photoUrl || null,
+          verification_result: verificationResult,
           ocr_data: {
             container_number: ocrContainerNumber,
             seal_number: ocrSealNumber,
@@ -406,6 +516,76 @@ export default function ContainerSealVerificationDialog({
                 </div>
               </div>
             </div>
+
+            {/* Verification Result Display */}
+            {verificationResult && (
+              <Card className={`p-4 ${verificationResult.matched ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                <div className="flex items-start gap-3">
+                  {verificationResult.matched ? (
+                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p className={`font-semibold ${verificationResult.matched ? 'text-green-800' : 'text-red-800'}`}>
+                      {verificationResult.matched 
+                        ? (t('containerSealVerification.verified') || 'ยืนยันสำเร็จ - ข้อมูลตรงกับระบบ')
+                        : (t('containerSealVerification.notMatched') || 'ไม่ตรงกับระบบ')
+                      }
+                    </p>
+                    <p className={`text-sm mt-1 ${verificationResult.matched ? 'text-green-700' : 'text-red-700'}`}>
+                      {verificationResult.message || (
+                        verificationResult.matched 
+                          ? 'เลขตู้และซีลตรงกับที่ลงทะเบียนในระบบ'
+                          : verificationResult.has_containers_in_db
+                            ? 'เลขตู้/ซีลไม่ตรงกับที่ลงทะเบียนในระบบ กรุณาตรวจสอบอีกครั้ง'
+                            : 'ยังไม่มีเลขตู้ลงทะเบียนในระบบสำหรับงานนี้'
+                      )}
+                    </p>
+                    {verificationResult.matched && verificationResult.booking_no && (
+                      <p className="text-xs text-green-600 mt-2">
+                        Booking: {verificationResult.booking_no}
+                      </p>
+                    )}
+                    {/* Show detailed match status */}
+                    {verificationResult.matched && (
+                      <div className="flex gap-3 mt-2 text-xs">
+                        <span className="flex items-center gap-1 text-green-600">
+                          <CheckCircle className="w-3 h-3" />
+                          {t('containerSealVerification.containerNumber') || 'เลขตู้'}
+                        </span>
+                        {verificationResult.seal_matched && (
+                          <span className="flex items-center gap-1 text-green-600">
+                            <CheckCircle className="w-3 h-3" />
+                            {t('containerSealVerification.sealNumber') || 'เลขซีล'}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Manual Verify Button */}
+            {containerNumber && !verificationResult && !verifying && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleManualVerify}
+                disabled={verifying || extracting}
+              >
+                <AlertCircle className="w-4 h-4 mr-2" />
+                {t('containerSealVerification.verifyManual') || 'ตรวจสอบเลขตู้กับระบบ'}
+              </Button>
+            )}
+
+            {verifying && (
+              <div className="flex items-center justify-center gap-2 py-3 text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">{t('containerSealVerification.verifying') || 'กำลังตรวจสอบ...'}</span>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
@@ -420,8 +600,7 @@ export default function ContainerSealVerificationDialog({
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={!isFormValid || submitting || extracting}
-              className="bg-primary"
+              disabled={!isFormValid || submitting || extracting || verifying}
             >
               {submitting ? (
                 <>
