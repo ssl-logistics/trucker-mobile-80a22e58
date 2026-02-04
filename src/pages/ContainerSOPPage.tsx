@@ -12,6 +12,7 @@ import JobActionButtons from "@/components/job/JobActionButtons";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
 import { useOCR } from "@/hooks/useOCR";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
 import { OCRInputField, OCRStatusBadge } from "@/components/ocr/OCRInputField";
 import {
   Dialog,
@@ -49,6 +50,7 @@ const ContainerSOPPage = () => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { extractFromImage, extracting } = useOCR();
+  const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
   
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +100,60 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const handlePhotoSelect = (source: 'camera' | 'gallery') => {
+  const processPhotoFile = async (file: File) => {
+    setPhotoFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPhotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    // Run OCR extraction
+    setOcrError(null);
+    const result = await extractFromImage(file, 'container_seal');
+    
+    if (result.success && result.data) {
+      if (result.data.container_number) {
+        setOcrContainerNumber(result.data.container_number);
+      }
+      if (result.data.seal_number) {
+        setOcrSealNumber(result.data.seal_number);
+      }
+      if (result.data.container_number_2) {
+        setOcrContainerNumber2(result.data.container_number_2);
+      }
+      if (result.data.seal_number_2) {
+        setOcrSealNumber2(result.data.seal_number_2);
+      }
+      
+      toast({
+        title: "OCR สำเร็จ",
+        description: "ตรวจสอบและยืนยันข้อมูลที่อ่านได้",
+      });
+    } else if (result.error) {
+      setOcrError(result.error);
+    }
+  };
+
+  const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
+    setShowPhotoDrawer(false);
+    
+    // Try native camera first (for Capacitor apps)
+    if (isNative) {
+      let file: File | null = null;
+      if (source === 'camera') {
+        file = await takePhoto();
+      } else {
+        file = await selectFromGallery();
+      }
+      
+      if (file) {
+        await processPhotoFile(file);
+        return;
+      }
+    }
+    
+    // Fallback to web file input
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -109,43 +164,11 @@ const ContainerSOPPage = () => {
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        setPhotoFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPhotoPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-        
-        // Run OCR extraction
-        setOcrError(null);
-        const result = await extractFromImage(file, 'container_seal');
-        
-        if (result.success && result.data) {
-          if (result.data.container_number) {
-            setOcrContainerNumber(result.data.container_number);
-          }
-          if (result.data.seal_number) {
-            setOcrSealNumber(result.data.seal_number);
-          }
-          if (result.data.container_number_2) {
-            setOcrContainerNumber2(result.data.container_number_2);
-          }
-          if (result.data.seal_number_2) {
-            setOcrSealNumber2(result.data.seal_number_2);
-          }
-          
-          toast({
-            title: "OCR สำเร็จ",
-            description: "ตรวจสอบและยืนยันข้อมูลที่อ่านได้",
-          });
-        } else if (result.error) {
-          setOcrError(result.error);
-        }
+        await processPhotoFile(file);
       }
     };
     
     input.click();
-    setShowPhotoDrawer(false);
   };
 
   const handleConfirmClick = () => {
