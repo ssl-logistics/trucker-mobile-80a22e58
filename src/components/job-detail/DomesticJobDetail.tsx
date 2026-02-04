@@ -711,7 +711,8 @@ export default function DomesticJobDetail({
               {/* For international jobs, pickup is locked until empty container is checked in */}
               {(() => {
                 const isInternationalJob = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
-                const isPickupLocked = isInternationalJob && !emptyContainerCheckedIn;
+                // Lock pickup if: international job AND (not checked in OR checked in but OCR not verified)
+                const isPickupLocked = isInternationalJob && (!emptyContainerCheckedIn || (emptyContainerCheckedIn && !isOcrVerified));
                 
                 return (
                   <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : isPickupLocked ? 'border-gray-300 bg-gray-50' : 'border-teal-500 bg-[#F6FFFE]'}`}>
