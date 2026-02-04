@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -11,6 +11,16 @@ import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { formatDate } from '@/lib/dateUtils';
+import { useOCR } from '@/hooks/useOCR';
+import { useNativeCamera } from '@/hooks/useNativeCamera';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
@@ -105,6 +115,90 @@ export default function DomesticJobDetail({
   const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
+  const [showOcrDrawer, setShowOcrDrawer] = useState(false);
+  const [isProcessingOcr, setIsProcessingOcr] = useState(false);
+  
+  // OCR hooks
+  const { extractFromImage, extracting } = useOCR();
+  const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
+
+  // Handle OCR photo selection
+  const handleOcrPhotoSelect = async (source: 'camera' | 'gallery') => {
+    setShowOcrDrawer(false);
+    setIsProcessingOcr(true);
+    
+    try {
+      let file: File | null = null;
+      
+      // Try native camera first (for Capacitor apps)
+      if (isNative) {
+        if (source === 'camera') {
+          file = await takePhoto();
+        } else {
+          file = await selectFromGallery();
+        }
+      }
+      
+      // Fallback to web file input if native didn't return a file
+      if (!file) {
+        file = await new Promise<File | null>((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          if (source === 'camera') {
+            input.capture = 'environment';
+          }
+          
+          input.onchange = (e) => {
+            const selectedFile = (e.target as HTMLInputElement).files?.[0];
+            resolve(selectedFile || null);
+          };
+          
+          input.oncancel = () => resolve(null);
+          input.click();
+        });
+      }
+      
+      if (!file) {
+        setIsProcessingOcr(false);
+        return;
+      }
+      
+      // Run OCR extraction
+      toast({
+        title: "กำลังประมวลผล OCR",
+        description: "รอสักครู่...",
+      });
+      
+      const result = await extractFromImage(file, 'container_seal');
+      
+      if (result.success && result.data) {
+        // Navigate to container SOP page with OCR data
+        toast({
+          title: "OCR สำเร็จ",
+          description: `เลขตู้: ${result.data.container_number || '-'}, เลขซีล: ${result.data.seal_number || '-'}`,
+        });
+        
+        // Navigate to container SOP page to complete the process
+        navigate(`/container-sop/${job.order_code}`);
+      } else if (result.error) {
+        toast({
+          title: "OCR ไม่สำเร็จ",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('OCR error:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถประมวลผล OCR ได้",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingOcr(false);
+    }
+  };
 
   // Fetch check-in status and SOP status from external APIs
   useEffect(() => {
@@ -454,12 +548,17 @@ export default function DomesticJobDetail({
                         <Button 
                           size="sm" 
                           className="w-full h-10 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
-                          onClick={() => {
-                            navigate(`/container-sop/${job.order_code}`);
-                          }}
+                          onClick={() => setShowOcrDrawer(true)}
+                          disabled={isProcessingOcr || extracting}
                         >
-                          <Scan className="w-4 h-4" />
-                          <span className="text-xs">สแกน OCR</span>
+                          {(isProcessingOcr || extracting) ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Scan className="w-4 h-4" />
+                          )}
+                          <span className="text-xs">
+                            {(isProcessingOcr || extracting) ? 'กำลังประมวลผล...' : 'สแกน OCR'}
+                          </span>
                         </Button>
                       ) : (
                         <div className="grid grid-cols-2 gap-2">
@@ -755,5 +854,41 @@ export default function DomesticJobDetail({
 
 
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} orderNumber={job.order_code} />
+      
+      {/* OCR Photo Selection Drawer */}
+      <Drawer open={showOcrDrawer} onOpenChange={setShowOcrDrawer}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">{t('sop.selectSource')}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
+            <Button
+              variant="outline"
+              className="w-full h-14 text-base justify-start gap-3"
+              onClick={() => handleOcrPhotoSelect('camera')}
+              disabled={isProcessingOcr || extracting}
+            >
+              <Camera className="w-6 h-6" />
+              {t('sop.takePhoto')}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-14 text-base justify-start gap-3"
+              onClick={() => handleOcrPhotoSelect('gallery')}
+              disabled={isProcessingOcr || extracting}
+            >
+              <ImageIcon className="w-6 h-6" />
+              {t('sop.selectFromGallery')}
+            </Button>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full h-12">
+                {t('sop.cancel')}
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>;
 }
