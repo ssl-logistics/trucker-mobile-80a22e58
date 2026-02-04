@@ -103,6 +103,7 @@ export default function DomesticJobDetail({
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
   const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
+  const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
 
   // Fetch check-in status and SOP status from external APIs
@@ -113,6 +114,7 @@ export default function DomesticJobDetail({
       setPickupSopCompleted(false);
       setDeliveryCheckedIn(false);
       setDeliverySopCompleted(false);
+      setEmptyContainerCheckedIn(false);
       setIsLoadingCheckinStatus(true);
       
       try {
@@ -179,10 +181,12 @@ export default function DomesticJobDetail({
         const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
         const hasDeliveryConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
-        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed);
+        const hasEmptyContainerCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'empty_container');
+        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'EmptyContainer:', hasEmptyContainerCheckin);
         
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
+        setEmptyContainerCheckedIn(hasEmptyContainerCheckin);
         
         // If delivery_confirmed exists for THIS order, set deliverySopCompleted to true
         if (hasDeliveryConfirmed) {
@@ -386,8 +390,8 @@ export default function DomesticJobDetail({
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-[#225795]">จุดรับตู้เปล่า</h3>
                       </div>
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
-                        รอเช็คอิน
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
                       </span>
                     </div>
                     
