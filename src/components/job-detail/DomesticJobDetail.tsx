@@ -72,6 +72,7 @@ interface JobDetail {
   container_number_2?: string | null;
   seal_number?: string | null;
   seal_number_2?: string | null;
+  booking_number?: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -369,6 +370,11 @@ export default function DomesticJobDetail({
                 {job.job_type === 'international' ? t('jobDetail.international') : t('jobDetail.domestic')}
               </Badge>
             </div>
+            {job.booking_number && (
+              <div className="text-xs text-white/80 mt-1">
+                {t('jobDetail.bookingNumber')}: {job.booking_number}
+              </div>
+            )}
           </div>
           <div className="w-6" />
         </div>
