@@ -7,6 +7,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
@@ -997,29 +998,39 @@ export default function DomesticJobDetail({
             <DrawerTitle className="text-center">{t('ocr.confirmTitle') || 'ยืนยันข้อมูล OCR'}</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
-            <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-teal-700 font-bold text-sm">1</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-teal-700 font-medium">{t('ocr.containerNumber') || 'เลขตู้คอนเทนเนอร์'}</p>
-                  <p className="text-lg font-bold text-teal-900">{ocrResult?.container_number || '-'}</p>
-                </div>
+            <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm text-teal-700 font-medium flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-teal-700 font-bold text-xs">1</span>
+                  </div>
+                  {t('ocr.containerNumber') || 'เลขตู้คอนเทนเนอร์'}
+                </label>
+                <Input
+                  value={ocrResult?.container_number || ''}
+                  onChange={(e) => setOcrResult(prev => prev ? { ...prev, container_number: e.target.value } : { container_number: e.target.value, seal_number: null })}
+                  placeholder={t('ocr.enterContainerNumber') || 'กรอกเลขตู้'}
+                  className="text-lg font-bold bg-white"
+                />
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-teal-700 font-bold text-sm">2</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-teal-700 font-medium">{t('ocr.sealNumber') || 'เลขซีล'}</p>
-                  <p className="text-lg font-bold text-teal-900">{ocrResult?.seal_number || '-'}</p>
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm text-teal-700 font-medium flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-teal-700 font-bold text-xs">2</span>
+                  </div>
+                  {t('ocr.sealNumber') || 'เลขซีล'}
+                </label>
+                <Input
+                  value={ocrResult?.seal_number || ''}
+                  onChange={(e) => setOcrResult(prev => prev ? { ...prev, seal_number: e.target.value } : { container_number: null, seal_number: e.target.value })}
+                  placeholder={t('ocr.enterSealNumber') || 'กรอกเลขซีล'}
+                  className="text-lg font-bold bg-white"
+                />
               </div>
             </div>
             
             <p className="text-center text-sm text-muted-foreground">
-              {t('ocr.confirmPrompt') || 'ข้อมูลด้านบนถูกต้องหรือไม่?'}
+              {t('ocr.editablePrompt') || 'สามารถแก้ไขได้หากไม่ถูกต้อง'}
             </p>
           </div>
           <DrawerFooter className="flex-row gap-3">
@@ -1035,14 +1046,14 @@ export default function DomesticJobDetail({
             <Button 
               className="flex-1 h-12 gap-2 bg-teal-500 hover:bg-teal-600 text-white"
               onClick={handleConfirmOcr}
-              disabled={isVerifying}
+              disabled={isVerifying || !ocrResult?.container_number}
             >
               {isVerifying ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <CheckCircle className="w-5 h-5" />
               )}
-              {isVerifying ? (t('containerSealVerification.verifying') || 'กำลังตรวจสอบ...') : (t('ocr.confirm') || 'ถูกต้อง')}
+              {isVerifying ? (t('containerSealVerification.verifying') || 'กำลังตรวจสอบ...') : (t('ocr.confirm') || 'ยืนยัน')}
             </Button>
           </DrawerFooter>
         </DrawerContent>
