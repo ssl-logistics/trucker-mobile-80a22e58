@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useLocation } from "react-router-dom";
 import { Bot } from "lucide-react";
 import { ChatbotDrawer } from "./ChatbotDrawer";
+
+// Pages that show the bottom navigation bar
+const PAGES_WITH_NAV = ["/home", "/chat", "/dashboard", "/settings"];
 
 export function FloatingChatbot() {
   const [showChatbot, setShowChatbot] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const location = useLocation();
+
+  // Only show on pages with bottom navigation
+  const shouldShow = PAGES_WITH_NAV.includes(location.pathname);
 
   useEffect(() => {
     setMounted(true);
@@ -38,6 +46,11 @@ export function FloatingChatbot() {
       <Bot style={{ width: 24, height: 24 }} />
     </button>
   );
+
+  // Don't render if not on a main page
+  if (!shouldShow) {
+    return null;
+  }
 
   return (
     <>
