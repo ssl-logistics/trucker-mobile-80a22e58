@@ -600,124 +600,136 @@ export default function DomesticJobDetail({
               )}
 
               {/* Pickup Point Card */}
-              <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : 'border-teal-500 bg-[#F6FFFE]'}`}>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.pickupPoint')}</h3>
-                      {job.origin_company_name && <span className="text-sm font-medium text-[#225795]">: {job.origin_company_name}</span>}
-                    </div>
-                    {isLoadingCheckinStatus ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                        <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
-                        กำลังตรวจสอบ...
-                      </span>
-                    ) : (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'text-green-600 bg-[#E6F7E6]' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                        {(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
-                      </span>
-                    )}
-                  </div>
+              {/* For international jobs, pickup is locked until empty container is checked in */}
+              {(() => {
+                const isInternationalJob = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
+                const isPickupLocked = isInternationalJob && !emptyContainerCheckedIn;
+                
+                return (
+                  <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : isPickupLocked ? 'border-gray-300 bg-gray-50' : 'border-teal-500 bg-[#F6FFFE]'}`}>
+                    <div className={isPickupLocked ? 'opacity-60' : ''}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.pickupPoint')}</h3>
+                          {job.origin_company_name && <span className="text-sm font-medium text-[#225795]">: {job.origin_company_name}</span>}
+                        </div>
+                        {isLoadingCheckinStatus ? (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
+                            <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
+                            {t('common.checking')}
+                          </span>
+                        ) : isPickupLocked ? (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
+                            {t('jobDetail.waitingPreviousStep')}
+                          </span>
+                        ) : (
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'text-green-600 bg-[#E6F7E6]' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                            {(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
+                          </span>
+                        )}
+                      </div>
 
-                  <div className="space-y-1 text-sm mb-3">
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                      <span className="text-[#454545]">: {job.origin_contact_person || '-'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position')}</span>
-                      <span className="text-[#454545]">: {job.origin_location || '-'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                      <span className="text-[#454545]">: {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.pickupTime')}</span>
-                      <span className="text-[#454545]">: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
-                      <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
-                    </div>
-                  </div>
+                      <div className="space-y-1 text-sm mb-3">
+                        <div className="flex">
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
+                          <span className="text-[#454545]">: {job.origin_contact_person || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position')}</span>
+                          <span className="text-[#454545]">: {job.origin_location || '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
+                          <span className="text-[#454545]">: {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.pickupTime')}</span>
+                          <span className="text-[#454545]">: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
+                          <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
+                        </div>
+                      </div>
 
 
-                  <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
-                    {new URLSearchParams(location.search).get('from') !== 'history' && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]"
-                          disabled={pickupSopCompleted || !!jobApplication?.sop_completed_at}
-                          onClick={() => {
-                            const phone = job.origin_contact_phone;
-                            if (phone) {
-                              window.location.href = `tel:${phone}`;
-                            } else {
-                              toast({
-                                title: t('jobDetail.error'),
-                                description: t('jobDetail.noPhoneNumber'),
-                                variant: 'destructive'
-                              });
-                            }
-                          }}
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span className="text-xs">{t('jobDetail.call')}</span>
+                      <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                        {new URLSearchParams(location.search).get('from') !== 'history' && (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]"
+                              disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
+                              onClick={() => {
+                                const phone = job.origin_contact_phone;
+                                if (phone) {
+                                  window.location.href = `tel:${phone}`;
+                                } else {
+                                  toast({
+                                    title: t('jobDetail.error'),
+                                    description: t('jobDetail.noPhoneNumber'),
+                                    variant: 'destructive'
+                                  });
+                                }
+                              }}
+                            >
+                              <Phone className="w-4 h-4" />
+                              <span className="text-xs">{t('jobDetail.call')}</span>
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]"
+                              disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
+                              onClick={() => {
+                                const lat = job.origin_latitude;
+                                const lng = job.origin_longitude;
+                                if (lat && lng) {
+                                  const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                                  window.open(url, '_blank');
+                                } else if (job.origin_address) {
+                                  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.origin_address)}`;
+                                  window.open(url, '_blank');
+                                } else {
+                                  toast({
+                                    title: t('jobDetail.error'),
+                                    description: t('jobDetail.noLocation'),
+                                    variant: 'destructive'
+                                  });
+                                }
+                              }}
+                            >
+                              <img src={routeIcon} alt="route" className="w-4 h-4" />
+                              <span className="text-xs">{t('jobDetail.route')}</span>
+                            </Button>
+                          </>
+                        )}
+                        <Button size="sm" onClick={() => {
+                        const fromParam = new URLSearchParams(location.search).get('from');
+                        const queryString = fromParam ? `?from=${fromParam}` : '';
+                        if (pickupSopCompleted || jobApplication?.sop_completed_at) {
+                          navigate(`/job/${job.order_code}/pickup-summary${queryString}`);
+                        } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
+                          // Already checked in (from API or local state), go to SOP page
+                          navigate(`/job/${job.order_code}/sop${queryString}`);
+                        } else {
+                          // Not checked in yet, go to check-in page
+                          navigate(`/job/${job.order_code}/pickup${queryString}`);
+                        }
+                      }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isPickupLocked || isLoadingCheckinStatus}>
+                          {isLoadingCheckinStatus ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          ) : (
+                            <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                          )}
+                          <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]"
-                          disabled={pickupSopCompleted || !!jobApplication?.sop_completed_at}
-                          onClick={() => {
-                            const lat = job.origin_latitude;
-                            const lng = job.origin_longitude;
-                            if (lat && lng) {
-                              const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-                              window.open(url, '_blank');
-                            } else if (job.origin_address) {
-                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.origin_address)}`;
-                              window.open(url, '_blank');
-                            } else {
-                              toast({
-                                title: t('jobDetail.error'),
-                                description: t('jobDetail.noLocation'),
-                                variant: 'destructive'
-                              });
-                            }
-                          }}
-                        >
-                          <img src={routeIcon} alt="route" className="w-4 h-4" />
-                          <span className="text-xs">{t('jobDetail.route')}</span>
-                        </Button>
-                      </>
-                    )}
-                    <Button size="sm" onClick={() => {
-                    const fromParam = new URLSearchParams(location.search).get('from');
-                    const queryString = fromParam ? `?from=${fromParam}` : '';
-                    if (pickupSopCompleted || jobApplication?.sop_completed_at) {
-                      navigate(`/job/${job.order_code}/pickup-summary${queryString}`);
-                    } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
-                      // Already checked in (from API or local state), go to SOP page
-                      navigate(`/job/${job.order_code}/sop${queryString}`);
-                    } else {
-                      // Not checked in yet, go to check-in page
-                      navigate(`/job/${job.order_code}/pickup${queryString}`);
-                    }
-                  }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isLoadingCheckinStatus}>
-                      {isLoadingCheckinStatus ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      ) : (
-                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      )}
-                      <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
-                    </Button>
-                  </div>
-                </div>
-              </Card>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })()}
 
 
               {/* Delivery Point Cards - Multiple destinations */}

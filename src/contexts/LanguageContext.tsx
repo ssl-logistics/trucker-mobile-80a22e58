@@ -145,6 +145,7 @@ const thTranslations: Record<string, string> = {
   'home.company_contractor': 'ผู้รับเหมาบริษัท',
   'common.loading': 'กำลังโหลด...',
   'common.pleaseWait': 'รอสักครู่...',
+  'common.checking': 'กำลังตรวจสอบ...',
   
   // Job Card
   'job.order_code': 'รหัสออเดอร์',
@@ -517,6 +518,7 @@ const thTranslations: Record<string, string> = {
   'jobDetail.podSuccess': 'POD สำเร็จ',
   'jobDetail.waitingPayment': 'รอชำระเงิน',
   'jobDetail.waitingPod': 'รอ POD',
+  'jobDetail.waitingPreviousStep': 'รอขั้นตอนก่อนหน้า',
   'jobDetail.contactPerson': 'ชื่อผู้ติดต่อ',
   'jobDetail.position': 'เส้นทาง',
   'jobDetail.goodsType': 'ประเภทสินค้า',
@@ -1506,6 +1508,7 @@ const enTranslations: Record<string, string> = {
   'home.company_contractor': 'Company Contractor',
   'common.loading': 'Loading...',
   'common.pleaseWait': 'Please wait...',
+  'common.checking': 'Checking...',
   
   // Job Card
   'job.order_code': 'Order Code',
@@ -1901,6 +1904,7 @@ const enTranslations: Record<string, string> = {
   'jobDetail.podSuccess': 'POD Complete',
   'jobDetail.waitingPayment': 'Waiting Payment',
   'jobDetail.waitingPod': 'Waiting POD',
+  'jobDetail.waitingPreviousStep': 'Waiting Previous Step',
   'jobDetail.contactPerson': 'Contact Person',
   'jobDetail.position': 'Position',
   'jobDetail.goodsType': 'Goods Type',
@@ -2866,6 +2870,7 @@ const koTranslations: Record<string, string> = {
   'home.company_contractor': '회사 계약자',
   'common.loading': '로딩 중...',
   'common.pleaseWait': '잠시만 기다려주세요...',
+  'common.checking': '확인 중...',
   
   // Job Card
   'job.order_code': '주문 코드',
@@ -3983,6 +3988,7 @@ const koTranslations: Record<string, string> = {
   'jobDetail.podSuccess': 'POD 완료',
   'jobDetail.waitingPayment': '결제 대기 중',
   'jobDetail.waitingPod': 'POD 대기 중',
+  'jobDetail.waitingPreviousStep': '이전 단계 대기 중',
   'jobDetail.contactPerson': '담당자 이름',
   'jobDetail.position': '직위',
   'jobDetail.goodsType': '상품 유형',
@@ -4585,6 +4591,7 @@ const zhTranslations: Record<string, string> = {
   'jobDetail.podSuccess': 'POD 成功',
   'jobDetail.waitingPayment': '等待付款',
   'jobDetail.waitingPod': '等待 POD',
+  'jobDetail.waitingPreviousStep': '等待上一步',
   'jobDetail.contactPerson': '联系人姓名',
   'jobDetail.position': '路线',
   'jobDetail.goodsType': '货物类型',
@@ -5203,6 +5210,7 @@ const zhTranslations: Record<string, string> = {
   'common.sort': '排序',
   'common.loading': '加载中...',
   'common.pleaseWait': '请稍候...',
+  'common.checking': '检查中...',
   'common.error': '错误',
   'common.success': '成功',
   'common.yes': '是',
