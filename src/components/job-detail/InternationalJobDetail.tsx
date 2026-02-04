@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, CheckCircle, Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -89,8 +90,86 @@ export default function InternationalJobDetail({
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [isContainerVerificationOpen, setIsContainerVerificationOpen] = useState(false);
   const [containerVerificationCompleted, setContainerVerificationCompleted] = useState(false);
+  
+  // Checkin status states - fetched from API like DomesticJobDetail
+  const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
+  const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
+  const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
+  const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
+  
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const isInbound = job.transport_type?.includes('ขาเข้า');
   const isOutbound = job.transport_type?.includes('ขาออก');
+
+  // Fetch check-in status from API (same pattern as DomesticJobDetail)
+  useEffect(() => {
+    const fetchCheckinStatus = async () => {
+      setEmptyContainerCheckedIn(false);
+      setPickupCheckedIn(false);
+      setDeliveryCheckedIn(false);
+      setIsLoadingCheckinStatus(true);
+      
+      try {
+        const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        const checkinUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${encodeURIComponent(userId)}&driver_type=${driverType}&order_number=${encodeURIComponent(job.order_code)}`;
+
+        const checkinResponse = await fetch(checkinUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        });
+        const checkinResult = await checkinResponse.json();
+        console.log('[InternationalJobDetail] Fetched check-in status:', checkinResult);
+        
+        const allCheckins = checkinResult?.data || [];
+        
+        // Filter checkins for this specific order & current driver
+        const checkins = Array.isArray(allCheckins)
+          ? allCheckins.filter((c: any) => {
+              const matchesUser = isInternalDriver
+                ? c.internal_driver_id === userId
+                : isExternalDriver
+                  ? c.external_driver_id === userId
+                  : c.freelance_driver_id === userId;
+
+              const matchesOrder =
+                c.transport_order_id === job.id ||
+                c.order_number === job.order_code ||
+                c.transport_orders?.order_number === job.order_code;
+
+              return matchesUser && matchesOrder;
+            })
+          : [];
+        
+        console.log('[InternationalJobDetail] Filtered checkins:', checkins.length, 'items');
+        
+        // Check for different checkin types
+        const hasEmptyContainerCheckin = checkins.some((c: any) => c.checkin_type === 'empty_container');
+        const hasContainerCheckin = checkins.some((c: any) => c.checkin_type === 'container');
+        const hasPickupCheckin = checkins.some((c: any) => c.checkin_type === 'pickup');
+        const hasDeliveryCheckin = checkins.some((c: any) => c.checkin_type === 'delivery');
+        
+        console.log('[InternationalJobDetail] Status - EmptyContainer:', hasEmptyContainerCheckin, 'Container:', hasContainerCheckin, 'Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin);
+        
+        // Set states - empty_container OR container checkin counts as container checkpoint done
+        setEmptyContainerCheckedIn(hasEmptyContainerCheckin || hasContainerCheckin);
+        setPickupCheckedIn(hasPickupCheckin);
+        setDeliveryCheckedIn(hasDeliveryCheckin);
+        
+      } catch (error) {
+        console.error('[InternationalJobDetail] Error fetching checkin status:', error);
+      } finally {
+        setIsLoadingCheckinStatus(false);
+      }
+    };
+
+    if (userId && job.order_code) {
+      fetchCheckinStatus();
+    }
+  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
+
   useEffect(() => {
     // Calculate card heights for step positioning
     if (card1Ref.current && card2Ref.current && card3Ref.current) {
@@ -258,8 +337,8 @@ export default function InternationalJobDetail({
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.containerCheckpoint')}</h3>
                     </div>
-                    {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.container_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                        {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : jobApplication?.container_checked_in_at ? t('jobDetail.waitingContainer') : t('jobDetail.waitingCheckIn')}
+                    {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : emptyContainerCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : emptyContainerCheckedIn ? t('jobDetail.waitingContainer') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
 
@@ -343,7 +422,7 @@ export default function InternationalJobDetail({
                     <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={!jobApplication?.job_started_at} onClick={() => {
                     if (jobApplication?.container_sop_completed_at) {
                       navigate(`/job/${job.id}/container-summary`);
-                    } else if (jobApplication?.container_checked_in_at) {
+                    } else if (emptyContainerCheckedIn) {
                       navigate(`/job/${job.id}/container-sop`);
                     } else {
                       navigate(`/job/${job.id}/container-checkin`);
@@ -505,7 +584,7 @@ export default function InternationalJobDetail({
       </div>
 
       {/* Container Verification Button - Show after job started but before container verification */}
-      {jobApplication?.job_started_at && !containerVerificationCompleted && !jobApplication?.container_checked_in_at && (
+      {jobApplication?.job_started_at && !containerVerificationCompleted && !emptyContainerCheckedIn && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t safe-area-inset-bottom">
           <Button 
             className="w-full h-14 text-base text-white"
