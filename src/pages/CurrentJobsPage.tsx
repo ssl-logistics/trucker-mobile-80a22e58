@@ -251,6 +251,7 @@ export default function CurrentJobsPage() {
             freelance_bidder_name: null,
             factory_name: job.factory_name,
             isFactoryJob: true,
+            job_type: job.job_type || job.transport_category || null,
             remarks: job.remarks,
             created_at: job.created_at,
             updated_at: job.updated_at,
@@ -396,6 +397,7 @@ export default function CurrentJobsPage() {
             ...job,
             sender_name: job.factory_name || job.sender_name,
             isFactoryJob: true,
+            job_type: job.job_type || job.transport_category || null,
           }));
           
         console.log('Factory jobs for Current Jobs:', factoryJobs.length, '(awaiting_response excluded:', pendingFactoryOrderNumbers.size, ')');
@@ -482,6 +484,7 @@ export default function CurrentJobsPage() {
             factory_name: ticket.factory_name || null,
             isFactoryJob: false,
             isBidJob: true, // Mark as bid job for UI distinction
+            job_type: ticket.job_type || ticket.transport_category || null,
             remarks: ticket.notes || ticket.remarks || null,
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
