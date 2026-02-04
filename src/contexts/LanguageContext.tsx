@@ -1041,6 +1041,15 @@ const thTranslations: Record<string, string> = {
   'ocr.container2Label': 'ตู้ที่ 2 (ถ้ามี)',
   'ocr.containerPlaceholder': 'เช่น MSCU1234567',
   'ocr.sealPlaceholder': 'เช่น TH123456',
+  'ocr.confirmTitle': 'ยืนยันข้อมูล OCR',
+  'ocr.confirmPrompt': 'ข้อมูลด้านบนถูกต้องหรือไม่?',
+  'ocr.editablePrompt': 'สามารถแก้ไขได้หากไม่ถูกต้อง',
+  'ocr.retake': 'ถ่ายใหม่',
+  'ocr.confirm': 'ยืนยัน',
+  'ocr.enterContainerNumber': 'กรอกเลขตู้',
+  'ocr.enterSealNumber': 'กรอกเลขซีล',
+  'ocr.noContainerFound': 'ไม่พบเลขตู้',
+  'ocr.tryAgain': 'กรุณาถ่ายรูปใหม่',
   
   // Container Check-in Page
   'containerCheckin.title': 'จุดรับตู้เปล่า',
@@ -2572,6 +2581,15 @@ const enTranslations: Record<string, string> = {
   'ocr.container2Label': 'Container 2 (if any)',
   'ocr.containerPlaceholder': 'e.g. MSCU1234567',
   'ocr.sealPlaceholder': 'e.g. TH123456',
+  'ocr.confirmTitle': 'Confirm OCR Data',
+  'ocr.confirmPrompt': 'Is the information above correct?',
+  'ocr.editablePrompt': 'You can edit if incorrect',
+  'ocr.retake': 'Retake',
+  'ocr.confirm': 'Confirm',
+  'ocr.enterContainerNumber': 'Enter container number',
+  'ocr.enterSealNumber': 'Enter seal number',
+  'ocr.noContainerFound': 'No container number found',
+  'ocr.tryAgain': 'Please take a photo again',
   
   // Container Check-in Page
   'containerCheckin.title': 'Empty Container Pickup',
@@ -4229,6 +4247,15 @@ const koTranslations: Record<string, string> = {
   'ocr.container2Label': '컨테이너 2 (해당시)',
   'ocr.containerPlaceholder': '예: MSCU1234567',
   'ocr.sealPlaceholder': '예: TH123456',
+  'ocr.confirmTitle': 'OCR 데이터 확인',
+  'ocr.confirmPrompt': '위의 정보가 맞습니까?',
+  'ocr.editablePrompt': '잘못된 경우 수정할 수 있습니다',
+  'ocr.retake': '다시 촬영',
+  'ocr.confirm': '확인',
+  'ocr.enterContainerNumber': '컨테이너 번호 입력',
+  'ocr.enterSealNumber': '봉인 번호 입력',
+  'ocr.noContainerFound': '컨테이너 번호를 찾을 수 없습니다',
+  'ocr.tryAgain': '다시 사진을 찍어주세요',
   
   // Container Check-in Page
   'containerCheckin.title': '빈 컨테이너 픽업',
@@ -4878,6 +4905,15 @@ const zhTranslations: Record<string, string> = {
   'ocr.container2Label': '集装箱 2（如有）',
   'ocr.containerPlaceholder': '例如 MSCU1234567',
   'ocr.sealPlaceholder': '例如 TH123456',
+  'ocr.confirmTitle': '确认 OCR 数据',
+  'ocr.confirmPrompt': '以上信息是否正确？',
+  'ocr.editablePrompt': '如果不正确可以编辑',
+  'ocr.retake': '重新拍摄',
+  'ocr.confirm': '确认',
+  'ocr.enterContainerNumber': '输入集装箱号',
+  'ocr.enterSealNumber': '输入封条号',
+  'ocr.noContainerFound': '未找到集装箱号',
+  'ocr.tryAgain': '请重新拍照',
   
   // Container Check-in Page Additional
   'containerCheckin.title': '空集装箱取货点',
