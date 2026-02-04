@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2 } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -449,39 +449,52 @@ export default function DomesticJobDetail({
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-10 flex items-center justify-center gap-2 border-[#153860]"
-                        onClick={() => {
-                          // Open navigation to container checkpoint
-                          if (job.container_checkpoint) {
-                            const query = encodeURIComponent(job.container_checkpoint);
-                            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-                          } else {
-                            toast({
-                              title: t('jobDetail.error'),
-                              description: 'ไม่พบข้อมูลสถานที่รับตู้เปล่า',
-                              variant: 'destructive'
-                            });
-                          }
-                        }}
-                      >
-                        <img src={routeIcon} alt="route" className="w-4 h-4" />
-                        <span className="text-xs text-[#153860]">เส้นทาง</span>
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        className="h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
-                        onClick={() => {
-                          // Navigate to container check-in page (must match route: /job/:jobId/container-checkin)
-                          navigate(`/job/${job.order_code}/container-checkin`);
-                        }}
-                      >
-                        <img src={statusIcon} alt="status" className="w-4 h-4" />
-                        <span className="text-xs">อัปเดตสถานะ</span>
-                      </Button>
+                    <div className="mt-3">
+                      {emptyContainerCheckedIn ? (
+                        <Button 
+                          size="sm" 
+                          className="w-full h-10 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+                          onClick={() => {
+                            navigate(`/container-sop/${job.order_code}`);
+                          }}
+                        >
+                          <Scan className="w-4 h-4" />
+                          <span className="text-xs">สแกน OCR</span>
+                        </Button>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-10 flex items-center justify-center gap-2 border-[#153860]"
+                            onClick={() => {
+                              if (job.container_checkpoint) {
+                                const query = encodeURIComponent(job.container_checkpoint);
+                                window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                              } else {
+                                toast({
+                                  title: t('jobDetail.error'),
+                                  description: 'ไม่พบข้อมูลสถานที่รับตู้เปล่า',
+                                  variant: 'destructive'
+                                });
+                              }
+                            }}
+                          >
+                            <img src={routeIcon} alt="route" className="w-4 h-4" />
+                            <span className="text-xs text-[#153860]">เส้นทาง</span>
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+                            onClick={() => {
+                              navigate(`/job/${job.order_code}/container-checkin`);
+                            }}
+                          >
+                            <img src={statusIcon} alt="status" className="w-4 h-4" />
+                            <span className="text-xs">อัปเดตสถานะ</span>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Card>
