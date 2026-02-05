@@ -139,8 +139,10 @@ const SignIn = () => {
         
         if (errorMessage.includes("Invalid") || errorMessage.includes("credentials")) {
           setServerError(t('signIn.invalidCredentials'));
+        } else if (errorMessage.includes("NOT_FOUND") || errorMessage.includes("not found") || errorMessage.includes("function")) {
+          setServerError(t('signIn.connectionError'));
         } else {
-          setServerError(errorMessage);
+          setServerError(t('signIn.error'));
         }
         
         localStorage.removeItem("rememberedEmail");
