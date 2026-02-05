@@ -386,6 +386,7 @@ export default function DomesticJobDetail({
         
         // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
         // Also support format: delivery with destination_sequence_number
+        // FALLBACK: If checkin_type is plain "delivery" without sequence, assume sequence 1
         const destCheckins: Record<number, { checked_in_at: string | null; sop_completed_at: string | null }> = {};
         checkins.forEach((c: any) => {
           // Match delivery_N format (e.g., delivery_1, delivery_2)
@@ -405,6 +406,21 @@ export default function DomesticJobDetail({
               checked_in_at: destCheckins[seqNum]?.checked_in_at || null,
               sop_completed_at: c.checked_in_at || c.created_at,
             };
+          }
+          // FALLBACK: Plain "delivery" without _N suffix and no destination_sequence_number
+          // For multi-destination jobs, assume it's for sequence 1
+          if (c.checkin_type === 'delivery' && !c.destination_sequence_number && !deliveryMatch) {
+            if (!destCheckins[1]) {
+              destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
+            }
+            destCheckins[1].checked_in_at = c.checked_in_at || c.created_at;
+          }
+          // FALLBACK: Plain "delivery_confirmed" without _N suffix and no destination_sequence_number
+          if (c.checkin_type === 'delivery_confirmed' && !c.destination_sequence_number && !confirmedMatch) {
+            if (!destCheckins[1]) {
+              destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
+            }
+            destCheckins[1].sop_completed_at = c.checked_in_at || c.created_at;
           }
           // Also check destination_sequence_number field if present
           if (c.destination_sequence_number && (c.checkin_type === 'delivery' || c.checkin_type?.startsWith('delivery'))) {
