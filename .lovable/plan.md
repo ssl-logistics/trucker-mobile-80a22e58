@@ -1,88 +1,80 @@
 
-# แผนแก้ไข: สถานะเช็คอิน Pickup ไม่อัพเดตเป็น "รอ SOP"
+# แผนแก้ไข: สถานะจุดส่งในงานหลายที่ไม่อัพเดตหลังเช็คอิน
 
-## สรุปปัญหา
-API ส่งข้อมูลเช็คอินมาถูกต้อง แต่ logic การ filter ใน `useCheckinStatus` hook ทำงานผิดพลาดเนื่องจาก:
+## ปัญหา
+งานหลายจุดส่ง (Multi-destination) เช็คอินจุดส่งแรกแล้ว แต่สถานะยังแสดงเป็น "รอเช็คอิน" แทนที่จะเป็น "รอชำระเงิน" เหมือนงานส่งเที่ยวเดียว
 
-1. **Field name ไม่ตรงกับ API response**:
-   - Code เช็ค: `checkin.order_number`
-   - API ส่งมา: `checkin.transport_orders.order_number`
+## สาเหตุ
+API ส่งข้อมูลเช็คอินแบบ `checkin_type: "delivery"` โดยไม่มี sequence number แต่โค้ดพยายามหา `delivery_1`, `delivery_2` หรือ `destination_sequence_number` ซึ่งไม่มีใน API response ทำให้ `destinationCheckins` เป็น object ว่างและสถานะไม่ถูกต้อง
 
-2. **API call ซ้ำซ้อนด้วย parameter ต่างกัน**:
-   - บางที่ใช้: `freelance_driver_id=xxx` (เก่า)
-   - บางที่ใช้: `driver_id=xxx&driver_type=internal` (ใหม่ - ถูกต้อง)
+## การแก้ไข
 
----
+### ไฟล์: `src/components/job-detail/DomesticJobDetail.tsx`
 
-## ไฟล์ที่ต้องแก้ไข
+**เพิ่ม Fallback Logic สำหรับ `checkin_type: "delivery"` ที่ไม่มี sequence number:**
 
-### 1. `src/hooks/useCheckinStatus.ts`
+1. หากมี `checkin_type === 'delivery'` และ **ไม่มี** `destination_sequence_number` หรือ `delivery_N` pattern → ถือว่าเป็นเช็คอินสำหรับจุดส่งแรก (sequence 1)
 
-**การแก้ไข:**
-- แก้ไขการเข้าถึง `order_number` ให้อ่านจาก `transport_orders.order_number` แทน
-- รองรับทั้งสอง format เผื่อ API เปลี่ยน
+2. อัพเดต logic ในส่วน Lines 389-424 ให้รองรับกรณีนี้:
 
 ```typescript
-// ก่อน (Line 76)
-const matchesOrder = checkin.order_number === orderNumber;
+// ก่อน (ไม่รองรับ delivery ธรรมดา)
+checkins.forEach((c: any) => {
+  const deliveryMatch = c.checkin_type?.match(/^delivery_(\d+)$/);
+  if (deliveryMatch) { ... }
+  // ...
+});
 
-// หลัง
-const matchesOrder = 
-  checkin.order_number === orderNumber || 
-  checkin.transport_orders?.order_number === orderNumber;
+// หลัง (รองรับ delivery ธรรมดา → fallback เป็น sequence 1)
+checkins.forEach((c: any) => {
+  // รองรับ delivery ธรรมดา (ไม่มี _N) สำหรับงานหลายจุดส่ง
+  // fallback เป็น sequence 1 หากไม่มี destination_sequence_number
+  if (c.checkin_type === 'delivery' && !c.destination_sequence_number) {
+    if (!destCheckins[1]) {
+      destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
+    }
+    destCheckins[1].checked_in_at = c.checked_in_at || c.created_at;
+  }
+  
+  // รองรับ delivery_confirmed ธรรมดา → fallback เป็น sequence 1
+  if (c.checkin_type === 'delivery_confirmed' && !c.destination_sequence_number) {
+    if (!destCheckins[1]) {
+      destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
+    }
+    destCheckins[1].sop_completed_at = c.checked_in_at || c.created_at;
+  }
+  
+  // เดิม: รองรับ delivery_N, delivery_confirmed_N
+  const deliveryMatch = c.checkin_type?.match(/^delivery_(\d+)$/);
+  if (deliveryMatch) { ... }
+  // ...
+});
 ```
-
-### 2. `src/pages/JobDetailPage.tsx` (ถ้าจำเป็น)
-
-**ตรวจสอบ:**
-- ให้แน่ใจว่าทุกจุดที่เรียก API check-in ใช้ parameter `driver_id` + `driver_type` ที่ถูกต้อง
-- ลบการเรียก API แบบเก่าที่ใช้ `freelance_driver_id` สำหรับ Internal/External drivers
 
 ---
 
 ## ผลลัพธ์ที่คาดหวัง
 
-หลังแก้ไข:
-1. เมื่อมีข้อมูลเช็คอิน pickup ในระบบ → สถานะจะแสดงเป็น **"รอ SOP"**
-2. Internal Driver จะเห็นสถานะที่ถูกต้องตาม `internal_driver_id` ที่ตรงกัน
-3. Filter logic จะทำงานถูกต้องกับ nested data structure
+| สถานการณ์ | ก่อนแก้ไข | หลังแก้ไข |
+|-----------|----------|----------|
+| จุดส่ง #1 เช็คอินแล้ว | รอเช็คอิน (ผิด) | รอชำระเงิน (ถูก) |
+| จุดส่ง #1 ยืนยัน POD แล้ว | รอเช็คอิน (ผิด) | POD สำเร็จ (ถูก) |
 
 ---
 
 ## รายละเอียดทางเทคนิค
 
-**API Response Structure ที่ได้รับ:**
+**API Response ปัจจุบัน (ไม่มี sequence):**
 ```json
 {
-  "transport_order_id": "53430cbd-...",
-  "checkin_type": "pickup",
-  "internal_driver_id": "bdfb4171-...",
-  "transport_orders": {
-    "id": "53430cbd-...",
-    "order_number": "OR20260126001",
-    "status": "in_transit"
-  }
+  "checkin_type": "delivery",
+  "transport_order_id": "75a8f1bc-...",
+  "checked_in_at": "2026-02-05T18:01:49..."
 }
 ```
 
-**Filter Logic ที่แก้ไขแล้ว:**
-```typescript
-const checkins = result.data.filter((checkin: any) => {
-  // Match by order_number (support both flat and nested)
-  const matchesOrder = 
-    checkin.order_number === orderNumber || 
-    checkin.transport_orders?.order_number === orderNumber;
-  
-  // Match driver ID based on driver type
-  let matchesDriver = false;
-  if (isInternalDriver) {
-    matchesDriver = checkin.internal_driver_id === driverId;
-  } else if (isExternalDriver) {
-    matchesDriver = checkin.external_driver_id === driverId;
-  } else {
-    matchesDriver = checkin.freelance_driver_id === driverId;
-  }
-  
-  return matchesOrder && matchesDriver;
-});
-```
+**Logic ที่เพิ่ม:**
+- หาก `checkin_type === 'delivery'` และไม่มี pattern `_N` และไม่มี `destination_sequence_number` → map เข้า `destCheckins[1]`
+- ใช้หลักการเดียวกันกับ `delivery_confirmed`
+
+**หมายเหตุ:** หาก API ถูกปรับปรุงในอนาคตให้ส่ง `destination_sequence_number` มาด้วย logic นี้จะยังคงทำงานถูกต้องเพราะเป็น fallback เท่านั้น
