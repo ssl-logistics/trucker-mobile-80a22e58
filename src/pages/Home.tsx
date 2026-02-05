@@ -18,6 +18,12 @@ import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { HomeTour } from '@/components/onboarding/HomeTour';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
+import { 
+  getDriverAssignedJobs, 
+  getFactoryAssignedJobs, 
+  getFreelanceAcceptedJobs,
+  getExpressRentPosts 
+} from '@/lib/externalApi';
 interface Job {
   id: string;
   post_id?: string;
@@ -114,64 +120,30 @@ export default function Home() {
     try {
       let result: any;
       
-      // Determine which API to call based on user type
+      // Determine which API to call based on user type - using external API directly
       if (isInternalDriver || isExternalDriver) {
-        // Internal/External drivers use get-driver-assigned-jobs API via supabase.functions.invoke
+        // Internal/External drivers use get-driver-assigned-jobs API
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const { data, error } = await supabase.functions.invoke('get-driver-assigned-jobs', {
-          method: 'GET',
-          headers: {
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-          },
-          body: null,
-        });
+        const { data, error } = await getDriverAssignedJobs(user.id, driverType, 10);
         
-        // Reconstruct the URL for GET request with query params
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=10`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            },
-          }
-        );
-        
-        if (!response.ok) {
-          console.error('Error loading factory/driver jobs:', response.statusText);
+        if (error) {
+          console.error('Error loading factory/driver jobs:', error);
           setIsLoadingFactoryJobs(false);
           return;
         }
-        result = await response.json();
+        result = data;
       } else {
-        // Freelance drivers use get-factory-assigned-jobs API via supabase.functions.invoke
-        const { data, error } = await supabase.functions.invoke('get-factory-assigned-jobs', {
-          method: 'GET',
-          body: null,
-        });
+        // Freelance drivers use get-factory-assigned-jobs API
+        const { data, error } = await getFactoryAssignedJobs(user.id, 10);
         
-        // For GET requests with query params, use fetch with proper headers
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${user.id}&limit=10`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-          }
-        );
-        
-        if (!response.ok) {
-          console.error('Error loading factory/driver jobs:', response.statusText);
+        if (error) {
+          console.error('Error loading factory/driver jobs:', error);
           setIsLoadingFactoryJobs(false);
           return;
         }
-        result = await response.json();
+        result = data;
       }
 
-      // Result is already parsed above
       console.log('Loaded factory/driver jobs from API:', result, 'userType:', userType);
 
       // Transform API response to Job format
@@ -299,8 +271,8 @@ export default function Home() {
   }, [user]);
   const loadJobs = async () => {
     try {
-      // Fetch from our edge function that uses the secret API key
-      const { data: responseData, error } = await supabase.functions.invoke('get-express-rent-posts');
+      // Fetch from external API directly
+      const { data: responseData, error } = await getExpressRentPosts();
       
       if (error) {
         console.error('Error loading jobs from API:', error);
@@ -315,7 +287,7 @@ export default function Home() {
       console.log('Loaded jobs from API:', responseData);
       
       // Transform API response to Job format
-      const apiJobs = Array.isArray(responseData) ? responseData : (responseData?.data || []);
+      const apiJobs = Array.isArray(responseData) ? responseData : ((responseData as any)?.data || []);
       
       // Filter by is_express_rent based on user type
       // internal_driver & external_driver: show is_express_rent = false (งานปกติ)
@@ -389,30 +361,16 @@ export default function Home() {
 
       // Check which jobs the user has accepted
       if (user && transformedJobs.length > 0) {
-        // Fetch accepted jobs from external API via supabase.functions.invoke
+        // Fetch accepted jobs from external API directly
         let acceptedOrderNumbers = new Set<string>();
         try {
-          const { data: acceptedResult, error: acceptedError } = await supabase.functions.invoke('get-freelance-accepted-jobs-proxy', {
-            method: 'GET',
-            body: null,
-          });
+          const { data: acceptedResult, error: acceptedError } = await getFreelanceAcceptedJobs(user.id);
           
-          // For GET with query params, use fetch with proper apikey header
-          const acceptedResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              }
-            }
-          );
-          
-          if (acceptedResponse.ok) {
-            const acceptedData = await acceptedResponse.json();
-            if (acceptedData.success && acceptedData.data) {
+          if (!acceptedError && acceptedResult) {
+            const acceptedData = (acceptedResult as any)?.data || acceptedResult;
+            if (Array.isArray(acceptedData)) {
               acceptedOrderNumbers = new Set(
-                acceptedData.data.map((job: any) => job.order_number)
+                acceptedData.map((job: any) => job.order_number)
               );
             }
           }
