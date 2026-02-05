@@ -188,6 +188,7 @@ export default function DeliveryDetailPage() {
             let deliveryCheckinTime: string | null = null;
             let deliveryConfirmedTime: string | null = null;
             let deliveryConfirmedPhotoUrl: string | null = null;
+            let deliveryConfirmedPaymentMethod: string | null = null;
 
             if (checkinsResponse.ok) {
               const checkinsResult = await checkinsResponse.json();
@@ -210,6 +211,7 @@ export default function DeliveryDetailPage() {
                 const deliveryConfirmed = filteredCheckins.find((c: any) => c.checkin_type === 'delivery_confirmed');
                 deliveryConfirmedTime = deliveryConfirmed?.checkin_time || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
+                deliveryConfirmedPaymentMethod = deliveryConfirmed?.payment_method || null;
               }
             }
             
@@ -225,7 +227,7 @@ export default function DeliveryDetailPage() {
             setJobApplication({
               delivery_checked_in_at: deliveryCheckinTime,
               payment_completed_at: localJobApp?.payment_completed_at || null,
-              payment_method: localJobApp?.payment_method || null,
+              payment_method: deliveryConfirmedPaymentMethod || localJobApp?.payment_method || null,
               // Prefer external delivery_confirmed photo/time if present, fallback to local
               pod_photo_url: deliveryConfirmedPhotoUrl || localJobApp?.pod_photo_url || null,
               delivery_sop_completed_at: deliveryConfirmedTime || localJobApp?.delivery_sop_completed_at || null,
@@ -366,6 +368,9 @@ export default function DeliveryDetailPage() {
         notes: 'จัดส่งสำเร็จ',
         photo_url: photoUrl,
         driver_type: driverType,
+        payment_method: selectedPaymentMethod,
+        // Include destination sequence number for multi-destination POD
+        ...(destinationId && { destination_sequence_number: parseInt(destinationId) || 1 }),
       };
 
       // Set the appropriate driver ID field based on driver type
