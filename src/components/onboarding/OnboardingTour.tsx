@@ -324,6 +324,7 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
            margin: 0,
            width: '300px',
            zIndex: 10000,
+           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
          }}
       >
         {/* Header */}
