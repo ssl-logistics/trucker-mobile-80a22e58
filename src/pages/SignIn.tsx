@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { login as loginExternal } from "@/lib/externalApi";
 import { setAuthItem } from "@/utils/authStorage";
 import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
@@ -120,26 +120,15 @@ const SignIn = () => {
       setServerError("");
       setIsLoggingIn(true);
       
-      // POST to login API via proxy
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/login-proxy`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: data.email,
-          password: data.password
-        })
-      });
+      // POST to login API directly (External API)
+      const { data: result, error: apiError } = await loginExternal(data.email, data.password);
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        const errorMessage = result.error || result.message || 'Login failed';
+      if (apiError || !result?.success) {
+        const errorMessage = apiError || result?.error || 'Login failed';
         
         if (errorMessage.includes("Invalid") || errorMessage.includes("credentials")) {
           setServerError(t('signIn.invalidCredentials'));
-        } else if (errorMessage.includes("NOT_FOUND") || errorMessage.includes("not found") || errorMessage.includes("function")) {
+        } else if (errorMessage.includes("CORS") || errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
           setServerError(t('signIn.connectionError'));
         } else {
           setServerError(t('signIn.error'));
