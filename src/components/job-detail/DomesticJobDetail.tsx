@@ -135,6 +135,8 @@ export default function DomesticJobDetail({
   const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
+  // Track check-in status for each destination by sequence number
+  const [destinationCheckins, setDestinationCheckins] = useState<Record<number, { checked_in_at: string | null; sop_completed_at: string | null }>>({});
   const [showOcrDrawer, setShowOcrDrawer] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
@@ -381,6 +383,45 @@ export default function DomesticJobDetail({
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
         setEmptyContainerCheckedIn(hasEmptyContainerCheckin);
+        
+        // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
+        // Also support format: delivery with destination_sequence_number
+        const destCheckins: Record<number, { checked_in_at: string | null; sop_completed_at: string | null }> = {};
+        checkins.forEach((c: any) => {
+          // Match delivery_N format (e.g., delivery_1, delivery_2)
+          const deliveryMatch = c.checkin_type?.match(/^delivery_(\d+)$/);
+          if (deliveryMatch) {
+            const seqNum = parseInt(deliveryMatch[1], 10);
+            destCheckins[seqNum] = {
+              checked_in_at: c.checked_in_at || c.created_at,
+              sop_completed_at: destCheckins[seqNum]?.sop_completed_at || null,
+            };
+          }
+          // Match delivery_confirmed_N format for SOP completion
+          const confirmedMatch = c.checkin_type?.match(/^delivery_confirmed_(\d+)$/);
+          if (confirmedMatch) {
+            const seqNum = parseInt(confirmedMatch[1], 10);
+            destCheckins[seqNum] = {
+              checked_in_at: destCheckins[seqNum]?.checked_in_at || null,
+              sop_completed_at: c.checked_in_at || c.created_at,
+            };
+          }
+          // Also check destination_sequence_number field if present
+          if (c.destination_sequence_number && (c.checkin_type === 'delivery' || c.checkin_type?.startsWith('delivery'))) {
+            const seqNum = c.destination_sequence_number;
+            if (!destCheckins[seqNum]) {
+              destCheckins[seqNum] = { checked_in_at: null, sop_completed_at: null };
+            }
+            if (c.checkin_type === 'delivery' || c.checkin_type?.match(/^delivery_\d+$/)) {
+              destCheckins[seqNum].checked_in_at = c.checked_in_at || c.created_at;
+            }
+            if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.match(/^delivery_confirmed_\d+$/)) {
+              destCheckins[seqNum].sop_completed_at = c.checked_in_at || c.created_at;
+            }
+          }
+        });
+        console.log('Destination checkins extracted:', destCheckins);
+        setDestinationCheckins(destCheckins);
         
         // If delivery_confirmed exists for THIS order, set deliverySopCompleted to true
         if (hasDeliveryConfirmed) {
@@ -863,15 +904,23 @@ export default function DomesticJobDetail({
 
               {/* Delivery Point Cards - Multiple destinations */}
               {destinations.length > 0 ? destinations.map((dest, index) => {
-                const isPodCompleted = !!dest.sop_completed_at;
-                const isCheckedIn = !!dest.checked_in_at;
+                // Get check-in status from destinationCheckins state (enriched from API)
+                const destCheckin = destinationCheckins[dest.sequence_number];
+                const isPodCompleted = !!(destCheckin?.sop_completed_at) || !!dest.sop_completed_at;
+                const isCheckedIn = !!(destCheckin?.checked_in_at) || !!dest.checked_in_at;
                 
                 // Check if previous destination is completed (for sequential locking)
                 // First destination requires pickup SOP to be completed
                 // Subsequent destinations require previous destination's SOP to be completed
-                const isPreviousCompleted = index === 0 
-                  ? (pickupSopCompleted || !!jobApplication?.sop_completed_at)
-                  : !!destinations[index - 1]?.sop_completed_at;
+                const getPreviousCompleted = () => {
+                  if (index === 0) {
+                    return pickupSopCompleted || !!jobApplication?.sop_completed_at;
+                  }
+                  const prevDest = destinations[index - 1];
+                  const prevCheckin = destinationCheckins[prevDest?.sequence_number];
+                  return !!(prevCheckin?.sop_completed_at) || !!prevDest?.sop_completed_at;
+                };
+                const isPreviousCompleted = getPreviousCompleted();
                 
                 // This destination is locked if previous step is not completed
                 const isDestinationLocked = !isPreviousCompleted;
