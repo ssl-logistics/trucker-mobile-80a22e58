@@ -101,6 +101,9 @@ const jobTypeTranslations: Record<string, Record<Language, string>> = {
   'ระหว่างประเทศ': { th: 'ภายนอกประเทศ', en: 'International', ko: '국제', zh: '国际' },
   'international': { th: 'ภายนอกประเทศ', en: 'International', ko: '국제', zh: '国际' },
   'ภายนอกประเทศ': { th: 'ภายนอกประเทศ', en: 'International', ko: '국제', zh: '国际' },
+  'express_rent': { th: 'เช่ารถด่วน', en: 'Express Rent', ko: '급행 렌트', zh: '快速租车' },
+  'Express Rent': { th: 'เช่ารถด่วน', en: 'Express Rent', ko: '급행 렌트', zh: '快速租车' },
+  'เช่ารถด่วน': { th: 'เช่ารถด่วน', en: 'Express Rent', ko: '급행 렌트', zh: '快速租车' },
 };
 
 // Container Type translations
