@@ -115,11 +115,10 @@ export default function SOPCheckInPage() {
           : `freelance_driver_id=${encodeURIComponent(user.id)}`;
 
       const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-sop-proxy?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
           }
         }
       );
@@ -343,14 +342,13 @@ export default function SOPCheckInPage() {
           ? { external_driver_id: user.id }
           : { freelance_driver_id: user.id };
 
-      // Call driver-sop API with both images
+      // Call driver-sop API via proxy with both images
       const response = await fetch(
-        'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/driver-sop',
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-sop-proxy`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
           },
           body: JSON.stringify({
             order_number: job.order_code,
