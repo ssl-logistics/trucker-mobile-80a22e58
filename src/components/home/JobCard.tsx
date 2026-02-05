@@ -39,7 +39,8 @@ interface Job {
   goods_weight?: number | null;
   goods_unit?: string | null;
   isAccepted?: boolean;
-  destinations?: Array<{ sequence: number; location: string }>;
+  destinations?: Array<{ sequence: number; location: string; company_name?: string }>;
+  origins?: Array<{ sequence: number; location: string; company_name?: string }>;
 }
 
 interface JobCardProps {
@@ -135,20 +136,47 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
         <div className="flex items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 space-y-2 sm:space-y-3">
-            <div className="flex items-start gap-2 sm:gap-3">
-              <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
-              <div className="text-sm sm:text-base">
-                <div className="text-muted-foreground">{t('job.origin')}</div>
-                <div className="font-medium">{job.origin_location}</div>
+            {/* Origins - show multiple if available */}
+            {Array.isArray(job.origins) && job.origins.length > 0 ? (
+              job.origins.map((origin, idx) => (
+                <div key={`origin-${idx}`} className="flex items-start gap-2 sm:gap-3">
+                  <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
+                  <div className="text-sm sm:text-base">
+                    <div className="text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</div>
+                    <div className="font-medium">{origin.location}</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-start gap-2 sm:gap-3">
+                <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
+                <div className="text-sm sm:text-base">
+                  <div className="text-muted-foreground">{t('job.origin')}</div>
+                  <div className="font-medium">{job.origin_location}</div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start gap-2 sm:gap-3">
-              <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
-              <div className="text-sm sm:text-base">
-                <div className="text-muted-foreground">{t('job.destination')}</div>
-                <div className="font-medium">{job.destination_location}</div>
+            )}
+            
+            {/* Destinations - show multiple if available */}
+            {Array.isArray(job.destinations) && job.destinations.length > 0 ? (
+              job.destinations.map((dest, idx) => (
+                <div key={`dest-${idx}`} className="flex items-start gap-2 sm:gap-3">
+                  <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
+                  <div className="text-sm sm:text-base">
+                    <div className="text-muted-foreground">{t('job.destination')} #{idx + 1}</div>
+                    <div className="font-medium">{dest.location}</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-start gap-2 sm:gap-3">
+                <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
+                <div className="text-sm sm:text-base">
+                  <div className="text-muted-foreground">{t('job.destination')}</div>
+                  <div className="font-medium">{job.destination_location}</div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
           
           <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 sm:px-4 sm:py-2">
@@ -244,25 +272,55 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
             {/* Route */}
             <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-green-600" />
+              {/* Origins - show multiple if available */}
+              {Array.isArray(job.origins) && job.origins.length > 0 ? (
+                job.origins.map((origin, idx) => (
+                  <div key={`modal-origin-${idx}`} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</p>
+                      <p className="font-medium">{origin.location}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{t('job.origin')}</p>
+                    <p className="font-medium">{job.origin_location}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('job.origin')}</p>
-                  <p className="font-medium">{job.origin_location}</p>
-                </div>
-              </div>
+              )}
               
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-red-600" />
+              {/* Destinations - show multiple if available */}
+              {Array.isArray(job.destinations) && job.destinations.length > 0 ? (
+                job.destinations.map((dest, idx) => (
+                  <div key={`modal-dest-${idx}`} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t('job.destination')} #{idx + 1}</p>
+                      <p className="font-medium">{dest.location}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{t('job.destination')}</p>
+                    <p className="font-medium">{job.destination_location}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('job.destination')}</p>
-                  <p className="font-medium">{job.destination_location}</p>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Price */}
