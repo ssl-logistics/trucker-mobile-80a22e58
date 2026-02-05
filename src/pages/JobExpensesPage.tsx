@@ -101,19 +101,32 @@ export default function JobExpensesPage() {
   const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
   const getExpenseTypeLabel = (expense: Expense) => {
-    // Always prioritize translation based on expense_type
+    // Normalize expense_type to lowercase for matching
+    const normalizedType = expense.expense_type?.toLowerCase().replace(/\s+/g, '_') || '';
+    
+    // Map API expense types to translation keys
     const typeMap: Record<string, string> = {
       'fuel': t('expenses.types.fuel'),
       'toll': t('expenses.types.toll'),
       'port': t('expenses.types.port'),
+      'port_fee': t('expenses.types.port'),
       'food': t('expenses.types.food'),
       'maintenance': t('expenses.types.maintenance'),
       'parking': t('expenses.types.parking'),
       'other': t('expenses.types.other'),
+      // Container handling types
+      'drop_empty_container': t('expenses.types.dropEmptyContainer'),
+      'drop_loaded_container': t('expenses.types.dropLoadedContainer'),
+      'pickup_empty_container': t('expenses.types.pickupEmptyContainer'),
+      'pickup_loaded_container': t('expenses.types.pickupLoadedContainer'),
+      'container_wash': t('expenses.types.containerWash'),
+      'return_container': t('expenses.types.returnContainer'),
+      'container_repair': t('expenses.types.containerRepair'),
+      'overtime': t('expenses.types.overtime'),
     };
     
     // Use translated type if available, otherwise fall back to expense_name or expense_type
-    return typeMap[expense.expense_type] || expense.expense_name || expense.expense_type;
+    return typeMap[normalizedType] || expense.expense_name || expense.expense_type;
   };
 
   if (loading) {

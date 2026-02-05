@@ -1437,6 +1437,14 @@ const thTranslations: Record<string, string> = {
   'expenses.types.maintenance': 'ค่าซ่อมบำรุง',
   'expenses.types.parking': 'ค่าจอดรถ',
   'expenses.types.other': 'อื่นๆ',
+  'expenses.types.dropEmptyContainer': 'ค่าวางตู้เปล่า',
+  'expenses.types.dropLoadedContainer': 'ค่าวางตู้มีสินค้า',
+  'expenses.types.pickupEmptyContainer': 'ค่ารับตู้เปล่า',
+  'expenses.types.pickupLoadedContainer': 'ค่ารับตู้มีสินค้า',
+  'expenses.types.containerWash': 'ค่าล้างตู้',
+  'expenses.types.returnContainer': 'ค่าคืนตู้',
+  'expenses.types.containerRepair': 'ค่าซ่อมตู้',
+  'expenses.types.overtime': 'ค่าล่วงเวลา',
   
   // Job Types
   'jobType.domestic': 'ภายในประเทศ',
@@ -2837,6 +2845,14 @@ const enTranslations: Record<string, string> = {
   'expenses.types.maintenance': 'Maintenance',
   'expenses.types.parking': 'Parking',
   'expenses.types.other': 'Other',
+  'expenses.types.dropEmptyContainer': 'Drop Empty Container',
+  'expenses.types.dropLoadedContainer': 'Drop Loaded Container',
+  'expenses.types.pickupEmptyContainer': 'Pickup Empty Container',
+  'expenses.types.pickupLoadedContainer': 'Pickup Loaded Container',
+  'expenses.types.containerWash': 'Container Wash',
+  'expenses.types.returnContainer': 'Return Container',
+  'expenses.types.containerRepair': 'Container Repair',
+  'expenses.types.overtime': 'Overtime',
   
   // Job Types
   'jobType.domestic': 'Domestic',
@@ -4258,6 +4274,14 @@ const koTranslations: Record<string, string> = {
   'expenses.types.maintenance': '유지보수',
   'expenses.types.parking': '주차비',
   'expenses.types.other': '기타',
+  'expenses.types.dropEmptyContainer': '빈 컨테이너 내려놓기',
+  'expenses.types.dropLoadedContainer': '적재 컨테이너 내려놓기',
+  'expenses.types.pickupEmptyContainer': '빈 컨테이너 픽업',
+  'expenses.types.pickupLoadedContainer': '적재 컨테이너 픽업',
+  'expenses.types.containerWash': '컨테이너 세척',
+  'expenses.types.returnContainer': '컨테이너 반납',
+  'expenses.types.containerRepair': '컨테이너 수리',
+  'expenses.types.overtime': '야근비',
   
   // Job Types
   'jobType.domestic': '국내',
@@ -5757,6 +5781,14 @@ const zhTranslations: Record<string, string> = {
   'expenses.types.maintenance': '维修费',
   'expenses.types.parking': '停车费',
   'expenses.types.other': '其他',
+  'expenses.types.dropEmptyContainer': '空箱落地费',
+  'expenses.types.dropLoadedContainer': '重箱落地费',
+  'expenses.types.pickupEmptyContainer': '提空箱费',
+  'expenses.types.pickupLoadedContainer': '提重箱费',
+  'expenses.types.containerWash': '洗箱费',
+  'expenses.types.returnContainer': '还箱费',
+  'expenses.types.containerRepair': '箱修费',
+  'expenses.types.overtime': '加班费',
   
   // Job Types
   'jobType.domestic': '国内',
