@@ -198,8 +198,9 @@ export default function Home() {
           destination_lat: item.destination_latitude || item.destination_lat || undefined,
           destination_lng: item.destination_longitude || item.destination_lng || undefined,
           destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
-            sequence: d.sequence || idx + 1,
-            location: d.location || d.destination_location || ''
+            sequence: d.sequence_number || d.sequence || idx + 1,
+            location: d.address || d.location || d.destination_location || '',
+            company_name: d.company_name || ''
           })) : undefined
         };
       });
@@ -353,8 +354,9 @@ export default function Home() {
           destination_lat: item.destination_lat || undefined,
           destination_lng: item.destination_lng || undefined,
           destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
-            sequence: d.sequence || idx + 1,
-            location: d.location || d.destination_location || ''
+            sequence: d.sequence_number || d.sequence || idx + 1,
+            location: d.address || d.location || d.destination_location || '',
+            company_name: d.company_name || ''
           })) : undefined
         };
       });
