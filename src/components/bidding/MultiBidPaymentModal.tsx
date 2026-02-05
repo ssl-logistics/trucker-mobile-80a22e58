@@ -693,22 +693,44 @@ export function MultiBidPaymentModal({
                               </div>
                             </div>
                             
-                            {/* Account number and name checks removed for testing */}
+                            {/* Bank name */}
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-amber-800">ธนาคาร:</span>
+                              <span className="font-medium">
+                                {hintOCRValidation.extractedBankName || "ไม่พบข้อมูล"}
+                              </span>
+                            </div>
                             
-                            {/* Bank name display */}
-                            {hintOCRValidation.extractedBankName && (
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-amber-800">ธนาคาร:</span>
-                                <span className="font-medium">{hintOCRValidation.extractedBankName}</span>
+                            {/* Account name (receiver name) */}
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-amber-800">ชื่อบัญชี:</span>
+                              <span className="font-medium text-right max-w-[180px] truncate">
+                                {hintOCRValidation.extractedReceiverName || "ไม่พบข้อมูล"}
+                              </span>
+                            </div>
+                            
+                            {/* Account number */}
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-amber-800">เลขที่บัญชี:</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">
+                                  {hintOCRValidation.extractedAccount || "ไม่พบข้อมูล"}
+                                </span>
+                                {hintOCRValidation.accountMatches === true && (
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                )}
+                                {hintOCRValidation.accountMatches === false && (
+                                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                                )}
                               </div>
-                            )}
+                            </div>
                             
                             {/* Validation summary */}
                             {(() => {
                               const amountOk = hintOCRValidation.amountMatches === true;
-                              // Temporarily only check amount for testing
-                              const allValid = amountOk;
-                              const hasErrors = hintOCRValidation.amountMatches === false;
+                              const accountOk = hintOCRValidation.accountMatches === true;
+                              const allValid = amountOk && accountOk;
+                              const hasErrors = hintOCRValidation.amountMatches === false || hintOCRValidation.accountMatches === false;
                               
                               if (hasErrors) {
                                 return (
@@ -722,6 +744,11 @@ export function MultiBidPaymentModal({
                                         • ยอดโอนไม่ตรง (ต้องการ ฿{hintFee})
                                       </p>
                                     )}
+                                    {hintOCRValidation.accountMatches === false && (
+                                      <p className="text-xs text-red-600">
+                                        • เลขที่บัญชีไม่ตรง (ต้องการ {BANK_INFO.accountNumber})
+                                      </p>
+                                    )}
                                   </div>
                                 );
                               }
@@ -731,7 +758,19 @@ export function MultiBidPaymentModal({
                                   <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                                     <p className="text-xs text-emerald-700 font-medium flex items-center gap-1">
                                       <CheckCircle2 className="w-3.5 h-3.5" />
-                                      ยอดเงินถูกต้อง พร้อมชำระ
+                                      ข้อมูลถูกต้อง พร้อมชำระ
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              
+                              // Partial validation - only amount matched
+                              if (amountOk && hintOCRValidation.accountMatches === null) {
+                                return (
+                                  <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <p className="text-xs text-amber-700 font-medium flex items-center gap-1">
+                                      <CheckCircle2 className="w-3.5 h-3.5" />
+                                      ยอดเงินถูกต้อง (กรุณาตรวจสอบเลขบัญชีด้วยตนเอง)
                                     </p>
                                   </div>
                                 );
