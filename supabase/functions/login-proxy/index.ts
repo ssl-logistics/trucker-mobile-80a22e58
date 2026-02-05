@@ -5,6 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const EXTERNAL_API_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
+const LOGIN_API_KEY = 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live';
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -30,13 +33,11 @@ serve(async (req) => {
 
     console.log('Proxy: Login attempt for user:', username);
 
-    const externalUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login';
-    
-    const response = await fetch(externalUrl, {
+    const response = await fetch(`${EXTERNAL_API_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+        'x-api-key': LOGIN_API_KEY,
       },
       body: JSON.stringify({ username, password }),
     });
@@ -51,19 +52,9 @@ serve(async (req) => {
       responseData = { message: responseText };
     }
 
-    if (!response.ok) {
-      console.error('Proxy: Login failed:', responseData);
-      return new Response(
-        JSON.stringify(responseData),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Proxy: Login successful for user:', username);
-
     return new Response(
       JSON.stringify(responseData),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
