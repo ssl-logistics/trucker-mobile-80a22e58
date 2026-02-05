@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client'; import { getDriverCheckins } from '@/lib/externalApi';
 import profitIcon from '@/assets/profit-icon.png';
 import expensesIcon from '@/assets/expenses-icon.png';
 
@@ -56,7 +56,7 @@ export default function FinancePage() {
       setLoading(true);
       try {
         // Fetch jobs and checkins in parallel
-        const [jobsRes, checkinsRes, expenseRes] = await Promise.all([
+        const [jobsRes, checkinsResult, expenseRes] = await Promise.all([
           fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
             {
@@ -67,10 +67,7 @@ export default function FinancePage() {
               },
             }
           ),
-          fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
-            { method: 'GET', headers: { 'Content-Type': 'application/json' } }
-          ),
+          getDriverCheckins(user.id, 'freelance', 'all'),
           supabase
             .from('expenses')
             .select('job_id, amount, created_at')
@@ -78,11 +75,12 @@ export default function FinancePage() {
         ]);
 
         const jobsJson = await jobsRes.json();
-        const checkinsJson = await checkinsRes.json();
 
         const allJobs: CompletedJob[] = jobsJson?.data || [];
-        const allCheckins = checkinsJson?.data || checkinsJson || [];
-        const checkins = Array.isArray(allCheckins) ? allCheckins : [];
+        const allCheckinsRaw = checkinsResult.error
+          ? []
+          : ((checkinsResult.data as any)?.data || checkinsResult.data || []);
+        const checkins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
         // Get transport_order_ids that have delivery_confirmed
         const confirmedTransportIds = new Set(

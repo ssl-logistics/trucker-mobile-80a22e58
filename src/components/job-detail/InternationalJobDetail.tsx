@@ -15,7 +15,7 @@ import { formatDate } from '@/lib/dateUtils';
 import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
-import statusIcon from '@/assets/status-icon.png';
+import statusIcon from '@/assets/status-icon.png'; import { getDriverCheckins } from '@/lib/externalApi';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -111,20 +111,21 @@ export default function InternationalJobDetail({
       
       try {
         const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-        const checkinUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${encodeURIComponent(userId)}&driver_type=${driverType}&order_number=${encodeURIComponent(job.order_code)}`;
+        const { data: checkinResult, error: checkinError } = await getDriverCheckins(
+          userId,
+          driverType,
+          job.order_code
+        );
 
-        const checkinResponse = await fetch(checkinUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        });
-        const checkinResult = await checkinResponse.json();
+        if (checkinError) {
+          console.error('[InternationalJobDetail] getDriverCheckins error:', checkinError);
+        }
+
         console.log('[InternationalJobDetail] Fetched check-in status:', checkinResult);
         console.log('[InternationalJobDetail] Job info - id:', job.id, 'order_code:', job.order_code, 'userId:', userId);
-        
-        const allCheckins = checkinResult?.data || [];
+
+        const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
+        const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
         
         // Filter checkins for this specific order & current driver
         const checkins = Array.isArray(allCheckins)

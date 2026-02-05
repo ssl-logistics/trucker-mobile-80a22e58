@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "@/hooks/use-toast";
+import { getDriverCheckins } from '@/lib/externalApi';
 interface CompletedJob {
   id: string;
   order_number: string;
@@ -61,7 +62,7 @@ export default function IncomePage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [jobsRes, checkinsRes] = await Promise.all([
+        const [jobsRes, checkinsResult] = await Promise.all([
           fetch(
             `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=100`,
             {
@@ -72,17 +73,16 @@ export default function IncomePage() {
               },
             }
           ),
-          fetch(
-            `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?driver_id=${driverId}&driver_type=${driverType}&order_number=all`,
-            { method: "GET", headers: { "Content-Type": "application/json" } }
-          ),
+          getDriverCheckins(driverId, driverType, 'all'),
         ]);
 
         const jobsJson = await jobsRes.json();
-        const checkinsJson = await checkinsRes.json();
 
         const allJobs = jobsJson.data || [];
-        const allCheckins = checkinsJson?.data || [];
+        const allCheckinsRaw = checkinsResult.error
+          ? []
+          : ((checkinsResult.data as any)?.data || checkinsResult.data || []);
+        const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
         // Count PODs per transport_order_id for multi-destination jobs
         const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
@@ -132,7 +132,7 @@ export default function IncomePage() {
       }
 
       // For Freelance drivers: Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
-      const [companyJobsRes, factoryJobsRes, checkinsRes, bidWonJobsRes] = await Promise.all([
+      const [companyJobsRes, factoryJobsRes, checkinsResult, bidWonJobsRes] = await Promise.all([
         fetch(
           `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
           {
@@ -152,10 +152,7 @@ export default function IncomePage() {
             },
           }
         ),
-        fetch(
-          `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(user.id)}&order_number=all`,
-          { method: 'GET', headers: { 'Content-Type': 'application/json' } }
-        ),
+        getDriverCheckins(user.id, 'freelance', 'all'),
         // Fetch bid-won jobs from list-tickets API
         supabase.functions.invoke('list-tickets', {
           body: {
@@ -171,7 +168,7 @@ export default function IncomePage() {
 
       const companyJobsJson = await companyJobsRes.json();
       const factoryJobsJson = await factoryJobsRes.json();
-      const checkinsJson = await checkinsRes.json();
+      const checkinsJson = checkinsResult.error ? null : checkinsResult.data;
 
       // Get company jobs
       const companyJobs: CompletedJob[] = companyJobsJson.data || [];

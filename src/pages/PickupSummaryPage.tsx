@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import { formatDateTime } from "@/lib/dateUtils";
-import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
+import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl"; import { getDriverCheckins } from '@/lib/externalApi';
 
 interface JobDetail {
   id: string;
@@ -91,33 +91,17 @@ export default function PickupSummaryPage() {
         }
       }
 
-      // Fetch check-in data from proxy API
-      const checkinResponse = await fetch(
-        (isInternalDriver || isExternalDriver)
-          ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${encodeURIComponent(driverId)}&driver_type=${driverType}&order_number=${encodeURIComponent(jobId)}`
-          : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(driverId)}&order_number=${encodeURIComponent(jobId)}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(isInternalDriver || isExternalDriver
-              ? { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }
-              : {}),
-          }
-        }
-      );
+      const { data: checkinResult, error: checkinError } = await getDriverCheckins(driverId, driverType, jobId);
 
       let checkedInAt: string | null = null;
-      if (checkinResponse.ok) {
-        const checkinResult = await checkinResponse.json();
-        if (checkinResult.success && checkinResult.data) {
-          // Find pickup check-in
-          const pickupCheckin = Array.isArray(checkinResult.data)
-            ? checkinResult.data.find((c: any) => c.checkin_type === 'pickup')
-            : checkinResult.data.checkin_type === 'pickup' ? checkinResult.data : null;
+      if (!checkinError) {
+        const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
+        const checkins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
-          if (pickupCheckin) {
-            checkedInAt = pickupCheckin.checkin_time || pickupCheckin.created_at || null;
-          }
+        // Find pickup check-in
+        const pickupCheckin = checkins.find((c: any) => c.checkin_type === 'pickup');
+        if (pickupCheckin) {
+          checkedInAt = pickupCheckin.checkin_time || pickupCheckin.checked_in_at || pickupCheckin.created_at || null;
         }
       }
 
