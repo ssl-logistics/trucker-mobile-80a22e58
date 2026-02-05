@@ -80,11 +80,11 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     }
   };
 
-  // Determine if domestic or international based on transport_type
-  const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
-  const isSingleTrip = job.transport_type?.includes('เที่ยวเดียว');
-  const isMultipleLocations = job.transport_type?.includes('หลายที่');
-  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+  // Determine if domestic or international based on job_type and transport_type
+  const isDomestic = job.job_type !== 'international';
+  const isSingleTrip = job.job_type === 'one-way';
+  const isMultipleLocations = job.job_type === 'multiple';
+  const isInternational = job.job_type === 'international';
   const isInbound = job.transport_type?.includes('ขาเข้า');
   const isOutbound = job.transport_type?.includes('ขาออก');
 
@@ -115,7 +115,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
         <div className="flex items-center gap-2 flex-wrap">
           {isDomestic && (
             <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-              {t('job.domestic')} {isSingleTrip ? `(${t('job.single_trip')})` : isMultipleLocations ? `(${t('job.multiple_locations')})` : ''}
+              {t('job.domestic')} {isSingleTrip ? `(${t('job.one_way')})` : isMultipleLocations ? `(${t('job.multiple_destinations')})` : ''}
             </Badge>
           )}
           {isInternational && (
