@@ -421,7 +421,8 @@ export default function DomesticJobDetail({
         }
       } catch (error) {
         console.error('Error fetching statuses:', error);
-        setPickupCheckedIn(false);
+        // Don't reset check-in states on error - they may have been set correctly before SOP fetch failed
+        // Only reset SOP completed status since that's what likely failed
         setPickupSopCompleted(false);
       } finally {
         setIsLoadingCheckinStatus(false);
