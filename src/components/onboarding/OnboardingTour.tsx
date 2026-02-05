@@ -277,8 +277,16 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
 
       {/* Tooltip */}
       <div
-        className="fixed z-[10000] w-[300px] bg-card rounded-xl shadow-2xl border animate-in fade-in zoom-in-95 duration-300"
-        style={{ top: tooltipPosition.top, left: tooltipPosition.left }}
+         className="bg-card rounded-xl shadow-2xl border animate-in fade-in zoom-in-95 duration-300"
+         style={{ 
+           position: 'fixed',
+           top: `${tooltipPosition.top}px`,
+           left: `${tooltipPosition.left}px`,
+           transform: 'none',
+           margin: 0,
+           width: '300px',
+           zIndex: 10000,
+         }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
