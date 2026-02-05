@@ -176,7 +176,7 @@ export default function Home() {
           post_id: item.id || item.post_id || '',
           order_code: item.order_number || item.order_code || item.quote_number || '',
           job_type: item.job_type || item.shipment_type || 'domestic',
-          employer_name: item.factory_name || item.company_name || item.customer_name || '',
+          employer_name: item.sender_name || item.factory_name || item.company_name || item.customer_name || item.sender_company_name || '',
           transport_type: item.transport_mode || item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
