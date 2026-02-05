@@ -259,34 +259,59 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
      );
    }
  
-  // Create highlight element using portal to document.body
-  const highlightElement = createPortal(
-    <div
-      className="pointer-events-none border-4 border-primary rounded-2xl"
-      style={{
-        position: 'fixed',
-        top: highlightRect.top,
-        left: highlightRect.left,
-        width: highlightRect.width,
-        height: highlightRect.height,
-        zIndex: 10001,
-        boxShadow: '0 0 0 4px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.4), inset 0 0 0 2px hsl(var(--primary) / 0.5)',
-        animation: 'tour-pulse 2s ease-in-out infinite',
-      }}
-    />,
+  // Create spotlight overlay using box-shadow technique
+  // This creates a "hole" in the overlay where the target is visible
+  const spotlightOverlay = createPortal(
+    <>
+      {/* Main overlay with spotlight hole using box-shadow */}
+      <div
+        className="pointer-events-auto"
+        onClick={handleSkip}
+        style={{
+          position: 'fixed',
+          top: highlightRect.top,
+          left: highlightRect.left,
+          width: highlightRect.width,
+          height: highlightRect.height,
+          zIndex: 9998,
+          borderRadius: '16px',
+          // Create massive box-shadow to cover the entire screen except the target
+          boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.6)',
+          pointerEvents: 'none',
+        }}
+      />
+      {/* Clickable overlay area (transparent, covers screen) */}
+      <div
+        className="fixed inset-0"
+        onClick={handleSkip}
+        style={{
+          zIndex: 9997,
+        }}
+      />
+      {/* Highlight border around target */}
+      <div
+        className="pointer-events-none"
+        style={{
+          position: 'fixed',
+          top: highlightRect.top,
+          left: highlightRect.left,
+          width: highlightRect.width,
+          height: highlightRect.height,
+          zIndex: 9999,
+          borderRadius: '16px',
+          border: '4px solid hsl(var(--primary))',
+          boxShadow: '0 0 0 4px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.4)',
+          animation: 'tour-pulse 2s ease-in-out infinite',
+        }}
+      />
+    </>,
     document.body
   );
 
   return (
     <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black/50 z-[9998]"
-        onClick={handleSkip}
-      />
-
-      {/* Highlight Border via Portal */}
-      {highlightElement}
+      {/* Spotlight Overlay via Portal */}
+      {spotlightOverlay}
 
       {/* Tooltip */}
       <div
