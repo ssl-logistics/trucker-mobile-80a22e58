@@ -944,12 +944,12 @@ export default function DomesticJobDetail({
                 // Determine status text and colors
                 const getStatusInfo = () => {
                   if (isPodCompleted) {
-                    return { text: t('jobDetail.podSuccess'), textColor: 'text-green-600', bgColor: 'bg-[#E6F7E6]', showCheckIcon: true };
+                    return { text: t('jobDetail.podSuccess'), textColor: 'text-green-600', bgColor: 'bg-[#E6F7E6]' };
                   }
                   if (isCheckedIn) {
-                    return { text: t('jobDetail.waitingPayment'), textColor: 'text-blue-600', bgColor: 'bg-blue-50', showCheckIcon: false };
+                    return { text: t('jobDetail.waitingPayment'), textColor: 'text-blue-600', bgColor: 'bg-blue-50' };
                   }
-                  return { text: t('jobDetail.waitingCheckIn'), textColor: 'text-orange-500', bgColor: 'bg-[#FFF7E6]', showCheckIcon: false };
+                  return { text: t('jobDetail.waitingCheckIn'), textColor: 'text-orange-500', bgColor: 'bg-[#FFF7E6]' };
                 };
                 const statusInfo = getStatusInfo();
                 
@@ -966,8 +966,7 @@ export default function DomesticJobDetail({
                             {t('jobDetail.waitingPreviousStep')}
                           </span>
                         ) : (
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1 ${statusInfo.textColor} ${statusInfo.bgColor}`}>
-                            {statusInfo.showCheckIcon && <CheckCircle className="w-3 h-3" />}
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${statusInfo.textColor} ${statusInfo.bgColor}`}>
                             {statusInfo.text}
                           </span>
                         )}
