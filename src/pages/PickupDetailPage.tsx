@@ -64,6 +64,17 @@ export default function PickupDetailPage() {
     loadJobDetail();
   }, [jobId, user, isInternalDriver, isExternalDriver]);
   
+  // Redirect to job detail if already checked in
+  useEffect(() => {
+    if (!checkinStatusLoading && pickupCheckedIn && job) {
+      toast({
+        title: t('pickup.alreadyCheckedIn') || 'เช็คอินแล้ว',
+        description: t('pickup.redirectingToJobDetail') || 'กำลังนำทางไปหน้ารายละเอียดงาน...',
+      });
+      navigate(isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`);
+    }
+  }, [checkinStatusLoading, pickupCheckedIn, job, isBidJob, navigate, t]);
+  
   useEffect(() => {
     if (job && user) {
       fetchSopStatus();
