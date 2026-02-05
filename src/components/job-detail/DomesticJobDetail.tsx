@@ -613,14 +613,17 @@ export default function DomesticJobDetail({
               id: 'fallback',
               sequence_number: 1
             }]).map((dest, index) => {
-              // For fallback, use ONLY actual check-in status from API
-              // NOT jobApplication data which is derived from external API status and may be incorrect for Bid Jobs
+              // For destinations array, check destinationCheckins using sequence_number
+              // For fallback single destination, use deliverySopCompleted/deliveryCheckedIn
+              const seq = dest.sequence_number;
+              const destCheckinData = destinationCheckins[seq];
+              
               const isPodCompleted = dest.id === 'fallback' 
                 ? deliverySopCompleted  // Use ONLY actual API check-in status
-                : !!dest.sop_completed_at;
+                : !!(destCheckinData?.sop_completed_at || dest.sop_completed_at);
               const isCheckedIn = dest.id === 'fallback'
                 ? deliveryCheckedIn  // Use ONLY actual API check-in status
-                : !!dest.checked_in_at;
+                : !!(destCheckinData?.checked_in_at || dest.checked_in_at);
               
               return <div key={dest.id} className="relative flex justify-center" style={{
                 height: '200px',
