@@ -640,6 +640,13 @@ export default function CurrentJobsPage() {
                           : 'bg-orange-100 text-orange-700'
                       }`}>
                         {translateJobType(job.job_type, language)}
+                        {(job.job_type === 'domestic' || job.job_type === 'ในประเทศ' || job.job_type === 'ภายในประเทศ') && (
+                          <span className="ml-1">
+                            {(job as any).destinations && Array.isArray((job as any).destinations) && (job as any).destinations.length > 0
+                              ? `(${t('job.multipleDestinations')})`
+                              : `(${t('job.singleTrip')})`}
+                          </span>
+                        )}
                       </span>
                     )}
 
