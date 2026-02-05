@@ -501,7 +501,7 @@ export default function DomesticJobDetail({
         <div>
           <div className="mb-3">
             <h2 className="text-lg font-semibold">
-              {t('jobDetail.booking')} : {job.order_code}
+              {job.job_type === 'international' ? t('jobDetail.booking') : t('jobDetail.order')} : {job.order_code}
             </h2>
             <p className="text-base font-medium text-[#005E53]">
               {t('jobDetail.employer')} : {job.employer_name}
