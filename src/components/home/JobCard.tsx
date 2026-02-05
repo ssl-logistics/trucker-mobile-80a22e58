@@ -39,6 +39,7 @@ interface Job {
   goods_weight?: number | null;
   goods_unit?: string | null;
   isAccepted?: boolean;
+  destinations?: Array<{ sequence: number; location: string }>;
 }
 
 interface JobCardProps {
@@ -80,11 +81,11 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     }
   };
 
-  // Determine if domestic or international based on job_type and transport_type
-  const isDomestic = job.job_type !== 'international';
-  const isSingleTrip = job.job_type === 'one-way';
-  const isMultipleLocations = job.job_type === 'multiple';
+  // Determine job type based on job_type field and destinations array
   const isInternational = job.job_type === 'international';
+  const isSingleTrip = job.job_type === 'one-way';
+  const isMultipleLocations = job.job_type === 'multiple' || (job.destinations && job.destinations.length > 1);
+  const isDomestic = !isInternational;
   const isInbound = job.transport_type?.includes('ขาเข้า');
   const isOutbound = job.transport_type?.includes('ขาออก');
 
@@ -113,11 +114,6 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           <span className="font-medium">{job.employer_name}</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {isDomestic && (
-            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-              {t('job.domestic')} {isSingleTrip ? `(${t('job.one_way')})` : isMultipleLocations ? `(${t('job.multiple_destinations')})` : ''}
-            </Badge>
-          )}
           {isInternational && (
             <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
               {t('job.international')} {isInbound ? `(${t('job.inbound')})` : isOutbound ? `(${t('job.outbound')})` : ''}
@@ -125,11 +121,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           )}
         </div>
         <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
-          job.job_type === 'domestic' || job.job_type === 'ในประเทศ' || job.job_type === 'ภายในประเทศ'
+          isDomestic
             ? 'bg-blue-100 text-blue-700'
             : 'bg-orange-100 text-orange-700'
         }`}>
-          {translateJobType(job.job_type, language)}
+          {isDomestic 
+            ? `${t('jobType.domestic')}${isSingleTrip ? ` (${t('job.one_way')})` : isMultipleLocations ? ` (${t('job.multiple_destinations')})` : ''}`
+            : translateJobType(job.job_type, language)
+          }
         </span>
 
         <div className="flex items-start justify-between gap-4 sm:gap-6">
