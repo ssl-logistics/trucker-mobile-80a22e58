@@ -151,67 +151,23 @@ export default function DeliveryDetailPage() {
         const foundJob = result.data.find((j: any) => j.order_number === jobId);
         
         if (foundJob) {
-          // Check if this is a multi-destination job and find the specific destination
-          let specificDestination: any = null;
-          if (destinationId && Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0) {
-            // Try to find destination by id or by generated id pattern
-            specificDestination = foundJob.destinations.find((d: any) => {
-              const destId = d.id || `dest-${d.sequence_number}`;
-              return destId === destinationId || d.id === destinationId;
-            });
-            
-            // Fallback: try to match by sequence number extracted from destinationId
-            if (!specificDestination && destinationId.startsWith('dest-')) {
-              const seqNum = parseInt(destinationId.replace('dest-', ''));
-              if (!isNaN(seqNum)) {
-                specificDestination = foundJob.destinations.find((d: any) => d.sequence_number === seqNum);
-              }
-            }
-            
-            if (specificDestination) {
-              console.log('Found specific destination:', specificDestination);
-              setDestination({
-                id: specificDestination.id || `dest-${specificDestination.sequence_number}`,
-                job_id: foundJob.id,
-                sequence_number: specificDestination.sequence_number || 1,
-                company_name: specificDestination.company_name || null,
-                contact_name: specificDestination.contact_name || null,
-                contact_phone: specificDestination.contact_phone || null,
-                address: specificDestination.address || null,
-                province: specificDestination.province || null,
-                district: specificDestination.district || null,
-                latitude: specificDestination.latitude || null,
-                longitude: specificDestination.longitude || null,
-                delivery_date: specificDestination.delivery_date || null,
-                delivery_time: specificDestination.delivery_time || null,
-                notes: specificDestination.notes || null,
-                checked_in_at: null,
-                sop_completed_at: null,
-              });
-            }
-          }
-          
           // Map API response to JobDetail interface
-          // Use specific destination data if available, otherwise use main destination
-          const destData = specificDestination || foundJob;
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
             employer_name: foundJob.factory_name || foundJob.destination_name || foundJob.destination_company_name,
-            destination_location: specificDestination 
-              ? `${specificDestination.district || ''}, ${specificDestination.province || ''}`.replace(/^, |, $/g, '')
-              : `${foundJob.destination_district || ''}, ${foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
-            start_date: specificDestination?.delivery_date || foundJob.destination_delivery_date || foundJob.sender_pickup_date,
-            start_time: specificDestination?.delivery_time || foundJob.destination_delivery_time || foundJob.sender_pickup_time,
-            destination_latitude: specificDestination?.latitude || foundJob.destination_latitude,
-            destination_longitude: specificDestination?.longitude || foundJob.destination_longitude,
-            destination_contact_person: specificDestination?.contact_name || foundJob.destination_contact_name,
-            destination_address: specificDestination?.address || foundJob.destination_address,
+            destination_location: `${foundJob.destination_district || ''}, ${foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
+            start_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date,
+            start_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time,
+            destination_latitude: foundJob.destination_latitude,
+            destination_longitude: foundJob.destination_longitude,
+            destination_contact_person: foundJob.destination_contact_name,
+            destination_address: foundJob.destination_address,
             destination_goods_type: foundJob.product_name,
             destination_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
-            destination_remarks: specificDestination?.notes || foundJob.remarks,
-            destination_time: specificDestination?.delivery_time || foundJob.destination_delivery_time,
-            destination_company_name: specificDestination?.company_name || foundJob.destination_company_name || foundJob.destination_name,
+            destination_remarks: foundJob.remarks,
+            destination_time: foundJob.destination_delivery_time,
+            destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
             price: foundJob.transport_price || 0,
           };
           setJob(mappedJob);
