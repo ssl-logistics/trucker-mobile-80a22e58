@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { login as loginExternal } from "@/lib/externalApi";
 import { setAuthItem } from "@/utils/authStorage";
 import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
@@ -120,10 +120,8 @@ const SignIn = () => {
       setServerError("");
       setIsLoggingIn(true);
       
-      // POST to login API via proxy (to bypass CORS)
-      const { data: result, error: apiError } = await supabase.functions.invoke('login-proxy', {
-        body: { username: data.email, password: data.password },
-      });
+      // POST to login API directly (External API)
+      const { data: result, error: apiError } = await loginExternal(data.email, data.password);
 
       if (apiError || !result?.success) {
         const errorMessage = apiError || result?.error || 'Login failed';
