@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { sendJobStatus } from '@/lib/jobStatusService';
 import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
-import JobActionButtons from '@/components/job/JobActionButtons';
+import JobActionButtons from '@/components/job/JobActionButtons'; import { getDriverCheckins } from '@/lib/externalApi';
 
 interface JobDetail {
   id: string;
@@ -164,20 +164,22 @@ export default function ContainerCheckInPage() {
   const checkExistingCheckin = async (transportOrderId: string, orderNumber: string) => {
     try {
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-      const checkinUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${encodeURIComponent(user!.id)}&driver_type=${driverType}&order_number=${encodeURIComponent(orderNumber)}`;
 
-      const checkinResponse = await fetch(checkinUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-      });
-      
-      const checkinResult = await checkinResponse.json();
+      const { data: checkinResult, error: checkinError } = await getDriverCheckins(
+        user!.id,
+        driverType,
+        orderNumber
+      );
+
+      if (checkinError) {
+        console.error('[ContainerCheckInPage] getDriverCheckins error:', checkinError);
+        return;
+      }
+
       console.log('[ContainerCheckInPage] Check-in status result:', checkinResult);
-      
-      const allCheckins = checkinResult?.data || [];
+
+      const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
+      const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
       
       // Filter checkins for this specific order & current driver
       const checkins = Array.isArray(allCheckins)

@@ -12,6 +12,7 @@ import JobActionButtons from "@/components/job/JobActionButtons";
 import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
+import { getDriverCheckins } from '@/lib/externalApi';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import {
@@ -173,27 +174,26 @@ export default function DeliveryDetailPage() {
 
             // Check for delivery check-in status from API
             try {
-              // Build query params based on driver type
               const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-              const checkinsResponse = await fetch(
-                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${user.id}&driver_type=${driverType}&order_number=${jobId}`,
-                {
-                  headers: {
-                    'Content-Type': 'application/json',
-                  }
-                }
+              const { data: checkinsResult, error: checkinsError } = await getDriverCheckins(
+                user.id,
+                driverType,
+                jobId
               );
-            
-            let deliveryCheckinTime: string | null = null;
-            let deliveryConfirmedTime: string | null = null;
-            let deliveryConfirmedPhotoUrl: string | null = null;
-            let deliveryConfirmedPaymentMethod: string | null = null;
 
-            if (checkinsResponse.ok) {
-              const checkinsResult = await checkinsResponse.json();
-              if (checkinsResult.success && Array.isArray(checkinsResult.data)) {
+              let deliveryCheckinTime: string | null = null;
+              let deliveryConfirmedTime: string | null = null;
+              let deliveryConfirmedPhotoUrl: string | null = null;
+              let deliveryConfirmedPaymentMethod: string | null = null;
+
+              if (checkinsError) {
+                console.error('Error fetching checkin status:', checkinsError);
+              } else {
+                const allCheckinsRaw = (checkinsResult as any)?.data || checkinsResult || [];
+                const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
+
                 // Filter checkins by transport_order_id matching job.id (foundJob.id) and appropriate driver ID
-                const filteredCheckins = checkinsResult.data.filter((c: any) => {
+                const filteredCheckins = allCheckins.filter((c: any) => {
                   const matchesOrder = c.transport_order_id === foundJob.id;
                   const matchesUser = isInternalDriver 
                     ? c.internal_driver_id === user.id 
@@ -203,16 +203,15 @@ export default function DeliveryDetailPage() {
                   return matchesOrder && matchesUser;
                 });
                 console.log('Filtered delivery checkins for order', foundJob.id, ':', filteredCheckins.length);
-                
+
                 const deliveryCheckin = filteredCheckins.find((c: any) => c.checkin_type === 'delivery');
-                deliveryCheckinTime = deliveryCheckin?.checkin_time || null;
+                deliveryCheckinTime = deliveryCheckin?.checkin_time || deliveryCheckin?.checked_in_at || deliveryCheckin?.created_at || null;
 
                 const deliveryConfirmed = filteredCheckins.find((c: any) => c.checkin_type === 'delivery_confirmed');
-                deliveryConfirmedTime = deliveryConfirmed?.checkin_time || null;
+                deliveryConfirmedTime = deliveryConfirmed?.checkin_time || deliveryConfirmed?.checked_in_at || deliveryConfirmed?.created_at || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
                 deliveryConfirmedPaymentMethod = deliveryConfirmed?.payment_method || null;
               }
-            }
             
             // Fetch local job application data for payment status (may not exist for external jobs)
             const { data: localJobApp } = await supabase

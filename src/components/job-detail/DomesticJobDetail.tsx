@@ -13,7 +13,7 @@ import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { formatDate } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
-import { useNativeCamera } from '@/hooks/useNativeCamera';
+import { useNativeCamera } from '@/hooks/useNativeCamera'; import { getDriverCheckins } from '@/lib/externalApi';
 import {
   Drawer,
   DrawerClose,
@@ -318,28 +318,21 @@ export default function DomesticJobDetail({
         
         // Fetch check-in status
         const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-        const checkinUrl =
-          (isInternalDriver || isExternalDriver)
-            ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?driver_id=${encodeURIComponent(
-                userId
-              )}&driver_type=${driverType}&order_number=${encodeURIComponent(job.order_code)}`
-            : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(
-                userId
-              )}&order_number=${encodeURIComponent(job.order_code)}`;
 
-        const checkinResponse = await fetch(checkinUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(isInternalDriver || isExternalDriver
-              ? { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }
-              : {}),
-          },
-        });
-        const checkinResult = await checkinResponse.json();
+        const { data: checkinResult, error: checkinError } = await getDriverCheckins(
+          userId,
+          driverType,
+          job.order_code
+        );
+
+        if (checkinError) {
+          console.error('[DomesticJobDetail] getDriverCheckins error:', checkinError);
+        }
+
         console.log('Fetched check-in status:', checkinResult);
         
-        const allCheckins = checkinResult?.data || checkinResult || [];
+        const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
+        const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
         console.log('All checkins from API:', allCheckins.length, 'items');
         console.log('Current job.id (transport_order_id to match):', job.id);
         
