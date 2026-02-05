@@ -85,7 +85,8 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
           element: currentParent,
           overflow: currentParent.style.overflow || ''
         });
-        currentParent.style.overflow = 'visible';
+        // Use setProperty with important flag to override CSS classes
+        currentParent.style.setProperty('overflow', 'visible', 'important');
       }
       currentParent = currentParent.parentElement;
     }
@@ -101,7 +102,11 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
     return () => {
       // Restore original overflow values
       parentsToRestore.forEach(({ element, overflow }) => {
-        element.style.overflow = overflow;
+        if (overflow) {
+          element.style.setProperty('overflow', overflow);
+        } else {
+          element.style.removeProperty('overflow');
+        }
       });
     };
   }, [currentStep, isVisible, steps]);
