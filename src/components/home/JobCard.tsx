@@ -370,7 +370,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <p className="text-xs text-muted-foreground">{t('job.transportMode')}</p>
                 <p className="font-medium">
                   {isDomestic 
-                    ? `${t('jobType.domestic')}${isSingleTrip ? ` (${t('job.one_way')})` : isMultipleLocations ? ` (${t('job.multiple_destinations')})` : ''}`
+                    ? (isSingleTrip ? t('job.one_way') : isMultipleLocations ? t('job.multiple_destinations') : '-')
                     : translateTransportType(job.transport_type_label || job.transport_type, language)
                   }
                 </p>
