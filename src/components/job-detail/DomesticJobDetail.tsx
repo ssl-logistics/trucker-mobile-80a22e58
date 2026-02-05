@@ -32,6 +32,22 @@ interface DriverCheckin {
   checkin_type: string;
   checked_in_at: string;
 }
+interface JobDestination {
+  id: string;
+  sequence_number: number;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  province: string | null;
+  district: string | null;
+  delivery_date: string | null;
+  delivery_time: string | null;
+  notes: string | null;
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -74,6 +90,8 @@ interface JobDetail {
   seal_number?: string | null;
   seal_number_2?: string | null;
   booking_number?: string | null;
+  // Multiple destinations from API
+  destinations?: JobDestination[];
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -83,7 +101,7 @@ interface JobApplication {
   delivery_sop_completed_at: string | null;
   status: string;
 }
-// JobDestination interface removed - table no longer exists
+
 interface DomesticJobDetailProps {
   job: JobDetail;
   jobApplication: JobApplication | null;
@@ -425,8 +443,8 @@ export default function DomesticJobDetail({
     }
   }, [jobApplication]);
 
-  // Empty destinations array - job_destinations table no longer exists
-  const destinations: { id: string; sequence_number: number; company_name: string | null; contact_name: string | null; contact_phone: string | null; address: string | null; province: string | null; district: string | null; delivery_date: string | null; delivery_time: string | null; notes: string | null; checked_in_at: string | null; sop_completed_at: string | null }[] = [];
+  // Use destinations from job props if available, otherwise empty array
+  const destinations: JobDestination[] = job.destinations || [];
 
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
