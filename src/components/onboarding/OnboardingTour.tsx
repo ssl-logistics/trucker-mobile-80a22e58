@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 
-interface TourStep {
+export interface TourStep {
   target: string;
   title: string;
   description: string;
