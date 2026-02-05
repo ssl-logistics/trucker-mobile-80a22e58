@@ -865,15 +865,29 @@ export default function DomesticJobDetail({
               {destinations.length > 0 ? destinations.map((dest, index) => {
                 const isPodCompleted = !!dest.sop_completed_at;
                 
+                // Check if previous destination is completed (for sequential locking)
+                // First destination requires pickup SOP to be completed
+                // Subsequent destinations require previous destination's SOP to be completed
+                const isPreviousCompleted = index === 0 
+                  ? (pickupSopCompleted || !!jobApplication?.sop_completed_at)
+                  : !!destinations[index - 1]?.sop_completed_at;
+                
+                // This destination is locked if previous step is not completed
+                const isDestinationLocked = !isPreviousCompleted;
+                
                 return (
-                  <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                    <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
+                  <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isPreviousCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                    <div className={`${isDestinationLocked ? 'opacity-60' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
                           {dest.company_name && <span className="text-sm font-medium text-[#225795]">: {dest.company_name}</span>}
                         </div>
-                        {(pickupSopCompleted || jobApplication?.sop_completed_at) && (
+                        {isDestinationLocked ? (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
+                            {t('jobDetail.waitingPreviousStep')}
+                          </span>
+                        ) : (
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                             {isPodCompleted ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
                           </span>
@@ -904,18 +918,45 @@ export default function DomesticJobDetail({
                       </div>
 
                       <div className="grid grid-cols-3 gap-2">
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={isDestinationLocked || isPodCompleted}
+                          onClick={() => {
+                            const phone = dest.contact_phone;
+                            if (phone) {
+                              window.location.href = `tel:${phone}`;
+                            } else {
+                              toast({
+                                title: t('jobDetail.error'),
+                                description: t('jobDetail.noPhoneNumber'),
+                                variant: 'destructive'
+                              });
+                            }
+                          }}>
                           <Phone className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={isDestinationLocked || isPodCompleted}
+                          onClick={() => {
+                            if (dest.address) {
+                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest.address)}`;
+                              window.open(url, '_blank');
+                            } else if (dest.district && dest.province) {
+                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${dest.district}, ${dest.province}`)}`;
+                              window.open(url, '_blank');
+                            } else {
+                              toast({
+                                title: t('jobDetail.error'),
+                                description: t('jobDetail.noLocation'),
+                                variant: 'destructive'
+                              });
+                            }
+                          }}>
                           <img src={routeIcon} alt="route" className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
                         <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => {
                           const fromParam = new URLSearchParams(location.search).get('from');
                           navigate(`/job/${job.order_code}/delivery/${dest.id}${fromParam ? `?from=${fromParam}` : ''}`);
-                        }} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                        }} disabled={isDestinationLocked}>
                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
