@@ -22,6 +22,13 @@ import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { translateJobType } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
+import { 
+  getDriverAssignedJobs, 
+  getFactoryAssignedJobs, 
+  getFreelanceAcceptedJobs,
+  getDriverCheckins,
+  listTickets 
+} from '@/lib/externalApi';
 // Interface for accepted jobs from external API
 interface AcceptedJob {
   id: string;
@@ -130,38 +137,19 @@ export default function CurrentJobsPage() {
     
     try {
       const freelanceDriverId = user.id;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       
       // For Internal/External drivers, only use get-driver-assigned-jobs API
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        // Fetch jobs and check-ins in parallel with proper apikey header
-        const [jobsResponse, checkinsResponse] = await Promise.all([
-          fetch(
-            `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${freelanceDriverId}&driver_type=${driverType}&limit=50`,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-                'apikey': supabaseKey,
-              },
-            }
-          ),
-          fetch(
-            `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?driver_id=${freelanceDriverId}&driver_type=${driverType}&order_number=all`,
-            {
-              headers: { 
-                'Content-Type': 'application/json',
-                'apikey': supabaseKey,
-              },
-            }
-          ),
+        // Fetch jobs and check-ins in parallel using external API directly
+        const [jobsResult, checkinsResult] = await Promise.all([
+          getDriverAssignedJobs(freelanceDriverId, driverType, 50),
+          getDriverCheckins(freelanceDriverId, driverType, 'all'),
         ]);
 
-        if (jobsResponse.ok) {
-          const result = await jobsResponse.json();
+        if (!jobsResult.error && jobsResult.data) {
+          const result = jobsResult.data;
           console.log('Loaded driver assigned jobs for current jobs:', result);
           
           // Get check-ins to determine which jobs are actually started and which are completed
@@ -170,9 +158,8 @@ export default function CurrentJobsPage() {
           const podCountByTransportId: Record<string, number> = {};
           let allCheckins: any[] = [];
           
-          if (checkinsResponse.ok) {
-            const checkinsResult = await checkinsResponse.json();
-            allCheckins = checkinsResult?.data || [];
+          if (!checkinsResult.error && checkinsResult.data) {
+            allCheckins = (checkinsResult.data as any)?.data || [];
             const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
             
             // Count delivery_confirmed check-ins per transport_order_id
@@ -204,7 +191,7 @@ export default function CurrentJobsPage() {
             console.log('Jobs with any check-in (actually started):', startedTransportIds.size);
           }
           
-          const apiJobs = result.data || [];
+          const apiJobs = (result as any)?.data || [];
           
           // Show jobs that have status 'in_transit' OR have check-in records (already started)
           // This allows jobs to appear in Current Jobs when:
@@ -300,7 +287,7 @@ export default function CurrentJobsPage() {
 
           setAcceptedJobs(mappedJobs);
         } else {
-          console.error('Error loading driver assigned jobs:', await jobsResponse.text());
+          console.error('Error loading driver assigned jobs:', jobsResult.error);
           setAcceptedJobs([]);
         }
         
@@ -309,47 +296,11 @@ export default function CurrentJobsPage() {
       }
       
       // For Freelance drivers: Fetch company jobs, factory jobs, bid-won jobs, AND check-ins from API in parallel
-      const [companyJobsResponse, factoryJobsResponse, bidWonJobsResponse, checkinsResponse] = await Promise.all([
-        fetch(
-          `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseKey}`,
-              'apikey': supabaseKey,
-            },
-          }
-        ),
-        fetch(
-          `${supabaseUrl}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&limit=50`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseKey}`,
-              'apikey': supabaseKey,
-            },
-          }
-        ).catch(() => null),
-        // Fetch bid-won jobs from list-tickets API
-        supabase.functions.invoke('list-tickets', {
-          body: {
-            freelance_driver_id: freelanceDriverId,
-            bids_status: 'accepted', // Get all won bids
-          },
-        }).catch(() => null),
-        // Fetch check-ins for filtering completed jobs
-        fetch(
-          `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&order_number=all`,
-          {
-            method: 'GET',
-            headers: { 
-              'Content-Type': 'application/json',
-              'apikey': supabaseKey,
-            },
-          }
-        ).catch(() => null),
+      const [companyJobsResult, factoryJobsResult, bidWonJobsResult, freelanceCheckinsResult] = await Promise.all([
+        getFreelanceAcceptedJobs(freelanceDriverId),
+        getFactoryAssignedJobs(freelanceDriverId, 50).catch(() => ({ data: null, error: 'Failed' })),
+        listTickets({ freelanceDriverId, bidsStatus: 'accepted' }).catch(() => ({ data: null, error: 'Failed' })),
+        getDriverCheckins(freelanceDriverId, 'freelance', 'all').catch(() => ({ data: null, error: 'Failed' })),
       ]);
 
       // Track POD count per transport_order_id and order_number for multi-destination jobs
@@ -357,9 +308,8 @@ export default function CurrentJobsPage() {
       const podCountByOrderNumber: Record<string, number> = {};
       let allFreelanceCheckins: any[] = [];
       
-      if (checkinsResponse && checkinsResponse.ok) {
-        const checkinsResult = await checkinsResponse.json();
-        allFreelanceCheckins = checkinsResult?.data || [];
+      if (!freelanceCheckinsResult.error && freelanceCheckinsResult.data) {
+        allFreelanceCheckins = (freelanceCheckinsResult.data as any)?.data || [];
         
         // Count delivery_confirmed check-ins per transport_order_id and order_number
         // This handles both single (delivery_confirmed) and multi-destination (delivery_confirmed_N)
@@ -398,23 +348,23 @@ export default function CurrentJobsPage() {
 
       // Process company jobs - filter out jobs with all PODs completed
       let companyJobs: AcceptedJob[] = [];
-      if (companyJobsResponse.ok) {
-        const companyResult = await companyJobsResponse.json();
+      if (!companyJobsResult.error && companyJobsResult.data) {
+        const companyResult = companyJobsResult.data;
         console.log('Loaded company accepted jobs:', companyResult);
-        const allCompanyJobs = Array.isArray(companyResult) ? companyResult : (companyResult.data || []);
+        const allCompanyJobs = Array.isArray(companyResult) ? companyResult : ((companyResult as any).data || []);
         // Filter out jobs that have ALL destinations POD completed
         companyJobs = allCompanyJobs.filter((job: any) => !isJobFullyCompleted(job));
       } else {
-        console.error('Error loading company accepted jobs:', await companyJobsResponse.text());
+        console.error('Error loading company accepted jobs:', companyJobsResult.error);
       }
 
       // Process factory jobs - include assigned/in_transit/in_progress jobs
       let factoryJobs: AcceptedJob[] = [];
       let pendingFactoryOrderNumbers = new Set<string>();
-      if (factoryJobsResponse && factoryJobsResponse.ok) {
-        const factoryResult = await factoryJobsResponse.json();
+      if (!factoryJobsResult.error && factoryJobsResult.data) {
+        const factoryResult = factoryJobsResult.data;
         console.log('Loaded factory jobs:', factoryResult);
-        const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : (factoryResult.data || []);
+        const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : ((factoryResult as any).data || []);
 
         // Statuses that indicate job is actively assigned and should show in Current Jobs
         const activeStatuses = ['in_progress', 'in_transit', 'assigned', 'accepted'];
@@ -476,10 +426,10 @@ export default function CurrentJobsPage() {
       // Process bid-won jobs from list-tickets API
       // Show ALL accepted bid jobs EXCEPT those with delivery_confirmed check-in
       let bidWonJobs: AcceptedJob[] = [];
-      if (bidWonJobsResponse && bidWonJobsResponse.data) {
-        const bidData = bidWonJobsResponse.data;
+      if (!bidWonJobsResult.error && bidWonJobsResult.data) {
+        const bidData = bidWonJobsResult.data;
         console.log('Loaded bid-won jobs from API:', bidData);
-        const tickets = bidData.data || bidData.tickets || [];
+        const tickets = (bidData as any)?.data || (bidData as any)?.tickets || (Array.isArray(bidData) ? bidData : []);
         
         // Only exclude cancelled and closed, NOT completed
         // Completed jobs should still show until all PODs are done

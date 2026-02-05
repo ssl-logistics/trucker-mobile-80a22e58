@@ -33,6 +33,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatDate as formatThaiDate } from "@/lib/dateUtils";
 import { MultiBidPaymentModal } from "@/components/bidding/MultiBidPaymentModal";
+import { listTickets } from "@/lib/externalApi";
 import type { Database } from "@/integrations/supabase/types";
 
 type BiddingJob = Database["public"]["Tables"]["jobs"]["Row"];
@@ -264,10 +265,8 @@ export default function BiddingPage() {
 
   const loadAvailableJobs = async () => {
     try {
-      // Fetch from external API via edge function
-      const { data, error } = await supabase.functions.invoke('list-tickets', {
-        body: null,
-      });
+      // Fetch from external API directly
+      const { data, error } = await listTickets({});
 
       if (error) {
         console.error('Error fetching tickets from API:', error);
@@ -289,10 +288,10 @@ export default function BiddingPage() {
       let ticketsData: ExternalTicket[] = [];
       if (data && Array.isArray(data)) {
         ticketsData = data;
-      } else if (data && data.data && Array.isArray(data.data)) {
-        ticketsData = data.data;
-      } else if (data && data.tickets && Array.isArray(data.tickets)) {
-        ticketsData = data.tickets;
+      } else if (data && (data as any).data && Array.isArray((data as any).data)) {
+        ticketsData = (data as any).data;
+      } else if (data && (data as any).tickets && Array.isArray((data as any).tickets)) {
+        ticketsData = (data as any).tickets;
       }
 
       // Store raw tickets for bid extraction
@@ -321,14 +320,8 @@ export default function BiddingPage() {
 
   const loadAcceptedJobs = async () => {
     try {
-      // Fetch accepted/completed jobs via backend function (uses LIST_TICKETS_API_KEY)
-      // Don't send status - let API return all tickets with accepted bids
-      const { data: responseData, error } = await supabase.functions.invoke('list-tickets', {
-        method: 'POST',
-        body: {
-          bids_status: 'accepted',
-        },
-      });
+      // Fetch accepted/completed jobs via external API directly
+      const { data: responseData, error } = await listTickets({ bidsStatus: 'accepted' });
 
       if (error) {
         console.error('Error fetching accepted tickets:', error);
@@ -339,10 +332,10 @@ export default function BiddingPage() {
       let ticketsData: ExternalTicket[] = [];
       if (responseData && Array.isArray(responseData)) {
         ticketsData = responseData;
-      } else if (responseData && responseData.data && Array.isArray(responseData.data)) {
-        ticketsData = responseData.data;
-      } else if (responseData && responseData.tickets && Array.isArray(responseData.tickets)) {
-        ticketsData = responseData.tickets;
+      } else if (responseData && (responseData as any).data && Array.isArray((responseData as any).data)) {
+        ticketsData = (responseData as any).data;
+      } else if (responseData && (responseData as any).tickets && Array.isArray((responseData as any).tickets)) {
+        ticketsData = (responseData as any).tickets;
       }
 
       console.log('Loaded accepted tickets:', ticketsData.length);
