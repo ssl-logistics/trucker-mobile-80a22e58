@@ -10,6 +10,22 @@ import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
 import InternationalJobDetail from '@/components/job-detail/InternationalJobDetail';
 
 // Interface matching what the detail components expect
+interface JobDestination {
+  id: string;
+  sequence_number: number;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  province: string | null;
+  district: string | null;
+  delivery_date: string | null;
+  delivery_time: string | null;
+  notes: string | null;
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -56,6 +72,7 @@ interface JobDetail {
   destination_remarks: string | null;
   tax_id: string | null;
   booking_number?: string | null;
+  destinations?: JobDestination[];
 }
 
 interface JobApplication {
@@ -257,6 +274,24 @@ export default function JobDetailPage() {
             tax_id: null,
             container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || null,
             booking_number: foundJob.booking_number || null,
+            // Map destinations array from API
+            destinations: Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0
+              ? foundJob.destinations.map((d: any) => ({
+                  id: d.id || `dest-${d.sequence_number}`,
+                  sequence_number: d.sequence_number || 1,
+                  company_name: d.company_name || null,
+                  contact_name: d.contact_name || null,
+                  contact_phone: d.contact_phone || null,
+                  address: d.address || null,
+                  province: d.province || null,
+                  district: d.district || null,
+                  delivery_date: d.delivery_date || null,
+                  delivery_time: d.delivery_time || null,
+                  notes: d.notes || null,
+                  checked_in_at: null,
+                  sop_completed_at: null,
+                }))
+              : undefined,
           };
 
           setJob(mappedJob);
