@@ -26,6 +26,8 @@ serve(async (req) => {
       longitude: body.longitude,
       notes: body.notes,
       driver_type: driverType,
+      // Include destination sequence number for multi-destination checkins
+      destination_sequence_number: body.destination_sequence_number,
       // Include container fields for empty_container check-in
       container_number: body.container_number,
       seal_number: body.seal_number,
