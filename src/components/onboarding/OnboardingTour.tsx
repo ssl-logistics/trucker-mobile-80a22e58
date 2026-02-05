@@ -117,13 +117,16 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
       currentParent = currentParent.parentElement;
     }
 
-    // Make the target element appear above the overlay
+    // Make the target element appear above the overlay with elevated styling
     const targetElement = target as HTMLElement;
     const originalZIndex = targetElement.style.zIndex;
     const originalPosition = targetElement.style.position;
+    const originalBoxShadow = targetElement.style.boxShadow;
+    const originalBackground = targetElement.style.background;
     
     targetElement.style.setProperty('z-index', '9999', 'important');
     targetElement.style.setProperty('position', 'relative', 'important');
+    targetElement.style.setProperty('box-shadow', '0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 4px hsl(var(--primary) / 0.3)', 'important');
     
      // Set highlight rectangle position with padding
      const highlightPadding = 6;
@@ -155,6 +158,16 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
       } else {
         targetElement.style.removeProperty('position');
       }
+        if (originalBoxShadow) {
+          targetElement.style.boxShadow = originalBoxShadow;
+        } else {
+          targetElement.style.removeProperty('box-shadow');
+        }
+        if (originalBackground) {
+          targetElement.style.background = originalBackground;
+        } else {
+          targetElement.style.removeProperty('background');
+        }
     };
   }, [currentStep, isVisible, steps]);
 
