@@ -199,7 +199,7 @@ export default function Home() {
           destination_lng: item.destination_longitude || item.destination_lng || undefined,
           destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
             sequence: d.sequence_number || d.sequence || idx + 1,
-            location: d.address || d.location || d.destination_location || '',
+            location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || d.destination_location || ''),
             company_name: d.company_name || ''
           })) : undefined
         };
@@ -355,7 +355,7 @@ export default function Home() {
           destination_lng: item.destination_lng || undefined,
           destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
             sequence: d.sequence_number || d.sequence || idx + 1,
-            location: d.address || d.location || d.destination_location || '',
+            location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || d.destination_location || ''),
             company_name: d.company_name || ''
           })) : undefined
         };
