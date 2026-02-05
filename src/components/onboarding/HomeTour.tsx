@@ -18,7 +18,7 @@ export const HomeTour = () => {
       target: '[data-tour="available-jobs"]',
       title: "งานที่พร้อมรับ 📦",
       description: "ดูรายการงานทั้งหมดที่คุณสามารถรับได้ กดที่การ์ดเพื่อดูรายละเอียดและกดรับงาน",
-      position: "bottom" as const,
+      position: "top" as const,
     },
     {
       target: '[data-tour="bidding-menu"]',
@@ -64,7 +64,7 @@ export const HomeTour = () => {
       target: '[data-tour="available-jobs"]',
       title: "งานที่ได้รับมอบหมาย 📦",
       description: "ดูรายการงานที่บริษัท/โรงงานมอบหมายให้คุณ กดเพื่อดูรายละเอียดและเริ่มงาน",
-      position: "bottom" as const,
+      position: "top" as const,
     },
     {
       target: '[data-tour="current-jobs-nav"]',
@@ -109,7 +109,7 @@ export const HomeTour = () => {
         target: '[data-tour="available-jobs"]',
         title: "งานที่พร้อมรับ 📦",
         description: "ดูรายการงานทั้งหมดที่คุณสามารถรับได้ที่นี่",
-        position: "bottom" as const,
+        position: "top" as const,
       },
       {
         target: '[data-tour="bottom-nav"]',
