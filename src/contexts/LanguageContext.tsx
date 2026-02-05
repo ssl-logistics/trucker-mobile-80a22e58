@@ -1439,7 +1439,7 @@ const thTranslations: Record<string, string> = {
   'expenses.types.other': 'อื่นๆ',
   
   // Job Types
-  'jobType.domestic': 'ในประเทศ',
+  'jobType.domestic': 'ภายในประเทศ',
   'jobType.international': 'ระหว่างประเทศ',
   'jobType.express_rent': 'รถเช่าด่วน',
   'jobType.bidding': 'งานประมูล',
