@@ -21,8 +21,8 @@ interface OnboardingTourProps {
 export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTourProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
-  const [highlightRect, setHighlightRect] = useState({ top: 0, left: 0, width: 0, height: 0 });
+   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+   const [highlightRect, setHighlightRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const [hasCompleted, setHasCompleted] = useState(false);
   const cleanupRef = useRef<(() => void) | null>(null);
   const { t } = useLanguage();
@@ -55,34 +55,49 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
     }
 
     const rect = target.getBoundingClientRect();
+     console.log('[Tour] Target rect:', { 
+       target: steps[currentStep].target,
+       top: rect.top, 
+       bottom: rect.bottom, 
+       left: rect.left, 
+       right: rect.right,
+       width: rect.width,
+       height: rect.height
+     });
+     
     const position = steps[currentStep].position || "bottom";
     
     let top = 0;
     let left = 0;
+     const tooltipWidth = 300;
+     const tooltipHeight = 180; // Approximate tooltip height
+     const gap = 16; // Gap between target and tooltip
 
     switch (position) {
       case "top":
-        top = rect.top - 140;
-        left = rect.left + rect.width / 2 - 150;
+         top = rect.top - tooltipHeight - gap;
+         left = rect.left + rect.width / 2 - tooltipWidth / 2;
         break;
       case "bottom":
-        top = rect.bottom + 24;
-        left = rect.left + rect.width / 2 - 150;
+         top = rect.bottom + gap;
+         left = rect.left + rect.width / 2 - tooltipWidth / 2;
         break;
       case "left":
-        top = rect.top + rect.height / 2 - 60;
-        left = rect.left - 320;
+         top = rect.top + rect.height / 2 - tooltipHeight / 2;
+         left = rect.left - tooltipWidth - gap;
         break;
       case "right":
-        top = rect.top + rect.height / 2 - 60;
-        left = rect.right + 12;
+         top = rect.top + rect.height / 2 - tooltipHeight / 2;
+         left = rect.right + gap;
         break;
     }
 
     // Keep tooltip within viewport
-    left = Math.max(16, Math.min(left, window.innerWidth - 320));
-    top = Math.max(16, Math.min(top, window.innerHeight - 150));
+     left = Math.max(16, Math.min(left, window.innerWidth - tooltipWidth - 16));
+     top = Math.max(16, Math.min(top, window.innerHeight - tooltipHeight - 16));
 
+     console.log('[Tour] Calculated tooltip position:', { top, left, position });
+     
     setTooltipPosition({ top, left });
 
     // Handle overflow: hidden parents that would clip the highlight border
@@ -106,17 +121,17 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
     const targetElement = target as HTMLElement;
     const originalZIndex = targetElement.style.zIndex;
     const originalPosition = targetElement.style.position;
-    const originalBg = targetElement.style.background;
     
     targetElement.style.setProperty('z-index', '9999', 'important');
     targetElement.style.setProperty('position', 'relative', 'important');
     
-    // Set highlight rectangle position
+     // Set highlight rectangle position with padding
+     const highlightPadding = 6;
     setHighlightRect({
-      top: rect.top - 6,
-      left: rect.left - 6,
-      width: rect.width + 12,
-      height: rect.height + 12,
+       top: rect.top - highlightPadding,
+       left: rect.left - highlightPadding,
+       width: rect.width + highlightPadding * 2,
+       height: rect.height + highlightPadding * 2,
     });
 
     // Store cleanup function
@@ -143,48 +158,43 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
     };
   }, [currentStep, isVisible, steps]);
 
-  // Cleanup on unmount or when tour ends
   useEffect(() => {
-    return () => {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-        cleanupRef.current = null;
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    // Initial position update with delay to ensure DOM is ready
-    const initialTimer = setTimeout(() => {
+     if (!isVisible) return;
+     
+     // Multiple attempts to ensure positioning works
+     const updateWithRetry = () => {
       updateTooltipPosition();
-    }, 100);
+     };
     
-    // Also use requestAnimationFrame for accurate positioning
-    const rafId = requestAnimationFrame(() => {
-      updateTooltipPosition();
-    });
+     // Initial update
+     updateWithRetry();
+     
+     // Retry after short delays to handle async rendering
+     const timer1 = setTimeout(updateWithRetry, 50);
+     const timer2 = setTimeout(updateWithRetry, 150);
+     const timer3 = setTimeout(updateWithRetry, 300);
     
     window.addEventListener("resize", updateTooltipPosition);
     window.addEventListener("scroll", updateTooltipPosition);
     
     return () => {
-      clearTimeout(initialTimer);
-      cancelAnimationFrame(rafId);
+       clearTimeout(timer1);
+       clearTimeout(timer2);
+       clearTimeout(timer3);
       window.removeEventListener("resize", updateTooltipPosition);
       window.removeEventListener("scroll", updateTooltipPosition);
     };
-  }, [updateTooltipPosition, steps, currentStep]);
+   }, [updateTooltipPosition, isVisible, currentStep]);
 
-  // Recalculate position when step changes
+   // Cleanup on unmount or when tour ends
   useEffect(() => {
-    if (isVisible) {
-      // Small delay to ensure new target is rendered
-      const timer = setTimeout(() => {
-        updateTooltipPosition();
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [currentStep, isVisible, updateTooltipPosition]);
+     return () => {
+       if (cleanupRef.current) {
+         cleanupRef.current();
+         cleanupRef.current = null;
+       }
+     };
+   }, []);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -229,6 +239,13 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   const step = steps[currentStep];
   if (!step) return null;
 
+   // Don't render until we have calculated positions
+   if (!tooltipPosition || !highlightRect) {
+     return (
+       <div className="fixed inset-0 bg-black/50 z-[9998]" />
+     );
+   }
+ 
   // Create highlight element using portal to document.body
   const highlightElement = createPortal(
     <div
