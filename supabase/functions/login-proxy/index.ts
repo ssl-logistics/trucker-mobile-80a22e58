@@ -29,6 +29,7 @@ serve(async (req) => {
     }
 
     console.log('Proxy: Login attempt for user:', username);
+    console.log('Proxy: Request body:', JSON.stringify({ username, password }));
 
     const externalUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login';
     
@@ -43,6 +44,7 @@ serve(async (req) => {
 
     const responseText = await response.text();
     console.log('Proxy: Login response status:', response.status);
+    console.log('Proxy: Response body:', responseText);
 
     let responseData;
     try {
