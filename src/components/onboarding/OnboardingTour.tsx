@@ -304,18 +304,9 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
           animation: 'tour-pulse 2s ease-in-out infinite',
         }}
       />
-    </>,
-    document.body
-  );
-
-  return (
-    <>
-      {/* Spotlight Overlay via Portal */}
-      {spotlightOverlay}
-
-      {/* Tooltip */}
+      {/* Tooltip - rendered inside portal for proper z-index stacking */}
       <div
-         className="bg-card rounded-xl shadow-2xl border animate-in fade-in zoom-in-95 duration-300"
+         className="bg-card rounded-xl border animate-in fade-in zoom-in-95 duration-300"
          style={{ 
            position: 'fixed',
            top: `${tooltipPosition.top}px`,
@@ -323,7 +314,7 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
            transform: 'none',
            margin: 0,
            width: '300px',
-           zIndex: 10000,
+           zIndex: 10001,
            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
          }}
       >
@@ -407,6 +398,14 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
           ))}
         </div>
       </div>
+    </>,
+    document.body
+  );
+
+  return (
+    <>
+      {/* Spotlight Overlay via Portal */}
+      {spotlightOverlay}
 
       {/* Keyframe animation */}
       <style>{`
