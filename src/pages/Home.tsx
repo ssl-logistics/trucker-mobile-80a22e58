@@ -153,15 +153,13 @@ export default function Home() {
       // For Freelance drivers: Only show jobs awaiting_response
       const apiJobs = (result?.data || []).filter((item: any) => {
         const status = (item?.status || '').toLowerCase().trim();
-       const assignmentStatus = (item?.assignment_status || '').toLowerCase().trim();
         if (isInternalDriver || isExternalDriver) {
           // Internal/External drivers see only jobs with 'in_progress' status
           // Jobs with 'in_transit' status are shown in Current Jobs page
           return status === 'in_progress';
         }
-       // Freelance drivers see jobs awaiting their response
-       // Support both 'awaiting_response' status and 'pending_confirmation' assignment status
-       return status === 'awaiting_response' || assignmentStatus === 'pending_confirmation';
+        // Freelance drivers only see jobs awaiting their response
+        return status === 'awaiting_response';
       });
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
