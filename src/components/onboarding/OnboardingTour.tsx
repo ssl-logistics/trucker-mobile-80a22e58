@@ -86,15 +86,37 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   }, [currentStep, isVisible, steps]);
 
   useEffect(() => {
-    updateTooltipPosition();
+    // Initial position update with delay to ensure DOM is ready
+    const initialTimer = setTimeout(() => {
+      updateTooltipPosition();
+    }, 100);
+    
+    // Also use requestAnimationFrame for accurate positioning
+    const rafId = requestAnimationFrame(() => {
+      updateTooltipPosition();
+    });
+    
     window.addEventListener("resize", updateTooltipPosition);
     window.addEventListener("scroll", updateTooltipPosition);
     
     return () => {
+      clearTimeout(initialTimer);
+      cancelAnimationFrame(rafId);
       window.removeEventListener("resize", updateTooltipPosition);
       window.removeEventListener("scroll", updateTooltipPosition);
     };
   }, [updateTooltipPosition, steps, currentStep]);
+
+  // Recalculate position when step changes
+  useEffect(() => {
+    if (isVisible) {
+      // Small delay to ensure new target is rendered
+      const timer = setTimeout(() => {
+        updateTooltipPosition();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, isVisible, updateTooltipPosition]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
