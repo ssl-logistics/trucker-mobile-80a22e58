@@ -893,6 +893,10 @@ export default function DomesticJobDetail({
                           <span className="text-[#454545]">: {dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
                         <div className="flex">
+                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
+                          <span className="text-[#454545]">: {job.origin_goods_type || '-'}</span>
+                        </div>
+                        <div className="flex">
                           <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
                           <span className="text-[#454545]">: {dest.notes || '-'}</span>
                         </div>
