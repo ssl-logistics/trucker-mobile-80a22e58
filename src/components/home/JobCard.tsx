@@ -39,8 +39,8 @@ interface Job {
   goods_weight?: number | null;
   goods_unit?: string | null;
   isAccepted?: boolean;
-  destinations?: Array<{ sequence: number; location: string; company_name?: string }>;
-  origins?: Array<{ sequence: number; location: string; company_name?: string }>;
+  destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string }>;
+  origins?: Array<{ sequence: number; location?: string; address?: string; company_name?: string }>;
 }
 
 interface JobCardProps {
@@ -143,7 +143,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
                   <div className="text-sm sm:text-base">
                     <div className="text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</div>
-                    <div className="font-medium">{origin.location}</div>
+                    <div className="font-medium">{origin.address || origin.location}</div>
                   </div>
                 </div>
               ))
@@ -164,7 +164,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
                   <div className="text-sm sm:text-base">
                     <div className="text-muted-foreground">{t('job.destination')} #{idx + 1}</div>
-                    <div className="font-medium">{dest.location}</div>
+                    <div className="font-medium">{dest.address || dest.location}</div>
                   </div>
                 </div>
               ))
@@ -281,7 +281,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</p>
-                      <p className="font-medium">{origin.location}</p>
+                      <p className="font-medium">{origin.address || origin.location}</p>
                     </div>
                   </div>
                 ))
@@ -299,14 +299,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               
               {/* Destinations - show multiple if available */}
               {Array.isArray(job.destinations) && job.destinations.length > 0 ? (
-                job.destinations.map((dest, idx) => (
+              job.destinations.map((dest, idx) => (
                   <div key={`modal-dest-${idx}`} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                       <MapPin className="w-4 h-4 text-red-600" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.destination')} #{idx + 1}</p>
-                      <p className="font-medium">{dest.location}</p>
+                      <p className="font-medium">{dest.address || dest.location}</p>
                     </div>
                   </div>
                 ))
