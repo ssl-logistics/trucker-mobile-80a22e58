@@ -50,11 +50,11 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
 
     switch (position) {
       case "top":
-        top = rect.top - 120;
+        top = rect.top - 140;
         left = rect.left + rect.width / 2 - 150;
         break;
       case "bottom":
-        top = rect.bottom + 12;
+        top = rect.bottom + 24;
         left = rect.left + rect.width / 2 - 150;
         break;
       case "left":
@@ -247,8 +247,6 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
             0 0 30px hsl(var(--primary) / 0.4);
           border-radius: 12px;
           animation: tour-pulse 2s ease-in-out infinite;
-          outline: 3px dashed hsl(var(--primary));
-          outline-offset: 6px;
         }
         
         @keyframes tour-pulse {
