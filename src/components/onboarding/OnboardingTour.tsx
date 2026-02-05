@@ -104,7 +104,7 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
 
     switch (position) {
       case "top":
-         top = rect.top - tooltipHeight - gap - 70; // Extra offset to move tooltip higher
+         top = rect.top - tooltipHeight - gap - 90; // Extra offset to move tooltip higher
          left = rect.left + rect.width / 2 - tooltipWidth / 2;
         break;
       case "bottom":
