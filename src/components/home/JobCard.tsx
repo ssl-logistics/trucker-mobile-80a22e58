@@ -306,7 +306,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.destination')} #{idx + 1}</p>
-                      <p className="font-medium">{dest.address || dest.location}</p>
+                      <p className="font-medium">{dest.location || dest.address}</p>
                     </div>
                   </div>
                 ))
@@ -368,7 +368,12 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">{t('job.transportMode')}</p>
-                <p className="font-medium">{translateTransportType(job.transport_type_label || job.transport_type, language)}</p>
+                <p className="font-medium">
+                  {isDomestic 
+                    ? `${t('jobType.domestic')}${isSingleTrip ? ` (${t('job.one_way')})` : isMultipleLocations ? ` (${t('job.multiple_destinations')})` : ''}`
+                    : translateTransportType(job.transport_type_label || job.transport_type, language)
+                  }
+                </p>
               </div>
             </div>
 
