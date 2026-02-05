@@ -769,11 +769,7 @@ export function MultiBidPaymentModal({
                             !hintSlipBase64 || 
                             isPayingHint || 
                             hintOCRValidation.isValidating ||
-                            (hintOCRValidation.validated && (
-                              hintOCRValidation.amountMatches === false ||
-                              hintOCRValidation.accountMatches === false ||
-                              (hintOCRValidation.extractedReceiverName && !hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล"))
-                            ))
+                            (hintOCRValidation.validated && hintOCRValidation.amountMatches === false)
                           }
                           className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
                         >
