@@ -78,6 +78,8 @@ interface AcceptedJob {
   remarks: string | null;
   created_at: string;
   updated_at: string;
+  // Multiple destinations support
+  destinations?: Array<{ sequence: number; location: string; company_name?: string }>;
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
@@ -265,6 +267,12 @@ export default function CurrentJobsPage() {
             remarks: job.remarks,
             created_at: job.created_at,
             updated_at: job.updated_at,
+            // Multiple destinations support
+            destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
+              sequence: d.sequence_number || d.sequence || idx + 1,
+              location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
+              company_name: d.company_name || ''
+            })) : undefined,
           }));
 
           setAcceptedJobs(mappedJobs);
@@ -408,6 +416,12 @@ export default function CurrentJobsPage() {
             sender_name: job.factory_name || job.sender_name,
             isFactoryJob: true,
             job_type: job.job_type || job.transport_category || null,
+            // Multiple destinations support
+            destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
+              sequence: d.sequence_number || d.sequence || idx + 1,
+              location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
+              company_name: d.company_name || ''
+            })) : undefined,
           }));
           
         console.log('Factory jobs for Current Jobs:', factoryJobs.length, '(awaiting_response excluded:', pendingFactoryOrderNumbers.size, ')');
@@ -498,6 +512,12 @@ export default function CurrentJobsPage() {
             remarks: ticket.notes || ticket.remarks || null,
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
+            // Multiple destinations support
+            destinations: Array.isArray(ticket.destinations) ? ticket.destinations.map((d: any, idx: number) => ({
+              sequence: d.sequence_number || d.sequence || idx + 1,
+              location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
+              company_name: d.company_name || ''
+            })) : undefined,
           }));
         
         console.log(`Bid jobs for Current Jobs: ${bidWonJobs.length} (excluded ${tickets.length - bidWonJobs.length} with delivery_confirmed or wrong user)`);
@@ -642,7 +662,7 @@ export default function CurrentJobsPage() {
                         {translateJobType(job.job_type, language)}
                         {(job.job_type === 'domestic' || job.job_type === 'ในประเทศ' || job.job_type === 'ภายในประเทศ') && (
                           <span className="ml-1">
-                            {(job as any).destinations && Array.isArray((job as any).destinations) && (job as any).destinations.length > 0
+                            {job.destinations && Array.isArray(job.destinations) && job.destinations.length > 0
                               ? `(${t('job.multipleDestinations')})`
                               : `(${t('job.singleTrip')})`}
                           </span>
