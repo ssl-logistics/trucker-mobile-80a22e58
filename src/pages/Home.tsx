@@ -41,6 +41,7 @@ interface Job {
   origin_lng?: number;
   destination_lat?: number;
   destination_lng?: number;
+  destinations?: Array<{ sequence: number; location: string }>;
 }
 
 export default function Home() {
@@ -195,7 +196,11 @@ export default function Home() {
           origin_lat: item.sender_latitude || item.origin_lat || undefined,
           origin_lng: item.sender_longitude || item.origin_lng || undefined,
           destination_lat: item.destination_latitude || item.destination_lat || undefined,
-          destination_lng: item.destination_longitude || item.destination_lng || undefined
+          destination_lng: item.destination_longitude || item.destination_lng || undefined,
+          destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
+            sequence: d.sequence || idx + 1,
+            location: d.location || d.destination_location || ''
+          })) : undefined
         };
       });
 
@@ -346,7 +351,11 @@ export default function Home() {
           origin_lat: item.origin_lat || undefined,
           origin_lng: item.origin_lng || undefined,
           destination_lat: item.destination_lat || undefined,
-          destination_lng: item.destination_lng || undefined
+          destination_lng: item.destination_lng || undefined,
+          destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
+            sequence: d.sequence || idx + 1,
+            location: d.location || d.destination_location || ''
+          })) : undefined
         };
       });
 
