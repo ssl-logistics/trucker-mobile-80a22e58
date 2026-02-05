@@ -80,15 +80,13 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     }
   };
 
-  // Determine if domestic or international based on job_type and transport_type
-  const isDomestic = job.job_type === 'domestic' || job.job_type === 'ในประเทศ' || job.job_type === 'ภายในประเทศ' || 
-    job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
-  const isSingleTrip = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type === 'single' || job.transport_type === 'เดี่ยว';
-  const isMultipleLocations = job.transport_type?.includes('หลายที่') || job.transport_type === 'multiple' || job.transport_type?.includes('multi');
-  const isInternational = job.job_type === 'international' || job.job_type === 'ต่างประเทศ' || job.job_type === 'ภายนอกประเทศ' ||
-    job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
-  const isInbound = job.transport_type?.includes('ขาเข้า') || job.transport_type === 'inbound';
-  const isOutbound = job.transport_type?.includes('ขาออก') || job.transport_type === 'outbound';
+  // Determine if domestic or international based on transport_type
+  const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
+  const isSingleTrip = job.transport_type?.includes('เที่ยวเดียว');
+  const isMultipleLocations = job.transport_type?.includes('หลายที่');
+  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+  const isInbound = job.transport_type?.includes('ขาเข้า');
+  const isOutbound = job.transport_type?.includes('ขาออก');
 
   const handleViewDetail = () => {
     setDetailModalOpen(true);
