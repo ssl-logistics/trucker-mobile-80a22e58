@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import { getExpenses } from '@/lib/externalApi';
 
 interface Expense {
   id: string;
@@ -45,24 +46,12 @@ export default function JobExpensesPage() {
         driverType = 'external';
       }
 
-      // Call the get-expenses-proxy Edge Function
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-expenses-proxy?order_number=${jobId}&driver_id=${user.id}&driver_type=${driverType}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      // Call the getExpenses function
+      const { data: result, error } = await getExpenses(jobId, user.id, driverType);
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+      if (error) {
+        throw new Error(`API error: ${error}`);
       }
-
-      const result = await response.json();
-      console.log('Expenses API response:', result);
 
       if (result.success && result.data) {
         // API returns { expenses: [...], total, count } or direct array

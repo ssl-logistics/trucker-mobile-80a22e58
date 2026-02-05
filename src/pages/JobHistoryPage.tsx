@@ -13,6 +13,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { formatDate } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
+import { getFreelanceAcceptedJobs, getFactoryAssignedJobs, getDriverCheckins } from '@/lib/externalApi';
 interface JobApplication {
   id: string;
   applied_at: string;
@@ -144,14 +145,11 @@ export default function JobHistoryPage() {
               },
             }
           ),
-          fetch(
-            `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?driver_id=${driverId}&driver_type=${driverType}&order_number=all`,
-            { method: "GET", headers: { "Content-Type": "application/json" } }
-          ),
+          getDriverCheckins(driverId, driverType),
         ]);
 
         const jobsJson = await jobsRes.json();
-        const checkinsJson = await checkinsRes.json();
+        const { data: checkinsJson } = await checkinsRes;
 
         const allJobs = jobsJson.data || [];
         const allCheckins = checkinsJson?.data || [];
@@ -223,35 +221,10 @@ export default function JobHistoryPage() {
 
       // For Freelance drivers: Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
       const freelanceDriverId = driverId;
-      const [companyJobsRes, factoryJobsRes, checkinsRes, bidWonJobsRes] = await Promise.all([
-        fetch(
-          `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${encodeURIComponent(
-            freelanceDriverId
-          )}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        ),
-        fetch(
-          `${supabaseUrl}/functions/v1/get-factory-assigned-jobs-proxy?freelance_driver_id=${encodeURIComponent(
-            freelanceDriverId
-          )}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        ),
-        fetch(
-          `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(
-            freelanceDriverId
-          )}&order_number=all`,
-          { method: "GET", headers: { "Content-Type": "application/json" } }
-        ),
+      const [companyJobsRes, factoryJobsRes, checkinsRes2, bidWonJobsRes] = await Promise.all([
+        getFreelanceAcceptedJobs(freelanceDriverId),
+        getFactoryAssignedJobs(freelanceDriverId),
+        getDriverCheckins(freelanceDriverId, 'freelance'),
         // Fetch bid-won jobs from list-tickets API (includes completed status)
         supabase.functions.invoke('list-tickets', {
           body: {
@@ -261,29 +234,29 @@ export default function JobHistoryPage() {
         }).catch(() => null),
       ]);
 
-      const companyJobsJson = await companyJobsRes.json();
-      const factoryJobsJson = await factoryJobsRes.json();
-      const checkinsJson = await checkinsRes.json();
+      const { data: companyJobsJson, error: companyError } = await companyJobsRes;
+      const { data: factoryJobsJson, error: factoryError } = await factoryJobsRes;
+      const { data: checkinsJson, error: checkinsError } = await checkinsRes2;
 
-      if (!companyJobsRes.ok) {
-        console.error("Error loading company jobs:", companyJobsJson);
+      if (companyError) {
+        console.error("Error loading company jobs:", companyError);
       }
 
-      if (!factoryJobsRes.ok) {
-        console.error("Error loading factory jobs:", factoryJobsJson);
+      if (factoryError) {
+        console.error("Error loading factory jobs:", factoryError);
       }
 
-      if (!checkinsRes.ok) {
-        console.error("Error loading checkins:", checkinsJson);
+      if (checkinsError) {
+        console.error("Error loading checkins:", checkinsError);
       }
 
       // Get company jobs
       const companyJobs: CompletedJob[] = Array.isArray(companyJobsJson)
         ? companyJobsJson
-        : companyJobsJson.data || [];
+        : (companyJobsJson?.data || []);
 
       // Get factory jobs - only those that have been accepted
-      const allFactoryJobs = factoryJobsJson.data || [];
+      const allFactoryJobs = factoryJobsJson?.data || [];
       const acceptedFactoryJobs = allFactoryJobs
         .filter((job: any) => job.freelance_accepted_at)
         .map((job: any) => ({
