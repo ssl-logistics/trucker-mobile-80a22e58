@@ -33,12 +33,6 @@ export const HomeTour = () => {
      position: "top" as const,
     },
     {
-      target: '[data-tour="dashboard-menu"]',
-      title: "แดชบอร์ด 📊",
-      description: "ดูสถิติรายได้ ประวัติงาน และข้อมูลสรุปการทำงานของคุณ",
-      position: "top" as const,
-    },
-    {
       target: '[data-tour="dashboard-nav"]',
       title: "แผงควบคุม 📊",
       description: "ดูข้อมูล 4 หมวด: การเงิน การจัดส่ง ลูกค้า และสินค้า",
