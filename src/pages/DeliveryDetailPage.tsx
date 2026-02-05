@@ -248,12 +248,36 @@ export default function DeliveryDetailPage() {
                 });
                 console.log('Filtered delivery checkins for order', foundJob.id, ':', filteredCheckins.length);
                 
-                const deliveryCheckin = filteredCheckins.find((c: any) => c.checkin_type === 'delivery');
-                deliveryCheckinTime = deliveryCheckin?.checkin_time || null;
+                // Determine the sequence number for this destination
+                const currentSeq = specificDestination?.sequence_number || 1;
+                
+                // Find check-in for THIS specific destination
+                // Check for delivery_N pattern first, then fallback to delivery with sequence matching
+                const deliveryCheckin = filteredCheckins.find((c: any) => {
+                  // Match delivery_N pattern (e.g., delivery_1, delivery_2)
+                  if (c.checkin_type === `delivery_${currentSeq}`) return true;
+                  // Match generic delivery with destination_sequence_number
+                  if (c.checkin_type === 'delivery' && c.destination_sequence_number === currentSeq) return true;
+                  // For single destination jobs (no specificDestination), match generic delivery
+                  if (!specificDestination && c.checkin_type === 'delivery' && !c.destination_sequence_number) return true;
+                  return false;
+                });
+                deliveryCheckinTime = deliveryCheckin?.checkin_time || deliveryCheckin?.checked_in_at || null;
 
-                const deliveryConfirmed = filteredCheckins.find((c: any) => c.checkin_type === 'delivery_confirmed');
-                deliveryConfirmedTime = deliveryConfirmed?.checkin_time || null;
+                // Find POD (delivery_confirmed) for THIS specific destination
+                const deliveryConfirmed = filteredCheckins.find((c: any) => {
+                  // Match delivery_confirmed_N pattern
+                  if (c.checkin_type === `delivery_confirmed_${currentSeq}`) return true;
+                  // Match generic delivery_confirmed with destination_sequence_number
+                  if (c.checkin_type === 'delivery_confirmed' && c.destination_sequence_number === currentSeq) return true;
+                  // For single destination jobs, match generic delivery_confirmed
+                  if (!specificDestination && c.checkin_type === 'delivery_confirmed' && !c.destination_sequence_number) return true;
+                  return false;
+                });
+                deliveryConfirmedTime = deliveryConfirmed?.checkin_time || deliveryConfirmed?.checked_in_at || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
+                
+                console.log(`Check-in status for destination #${currentSeq}:`, { deliveryCheckinTime, deliveryConfirmedTime });
               }
             }
             
