@@ -164,21 +164,9 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
         onClick={handleSkip}
       />
 
-      {/* Highlight Border - Rendered as separate element above overlay */}
-      <div
-        className="fixed pointer-events-none z-[9999] border-4 border-primary rounded-2xl animate-pulse"
-        style={{
-          top: highlightRect.top,
-          left: highlightRect.left,
-          width: highlightRect.width,
-          height: highlightRect.height,
-          boxShadow: '0 0 0 4px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.4)',
-        }}
-      />
-
       {/* Tooltip */}
       <div
-        className="fixed z-[9999] w-[300px] bg-card rounded-xl shadow-2xl border animate-in fade-in zoom-in-95 duration-300"
+        className="fixed z-[10000] w-[300px] bg-card rounded-xl shadow-2xl border animate-in fade-in zoom-in-95 duration-300"
         style={{ top: tooltipPosition.top, left: tooltipPosition.left }}
       >
         {/* Header */}
@@ -261,6 +249,33 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
           ))}
         </div>
       </div>
+
+      {/* Highlight Border - Rendered AFTER tooltip to be on top */}
+      <div
+        className="fixed pointer-events-none z-[10001] border-4 border-primary rounded-2xl"
+        style={{
+          top: highlightRect.top,
+          left: highlightRect.left,
+          width: highlightRect.width,
+          height: highlightRect.height,
+          boxShadow: '0 0 0 4px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.4)',
+          animation: 'tour-pulse 2s ease-in-out infinite',
+        }}
+      />
+
+      {/* Keyframe animation */}
+      <style>{`
+        @keyframes tour-pulse {
+          0%, 100% {
+            border-color: hsl(var(--primary));
+            box-shadow: 0 0 0 4px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.4);
+          }
+          50% {
+            border-color: hsl(var(--primary) / 0.8);
+            box-shadow: 0 0 0 6px hsl(var(--primary) / 0.2), 0 0 40px hsl(var(--primary) / 0.5);
+          }
+        }
+      `}</style>
     </>
   );
 };
