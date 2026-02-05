@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDriverCheckins } from '@/lib/externalApi';
 
 export interface CheckinRecord {
   order_number: string;
@@ -22,7 +22,7 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
   const { user } = useAuth();
 
   // Determine driver type for API calls
-  const getDriverType = useCallback((): string => {
+  const getDriverType = useCallback((): 'internal' | 'external' | 'freelance' => {
     if (isInternalDriver) return 'internal';
     if (isExternalDriver) return 'external';
     return 'freelance';
@@ -41,38 +41,33 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
     try {
       const driverType = getDriverType();
       
-      // Build query params
-      const params = new URLSearchParams();
-      params.set('driver_id', driverId);
-      params.set('driver_type', driverType);
-      params.set('order_number', orderNumber);
-      
       console.log('[useCheckinStatus] Fetching check-in status from API:', {
         driverId,
         driverType,
         orderNumber,
-        url: `get-driver-checkins-proxy?${params.toString()}`
       });
 
-      // Use fetch directly for GET with query params
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-checkins-proxy?${params.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      // Use direct external API call
+      const { data: result, error } = await getDriverCheckins(driverId, driverType, orderNumber);
 
-      const result = await response.json();
-      
+      if (error) {
+        console.error('[useCheckinStatus] API error:', error);
+        setPickupCheckedIn(false);
+        setDeliveryCheckedIn(false);
+        setContainerCheckedIn(false);
+        setEmptyContainerCheckedIn(false);
+        setLoading(false);
+        return;
+      }
+
       console.log('[useCheckinStatus] API response:', result);
 
-      if (result.success && Array.isArray(result.data)) {
+      // Extract checkins array from API response
+      const checkinsData = result?.data || result || [];
+      
+      if (Array.isArray(checkinsData)) {
         // Filter checkins for this specific order and driver
-        const checkins = result.data.filter((checkin: any) => {
+        const checkins = checkinsData.filter((checkin: any) => {
           // Match by order_number (support both flat and nested structure from API)
           const matchesOrder = 
             checkin.order_number === orderNumber || 
