@@ -21,6 +21,7 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  const [highlightRect, setHighlightRect] = useState({ top: 0, left: 0, width: 0, height: 0 });
   const [hasCompleted, setHasCompleted] = useState(false);
   const { t } = useLanguage();
 
@@ -73,17 +74,15 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
 
     setTooltipPosition({ top, left });
 
-    // Highlight the target element
-    target.classList.add("tour-highlight");
+    // Set highlight rectangle position
+    setHighlightRect({
+      top: rect.top - 4,
+      left: rect.left - 4,
+      width: rect.width + 8,
+      height: rect.height + 8,
+    });
     
-    // Set CSS variables for the highlight border position
-    const root = document.documentElement;
-    root.style.setProperty('--tour-highlight-top', `${rect.top - 4}px`);
-    root.style.setProperty('--tour-highlight-left', `${rect.left - 4}px`);
-    root.style.setProperty('--tour-highlight-width', `${rect.width + 8}px`);
-    root.style.setProperty('--tour-highlight-height', `${rect.height + 8}px`);
-    
-    return () => target.classList.remove("tour-highlight");
+    return () => {};
   }, [currentStep, isVisible, steps]);
 
   useEffect(() => {
@@ -94,17 +93,10 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
     return () => {
       window.removeEventListener("resize", updateTooltipPosition);
       window.removeEventListener("scroll", updateTooltipPosition);
-      // Clean up highlight
-      const target = document.querySelector(steps[currentStep]?.target);
-      if (target) target.classList.remove("tour-highlight");
     };
   }, [updateTooltipPosition, steps, currentStep]);
 
   const handleNext = () => {
-    // Remove highlight from current
-    const currentTarget = document.querySelector(steps[currentStep]?.target);
-    if (currentTarget) currentTarget.classList.remove("tour-highlight");
-
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -113,10 +105,6 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   };
 
   const handlePrev = () => {
-    // Remove highlight from current
-    const currentTarget = document.querySelector(steps[currentStep]?.target);
-    if (currentTarget) currentTarget.classList.remove("tour-highlight");
-
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
@@ -130,10 +118,6 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   };
 
   const handleSkip = () => {
-    // Remove all highlights
-    document.querySelectorAll(".tour-highlight").forEach(el => {
-      el.classList.remove("tour-highlight");
-    });
     handleComplete();
   };
 
@@ -156,6 +140,18 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
       <div 
         className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={handleSkip}
+      />
+
+      {/* Highlight Border - Rendered as separate element above overlay */}
+      <div
+        className="fixed pointer-events-none z-[9999] border-4 border-primary rounded-2xl animate-pulse"
+        style={{
+          top: highlightRect.top,
+          left: highlightRect.left,
+          width: highlightRect.width,
+          height: highlightRect.height,
+          boxShadow: '0 0 0 4px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.4)',
+        }}
       />
 
       {/* Tooltip */}
@@ -243,46 +239,6 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
           ))}
         </div>
       </div>
-
-      {/* Global styles for highlighting */}
-      <style>{`
-        .tour-highlight {
-          position: relative;
-          z-index: 9999 !important;
-        }
-        
-        .tour-highlight::before {
-          content: '';
-          position: fixed;
-          top: var(--tour-highlight-top, 0);
-          left: var(--tour-highlight-left, 0);
-          width: var(--tour-highlight-width, 100%);
-          height: var(--tour-highlight-height, 100%);
-          border: 4px solid hsl(var(--primary));
-          border-radius: 16px;
-          box-shadow: 
-            0 0 0 4px hsl(var(--primary) / 0.3),
-            0 0 30px hsl(var(--primary) / 0.4);
-          pointer-events: none;
-          z-index: 9999;
-          animation: tour-border-pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes tour-border-pulse {
-          0%, 100% {
-            border-color: hsl(var(--primary));
-            box-shadow: 
-              0 0 0 4px hsl(var(--primary) / 0.3),
-              0 0 30px hsl(var(--primary) / 0.4);
-          }
-          50% {
-            border-color: hsl(var(--primary) / 0.7);
-            box-shadow: 
-              0 0 0 6px hsl(var(--primary) / 0.2),
-              0 0 40px hsl(var(--primary) / 0.5);
-          }
-        }
-      `}</style>
     </>
   );
 };
