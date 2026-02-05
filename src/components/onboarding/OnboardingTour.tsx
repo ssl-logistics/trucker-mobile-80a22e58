@@ -241,8 +241,29 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
         .tour-highlight {
           position: relative;
           z-index: 9999 !important;
-          box-shadow: 0 0 0 4px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--primary) / 0.2);
-          border-radius: 8px;
+          box-shadow: 
+            0 0 0 4px hsl(var(--primary)),
+            0 0 0 8px hsl(var(--primary) / 0.3),
+            0 0 30px hsl(var(--primary) / 0.4);
+          border-radius: 12px;
+          animation: tour-pulse 2s ease-in-out infinite;
+          outline: 3px dashed hsl(var(--primary));
+          outline-offset: 6px;
+        }
+        
+        @keyframes tour-pulse {
+          0%, 100% {
+            box-shadow: 
+              0 0 0 4px hsl(var(--primary)),
+              0 0 0 8px hsl(var(--primary) / 0.3),
+              0 0 30px hsl(var(--primary) / 0.4);
+          }
+          50% {
+            box-shadow: 
+              0 0 0 6px hsl(var(--primary)),
+              0 0 0 12px hsl(var(--primary) / 0.2),
+              0 0 40px hsl(var(--primary) / 0.5);
+          }
         }
       `}</style>
     </>
