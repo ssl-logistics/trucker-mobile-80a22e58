@@ -65,13 +65,33 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
        height: rect.height
      });
      
-    const position = steps[currentStep].position || "bottom";
+    let position = steps[currentStep].position || "bottom";
     
     let top = 0;
     let left = 0;
      const tooltipWidth = 300;
      const tooltipHeight = 180; // Approximate tooltip height
      const gap = 16; // Gap between target and tooltip
+    const bottomNavHeight = 80; // Approximate bottom nav height + safe area
+
+    // Auto-adjust position if tooltip would go out of viewport
+    // If position is "bottom" but tooltip would overlap with bottom nav, switch to "top"
+    if (position === "bottom") {
+      const wouldOverlapBottom = rect.bottom + gap + tooltipHeight > window.innerHeight - bottomNavHeight;
+      if (wouldOverlapBottom && rect.top - tooltipHeight - gap > 0) {
+        position = "top";
+        console.log('[Tour] Auto-adjusted position from bottom to top to avoid navbar overlap');
+      }
+    }
+    
+    // If position is "top" but tooltip would go above viewport, switch to "bottom"
+    if (position === "top") {
+      const wouldGoAbove = rect.top - tooltipHeight - gap < 0;
+      if (wouldGoAbove && rect.bottom + gap + tooltipHeight < window.innerHeight) {
+        position = "bottom";
+        console.log('[Tour] Auto-adjusted position from top to bottom to stay in viewport');
+      }
+    }
 
     switch (position) {
       case "top":
