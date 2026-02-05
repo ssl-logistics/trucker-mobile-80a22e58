@@ -309,7 +309,7 @@ const SignIn = () => {
               {isLoggingIn ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  กำลังเข้าสู่ระบบ...
+                  {t('signIn.loggingIn')}
                 </>
               ) : (
                 t('signIn.signInButton')
