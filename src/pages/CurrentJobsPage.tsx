@@ -137,7 +137,7 @@ export default function CurrentJobsPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        // Fetch jobs and check-ins in parallel
+        // Fetch jobs and check-ins in parallel with proper apikey header
         const [jobsResponse, checkinsResponse] = await Promise.all([
           fetch(
             `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${freelanceDriverId}&driver_type=${driverType}&limit=50`,
@@ -145,13 +145,17 @@ export default function CurrentJobsPage() {
               headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+                'apikey': supabaseKey,
               },
             }
           ),
           fetch(
             `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?driver_id=${freelanceDriverId}&driver_type=${driverType}&order_number=all`,
             {
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'apikey': supabaseKey,
+              },
             }
           ),
         ]);
@@ -313,6 +317,7 @@ export default function CurrentJobsPage() {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${supabaseKey}`,
+              'apikey': supabaseKey,
             },
           }
         ),
@@ -323,6 +328,7 @@ export default function CurrentJobsPage() {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${supabaseKey}`,
+              'apikey': supabaseKey,
             },
           }
         ).catch(() => null),
@@ -338,7 +344,10 @@ export default function CurrentJobsPage() {
           `${supabaseUrl}/functions/v1/get-driver-checkins-proxy?freelance_driver_id=${encodeURIComponent(freelanceDriverId)}&order_number=all`,
           {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'apikey': supabaseKey,
+            },
           }
         ).catch(() => null),
       ]);

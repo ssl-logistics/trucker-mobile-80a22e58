@@ -112,40 +112,66 @@ export default function Home() {
     
     setIsLoadingFactoryJobs(true);
     try {
-      let response: Response;
+      let result: any;
       
       // Determine which API to call based on user type
       if (isInternalDriver || isExternalDriver) {
-        // Internal/External drivers use get-driver-assigned-jobs API
+        // Internal/External drivers use get-driver-assigned-jobs API via supabase.functions.invoke
         const driverType = isInternalDriver ? 'internal' : 'external';
-        response = await fetch(
+        const { data, error } = await supabase.functions.invoke('get-driver-assigned-jobs', {
+          method: 'GET',
+          headers: {
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+          },
+          body: null,
+        });
+        
+        // Reconstruct the URL for GET request with query params
+        const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=10`,
           {
             headers: {
               'Content-Type': 'application/json',
               'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             },
           }
         );
+        
+        if (!response.ok) {
+          console.error('Error loading factory/driver jobs:', response.statusText);
+          setIsLoadingFactoryJobs(false);
+          return;
+        }
+        result = await response.json();
       } else {
-        // Freelance drivers use get-factory-assigned-jobs API
-        response = await fetch(
+        // Freelance drivers use get-factory-assigned-jobs API via supabase.functions.invoke
+        const { data, error } = await supabase.functions.invoke('get-factory-assigned-jobs', {
+          method: 'GET',
+          body: null,
+        });
+        
+        // For GET requests with query params, use fetch with proper headers
+        const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${user.id}&limit=10`,
           {
             headers: {
               'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
           }
         );
+        
+        if (!response.ok) {
+          console.error('Error loading factory/driver jobs:', response.statusText);
+          setIsLoadingFactoryJobs(false);
+          return;
+        }
+        result = await response.json();
       }
 
-      if (!response.ok) {
-        console.error('Error loading factory/driver jobs:', response.statusText);
-        return;
-      }
-
-      const result = await response.json();
+      // Result is already parsed above
       console.log('Loaded factory/driver jobs from API:', result, 'userType:', userType);
 
       // Transform API response to Job format
@@ -363,23 +389,30 @@ export default function Home() {
 
       // Check which jobs the user has accepted
       if (user && transformedJobs.length > 0) {
-        // Fetch accepted jobs from external API
+        // Fetch accepted jobs from external API via supabase.functions.invoke
         let acceptedOrderNumbers = new Set<string>();
         try {
+          const { data: acceptedResult, error: acceptedError } = await supabase.functions.invoke('get-freelance-accepted-jobs-proxy', {
+            method: 'GET',
+            body: null,
+          });
+          
+          // For GET with query params, use fetch with proper apikey header
           const acceptedResponse = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`,
             {
               headers: {
                 'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               }
             }
           );
           
           if (acceptedResponse.ok) {
-            const acceptedResult = await acceptedResponse.json();
-            if (acceptedResult.success && acceptedResult.data) {
+            const acceptedData = await acceptedResponse.json();
+            if (acceptedData.success && acceptedData.data) {
               acceptedOrderNumbers = new Set(
-                acceptedResult.data.map((job: any) => job.order_number)
+                acceptedData.data.map((job: any) => job.order_number)
               );
             }
           }
