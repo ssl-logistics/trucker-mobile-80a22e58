@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, ChevronRight, ChevronLeft, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -23,6 +24,7 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const [highlightRect, setHighlightRect] = useState({ top: 0, left: 0, width: 0, height: 0 });
   const [hasCompleted, setHasCompleted] = useState(false);
+  const cleanupRef = useRef<(() => void) | null>(null);
   const { t } = useLanguage();
 
   // Check if tour was completed before
@@ -41,7 +43,16 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
     if (!isVisible || !steps[currentStep]) return;
 
     const target = document.querySelector(steps[currentStep].target);
-    if (!target) return;
+    if (!target) {
+      console.log('[Tour] Target not found:', steps[currentStep].target);
+      return;
+    }
+
+    // Clean up previous modifications
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
 
     const rect = target.getBoundingClientRect();
     const position = steps[currentStep].position || "bottom";
@@ -90,16 +101,26 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
       }
       currentParent = currentParent.parentElement;
     }
+
+    // Make the target element appear above the overlay
+    const targetElement = target as HTMLElement;
+    const originalZIndex = targetElement.style.zIndex;
+    const originalPosition = targetElement.style.position;
+    const originalBg = targetElement.style.background;
+    
+    targetElement.style.setProperty('z-index', '9999', 'important');
+    targetElement.style.setProperty('position', 'relative', 'important');
     
     // Set highlight rectangle position
     setHighlightRect({
-      top: rect.top - 4,
-      left: rect.left - 4,
-      width: rect.width + 8,
-      height: rect.height + 8,
+      top: rect.top - 6,
+      left: rect.left - 6,
+      width: rect.width + 12,
+      height: rect.height + 12,
     });
-    
-    return () => {
+
+    // Store cleanup function
+    cleanupRef.current = () => {
       // Restore original overflow values
       parentsToRestore.forEach(({ element, overflow }) => {
         if (overflow) {
@@ -108,8 +129,29 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
           element.style.removeProperty('overflow');
         }
       });
+      // Restore target element styles
+      if (originalZIndex) {
+        targetElement.style.zIndex = originalZIndex;
+      } else {
+        targetElement.style.removeProperty('z-index');
+      }
+      if (originalPosition) {
+        targetElement.style.position = originalPosition;
+      } else {
+        targetElement.style.removeProperty('position');
+      }
     };
   }, [currentStep, isVisible, steps]);
+
+  // Cleanup on unmount or when tour ends
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Initial position update with delay to ensure DOM is ready
@@ -159,6 +201,11 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   };
 
   const handleComplete = () => {
+    // Clean up before completing
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
     localStorage.setItem(storageKey, "true");
     setIsVisible(false);
     setHasCompleted(true);
@@ -182,6 +229,24 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
   const step = steps[currentStep];
   if (!step) return null;
 
+  // Create highlight element using portal to document.body
+  const highlightElement = createPortal(
+    <div
+      className="pointer-events-none border-4 border-primary rounded-2xl"
+      style={{
+        position: 'fixed',
+        top: highlightRect.top,
+        left: highlightRect.left,
+        width: highlightRect.width,
+        height: highlightRect.height,
+        zIndex: 10001,
+        boxShadow: '0 0 0 4px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.4), inset 0 0 0 2px hsl(var(--primary) / 0.5)',
+        animation: 'tour-pulse 2s ease-in-out infinite',
+      }}
+    />,
+    document.body
+  );
+
   return (
     <>
       {/* Overlay */}
@@ -189,6 +254,9 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
         className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={handleSkip}
       />
+
+      {/* Highlight Border via Portal */}
+      {highlightElement}
 
       {/* Tooltip */}
       <div
@@ -275,19 +343,6 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
           ))}
         </div>
       </div>
-
-      {/* Highlight Border - Rendered AFTER tooltip to be on top */}
-      <div
-        className="fixed pointer-events-none z-[10001] border-4 border-primary rounded-2xl"
-        style={{
-          top: highlightRect.top,
-          left: highlightRect.left,
-          width: highlightRect.width,
-          height: highlightRect.height,
-          boxShadow: '0 0 0 4px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.4)',
-          animation: 'tour-pulse 2s ease-in-out infinite',
-        }}
-      />
 
       {/* Keyframe animation */}
       <style>{`
