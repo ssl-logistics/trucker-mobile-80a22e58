@@ -75,6 +75,14 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
 
     // Highlight the target element
     target.classList.add("tour-highlight");
+    
+    // Set CSS variables for the highlight border position
+    const root = document.documentElement;
+    root.style.setProperty('--tour-highlight-top', `${rect.top - 4}px`);
+    root.style.setProperty('--tour-highlight-left', `${rect.left - 4}px`);
+    root.style.setProperty('--tour-highlight-width', `${rect.width + 8}px`);
+    root.style.setProperty('--tour-highlight-height', `${rect.height + 8}px`);
+    
     return () => target.classList.remove("tour-highlight");
   }, [currentStep, isVisible, steps]);
 
@@ -241,25 +249,36 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
         .tour-highlight {
           position: relative;
           z-index: 9999 !important;
-          box-shadow: 
-            0 0 0 4px hsl(var(--primary)),
-            0 0 0 8px hsl(var(--primary) / 0.3),
-            0 0 30px hsl(var(--primary) / 0.4);
-          border-radius: 12px;
-          animation: tour-pulse 2s ease-in-out infinite;
         }
         
-        @keyframes tour-pulse {
+        .tour-highlight::before {
+          content: '';
+          position: fixed;
+          top: var(--tour-highlight-top, 0);
+          left: var(--tour-highlight-left, 0);
+          width: var(--tour-highlight-width, 100%);
+          height: var(--tour-highlight-height, 100%);
+          border: 4px solid hsl(var(--primary));
+          border-radius: 16px;
+          box-shadow: 
+            0 0 0 4px hsl(var(--primary) / 0.3),
+            0 0 30px hsl(var(--primary) / 0.4);
+          pointer-events: none;
+          z-index: 9999;
+          animation: tour-border-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes tour-border-pulse {
           0%, 100% {
+            border-color: hsl(var(--primary));
             box-shadow: 
-              0 0 0 4px hsl(var(--primary)),
-              0 0 0 8px hsl(var(--primary) / 0.3),
+              0 0 0 4px hsl(var(--primary) / 0.3),
               0 0 30px hsl(var(--primary) / 0.4);
           }
           50% {
+            border-color: hsl(var(--primary) / 0.7);
             box-shadow: 
-              0 0 0 6px hsl(var(--primary)),
-              0 0 0 12px hsl(var(--primary) / 0.2),
+              0 0 0 6px hsl(var(--primary) / 0.2),
               0 0 40px hsl(var(--primary) / 0.5);
           }
         }
