@@ -72,12 +72,21 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
      const tooltipWidth = 300;
      const tooltipHeight = 180; // Approximate tooltip height
      const gap = 16; // Gap between target and tooltip
-    const bottomNavHeight = 80; // Approximate bottom nav height + safe area
+     // Read actual bottom-nav height (set by BottomNavigation via CSS variable)
+     const bottomNavVar = window
+       .getComputedStyle(document.documentElement)
+       .getPropertyValue("--bottom-nav-height")
+       .trim();
+     const bottomNavHeight = Number.isFinite(parseFloat(bottomNavVar))
+       ? parseFloat(bottomNavVar)
+       : 0;
 
     // Auto-adjust position if tooltip would go out of viewport
     // If position is "bottom" but tooltip would overlap with bottom nav, switch to "top"
     if (position === "bottom") {
-      const wouldOverlapBottom = rect.bottom + gap + tooltipHeight > window.innerHeight - bottomNavHeight;
+      const wouldOverlapBottom =
+        rect.bottom + gap + tooltipHeight >
+        window.innerHeight - bottomNavHeight - 16;
       if (wouldOverlapBottom && rect.top - tooltipHeight - gap > 0) {
         position = "top";
         console.log('[Tour] Auto-adjusted position from bottom to top to avoid navbar overlap');
@@ -112,9 +121,10 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
         break;
     }
 
-    // Keep tooltip within viewport
+    // Keep tooltip within viewport (and never overlap the bottom nav)
      left = Math.max(16, Math.min(left, window.innerWidth - tooltipWidth - 16));
-     top = Math.max(16, Math.min(top, window.innerHeight - tooltipHeight - 16));
+     const maxTop = Math.max(16, window.innerHeight - bottomNavHeight - tooltipHeight - 16);
+     top = Math.max(16, Math.min(top, maxTop));
 
      console.log('[Tour] Calculated tooltip position:', { top, left, position });
      
