@@ -21,21 +21,21 @@ export const HomeTour = () => {
       position: "top" as const,
     },
     {
+     target: '[data-tour="current-jobs-nav"]',
+     title: "งานปัจจุบัน 🚛",
+     description: "ติดตามงานที่กำลังดำเนินการ อัปเดตสถานะ และเช็คอินได้ที่นี่",
+     position: "top" as const,
+   },
+   {
       target: '[data-tour="bidding-menu"]',
       title: "ประมูลงาน 🎯",
       description: "เสนอราคาเพื่อประมูลงานที่ต้องการ คุณสามารถตั้งราคาเองได้",
-      position: "bottom" as const,
+     position: "top" as const,
     },
     {
       target: '[data-tour="dashboard-menu"]',
       title: "แดชบอร์ด 📊",
       description: "ดูสถิติรายได้ ประวัติงาน และข้อมูลสรุปการทำงานของคุณ",
-      position: "bottom" as const,
-    },
-    {
-      target: '[data-tour="current-jobs-nav"]',
-      title: "งานปัจจุบัน 🚛",
-      description: "ติดตามงานที่กำลังดำเนินการ อัปเดตสถานะ และเช็คอินได้ที่นี่",
       position: "top" as const,
     },
     {
