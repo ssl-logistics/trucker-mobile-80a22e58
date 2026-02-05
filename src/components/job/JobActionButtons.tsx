@@ -9,15 +9,21 @@ import reportProblemIcon from '@/assets/report-problem-icon.svg';
 interface JobActionButtonsProps {
   jobId?: string;
   orderNumber?: string;
+  isPodCompleted?: boolean;
 }
 
-export default function JobActionButtons({ jobId, orderNumber }: JobActionButtonsProps) {
+export default function JobActionButtons({ jobId, orderNumber, isPodCompleted }: JobActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+
+  // Hide all buttons when POD is completed (similar to SOP success behavior)
+  if (isPodCompleted) {
+    return null;
+  }
 
   return (
     <>
