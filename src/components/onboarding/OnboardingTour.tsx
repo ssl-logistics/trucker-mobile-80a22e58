@@ -74,6 +74,22 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
 
     setTooltipPosition({ top, left });
 
+    // Handle overflow: hidden parents that would clip the highlight border
+    let currentParent = target.parentElement;
+    const parentsToRestore: Array<{ element: HTMLElement; overflow: string }> = [];
+    
+    while (currentParent && currentParent !== document.body) {
+      const computedStyle = window.getComputedStyle(currentParent);
+      if (computedStyle.overflow === 'hidden' || computedStyle.overflowY === 'hidden' || computedStyle.overflowX === 'hidden') {
+        parentsToRestore.push({
+          element: currentParent,
+          overflow: currentParent.style.overflow || ''
+        });
+        currentParent.style.overflow = 'visible';
+      }
+      currentParent = currentParent.parentElement;
+    }
+    
     // Set highlight rectangle position
     setHighlightRect({
       top: rect.top - 4,
@@ -82,7 +98,12 @@ export const OnboardingTour = ({ steps, storageKey, onComplete }: OnboardingTour
       height: rect.height + 8,
     });
     
-    return () => {};
+    return () => {
+      // Restore original overflow values
+      parentsToRestore.forEach(({ element, overflow }) => {
+        element.style.overflow = overflow;
+      });
+    };
   }, [currentStep, isVisible, steps]);
 
   useEffect(() => {
