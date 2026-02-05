@@ -21,10 +21,10 @@ export const HomeTour = () => {
       position: "top" as const,
     },
     {
-     target: '[data-tour="current-jobs-nav"]',
+     target: '[data-tour="current-jobs-menu"]',
      title: "งานปัจจุบัน 🚛",
      description: "ติดตามงานที่กำลังดำเนินการ อัปเดตสถานะ และเช็คอินได้ที่นี่",
-     position: "top" as const,
+     position: "bottom" as const,
    },
    {
       target: '[data-tour="bidding-menu"]',
