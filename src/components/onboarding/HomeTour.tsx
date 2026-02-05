@@ -1,53 +1,123 @@
-import { OnboardingTour } from "./OnboardingTour";
+import { OnboardingTour, TourStep } from "./OnboardingTour";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const HomeTour = () => {
   const { isFreelance, isInternalDriver, isExternalDriver } = useUserRole();
+  const { t } = useLanguage();
 
-  // Define steps based on user role
-  const getSteps = () => {
-    const baseSteps = [
+  // Define steps for Freelance drivers
+  const getFreelanceSteps = (): TourStep[] => [
+    {
+      target: '[data-tour="header"]',
+      title: "ยินดีต้อนรับ! 👋",
+      description: "นี่คือแถบด้านบนที่แสดงข้อมูลโปรไฟล์และสถานะของคุณ",
+      position: "bottom" as const,
+    },
+    {
+      target: '[data-tour="available-jobs"]',
+      title: "งานที่พร้อมรับ 📦",
+      description: "ดูรายการงานทั้งหมดที่คุณสามารถรับได้ กดที่การ์ดเพื่อดูรายละเอียดและกดรับงาน",
+      position: "top" as const,
+    },
+    {
+      target: '[data-tour="bidding-menu"]',
+      title: "ประมูลงาน 🎯",
+      description: "เสนอราคาเพื่อประมูลงานที่ต้องการ คุณสามารถตั้งราคาเองได้",
+      position: "bottom" as const,
+    },
+    {
+      target: '[data-tour="dashboard-menu"]',
+      title: "แดชบอร์ด 📊",
+      description: "ดูสถิติรายได้ ประวัติงาน และข้อมูลสรุปการทำงานของคุณ",
+      position: "bottom" as const,
+    },
+    {
+      target: '[data-tour="current-jobs-nav"]',
+      title: "งานปัจจุบัน 🚛",
+      description: "ติดตามงานที่กำลังดำเนินการ อัปเดตสถานะ และเช็คอินได้ที่นี่",
+      position: "top" as const,
+    },
+    {
+      target: '[data-tour="chat-nav"]',
+      title: "แชท 💬",
+      description: "สื่อสารกับลูกค้าและผู้ประสานงานได้โดยตรง",
+      position: "top" as const,
+    },
+    {
+      target: '[data-tour="settings-nav"]',
+      title: "ตั้งค่า ⚙️",
+      description: "จัดการโปรไฟล์ ข้อมูลรถ และการแจ้งเตือน",
+      position: "top" as const,
+    },
+  ];
+
+  // Define steps for Internal/External drivers (Staff)
+  const getStaffSteps = (): TourStep[] => [
+    {
+      target: '[data-tour="header"]',
+      title: "ยินดีต้อนรับ! 👋",
+      description: "แถบด้านบนแสดงข้อมูลโปรไฟล์และสังกัดของคุณ",
+      position: "bottom" as const,
+    },
+    {
+      target: '[data-tour="available-jobs"]',
+      title: "งานที่ได้รับมอบหมาย 📦",
+      description: "ดูรายการงานที่บริษัท/โรงงานมอบหมายให้คุณ กดเพื่อดูรายละเอียดและเริ่มงาน",
+      position: "top" as const,
+    },
+    {
+      target: '[data-tour="current-jobs-nav"]',
+      title: "งานปัจจุบัน 🚛",
+      description: "ติดตามงานที่กำลังวิ่ง เช็คอิน ถ่ายรูป SOP และอัปเดตสถานะได้ที่นี่",
+      position: "top" as const,
+    },
+    {
+      target: '[data-tour="chat-nav"]',
+      title: "แชท 💬",
+      description: "ติดต่อผู้ประสานงานและรับข้อความจากบริษัท/โรงงาน",
+      position: "top" as const,
+    },
+    {
+      target: '[data-tour="settings-nav"]',
+      title: "ตั้งค่า ⚙️",
+      description: "จัดการข้อมูลส่วนตัว ข้อมูลรถ และการแจ้งเตือน",
+      position: "top" as const,
+    },
+  ];
+
+  const getSteps = (): TourStep[] => {
+    // Internal/External drivers get staff-specific tour
+    if (isInternalDriver || isExternalDriver) {
+      return getStaffSteps();
+    }
+    
+    // Freelance drivers get full feature tour
+    if (isFreelance) {
+      return getFreelanceSteps();
+    }
+
+    // Default fallback (basic tour)
+    return [
       {
         target: '[data-tour="header"]',
         title: "ยินดีต้อนรับ! 👋",
-        description: "นี่คือแถบด้านบนที่แสดงข้อมูลโปรไฟล์ของคุณ คุณสามารถกดเพื่อออกจากระบบได้",
+        description: "นี่คือแถบด้านบนที่แสดงข้อมูลโปรไฟล์ของคุณ",
         position: "bottom" as const,
       },
       {
         target: '[data-tour="available-jobs"]',
         title: "งานที่พร้อมรับ 📦",
-        description: "ดูรายการงานทั้งหมดที่คุณสามารถรับได้ที่นี่ กดที่การ์ดเพื่อดูรายละเอียดงาน",
+        description: "ดูรายการงานทั้งหมดที่คุณสามารถรับได้ที่นี่",
         position: "top" as const,
       },
       {
         target: '[data-tour="bottom-nav"]',
         title: "เมนูด้านล่าง 🧭",
-        description: "ใช้เมนูนี้เพื่อไปยังหน้าต่างๆ: หน้าหลัก, งานปัจจุบัน, แชท และตั้งค่า",
+        description: "ใช้เมนูนี้เพื่อไปยังหน้าต่างๆ ของแอป",
         position: "top" as const,
       },
     ];
-
-    // Add freelance-specific steps
-    if (isFreelance) {
-      return [
-        ...baseSteps.slice(0, 2),
-        {
-          target: '[data-tour="bidding-menu"]',
-          title: "ประมูลงาน 🎯",
-          description: "คุณสามารถประมูลงานเพื่อเสนอราคาที่ต้องการได้ กดที่นี่เพื่อดูงานประมูล",
-          position: "bottom" as const,
-        },
-        {
-          target: '[data-tour="dashboard-menu"]',
-          title: "แดชบอร์ด 📊",
-          description: "ดูสถิติและข้อมูลสรุปการทำงานของคุณได้ที่นี่",
-          position: "bottom" as const,
-        },
-        ...baseSteps.slice(2),
-      ];
-    }
-
-    return baseSteps;
   };
 
   return (
