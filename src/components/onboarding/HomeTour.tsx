@@ -39,6 +39,12 @@ export const HomeTour = () => {
       position: "top" as const,
     },
     {
+      target: '[data-tour="dashboard-nav"]',
+      title: "แผงควบคุม 📊",
+      description: "ดูข้อมูล 4 หมวด: การเงิน การจัดส่ง ลูกค้า และสินค้า",
+      position: "top" as const,
+    },
+    {
       target: '[data-tour="chat-nav"]',
       title: "แชท 💬",
       description: "สื่อสารกับลูกค้าและผู้ประสานงานได้โดยตรง",
