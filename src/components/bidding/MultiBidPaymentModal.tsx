@@ -693,39 +693,7 @@ export function MultiBidPaymentModal({
                               </div>
                             </div>
                             
-                            {/* Account number check */}
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-amber-800">เลขบัญชี:</span>
-                              <div className="flex items-center gap-1">
-                                <span className="font-medium">
-                                  {hintOCRValidation.extractedAccount || "ไม่พบข้อมูล"}
-                                </span>
-                                {hintOCRValidation.accountMatches === true && (
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                )}
-                                {hintOCRValidation.accountMatches === false && (
-                                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Account name check */}
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-amber-800">ชื่อบัญชี:</span>
-                              <div className="flex items-center gap-1">
-                                <span className="font-medium truncate max-w-[150px]" title={hintOCRValidation.extractedReceiverName || undefined}>
-                                  {hintOCRValidation.extractedReceiverName || "ไม่พบข้อมูล"}
-                                </span>
-                                {hintOCRValidation.extractedReceiverName && 
-                                  hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล") && (
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                )}
-                                {hintOCRValidation.extractedReceiverName && 
-                                  !hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล") && (
-                                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
-                                )}
-                              </div>
-                            </div>
+                            {/* Account number and name checks removed for testing */}
                             
                             {/* Bank name display */}
                             {hintOCRValidation.extractedBankName && (
@@ -738,12 +706,9 @@ export function MultiBidPaymentModal({
                             {/* Validation summary */}
                             {(() => {
                               const amountOk = hintOCRValidation.amountMatches === true;
-                              const accountOk = hintOCRValidation.accountMatches === true;
-                              const nameOk = hintOCRValidation.extractedReceiverName?.includes("เอสเอสแอล");
-                              const allValid = amountOk && accountOk && nameOk;
-                              const hasErrors = hintOCRValidation.amountMatches === false || 
-                                               hintOCRValidation.accountMatches === false ||
-                                               (hintOCRValidation.extractedReceiverName && !hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล"));
+                              // Temporarily only check amount for testing
+                              const allValid = amountOk;
+                              const hasErrors = hintOCRValidation.amountMatches === false;
                               
                               if (hasErrors) {
                                 return (
@@ -757,17 +722,6 @@ export function MultiBidPaymentModal({
                                         • ยอดโอนไม่ตรง (ต้องการ ฿{hintFee})
                                       </p>
                                     )}
-                                    {hintOCRValidation.accountMatches === false && (
-                                      <p className="text-xs text-red-600">
-                                        • เลขบัญชีไม่ตรง (ต้องการ {BANK_INFO.accountNumber})
-                                      </p>
-                                    )}
-                                    {hintOCRValidation.extractedReceiverName && 
-                                      !hintOCRValidation.extractedReceiverName.includes("เอสเอสแอล") && (
-                                      <p className="text-xs text-red-600">
-                                        • ชื่อบัญชีไม่ตรง
-                                      </p>
-                                    )}
                                   </div>
                                 );
                               }
@@ -777,19 +731,7 @@ export function MultiBidPaymentModal({
                                   <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                                     <p className="text-xs text-emerald-700 font-medium flex items-center gap-1">
                                       <CheckCircle2 className="w-3.5 h-3.5" />
-                                      ตรวจสอบถูกต้องครบถ้วน พร้อมชำระ
-                                    </p>
-                                  </div>
-                                );
-                              }
-                              
-                              // Partial validation (some data not found)
-                              if (amountOk) {
-                                return (
-                                  <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
-                                    <p className="text-xs text-amber-700 font-medium flex items-center gap-1">
-                                      <CheckCircle2 className="w-3.5 h-3.5" />
-                                      ยอดเงินถูกต้อง (ข้อมูลบางส่วนอาจไม่สมบูรณ์)
+                                      ยอดเงินถูกต้อง พร้อมชำระ
                                     </p>
                                   </div>
                                 );
