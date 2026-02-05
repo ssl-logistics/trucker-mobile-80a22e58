@@ -367,11 +367,10 @@ export default function Home() {
         let acceptedOrderNumbers = new Set<string>();
         try {
           const acceptedResponse = await fetch(
-            `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`,
             {
               headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
               }
             }
           );
@@ -480,12 +479,11 @@ export default function Home() {
       
       console.log('Vehicle data from user:', { licensePlate, vehicleType, vehicleBrand });
 
-      // Call external API to accept job
-      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/accept-express-rent-job', {
+      // Call accept job API via proxy
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/accept-express-rent-job-proxy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
         },
         body: JSON.stringify({
           order_number: selectedJob.order_code,
@@ -644,11 +642,10 @@ export default function Home() {
       setIsFactoryJobProcessing(true);
       
       try {
-        const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job', {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/respond-factory-job-proxy`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
           body: JSON.stringify({
             order_number: orderCode,
@@ -720,11 +717,10 @@ export default function Home() {
       setIsFactoryJobProcessing(true);
       
       try {
-        const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job', {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/respond-factory-job-proxy`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
           body: JSON.stringify({
             order_number: orderCode,
@@ -775,11 +771,10 @@ export default function Home() {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       
       if (driverId) {
-        await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/logout', {
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/logout-proxy`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
           body: JSON.stringify({ driver_id: driverId }),
         });

@@ -55,23 +55,21 @@ export default function PickupSummaryPage() {
       const driverId = user.id;
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Fetch job detail from external API
+      // Fetch job detail from API via proxy
       const jobResponse = (isInternalDriver || isExternalDriver)
         ? await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=50`,
             {
               headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
               }
             }
           )
         : await fetch(
-            `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${driverId}`,
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${driverId}`,
             {
               headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
               }
             }
           );
@@ -131,11 +129,10 @@ export default function PickupSummaryPage() {
           : `freelance_driver_id=${encodeURIComponent(driverId)}`;
 
       const sopResponse = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${driverIdParam}&order_number=${encodeURIComponent(jobId)}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-sop-proxy?${driverIdParam}&order_number=${encodeURIComponent(jobId)}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
           }
         }
       );

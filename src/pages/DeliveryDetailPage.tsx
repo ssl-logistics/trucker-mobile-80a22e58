@@ -130,13 +130,12 @@ export default function DeliveryDetailPage() {
         const driverType = isInternalDriver ? 'internal' : 'external';
         apiUrl = `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`;
       } else {
-        apiUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`;
+        apiUrl = `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`;
       }
       
       const response = await fetch(apiUrl, {
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
         }
       });
 
@@ -386,12 +385,11 @@ export default function DeliveryDetailPage() {
       console.log('Payload:', JSON.stringify(podPayload, null, 2));
       
       const response = await fetch(
-        'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/driver-checkin',
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
           body: JSON.stringify(podPayload)
         }

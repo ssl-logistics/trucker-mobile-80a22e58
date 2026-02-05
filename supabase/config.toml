@@ -95,3 +95,9 @@ verify_jwt = false
 
 [functions.logout-proxy]
 verify_jwt = false
+
+[functions.accept-express-rent-job-proxy]
+verify_jwt = false
+
+[functions.respond-factory-job-proxy]
+verify_jwt = false
