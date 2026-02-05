@@ -137,7 +137,7 @@ export const PushNotificationPrompt = () => {
       // Show prompt after a delay
       setTimeout(() => {
         setShowPrompt(true);
-      }, 3000);
+      }, 2000);
     };
 
     checkPermission();
