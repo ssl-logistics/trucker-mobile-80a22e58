@@ -123,7 +123,7 @@ export function BottomNavigation() {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            data-tour={item.path === "/chat" ? "chat-nav" : item.path === "/settings" ? "settings-nav" : undefined}
+            data-tour={item.path === "/dashboard" ? "dashboard-nav" : item.path === "/chat" ? "chat-nav" : item.path === "/settings" ? "settings-nav" : undefined}
             style={{
               display: "flex",
               flexDirection: "column",
