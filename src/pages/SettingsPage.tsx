@@ -4,7 +4,6 @@ import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useUserRole } from '@/hooks/useUserRole';
 import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -36,7 +35,6 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout, setAuthTransitioning } = useAuth();
   const { t } = useLanguage();
-  const { isFreelanceDriver } = useUserRole();
   const { vehiclePhoto } = useVehiclePhoto();
   
   // Get presigned URL for S3 profile photos
@@ -279,8 +277,7 @@ export default function SettingsPage() {
       section: t('settings.general'),
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true, path: '/notifications' },
-        // Show tour guide only for non-freelance drivers (Internal/External)
-        ...(!isFreelanceDriver ? [{ icon: HelpCircle, label: 'แนะนำการใช้งาน', hasRestartTour: true }] : []),
+        { icon: HelpCircle, label: 'แนะนำการใช้งาน', hasRestartTour: true },
         { icon: Bug, label: 'Push Debug', path: '/push-debug' },
       ]
     },
