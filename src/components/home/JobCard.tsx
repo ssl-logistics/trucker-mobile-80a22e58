@@ -81,10 +81,12 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     }
   };
 
-  // Determine job type based on job_type field and destinations array
+  // Determine job type based on destinations array vs destination_location
   const isInternational = job.job_type === 'international';
-  const isSingleTrip = job.job_type === 'one-way';
-  const isMultipleLocations = job.job_type === 'multiple' || (job.destinations && job.destinations.length > 1);
+  // Multiple locations: has destinations array with items
+  const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 0;
+  // Single trip: has destination_location string (no destinations array)
+  const isSingleTrip = !isMultipleLocations && !!job.destination_location;
   const isDomestic = !isInternational;
   const isInbound = job.transport_type?.includes('ขาเข้า');
   const isOutbound = job.transport_type?.includes('ขาออก');
