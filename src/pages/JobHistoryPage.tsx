@@ -156,22 +156,36 @@ export default function JobHistoryPage() {
         const allJobs = jobsJson.data || [];
         const allCheckins = checkinsJson?.data || [];
 
-        // Get transport_order_ids that have delivery_confirmed
+        // Count PODs per transport_order_id for multi-destination jobs
         const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
-        const confirmedTransportIds = new Set(
-          allCheckins
-            .filter(
-              (c: any) =>
-                c[driverIdField] === driverId &&
-                c.checkin_type === "delivery_confirmed" &&
-                c.transport_order_id
-            )
-            .map((c: any) => String(c.transport_order_id))
-        );
+        const podCountByTransportId: Record<string, number> = {};
+        
+        allCheckins
+          .filter(
+            (c: any) =>
+              c[driverIdField] === driverId &&
+              (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) &&
+              c.transport_order_id
+          )
+          .forEach((c: any) => {
+            const transportId = String(c.transport_order_id);
+            podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+          });
+        
+        console.log('POD counts by transport ID (history):', podCountByTransportId);
 
-        // Filter jobs with delivery_confirmed
+        // Filter jobs that have ALL destinations POD completed
         const completedFromApi: CompletedJob[] = allJobs
-          .filter((job: any) => confirmedTransportIds.has(String(job.id)))
+          .filter((job: any) => {
+            const transportId = String(job.id);
+            const podCount = podCountByTransportId[transportId] || 0;
+            const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
+              ? job.destinations.length 
+              : 1; // Single destination if no array
+            
+            // Job is completed when POD count matches destination count
+            return podCount >= destinationCount;
+          })
           .map((job: any) => ({
             id: job.id,
             order_number: job.order_number,
@@ -309,45 +323,57 @@ export default function JobHistoryPage() {
       const allCheckins = checkinsJson?.data || checkinsJson || [];
       const checkins = Array.isArray(allCheckins) ? allCheckins : [];
 
-      // ✅ Completed = มี delivery_confirmed ของ transport_order_id (POD ส่งแล้ว)
-      const confirmedTransportIds = new Set(
-        checkins
-          .filter(
-            (c: any) =>
-              c.freelance_driver_id === freelanceDriverId &&
-              c.checkin_type === "delivery_confirmed" &&
-              c.transport_order_id
-          )
-          .map((c: any) => String(c.transport_order_id))
-      );
+      // Count PODs per transport_order_id and order_number for multi-destination jobs
+      const podCountByTransportId: Record<string, number> = {};
+      const podCountByOrderNumber: Record<string, number> = {};
+      
+      checkins
+        .filter(
+          (c: any) =>
+            c.freelance_driver_id === freelanceDriverId &&
+            (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_"))
+        )
+        .forEach((c: any) => {
+          if (c.transport_order_id) {
+            const transportId = String(c.transport_order_id);
+            podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+          }
+          const orderNumber = c.transport_orders?.order_number || c.order_number || '';
+          if (orderNumber) {
+            podCountByOrderNumber[orderNumber] = (podCountByOrderNumber[orderNumber] || 0) + 1;
+          }
+        });
+      
+      console.log('Freelance POD counts (history):', { byTransportId: podCountByTransportId, byOrderNumber: podCountByOrderNumber });
 
+      // Helper function to check if job has ALL PODs completed
+      const isJobFullyCompleted = (job: any): boolean => {
+        const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
+          ? job.destinations.length 
+          : 1; // Single destination if no array
+        
+        const podCount = Math.max(
+          podCountByTransportId[String(job.id)] || 0,
+          podCountByOrderNumber[job.order_number] || 0
+        );
+        
+        return podCount >= destinationCount;
+      };
+
+      // Filter jobs that have ALL destinations POD completed
       const completedFromApi = allJobs
-        .filter((job) => confirmedTransportIds.has(String(job.id)))
+        .filter((job) => isJobFullyCompleted(job))
         .map((job) => ({ ...job, status: "completed" }));
 
       // Process bid-won jobs from list-tickets API
-      // Only show bid jobs that have delivery_confirmed check-in (not just status=completed)
+      // Only show bid jobs that have ALL PODs completed
       let bidCompletedJobs: CompletedJob[] = [];
       if (bidWonJobsRes && bidWonJobsRes.data) {
         const bidData = bidWonJobsRes.data;
         console.log('Loaded bid-won jobs from API:', bidData);
         const tickets = bidData.data || bidData.tickets || [];
         
-        // Get order numbers that have delivery_confirmed from check-ins
-        const confirmedOrderNumbers = new Set(
-          checkins
-            .filter(
-              (c: any) =>
-                c.freelance_driver_id === freelanceDriverId &&
-                c.checkin_type === 'delivery_confirmed'
-            )
-            .map((c: any) => c.transport_orders?.order_number || c.order_number || '')
-            .filter(Boolean)
-        );
-        
-        console.log('Bid job order numbers with delivery_confirmed:', Array.from(confirmedOrderNumbers));
-        
-        // Filter tickets where current user has an accepted bid AND has delivery_confirmed
+        // Filter tickets where current user has an accepted bid AND has ALL PODs completed
         bidCompletedJobs = tickets
           .filter((ticket: any) => {
             const ticketNumber = ticket.ticket_number || '';
@@ -358,8 +384,13 @@ export default function JobHistoryPage() {
             );
             if (!userAcceptedBid) return false;
             
-            // Only show in history if has delivery_confirmed check-in
-            return confirmedOrderNumbers.has(ticketNumber);
+            // Check if all PODs are completed for this ticket
+            const podCount = podCountByOrderNumber[ticketNumber] || 0;
+            const destinationCount = Array.isArray(ticket.destinations) && ticket.destinations.length > 0
+              ? ticket.destinations.length
+              : 1;
+            
+            return podCount >= destinationCount;
           })
           .map((ticket: any) => {
             // Extract location info from route object (list-tickets API structure)
