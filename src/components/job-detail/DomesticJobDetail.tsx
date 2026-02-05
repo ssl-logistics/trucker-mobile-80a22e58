@@ -864,6 +864,7 @@ export default function DomesticJobDetail({
               {/* Delivery Point Cards - Multiple destinations */}
               {destinations.length > 0 ? destinations.map((dest, index) => {
                 const isPodCompleted = !!dest.sop_completed_at;
+                const isCheckedIn = !!dest.checked_in_at;
                 
                 // Check if previous destination is completed (for sequential locking)
                 // First destination requires pickup SOP to be completed
@@ -874,6 +875,18 @@ export default function DomesticJobDetail({
                 
                 // This destination is locked if previous step is not completed
                 const isDestinationLocked = !isPreviousCompleted;
+                
+                // Determine status text and colors
+                const getStatusInfo = () => {
+                  if (isPodCompleted) {
+                    return { text: t('jobDetail.podSuccess'), textColor: 'text-green-600', bgColor: 'bg-[#E6F7E6]' };
+                  }
+                  if (isCheckedIn) {
+                    return { text: t('jobDetail.waitingPayment'), textColor: 'text-blue-600', bgColor: 'bg-blue-50' };
+                  }
+                  return { text: t('jobDetail.waitingCheckIn'), textColor: 'text-orange-500', bgColor: 'bg-[#FFF7E6]' };
+                };
+                const statusInfo = getStatusInfo();
                 
                 return (
                   <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isPreviousCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
@@ -888,8 +901,8 @@ export default function DomesticJobDetail({
                             {t('jobDetail.waitingPreviousStep')}
                           </span>
                         ) : (
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                            {isPodCompleted ? t('jobDetail.podSuccess') : t('jobDetail.waitingCheckIn')}
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${statusInfo.textColor} ${statusInfo.bgColor}`}>
+                            {statusInfo.text}
                           </span>
                         )}
                       </div>
