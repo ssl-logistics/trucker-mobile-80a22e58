@@ -112,40 +112,16 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           <span className="text-muted-foreground">{isFactoryJob ? t('job.factory') : t('job.employer')} : </span>
           <span className="font-medium">{job.employer_name}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {isDomestic && (
-            <>
-              <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-                {t('job.domestic')}
-              </Badge>
-              {isSingleTrip && (
-                <Badge variant="secondary" className="bg-teal-50 text-teal-700 hover:bg-teal-100">
-                  {t('job.single_trip')}
-                </Badge>
-              )}
-              {isMultipleLocations && (
-                <Badge variant="secondary" className="bg-cyan-50 text-cyan-700 hover:bg-cyan-100">
-                  {t('job.multiple_locations')}
-                </Badge>
-              )}
-            </>
+            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+              {t('job.domestic')} {isSingleTrip ? `(${t('job.single_trip')})` : isMultipleLocations ? `(${t('job.multiple_locations')})` : ''}
+            </Badge>
           )}
           {isInternational && (
-            <>
-              <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-                {t('job.international')}
-              </Badge>
-              {isInbound && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                  {t('job.inbound')}
-                </Badge>
-              )}
-              {isOutbound && (
-                <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
-                  {t('job.outbound')}
-                </Badge>
-              )}
-            </>
+            <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
+              {t('job.international')} {isInbound ? `(${t('job.inbound')})` : isOutbound ? `(${t('job.outbound')})` : ''}
+            </Badge>
           )}
         </div>
         <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
