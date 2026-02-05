@@ -60,12 +60,11 @@ export default function CustomerPage() {
         // Fetch jobs and checkins in parallel from external API
         const [jobsRes, checkinsRes] = await Promise.all([
           fetch(
-            `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${encodeURIComponent(user.id)}`,
             {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
               },
             }
           ),

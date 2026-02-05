@@ -120,12 +120,11 @@ const SignIn = () => {
       setServerError("");
       setIsLoggingIn(true);
       
-      // POST to external login API
-      const response = await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/login', {
+      // POST to login API via proxy
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/login-proxy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
         },
         body: JSON.stringify({
           username: data.email,

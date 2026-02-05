@@ -234,11 +234,10 @@ export default function SettingsPage() {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
       
       if (driverId) {
-        await fetch('https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/logout', {
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/logout-proxy`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
           body: JSON.stringify({ driver_id: driverId }),
         });

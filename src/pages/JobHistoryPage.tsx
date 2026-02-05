@@ -225,26 +225,24 @@ export default function JobHistoryPage() {
       const freelanceDriverId = driverId;
       const [companyJobsRes, factoryJobsRes, checkinsRes, bidWonJobsRes] = await Promise.all([
         fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(
+          `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${encodeURIComponent(
             freelanceDriverId
           )}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              "x-api-key": "fld_sk_2026_xY9kWewT3xNySk8kGsRq_live",
             },
           }
         ),
         fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${encodeURIComponent(
+          `${supabaseUrl}/functions/v1/get-factory-assigned-jobs-proxy?freelance_driver_id=${encodeURIComponent(
             freelanceDriverId
           )}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              "x-api-key": "fld_sk_2026_xY9kWewT3xNySk8kGsRq_live",
             },
           }
         ),

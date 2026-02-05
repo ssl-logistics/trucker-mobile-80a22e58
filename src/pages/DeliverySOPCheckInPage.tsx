@@ -68,13 +68,12 @@ export default function DeliverySOPCheckInPage() {
     setLoading(true);
     
     try {
-      // Fetch from external API using order_number
+      // Fetch from API via proxy using order_number
       const response = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
           }
         }
       );

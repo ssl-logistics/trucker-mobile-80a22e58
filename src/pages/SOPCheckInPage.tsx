@@ -177,13 +177,12 @@ export default function SOPCheckInPage() {
           foundJob = result.data.find((j: any) => j.order_number === jobId);
         }
       } else {
-        // For Freelance drivers, use get-freelance-accepted-jobs
+        // For Freelance drivers, use get-freelance-accepted-jobs via proxy
         const response = await fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`,
           {
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
             }
           }
         );
