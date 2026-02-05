@@ -183,3 +183,43 @@ export async function login(username: string, password: string) {
     body: { username, password },
   });
 }
+
+export async function logout(driverId: string) {
+  return callExternalApi<{ success: boolean }>('logout', {
+    method: 'POST',
+    body: { driver_id: driverId },
+  });
+}
+
+export async function addExpense(body: {
+  order_number: string;
+  driver_id: string;
+  driver_type: 'internal' | 'external' | 'freelance';
+  expense_type: string;
+  amount: number;
+  receipt_photo_url?: string;
+  receipt_photo_urls?: string[];
+  notes?: string;
+  ocr_data?: any;
+}) {
+  return callExternalApi<{ success: boolean; data?: any }>('transport-expenses', {
+    method: 'POST',
+    body,
+  });
+}
+
+export async function getExpenses(orderNumber: string, driverId: string, driverType?: string) {
+  const params: Record<string, string> = {
+    order_number: orderNumber,
+    driver_id: driverId,
+  };
+  
+  if (driverType) {
+    params.driver_type = driverType;
+  }
+  
+  return callExternalApi<any>('transport-expenses', {
+    method: 'GET',
+    params,
+  });
+}

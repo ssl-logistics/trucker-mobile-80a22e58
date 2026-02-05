@@ -13,6 +13,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
+import { getExpenses } from '@/lib/externalApi';
 
 // API response interfaces (matching JobHistoryPage)
 interface ApiJobDetail {
@@ -271,19 +272,9 @@ export default function JobRouteExpensesPage() {
           : 'freelance';
         
         try {
-          const expensesResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-expenses-proxy?order_number=${encodeURIComponent(apiJob.order_number)}&driver_id=${encodeURIComponent(user.id)}&driver_type=${driverType}`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              },
-            }
-          );
+          const { data: expensesResult, error: expensesError } = await getExpenses(apiJob.order_number, user.id, driverType);
           
-          if (expensesResponse.ok) {
-            const expensesResult = await expensesResponse.json();
+          if (!expensesError && expensesResult) {
             console.log('Expenses from API:', expensesResult);
             
             // Map external API response to our Expense interface
@@ -296,7 +287,7 @@ export default function JobRouteExpensesPage() {
             }));
             setExpenses(mappedExpenses);
           } else {
-            console.error('Failed to fetch expenses from API:', expensesResponse.status);
+            console.error('Failed to fetch expenses from API:', expensesError);
             setExpenses([]);
           }
         } catch (expError) {

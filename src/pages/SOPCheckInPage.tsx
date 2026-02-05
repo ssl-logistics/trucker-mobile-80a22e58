@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
+import { getFreelanceAcceptedJobs } from '@/lib/externalApi';
 import {
   Dialog,
   DialogContent,
@@ -177,25 +178,19 @@ export default function SOPCheckInPage() {
           foundJob = result.data.find((j: any) => j.order_number === jobId);
         }
       } else {
-        // For Freelance drivers, use get-freelance-accepted-jobs via proxy
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          }
-        );
+        // For Freelance drivers, use getFreelanceAcceptedJobs
+        const { data: result, error } = await getFreelanceAcceptedJobs(user.id);
 
-        if (!response.ok) {
+        if (error) {
           throw new Error('Failed to fetch job details');
         }
 
-        const result = await response.json();
-        console.log('Freelance job API response:', result);
-        
-        if (result.success && result.data) {
-          foundJob = result.data.find((j: any) => j.order_number === jobId);
+        if (result) {
+          console.log('Freelance job API response:', result);
+          
+          if (result.data) {
+            foundJob = result.data.find((j: any) => j.order_number === jobId);
+          }
         }
       }
       

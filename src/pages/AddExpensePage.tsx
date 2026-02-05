@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
+import { addExpense } from "@/lib/externalApi";
 
 interface ExpenseLineItem {
   description: string;
@@ -326,22 +327,20 @@ const AddExpensePage = () => {
         } : null;
         
         // Send expense to external API with OCR data
-        const response = await supabase.functions.invoke('add-expense-proxy', {
-          body: {
-            order_number: jobId,
-            driver_id: user.id,
-            driver_type: driverType,
-            expense_type: expenseType,
-            amount: parseFloat(expense.amount),
-            receipt_photo_url: photoUrls[0], // Primary photo (backward compatibility)
-            receipt_photo_urls: photoUrls, // All photos
-            notes: photoUrls.length > 1 ? `มี ${photoUrls.length} ใบเสร็จ` : '',
-            ocr_data: ocrData, // OCR extracted data
-          }
+        const { data: expenseData, error: expenseError } = await addExpense({
+          order_number: jobId,
+          driver_id: user.id,
+          driver_type: driverType,
+          expense_type: expenseType,
+          amount: parseFloat(expense.amount),
+          receipt_photo_url: photoUrls[0], // Primary photo (backward compatibility)
+          receipt_photo_urls: photoUrls, // All photos
+          notes: photoUrls.length > 1 ? `มี ${photoUrls.length} ใบเสร็จ` : '',
+          ocr_data: ocrData, // OCR extracted data
         });
         
-        if (response.error) {
-          throw new Error(`${t('expense.saveError')}: ${response.error.message}`);
+        if (expenseError) {
+          throw new Error(`${t('expense.saveError')}: ${expenseError}`);
         }
       }
       
