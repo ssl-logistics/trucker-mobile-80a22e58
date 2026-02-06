@@ -37,8 +37,15 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
 // Endpoints that should use the bidding API URL
 const BIDDING_ENDPOINTS = ['list-tickets', 'create-bid', 'submit-price-hint'];
 
+// Bidding API key (same as used for list-tickets)
+const BIDDING_API_KEY = 'fld_sk_2026_zCahKRlHLyDpIwAwDlXh_live';
+
 // Get API key for endpoint
 function getApiKeyForEndpoint(endpoint: string): string {
+  // Bidding endpoints use a different API key
+  if (BIDDING_ENDPOINTS.includes(endpoint)) {
+    return BIDDING_API_KEY;
+  }
   const keyName = ENDPOINT_API_KEY_MAP[endpoint];
   if (keyName) {
     return API_KEYS[keyName];
@@ -332,6 +339,23 @@ export async function listTickets(options: {
   if (options.limit) body.limit = options.limit;
   
   return callExternalApi<any[]>('list-tickets', {
+    method: 'POST',
+    body,
+  });
+}
+
+// Create a bid for a ticket
+export async function createBid(body: {
+  ticket_id: string;
+  contractor_id: string;
+  bid_price: number;
+  payment_transaction_id: string;
+  payment_slip_base64: string;
+  freelancer_email?: string;
+  freelancer_name?: string;
+  freelancer_phone?: string;
+}) {
+  return callExternalApi<{ success: boolean; data?: any; error?: string }>('create-bid', {
     method: 'POST',
     body,
   });

@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, X, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+import { createBid } from '@/lib/externalApi';
 import type { Database } from '@/integrations/supabase/types';
 
 type Job = Database['public']['Tables']['jobs']['Row'];
@@ -129,7 +130,7 @@ export default function PlaceBidPage() {
       const payload = {
         ticket_id: jobId,
         contractor_id: user.id,
-        bid_price: amount, // amount is already parsed as number from bidAmount
+        bid_price: amount,
         payment_transaction_id: `TXN${Date.now()}_${jobId?.substring(0, 8)}`,
         payment_slip_base64: slipBase64,
         freelancer_email: user.email || undefined,
@@ -138,29 +139,21 @@ export default function PlaceBidPage() {
       };
       
       console.log('Bid amount entered:', bidAmount, 'Parsed amount:', amount);
-
-      console.log('=== Submitting bid via proxy ===');
+      console.log('=== Submitting bid directly to external API ===');
       console.log('Payload:', JSON.stringify({ ...payload, payment_slip_base64: '[BASE64_IMAGE]' }, null, 2));
 
-      // POST via our proxy edge function (adds API key securely)
-      const { data: result, error: invokeError } = await supabase.functions.invoke('create-bid-proxy', {
-        body: payload
-      });
+      // Call external API directly (no proxy)
+      const { data: result, error: apiError } = await createBid(payload);
 
-      if (invokeError) {
-        throw invokeError;
-      }
-
-      console.log('Proxy response:', result);
       console.log('External API response:', result);
 
       setIsSubmitting(false);
 
-      if (result?.error) {
-        console.error('Error submitting bid:', result.error);
+      if (apiError || result?.error) {
+        console.error('Error submitting bid:', apiError || result?.error);
         toast({
           title: t('placeBid.error'),
-          description: result.error || t('placeBid.submitError'),
+          description: apiError || result?.error || t('placeBid.submitError'),
           variant: 'destructive'
         });
       } else {
