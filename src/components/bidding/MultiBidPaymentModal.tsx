@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { createBid } from "@/lib/externalApi";
 import { toast } from "@/hooks/use-toast";
 import { useOCR } from "@/hooks/useOCR";
 import coinsIcon from "@/assets/coins-icon.png";
@@ -428,12 +429,10 @@ export function MultiBidPaymentModal({
             freelancer_phone: user.phone || "",
           };
 
-          const { data, error } = await supabase.functions.invoke("create-bid-proxy", {
-            body: payload,
-          });
+          const result = await createBid(payload);
 
-          if (error) throw error;
-          if (data?.error) throw new Error(data.error);
+          if (result.error) throw new Error(result.error);
+          if (result.data?.error) throw new Error(result.data.error);
           
           return { jobId: job.id, success: true };
         })
