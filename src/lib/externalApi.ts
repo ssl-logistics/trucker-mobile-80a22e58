@@ -1,9 +1,9 @@
+import { supabase } from "@/integrations/supabase/client";
+
 // External API Configuration
 // Direct calls to external Supabase project
 
 export const EXTERNAL_API_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
-
-// Bidding system uses a different external project
 export const BIDDING_API_URL = 'https://zcahkrlhlydpiwawdlxh.supabase.co/functions/v1';
 
 // API Keys for different endpoints
@@ -331,17 +331,32 @@ export async function listTickets(options: {
   limit?: number;
 } = {}) {
   const body: Record<string, unknown> = {};
-  
+
   if (options.freelanceDriverId) body.freelance_driver_id = options.freelanceDriverId;
   if (options.bidsStatus) body.bids_status = options.bidsStatus;
   if (options.status) body.status = options.status;
   if (options.createdByRole) body.created_by_role = options.createdByRole;
   if (options.limit) body.limit = options.limit;
-  
-  return callExternalApi<any[]>('list-tickets', {
-    method: 'POST',
-    body,
-  });
+
+  try {
+    console.log('[Bidding] invoke list-tickets', body);
+
+    // Call via backend function so the API key stays server-side
+    const { data, error } = await supabase.functions.invoke('list-tickets', {
+      body,
+    });
+
+    if (error) {
+      console.error('[Bidding] list-tickets error:', error);
+      return { data: null, error: error.message };
+    }
+
+    return { data: data as any, error: null };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[Bidding] list-tickets exception:', errorMessage);
+    return { data: null, error: errorMessage };
+  }
 }
 
 // Create a bid for a ticket
