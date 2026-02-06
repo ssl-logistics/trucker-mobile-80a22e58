@@ -3,6 +3,9 @@
 
 export const EXTERNAL_API_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
 
+// Bidding system uses a different external project
+export const BIDDING_API_URL = 'https://zcahkrlhlydpiwawdlxh.supabase.co/functions/v1';
+
 // API Keys for different endpoints
 const API_KEYS = {
   LOGIN_API_KEY: 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
@@ -31,6 +34,9 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'get-express-rent-posts': 'EXPRESS_RENT_API_KEY',
 };
 
+// Endpoints that should use the bidding API URL
+const BIDDING_ENDPOINTS = ['list-tickets', 'create-bid', 'submit-price-hint'];
+
 // Get API key for endpoint
 function getApiKeyForEndpoint(endpoint: string): string {
   const keyName = ENDPOINT_API_KEY_MAP[endpoint];
@@ -53,7 +59,10 @@ export async function callExternalApi<T>(
   const { method = 'GET', params, body, headers = {} } = options;
   
   try {
-    let url = `${EXTERNAL_API_URL}/${endpoint}`;
+    // Determine which base URL to use
+    const baseUrl = BIDDING_ENDPOINTS.includes(endpoint) ? BIDDING_API_URL : EXTERNAL_API_URL;
+    
+    let url = `${baseUrl}/${endpoint}`;
     if (params) {
       const searchParams = new URLSearchParams(params);
       url += `?${searchParams.toString()}`;
