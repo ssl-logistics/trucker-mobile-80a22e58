@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import { formatDateTime } from "@/lib/dateUtils";
-import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl"; import { getDriverCheckins } from '@/lib/externalApi';
+import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
+import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop } from '@/lib/externalApi';
 
 interface JobDetail {
   id: string;
@@ -55,39 +56,25 @@ export default function PickupSummaryPage() {
       const driverId = user.id;
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Fetch job detail from API via proxy
-      const jobResponse = (isInternalDriver || isExternalDriver)
-        ? await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=50`,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            }
-          )
-        : await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${driverId}`,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            }
-          );
+      // Fetch job detail from external API directly
+      const { data: jobResult, error: jobError } = (isInternalDriver || isExternalDriver)
+        ? await getDriverAssignedJobs(driverId, driverType as 'internal' | 'external')
+        : await getFreelanceAcceptedJobs(driverId);
 
-      if (jobResponse.ok) {
-        const jobResult = await jobResponse.json();
-        if (jobResult.success && jobResult.data) {
-          const foundJob = jobResult.data.find((j: any) => j.order_number === jobId);
-          if (foundJob) {
-            setJob({
-              id: foundJob.order_number,
-              order_code: foundJob.order_number,
-              employer_name: foundJob.sender_name || foundJob.factory_name || '',
-              origin_location: foundJob.sender_address || '',
-              start_date: foundJob.sender_pickup_date || '',
-              start_time: foundJob.sender_pickup_time || '',
-            });
-          }
+      if (!jobError && jobResult) {
+        const jobData = (jobResult as any)?.data || jobResult || [];
+        const foundJob = Array.isArray(jobData) 
+          ? jobData.find((j: any) => j.order_number === jobId)
+          : null;
+        if (foundJob) {
+          setJob({
+            id: foundJob.order_number,
+            order_code: foundJob.order_number,
+            employer_name: foundJob.sender_name || foundJob.factory_name || '',
+            origin_location: foundJob.sender_address || '',
+            start_date: foundJob.sender_pickup_date || '',
+            start_time: foundJob.sender_pickup_time || '',
+          });
         }
       }
 
@@ -105,30 +92,15 @@ export default function PickupSummaryPage() {
         }
       }
 
-      // Fetch SOP data from API
-      const driverIdParam = isInternalDriver
-        ? `internal_driver_id=${encodeURIComponent(driverId)}`
-        : isExternalDriver
-          ? `external_driver_id=${encodeURIComponent(driverId)}`
-          : `freelance_driver_id=${encodeURIComponent(driverId)}`;
+      // Fetch SOP data from external API directly
+      const { data: sopResult, error: sopError } = await getDriverSop(driverId, driverType, jobId);
 
-      const sopResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-sop-proxy?${driverIdParam}&order_number=${encodeURIComponent(jobId)}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-
-
-      if (sopResponse.ok) {
-        const sopResult = await sopResponse.json();
-        if (sopResult.success && sopResult.data) {
-          // Find pickup SOP
-          const pickupSOP = Array.isArray(sopResult.data)
-            ? sopResult.data.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
-            : (sopResult.data.sop_type === 'pickup' || sopResult.data.status === 'pickup') ? sopResult.data : null;
+      if (!sopError && sopResult) {
+        const sopData = (sopResult as any)?.data || sopResult || [];
+        // Find pickup SOP
+        const pickupSOP = Array.isArray(sopData)
+          ? sopData.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
+          : (sopData.sop_type === 'pickup' || sopData.status === 'pickup') ? sopData : null;
 
           if (pickupSOP) {
             // Get the first product image as SOP photo
@@ -145,17 +117,8 @@ export default function PickupSummaryPage() {
               sop_photo_url: photoUrl,
               doc_photo_url: docUrl,
             });
-          } else {
-            // No SOP yet, but might have check-in
-            setSopData({
-              checked_in_at: checkedInAt,
-              sop_completed_at: null,
-              sop_photo_url: null,
-              doc_photo_url: null,
-            });
-          }
         } else {
-          // No SOP data, set check-in only
+          // No SOP yet, but might have check-in
           setSopData({
             checked_in_at: checkedInAt,
             sop_completed_at: null,
@@ -164,7 +127,7 @@ export default function PickupSummaryPage() {
           });
         }
       } else {
-        // SOP API failed, set check-in only
+        // No SOP data or error, set check-in only
         setSopData({
           checked_in_at: checkedInAt,
           sop_completed_at: null,
