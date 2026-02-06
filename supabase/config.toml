@@ -87,8 +87,6 @@ verify_jwt = false
 [functions.get-factory-assigned-jobs-proxy]
 verify_jwt = false
 
-[functions.login-proxy]
-verify_jwt = false
 
 [functions.logout-proxy]
 verify_jwt = false
