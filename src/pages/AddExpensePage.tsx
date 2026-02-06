@@ -273,6 +273,34 @@ const AddExpensePage = () => {
       
       const driverType = roleData?.role === 'freelance' ? 'external' : 'internal';
       
+      // Fetch job to get the correct order_number
+      let orderNumber = jobId;
+      try {
+        const { data: jobData, error: jobError } = await (async () => {
+          if (roleData?.role === 'freelance') {
+            const { data, error } = await (await import('@/lib/externalApi')).getFreelanceAcceptedJobs(user.id);
+            return { data, error };
+          } else {
+            const { data, error } = await (await import('@/lib/externalApi')).getDriverAssignedJobs(user.id, driverType as 'internal' | 'external');
+            return { data, error };
+          }
+        })();
+        
+        if (!jobError && jobData?.data) {
+          const jobs = Array.isArray(jobData.data) ? jobData.data : [jobData.data];
+          const matchedJob = jobs.find((job: any) => 
+            job.id === jobId || 
+            job.order_number === jobId || 
+            job.order_code === jobId
+          );
+          if (matchedJob?.order_number) {
+            orderNumber = matchedJob.order_number;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch job order_number, using jobId as fallback:', err);
+      }
+      
       for (const expense of expenses) {
         if (expense.receiptPhotos.length === 0) continue;
         
@@ -328,7 +356,7 @@ const AddExpensePage = () => {
         
         // Send expense to external API with OCR data
         const { data: expenseData, error: expenseError } = await addExpense({
-          order_number: jobId,
+          order_number: orderNumber,
           driver_id: user.id,
           driver_type: driverType,
           expense_type: expenseType,
