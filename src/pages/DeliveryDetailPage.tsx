@@ -90,6 +90,7 @@ export default function DeliveryDetailPage() {
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [destination, setDestination] = useState<JobDestination | null>(null);
+  const [isMultiDestination, setIsMultiDestination] = useState(false);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -157,8 +158,12 @@ export default function DeliveryDetailPage() {
           // Check if job has multiple destinations
           const destinationsArray = foundJob.destinations || [];
           let targetDestination: any = null;
+          const hasMultipleDestinations = destinationsArray.length > 0;
           
-          if (destinationsArray.length > 0) {
+          // Set multi-destination flag for flow control
+          setIsMultiDestination(hasMultipleDestinations);
+          
+          if (hasMultipleDestinations) {
             // Multi-destination job - find the matching destination
             targetDestination = destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
               || destinationsArray[0];
@@ -852,20 +857,20 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* SOP Button - Show after check-in for multi-destination */}
-      {isCheckedIn && !isSopCompleted && destination && (
+      {/* SOP Button - Show after check-in for MULTI-destination jobs only */}
+      {isCheckedIn && !isSopCompleted && isMultiDestination && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
-            onClick={() => navigate(`/job/${jobId}/delivery-sop/${destinationId}`)}
+            onClick={() => navigate(`/job/${jobId}/delivery-sop/${destinationId || 1}`)}
           >
             {t('deliverySop.confirmSOP')}
           </Button>
         </div>
       )}
 
-      {/* Payment Button - Show after check-in, hide after payment or POD completed (legacy) */}
-      {!destination && jobApplication?.delivery_checked_in_at && !jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
+      {/* Payment Button - Show after check-in for SINGLE destination jobs, hide after payment or POD completed */}
+      {!isMultiDestination && jobApplication?.delivery_checked_in_at && !jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -876,8 +881,8 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* POD Confirm Button - Show after payment, hide after POD completed (legacy) */}
-      {!destination && jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
+      {/* POD Confirm Button - Show after payment for SINGLE destination jobs, hide after POD completed */}
+      {!isMultiDestination && jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
