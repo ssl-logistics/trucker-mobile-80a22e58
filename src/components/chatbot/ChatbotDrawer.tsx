@@ -100,7 +100,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
         {
           id: "welcome",
           role: "assistant",
-          content: "สวัสดีครับ! ผมเป็นผู้ช่วย AI พร้อมตอบคำถามเกี่ยวกับแอปพลิเคชัน TheTroob ครับ มีอะไรให้ช่วยไหมครับ?",
+          content: "สวัสดีครับ! ผมเป็นผู้ช่วย AI พร้อมตอบคำถามเกี่ยวกับแอปพลิเคชัน The Trucker ครับ มีอะไรให้ช่วยไหมครับ?",
           timestamp: Date.now(),
         },
       ]);
