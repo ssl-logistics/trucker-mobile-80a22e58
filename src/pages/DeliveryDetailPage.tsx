@@ -314,8 +314,12 @@ export default function DeliveryDetailPage() {
               .maybeSingle();
             
             // Combine external check-in status with local payment/POD data
+            // IMPORTANT: If delivery_confirmed exists but delivery check-in is missing,
+            // infer that check-in happened (POD completion implies check-in was done)
+            const inferredCheckinTime = deliveryCheckinTime || deliveryConfirmedTime;
+            
             setJobApplication({
-              delivery_checked_in_at: deliveryCheckinTime,
+              delivery_checked_in_at: inferredCheckinTime,
               payment_completed_at: localJobApp?.payment_completed_at || null,
               payment_method: deliveryConfirmedPaymentMethod || localJobApp?.payment_method || null,
               // Prefer external delivery_confirmed photo/time if present, fallback to local
@@ -324,9 +328,10 @@ export default function DeliveryDetailPage() {
             });
             
             // Also update the destination state with checkin times for accurate UI state
+            // Use inferred checkin time (from delivery_confirmed if delivery is missing)
             setDestination(prev => prev ? {
               ...prev,
-              checked_in_at: deliveryCheckinTime,
+              checked_in_at: inferredCheckinTime,
               sop_completed_at: deliveryConfirmedTime || localJobApp?.delivery_sop_completed_at || null,
             } : null);
           } catch (checkinError) {

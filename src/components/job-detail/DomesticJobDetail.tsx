@@ -429,7 +429,17 @@ export default function DomesticJobDetail({
             }
           }
         });
-        console.log('Destination checkins extracted:', destCheckins);
+        
+        // IMPORTANT: If delivery_confirmed exists but delivery check-in is missing for a sequence,
+        // infer that check-in happened (POD completion implies check-in was done)
+        Object.keys(destCheckins).forEach(seqKey => {
+          const seqNum = parseInt(seqKey, 10);
+          if (destCheckins[seqNum].sop_completed_at && !destCheckins[seqNum].checked_in_at) {
+            destCheckins[seqNum].checked_in_at = destCheckins[seqNum].sop_completed_at;
+          }
+        });
+        
+        console.log('Destination checkins extracted (with inferred):', destCheckins);
         setDestinationCheckins(destCheckins);
         
         // If delivery_confirmed exists for THIS order, set deliverySopCompleted to true
