@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  // Include x-api-key so browsers can send it if needed
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
 };
 
 const EXTERNAL_API_URL = "https://zcahkrlhlydpiwawdlxh.supabase.co/functions/v1/list-tickets";
@@ -70,12 +71,22 @@ serve(async (req) => {
     }
 
     // Forward request to external API
+    // NOTE: Some Supabase gateways require `apikey`/`Authorization` (anon key JWT).
+    // Our external system may also require a custom `x-api-key`.
+    // We support both by conditionally attaching apikey/auth when the key looks like a JWT.
+    const outboundHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    };
+
+    if (apiKey.startsWith('eyJ')) {
+      outboundHeaders.apikey = apiKey;
+      outboundHeaders.Authorization = `Bearer ${apiKey}`;
+    }
+
     const response = await fetch(externalUrl.toString(), {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-      },
+      headers: outboundHeaders,
     });
 
     const responseText = await response.text();
