@@ -1029,7 +1029,7 @@ export default function DomesticJobDetail({
                         </Button>
                         <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => {
                           const fromParam = new URLSearchParams(location.search).get('from');
-                          navigate(`/job/${job.order_code}/delivery/${dest.id}${fromParam ? `?from=${fromParam}` : ''}`);
+                          navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`);
                         }} disabled={isDestinationLocked}>
                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
