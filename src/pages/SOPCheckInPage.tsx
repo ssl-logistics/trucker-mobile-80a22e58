@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
-import { getFreelanceAcceptedJobs } from '@/lib/externalApi';
+import { getFreelanceAcceptedJobs, getDriverSop, driverSop } from '@/lib/externalApi';
 import {
   Dialog,
   DialogContent,
@@ -108,29 +108,19 @@ export default function SOPCheckInPage() {
     if (!user || !job) return;
 
     try {
-      // Fetch SOP status (role-aware driver id param)
-      const sopDriverIdParam = isInternalDriver
-        ? `internal_driver_id=${encodeURIComponent(user.id)}`
-        : isExternalDriver
-          ? `external_driver_id=${encodeURIComponent(user.id)}`
-          : `freelance_driver_id=${encodeURIComponent(user.id)}`;
+      // Determine driver type
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+      
+      // Use direct external API call
+      const { data: result, error } = await getDriverSop(user.id, driverType, job.order_code);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-sop-proxy?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
+      if (!error && result) {
+        const sopData = (result as any)?.data || result;
+        if (sopData) {
           // Find pickup SOP
-          const pickupSOP = Array.isArray(result.data) 
-            ? result.data.find((s: any) => s.status === 'pickup')
-            : result.data.status === 'pickup' ? result.data : null;
+          const pickupSOP = Array.isArray(sopData) 
+            ? sopData.find((s: any) => s.sop_type === 'pickup')
+            : sopData.sop_type === 'pickup' ? sopData : null;
           
           if (pickupSOP) {
             setExistingSOP(pickupSOP);
@@ -329,34 +319,21 @@ export default function SOPCheckInPage() {
         }
       }
 
-      // Build request body with appropriate driver ID field based on driver type
-      const driverIdField = isInternalDriver 
-        ? { internal_driver_id: user.id }
-        : isExternalDriver 
-          ? { external_driver_id: user.id }
-          : { freelance_driver_id: user.id };
+      // Determine driver type
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Call driver-sop API via proxy with both images
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-sop-proxy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            order_number: job.order_code,
-            ...driverIdField,
-            product_images: [productImageUrl],
-            document_images: documentImageUrl ? [documentImageUrl] : [],
-            status: 'pickup'
-          })
-        }
-      );
+      // Call driver-sop API directly
+      const { data: sopResult, error: sopError } = await driverSop({
+        order_number: job.order_code,
+        driver_id: user.id,
+        driver_type: driverType,
+        sop_type: 'pickup',
+        product_images: [productImageUrl],
+        document_images: documentImageUrl ? [documentImageUrl] : [],
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit SOP');
+      if (sopError) {
+        throw new Error(sopError || 'Failed to submit SOP');
       }
 
       toast({
