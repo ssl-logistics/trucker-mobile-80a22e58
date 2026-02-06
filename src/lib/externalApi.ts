@@ -196,11 +196,13 @@ export async function driverSop(body: {
   notes?: string;
 }) {
   // Map driver_id to the correct field based on driver_type
-  const { driver_id, driver_type, ...restBody } = body;
+  const { driver_id, driver_type, sop_type, ...restBody } = body;
   
   const requestBody: Record<string, unknown> = {
     ...restBody,
     driver_type,
+    // External API requires 'status' field instead of 'sop_type'
+    status: sop_type,
   };
   
   // Set the appropriate driver ID field based on driver type
