@@ -359,7 +359,7 @@ export async function listTickets(options: {
   }
 }
 
-// Create a bid for a ticket (via internal proxy to avoid CORS)
+// Create a bid for a ticket
 export async function createBid(body: {
   ticket_id: string;
   contractor_id: string;
@@ -370,24 +370,10 @@ export async function createBid(body: {
   freelancer_name?: string;
   freelancer_phone?: string;
 }) {
-  try {
-    console.log('[Bidding] invoke create-bid', { ticket_id: body.ticket_id });
-    
-    const { data, error } = await supabase.functions.invoke('create-bid', {
-      body,
-    });
-    
-    if (error) {
-      console.error('[Bidding] create-bid error:', error);
-      return { data: null, error: error.message };
-    }
-    
-    return { data: data as { success: boolean; data?: any; error?: string }, error: null };
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    console.error('[Bidding] create-bid exception:', errorMessage);
-    return { data: null, error: errorMessage };
-  }
+  return callExternalApi<{ success: boolean; data?: any; error?: string }>('create-bid', {
+    method: 'POST',
+    body,
+  });
 }
 
 // ==================== Report Problem APIs ====================
