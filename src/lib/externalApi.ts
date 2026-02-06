@@ -195,9 +195,26 @@ export async function driverSop(body: {
   document_images: string[];
   notes?: string;
 }) {
+  // Map driver_id to the correct field based on driver_type
+  const { driver_id, driver_type, ...restBody } = body;
+  
+  const requestBody: Record<string, unknown> = {
+    ...restBody,
+    driver_type,
+  };
+  
+  // Set the appropriate driver ID field based on driver type
+  if (driver_type === 'internal') {
+    requestBody.internal_driver_id = driver_id;
+  } else if (driver_type === 'external') {
+    requestBody.external_driver_id = driver_id;
+  } else {
+    requestBody.freelance_driver_id = driver_id;
+  }
+  
   return callExternalApi<{ success: boolean; data?: any }>('driver-sop', {
     method: 'POST',
-    body,
+    body: requestBody,
   });
 }
 
