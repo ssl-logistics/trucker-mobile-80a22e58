@@ -38,14 +38,28 @@ export default function PickupSummaryPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
-  const { url: docPhotoUrl } = usePresignedImageUrl(sopData?.doc_photo_url || null);
+  
+  // Check if SOP data was passed via navigation state (workaround for CORS-blocked get-driver-sop)
+  const passedSopData = (location.state as any)?.sopData as SOPData | undefined;
+  
+  // Use passed SOP photo URLs directly if available, otherwise use presigned URLs
+  const { url: presignedSopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
+  const { url: presignedDocPhotoUrl } = usePresignedImageUrl(sopData?.doc_photo_url || null);
+  
+  // If passed data contains full URLs (S3), use them directly; otherwise use presigned
+  const sopPhotoUrl = sopData?.sop_photo_url?.startsWith('http') ? sopData.sop_photo_url : presignedSopPhotoUrl;
+  const docPhotoUrl = sopData?.doc_photo_url?.startsWith('http') ? sopData.doc_photo_url : presignedDocPhotoUrl;
 
   useEffect(() => {
+    // If SOP data was passed via navigation state, use it directly
+    if (passedSopData) {
+      setSopData(passedSopData);
+    }
+    
     if (user && jobId) {
       loadData();
     }
-  }, [jobId, user]);
+  }, [jobId, user, passedSopData]);
 
   const loadData = async () => {
     if (!user || !jobId) return;
@@ -92,33 +106,43 @@ export default function PickupSummaryPage() {
         }
       }
 
-      // Fetch SOP data from external API directly
-      const { data: sopResult, error: sopError } = await getDriverSop(driverId, driverType, jobId);
+      // Fetch SOP data from external API directly (only if not passed via state)
+      if (!passedSopData) {
+        const { data: sopResult, error: sopError } = await getDriverSop(driverId, driverType, jobId);
 
-      if (!sopError && sopResult) {
-        const sopData = (sopResult as any)?.data || sopResult || [];
-        // Find pickup SOP
-        const pickupSOP = Array.isArray(sopData)
-          ? sopData.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
-          : (sopData.sop_type === 'pickup' || sopData.status === 'pickup') ? sopData : null;
+        if (!sopError && sopResult) {
+          const sopDataArray = (sopResult as any)?.data || sopResult || [];
+          // Find pickup SOP
+          const pickupSOP = Array.isArray(sopDataArray)
+            ? sopDataArray.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
+            : (sopDataArray.sop_type === 'pickup' || sopDataArray.status === 'pickup') ? sopDataArray : null;
 
-          if (pickupSOP) {
-            // Get the first product image as SOP photo
-            const productImages = pickupSOP.product_images || [];
-            const photoUrl = productImages.length > 0 ? productImages[0] : null;
-            
-            // Get the first document image
-            const documentImages = pickupSOP.document_images || [];
-            const docUrl = documentImages.length > 0 ? documentImages[0] : null;
+            if (pickupSOP) {
+              // Get the first product image as SOP photo
+              const productImages = pickupSOP.product_images || [];
+              const photoUrl = productImages.length > 0 ? productImages[0] : null;
+              
+              // Get the first document image
+              const documentImages = pickupSOP.document_images || [];
+              const docUrl = documentImages.length > 0 ? documentImages[0] : null;
 
+              setSopData({
+                checked_in_at: checkedInAt || pickupSOP.checked_in_at || null,
+                sop_completed_at: pickupSOP.recorded_at || pickupSOP.created_at || null,
+                sop_photo_url: photoUrl,
+                doc_photo_url: docUrl,
+              });
+          } else {
+            // No SOP yet, but might have check-in
             setSopData({
-              checked_in_at: checkedInAt || pickupSOP.checked_in_at || null,
-              sop_completed_at: pickupSOP.recorded_at || pickupSOP.created_at || null,
-              sop_photo_url: photoUrl,
-              doc_photo_url: docUrl,
+              checked_in_at: checkedInAt,
+              sop_completed_at: null,
+              sop_photo_url: null,
+              doc_photo_url: null,
             });
+          }
         } else {
-          // No SOP yet, but might have check-in
+          // No SOP data or error, set check-in only
           setSopData({
             checked_in_at: checkedInAt,
             sop_completed_at: null,
@@ -127,13 +151,13 @@ export default function PickupSummaryPage() {
           });
         }
       } else {
-        // No SOP data or error, set check-in only
-        setSopData({
-          checked_in_at: checkedInAt,
-          sop_completed_at: null,
-          sop_photo_url: null,
-          doc_photo_url: null,
-        });
+        // Use passed SOP data but update check-in time if available
+        if (checkedInAt && !passedSopData.checked_in_at) {
+          setSopData({
+            ...passedSopData,
+            checked_in_at: checkedInAt,
+          });
+        }
       }
 
     } catch (error) {
