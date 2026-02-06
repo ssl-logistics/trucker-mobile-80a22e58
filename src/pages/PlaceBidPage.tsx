@@ -129,12 +129,14 @@ export default function PlaceBidPage() {
       const payload = {
         ticket_id: jobId,
         contractor_id: user.id,
-        bid_price: amount,
-        payment_transaction_id: `TXN${Date.now()}`,
+        bid_price: amount, // amount is already parsed as number from bidAmount
+        payment_transaction_id: `TXN${Date.now()}_${jobId?.substring(0, 8)}`,
         payment_slip_base64: slipBase64,
-        freelancer_name: freelancerName,
+        freelancer_name: freelancerName || 'Unknown',
         freelancer_phone: user.phone || ''
       };
+      
+      console.log('Bid amount entered:', bidAmount, 'Parsed amount:', amount);
 
       console.log('=== Submitting bid via proxy ===');
       console.log('Payload:', JSON.stringify({ ...payload, payment_slip_base64: '[BASE64_IMAGE]' }, null, 2));
