@@ -12,17 +12,17 @@ serve(async (req) => {
   }
 
   try {
-    // Get API key from request header
-    const apiKey = req.headers.get('x-api-key');
-    
+    // Use server-side secret (do NOT require client to send x-api-key)
+    const apiKey = Deno.env.get('EXPRESS_RENT_API_KEY');
+
     if (!apiKey) {
-      console.error('x-api-key header not provided');
+      console.error('Missing EXPRESS_RENT_API_KEY secret');
       return new Response(
-        JSON.stringify({ error: 'x-api-key header is required' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ error: 'Server is missing EXPRESS_RENT_API_KEY' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
       );
     }
 
