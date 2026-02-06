@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthItem } from "@/utils/authStorage";
+import { reportProblem } from "@/lib/externalApi";
 import {
   Drawer,
   DrawerClose,
@@ -165,24 +166,22 @@ export default function ReportProblemDrawer({
 
       console.log('Submitting problem report:', requestBody);
 
-      // Call the proxy API
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-problem-proxy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      // Call external API directly
+      const { data, error } = await reportProblem({
+        order_number: orderNumber!,
+        driver_id: driverId,
+        driver_type: driverType as 'internal' | 'external' | 'freelance',
+        problem_type: selectedType,
+        reason: reason,
+        photo_url: photoUrl,
+        latitude: location?.latitude,
+        longitude: location?.longitude,
+      });
 
-      const data = await response.json();
-      console.log('API response:', data);
+      console.log('API response:', data, error);
 
-      if (!response.ok || data.success === false) {
-        throw new Error(data.error || 'Failed to submit report');
+      if (error || (data && (data as any).success === false)) {
+        throw new Error(error || (data as any)?.error || 'Failed to submit report');
       }
 
       toast({
