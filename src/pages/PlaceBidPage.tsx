@@ -132,8 +132,9 @@ export default function PlaceBidPage() {
         bid_price: amount, // amount is already parsed as number from bidAmount
         payment_transaction_id: `TXN${Date.now()}_${jobId?.substring(0, 8)}`,
         payment_slip_base64: slipBase64,
-        freelancer_name: freelancerName || 'Unknown',
-        freelancer_phone: user.phone || ''
+        freelancer_email: user.email || undefined,
+        freelancer_name: freelancerName || undefined,
+        freelancer_phone: user.phone || undefined
       };
       
       console.log('Bid amount entered:', bidAmount, 'Parsed amount:', amount);
