@@ -265,8 +265,12 @@ export default function BiddingPage() {
 
   const loadAvailableJobs = async () => {
     try {
-      // Fetch from external API directly
-      const { data, error } = await listTickets({});
+      // Fetch from external API with correct filters
+      const { data, error } = await listTickets({
+        status: 'active',
+        createdByRole: 'trucking_company',
+        limit: 10,
+      });
 
       if (error) {
         console.error('Error fetching tickets from API:', error);
