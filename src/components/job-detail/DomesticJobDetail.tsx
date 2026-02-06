@@ -991,42 +991,46 @@ export default function DomesticJobDetail({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={isDestinationLocked || isPodCompleted}
-                          onClick={() => {
-                            const phone = dest.contact_phone;
-                            if (phone) {
-                              window.location.href = `tel:${phone}`;
-                            } else {
-                              toast({
-                                title: t('jobDetail.error'),
-                                description: t('jobDetail.noPhoneNumber'),
-                                variant: 'destructive'
-                              });
-                            }
-                          }}>
-                          <Phone className="w-4 h-4" />
-                          <span className="text-xs">{t('jobDetail.call')}</span>
-                        </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={isDestinationLocked || isPodCompleted}
-                          onClick={() => {
-                            if (dest.address) {
-                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest.address)}`;
-                              window.open(url, '_blank');
-                            } else if (dest.district && dest.province) {
-                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${dest.district}, ${dest.province}`)}`;
-                              window.open(url, '_blank');
-                            } else {
-                              toast({
-                                title: t('jobDetail.error'),
-                                description: t('jobDetail.noLocation'),
-                                variant: 'destructive'
-                              });
-                            }
-                          }}>
-                          <img src={routeIcon} alt="route" className="w-4 h-4" />
-                          <span className="text-xs">{t('jobDetail.route')}</span>
-                        </Button>
+                      <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                        {!isFromHistory && (
+                          <>
+                            <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={isDestinationLocked || isPodCompleted}
+                              onClick={() => {
+                                const phone = dest.contact_phone;
+                                if (phone) {
+                                  window.location.href = `tel:${phone}`;
+                                } else {
+                                  toast({
+                                    title: t('jobDetail.error'),
+                                    description: t('jobDetail.noPhoneNumber'),
+                                    variant: 'destructive'
+                                  });
+                                }
+                              }}>
+                              <Phone className="w-4 h-4" />
+                              <span className="text-xs">{t('jobDetail.call')}</span>
+                            </Button>
+                            <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={isDestinationLocked || isPodCompleted}
+                              onClick={() => {
+                                if (dest.address) {
+                                  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest.address)}`;
+                                  window.open(url, '_blank');
+                                } else if (dest.district && dest.province) {
+                                  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${dest.district}, ${dest.province}`)}`;
+                                  window.open(url, '_blank');
+                                } else {
+                                  toast({
+                                    title: t('jobDetail.error'),
+                                    description: t('jobDetail.noLocation'),
+                                    variant: 'destructive'
+                                  });
+                                }
+                              }}>
+                              <img src={routeIcon} alt="route" className="w-4 h-4" />
+                              <span className="text-xs">{t('jobDetail.route')}</span>
+                            </Button>
+                          </>
+                        )}
                         <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => {
                           const fromParam = new URLSearchParams(location.search).get('from');
                           navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`);
@@ -1082,14 +1086,43 @@ export default function DomesticJobDetail({
                       </div>
                     </div>
 
-                    <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
-                      {new URLSearchParams(location.search).get('from') !== 'history' && (
+                    <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                      {!isFromHistory && (
                         <>
-                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}
+                            onClick={() => {
+                              const phone = job.destination_contact_phone;
+                              if (phone) {
+                                window.location.href = `tel:${phone}`;
+                              } else {
+                                toast({
+                                  title: t('jobDetail.error'),
+                                  description: t('jobDetail.noPhoneNumber'),
+                                  variant: 'destructive'
+                                });
+                              }
+                            }}>
                             <Phone className="w-4 h-4" />
                             <span className="text-xs">{t('jobDetail.call')}</span>
                           </Button>
-                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}
+                            onClick={() => {
+                              const lat = job.destination_latitude;
+                              const lng = job.destination_longitude;
+                              if (lat && lng) {
+                                const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                                window.open(url, '_blank');
+                              } else if (job.destination_address) {
+                                const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.destination_address)}`;
+                                window.open(url, '_blank');
+                              } else {
+                                toast({
+                                  title: t('jobDetail.error'),
+                                  description: t('jobDetail.noLocation'),
+                                  variant: 'destructive'
+                                });
+                              }
+                            }}>
                             <img src={routeIcon} alt="route" className="w-4 h-4" />
                             <span className="text-xs">{t('jobDetail.route')}</span>
                           </Button>
