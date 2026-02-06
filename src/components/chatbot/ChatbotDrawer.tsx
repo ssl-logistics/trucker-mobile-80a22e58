@@ -20,7 +20,8 @@ interface CachedQA {
   timestamp: number;
 }
 
-const CACHE_KEY = "chatbot-qa-cache";
+const CACHE_KEY = "chatbot-qa-cache-v2";
+const LEGACY_CACHE_KEY = "chatbot-qa-cache";
 const SIMILARITY_THRESHOLD = 0.8;
 
 // Simple similarity check using Levenshtein-like approach
@@ -50,6 +51,11 @@ function findCachedAnswer(question: string, cache: CachedQA[]): string | null {
 
 function getCache(): CachedQA[] {
   try {
+    // Clear legacy cache to avoid stale brand responses (TheTroob -> The Trucker)
+    if (localStorage.getItem(LEGACY_CACHE_KEY)) {
+      localStorage.removeItem(LEGACY_CACHE_KEY);
+    }
+
     const cached = localStorage.getItem(CACHE_KEY);
     return cached ? JSON.parse(cached) : [];
   } catch {
