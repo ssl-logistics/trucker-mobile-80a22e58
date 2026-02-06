@@ -81,15 +81,5 @@ verify_jwt = false
 [functions.chatbot-assistant]
 verify_jwt = false
 
-[functions.get-freelance-accepted-jobs-proxy]
-verify_jwt = false
-
-[functions.get-factory-assigned-jobs-proxy]
-verify_jwt = false
-
-
-[functions.logout-proxy]
-verify_jwt = false
-
 [functions.list-tickets]
 verify_jwt = false
