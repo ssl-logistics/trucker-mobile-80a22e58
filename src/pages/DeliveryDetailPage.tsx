@@ -857,20 +857,8 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* SOP Button - Show after check-in for MULTI-destination jobs only */}
-      {isCheckedIn && !isSopCompleted && isMultiDestination && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-          <Button
-            className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
-            onClick={() => navigate(`/job/${jobId}/delivery-sop/${destinationId || 1}`)}
-          >
-            {t('deliverySop.confirmSOP')}
-          </Button>
-        </div>
-      )}
-
-      {/* Payment Button - Show after check-in for SINGLE destination jobs, hide after payment or POD completed */}
-      {!isMultiDestination && jobApplication?.delivery_checked_in_at && !jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
+      {/* Payment Button - Show after check-in for ALL delivery jobs (both single and multi-destination) */}
+      {isCheckedIn && !jobApplication?.payment_completed_at && !isSopCompleted && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -881,8 +869,8 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* POD Confirm Button - Show after payment for SINGLE destination jobs, hide after POD completed */}
-      {!isMultiDestination && jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
+      {/* POD Confirm Button - Show after payment for ALL delivery jobs, hide after POD completed */}
+      {isCheckedIn && jobApplication?.payment_completed_at && !isSopCompleted && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
