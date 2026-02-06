@@ -336,12 +336,25 @@ export default function SOPCheckInPage() {
         throw new Error(sopError || 'Failed to submit SOP');
       }
 
+      // Extract SOP data from response to pass to summary page
+      const submittedSopData = (sopResult as any)?.data || sopResult;
+
       toast({
         title: t('sop.sopSuccess'),
         description: t('sop.sopSuccessMessage'),
       });
 
-      navigate(isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`);
+      // Navigate to summary page with SOP data in state (since get-driver-sop has CORS issues)
+      navigate(`/pickup-summary/${job.order_code}`, {
+        state: {
+          sopData: {
+            checked_in_at: checkInTime.toISOString(),
+            sop_completed_at: submittedSopData?.recorded_at || new Date().toISOString(),
+            sop_photo_url: productImageUrl,
+            doc_photo_url: documentImageUrl,
+          }
+        }
+      });
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
