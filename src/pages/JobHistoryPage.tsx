@@ -14,6 +14,7 @@ import { formatDate } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { getFreelanceAcceptedJobs, getFactoryAssignedJobs, getDriverCheckins } from '@/lib/externalApi';
+import { HistoryJobCard } from '@/components/history/HistoryJobCard';
 interface JobApplication {
   id: string;
   applied_at: string;
@@ -561,97 +562,18 @@ export default function JobHistoryPage() {
               <>
                 {/* Completed jobs from external API */}
                 {filteredCompletedJobs.map(job => (
-                  <Card key={job.id} className="overflow-hidden bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
-                    // Navigate to correct page based on job type
-                    if (job.isBidJob && job.ticket_number) {
-                      navigate(`/bid-job/${job.ticket_number}?from=history`);
-                    } else {
-                      navigate(`/job/${job.order_number}?from=history`);
-                    }
-                  }}>
-                    <div className="flex items-center justify-between px-3 py-2 bg-white">
-                      <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
-                        {t('job.order_code')} {job.order_number}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Clock className="w-3.5 h-3.5" />
-                        {formatDate(job.sender_pickup_date, language)} | {job.sender_pickup_time?.substring(0, 5)}
-                      </div>
-                    </div>
-                    <div className="p-4 space-y-3">
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">{t('job.employer')} : </span>
-                        <span className="font-medium">{job.sender_name}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {job.vehicle_type && (
-                          <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-                            {getTranslatedVehicleType(job.vehicle_type, t)}
-                          </Badge>
-                        )}
-                        <Badge variant="secondary" className="bg-green-50 text-green-700 hover:bg-green-50">
-                          {job.status === 'completed' ? t('jobStatus.completed') : t('jobStatus.delivered')}
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 flex gap-2">
-                          <div className="flex flex-col items-center">
-                            <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
-                            <div className="w-0.5 flex-1 border-l-2 border-dashed border-gray-300 my-1"></div>
-                            <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <div className="text-xs">
-                              <div className="text-muted-foreground">{t('job.origin')}</div>
-                              <div className="font-medium">{job.sender_province}, {job.sender_district}</div>
-                            </div>
-                            <div className="text-xs">
-                              <div className="text-muted-foreground">{t('job.destination')}</div>
-                              <div className="font-medium">{job.destination_province}, {job.destination_district}</div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right space-y-2">
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-                            <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-                            <span className="text-lg font-bold text-teal-500">฿ {(job.transport_price || 0).toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-                            <CalendarIconLucide className="w-4 h-4 text-gray-500" />
-                            <div className="text-left">
-                              <div className="text-xs text-[#375B7B]">{t('job.deliveryDate')}</div>
-                              <div className="text-xs font-medium">
-                                {formatDate(job.destination_delivery_date, language)} | {job.destination_delivery_time?.substring(0, 5)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
-                        <div>
-                          <span className="text-[#375c7b]">{t('job.goods')} : </span>
-                          <span>{job.product_name || '-'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                          <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                          <span>{job.product_quantity || '-'}</span>
-                        </div>
-                      </div>
-
-                      <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-50 rounded-lg">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span className="text-xs font-medium text-green-700">{t('jobHistory.statusCompleted')}</span>
-                      </div>
-                    </div>
-                  </Card>
+                  <HistoryJobCard 
+                    key={job.id}
+                    job={job}
+                    onClick={() => {
+                      if (job.isBidJob && job.ticket_number) {
+                        navigate(`/bid-job/${job.ticket_number}?from=history`);
+                      } else {
+                        navigate(`/job/${job.order_number}?from=history`);
+                      }
+                    }}
+                    getTranslatedVehicleType={getTranslatedVehicleType}
+                  />
                 ))}
 
                 {/* Local job applications */}
@@ -659,79 +581,21 @@ export default function JobHistoryPage() {
                   if (!app.jobs) return null;
                   
                   return (
-                    <Card key={app.id} className="overflow-hidden bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/job/${app.jobs!.id}`)}>
-                      <div className="flex items-center justify-between px-3 py-2 bg-white">
-                        <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
-                          {t('job.order_code')} {app.jobs.order_code}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Clock className="w-3.5 h-3.5" />
-                          {formatDate(app.jobs.start_date, language)} | {formatTime(app.jobs.start_time)}
-                        </div>
-                      </div>
-                      <div className="p-4 space-y-3">
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">{t('job.employer')} : </span>
-                          <span className="font-medium">{app.jobs.destination_company_name || app.jobs.employer_name}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          {app.jobs.job_type === "domestic" ? (
-                            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-                              {t('job.domestic')}
-                            </Badge>
-                          ) : (
-                            <>
-                              <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-                                {t('job.international')}
-                              </Badge>
-                              {app.jobs.transport_type?.includes("inbound") && (
-                                <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                                  {t('job.inbound')}
-                                </Badge>
-                              )}
-                              {app.jobs.transport_type?.includes("outbound") && (
-                                <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100">
-                                  {t('job.outbound')}
-                                </Badge>
-                              )}
-                            </>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {app.jobs.transport_type}
-                        </div>
-
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 flex gap-2">
-                            <div className="flex flex-col items-center">
-                              <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
-                              <div className="w-0.5 flex-1 border-l-2 border-dashed border-gray-300 my-1"></div>
-                              <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
-                            </div>
-                            <div className="flex-1 space-y-2">
-                              <div className="text-xs">
-                                <div className="text-muted-foreground">{t('job.origin')}</div>
-                                <div className="font-medium">{app.jobs.origin_location}</div>
-                              </div>
-                              <div className="text-xs">
-                                <div className="text-muted-foreground">{t('job.destination')}</div>
-                                <div className="font-medium">{app.jobs.destination_location}</div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-                            <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-                            <span className="text-lg font-bold text-teal-500">฿ {app.jobs.price.toLocaleString()}</span>
-                          </div>
-                        </div>
-
-                        <div className="mt-3">
-                          {getStatusBadge(app)}
-                        </div>
-                      </div>
-                    </Card>
+                    <HistoryJobCard 
+                      key={app.id}
+                      job={{
+                        id: app.jobs.id,
+                        order_number: app.jobs.order_code,
+                        sender_name: app.jobs.destination_company_name || app.jobs.employer_name,
+                        sender_pickup_date: app.jobs.start_date,
+                        sender_pickup_time: app.jobs.start_time,
+                        transport_price: app.jobs.price,
+                        job_type: app.jobs.job_type,
+                        status: app.status,
+                      }}
+                      onClick={() => navigate(`/job/${app.jobs!.id}`)}
+                      getTranslatedVehicleType={getTranslatedVehicleType}
+                    />
                   );
                 })}
               </>
