@@ -102,6 +102,9 @@ export default function DeliveryDetailPage() {
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Check if viewing from history
+  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  
   // GPS tracking hook
   const { stopTracking } = useGpsTracking();
   
@@ -870,8 +873,8 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* Payment Button - Show after check-in for ALL delivery jobs (both single and multi-destination) */}
-      {isCheckedIn && !jobApplication?.payment_completed_at && !isSopCompleted && (
+      {/* Payment Button - Show after check-in for ALL delivery jobs (both single and multi-destination), hide when viewing from history */}
+      {isCheckedIn && !jobApplication?.payment_completed_at && !isSopCompleted && !isFromHistory && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
