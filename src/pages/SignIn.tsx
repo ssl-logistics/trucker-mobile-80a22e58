@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-// Login uses proxy to avoid CORS
+import { login as loginExternal } from "@/lib/externalApi";
 import { setAuthItem } from "@/utils/authStorage";
 import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
@@ -120,24 +120,8 @@ const SignIn = () => {
       setServerError("");
       setIsLoggingIn(true);
       
-      // POST to login API via proxy to avoid CORS
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/login-proxy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ 
-            username: data.email, 
-            password: data.password 
-          }),
-        }
-      );
-      
-      const result = await response.json();
-      const apiError = !response.ok ? (result?.error || 'Login failed') : null;
+      // POST to login API directly (External API)
+      const { data: result, error: apiError } = await loginExternal(data.email, data.password);
 
       if (apiError || !result?.success) {
         const errorMessage = apiError || result?.error || 'Login failed';
