@@ -444,11 +444,10 @@ export default function DeliveryDetailPage() {
     const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
     
     try {
-      // Determine sequence number - use destination if available, otherwise default to 1
-      const sequenceNumber = destination?.sequence_number || 1;
-      
       // Build POD payload matching the driverCheckin function signature
-      const podPayload = {
+      // For single-destination jobs, don't send destination_sequence_number
+      // For multi-destination jobs, send the sequence number
+      const podPayload: Parameters<typeof driverCheckin>[0] = {
         order_number: job.order_code,
         checkin_type: 'delivery_confirmed',
         driver_id: user.id,
@@ -457,10 +456,15 @@ export default function DeliveryDetailPage() {
         longitude: podLongitude,
         notes: 'จัดส่งสำเร็จ',
         photo_url: photoUrl,
-        destination_sequence_number: sequenceNumber, // ส่ง sequence number ไปด้วย
       };
       
-      console.log('POD for destination sequence:', sequenceNumber);
+      // Only include destination_sequence_number for multi-destination jobs
+      if (isMultiDestination && destination?.sequence_number) {
+        podPayload.destination_sequence_number = destination.sequence_number;
+        console.log('POD for multi-destination, sequence:', destination.sequence_number);
+      } else {
+        console.log('POD for single-destination job (no sequence number)');
+      }
       
       console.log('=== Sending POD to external API (direct) ===');
       console.log('Payload:', JSON.stringify(podPayload, null, 2));
@@ -536,12 +540,10 @@ export default function DeliveryDetailPage() {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Determine sequence number - use destination if available, otherwise default to 1
-      const sequenceNumber = destination?.sequence_number || 1;
-      console.log('Check-in for destination sequence:', sequenceNumber);
-      
-      // Call check-in API directly (no proxy)
-      const { data: checkinResult, error: checkinError } = await driverCheckin({
+      // Build check-in payload
+      // For single-destination jobs, don't send destination_sequence_number
+      // For multi-destination jobs, send the sequence number
+      const checkinPayload: Parameters<typeof driverCheckin>[0] = {
         order_number: job.order_code,
         checkin_type: 'delivery',
         driver_id: user.id,
@@ -549,8 +551,18 @@ export default function DeliveryDetailPage() {
         latitude: latitude,
         longitude: longitude,
         notes: 'ถึงจุดส่งแล้ว',
-        destination_sequence_number: sequenceNumber, // ส่ง sequence number ไปด้วย
-      });
+      };
+      
+      // Only include destination_sequence_number for multi-destination jobs
+      if (isMultiDestination && destination?.sequence_number) {
+        checkinPayload.destination_sequence_number = destination.sequence_number;
+        console.log('Check-in for multi-destination, sequence:', destination.sequence_number);
+      } else {
+        console.log('Check-in for single-destination job (no sequence number)');
+      }
+      
+      // Call check-in API directly (no proxy)
+      const { data: checkinResult, error: checkinError } = await driverCheckin(checkinPayload);
 
       if (checkinError) {
         console.error('Check-in error:', checkinError);
