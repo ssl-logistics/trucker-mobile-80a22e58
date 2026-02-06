@@ -4,6 +4,7 @@ import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
@@ -11,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
+import { driverCheckin } from '@/lib/externalApi';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +50,7 @@ export default function DeliverySOPCheckInPage() {
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [destination, setDestination] = useState<DestinationInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,7 +91,31 @@ export default function DeliverySOPCheckInPage() {
         // Find the specific job by order_number
         const foundJob = result.data.find((j: any) => j.order_number === jobId);
         
-        if (foundJob) {
+         if (foundJob) {
+          // Determine sequence number from URL param
+          const targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
+          
+          // Check if job has multiple destinations
+          const destinationsArray = foundJob.destinations || [];
+          let targetDestination: any = null;
+          
+          if (destinationsArray.length > 0) {
+            targetDestination = destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
+              || destinationsArray[0];
+            console.log('Multi-destination job, target sequence:', targetSequenceNumber);
+          }
+          
+          // Set destination state
+          if (targetDestination) {
+            setDestination({
+              sequence_number: targetDestination.sequence_number || targetSequenceNumber,
+            });
+          } else {
+            setDestination({
+              sequence_number: 1,
+            });
+          }
+          
           // Map API response to JobDetail interface
           const mappedJob: JobDetail = {
             id: foundJob.id,
@@ -182,38 +209,69 @@ export default function DeliverySOPCheckInPage() {
           photo_url: publicUrl
         });
 
-      if (insertError) throw insertError;
+       if (insertError) throw insertError;
 
-      // Update job application with delivery SOP completion
-      {
-        // Fallback to old behavior for legacy routes
-        const { error: updateError } = await supabase
-          .from('job_applications')
-          .update({ 
-            delivery_sop_completed_at: new Date().toISOString(),
-            status: 'delivery_sop_completed'
-          })
-          .eq('job_id', job.id)
-          .eq('driver_id', user.id);
+       // Send POD to external API with destination_sequence_number
+       const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+       const sequenceNumber = destination?.sequence_number || 1;
+       
+       try {
+         const podPayload = {
+           order_number: job.order_code,
+           checkin_type: 'delivery_confirmed',
+           driver_id: user.id,
+           driver_type: driverType,
+           notes: 'ยืนยัน POD จากหน้า Delivery SOP',
+           photo_url: publicUrl,
+           destination_sequence_number: sequenceNumber,
+         };
+         
+         console.log('Sending POD from DeliverySOPCheckInPage:', {
+           sequence: sequenceNumber,
+           photo: publicUrl
+         });
+         
+         const { error: podError } = await driverCheckin(podPayload);
+         if (podError) {
+           console.warn('POD API error (non-blocking):', podError);
+         } else {
+           console.log('POD sent successfully for sequence:', sequenceNumber);
+         }
+       } catch (podApiError) {
+         console.warn('POD submission error:', podApiError);
+         // Don't throw - continue with local update
+       }
 
-        if (updateError) throw updateError;
+       // Update job application with delivery SOP completion
+       {
+         // Fallback to old behavior for legacy routes
+         const { error: updateError } = await supabase
+           .from('job_applications')
+           .update({ 
+             delivery_sop_completed_at: new Date().toISOString(),
+             status: 'delivery_sop_completed'
+           })
+           .eq('job_id', job.id)
+           .eq('driver_id', user.id);
 
-        // Send job status update
-        await sendJobStatus({
-          jobId: job.id,
-          orderCode: job.order_code,
-          userId: user.id,
-          status: 'delivery_sop_completed',
-          sequenceNumber: 3
-        });
-      }
+         if (updateError) throw updateError;
 
-      toast({
-        title: t('deliverySop.sopSuccess'),
-        description: t('deliverySop.sopSuccessMessage'),
-      });
+         // Send job status update
+         await sendJobStatus({
+           jobId: job.id,
+           orderCode: job.order_code,
+           userId: user.id,
+           status: 'delivery_sop_completed',
+           sequenceNumber: destination?.sequence_number || 1
+         });
+       }
 
-      navigate(`/job/${job.order_code}`);
+       toast({
+         title: t('deliverySop.sopSuccess'),
+         description: t('deliverySop.sopSuccessMessage'),
+       });
+
+       navigate(`/job/${job.order_code}`);
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
