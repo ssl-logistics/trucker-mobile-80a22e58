@@ -151,26 +151,88 @@ export default function DeliveryDetailPage() {
         const foundJob = result.data.find((j: any) => j.order_number === jobId);
         
         if (foundJob) {
+          // Determine the sequence number from URL param (destinationId) or default to 1
+          const targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
+          
+          // Check if job has multiple destinations
+          const destinationsArray = foundJob.destinations || [];
+          let targetDestination: any = null;
+          
+          if (destinationsArray.length > 0) {
+            // Multi-destination job - find the matching destination
+            targetDestination = destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
+              || destinationsArray[0];
+            console.log('Multi-destination job, target sequence:', targetSequenceNumber, 'found:', targetDestination?.sequence_number);
+          }
+          
+          // Use target destination data if available, otherwise use job-level data
+          const destData = targetDestination || foundJob;
+          
           // Map API response to JobDetail interface
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
-            employer_name: foundJob.factory_name || foundJob.destination_name || foundJob.destination_company_name,
-            destination_location: `${foundJob.destination_district || ''}, ${foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
-            start_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date,
-            start_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time,
-            destination_latitude: foundJob.destination_latitude,
-            destination_longitude: foundJob.destination_longitude,
-            destination_contact_person: foundJob.destination_contact_name,
-            destination_address: foundJob.destination_address,
+            employer_name: foundJob.factory_name || destData.company_name || destData.destination_name || foundJob.destination_company_name,
+            destination_location: `${destData.district || foundJob.destination_district || ''}, ${destData.province || foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
+            start_date: destData.delivery_date || foundJob.destination_delivery_date || foundJob.sender_pickup_date,
+            start_time: destData.delivery_time || foundJob.destination_delivery_time || foundJob.sender_pickup_time,
+            destination_latitude: destData.latitude || foundJob.destination_latitude,
+            destination_longitude: destData.longitude || foundJob.destination_longitude,
+            destination_contact_person: destData.contact_name || foundJob.destination_contact_name,
+            destination_address: destData.address || foundJob.destination_address,
             destination_goods_type: foundJob.product_name,
             destination_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
-            destination_remarks: foundJob.remarks,
-            destination_time: foundJob.destination_delivery_time,
-            destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
+            destination_remarks: destData.notes || foundJob.remarks,
+            destination_time: destData.delivery_time || foundJob.destination_delivery_time,
+            destination_company_name: destData.company_name || foundJob.destination_company_name || foundJob.destination_name,
             price: foundJob.transport_price || 0,
           };
           setJob(mappedJob);
+          
+          // Set destination state for sequence tracking
+          if (targetDestination) {
+            setDestination({
+              id: targetDestination.id || `dest-${targetSequenceNumber}`,
+              job_id: foundJob.id,
+              sequence_number: targetDestination.sequence_number || targetSequenceNumber,
+              company_name: targetDestination.company_name,
+              contact_name: targetDestination.contact_name,
+              contact_phone: targetDestination.contact_phone,
+              address: targetDestination.address,
+              province: targetDestination.province,
+              district: targetDestination.district,
+              latitude: targetDestination.latitude,
+              longitude: targetDestination.longitude,
+              delivery_date: targetDestination.delivery_date,
+              delivery_time: targetDestination.delivery_time,
+              notes: targetDestination.notes,
+              checked_in_at: null,
+              sop_completed_at: null,
+            });
+          } else {
+            // Single destination - create a default destination with sequence 1
+            setDestination({
+              id: `dest-1`,
+              job_id: foundJob.id,
+              sequence_number: 1,
+              company_name: foundJob.destination_company_name,
+              contact_name: foundJob.destination_contact_name,
+              contact_phone: foundJob.destination_contact_phone,
+              address: foundJob.destination_address,
+              province: foundJob.destination_province,
+              district: foundJob.destination_district,
+              latitude: foundJob.destination_latitude,
+              longitude: foundJob.destination_longitude,
+              delivery_date: foundJob.destination_delivery_date,
+              delivery_time: foundJob.destination_delivery_time,
+              notes: foundJob.remarks,
+              checked_in_at: null,
+              sop_completed_at: null,
+            });
+          }
+          
+          // Get the actual sequence number for filtering checkins
+          const currentSequenceNumber = targetDestination?.sequence_number || 1;
 
             // Check for delivery check-in status from API
             try {
@@ -204,13 +266,35 @@ export default function DeliveryDetailPage() {
                 });
                 console.log('Filtered delivery checkins for order', foundJob.id, ':', filteredCheckins.length);
 
-                const deliveryCheckin = filteredCheckins.find((c: any) => c.checkin_type === 'delivery');
+                // For multi-destination jobs, filter by destination_sequence_number
+                // For single destination or legacy data without sequence, fallback to any delivery checkin
+                const deliveryCheckin = filteredCheckins.find((c: any) => {
+                  if (c.checkin_type !== 'delivery') return false;
+                  // Match by sequence number if available, otherwise accept any delivery checkin for sequence 1
+                  const checkinSeq = c.destination_sequence_number;
+                  if (checkinSeq !== null && checkinSeq !== undefined) {
+                    return checkinSeq === currentSequenceNumber;
+                  }
+                  // Fallback: accept delivery checkin without sequence as sequence 1
+                  return currentSequenceNumber === 1;
+                });
                 deliveryCheckinTime = deliveryCheckin?.checkin_time || deliveryCheckin?.checked_in_at || deliveryCheckin?.created_at || null;
+                console.log('Delivery checkin for sequence', currentSequenceNumber, ':', deliveryCheckin ? 'found' : 'not found');
 
-                const deliveryConfirmed = filteredCheckins.find((c: any) => c.checkin_type === 'delivery_confirmed');
+                const deliveryConfirmed = filteredCheckins.find((c: any) => {
+                  if (c.checkin_type !== 'delivery_confirmed') return false;
+                  // Match by sequence number if available
+                  const checkinSeq = c.destination_sequence_number;
+                  if (checkinSeq !== null && checkinSeq !== undefined) {
+                    return checkinSeq === currentSequenceNumber;
+                  }
+                  // Fallback: accept delivery_confirmed without sequence as sequence 1
+                  return currentSequenceNumber === 1;
+                });
                 deliveryConfirmedTime = deliveryConfirmed?.checkin_time || deliveryConfirmed?.checked_in_at || deliveryConfirmed?.created_at || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
                 deliveryConfirmedPaymentMethod = deliveryConfirmed?.payment_method || null;
+                console.log('Delivery confirmed for sequence', currentSequenceNumber, ':', deliveryConfirmed ? 'found' : 'not found');
               }
             
             // Fetch local job application data for payment status (may not exist for external jobs)
