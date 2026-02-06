@@ -456,6 +456,7 @@ export default function DeliveryDetailPage() {
         longitude: podLongitude,
         notes: 'จัดส่งสำเร็จ',
         photo_url: photoUrl,
+        payment_method: jobApplication?.payment_method || selectedPaymentMethod || undefined,
       };
       
       // Only include destination_sequence_number for multi-destination jobs
