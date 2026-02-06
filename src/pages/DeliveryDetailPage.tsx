@@ -603,7 +603,7 @@ export default function DeliveryDetailPage() {
 
       toast({
         title: t('delivery.checkInSuccess'),
-        description: t('pickup.checkInSuccessMessage'),
+        description: t('delivery.checkInSuccessMessage'),
       });
       setShowConfirmDialog(false);
       

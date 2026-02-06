@@ -937,6 +937,7 @@ const thTranslations: Record<string, string> = {
   // Delivery Detail Page
   'delivery.title': 'จุดส่ง',
   'delivery.checkInSuccess': 'เช็คอินสำเร็จ',
+  'delivery.checkInSuccessMessage': 'คุณได้เช็คอินที่จุดส่งสินค้าเรียบร้อยแล้ว',
   'delivery.paymentSuccess': 'ชำระเงินสำเร็จ',
   'delivery.paymentInfo': 'ข้อมูลการชำระเงิน',
   'delivery.paymentMethod': 'วิธีการชำระเงิน',
@@ -2352,6 +2353,7 @@ const enTranslations: Record<string, string> = {
   // Delivery Detail Page
   'delivery.title': 'Delivery Point',
   'delivery.checkInSuccess': 'Check-in Successful',
+  'delivery.checkInSuccessMessage': 'You have checked in at the delivery point successfully',
   'delivery.paymentSuccess': 'Payment Successful',
   'delivery.paymentInfo': 'Payment Information',
   'delivery.paymentMethod': 'Payment Method',
@@ -3719,6 +3721,7 @@ const koTranslations: Record<string, string> = {
   // Delivery Detail Page
   'delivery.title': '배송 지점',
   'delivery.checkInSuccess': '체크인 완료',
+  'delivery.checkInSuccessMessage': '배송 지점에 체크인되었습니다',
   'delivery.paymentSuccess': '결제 완료',
   'delivery.paymentInfo': '결제 정보',
   'delivery.paymentMethod': '결제 방법',
@@ -4892,6 +4895,7 @@ const zhTranslations: Record<string, string> = {
   // Delivery Detail Page
   'delivery.title': '送货点',
   'delivery.checkInSuccess': '签到成功',
+  'delivery.checkInSuccessMessage': '您已成功签到送货点',
   'delivery.paymentSuccess': '付款成功',
   'delivery.paymentInfo': '付款信息',
   'delivery.paymentMethod': '付款方式',
