@@ -17,6 +17,7 @@ import { useGpsTracking } from '@/hooks/useGpsTracking';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
+import { driverCheckin } from '@/lib/externalApi';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -230,30 +231,19 @@ export default function PickupDetailPage() {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Call check-in API via proxy
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            order_number: job.order_number || job.order_code,
-            checkin_type: 'pickup',
-            driver_id: user.id,
-            driver_type: driverType,
-            driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
-            driver_phone: user.phone_number || user.phone || '',
-            driver_avatar: user.avatar_url || user.profile_photo_url || '',
-            latitude: latitude,
-            longitude: longitude,
-            notes: 'ถึงจุดรับแล้ว'
-          })
-        }
-      );
+      // Call check-in API directly (no proxy)
+      const { data: checkinResult, error: checkinError } = await driverCheckin({
+        order_number: job.order_number || job.order_code,
+        checkin_type: 'pickup',
+        driver_id: user.id,
+        driver_type: driverType,
+        latitude: latitude,
+        longitude: longitude,
+        notes: 'ถึงจุดรับแล้ว'
+      });
 
-      if (!response.ok) {
+      if (checkinError) {
+        console.error('Check-in error:', checkinError);
         throw new Error('Check-in failed');
       }
 

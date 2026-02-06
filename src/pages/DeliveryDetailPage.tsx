@@ -12,7 +12,7 @@ import JobActionButtons from "@/components/job/JobActionButtons";
 import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
-import { getDriverCheckins } from '@/lib/externalApi';
+import { getDriverCheckins, driverCheckin } from '@/lib/externalApi';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import {
@@ -352,63 +352,34 @@ export default function DeliveryDetailPage() {
     let podApiResponse: any = null;
     
     // Determine driver type for POD submission
-    const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+    const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
     
     try {
-      const podPayload: Record<string, unknown> = {
+      // Build POD payload matching the driverCheckin function signature
+      const podPayload = {
         order_number: job.order_code,
         checkin_type: 'delivery_confirmed',
-        driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
-        driver_phone: user.phone_number || user.phone || '',
-        driver_avatar: user.avatar_url || user.profile_photo_url || '',
+        driver_id: user.id,
+        driver_type: driverType,
         latitude: podLatitude,
         longitude: podLongitude,
         notes: 'จัดส่งสำเร็จ',
         photo_url: photoUrl,
-        driver_type: driverType,
-        payment_method: selectedPaymentMethod,
-        // Include destination sequence number for multi-destination POD
-        ...(destinationId && { destination_sequence_number: parseInt(destinationId) || 1 }),
       };
-
-      // Set the appropriate driver ID field based on driver type
-      if (driverType === 'internal') {
-        podPayload.internal_driver_id = user.id;
-      } else if (driverType === 'external') {
-        podPayload.external_driver_id = user.id;
-      } else {
-        podPayload.freelance_driver_id = user.id;
-      }
       
-      console.log('=== Sending POD to external API ===');
+      console.log('=== Sending POD to external API (direct) ===');
       console.log('Payload:', JSON.stringify(podPayload, null, 2));
       
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(podPayload)
-        }
-      );
+      const { data: podResult, error: podError } = await driverCheckin(podPayload);
       
-      const responseText = await response.text();
-      console.log('POD API response status:', response.status);
-      console.log('POD API response body:', responseText);
+      console.log('POD API response:', podResult);
+      podApiResponse = podResult;
       
-      try {
-        podApiResponse = JSON.parse(responseText);
-      } catch {
-        podApiResponse = { message: responseText };
-      }
-      
-      if (!response.ok) {
-        console.error('POD API error:', responseText);
+      if (podError) {
+        console.error('POD API error:', podError);
         toast({
           title: "❌ ส่ง POD ไม่สำเร็จ",
-          description: `API Error: ${podApiResponse?.error || podApiResponse?.message || 'Unknown error'}`,
+          description: `API Error: ${podError}`,
           variant: "destructive",
         });
         setIsSubmittingPod(false);
@@ -470,30 +441,19 @@ export default function DeliveryDetailPage() {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Call check-in API via proxy with checkin_type: 'delivery'
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            order_number: job.order_code,
-            checkin_type: 'delivery',
-            driver_id: user.id,
-            driver_type: driverType,
-            driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
-            driver_phone: user.phone_number || user.phone || '',
-            driver_avatar: user.avatar_url || user.profile_photo_url || '',
-            latitude: latitude,
-            longitude: longitude,
-            notes: 'ถึงจุดส่งแล้ว'
-          })
-        }
-      );
+      // Call check-in API directly (no proxy)
+      const { data: checkinResult, error: checkinError } = await driverCheckin({
+        order_number: job.order_code,
+        checkin_type: 'delivery',
+        driver_id: user.id,
+        driver_type: driverType,
+        latitude: latitude,
+        longitude: longitude,
+        notes: 'ถึงจุดส่งแล้ว'
+      });
 
-      if (!response.ok) {
+      if (checkinError) {
+        console.error('Check-in error:', checkinError);
         throw new Error('Check-in failed');
       }
 

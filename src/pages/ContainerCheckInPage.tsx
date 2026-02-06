@@ -16,7 +16,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { sendJobStatus } from '@/lib/jobStatusService';
 import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
-import JobActionButtons from '@/components/job/JobActionButtons'; import { getDriverCheckins } from '@/lib/externalApi';
+import JobActionButtons from '@/components/job/JobActionButtons';
+import { getDriverCheckins, driverCheckin } from '@/lib/externalApi';
 
 interface JobDetail {
   id: string;
@@ -248,36 +249,23 @@ export default function ContainerCheckInPage() {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Call check-in API via proxy with new checkin_type 'empty_container'
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-checkin-proxy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            order_number: job.order_code,
-            checkin_type: 'empty_container', // New status for empty container pickup
-            driver_id: user.id,
-            driver_type: driverType,
-            driver_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '',
-            driver_phone: user.phone_number || user.phone || '',
-            driver_avatar: user.avatar_url || user.profile_photo_url || '',
-            latitude: latitude,
-            longitude: longitude,
-            notes: t('containerCheckin.arrivalNote'),
-            container_number: container1Number,
-            seal_number: container1Seal,
-            container_number_2: container2Number,
-            seal_number_2: container2Seal
-          })
-        }
-      );
+      // Call check-in API directly (no proxy)
+      const { data: checkinResult, error: checkinError } = await driverCheckin({
+        order_number: job.order_code,
+        checkin_type: 'empty_container',
+        driver_id: user.id,
+        driver_type: driverType,
+        latitude: latitude,
+        longitude: longitude,
+        notes: t('containerCheckin.arrivalNote'),
+        container_number: container1Number,
+        seal_number: container1Seal,
+        container_number_2: container2Number,
+        seal_number_2: container2Seal
+      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Check-in error:', errorText);
+      if (checkinError) {
+        console.error('Check-in error:', checkinError);
         throw new Error('Check-in failed');
       }
 
