@@ -322,6 +322,13 @@ export default function DeliveryDetailPage() {
               pod_photo_url: deliveryConfirmedPhotoUrl || localJobApp?.pod_photo_url || null,
               delivery_sop_completed_at: deliveryConfirmedTime || localJobApp?.delivery_sop_completed_at || null,
             });
+            
+            // Also update the destination state with checkin times for accurate UI state
+            setDestination(prev => prev ? {
+              ...prev,
+              checked_in_at: deliveryCheckinTime,
+              sop_completed_at: deliveryConfirmedTime || localJobApp?.delivery_sop_completed_at || null,
+            } : null);
           } catch (checkinError) {
             console.error('Error fetching checkin status:', checkinError);
           }
@@ -637,8 +644,11 @@ export default function DeliveryDetailPage() {
     }
   };
 
-  // Determine which check-in status to use - prioritize localStorage for reliability
-  const isCheckedIn = deliveryCheckedIn || (destination ? !!destination.checked_in_at : !!jobApplication?.delivery_checked_in_at);
+  // Determine which check-in status to use
+  // For multi-destination jobs, ONLY use jobApplication?.delivery_checked_in_at which is filtered by sequence number
+  // The deliveryCheckedIn from useCheckinStatus is NOT sequence-aware, so it would be true for ALL destinations
+  // once ANY destination is checked in, which is incorrect
+  const isCheckedIn = destination ? !!destination.checked_in_at : !!jobApplication?.delivery_checked_in_at;
   const checkedInAt = destination ? destination.checked_in_at : jobApplication?.delivery_checked_in_at;
   const isSopCompleted = destination ? !!destination.sop_completed_at : !!jobApplication?.delivery_sop_completed_at;
   
