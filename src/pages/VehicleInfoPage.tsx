@@ -609,54 +609,6 @@ export default function VehicleInfoPage() {
             </div>
           )}
 
-          {/* License Plate Photo Section */}
-          <div className="mb-2">
-            <h3 className="text-sm font-medium text-foreground">
-              {t('vehicle.platePhoto') || 'รูปป้ายทะเบียน'}
-            </h3>
-          </div>
-
-          {(() => {
-            const platePhoto = getPhotoByType('plate');
-            const platePhotoUrl = getPresignedPhotoUrl(platePhoto);
-            
-            return platePhoto && platePhotoUrl ? (
-              <div className="relative bg-muted rounded-lg overflow-hidden aspect-video">
-                <img 
-                  src={platePhotoUrl}
-                  alt={t('vehicle.platePhoto') || 'รูปป้ายทะเบียน'} 
-                  className="w-full h-full object-cover"
-                />
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                  onClick={() => {
-                    setCurrentPhotoType('plate');
-                    setIsVehiclePhotoDrawerOpen(true);
-                  }}
-                >
-                  <Edit2 className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              </div>
-            ) : (
-              <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
-                <span className="text-muted-foreground">{t('vehicle.noPhotos') || 'ยังไม่มีรูปภาพ'}</span>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                  onClick={() => {
-                    setCurrentPhotoType('plate');
-                    setIsVehiclePhotoDrawerOpen(true);
-                  }}
-                >
-                  <Edit2 className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              </div>
-            );
-          })()}
-
           {/* Vehicle Info Fields */}
           <div className="space-y-0">
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -823,13 +775,14 @@ export default function VehicleInfoPage() {
 
         {/* Vehicle Photos Tab */}
         <TabsContent value="photos" className="p-4 space-y-6">
-          {['front', 'side', 'back'].map((photoType) => {
+          {['front', 'side', 'back', 'plate'].map((photoType) => {
             const photo = getPhotoByType(photoType);
             const photoUrl = getPresignedPhotoUrl(photo);
             const labels: Record<string, string> = {
               front: t('vehicle.frontPhoto'),
               side: t('vehicle.leftPhoto'),
               back: t('vehicle.backPhoto'),
+              plate: t('vehicle.platePhoto') || 'รูปป้ายทะเบียน',
             };
 
             return (
