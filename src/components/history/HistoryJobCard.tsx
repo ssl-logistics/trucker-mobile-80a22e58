@@ -46,22 +46,37 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
   // Single trip: no destinations array OR has destination fields directly
   const isSingleTrip = !isMultipleLocations;
 
-  // Format origin location
+  // Format origin location - prioritize district, province format
   const getOriginLocation = () => {
     if (Array.isArray(job.origins) && job.origins.length > 0) {
-      return job.origins[0].address || job.origins[0].location || `${job.origins[0].province || ''}, ${job.origins[0].district || ''}`;
+      const origin = job.origins[0];
+      // Prefer district, province format
+      if (origin.district || origin.province) {
+        return [origin.district, origin.province].filter(Boolean).join(', ');
+      }
+      return origin.address || origin.location || '-';
     }
-    return `${job.sender_province || ''}, ${job.sender_district || ''}`;
+    // Fallback to job-level fields
+    if (job.sender_district || job.sender_province) {
+      return [job.sender_district, job.sender_province].filter(Boolean).join(', ');
+    }
+    return '-';
   };
 
-  // Format destination location(s)
+  // Format destination location(s) - prioritize district, province format
   const getDestinationLocations = () => {
     if (Array.isArray(job.destinations) && job.destinations.length > 0) {
       return job.destinations.map(dest => ({
-        location: dest.address || dest.location || `${dest.province || ''}, ${dest.district || ''}`
+        location: (dest.district || dest.province) 
+          ? [dest.district, dest.province].filter(Boolean).join(', ')
+          : (dest.address || dest.location || '-')
       }));
     }
-    return [{ location: `${job.destination_province || ''}, ${job.destination_district || ''}` }];
+    // Fallback to job-level fields
+    const location = (job.destination_district || job.destination_province)
+      ? [job.destination_district, job.destination_province].filter(Boolean).join(', ')
+      : '-';
+    return [{ location }];
   };
 
   const destinations = getDestinationLocations();
