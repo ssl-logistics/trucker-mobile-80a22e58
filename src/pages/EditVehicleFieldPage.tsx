@@ -74,9 +74,9 @@ export default function EditVehicleFieldPage() {
 
   const provinces = Array.from(new Set(locations.map((loc) => loc.province))).sort();
 
-  const isExternalDriver = !!(
-    user && (user.driver_code || user.first_name || user.profile_photo_url || user.front_photo_url)
-  );
+  // Check if user is internal or external driver (not freelance)
+  // These drivers have vehicle data stored on the user object from external API
+  const isExternalOrInternalDriver = userType === 'internal_driver' || userType === 'external_driver';
 
   useEffect(() => {
     loadCurrentValue();
@@ -85,8 +85,8 @@ export default function EditVehicleFieldPage() {
   const loadCurrentValue = async () => {
     if (!user || !field) return;
 
-    // External driver data is stored on the user object (not in vehicles table)
-    if (isExternalDriver) {
+    // Internal/External driver data is stored on the user object (not in vehicles table)
+    if (isExternalOrInternalDriver) {
       switch (field) {
         case 'plate_number':
           setValue(user.plate_number || '');
@@ -185,8 +185,8 @@ export default function EditVehicleFieldPage() {
 
     setLoading(true);
     try {
-      // External driver: update via backend function so VehicleInfoPage + Settings reflect immediately
-      if (isExternalDriver) {
+      // Internal/External driver: update via backend function so VehicleInfoPage + Settings reflect immediately
+      if (isExternalOrInternalDriver) {
         const updatePayload: Record<string, any> = {
           driver_id: user.id,
           driver_type: getDriverTypeFromUserType(userType),

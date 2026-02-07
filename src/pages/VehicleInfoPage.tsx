@@ -245,9 +245,8 @@ export default function VehicleInfoPage() {
     console.log('Starting photo upload for type:', photoType);
     setIsUploading(true);
 
-    const isExternalDriver = !!(
-      user && (user.driver_code || user.first_name || user.profile_photo_url || user.front_photo_url)
-    );
+    // Check if user is internal or external driver (not freelance)
+    const isExternalOrInternalDriver = userType === 'internal_driver' || userType === 'external_driver';
 
     try {
       // Upload to S3 via edge function
@@ -276,8 +275,8 @@ export default function VehicleInfoPage() {
       const publicUrl: string = uploadJson.url;
       console.log('S3 upload success:', publicUrl);
 
-      // External driver flow: update driver record via API
-      if (isExternalDriver) {
+      // Internal/External driver flow: update driver record via API
+      if (isExternalOrInternalDriver) {
         // Map photoType to driver field name
         const photoFieldMap: Record<string, string> = {
           front: 'front_photo_url',
@@ -403,9 +402,8 @@ export default function VehicleInfoPage() {
 
     setIsUploading(true);
 
-    const isExternalDriver = !!(
-      user && (user.driver_code || user.first_name || user.profile_photo_url || user.front_photo_url)
-    );
+    // Check if user is internal or external driver (not freelance)
+    const isExternalOrInternalDriver = userType === 'internal_driver' || userType === 'external_driver';
 
     try {
       // Upload to S3 via edge function
@@ -434,8 +432,8 @@ export default function VehicleInfoPage() {
       const publicUrl: string = uploadJson.url;
       console.log('S3 registration upload success:', publicUrl);
 
-      // External driver flow: update driver record via API
-      if (isExternalDriver) {
+      // Internal/External driver flow: update driver record via API
+      if (isExternalOrInternalDriver) {
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
           {
