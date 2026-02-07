@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { setAuthItem, getAuthItem } from '@/utils/authStorage';
+import { updateFreelanceDriver } from '@/lib/externalApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
@@ -26,7 +27,13 @@ export default function EditFieldPage() {
 
     try {
       // Build update payload for external API
-      const updatePayload: Record<string, string> = {
+      const updatePayload: {
+        driver_id: string;
+        driver_type: 'internal' | 'external' | 'freelance';
+        first_name?: string;
+        last_name?: string;
+        phone?: string;
+      } = {
         driver_id: user.id,
         driver_type: getDriverTypeFromUserType(userType),
       };
@@ -41,30 +48,17 @@ export default function EditFieldPage() {
 
       console.log('Sending update payload:', updatePayload);
 
-      // Call the external API via edge function
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify(updatePayload),
-        }
-      );
-
-      const data = await response.json();
-      const error = !response.ok ? data : null;
+      // Call the external API directly (single request)
+      const { data, error } = await updateFreelanceDriver(updatePayload);
 
       if (error) {
         console.error('Update error:', error);
         toast({ 
           title: t('editField.error'), 
-          description: error.message || t('editField.updateError'), 
+          description: error || t('editField.updateError'), 
           variant: 'destructive' 
         });
-      } else {
+      } else if (data?.success) {
         toast({ title: t('editField.success'), description: t('editField.updated') });
         
         // Update local storage immediately with new data
