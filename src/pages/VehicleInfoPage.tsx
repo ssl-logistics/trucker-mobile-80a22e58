@@ -155,7 +155,10 @@ export default function VehicleInfoPage() {
       console.log('Loading vehicle photos for user:', user.id);
       
       // If user has photos from external API, use those
-      if (user.front_photo_url || user.side_photo_url || user.back_photo_url || user.plate_photo_url) {
+      const hasExternalPhotos = user.front_photo_url || user.side_photo_url || user.back_photo_url || 
+        user.plate_photo_url || user.license_plate_image_url;
+      
+      if (hasExternalPhotos) {
         const externalPhotos: VehiclePhoto[] = [];
         if (user.front_photo_url) {
           externalPhotos.push({ id: 'front', photo_type: 'front', photo_url: user.front_photo_url });
@@ -166,8 +169,10 @@ export default function VehicleInfoPage() {
         if (user.back_photo_url) {
           externalPhotos.push({ id: 'back', photo_type: 'back', photo_url: user.back_photo_url });
         }
-        if (user.plate_photo_url) {
-          externalPhotos.push({ id: 'plate', photo_type: 'plate', photo_url: user.plate_photo_url });
+        // Support both plate_photo_url and license_plate_image_url from API
+        const platePhotoUrl = user.plate_photo_url || user.license_plate_image_url;
+        if (platePhotoUrl) {
+          externalPhotos.push({ id: 'plate', photo_type: 'plate', photo_url: platePhotoUrl });
         }
         if (user.trailer_plate_photo_url) {
           externalPhotos.push({ id: 'trailer_plate', photo_type: 'trailer_plate', photo_url: user.trailer_plate_photo_url });
