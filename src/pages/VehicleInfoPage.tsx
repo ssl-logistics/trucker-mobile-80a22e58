@@ -770,13 +770,14 @@ export default function VehicleInfoPage() {
 
         {/* Vehicle Photos Tab */}
         <TabsContent value="photos" className="p-4 space-y-6">
-          {['front', 'side', 'back'].map((photoType) => {
+          {['front', 'side', 'back', 'plate'].map((photoType) => {
             const photo = getPhotoByType(photoType);
             const photoUrl = getPresignedPhotoUrl(photo);
             const labels: Record<string, string> = {
               front: t('vehicle.frontPhoto'),
               side: t('vehicle.leftPhoto'),
               back: t('vehicle.backPhoto'),
+              plate: t('vehicle.platePhoto') || 'รูปป้ายทะเบียน',
             };
 
             return (
