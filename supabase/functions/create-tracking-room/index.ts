@@ -5,11 +5,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface Waypoint {
+  lat: number;
+  lng: number;
+}
+
 interface TrackingRoomRequest {
   truck_plate: string;
   order_code: string;
   origin_lat: number;
   origin_lng: number;
+  waypoints?: Waypoint[];
   destination_lat: number;
   destination_lng: number;
   current_lat: number;
@@ -59,6 +65,7 @@ serve(async (req) => {
         order_code: body.order_code,
         origin_lat: body.origin_lat,
         origin_lng: body.origin_lng,
+        ...(body.waypoints && body.waypoints.length > 0 && { waypoints: body.waypoints }),
         destination_lat: body.destination_lat,
         destination_lng: body.destination_lng,
         current_lat: body.current_lat,
