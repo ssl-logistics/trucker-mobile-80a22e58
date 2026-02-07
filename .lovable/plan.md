@@ -1,80 +1,85 @@
 
-# แผนแก้ไข: สถานะจุดส่งในงานหลายที่ไม่อัพเดตหลังเช็คอิน
 
-## ปัญหา
-งานหลายจุดส่ง (Multi-destination) เช็คอินจุดส่งแรกแล้ว แต่สถานะยังแสดงเป็น "รอเช็คอิน" แทนที่จะเป็น "รอชำระเงิน" เหมือนงานส่งเที่ยวเดียว
+## แผนการย้ายรูปป้ายทะเบียนไปแสดงในแท็บข้อมูล
 
-## สาเหตุ
-API ส่งข้อมูลเช็คอินแบบ `checkin_type: "delivery"` โดยไม่มี sequence number แต่โค้ดพยายามหา `delivery_1`, `delivery_2` หรือ `destination_sequence_number` ซึ่งไม่มีใน API response ทำให้ `destinationCheckins` เป็น object ว่างและสถานะไม่ถูกต้อง
+### สรุปปัญหา
+ปัจจุบันรูปป้ายทะเบียน (license plate photo) แสดงอยู่ในแท็บ "รูปภาพ" ร่วมกับรูปรถ (หน้ารถ, ด้านซ้าย, ด้านหลัง) แต่ผู้ใช้ต้องการให้รูปป้ายทะเบียนแสดงแยกในแท็บ "ข้อมูล" ที่ div ซึ่งปัจจุบันแสดงข้อความ "ยังไม่มีรูปภาพ"
 
-## การแก้ไข
+### แผนการแก้ไข
 
-### ไฟล์: `src/components/job-detail/DomesticJobDetail.tsx`
+#### 1. แท็บ "รูปภาพ" - ลบรูปป้ายทะเบียนออก
+- เปลี่ยน array จาก `['front', 'side', 'back', 'plate']` กลับเป็น `['front', 'side', 'back']`
+- รูปป้ายทะเบียนจะไม่แสดงในแท็บนี้อีกต่อไป
 
-**เพิ่ม Fallback Logic สำหรับ `checkin_type: "delivery"` ที่ไม่มี sequence number:**
-
-1. หากมี `checkin_type === 'delivery'` และ **ไม่มี** `destination_sequence_number` หรือ `delivery_N` pattern → ถือว่าเป็นเช็คอินสำหรับจุดส่งแรก (sequence 1)
-
-2. อัพเดต logic ในส่วน Lines 389-424 ให้รองรับกรณีนี้:
-
-```typescript
-// ก่อน (ไม่รองรับ delivery ธรรมดา)
-checkins.forEach((c: any) => {
-  const deliveryMatch = c.checkin_type?.match(/^delivery_(\d+)$/);
-  if (deliveryMatch) { ... }
-  // ...
-});
-
-// หลัง (รองรับ delivery ธรรมดา → fallback เป็น sequence 1)
-checkins.forEach((c: any) => {
-  // รองรับ delivery ธรรมดา (ไม่มี _N) สำหรับงานหลายจุดส่ง
-  // fallback เป็น sequence 1 หากไม่มี destination_sequence_number
-  if (c.checkin_type === 'delivery' && !c.destination_sequence_number) {
-    if (!destCheckins[1]) {
-      destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
-    }
-    destCheckins[1].checked_in_at = c.checked_in_at || c.created_at;
-  }
-  
-  // รองรับ delivery_confirmed ธรรมดา → fallback เป็น sequence 1
-  if (c.checkin_type === 'delivery_confirmed' && !c.destination_sequence_number) {
-    if (!destCheckins[1]) {
-      destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
-    }
-    destCheckins[1].sop_completed_at = c.checked_in_at || c.created_at;
-  }
-  
-  // เดิม: รองรับ delivery_N, delivery_confirmed_N
-  const deliveryMatch = c.checkin_type?.match(/^delivery_(\d+)$/);
-  if (deliveryMatch) { ... }
-  // ...
-});
-```
+#### 2. แท็บ "ข้อมูล" - เพิ่ม section รูปป้ายทะเบียน
+- เพิ่ม section ใหม่สำหรับแสดงรูปป้ายทะเบียนแยกจากรูปทะเบียนรถ (registration photos)
+- ใช้ `getPhotoByType('plate')` เพื่อดึงรูปป้ายทะเบียน
+- แสดงรูปป้ายทะเบียนในรูปแบบเดียวกับ registration photos (ใช้ presigned URL)
+- หากไม่มีรูป จะแสดงข้อความ "ยังไม่มีรูปภาพ" พร้อมปุ่มแก้ไข
 
 ---
 
-## ผลลัพธ์ที่คาดหวัง
+### รายละเอียดทางเทคนิค
 
-| สถานการณ์ | ก่อนแก้ไข | หลังแก้ไข |
-|-----------|----------|----------|
-| จุดส่ง #1 เช็คอินแล้ว | รอเช็คอิน (ผิด) | รอชำระเงิน (ถูก) |
-| จุดส่ง #1 ยืนยัน POD แล้ว | รอเช็คอิน (ผิด) | POD สำเร็จ (ถูก) |
+**ไฟล์ที่ต้องแก้ไข:** `src/pages/VehicleInfoPage.tsx`
 
----
+**การเปลี่ยนแปลง 1:** แท็บรูปภาพ (บรรทัด ~778)
+```tsx
+// เปลี่ยนจาก
+{['front', 'side', 'back', 'plate'].map((photoType) => {
 
-## รายละเอียดทางเทคนิค
-
-**API Response ปัจจุบัน (ไม่มี sequence):**
-```json
-{
-  "checkin_type": "delivery",
-  "transport_order_id": "75a8f1bc-...",
-  "checked_in_at": "2026-02-05T18:01:49..."
-}
+// เป็น
+{['front', 'side', 'back'].map((photoType) => {
 ```
 
-**Logic ที่เพิ่ม:**
-- หาก `checkin_type === 'delivery'` และไม่มี pattern `_N` และไม่มี `destination_sequence_number` → map เข้า `destCheckins[1]`
-- ใช้หลักการเดียวกันกับ `delivery_confirmed`
+**การเปลี่ยนแปลง 2:** แท็บข้อมูล - เพิ่ม section รูปป้ายทะเบียน (หลัง Registration Photos Gallery บรรทัด ~610)
+```tsx
+{/* License Plate Photo Section */}
+<div className="mb-2">
+  <h3 className="text-sm font-medium text-foreground">
+    {t('vehicle.platePhoto') || 'รูปป้ายทะเบียน'}
+  </h3>
+</div>
 
-**หมายเหตุ:** หาก API ถูกปรับปรุงในอนาคตให้ส่ง `destination_sequence_number` มาด้วย logic นี้จะยังคงทำงานถูกต้องเพราะเป็น fallback เท่านั้น
+{(() => {
+  const platePhoto = getPhotoByType('plate');
+  const platePhotoUrl = getPresignedPhotoUrl(platePhoto);
+  
+  return platePhoto && platePhotoUrl ? (
+    <div className="relative bg-muted rounded-lg overflow-hidden aspect-video">
+      <img 
+        src={platePhotoUrl}
+        alt={t('vehicle.platePhoto') || 'รูปป้ายทะเบียน'} 
+        className="w-full h-full object-cover"
+      />
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="absolute top-2 right-2 bg-background/80 hover:bg-background"
+        onClick={() => {
+          setCurrentPhotoType('plate');
+          setIsVehiclePhotoDrawerOpen(true);
+        }}
+      >
+        <Edit2 className="w-4 h-4 text-muted-foreground" />
+      </Button>
+    </div>
+  ) : (
+    <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
+      <span className="text-muted-foreground">{t('vehicle.noPhotos') || 'ยังไม่มีรูปภาพ'}</span>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="absolute top-2 right-2 bg-background/80 hover:bg-background"
+        onClick={() => {
+          setCurrentPhotoType('plate');
+          setIsVehiclePhotoDrawerOpen(true);
+        }}
+      >
+        <Edit2 className="w-4 h-4 text-muted-foreground" />
+      </Button>
+    </div>
+  );
+})()}
+```
+
