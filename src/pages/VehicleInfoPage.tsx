@@ -604,51 +604,6 @@ export default function VehicleInfoPage() {
             </div>
           )}
 
-          {/* License Plate Photo */}
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-foreground mb-2">
-              {t('vehicle.platePhoto') || 'รูปป้ายทะเบียน'}
-            </h3>
-            {(() => {
-              const platePhoto = getPhotoByType('plate');
-              const platePhotoUrl = getPresignedPhotoUrl(platePhoto);
-              
-              return platePhoto ? (
-                <div className="relative bg-muted rounded-lg overflow-hidden aspect-video">
-                  {platePhotoUrl ? (
-                    <img 
-                      src={platePhotoUrl}
-                      alt={t('vehicle.platePhoto') || 'รูปป้ายทะเบียน'} 
-                      className="w-full h-full object-cover"
-                      key={`plate-data-${photoTimestamp}`}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-muted-foreground text-sm">
-                        {isPhotosPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
-                  <span className="text-muted-foreground">{t('vehicle.noPhotos') || 'ยังไม่มีรูปภาพ'}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                    onClick={() => {
-                      setCurrentPhotoType('plate');
-                      setIsVehiclePhotoDrawerOpen(true);
-                    }}
-                  >
-                    <Edit2 className="w-4 h-4 text-muted-foreground" />
-                  </Button>
-                </div>
-              );
-            })()}
-          </div>
-
           {/* Vehicle Info Fields */}
           <div className="space-y-0">
             <div className="flex items-center justify-between py-3 border-b border-border">
