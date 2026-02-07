@@ -68,6 +68,11 @@ interface CompletedJob {
   isBidJob?: boolean;
   // For bid jobs, store the ticket_number for navigation
   ticket_number?: string;
+  // Support for multiple origins/destinations
+  origins?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
+  destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
+  // Job type for domestic/international distinction
+  job_type?: string;
 }
 
 export default function JobHistoryPage() {
@@ -212,6 +217,10 @@ export default function JobHistoryPage() {
             transport_price: job.transport_price || 0,
             created_at: job.created_at,
             updated_at: job.updated_at,
+            // Preserve origins/destinations arrays for multi-destination detection
+            origins: job.origins,
+            destinations: job.destinations,
+            job_type: job.job_type || 'domestic',
           }));
 
         console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
@@ -335,7 +344,14 @@ export default function JobHistoryPage() {
       // Filter jobs that have ALL destinations POD completed
       const completedFromApi = allJobs
         .filter((job) => isJobFullyCompleted(job))
-        .map((job) => ({ ...job, status: "completed" }));
+        .map((job: any) => ({ 
+          ...job, 
+          status: "completed",
+          // Preserve origins/destinations arrays for multi-destination detection
+          origins: job.origins,
+          destinations: job.destinations,
+          job_type: job.job_type || 'domestic',
+        }));
 
       // Process bid-won jobs from list-tickets API
       // Only show bid jobs that have ALL PODs completed
@@ -413,6 +429,10 @@ export default function JobHistoryPage() {
               // Mark as bid job for correct navigation
               isBidJob: true,
               ticket_number: ticket.ticket_number,
+              // Preserve origins/destinations arrays for multi-destination detection
+              origins: ticket.origins,
+              destinations: ticket.destinations,
+              job_type: ticket.job_type || 'domestic',
             };
           });
         
