@@ -78,9 +78,14 @@ export default function VehicleInfoPage() {
     { value: '40', label: t('editVehicle.container40ft') },
     { value: '40_hc', label: t('editVehicle.container40ftHC') },
     { value: 'reefer', label: t('editVehicle.containerReefer') },
-    // Also support type20, type40 format from internal_driver API
+    // Support type20, type40 format from internal_driver API
     { value: 'type20', label: t('editVehicle.container20ft') },
     { value: 'type40', label: t('editVehicle.container40ft') },
+    // Support reefer20, reefer40, dry20, dry40 format from external API
+    { value: 'reefer20', label: `${t('editVehicle.containerReefer')} 20'` },
+    { value: 'reefer40', label: `${t('editVehicle.containerReefer')} 40'` },
+    { value: 'dry20', label: `${t('editVehicle.containerDry')} 20'` },
+    { value: 'dry40', label: `${t('editVehicle.containerDry')} 40'` },
   ];
 
   const provinces = Array.from(new Set(locations.map(loc => loc.province))).sort();
