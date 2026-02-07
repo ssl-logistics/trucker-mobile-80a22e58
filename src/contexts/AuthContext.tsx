@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { AuthLoadingOverlay } from '@/components/auth/AuthLoadingOverlay';
-import { AUTH_KEYS, getAuthItem, removeAuthItem, setAuthItem, syncAuthFromLocalStorageToNative } from '@/utils/authStorage';
+import { AUTH_KEYS, getAuthItem, removeAuthItem, setAuthItem, syncAuthFromLocalStorageToNative, handleFirstRunAfterInstall } from '@/utils/authStorage';
 
 interface LineUser {
   lineUserId: string;
@@ -82,6 +82,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     try {
+      // Handle first run after install - clear stale auth if no marker exists
+      await handleFirstRunAfterInstall();
+      
       // Keep both stores in sync (useful after upgrades)
       await syncAuthFromLocalStorageToNative();
 
