@@ -621,7 +621,9 @@ export default function Home() {
             origin_lat: job.origin_lat || 0,
             origin_lng: job.origin_lng || 0,
             destination_lat: job.destination_lat || 0,
-            destination_lng: job.destination_lng || 0
+            destination_lng: job.destination_lng || 0,
+            current_lat: job.origin_lat || 0,
+            current_lng: job.origin_lng || 0
           };
           console.log('📍 [Staff] create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
           
