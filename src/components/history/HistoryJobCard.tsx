@@ -41,7 +41,9 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
   const { t, language } = useLanguage();
 
   const isDomestic = job.job_type === 'domestic' || !job.job_type;
-  const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 1;
+  // Multiple locations: has destinations array with items (same logic as JobCard)
+  const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 0;
+  // Single trip: no destinations array OR has destination fields directly
   const isSingleTrip = !isMultipleLocations;
 
   // Format origin location
