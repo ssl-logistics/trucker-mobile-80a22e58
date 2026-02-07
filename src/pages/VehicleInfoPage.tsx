@@ -483,9 +483,6 @@ export default function VehicleInfoPage() {
       setRegistrationPhoto(publicUrl);
       await loadVehiclePhotos();
 
-      // Force refresh by updating timestamp
-      setPhotoTimestamp(Date.now());
-
       setIsRegistrationDrawerOpen(false);
       toast({
         title: t('vehicle.uploadSuccess'),
@@ -504,386 +501,343 @@ export default function VehicleInfoPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">{t('vehicle.loading')}</div>
-      </div>
-    );
+    return <div className="flex items-center justify-center h-screen">{t('common.loading')}</div>;
   }
 
   if (!vehicleData) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">{t('vehicle.noData')}</div>
-      </div>
-    );
+    return <div className="flex items-center justify-center h-screen">{t('vehicle.notFound')}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-background pb-6 relative">
-      {/* Loading Overlay */}
-      {isUploading && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center animate-fade-in">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-            <span className="text-white text-sm font-medium">{t('vehicle.uploading') || 'กำลังอัปโหลด...'}</span>
-          </div>
-        </div>
-      )}
+    <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <header className="bg-header text-header-foreground page-header-safe">
-        <div className="flex items-center justify-center px-4 py-3 relative">
-          <button onClick={() => navigate('/settings')} className="absolute left-0">
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-semibold">{t('vehicle.title')}</h1>
-        </div>
-      </header>
+      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-4 bg-white border-b border-border">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ChevronLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-lg font-semibold text-foreground">{t('vehicle.title')}</h1>
+        <div className="w-10" />
+      </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
-          <TabsTrigger value="data" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
-            {t('vehicle.dataTab')}
-          </TabsTrigger>
-          <TabsTrigger value="photos" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
-            {t('vehicle.photosTab')}
-          </TabsTrigger>
-        </TabsList>
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="sticky top-16 z-10 w-full grid grid-cols-2 rounded-none border-b border-border bg-white">
+            <TabsTrigger value="data" className="rounded-none border-r border-border">
+              {t('vehicle.dataTab')}
+            </TabsTrigger>
+            <TabsTrigger value="photos" className="rounded-none">
+              {t('vehicle.photosTab')}
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Vehicle Data Tab */}
-        <TabsContent value="data" className="p-4 space-y-4">
-          {/* Registration Document */}
-          <div className="mb-2">
-            <h3 className="text-sm font-medium text-foreground">
-              {t('vehicle.registrationDoc')}
-              {registrationPhotos.length > 1 && (
-                <span className="text-muted-foreground ml-2">({registrationPhotos.length} {t('vehicle.photos') || 'รูป'})</span>
-              )}
-            </h3>
-          </div>
-          
-          {/* Registration Photos Gallery */}
-          {registrationPhotos.length > 0 ? (
-            <div className={`grid gap-3 ${registrationPhotos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {registrationPhotos.map((_, index) => {
-                const presignedUrl = presignedRegistrationPhotos[index];
-                return (
-                  <div 
-                    key={`registration-${index}-${photoTimestamp}`}
-                    className="relative bg-muted rounded-lg overflow-hidden aspect-video"
-                  >
-                    {presignedUrl ? (
-                      <img 
-                        src={presignedUrl}
-                        alt={`${t('alt.vehicleRegistration')} ${index + 1}`} 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-muted-foreground text-sm">
-                          {isRegistrationPhotosPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          {/* Vehicle Data Tab */}
+          <TabsContent value="data" className="p-4 space-y-4">
+            {/* Registration Document */}
+            <div className="mb-2">
+              <h3 className="text-sm font-medium text-foreground">
+                {t('vehicle.registrationDoc')}
+                {registrationPhotos.length > 1 && (
+                  <span className="text-muted-foreground ml-2">({registrationPhotos.length} {t('vehicle.photos') || 'รูป'})</span>
+                )}
+              </h3>
             </div>
-          ) : (
-            <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
-              <span className="text-muted-foreground">{t('vehicle.noPhotos') || 'ยังไม่มีรูปภาพ'}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                onClick={() => setIsRegistrationDrawerOpen(true)}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-          )}
-
-          {/* License Plate Photo */}
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-foreground mb-2">
-              {t('vehicle.platePhoto') || 'รูปป้ายทะเบียน'}
-            </h3>
-            {(() => {
+            
+            {/* Registration Photos Gallery */}
+            {registrationPhotos.length > 0 ? (
+              <div className={`grid gap-3 ${registrationPhotos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                {registrationPhotos.map((_, index) => {
+                  const presignedUrl = presignedRegistrationPhotos[index];
+                  return (
+                    <div 
+                      key={`registration-${index}-${photoTimestamp}`}
+                      className="relative bg-muted rounded-lg overflow-hidden aspect-video"
+                    >
+                      {presignedUrl ? (
+                        <img 
+                          src={presignedUrl}
+                          alt={`${t('alt.vehicleRegistration')} ${index + 1}`} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-muted-foreground text-sm">
+                            {isRegistrationPhotosPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (() => {
               const platePhoto = getPhotoByType('plate');
               const platePhotoUrl = getPresignedPhotoUrl(platePhoto);
               
-              return platePhoto ? (
-                <div className="relative bg-muted rounded-lg overflow-hidden aspect-video">
-                  {platePhotoUrl ? (
+              if (platePhoto && platePhotoUrl) {
+                return (
+                  <div className="relative bg-muted rounded-lg overflow-hidden aspect-video">
                     <img 
                       src={platePhotoUrl}
                       alt={t('vehicle.platePhoto') || 'รูปป้ายทะเบียน'} 
                       className="w-full h-full object-cover"
-                      key={`plate-data-${photoTimestamp}`}
+                      key={`plate-registration-${photoTimestamp}`}
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-muted-foreground text-sm">
-                        {isPhotosPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
+                  </div>
+                );
+              }
+              
+              return (
                 <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
                   <span className="text-muted-foreground">{t('vehicle.noPhotos') || 'ยังไม่มีรูปภาพ'}</span>
                   <Button 
                     variant="ghost" 
                     size="icon" 
                     className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                    onClick={() => {
-                      setCurrentPhotoType('plate');
-                      setIsVehiclePhotoDrawerOpen(true);
-                    }}
+                    onClick={() => setIsRegistrationDrawerOpen(true)}
                   >
                     <Edit2 className="w-4 h-4 text-muted-foreground" />
                   </Button>
                 </div>
               );
             })()}
-          </div>
 
-          {/* Vehicle Info Fields */}
-          <div className="space-y-0">
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.plateNumber')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.plate_number}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=plate_number')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.plateProvince')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.plate_province}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=plate_province')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.brand')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.vehicle_brand}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=vehicle_brand')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.color')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=vehicle_color')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.vin')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.vin}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=vin')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.type')}</Label>
-                <p className="text-base font-medium mt-1">{getTranslatedVehicleType(vehicleData.vehicle_type, t)}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=vehicle_type')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.fuelType')}</Label>
-                <p className="text-base font-medium mt-1">{getTranslatedFuelType(vehicleData.fuel_type, t)}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=fuel_type')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.loadCapacity')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.load_capacity}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=load_capacity')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3 border-b border-border">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.dimensions')}</Label>
-                <p className="text-base font-medium mt-1">
-                  {vehicleData.width && vehicleData.length && vehicleData.height
-                    ? `${t('vehicle.width')} ${vehicleData.width} ${t('vehicle.length')} ${vehicleData.length} ${t('vehicle.height')} ${vehicleData.height} ${t('vehicle.meter')}`
-                    : t('vehicle.notSpecified')}
-                </p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=dimensions')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between py-3">
-              <div className="flex-1">
-                <Label className="text-sm text-muted-foreground">{t('vehicle.containerTypes')}</Label>
-                <p className="text-base font-medium mt-1">
-                  {vehicleData.container_types && vehicleData.container_types.length > 0
-                    ? vehicleData.container_types
-                        .map((type) => containerTypeOptions.find((opt) => opt.value === type)?.label || type)
-                        .join(', ')
-                    : t('vehicle.notSpecified')}
-                </p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=container_types')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Vehicle Photos Tab */}
-        <TabsContent value="photos" className="p-4 space-y-6">
-          {['front', 'side', 'back', 'plate'].map((photoType) => {
-            const photo = getPhotoByType(photoType);
-            const photoUrl = getPresignedPhotoUrl(photo);
-            const labels: Record<string, string> = {
-              front: t('vehicle.frontPhoto'),
-              side: t('vehicle.leftPhoto'),
-              back: t('vehicle.backPhoto'),
-              plate: t('vehicle.platePhoto') || 'รูปป้ายทะเบียน',
-            };
-
-            return (
-              <div key={photoType}>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-base font-medium">{labels[photoType]}</Label>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => {
-                      setCurrentPhotoType(photoType);
-                      setIsVehiclePhotoDrawerOpen(true);
-                    }}
-                  >
-                    <Edit2 className="w-4 h-4 text-muted-foreground" />
-                  </Button>
+            {/* Vehicle Info Fields */}
+            <div className="space-y-0">
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.plateNumber')}</Label>
+                  <p className="text-base font-medium mt-1">{vehicleData.plate_number}</p>
                 </div>
-                <div className="relative bg-muted rounded-2xl aspect-video overflow-hidden">
-                  {photo ? (
-                    photoUrl ? (
-                      <>
-                        <img 
-                          src={photoUrl} 
-                          alt={labels[photoType]} 
-                          className="w-full h-full object-cover"
-                          key={`${photoType}-${photoTimestamp}`}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                          <span className="text-white text-lg font-medium drop-shadow-lg">{t('vehicle.clickToView')}</span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=plate_number')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.plateProvince')}</Label>
+                  <p className="text-base font-medium mt-1">{vehicleData.plate_province}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=plate_province')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.brand')}</Label>
+                  <p className="text-base font-medium mt-1">{vehicleData.vehicle_brand}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=vehicle_brand')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.color')}</Label>
+                  <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=vehicle_color')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.vin')}</Label>
+                  <p className="text-base font-medium mt-1">{vehicleData.vin}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=vin')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.type')}</Label>
+                  <p className="text-base font-medium mt-1">{getTranslatedVehicleType(vehicleData.vehicle_type, t)}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=vehicle_type')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.fuelType')}</Label>
+                  <p className="text-base font-medium mt-1">{getTranslatedFuelType(vehicleData.fuel_type, t)}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=fuel_type')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.loadCapacity')}</Label>
+                  <p className="text-base font-medium mt-1">{vehicleData.load_capacity}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=load_capacity')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-b border-border">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.dimensions')}</Label>
+                  <p className="text-base font-medium mt-1">
+                    {vehicleData.width && vehicleData.length && vehicleData.height
+                      ? `${t('vehicle.width')} ${vehicleData.width} ${t('vehicle.length')} ${vehicleData.length} ${t('vehicle.height')} ${vehicleData.height} ${t('vehicle.meter')}`
+                      : t('vehicle.notSpecified')}
+                  </p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=dimensions')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between py-3">
+                <div className="flex-1">
+                  <Label className="text-sm text-muted-foreground">{t('vehicle.containerTypes')}</Label>
+                  <p className="text-base font-medium mt-1">
+                    {vehicleData.container_types && vehicleData.container_types.length > 0
+                      ? vehicleData.container_types
+                          .map((type) => containerTypeOptions.find((opt) => opt.value === type)?.label || type)
+                          .join(', ')
+                      : t('vehicle.notSpecified')}
+                  </p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=container_types')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Vehicle Photos Tab */}
+          <TabsContent value="photos" className="p-4 space-y-6">
+            {['front', 'side', 'back', 'plate'].map((photoType) => {
+              const photo = getPhotoByType(photoType);
+              const photoUrl = getPresignedPhotoUrl(photo);
+              const labels: Record<string, string> = {
+                front: t('vehicle.frontPhoto'),
+                side: t('vehicle.leftPhoto'),
+                back: t('vehicle.backPhoto'),
+                plate: t('vehicle.platePhoto') || 'รูปป้ายทะเบียน',
+              };
+
+              return (
+                <div key={photoType}>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-base font-medium">{labels[photoType]}</Label>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        setCurrentPhotoType(photoType);
+                        setIsVehiclePhotoDrawerOpen(true);
+                      }}
+                    >
+                      <Edit2 className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </div>
+                  <div className="relative bg-muted rounded-2xl aspect-video overflow-hidden">
+                    {photo ? (
+                      photoUrl ? (
+                        <>
+                          <img 
+                            src={photoUrl} 
+                            alt={labels[photoType]} 
+                            className="w-full h-full object-cover"
+                            key={`${photoType}-${photoTimestamp}`}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <span className="text-white text-lg font-medium drop-shadow-lg">{t('vehicle.clickToView')}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-muted-foreground text-lg">
+                            {isPhotosPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
+                          </span>
                         </div>
-                      </>
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-muted-foreground text-lg">
-                          {isPhotosPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
-                        </span>
+                        <span className="text-muted-foreground text-lg">{t('vehicle.clickToView')}</span>
                       </div>
-                    )
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-muted-foreground text-lg">{t('vehicle.clickToView')}</span>
-                    </div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg"
-                    onClick={() => {
-                      setCurrentPhotoType(photoType);
-                      setIsVehiclePhotoDrawerOpen(true);
-                    }}
-                  >
-                    <Camera className="w-5 h-5 text-gray-700" />
-                  </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg"
+                      onClick={() => {
+                        setCurrentPhotoType(photoType);
+                        setIsVehiclePhotoDrawerOpen(true);
+                      }}
+                    >
+                      <Camera className="w-5 h-5 text-gray-700" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </TabsContent>
-      </Tabs>
+              );
+            })}
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Registration Photo Upload Drawer */}
       <Drawer open={isRegistrationDrawerOpen} onOpenChange={setIsRegistrationDrawerOpen}>
@@ -895,46 +849,23 @@ export default function VehicleInfoPage() {
             <label className="block">
               <Button 
                 variant="outline" 
-                className="w-full h-14 justify-start gap-3"
-                asChild
+                className="w-full"
+                disabled={isUploading}
               >
-                <div>
-                  <Camera className="w-5 h-5" />
-                  <span>{t('vehicle.takePhoto')}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleRegistrationPhotoUpload(file);
-                    }}
-                  />
-                </div>
+                <Camera className="w-4 h-4 mr-2" />
+                {t('vehicle.selectPhoto')}
               </Button>
-            </label>
-            
-            <label className="block">
-              <Button 
-                variant="outline" 
-                className="w-full h-14 justify-start gap-3"
-                asChild
-              >
-                <div>
-                  <Image className="w-5 h-5" />
-                  <span>{t('vehicle.chooseFromGallery')}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleRegistrationPhotoUpload(file);
-                    }}
-                  />
-                </div>
-              </Button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    handleRegistrationPhotoUpload(e.target.files[0]);
+                  }
+                }}
+                disabled={isUploading}
+              />
             </label>
           </div>
         </DrawerContent>
@@ -950,46 +881,23 @@ export default function VehicleInfoPage() {
             <label className="block">
               <Button 
                 variant="outline" 
-                className="w-full h-14 justify-start gap-3"
-                asChild
+                className="w-full"
+                disabled={isUploading}
               >
-                <div>
-                  <Camera className="w-5 h-5" />
-                  <span>{t('vehicle.takePhoto')}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file && currentPhotoType) handlePhotoUpload(currentPhotoType, file);
-                    }}
-                  />
-                </div>
+                <Camera className="w-4 h-4 mr-2" />
+                {t('vehicle.selectPhoto')}
               </Button>
-            </label>
-            
-            <label className="block">
-              <Button 
-                variant="outline" 
-                className="w-full h-14 justify-start gap-3"
-                asChild
-              >
-                <div>
-                  <Image className="w-5 h-5" />
-                  <span>{t('vehicle.chooseFromGallery')}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file && currentPhotoType) handlePhotoUpload(currentPhotoType, file);
-                    }}
-                  />
-                </div>
-              </Button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    handlePhotoUpload(currentPhotoType, e.target.files[0]);
+                  }
+                }}
+                disabled={isUploading}
+              />
             </label>
           </div>
         </DrawerContent>
