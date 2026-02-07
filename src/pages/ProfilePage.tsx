@@ -6,6 +6,7 @@ import profileBg from '@/assets/profile-bg.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
+import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   AlertDialog,
@@ -47,7 +48,7 @@ interface ProfileData {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user, refreshUser } = useAuth();
+  const { user, userType, refreshUser } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -165,6 +166,7 @@ export default function ProfilePage() {
           },
           body: JSON.stringify({
             driver_id: user.id,
+            driver_type: getDriverTypeFromUserType(userType),
             profile_photo_url: publicUrl,
           }),
         }

@@ -4,6 +4,7 @@ import { ChevronLeft, Eye, EyeOff, X } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
@@ -11,7 +12,7 @@ import { z } from 'zod';
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, userType, logout } = useAuth();
   const { t } = useLanguage();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -75,6 +76,7 @@ export default function ChangePasswordPage() {
           },
           body: JSON.stringify({
             driver_id: driverId,
+            driver_type: getDriverTypeFromUserType(userType),
             password: newPassword,
           }),
         }

@@ -4,6 +4,7 @@ import { ChevronLeft, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,7 +25,7 @@ const vehicleBrands = [
 
 export default function EditVehicleFieldPage() {
   const navigate = useNavigate();
-  const { user, refreshUser } = useAuth();
+  const { user, userType, refreshUser } = useAuth();
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const field = searchParams.get('field');
@@ -188,6 +189,7 @@ export default function EditVehicleFieldPage() {
       if (isExternalDriver) {
         const updatePayload: Record<string, any> = {
           driver_id: user.id,
+          driver_type: getDriverTypeFromUserType(userType),
         };
 
         switch (field) {
