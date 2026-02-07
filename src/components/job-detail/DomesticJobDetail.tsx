@@ -948,12 +948,13 @@ export default function DomesticJobDetail({
                 const isDestinationLocked = !isPreviousCompleted;
                 
                 // Determine status text and colors
+                // Flow changed: Check-in → POD (no separate payment step)
                 const getStatusInfo = () => {
                   if (isPodCompleted) {
                     return { text: t('jobDetail.podSuccess'), textColor: 'text-green-600', bgColor: 'bg-[#E6F7E6]' };
                   }
                   if (isCheckedIn) {
-                    return { text: t('jobDetail.waitingPayment'), textColor: 'text-blue-600', bgColor: 'bg-blue-50' };
+                    return { text: t('jobDetail.waitingPod'), textColor: 'text-blue-600', bgColor: 'bg-blue-50' };
                   }
                   return { text: t('jobDetail.waitingCheckIn'), textColor: 'text-orange-500', bgColor: 'bg-[#FFF7E6]' };
                 };
@@ -1068,7 +1069,7 @@ export default function DomesticJobDetail({
                       </div>
                       {(pickupSopCompleted || jobApplication?.sop_completed_at) && (
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                          {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPayment') : t('jobDetail.waitingCheckIn')}
+                          {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
                         </span>
                       )}
                     </div>

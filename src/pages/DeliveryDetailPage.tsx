@@ -471,7 +471,7 @@ export default function DeliveryDetailPage() {
         longitude: podLongitude,
         notes: 'จัดส่งสำเร็จ',
         photo_url: photoUrl,
-        payment_method: jobApplication?.payment_method || selectedPaymentMethod || undefined,
+        payment_method: selectedPaymentMethod,
       };
       
       // Only include destination_sequence_number for multi-destination jobs
@@ -512,6 +512,23 @@ export default function DeliveryDetailPage() {
       });
       setIsSubmittingPod(false);
       return;
+    }
+
+    // Save payment info to local DB as well
+    try {
+      await supabase
+        .from("job_applications")
+        .update({
+          payment_completed_at: new Date().toISOString(),
+          payment_method: selectedPaymentMethod,
+          pod_photo_url: photoUrl,
+          delivery_sop_completed_at: new Date().toISOString(),
+        })
+        .eq("job_id", job.id)
+        .eq("driver_id", user.id);
+    } catch (dbError) {
+      console.error('Error updating local job_applications:', dbError);
+      // Continue even if local update fails
     }
 
     // Show success toast
@@ -719,45 +736,10 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
-        {jobApplication?.payment_completed_at && (
+        {/* POD Upload Section - Show after check-in, hide after POD completed */}
+        {isCheckedIn && !isSopCompleted && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
-                  <Check className="w-6 h-6 text-white" />
-                </div>
-                <span className="font-semibold text-lg">{t('delivery.paymentSuccess')}</span>
-              </div>
-              <span className="text-sm text-gray-600 font-medium">
-                {formatDateTime(jobApplication.payment_completed_at, language)}
-              </span>
-            </div>
-
-            <div className="border-t-2 border-gray-100 pt-4">
-              <h3 className="font-semibold text-base mb-3 text-gray-800">{t('delivery.paymentInfo')}</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-1">
-                  <div className="text-gray-500 text-xs">{t('delivery.paymentMethod')}</div>
-                  <div className="font-medium text-gray-900">
-                    {jobApplication.payment_method === "cash" && t('delivery.cash')}
-                    {jobApplication.payment_method === "mobile_banking" && t('delivery.mobileBanking')}
-                    {jobApplication.payment_method === "qr_code" && t('delivery.qrCode')}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-gray-500 text-xs">{t('delivery.amount')}</div>
-                  <div className="font-medium text-gray-900">{job?.price?.toLocaleString() || '-'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {jobApplication?.payment_completed_at && !jobApplication?.delivery_sop_completed_at && (
-          <div>
-            <label className="text-sm font-medium text-gray-900 mb-2 block">
-              {t('delivery.uploadDocument')} <span className="text-red-500">*</span>
-            </label>
+            <h3 className="font-semibold text-lg text-gray-800">{t('delivery.uploadDocument')}</h3>
             <div
               onClick={() => fileInputRef.current?.click()}
               className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 bg-gray-50"
@@ -772,6 +754,79 @@ export default function DeliveryDetailPage() {
               )}
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+
+            {/* Payment Method Selection - Integrated with POD */}
+            {podPhoto && (
+              <div className="border-t pt-4 mt-4">
+                <h4 className="font-semibold text-base mb-3 text-gray-800">{t('delivery.paymentChannel')}</h4>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setSelectedPaymentMethod("cash")}
+                    className={`w-full flex items-center gap-4 p-3 rounded-lg border-2 transition-all ${
+                      selectedPaymentMethod === "cash"
+                        ? "border-teal-500 bg-teal-50"
+                        : "border-gray-200 bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedPaymentMethod === "cash" ? "border-teal-500" : "border-gray-300"
+                      }`}
+                    >
+                      {selectedPaymentMethod === "cash" && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
+                    </div>
+                    <span className="text-sm font-medium">{t('delivery.cash')}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedPaymentMethod("mobile_banking")}
+                    className={`w-full flex items-center justify-between gap-4 p-3 rounded-lg border-2 transition-all ${
+                      selectedPaymentMethod === "mobile_banking"
+                        ? "border-teal-500 bg-teal-50"
+                        : "border-gray-200 bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedPaymentMethod === "mobile_banking" ? "border-teal-500" : "border-gray-300"
+                        }`}
+                      >
+                        {selectedPaymentMethod === "mobile_banking" && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
+                      </div>
+                      <span className="text-sm font-medium">{t('delivery.mobileBanking')}</span>
+                    </div>
+                    <Phone className="w-4 h-4 text-gray-400" />
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedPaymentMethod("qr_code")}
+                    className={`w-full flex items-center justify-between gap-4 p-3 rounded-lg border-2 transition-all ${
+                      selectedPaymentMethod === "qr_code"
+                        ? "border-teal-500 bg-teal-50"
+                        : "border-gray-200 bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedPaymentMethod === "qr_code" ? "border-teal-500" : "border-gray-300"
+                        }`}
+                      >
+                        {selectedPaymentMethod === "qr_code" && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
+                      </div>
+                      <span className="text-sm font-medium">{t('delivery.qrCode')}</span>
+                    </div>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <rect x="3" y="3" width="7" height="7" rx="1" />
+                      <rect x="14" y="3" width="7" height="7" rx="1" />
+                      <rect x="3" y="14" width="7" height="7" rx="1" />
+                      <rect x="14" y="14" width="7" height="7" rx="1" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -888,25 +943,13 @@ export default function DeliveryDetailPage() {
         </div>
       )}
 
-      {/* Payment Button - Show after check-in for ALL delivery jobs (both single and multi-destination), hide when viewing from history */}
-      {isCheckedIn && !jobApplication?.payment_completed_at && !isSopCompleted && !isFromHistory && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-          <Button
-            className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
-            onClick={() => setShowPaymentDrawer(true)}
-          >
-            {t('delivery.makePayment')}
-          </Button>
-        </div>
-      )}
-
-      {/* POD Confirm Button - Show after payment for ALL delivery jobs, hide after POD completed */}
-      {isCheckedIn && jobApplication?.payment_completed_at && !isSopCompleted && (
+      {/* Confirm POD + Payment Button - Show after check-in when POD photo is uploaded */}
+      {isCheckedIn && !isSopCompleted && !isFromHistory && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
             onClick={() => setShowPodConfirmDialog(true)}
-            disabled={!podPhoto && !jobApplication?.pod_photo_url}
+            disabled={!podPhoto}
           >
             {t('delivery.confirmPod')}
           </Button>
