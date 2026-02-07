@@ -88,11 +88,14 @@ export function useGpsTracking() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const lastPositionRef = useRef<{ lat: number; lng: number } | null>(null);
+  // Use ref to store the current room code to avoid stale closure issues
+  const currentRoomCodeRef = useRef<string | null>(null);
 
   const sendCurrentPosition = useCallback(async () => {
-    const state = getTrackingState();
+    const roomCode = currentRoomCodeRef.current;
     
-    if (!state.isTracking || !state.roomCode) {
+    if (!roomCode) {
+      console.log('[GPS Tracking] No room code in ref, skipping position update');
       return;
     }
 
@@ -104,16 +107,19 @@ export function useGpsTracking() {
           const lng = position.coords.longitude;
           lastPositionRef.current = { lat, lng };
           
-          if (state.roomCode) {
+          // Use the ref value directly to ensure we have the latest room code
+          const currentRoomCode = currentRoomCodeRef.current;
+          if (currentRoomCode) {
             // Just send - don't stop on errors
-            await sendPositionUpdate(state.roomCode, lat, lng);
+            await sendPositionUpdate(currentRoomCode, lat, lng);
           }
         },
         async (error) => {
           console.warn('[GPS Tracking] Geolocation error:', error.message);
           // If we have a last known position, send that
-          if (lastPositionRef.current && state.roomCode) {
-            await sendPositionUpdate(state.roomCode, lastPositionRef.current.lat, lastPositionRef.current.lng);
+          const currentRoomCode = currentRoomCodeRef.current;
+          if (lastPositionRef.current && currentRoomCode) {
+            await sendPositionUpdate(currentRoomCode, lastPositionRef.current.lat, lastPositionRef.current.lng);
           }
         },
         {
@@ -126,17 +132,24 @@ export function useGpsTracking() {
   }, []);
 
   const startTracking = useCallback((roomCode?: string, orderCode?: string) => {
-    // If roomCode is provided, save state first
+    // If roomCode is provided, save state and update ref immediately
     if (roomCode && orderCode) {
       console.log('[GPS Tracking] startTracking called with roomCode:', roomCode, 'orderCode:', orderCode);
+      // Update ref FIRST with the new room code to ensure it's available immediately
+      currentRoomCodeRef.current = roomCode;
       saveTrackingState({ isTracking: true, roomCode, orderCode });
+    } else {
+      // If no roomCode provided, try to get from state
+      const state = getTrackingState();
+      if (state.roomCode) {
+        currentRoomCodeRef.current = state.roomCode;
+      }
     }
     
-    const state = getTrackingState();
-    console.log('[GPS Tracking] Current tracking state:', state);
+    console.log('[GPS Tracking] Current ref roomCode:', currentRoomCodeRef.current);
     
-    if (!state.isTracking || !state.roomCode) {
-      console.log('[GPS Tracking] Not starting - tracking disabled or no room code', state);
+    if (!currentRoomCodeRef.current) {
+      console.log('[GPS Tracking] Not starting - no room code available');
       return;
     }
 
@@ -145,7 +158,7 @@ export function useGpsTracking() {
       clearInterval(intervalRef.current);
     }
 
-    console.log('[GPS Tracking] Starting interval for room:', state.roomCode);
+    console.log('[GPS Tracking] Starting interval for room:', currentRoomCodeRef.current);
 
     // Start sending position updates every 1 second
     intervalRef.current = setInterval(() => {
@@ -169,6 +182,8 @@ export function useGpsTracking() {
       watchIdRef.current = null;
     }
 
+    // Clear the room code ref
+    currentRoomCodeRef.current = null;
     stopGpsTracking();
   }, []);
 
