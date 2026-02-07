@@ -4,6 +4,7 @@ import { ChevronLeft, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
+import { setAuthItem, getAuthItem } from '@/utils/authStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
@@ -11,7 +12,7 @@ import { toast } from '@/hooks/use-toast';
 export default function EditFieldPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, userType, refreshUser } = useAuth();
+  const { user, userType } = useAuth();
   const { t } = useLanguage();
   const { field, value: initialValue, fullName } = location.state || {};
   
@@ -66,8 +67,26 @@ export default function EditFieldPage() {
       } else {
         toast({ title: t('editField.success'), description: t('editField.updated') });
         
-        // Refresh user data to get updated info then navigate
-        await refreshUser();
+        // Update local storage immediately with new data
+        const storedDriver = await getAuthItem('auth_driver');
+        if (storedDriver) {
+          try {
+            const driverData = JSON.parse(storedDriver);
+            if (field === 'firstName') {
+              driverData.first_name = value;
+            } else if (field === 'lastName') {
+              driverData.last_name = value;
+            } else if (field === 'phone') {
+              driverData.phone = value;
+              driverData.phone_number = value;
+            }
+            await setAuthItem('auth_driver', JSON.stringify(driverData));
+            // Dispatch event to notify AuthContext to reload
+            window.dispatchEvent(new Event('auth_driver_updated'));
+          } catch (e) {
+            console.error('Error updating local storage:', e);
+          }
+        }
         
         navigate('/profile');
       }
