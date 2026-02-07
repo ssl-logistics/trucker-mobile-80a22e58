@@ -61,6 +61,9 @@ export default function VehicleInfoPage() {
   const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
   const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
 
+  // Only freelance drivers can edit vehicle info
+  const canEditVehicle = userType === 'freelance_driver';
+
   const photoUrls = useMemo(() => photos.map((p) => p.photo_url), [photos]);
   const { urls: presignedPhotoUrls, isLoading: isPhotosPresigning } = usePresignedImageUrls(photoUrls);
   const { url: presignedRegistrationPhoto, isLoading: isRegistrationPresigning } = usePresignedImageUrl(registrationPhoto);
@@ -604,14 +607,16 @@ export default function VehicleInfoPage() {
           ) : (
             <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
               <span className="text-muted-foreground">{t('vehicle.noPhotos') || 'ยังไม่มีรูปภาพ'}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                onClick={() => setIsRegistrationDrawerOpen(true)}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute top-2 right-2 bg-background/80 hover:bg-background"
+                  onClick={() => setIsRegistrationDrawerOpen(true)}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
           )}
 
@@ -622,14 +627,16 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.plateNumber')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.plate_number}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=plate_number')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=plate_number')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -637,14 +644,16 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.plateProvince')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.plate_province}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=plate_province')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=plate_province')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -652,14 +661,16 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.brand')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_brand}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=vehicle_brand')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=vehicle_brand')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -667,14 +678,16 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.color')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=vehicle_color')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=vehicle_color')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -682,14 +695,16 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.vin')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.vin}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=vin')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=vin')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -697,14 +712,16 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.type')}</Label>
                 <p className="text-base font-medium mt-1">{getTranslatedVehicleType(vehicleData.vehicle_type, t)}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=vehicle_type')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=vehicle_type')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -712,14 +729,16 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.fuelType')}</Label>
                 <p className="text-base font-medium mt-1">{getTranslatedFuelType(vehicleData.fuel_type, t)}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=fuel_type')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=fuel_type')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -727,14 +746,16 @@ export default function VehicleInfoPage() {
                 <Label className="text-sm text-muted-foreground">{t('vehicle.loadCapacity')}</Label>
                 <p className="text-base font-medium mt-1">{vehicleData.load_capacity}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=load_capacity')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=load_capacity')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-border">
@@ -746,14 +767,16 @@ export default function VehicleInfoPage() {
                     : t('vehicle.notSpecified')}
                 </p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=dimensions')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=dimensions')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-3">
@@ -767,14 +790,16 @@ export default function VehicleInfoPage() {
                     : t('vehicle.notSpecified')}
                 </p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="shrink-0"
-                onClick={() => navigate('/edit-vehicle-field?field=container_types')}
-              >
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
+              {canEditVehicle && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => navigate('/edit-vehicle-field?field=container_types')}
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
           </div>
         </TabsContent>
@@ -795,17 +820,19 @@ export default function VehicleInfoPage() {
               <div key={photoType}>
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-base font-medium">{labels[photoType]}</Label>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => {
-                      setCurrentPhotoType(photoType);
-                      setIsVehiclePhotoDrawerOpen(true);
-                    }}
-                  >
-                    <Edit2 className="w-4 h-4 text-muted-foreground" />
-                  </Button>
+                  {canEditVehicle && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        setCurrentPhotoType(photoType);
+                        setIsVehiclePhotoDrawerOpen(true);
+                      }}
+                    >
+                      <Edit2 className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  )}
                 </div>
                 <div className="relative bg-muted rounded-2xl aspect-video overflow-hidden">
                   {photo ? (
@@ -833,17 +860,19 @@ export default function VehicleInfoPage() {
                       <span className="text-muted-foreground text-lg">{t('vehicle.clickToView')}</span>
                     </div>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg"
-                    onClick={() => {
-                      setCurrentPhotoType(photoType);
-                      setIsVehiclePhotoDrawerOpen(true);
-                    }}
-                  >
-                    <Camera className="w-5 h-5 text-gray-700" />
-                  </Button>
+                  {canEditVehicle && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg"
+                      onClick={() => {
+                        setCurrentPhotoType(photoType);
+                        setIsVehiclePhotoDrawerOpen(true);
+                      }}
+                    >
+                      <Camera className="w-5 h-5 text-gray-700" />
+                    </Button>
+                  )}
                 </div>
               </div>
             );
