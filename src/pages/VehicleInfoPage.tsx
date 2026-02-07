@@ -4,6 +4,7 @@ import { ChevronLeft, Camera, Edit2, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { usePresignedImageUrl, usePresignedImageUrls } from '@/hooks/usePresignedImageUrl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,7 @@ const vehicleBrands = ['Isuzu', 'Hino', 'Mitsubishi', 'Nissan', 'Mercedes-Benz',
 
 export default function VehicleInfoPage() {
   const navigate = useNavigate();
-  const { user, refreshUser } = useAuth();
+  const { user, userType, refreshUser } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('data');
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
@@ -297,6 +298,7 @@ export default function VehicleInfoPage() {
             },
             body: JSON.stringify({
               driver_id: user.id,
+              driver_type: getDriverTypeFromUserType(userType),
               [fieldName]: publicUrl,
             }),
           }
@@ -440,6 +442,7 @@ export default function VehicleInfoPage() {
             },
             body: JSON.stringify({
               driver_id: user.id,
+              driver_type: getDriverTypeFromUserType(userType),
               registration_photo_url: publicUrl,
             }),
           }

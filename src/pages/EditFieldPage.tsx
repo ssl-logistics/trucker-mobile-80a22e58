@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
@@ -10,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 export default function EditFieldPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, refreshUser } = useAuth();
+  const { user, userType, refreshUser } = useAuth();
   const { t } = useLanguage();
   const { field, value: initialValue, fullName } = location.state || {};
   
@@ -26,6 +27,7 @@ export default function EditFieldPage() {
       // Build update payload for external API
       const updatePayload: Record<string, string> = {
         driver_id: user.id,
+        driver_type: getDriverTypeFromUserType(userType),
       };
 
       if (field === 'firstName') {
