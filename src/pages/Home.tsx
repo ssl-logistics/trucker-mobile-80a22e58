@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { useMultiProcessingGuard } from '@/hooks/useProcessingGuard';
+import { useGpsTracking } from '@/hooks/useGpsTracking';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { RejectFactoryJobDialog } from '@/components/home/RejectFactoryJobDialog';
@@ -93,6 +94,9 @@ export default function Home() {
   
   // Track processed order codes to prevent duplicates
   const [processedOrderCodes, setProcessedOrderCodes] = useState<Set<string>>(new Set());
+  
+  // GPS Tracking hook
+  const { startTracking } = useGpsTracking();
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
@@ -654,10 +658,15 @@ export default function Home() {
             console.error('[Staff] Error creating tracking room:', trackingResponse.error);
           } else {
             console.log('[Staff] Tracking room created:', trackingResponse.data);
-            // Save room_code to localStorage for later use (check-in, tracking)
+            // Save room_code and start GPS tracking immediately
             if (trackingResponse.data?.room?.room_code) {
-              localStorage.setItem(`room_code_${job.order_code}`, trackingResponse.data.room.room_code);
-              console.log('[Staff] Saved room_code:', trackingResponse.data.room.room_code);
+              const roomCode = trackingResponse.data.room.room_code;
+              localStorage.setItem(`room_code_${job.order_code}`, roomCode);
+              console.log('[Staff] Saved room_code:', roomCode);
+              
+              // Start GPS tracking to send position updates every 1 second
+              startTracking(roomCode, job.order_code);
+              console.log('[Staff] Started GPS tracking for room:', roomCode);
             }
           }
         } catch (trackingError) {
