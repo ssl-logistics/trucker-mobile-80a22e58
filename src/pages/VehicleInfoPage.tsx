@@ -782,7 +782,7 @@ export default function VehicleInfoPage() {
               front: t('vehicle.frontPhoto'),
               side: t('vehicle.leftPhoto'),
               back: t('vehicle.backPhoto'),
-              plate: t('vehicle.platePhoto') || 'รูปป้ายทะเบียน',
+              plate: t('vehicle.platePhoto'),
             };
 
             return (
