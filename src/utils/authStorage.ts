@@ -1,5 +1,7 @@
 import { Preferences } from "@capacitor/preferences";
 
+const FIRST_RUN_MARKER = "auth_first_run";
+
 export const AUTH_KEYS = [
   "auth_driver",
   "auth_user_type",
@@ -106,4 +108,46 @@ export async function syncAuthFromLocalStorageToNative(): Promise<void> {
       await getAuthItem(key);
     })
   );
+}
+
+/**
+ * Check if this is the first run after install.
+ * If no marker exists, clear all auth keys and write the marker.
+ * This prevents stale credentials from persisting after app reinstall.
+ */
+export async function handleFirstRunAfterInstall(): Promise<void> {
+  // Check both stores for the marker
+  const [prefMarker, lsMarker] = await Promise.all([
+    prefGet(FIRST_RUN_MARKER),
+    Promise.resolve(localStorage.getItem(FIRST_RUN_MARKER)),
+  ]);
+
+  const hasMarker = (prefMarker && prefMarker !== "") || (lsMarker && lsMarker !== "");
+
+  if (!hasMarker) {
+    console.log("[Auth] First run detected - clearing stale auth data");
+    
+    // Clear all auth keys from both stores
+    await Promise.all(
+      AUTH_KEYS.map(async (key) => {
+        try {
+          localStorage.removeItem(key);
+        } catch {
+          // ignore
+        }
+        await prefRemove(key);
+      })
+    );
+
+    // Write the marker to both stores
+    const markerValue = Date.now().toString();
+    try {
+      localStorage.setItem(FIRST_RUN_MARKER, markerValue);
+    } catch {
+      // ignore
+    }
+    await prefSet(FIRST_RUN_MARKER, markerValue);
+    
+    console.log("[Auth] First run marker set");
+  }
 }
