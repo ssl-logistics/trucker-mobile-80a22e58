@@ -55,6 +55,7 @@ export default function VehicleInfoPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isRegistrationDrawerOpen, setIsRegistrationDrawerOpen] = useState(false);
   const [registrationPhoto, setRegistrationPhoto] = useState<string | null>(null);
+  const [registrationPhotos, setRegistrationPhotos] = useState<string[]>([]);
   const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
   const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
@@ -62,6 +63,7 @@ export default function VehicleInfoPage() {
   const photoUrls = useMemo(() => photos.map((p) => p.photo_url), [photos]);
   const { urls: presignedPhotoUrls, isLoading: isPhotosPresigning } = usePresignedImageUrls(photoUrls);
   const { url: presignedRegistrationPhoto, isLoading: isRegistrationPresigning } = usePresignedImageUrl(registrationPhoto);
+  const { urls: presignedRegistrationPhotos, isLoading: isRegistrationPhotosPresigning } = usePresignedImageUrls(registrationPhotos);
 
   const getPresignedPhotoUrl = (photo: VehiclePhoto | undefined) => {
     if (!photo) return null;
@@ -115,9 +117,13 @@ export default function VehicleInfoPage() {
         };
         setVehicleData(vehicleFromUser);
         
-        // Also set registration photo from user
-        if (user.registration_photo_url) {
+        // Also set registration photos from user (support both single and array)
+        if (user.registration_photos && Array.isArray(user.registration_photos) && user.registration_photos.length > 0) {
+          setRegistrationPhotos(user.registration_photos);
+          setRegistrationPhoto(user.registration_photos[0]); // First one as main
+        } else if (user.registration_photo_url) {
           setRegistrationPhoto(user.registration_photo_url);
+          setRegistrationPhotos([user.registration_photo_url]);
         }
         setLoading(false);
         return;
@@ -166,9 +172,18 @@ export default function VehicleInfoPage() {
         if (user.trailer_plate_photo_url) {
           externalPhotos.push({ id: 'trailer_plate', photo_type: 'trailer_plate', photo_url: user.trailer_plate_photo_url });
         }
-        if (user.registration_photo_url) {
+        
+        // Support registration_photos array from API
+        if (user.registration_photos && Array.isArray(user.registration_photos) && user.registration_photos.length > 0) {
+          user.registration_photos.forEach((url: string, index: number) => {
+            externalPhotos.push({ id: `registration_${index}`, photo_type: 'registration', photo_url: url });
+          });
+          setRegistrationPhotos(user.registration_photos);
+          setRegistrationPhoto(user.registration_photos[0]);
+        } else if (user.registration_photo_url) {
           externalPhotos.push({ id: 'registration', photo_type: 'registration', photo_url: user.registration_photo_url });
           setRegistrationPhoto(user.registration_photo_url);
+          setRegistrationPhotos([user.registration_photo_url]);
         }
         setPhotos(externalPhotos);
         return;
@@ -540,36 +555,54 @@ export default function VehicleInfoPage() {
         <TabsContent value="data" className="p-4 space-y-4">
           {/* Registration Document */}
           <div className="mb-2">
-            <h3 className="text-sm font-medium text-foreground">{t('vehicle.registrationDoc')}</h3>
+            <h3 className="text-sm font-medium text-foreground">
+              {t('vehicle.registrationDoc')}
+              {registrationPhotos.length > 1 && (
+                <span className="text-muted-foreground ml-2">({registrationPhotos.length} {t('vehicle.photos') || 'รูป'})</span>
+              )}
+            </h3>
           </div>
-          <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
-            {registrationPhoto ? (
-              presignedRegistrationPhoto ? (
-                <img 
-                  src={presignedRegistrationPhoto}
-                  alt={t('alt.vehicleRegistration')} 
-                  className="w-full h-full object-cover"
-                  key={`registration-${photoTimestamp}`}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-muted-foreground">
-                    {isRegistrationPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
-                  </span>
-                </div>
-              )
-            ) : (
-              <span className="text-muted-foreground">{t('vehicle.clickToView')}</span>
-            )}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-              onClick={() => setIsRegistrationDrawerOpen(true)}
-            >
-              <Edit2 className="w-4 h-4 text-muted-foreground" />
-            </Button>
-          </div>
+          
+          {/* Registration Photos Gallery */}
+          {registrationPhotos.length > 0 ? (
+            <div className={`grid gap-3 ${registrationPhotos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              {registrationPhotos.map((_, index) => {
+                const presignedUrl = presignedRegistrationPhotos[index];
+                return (
+                  <div 
+                    key={`registration-${index}-${photoTimestamp}`}
+                    className="relative bg-muted rounded-lg overflow-hidden aspect-video"
+                  >
+                    {presignedUrl ? (
+                      <img 
+                        src={presignedUrl}
+                        alt={`${t('alt.vehicleRegistration')} ${index + 1}`} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-muted-foreground text-sm">
+                          {isRegistrationPhotosPresigning ? (t('vehicle.loading') || 'กำลังโหลด...') : t('vehicle.clickToView')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="relative bg-muted rounded-lg p-4 aspect-video flex items-center justify-center overflow-hidden">
+              <span className="text-muted-foreground">{t('vehicle.noPhotos') || 'ยังไม่มีรูปภาพ'}</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute top-2 right-2 bg-background/80 hover:bg-background"
+                onClick={() => setIsRegistrationDrawerOpen(true)}
+              >
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            </div>
+          )}
 
           {/* Vehicle Info Fields */}
           <div className="space-y-0">
