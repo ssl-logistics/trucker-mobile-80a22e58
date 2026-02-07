@@ -12,6 +12,8 @@ interface TrackingRoomRequest {
   origin_lng: number;
   destination_lat: number;
   destination_lng: number;
+  current_lat: number;
+  current_lng: number;
 }
 
 serve(async (req) => {
@@ -33,9 +35,10 @@ serve(async (req) => {
     // Validate required fields
     if (!body.truck_plate || !body.order_code || 
         body.origin_lat === undefined || body.origin_lng === undefined ||
-        body.destination_lat === undefined || body.destination_lng === undefined) {
+        body.destination_lat === undefined || body.destination_lng === undefined ||
+        body.current_lat === undefined || body.current_lng === undefined) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Missing required fields', details: 'current_lat and current_lng are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -58,6 +61,8 @@ serve(async (req) => {
         origin_lng: body.origin_lng,
         destination_lat: body.destination_lat,
         destination_lng: body.destination_lng,
+        current_lat: body.current_lat,
+        current_lng: body.current_lng,
       }),
     });
 
