@@ -32,6 +32,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'get-factory-assigned-jobs': 'EXPRESS_RENT_API_KEY',
   'list-tickets': 'EXPRESS_RENT_API_KEY',
   'get-express-rent-posts': 'EXPRESS_RENT_API_KEY',
+  'update-freelance-driver': 'EXPRESS_RENT_API_KEY',
 };
 
 // Endpoints that should use the bidding API URL
@@ -465,6 +466,31 @@ export async function receivePod(body: {
 }) {
   return callExternalApi<{ success: boolean }>('receive-pod', {
     method: 'POST',
+    body,
+  });
+}
+
+// ==================== Driver Update APIs ====================
+
+export async function updateFreelanceDriver(body: {
+  driver_id: string;
+  driver_type: 'internal' | 'external' | 'freelance';
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  license_plate?: string;
+  car_brand?: string;
+  car_model?: string;
+  vehicle_type?: string;
+  fuel_type?: string;
+  manufacturing_year?: number;
+}) {
+  return callExternalApi<{ 
+    success: boolean; 
+    message?: string;
+    data?: { driver: any };
+  }>('update-freelance-driver', {
+    method: 'PUT',
     body,
   });
 }
