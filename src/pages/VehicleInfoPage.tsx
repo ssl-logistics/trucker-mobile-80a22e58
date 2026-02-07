@@ -15,6 +15,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
+import { getTranslatedFuelType } from '@/utils/fuelTypeTranslation';
 
 interface VehicleData {
   id: string;
@@ -665,7 +666,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.fuelType')}</Label>
-                <p className="text-base font-medium mt-1">{t(`fuelType.${vehicleData.fuel_type.toLowerCase()}`) || vehicleData.fuel_type}</p>
+                <p className="text-base font-medium mt-1">{getTranslatedFuelType(vehicleData.fuel_type, t)}</p>
               </div>
               <Button 
                 variant="ghost" 
