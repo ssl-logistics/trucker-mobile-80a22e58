@@ -662,11 +662,13 @@ export default function Home() {
             if (trackingResponse.data?.room?.room_code) {
               const roomCode = trackingResponse.data.room.room_code;
               localStorage.setItem(`room_code_${job.order_code}`, roomCode);
-              console.log('[Staff] Saved room_code:', roomCode);
+              console.log('[Staff] Room code response:', trackingResponse.data);
+              console.log('[Staff] Extracted room_code:', roomCode);
+              console.log('[Staff] Starting GPS tracking with roomCode:', roomCode, 'orderCode:', job.order_code);
               
               // Start GPS tracking to send position updates every 1 second
               startTracking(roomCode, job.order_code);
-              console.log('[Staff] Started GPS tracking for room:', roomCode);
+              console.log('[Staff] Called startTracking()');
             }
           }
         } catch (trackingError) {
