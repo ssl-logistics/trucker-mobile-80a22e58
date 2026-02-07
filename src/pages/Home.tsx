@@ -554,91 +554,116 @@ export default function Home() {
   const handleStartAssignedJob = async (job: Job) => {
     if (!user) return;
     
-    try {
-      // Determine driver type for the API call
-      const driverType = userType === 'internal_driver' ? 'internal' : 'external';
-      
-      // Update the order status to 'in_transit' via the external API
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-order-status`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-          },
-          body: JSON.stringify({
-            order_id: job.id,
-            order_number: job.order_code,
-            status: 'in_transit',
-            driver_id: user.id,
-            driver_type: driverType,
-          }),
-        }
-      );
-      
-      const result = await response.json();
-      console.log('[Home] Update order status result:', result);
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to update status');
-      }
-      
-      // Create tracking room after successful job start for staff drivers
-      try {
-        // Get vehicle info for truck plate
-        const province = (user.plate_province || '').trim();
-        const number = (user.plate_number || '').trim();
-        const licensePlate = [province, number].filter(Boolean).join(' ').trim();
-        
-        const trackingBody = {
-          truck_plate: licensePlate,
-          order_code: job.order_code,
-          origin_lat: job.origin_lat || 0,
-          origin_lng: job.origin_lng || 0,
-          destination_lat: job.destination_lat || 0,
-          destination_lng: job.destination_lng || 0
-        };
-        console.log('📍 [Staff] create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
-        
-        const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
-          body: trackingBody
-        });
-
-        if (trackingResponse.error) {
-          console.error('[Staff] Error creating tracking room:', trackingResponse.error);
-        } else {
-          console.log('[Staff] Tracking room created:', trackingResponse.data);
-          // Save room_code to localStorage for later use (check-in, tracking)
-          if (trackingResponse.data?.room?.room_code) {
-            localStorage.setItem(`room_code_${job.order_code}`, trackingResponse.data.room.room_code);
-            console.log('[Staff] Saved room_code:', trackingResponse.data.room.room_code);
-          }
-        }
-      } catch (trackingError) {
-        console.error('[Staff] Error creating tracking room:', trackingError);
-      }
-      
-      // Show success toast
-      const titleKey = t('home.start_job_success');
-      const descKey = t('home.start_job_success_desc');
+    const orderCode = job.order_code;
+    
+    // Check if this order is already being processed
+    if (isProcessingKey(`start-job-${orderCode}`)) {
+      console.log(`[Home] Job ${orderCode} is already being processed, skipping`);
+      return;
+    }
+    
+    // Check if already started (in processedOrderCodes)
+    if (processedOrderCodes.has(orderCode)) {
+      console.log(`[Home] Job ${orderCode} already started, skipping`);
       toast({
-        title: titleKey !== 'home.start_job_success' ? titleKey : 'เริ่มงานสำเร็จ',
-        description: `${descKey !== 'home.start_job_success_desc' ? descKey : 'คุณได้เริ่มงาน'} ${job.order_code}`
-      });
-      
-      // Remove this job from the local list so it disappears from "Jobs for You"
-      // The job will appear in Current Jobs since status is now 'in_transit'
-      setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
-      
-    } catch (error) {
-      console.error('[Home] Error updating order status:', error);
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถเริ่มงานได้ กรุณาลองใหม่อีกครั้ง',
+        title: t('home.duplicate_order') || 'งานซ้ำ',
+        description: t('home.order_already_processed') || 'งานนี้ถูกดำเนินการแล้ว',
         variant: 'destructive'
       });
+      return;
     }
+    
+    // Use processing guard to prevent double-clicks
+    await withJobGuard(`start-job-${orderCode}`, async () => {
+      try {
+        // Determine driver type for the API call
+        const driverType = userType === 'internal_driver' ? 'internal' : 'external';
+        
+        // Update the order status to 'in_transit' via the external API
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-order-status`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+            body: JSON.stringify({
+              order_id: job.id,
+              order_number: job.order_code,
+              status: 'in_transit',
+              driver_id: user.id,
+              driver_type: driverType,
+            }),
+          }
+        );
+        
+        const result = await response.json();
+        console.log('[Home] Update order status result:', result);
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to update status');
+        }
+        
+        // Mark as processed to prevent future duplicate submissions
+        setProcessedOrderCodes(prev => new Set([...prev, orderCode]));
+        
+        // Create tracking room after successful job start for staff drivers
+        try {
+          // Get vehicle info for truck plate
+          const province = (user.plate_province || '').trim();
+          const number = (user.plate_number || '').trim();
+          const licensePlate = [province, number].filter(Boolean).join(' ').trim();
+          
+          const trackingBody = {
+            truck_plate: licensePlate,
+            order_code: job.order_code,
+            origin_lat: job.origin_lat || 0,
+            origin_lng: job.origin_lng || 0,
+            destination_lat: job.destination_lat || 0,
+            destination_lng: job.destination_lng || 0
+          };
+          console.log('📍 [Staff] create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
+          
+          const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
+            body: trackingBody
+          });
+
+          if (trackingResponse.error) {
+            console.error('[Staff] Error creating tracking room:', trackingResponse.error);
+          } else {
+            console.log('[Staff] Tracking room created:', trackingResponse.data);
+            // Save room_code to localStorage for later use (check-in, tracking)
+            if (trackingResponse.data?.room?.room_code) {
+              localStorage.setItem(`room_code_${job.order_code}`, trackingResponse.data.room.room_code);
+              console.log('[Staff] Saved room_code:', trackingResponse.data.room.room_code);
+            }
+          }
+        } catch (trackingError) {
+          console.error('[Staff] Error creating tracking room:', trackingError);
+        }
+        
+        // Show success toast
+        const titleKey = t('home.start_job_success');
+        const descKey = t('home.start_job_success_desc');
+        toast({
+          title: titleKey !== 'home.start_job_success' ? titleKey : 'เริ่มงานสำเร็จ',
+          description: `${descKey !== 'home.start_job_success_desc' ? descKey : 'คุณได้เริ่มงาน'} ${job.order_code}`
+        });
+        
+        // Remove this job from the local list so it disappears from "Jobs for You"
+        // The job will appear in Current Jobs since status is now 'in_transit'
+        setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
+        
+      } catch (error) {
+        console.error('[Home] Error updating order status:', error);
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถเริ่มงานได้ กรุณาลองใหม่อีกครั้ง',
+          variant: 'destructive'
+        });
+      }
+    });
   };
 
   // Handle factory job accept with double-click and duplicate order protection
