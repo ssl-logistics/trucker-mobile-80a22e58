@@ -47,6 +47,7 @@ export function stopGpsTracking(): void {
 // Send position update - keep sending regardless of room status
 async function sendPositionUpdate(roomCode: string, lat: number, lng: number): Promise<boolean> {
   try {
+    console.log('[GPS] Sending position update:', { roomCode, lat, lng });
     const response = await fetch(UPDATE_POSITION_URL, {
       method: 'POST',
       headers: {
@@ -127,11 +128,12 @@ export function useGpsTracking() {
   const startTracking = useCallback((roomCode?: string, orderCode?: string) => {
     // If roomCode is provided, save state first
     if (roomCode && orderCode) {
-      console.log('[GPS Tracking] Starting tracking with provided room:', roomCode);
+      console.log('[GPS Tracking] startTracking called with roomCode:', roomCode, 'orderCode:', orderCode);
       saveTrackingState({ isTracking: true, roomCode, orderCode });
     }
     
     const state = getTrackingState();
+    console.log('[GPS Tracking] Current tracking state:', state);
     
     if (!state.isTracking || !state.roomCode) {
       console.log('[GPS Tracking] Not starting - tracking disabled or no room code', state);
