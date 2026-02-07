@@ -615,6 +615,25 @@ export default function Home() {
           const number = (user.plate_number || '').trim();
           const licensePlate = [province, number].filter(Boolean).join(' ').trim();
           
+          // Get current GPS position
+          let currentLat = job.origin_lat || 0;
+          let currentLng = job.origin_lng || 0;
+          
+          try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+              });
+            });
+            currentLat = position.coords.latitude;
+            currentLng = position.coords.longitude;
+            console.log('📍 [Staff] Got GPS position:', currentLat, currentLng);
+          } catch (gpsError) {
+            console.warn('[Staff] Could not get GPS position, using origin as fallback:', gpsError);
+          }
+          
           const trackingBody = {
             truck_plate: licensePlate,
             order_code: job.order_code,
@@ -622,8 +641,8 @@ export default function Home() {
             origin_lng: job.origin_lng || 0,
             destination_lat: job.destination_lat || 0,
             destination_lng: job.destination_lng || 0,
-            current_lat: job.origin_lat || 0,
-            current_lng: job.origin_lng || 0
+            current_lat: currentLat,
+            current_lng: currentLng
           };
           console.log('📍 [Staff] create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
           
