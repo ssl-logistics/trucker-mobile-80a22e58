@@ -22,7 +22,8 @@ import {
   getDriverAssignedJobs, 
   getFactoryAssignedJobs, 
   getFreelanceAcceptedJobs,
-  getExpressRentPosts 
+  getExpressRentPosts,
+  acceptExpressRentJob 
 } from '@/lib/externalApi';
 interface Job {
   id: string;
@@ -470,30 +471,30 @@ export default function Home() {
       
       console.log('Vehicle data from user:', { licensePlate, vehicleType, vehicleBrand });
 
-      // Call accept job API via proxy
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/accept-express-rent-job-proxy`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          order_number: selectedJob.order_code,
-          post_id: selectedJob.post_id || selectedJob.id,
-          freelance_driver_id: user.id,
-          freelance_driver_name: driverName,
-          driver_phone: driverPhone,
-          license_plate: licensePlate,
-          vehicle_type: vehicleType,
-          vehicle_brand: vehicleBrand
-        }),
+      // Call accept job API directly
+      console.log('[Home] Accepting express rent job:', {
+        order_number: selectedJob.order_code,
+        post_id: selectedJob.post_id || selectedJob.id,
+        freelance_driver_id: user.id,
       });
 
-      const result = await response.json();
+      const { data: result, error } = await acceptExpressRentJob({
+        order_number: selectedJob.order_code,
+        post_id: selectedJob.post_id || selectedJob.id,
+        freelance_driver_id: user.id,
+        freelance_driver_name: driverName,
+        driver_phone: driverPhone,
+        license_plate: licensePlate,
+        vehicle_type: vehicleType,
+        vehicle_brand: vehicleBrand
+      });
 
-      if (!response.ok || !result.success) {
+      console.log('[Home] Accept job result:', result, 'error:', error);
+
+      if (error || !result?.success) {
         toast({
           title: t('home.error_load'),
-          description: result.message || t('home.error_accept'),
+          description: error || t('home.error_accept'),
           variant: 'destructive'
         });
         return;

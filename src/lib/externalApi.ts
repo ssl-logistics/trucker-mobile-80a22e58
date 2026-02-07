@@ -28,7 +28,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'receive-pod': 'DRIVER_API_KEY',
   'update-order-status': 'EXPRESS_RENT_API_KEY',
   'get-freelance-accepted-jobs': 'EXPRESS_RENT_API_KEY',
-  'accept-express-rent-job': 'FREELANCE_DRIVER_API_KEY',
+  'accept-express-rent-job': 'EXPRESS_RENT_API_KEY',
   'get-factory-assigned-jobs': 'EXPRESS_RENT_API_KEY',
   'list-tickets': 'EXPRESS_RENT_API_KEY',
   'get-express-rent-posts': 'EXPRESS_RENT_API_KEY',
@@ -289,7 +289,25 @@ export async function getFreelanceAcceptedJobs(freelanceDriverId: string) {
   });
 }
 
+// Accept an express rent job (direct external API call)
 export async function acceptExpressRentJob(body: {
+  order_number: string;
+  post_id: string;
+  freelance_driver_id: string;
+  freelance_driver_name: string;
+  driver_phone: string;
+  license_plate: string;
+  vehicle_type: string;
+  vehicle_brand: string;
+}) {
+  return callExternalApi<{ success: boolean; data?: any }>('accept-express-rent-job', {
+    method: 'POST',
+    body,
+  });
+}
+
+// Legacy function for ticket-based acceptance (if still needed)
+export async function acceptExpressRentJobByTicket(body: {
   ticket_id: string;
   freelance_driver_id: string;
   accepted: boolean;
