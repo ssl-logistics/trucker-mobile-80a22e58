@@ -83,9 +83,15 @@ export default function ContainerCheckInPage() {
       let result: any;
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const { data, error } = await getDriverAssignedJobs(user.id, driverType, 50);
-        if (error) throw new Error(error);
-        result = data;
+        const [inProgressRes, inTransitRes] = await Promise.all([
+          getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
+        ]);
+        const combinedData = [
+          ...((inProgressRes.data as any)?.data || []),
+          ...((inTransitRes.data as any)?.data || []),
+        ];
+        result = { success: true, data: combinedData };
       } else {
         const { data, error } = await getFreelanceAcceptedJobs(user.id);
         if (error) throw new Error(error);
