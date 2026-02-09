@@ -139,10 +139,11 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [inProgressResult, inTransitResult, deliveredResult, checkinsRes] = await Promise.all([
+        const [inProgressResult, inTransitResult, deliveredResult, completedResult, checkinsRes] = await Promise.all([
           getDriverAssignedJobs(driverId, driverType, 100, 'in_progress'),
           getDriverAssignedJobs(driverId, driverType, 100, 'in_transit'),
           getDriverAssignedJobs(driverId, driverType, 100, 'delivered'),
+          getDriverAssignedJobs(driverId, driverType, 100, 'completed'),
           getDriverCheckins(driverId, driverType),
         ]);
 
@@ -150,7 +151,13 @@ export default function JobHistoryPage() {
           ...((inProgressResult.data as any)?.data || []),
           ...((inTransitResult.data as any)?.data || []),
           ...((deliveredResult.data as any)?.data || []),
+          ...((completedResult.data as any)?.data || []),
         ];
+        
+        console.log('[JobHistory] Fetched jobs count - in_progress:', ((inProgressResult.data as any)?.data || []).length,
+          'in_transit:', ((inTransitResult.data as any)?.data || []).length,
+          'delivered:', ((deliveredResult.data as any)?.data || []).length,
+          'completed:', ((completedResult.data as any)?.data || []).length);
         const allCheckins = (checkinsRes.data as any)?.data || [];
 
         // Count PODs per transport_order_id for multi-destination jobs
@@ -171,9 +178,12 @@ export default function JobHistoryPage() {
         
         console.log('POD counts by transport ID (history):', podCountByTransportId);
 
-        // Filter jobs that have ALL destinations POD completed
+        // Filter jobs that have ALL destinations POD completed OR have 'completed' status from API
         const completedFromApi: CompletedJob[] = allJobs
           .filter((job: any) => {
+            // If API already marks job as completed, include it directly
+            if (job.status === 'completed') return true;
+            
             const transportId = String(job.id);
             const podCount = podCountByTransportId[transportId] || 0;
             const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
