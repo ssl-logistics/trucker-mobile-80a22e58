@@ -56,26 +56,47 @@ export default function PickupSummaryPage() {
       const driverId = user.id;
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Fetch job detail from external API directly
-      const { data: jobResult, error: jobError } = (isInternalDriver || isExternalDriver)
-        ? await getDriverAssignedJobs(driverId, driverType as 'internal' | 'external')
-        : await getFreelanceAcceptedJobs(driverId);
+      // Try to get job from navigation state first (passed from history or detail page)
+      const stateJob = (location.state as any)?.job || (location.state as any)?.jobData;
+      let foundJob: any = null;
 
-      if (!jobError && jobResult) {
-        const jobData = (jobResult as any)?.data || jobResult || [];
-        const foundJob = Array.isArray(jobData) 
-          ? jobData.find((j: any) => j.order_number === jobId)
-          : null;
-        if (foundJob) {
-          setJob({
-            id: foundJob.order_number,
-            order_code: foundJob.order_number,
-            employer_name: foundJob.sender_name || foundJob.factory_name || '',
-            origin_location: foundJob.sender_address || '',
-            start_date: foundJob.sender_pickup_date || '',
-            start_time: foundJob.sender_pickup_time || '',
-          });
+      // Fetch job detail from external API directly - try multiple statuses
+      if (isInternalDriver || isExternalDriver) {
+        const [inProgressRes, inTransitRes, deliveredRes] = await Promise.all([
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'in_progress'),
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'in_transit'),
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'delivered'),
+        ]);
+        const allJobs = [
+          ...((inProgressRes.data as any)?.data || []),
+          ...((inTransitRes.data as any)?.data || []),
+          ...((deliveredRes.data as any)?.data || []),
+        ];
+        foundJob = allJobs.find((j: any) => j.order_number === jobId);
+      } else {
+        const { data: jobResult, error: jobError } = await getFreelanceAcceptedJobs(driverId);
+        if (!jobError && jobResult) {
+          const jobData = (jobResult as any)?.data || jobResult || [];
+          foundJob = Array.isArray(jobData) 
+            ? jobData.find((j: any) => j.order_number === jobId)
+            : null;
         }
+      }
+
+      // Fallback to navigation state
+      if (!foundJob && stateJob) {
+        foundJob = stateJob;
+      }
+
+      if (foundJob) {
+        setJob({
+          id: foundJob.order_number || foundJob.order_code || foundJob.id,
+          order_code: foundJob.order_number || foundJob.order_code || jobId!,
+          employer_name: foundJob.sender_name || foundJob.factory_name || foundJob.employer_name || '',
+          origin_location: foundJob.sender_address || foundJob.origin_location || foundJob.origin_address || '',
+          start_date: foundJob.sender_pickup_date || foundJob.start_date || '',
+          start_time: foundJob.sender_pickup_time || foundJob.start_time || '',
+        });
       }
 
       const { data: checkinResult, error: checkinError } = await getDriverCheckins(driverId, driverType, jobId);
