@@ -262,8 +262,13 @@ export default function JobDetailPage() {
       console.log('Job API response:', result, 'userType:', userType);
 
       if (result.success && result.data) {
-        // Find the specific job by order_number
-        const foundJob = result.data.find((j: any) => j.order_number === jobId);
+        // Find the specific job by order_number (fallback: use navigation state if API list no longer includes it)
+        const stateJob = (location.state as any)?.job;
+        const apiData = Array.isArray(result.data) ? result.data : [];
+
+        const foundJob =
+          apiData.find((j: any) => j.order_number === jobId || j.order_code === jobId) ??
+          (stateJob && (stateJob.order_number === jobId || stateJob.order_code === jobId) ? stateJob : null);
 
         if (foundJob) {
           // Map API response to JobDetail interface
