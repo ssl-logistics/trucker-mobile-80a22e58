@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
-import { getFreelanceAcceptedJobs, getDriverSop, driverSop } from '@/lib/externalApi';
+import { getFreelanceAcceptedJobs, getDriverSop, driverSop, getDriverAssignedJobs } from '@/lib/externalApi';
 import {
   Dialog,
   DialogContent,
@@ -147,24 +147,15 @@ export default function SOPCheckInPage() {
       // For Internal/External drivers, use get-driver-assigned-jobs
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
-            }
-          }
-        );
+        const { data: result, error } = await getDriverAssignedJobs(user.id, driverType, 50);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch job details');
+        if (error) {
+          throw new Error(error);
         }
 
-        const result = await response.json();
         console.log('Internal/External job API response:', result);
         
-        if (result.success && result.data) {
+        if ((result as any)?.success && result?.data) {
           foundJob = result.data.find((j: any) => j.order_number === jobId);
         }
       } else {

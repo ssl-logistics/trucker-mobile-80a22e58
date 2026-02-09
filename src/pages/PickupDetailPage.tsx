@@ -17,7 +17,7 @@ import { useGpsTracking } from '@/hooks/useGpsTracking';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
-import { driverCheckin } from '@/lib/externalApi';
+import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -86,31 +86,20 @@ export default function PickupDetailPage() {
     setLoading(true);
     
     try {
-      let apiUrl: string;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      
       // Use different API based on driver type
+      let result: any;
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        apiUrl = `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`;
+        const { data, error } = await getDriverAssignedJobs(user.id, driverType, 50);
+        if (error) throw new Error(error);
+        result = data;
       } else {
-        apiUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`;
-      }
-      
-      const response = await fetch(apiUrl, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch job details');
+        const { data, error } = await getFreelanceAcceptedJobs(user.id);
+        if (error) throw new Error(error);
+        result = data;
       }
 
-      const result = await response.json();
-      
-      if (result.success && result.data) {
+      if (result?.success && result?.data) {
         // Find the specific job by order_number
         const foundJob = result.data.find((j: any) => j.order_number === jobId);
         

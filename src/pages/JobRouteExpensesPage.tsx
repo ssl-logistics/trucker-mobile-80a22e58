@@ -13,7 +13,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
-import { getExpenses } from '@/lib/externalApi';
+import { getExpenses, getDriverAssignedJobs } from '@/lib/externalApi';
 
 // API response interfaces (matching JobHistoryPage)
 interface ApiJobDetail {
@@ -131,26 +131,16 @@ export default function JobRouteExpensesPage() {
     try {
       let allJobs: ApiJobDetail[] = [];
 
-      // For Internal/External drivers, use get-driver-assigned-jobs API
+      // For Internal/External drivers, use get-driver-assigned-jobs API (direct external call)
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=100`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-            },
-          }
-        );
+        const { data: result, error } = await getDriverAssignedJobs(user.id, driverType, 100);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch job data');
+        if (error) {
+          throw new Error(error);
         }
 
-        const result = await response.json();
-        const apiJobs = result.data || [];
+        const apiJobs = result?.data || [];
         
         // Map factory jobs to ApiJobDetail format
         allJobs = apiJobs.map((job: any) => ({

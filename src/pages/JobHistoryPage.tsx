@@ -13,7 +13,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { formatDate } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
-import { getFreelanceAcceptedJobs, getFactoryAssignedJobs, getDriverCheckins } from '@/lib/externalApi';
+import { getFreelanceAcceptedJobs, getFactoryAssignedJobs, getDriverCheckins, getDriverAssignedJobs } from '@/lib/externalApi';
 import { HistoryJobCard } from '@/components/history/HistoryJobCard';
 interface JobApplication {
   id: string;
@@ -134,27 +134,17 @@ export default function JobHistoryPage() {
     setLoading(true);
     try {
       const driverId = user.id;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      // For Internal/External drivers, use get-driver-assigned-jobs API
+      // For Internal/External drivers, use get-driver-assigned-jobs API (direct external call)
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [jobsRes, checkinsRes] = await Promise.all([
-          fetch(
-            `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=100`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                "x-api-key": "fld_sk_2026_xY9kWewT3xNySk8kGsRq_live",
-              },
-            }
-          ),
+        const [jobsResult, checkinsRes] = await Promise.all([
+          getDriverAssignedJobs(driverId, driverType, 100),
           getDriverCheckins(driverId, driverType),
         ]);
 
-        const jobsJson = await jobsRes.json();
+        const jobsJson = jobsResult.data || { data: [] };
         const { data: checkinsJson } = await checkinsRes;
 
         const allJobs = jobsJson.data || [];
