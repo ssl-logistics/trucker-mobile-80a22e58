@@ -83,13 +83,15 @@ export default function ContainerCheckInPage() {
       let result: any;
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [inProgressRes, inTransitRes] = await Promise.all([
+        const [inProgressRes, inTransitRes, deliveredRes] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
         ]);
         const combinedData = [
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
+          ...((deliveredRes.data as any)?.data || []),
         ];
         result = { success: true, data: combinedData };
       } else {

@@ -147,15 +147,16 @@ export default function SOPCheckInPage() {
       // For Internal/External drivers, use get-driver-assigned-jobs
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [inProgressRes, inTransitRes] = await Promise.all([
+        const [inProgressRes, inTransitRes, deliveredRes] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
         ]);
-        const combinedData = [
+        foundJob = [
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
-        ];
-        foundJob = combinedData.find((j: any) => j.order_number === jobId);
+          ...((deliveredRes.data as any)?.data || []),
+        ].find((j: any) => j.order_number === jobId);
       } else {
         // For Freelance drivers, use getFreelanceAcceptedJobs
         const { data: result, error } = await getFreelanceAcceptedJobs(user.id);
