@@ -901,13 +901,11 @@ export default function DomesticJobDetail({
                         const fromParam = new URLSearchParams(location.search).get('from');
                         const queryString = fromParam ? `?from=${fromParam}` : '';
                         if (pickupSopCompleted || jobApplication?.sop_completed_at) {
-                          navigate(`/job/${job.order_code}/pickup-summary${queryString}`);
+                          navigate(`/job/${job.order_code}/pickup-summary${queryString}`, { state: { jobData: job } });
                         } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
-                          // Already checked in (from API or local state), go to SOP page
-                          navigate(`/job/${job.order_code}/sop${queryString}`);
+                          navigate(`/job/${job.order_code}/sop${queryString}`, { state: { jobData: job } });
                         } else {
-                          // Not checked in yet, go to check-in page
-                          navigate(`/job/${job.order_code}/pickup${queryString}`);
+                          navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job } });
                         }
                       }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isPickupLocked || isLoadingCheckinStatus}>
                           {isLoadingCheckinStatus ? (
