@@ -537,7 +537,7 @@ export default function DeliveryDetailPage() {
     
     setShowPodConfirmDialog(false);
     setIsSubmittingPod(false);
-    navigate(`/job/${job.order_code}`);
+    navigate(`/job/${job.order_code}`, { state: { jobData: job } });
   };
 
   const [isCheckingIn, setIsCheckingIn] = useState(false);

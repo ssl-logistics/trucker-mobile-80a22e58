@@ -252,7 +252,7 @@ export default function JobDetailPage() {
 
       if (result.success && result.data) {
         // Find the specific job by order_number (fallback: use navigation state if API list no longer includes it)
-        const stateJob = (location.state as any)?.job;
+        const stateJob = (location.state as any)?.job || (location.state as any)?.jobData;
         const apiData = Array.isArray(result.data) ? result.data : [];
 
         const foundJob =
