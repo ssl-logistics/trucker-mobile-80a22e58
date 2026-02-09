@@ -251,9 +251,12 @@ export default function JobDetailPage() {
         const stateJob = (location.state as any)?.job || (location.state as any)?.jobData;
         const apiData = Array.isArray(result.data) ? result.data : [];
 
+        console.log('[JobDetailPage] Looking for jobId:', jobId, 'in', apiData.length, 'API jobs, stateJob:', !!stateJob, stateJob?.order_number);
+
         const foundJob =
           apiData.find((j: any) => j.order_number === jobId || j.order_code === jobId) ??
-          (stateJob && (stateJob.order_number === jobId || stateJob.order_code === jobId) ? stateJob : null);
+          (stateJob && (stateJob.order_number === jobId || stateJob.order_code === jobId) ? stateJob : null) ??
+          (stateJob ? stateJob : null); // Final fallback: use stateJob regardless of ID match (user navigated here intentionally)
 
         if (foundJob) {
           // Map API response to JobDetail interface
