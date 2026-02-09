@@ -836,7 +836,7 @@ export default function DomesticJobDetail({
                         </div>
                         <div className="flex">
                           <span className="text-[#454545] min-w-[100px]">{t('jobDetail.pickupTime')}</span>
-                          <span className="text-[#454545]">: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
+                          <span className="text-[#454545]">: {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
                         </div>
                         <div className="flex">
                           <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
