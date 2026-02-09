@@ -188,8 +188,9 @@ export default function JobDetailPage() {
       if (isInternalDriver || isExternalDriver) {
         // Internal/External drivers use get-driver-assigned-jobs API
         const driverType = isInternalDriver ? 'internal' : 'external';
-        response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`,
+        // Fetch jobs with both in_progress and in_transit statuses to find jobs at any stage
+        const inProgressResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&status=in_progress&limit=50`,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -197,6 +198,48 @@ export default function JobDetailPage() {
             },
           }
         );
+        
+        const inTransitResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&status=in_transit&limit=50`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            },
+          }
+        );
+
+        // Merge both responses
+        if (!inProgressResponse.ok || !inTransitResponse.ok) {
+          throw new Error('Failed to fetch job details');
+        }
+
+        const inProgressData = await inProgressResponse.json();
+        const inTransitData = await inTransitResponse.json();
+        
+        // Combine the data from both statuses
+        const combinedData = [
+          ...(inProgressData.data || []),
+          ...(inTransitData.data || []),
+        ];
+        
+        // Create a merged response object
+        const mergedResult = {
+          success: true,
+          data: combinedData,
+          pagination: {
+            limit: 100,
+            offset: 0,
+            total: combinedData.length,
+          }
+        };
+        
+        // Convert mergedResult to Response-like object
+        const mockResponse = {
+          ok: true,
+          json: async () => mergedResult,
+        } as Response;
+        response = mockResponse;
       } else {
         // Freelance drivers use get-freelance-accepted-jobs API
         response = await fetch(
