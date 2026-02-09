@@ -580,10 +580,15 @@ export default function Home() {
     // Use processing guard to prevent double-clicks
     await withJobGuard(`start-job-${orderCode}`, async () => {
       try {
+        console.log(`[Home] ===== START JOB WORKFLOW STARTED =====`);
+        console.log(`[Home] Order Code: ${orderCode}, Job ID: ${job.id}`);
+        console.log(`[Home] User Type: ${userType}, User ID: ${user.id}`);
+        
         // Determine driver type for the API call
         const driverType = userType === 'internal_driver' ? 'internal' : 'external';
         
         // Update the order status to 'in_transit' via the external API
+        console.log(`[Home] Calling update-order-status API with status: 'in_transit'`);
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-order-status`,
           {
@@ -604,13 +609,18 @@ export default function Home() {
         
         const result = await response.json();
         console.log('[Home] Update order status result:', result);
+        console.log(`[Home] API Response status: ${response.status}, OK: ${response.ok}`);
         
         if (!response.ok) {
+          console.error(`[Home] API failed with status ${response.status}, error:`, result);
           throw new Error(result.error || 'Failed to update status');
         }
         
+        console.log(`[Home] ✅ Status updated to 'in_transit' successfully`);
+        
         // Mark as processed to prevent future duplicate submissions
         setProcessedOrderCodes(prev => new Set([...prev, orderCode]));
+        console.log(`[Home] Job added to processedOrderCodes`);
         
         // Create tracking room after successful job start for staff drivers
         try {
@@ -685,10 +695,17 @@ export default function Home() {
         
         // Remove this job from the local list so it disappears from "Jobs for You"
         // The job will appear in Current Jobs since status is now 'in_transit'
-        setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
+        console.log(`[Home] Removing job from Home list (factoryJobs)...`);
+        setFactoryJobs(prev => {
+          const filtered = prev.filter(j => j.id !== job.id);
+          console.log(`[Home] Factory jobs: ${prev.length} → ${filtered.length}`);
+          return filtered;
+        });
+        console.log(`[Home] ===== START JOB WORKFLOW COMPLETED SUCCESSFULLY =====`);
         
       } catch (error) {
         console.error('[Home] Error updating order status:', error);
+        console.log(`[Home] ===== START JOB WORKFLOW FAILED =====`);
         toast({
           title: 'เกิดข้อผิดพลาด',
           description: 'ไม่สามารถเริ่มงานได้ กรุณาลองใหม่อีกครั้ง',
