@@ -31,6 +31,7 @@ serve(async (req) => {
     const driverId = url.searchParams.get('driver_id');
     const driverType = url.searchParams.get('driver_type'); // 'internal' or 'external'
     const limit = url.searchParams.get('limit') || '10';
+    const status = url.searchParams.get('status') || 'in_progress'; // Default to in_progress, but allow override for in_transit, etc.
 
     if (!driverId) {
       return new Response(
@@ -52,9 +53,9 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Fetching assigned jobs for ${driverType} driver:`, driverId);
+    console.log(`Fetching assigned jobs for ${driverType} driver:`, driverId, `status: ${status}`);
 
-    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=${limit}`;
+    const externalUrl = `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&status=${status}&limit=${limit}`;
     
     const response = await fetch(externalUrl, {
       method: 'GET',

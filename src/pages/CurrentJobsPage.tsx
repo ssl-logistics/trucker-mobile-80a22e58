@@ -146,10 +146,10 @@ export default function CurrentJobsPage() {
         console.log(`[CurrentJobsPage] Loading as ${isInternalDriver ? 'Internal' : 'External'} driver`);
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        // Fetch jobs and check-ins in parallel using external API directly
-        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs(${freelanceDriverId}, '${driverType}', 50)`);
+         // Fetch jobs and check-ins in parallel using external API directly
+        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs(${freelanceDriverId}, '${driverType}', 50, 'in_transit')`);
         const [jobsResult, checkinsResult] = await Promise.all([
-          getDriverAssignedJobs(freelanceDriverId, driverType, 50),
+          getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'in_transit'),
           getDriverCheckins(freelanceDriverId, driverType, 'all'),
         ]);
 
