@@ -263,13 +263,24 @@ export async function getDriverSop(
 
 // ==================== Job APIs ====================
 
-export async function getDriverAssignedJobs(driverId: string, driverType: 'internal' | 'external', limit = 50) {
+export async function getDriverAssignedJobs(
+  driverId: string, 
+  driverType: 'internal' | 'external', 
+  limit = 50,
+  status?: string // Optional: comma-separated status values like 'in_progress,in_transit'
+) {
+  const params: Record<string, string> = {
+    driver_id: driverId,
+    driver_type: driverType,
+    limit: String(limit),
+  };
+  
+  if (status) {
+    params.status = status;
+  }
+  
   return callExternalApi<{ data: any[] }>('get-driver-assigned-jobs', {
-    params: {
-      driver_id: driverId,
-      driver_type: driverType,
-      limit: String(limit),
-    },
+    params,
   });
 }
 
