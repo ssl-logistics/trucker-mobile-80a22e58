@@ -116,13 +116,6 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           <span className="text-muted-foreground">{isFactoryJob ? t('job.factory') : t('job.employer')} : </span>
           <span className="font-medium">{job.employer_name}</span>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {isInternational && (
-            <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100">
-              {t('job.international')} {isInbound ? `(${t('job.inbound')})` : isOutbound ? `(${t('job.outbound')})` : ''}
-            </Badge>
-          )}
-        </div>
         <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
           isDomestic
             ? 'bg-blue-100 text-blue-700'
