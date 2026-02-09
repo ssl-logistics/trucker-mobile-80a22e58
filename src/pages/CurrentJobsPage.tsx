@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide } from 'lucide-react';
 import coinsIcon from '@/assets/coins-icon.png';
@@ -77,11 +78,15 @@ interface AcceptedJob {
   isFactoryJob?: boolean;
   isBidJob?: boolean; // Flag for bid jobs - navigate to /bid-job/:ticketNumber
   job_type?: string | null; // domestic or international
+  transport_category?: string | null;
   // Container info for international jobs
   container_number?: string | null;
   container_number_2?: string | null;
   seal_number?: string | null;
   seal_number_2?: string | null;
+  // International job addresses
+  empty_pickup_address?: string | null;
+  container_return_address?: string | null;
   remarks: string | null;
   created_at: string;
   updated_at: string;
@@ -281,11 +286,15 @@ export default function CurrentJobsPage() {
             factory_name: job.factory_name,
             isFactoryJob: true,
             job_type: job.job_type || job.transport_category || null,
+            transport_category: job.transport_category || null,
             // Container info for international jobs
             container_number: job.container_number || null,
             container_number_2: job.container_number_2 || null,
             seal_number: job.seal_number || null,
             seal_number_2: job.seal_number_2 || null,
+            // International job addresses
+            empty_pickup_address: job.empty_pickup_address || null,
+            container_return_address: job.container_return_address || null,
             remarks: job.remarks,
             created_at: job.created_at,
             updated_at: job.updated_at,
@@ -694,16 +703,20 @@ export default function CurrentJobsPage() {
                             <div className="text-muted-foreground">{t('job.origin')}</div>
                             <div className="font-medium">
                               {job.sender_province && job.sender_district 
-                                ? `${job.sender_province}, ${job.sender_district}` 
-                                : job.sender_address || '-'}
+                                ? `${job.sender_district}, ${job.sender_province}` 
+                                : (job.job_type === 'international' || job.transport_category === 'international')
+                                  ? extractDistrictProvince(job.empty_pickup_address || job.sender_address)
+                                  : job.sender_address || '-'}
                             </div>
                           </div>
                           <div className="text-xs">
                             <div className="text-muted-foreground">{t('job.destination')}</div>
                             <div className="font-medium">
                               {job.destination_province && job.destination_district 
-                                ? `${job.destination_province}, ${job.destination_district}` 
-                                : job.destination_address || '-'}
+                                ? `${job.destination_district}, ${job.destination_province}` 
+                                : (job.job_type === 'international' || job.transport_category === 'international')
+                                  ? extractDistrictProvince(job.container_return_address || job.destination_address)
+                                  : job.destination_address || '-'}
                             </div>
                           </div>
                         </div>
