@@ -189,23 +189,20 @@ export default function JobDetailPage() {
       if (isInternalDriver || isExternalDriver) {
         // Internal/External drivers use get-driver-assigned-jobs API
         const driverType = isInternalDriver ? 'internal' : 'external';
+        const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
         // Fetch jobs with multiple statuses to find jobs at any stage
-        const [inProgressResult, inTransitResult, deliveredResult] = await Promise.all([
+        const fetches = [
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
-        ]);
-        
-        const inProgressData = inProgressResult.data || { data: [] };
-        const inTransitData = inTransitResult.data || { data: [] };
-        const deliveredData = deliveredResult.data || { data: [] };
+        ];
+        if (isFromHistory) {
+          fetches.push(getDriverAssignedJobs(user.id, driverType, 50, 'completed'));
+        }
+        const results = await Promise.all(fetches);
         
         // Combine the data from all statuses
-        const combinedData = [
-          ...(inProgressData.data || []),
-          ...(inTransitData.data || []),
-          ...(deliveredData.data || []),
-        ];
+        const combinedData = results.flatMap(r => (r.data as any)?.data || []);
         
         console.log('[JobDetailPage] Combined data count:', combinedData.length, 'Looking for:', jobId);
         
