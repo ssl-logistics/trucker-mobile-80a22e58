@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "@/hooks/use-toast";
-import { getDriverCheckins } from '@/lib/externalApi';
+import { getDriverCheckins, getDriverAssignedJobs } from '@/lib/externalApi';
 interface CompletedJob {
   id: string;
   order_number: string;
@@ -56,27 +56,17 @@ export default function IncomePage() {
     setLoading(true);
     try {
       const driverId = user.id;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
       // For Internal/External drivers, use get-driver-assigned-jobs API
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [jobsRes, checkinsResult] = await Promise.all([
-          fetch(
-            `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${driverId}&driver_type=${driverType}&limit=100`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                "x-api-key": "fld_sk_2026_xY9kWewT3xNySk8kGsRq_live",
-              },
-            }
-          ),
+        const [jobsResult, checkinsResult] = await Promise.all([
+          getDriverAssignedJobs(driverId, driverType, 100),
           getDriverCheckins(driverId, driverType, 'all'),
         ]);
 
-        const jobsJson = await jobsRes.json();
+        const jobsJson = jobsResult.data || { data: [] };
 
         const allJobs = jobsJson.data || [];
         const allCheckinsRaw = checkinsResult.error
@@ -132,6 +122,7 @@ export default function IncomePage() {
       }
 
       // For Freelance drivers: Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const [companyJobsRes, factoryJobsRes, checkinsResult, bidWonJobsRes] = await Promise.all([
         fetch(
           `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,

@@ -12,7 +12,7 @@ import JobActionButtons from "@/components/job/JobActionButtons";
 import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
-import { getDriverCheckins, driverCheckin } from '@/lib/externalApi';
+import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import {
@@ -127,30 +127,20 @@ export default function DeliveryDetailPage() {
     setLoading(true);
     
     try {
-      let apiUrl: string;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      
-      // Use different API based on driver type
+      // Use different API based on driver type - call external API directly
+      let result: any;
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        apiUrl = `${supabaseUrl}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&limit=50`;
+        const { data, error } = await getDriverAssignedJobs(user.id, driverType, 50);
+        if (error) throw new Error(error);
+        result = data;
       } else {
-        apiUrl = `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`;
-      }
-      
-      const response = await fetch(apiUrl, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch job details');
+        const { data, error } = await getFreelanceAcceptedJobs(user.id);
+        if (error) throw new Error(error);
+        result = data;
       }
 
-      const result = await response.json();
-      
-      if (result.success && result.data) {
+      if (result?.success && result?.data) {
         // Find the specific job by order_number
         const foundJob = result.data.find((j: any) => j.order_number === jobId);
         

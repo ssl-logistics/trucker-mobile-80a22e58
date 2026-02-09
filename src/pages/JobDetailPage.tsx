@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { getDriverAssignedJobs } from '@/lib/externalApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -189,29 +190,13 @@ export default function JobDetailPage() {
         // Internal/External drivers use get-driver-assigned-jobs API
         const driverType = isInternalDriver ? 'internal' : 'external';
         // Fetch jobs with both in_progress and in_transit statuses to find jobs at any stage
-        const inProgressResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&status=in_progress&limit=50`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-            },
-          }
-        );
+        const [inProgressResult, inTransitResult] = await Promise.all([
+          getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
+        ]);
         
-        const inTransitResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-driver-assigned-jobs?driver_id=${user.id}&driver_type=${driverType}&status=in_transit&limit=50`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-            },
-          }
-        );
-
-        // Merge both responses
-        const inProgressData = inProgressResponse.ok ? await inProgressResponse.json() : { data: [] };
-        const inTransitData = inTransitResponse.ok ? await inTransitResponse.json() : { data: [] };
+        const inProgressData = inProgressResult.data || { data: [] };
+        const inTransitData = inTransitResult.data || { data: [] };
         
         console.log('[JobDetailPage] in_progress data:', inProgressData);
         console.log('[JobDetailPage] in_transit data:', inTransitData);
