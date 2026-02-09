@@ -749,7 +749,8 @@ export default function CurrentJobsPage() {
                       if (job.isBidJob) {
                         navigate(`/bid-job/${job.order_number}`);
                       } else {
-                        navigate(`/job/${job.order_number}`);
+                        // Pass the job payload as navigation state (fallback if API no longer returns it)
+                        navigate(`/job/${job.order_number}`, { state: { job } });
                       }
                     }}>
                       {t('currentJobs.viewDetails')}
