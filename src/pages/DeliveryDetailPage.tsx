@@ -128,31 +128,39 @@ export default function DeliveryDetailPage() {
     
     try {
       // Use different API based on driver type - call external API directly
-      let result: any;
+      let foundJob: any = null;
+      const stateJob = (location.state as any)?.jobData || (location.state as any)?.job;
+      
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [inProgressRes, inTransitRes, deliveredRes] = await Promise.all([
+        const [inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
         ]);
         const combinedData = [
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),
+          ...((completedRes.data as any)?.data || []),
         ];
-        result = { success: true, data: combinedData };
+        foundJob = combinedData.find((j: any) => j.order_number === jobId);
       } else {
         const { data, error } = await getFreelanceAcceptedJobs(user.id);
         if (error) throw new Error(error);
-        result = data;
+        const jobsData = (data as any)?.data || data || [];
+        const apiData = Array.isArray(jobsData) ? jobsData : [];
+        foundJob = apiData.find((j: any) => j.order_number === jobId);
       }
 
-      if (result?.success && result?.data) {
-        // Find the specific job by order_number
-        const foundJob = result.data.find((j: any) => j.order_number === jobId);
-        
-        if (foundJob) {
+      // Fallback to navigation state if not found in API
+      if (!foundJob && stateJob) {
+        console.log('[DeliveryDetailPage] Job not found in API, using navigation state fallback');
+        foundJob = stateJob;
+      }
+
+      if (foundJob) {
           // Determine the sequence number from URL param (destinationId) or default to 1
           const targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
           
@@ -338,7 +346,6 @@ export default function DeliveryDetailPage() {
         } else {
           throw new Error('Job not found');
         }
-      }
     } catch (error) {
       console.error('Error loading job detail:', error);
       toast({
