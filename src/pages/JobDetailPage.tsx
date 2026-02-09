@@ -189,26 +189,25 @@ export default function JobDetailPage() {
       if (isInternalDriver || isExternalDriver) {
         // Internal/External drivers use get-driver-assigned-jobs API
         const driverType = isInternalDriver ? 'internal' : 'external';
-        // Fetch jobs with both in_progress and in_transit statuses to find jobs at any stage
-        const [inProgressResult, inTransitResult, deliveredResult] = await Promise.all([
+        // Fetch jobs with multiple statuses to find jobs at any stage
+        const [inProgressResult, inTransitResult, deliveredResult, completedResult] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
         ]);
         
         const inProgressData = inProgressResult.data || { data: [] };
         const inTransitData = inTransitResult.data || { data: [] };
         const deliveredData = deliveredResult.data || { data: [] };
-        
-        console.log('[JobDetailPage] in_progress data:', inProgressData);
-        console.log('[JobDetailPage] in_transit data:', inTransitData);
-        console.log('[JobDetailPage] delivered data:', deliveredData);
+        const completedData = completedResult.data || { data: [] };
         
         // Combine the data from all statuses
         const combinedData = [
           ...(inProgressData.data || []),
           ...(inTransitData.data || []),
           ...(deliveredData.data || []),
+          ...(completedData.data || []),
         ];
         
         console.log('[JobDetailPage] Combined data count:', combinedData.length, 'Looking for:', jobId);

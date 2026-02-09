@@ -590,9 +590,9 @@ export default function JobHistoryPage() {
                     job={job}
                     onClick={() => {
                       if (job.isBidJob && job.ticket_number) {
-                        navigate(`/bid-job/${job.ticket_number}?from=history`);
+                        navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
                       } else {
-                        navigate(`/job/${job.order_number}?from=history`);
+                        navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
                       }
                     }}
                     getTranslatedVehicleType={getTranslatedVehicleType}
