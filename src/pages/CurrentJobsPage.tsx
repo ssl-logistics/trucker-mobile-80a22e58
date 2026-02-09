@@ -143,9 +143,8 @@ export default function CurrentJobsPage() {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
         // Fetch jobs and check-ins in parallel using external API directly
-        // Request both 'in_progress' and 'in_transit' status to show jobs that have been started
         const [jobsResult, checkinsResult] = await Promise.all([
-          getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'in_progress,in_transit'),
+          getDriverAssignedJobs(freelanceDriverId, driverType, 50),
           getDriverCheckins(freelanceDriverId, driverType, 'all'),
         ]);
 
