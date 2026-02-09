@@ -114,6 +114,7 @@ export default function CurrentJobsPage() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   useEffect(() => {
+    console.log(`[CurrentJobsPage] useEffect triggered - user: ${user?.id}, userType: ${userType}`);
     loadAcceptedJobs();
   }, [user, userType]);
 
@@ -134,15 +135,19 @@ export default function CurrentJobsPage() {
   const loadAcceptedJobs = async () => {
     if (!user) return;
     setLoading(true);
+    console.log(`[CurrentJobsPage] ===== LOADING ACCEPTED JOBS =====`);
+    console.log(`[CurrentJobsPage] User: ${user.id}, UserType: ${userType}`);
     
     try {
       const freelanceDriverId = user.id;
       
       // For Internal/External drivers, only use get-driver-assigned-jobs API
       if (isInternalDriver || isExternalDriver) {
+        console.log(`[CurrentJobsPage] Loading as ${isInternalDriver ? 'Internal' : 'External'} driver`);
         const driverType = isInternalDriver ? 'internal' : 'external';
         
         // Fetch jobs and check-ins in parallel using external API directly
+        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs(${freelanceDriverId}, '${driverType}', 50)`);
         const [jobsResult, checkinsResult] = await Promise.all([
           getDriverAssignedJobs(freelanceDriverId, driverType, 50),
           getDriverCheckins(freelanceDriverId, driverType, 'all'),
@@ -150,7 +155,7 @@ export default function CurrentJobsPage() {
 
         if (!jobsResult.error && jobsResult.data) {
           const result = jobsResult.data;
-          console.log('Loaded driver assigned jobs for current jobs:', result);
+          console.log('[CurrentJobsPage] Loaded driver assigned jobs for current jobs:', result);
           
           // Get check-ins to determine which jobs are actually started and which are completed
           let startedTransportIds = new Set<string>();
@@ -191,19 +196,25 @@ export default function CurrentJobsPage() {
             console.log('Jobs with any check-in (actually started):', startedTransportIds.size);
           }
           
-          const apiJobs = (result as any)?.data || [];
-          
-          // Show jobs that have status 'in_transit' OR have check-in records (already started)
-          // This allows jobs to appear in Current Jobs when:
-          // 1. Driver clicked "Start Job" and status was updated to 'in_transit'
-          // 2. Driver has done any check-in (pickup, delivery, etc.)
-          const startedJobs = apiJobs.filter((job: any) => {
-            const status = (job.status || '').toLowerCase();
-            const hasCheckIn = startedTransportIds.has(String(job.id));
-            const isInTransit = status === 'in_transit';
-            return hasCheckIn || isInTransit;
-          });
-          console.log('Jobs with in_transit status or check-in records:', startedJobs.length, '(excluded not-yet-started:', apiJobs.length - startedJobs.length, ')');
+           const apiJobs = (result as any)?.data || [];
+           console.log(`[CurrentJobsPage] Total API jobs returned: ${apiJobs.length}`);
+           apiJobs.forEach(j => console.log(`  - Order: ${j.order_number}, Status: ${j.status}, ID: ${j.id}`));
+           
+           // Show jobs that have status 'in_transit' OR have check-in records (already started)
+           // This allows jobs to appear in Current Jobs when:
+           // 1. Driver clicked "Start Job" and status was updated to 'in_transit'
+           // 2. Driver has done any check-in (pickup, delivery, etc.)
+           const startedJobs = apiJobs.filter((job: any) => {
+             const status = (job.status || '').toLowerCase();
+             const hasCheckIn = startedTransportIds.has(String(job.id));
+             const isInTransit = status === 'in_transit';
+             const shouldInclude = hasCheckIn || isInTransit;
+             if (shouldInclude) {
+               console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}`);
+             }
+             return shouldInclude;
+           });
+           console.log('Jobs with in_transit status or check-in records:', startedJobs.length, '(excluded not-yet-started:', apiJobs.length - startedJobs.length, ')');
           
           // Filter out jobs that have ALL destinations POD completed
           // For single-destination jobs: needs 1 delivery_confirmed
@@ -223,6 +234,7 @@ export default function CurrentJobsPage() {
             return isStillActive;
           });
           console.log('Active jobs after filtering completed:', activeJobs.length, '(excluded:', startedJobs.length - activeJobs.length, ')');
+          console.log(`[CurrentJobsPage] Final accepted jobs count: ${activeJobs.length}`);
           // Map to AcceptedJob format
           const mappedJobs: AcceptedJob[] = activeJobs.map((job: any) => ({
             id: job.id,
@@ -283,9 +295,11 @@ export default function CurrentJobsPage() {
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
               company_name: d.company_name || ''
             })) : undefined,
-          }));
+           }));
 
-          setAcceptedJobs(mappedJobs);
+           console.log(`[CurrentJobsPage] Setting accepted jobs: ${mappedJobs.length} jobs`);
+           mappedJobs.forEach(j => console.log(`  - ${j.order_number} (status: ${j.status})`));
+           setAcceptedJobs(mappedJobs);
         } else {
           console.error('Error loading driver assigned jobs:', jobsResult.error);
           setAcceptedJobs([]);
