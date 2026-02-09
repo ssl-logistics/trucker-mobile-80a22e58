@@ -506,15 +506,6 @@ export default function DomesticJobDetail({
 
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
-  
-  // Debug: Log destinations to verify data is coming through
-  console.log('[DomesticJobDetail] job.destinations:', job.destinations);
-  console.log('[DomesticJobDetail] destinations array length:', destinations.length);
-  if (destinations.length > 0) {
-    destinations.forEach((d, i) => {
-      console.log(`[DomesticJobDetail] Destination ${i + 1}:`, d.company_name, d.district, d.province);
-    });
-  }
 
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
