@@ -139,16 +139,19 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [jobsResult, checkinsRes] = await Promise.all([
-          getDriverAssignedJobs(driverId, driverType, 100),
+        const [inProgressResult, inTransitResult, deliveredResult, checkinsRes] = await Promise.all([
+          getDriverAssignedJobs(driverId, driverType, 100, 'in_progress'),
+          getDriverAssignedJobs(driverId, driverType, 100, 'in_transit'),
+          getDriverAssignedJobs(driverId, driverType, 100, 'delivered'),
           getDriverCheckins(driverId, driverType),
         ]);
 
-        const jobsJson = jobsResult.data || { data: [] };
-        const { data: checkinsJson } = await checkinsRes;
-
-        const allJobs = jobsJson.data || [];
-        const allCheckins = checkinsJson?.data || [];
+        const allJobs = [
+          ...((inProgressResult.data as any)?.data || []),
+          ...((inTransitResult.data as any)?.data || []),
+          ...((deliveredResult.data as any)?.data || []),
+        ];
+        const allCheckins = (checkinsRes.data as any)?.data || [];
 
         // Count PODs per transport_order_id for multi-destination jobs
         const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
