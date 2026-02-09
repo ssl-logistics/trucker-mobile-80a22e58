@@ -210,18 +210,19 @@ export default function JobDetailPage() {
         );
 
         // Merge both responses
-        if (!inProgressResponse.ok || !inTransitResponse.ok) {
-          throw new Error('Failed to fetch job details');
-        }
-
-        const inProgressData = await inProgressResponse.json();
-        const inTransitData = await inTransitResponse.json();
+        const inProgressData = inProgressResponse.ok ? await inProgressResponse.json() : { data: [] };
+        const inTransitData = inTransitResponse.ok ? await inTransitResponse.json() : { data: [] };
+        
+        console.log('[JobDetailPage] in_progress data:', inProgressData);
+        console.log('[JobDetailPage] in_transit data:', inTransitData);
         
         // Combine the data from both statuses
         const combinedData = [
           ...(inProgressData.data || []),
           ...(inTransitData.data || []),
         ];
+        
+        console.log('[JobDetailPage] Combined data count:', combinedData.length, 'Looking for:', jobId);
         
         // Create a merged response object
         const mergedResult = {
