@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -167,13 +168,30 @@ export default function Home() {
       });
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
-        // Build origin/destination from province + district if not provided directly
-        const originLocation = item.origin || 
-          [item.sender_district, item.sender_province].filter(Boolean).join(', ') || 
-          item.from_location || '';
-        const destinationLocation = item.destination || 
-          [item.destination_district, item.destination_province].filter(Boolean).join(', ') || 
-          item.to_location || '';
+        // Determine if international
+        const isIntl = !!(item.booking_no || item.bl_no) || item.transport_category === 'international' || item.job_type === 'international';
+        
+        // Build origin/destination - use different sources for international vs domestic
+        let originLocation: string;
+        let destinationLocation: string;
+        
+        if (isIntl) {
+          // International: use empty_pickup_address (extract district+province) or fallback
+          originLocation = extractDistrictProvince(item.empty_pickup_address) !== '-'
+            ? extractDistrictProvince(item.empty_pickup_address)
+            : [item.sender_district, item.sender_province].filter(Boolean).join(', ') || item.sender_address || '';
+          destinationLocation = extractDistrictProvince(item.container_return_address) !== '-'
+            ? extractDistrictProvince(item.container_return_address)
+            : [item.destination_district, item.destination_province].filter(Boolean).join(', ') || item.destination_address || '';
+        } else {
+          // Domestic: use province + district
+          originLocation = item.origin || 
+            [item.sender_district, item.sender_province].filter(Boolean).join(', ') || 
+            item.from_location || '';
+          destinationLocation = item.destination || 
+            [item.destination_district, item.destination_province].filter(Boolean).join(', ') || 
+            item.to_location || '';
+        }
         
         return {
            id: item.id || String(Math.random()),
