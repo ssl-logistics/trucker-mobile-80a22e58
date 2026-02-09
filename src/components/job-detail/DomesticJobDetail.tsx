@@ -550,7 +550,7 @@ export default function DomesticJobDetail({
         <div className={`grid gap-2 ${job.job_type === 'international' ? 'grid-cols-2' : 'grid-cols-3'}`}>
           <Card className="p-2 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
             <img src={coinsIcon} alt="price" className="w-6 h-6 mb-1" />
-            <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {job.price.toLocaleString()}</div>
+            <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {(job.price ?? 0).toLocaleString()}</div>
           </Card>
           <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
             <img src={routeIcon} alt="route" className="w-5 h-5 mb-1" />
