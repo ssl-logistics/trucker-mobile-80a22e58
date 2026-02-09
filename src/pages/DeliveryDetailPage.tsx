@@ -709,7 +709,7 @@ export default function DeliveryDetailPage() {
         <div className="flex items-center justify-between">
           <button onClick={() => {
             const fromParam = new URLSearchParams(location.search).get('from');
-            navigate(`/job/${job.order_code}${fromParam ? `?from=${fromParam}` : ''}`);
+            navigate(`/job/${job.order_code}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: (location.state as any)?.jobData || job } });
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
