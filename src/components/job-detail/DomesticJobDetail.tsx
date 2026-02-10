@@ -123,9 +123,10 @@ export default function DomesticJobDetail({
     language
   } = useLanguage();
   const card1Ref = useRef<HTMLDivElement>(null);
-  const [cardHeights, setCardHeights] = useState({
+  const deliveryCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [cardHeights, setCardHeights] = useState<{ card1: number; deliveryCards: Record<string, number> }>({
     card1: 0,
-    card2: 0
+    deliveryCards: {}
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   // destinations state removed - job_destinations table no longer exists
@@ -496,13 +497,15 @@ export default function DomesticJobDetail({
 
   useEffect(() => {
     // Calculate card heights for step positioning
-    if (card1Ref.current) {
-      setCardHeights({
-        card1: card1Ref.current.offsetHeight,
-        card2: 200
-      });
-    }
-  }, [jobApplication]);
+    const newHeights: { card1: number; deliveryCards: Record<string, number> } = {
+      card1: card1Ref.current?.offsetHeight || 0,
+      deliveryCards: {}
+    };
+    deliveryCardRefs.current.forEach((el, key) => {
+      newHeights.deliveryCards[key] = el.offsetHeight;
+    });
+    setCardHeights(newHeights);
+  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins]);
 
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
@@ -629,7 +632,7 @@ export default function DomesticJobDetail({
                 : !!(destCheckinData?.checked_in_at || dest.checked_in_at);
               
               return <div key={dest.id} className="relative flex justify-center" style={{
-                height: '200px',
+                height: `${cardHeights.deliveryCards[dest.id] || 200}px`,
                 marginBottom: index < (destinations.length > 0 ? destinations.length - 1 : 0) ? '12px' : '0'
               }}>
                   <div className="absolute top-0">
@@ -959,7 +962,7 @@ export default function DomesticJobDetail({
                 const statusInfo = getStatusInfo();
                 
                 return (
-                  <Card key={dest.id} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isPreviousCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                  <Card key={dest.id} ref={(el) => { if (el) deliveryCardRefs.current.set(dest.id, el); else deliveryCardRefs.current.delete(dest.id); }} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isPreviousCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                     <div className={`${isDestinationLocked ? 'opacity-60' : ''}`}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
@@ -1058,7 +1061,7 @@ export default function DomesticJobDetail({
               const isPodCompleted = deliverySopCompleted;
               
               return (
-                <Card className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                <Card ref={(el) => { if (el) deliveryCardRefs.current.set('fallback', el); else deliveryCardRefs.current.delete('fallback'); }} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                   <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
