@@ -92,12 +92,6 @@ interface JobDetail {
   booking_number?: string | null;
   booking_no?: string | null;
   bl_no?: string | null;
-  // Container return info for international jobs
-  container_return_location?: string | null;
-  container_return_address?: string | null;
-  container_return_latitude?: number | null;
-  container_return_longitude?: number | null;
-  container_return_phone?: string | null;
   // Multiple destinations from API
   destinations?: JobDestination[];
 }
@@ -1167,80 +1161,6 @@ export default function DomesticJobDetail({
             </div>
           </div>
         </div>
-
-        {/* Container Return Location Card - Only for international jobs with return data */}
-        {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && 
-         (job.container_return_location || job.container_return_address) && (
-          <Card className="p-4 border-2 rounded-2xl border-orange-400 bg-orange-50 mt-3">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-sm text-[#E65100]">{t('jobDetail.containerReturnPoint') || 'จุดคืนตู้คอนเทนเนอร์'}</h3>
-              </div>
-              
-              <div className="text-sm font-medium text-[#E65100] mb-2">
-                {job.container_return_location || '-'}
-              </div>
-
-              <div className="space-y-1 text-sm mb-3">
-                <div className="flex">
-                  <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position') || 'เส้นทาง'}</span>
-                  <span className="text-[#454545]">: {job.container_return_address || '-'}</span>
-                </div>
-                {job.container_return_phone && (
-                  <div className="flex">
-                    <span className="text-[#454545] min-w-[100px]">{t('jobDetail.phone') || 'โทรศัพท์'}</span>
-                    <span className="text-[#454545]">: {job.container_return_phone}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-10 flex items-center justify-center gap-2 border-[#E65100] text-[#E65100]"
-                  onClick={() => {
-                    if (job.container_return_phone) {
-                      window.location.href = `tel:${job.container_return_phone}`;
-                    } else {
-                      toast({
-                        title: t('jobDetail.error'),
-                        description: t('jobDetail.noPhoneNumber'),
-                        variant: 'destructive'
-                      });
-                    }
-                  }}
-                >
-                  <Phone className="w-4 h-4" />
-                  <span className="text-xs">{t('jobDetail.call')}</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-10 flex items-center justify-center gap-2 border-[#E65100] text-[#E65100]"
-                  onClick={() => {
-                    const lat = job.container_return_latitude;
-                    const lng = job.container_return_longitude;
-                    if (lat && lng) {
-                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
-                    } else if (job.container_return_address) {
-                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.container_return_address)}`, '_blank');
-                    } else {
-                      toast({
-                        title: t('jobDetail.error'),
-                        description: t('jobDetail.noLocation'),
-                        variant: 'destructive'
-                      });
-                    }
-                  }}
-                >
-                  <img src={routeIcon} alt="route" className="w-4 h-4" />
-                  <span className="text-xs">{t('jobDetail.route')}</span>
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
       </div>
 
 
