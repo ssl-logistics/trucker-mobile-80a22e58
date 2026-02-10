@@ -90,6 +90,8 @@ interface JobDetail {
   seal_number?: string | null;
   seal_number_2?: string | null;
   booking_number?: string | null;
+  booking_no?: string | null;
+  bl_no?: string | null;
   // Multiple destinations from API
   destinations?: JobDestination[];
 }
@@ -583,7 +585,11 @@ export default function DomesticJobDetail({
         <div>
           <div className="mb-3">
             <h2 className="text-lg font-semibold">
-              {job.job_type === 'international' ? t('jobDetail.booking') : t('jobDetail.order')} : {job.order_code}
+              {job.booking_no
+                ? `Booking : ${job.booking_no}`
+                : job.bl_no
+                  ? `BL : ${job.bl_no}`
+                  : `${job.job_type === 'international' ? t('jobDetail.booking') : t('jobDetail.order')} : ${job.order_code}`}
             </h2>
             <p className="text-base font-medium text-[#005E53]">
               {t('jobDetail.employer')} : {job.employer_name}
