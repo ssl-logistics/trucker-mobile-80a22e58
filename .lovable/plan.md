@@ -1,41 +1,44 @@
 
-## Fix: "Job not found" when navigating back to Job Detail from SOP/POD in History
+
+## Fix: Include coordinates in destinations mapping for tracking waypoints
 
 ### Problem
-The `JobDetailPage` fetches jobs from the API with statuses `in_progress`, `in_transit`, and `delivered`, but NOT `completed`. Jobs shown in the history page are all completed, so they are never found in the API response. While `location.state` is passed initially, navigating to SOP/POD sub-pages and pressing back can lose this state, causing the "Job not found" error.
+The `destinations` array mapped from the API only contains `sequence`, `location`, and `company_name`. The waypoints extraction code filters by `d.latitude && d.longitude`, which always returns empty because those fields were never mapped.
 
 ### Solution
-When the URL contains `?from=history`, also fetch jobs with `completed` status from the API. This ensures the job data is always findable regardless of navigation state.
+Add `latitude` and `longitude` fields to the destinations mapping in all three places where jobs are transformed, and update the TypeScript interface accordingly.
 
 ### Technical Details
 
-**File: `src/pages/JobDetailPage.tsx`**
+**File: `src/pages/Home.tsx`**
 
-1. Detect `from=history` query parameter at the start of `loadJobDetail()`
-2. For Internal/External drivers: add a 4th parallel fetch for `completed` status and merge into `combinedData`
-3. For Freelance drivers: the existing freelance API already returns all statuses, so no change needed there
-
+1. Update the `Job` interface to include coordinates in `destinations`:
 ```typescript
-// Current: only fetches 3 statuses
-const [inProgressResult, inTransitResult, deliveredResult] = await Promise.all([
-  getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
-  getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
-  getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
-]);
-
-// Updated: also fetch completed when coming from history
-const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
-const fetches = [
-  getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
-  getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
-  getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
-];
-if (isFromHistory) {
-  fetches.push(getDriverAssignedJobs(user.id, driverType, 50, 'completed'));
-}
-const results = await Promise.all(fetches);
-// Combine all results
-const combinedData = results.flatMap(r => (r.data as any)?.data || []);
+destinations?: Array<{
+  sequence: number;
+  location: string;
+  company_name?: string;
+  latitude?: number;
+  longitude?: number;
+}>;
 ```
 
-This ensures that completed jobs are always findable when the user is browsing from the history page, eliminating the "Job not found" error on back navigation.
+2. Update the factory jobs mapping (around line 221-225) to include coordinates:
+```typescript
+destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
+  sequence: d.sequence_number || d.sequence || idx + 1,
+  location: ...,
+  company_name: d.company_name || '',
+  latitude: d.latitude || d.destination_latitude || undefined,
+  longitude: d.longitude || d.destination_longitude || undefined,
+})) : undefined
+```
+
+3. Apply the same change to the freelance/express-rent jobs mapping (around line 377-381).
+
+**File: `src/pages/PickupDetailPage.tsx`**
+
+4. Same fix for the PickupDetailPage waypoints extraction -- the `jobAny.destinations` fields also need the correct property names (`latitude`/`longitude`) which should now be available from the mapped data passed via navigation state or API response.
+
+No changes needed to the Edge Function (`create-tracking-room`) -- it already handles `waypoints` correctly.
+
