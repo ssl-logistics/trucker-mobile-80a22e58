@@ -256,6 +256,21 @@ export default function JobDetailPage() {
           (stateJob ? stateJob : null); // Final fallback: use stateJob regardless of ID match (user navigated here intentionally)
 
         if (foundJob) {
+          // Debug log to inspect container/eta/empty fields from API
+          console.log('[JobDetailPage] Container/ETA fields:', {
+            container_checkpoint_time: foundJob.container_checkpoint_time,
+            eta_date: foundJob.eta_date,
+            eta_time: foundJob.eta_time,
+            vessel_eta: foundJob.vessel_eta,
+            vessel_arrival_date: foundJob.vessel_arrival_date,
+            empty_container_date: foundJob.empty_container_date,
+            empty_pickup_date: foundJob.empty_pickup_date,
+            empty_pickup_time: foundJob.empty_pickup_time,
+            first_pickup_date: foundJob.first_pickup_date,
+            allRelatedKeys: Object.keys(foundJob).filter(k => 
+              k.includes('eta') || k.includes('empty') || k.includes('vessel') || k.includes('container') || k.includes('checkpoint')
+            )
+          });
           // Map API response to JobDetail interface
           // Handle different field names from different APIs
           const mappedJob: JobDetail = {
@@ -287,7 +302,7 @@ export default function JobDetailPage() {
             safety_equipment: null,
             container_checkpoint: foundJob.container_checkpoint || null,
             container_checkpoint_code: foundJob.container_checkpoint_code || null,
-            empty_container_date: foundJob.empty_container_date || null,
+            empty_container_date: foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.first_pickup_date || null,
             container_number: foundJob.container_number || null,
             container_number_2: foundJob.container_number_2 || null,
             seal_number: foundJob.seal_number || null,
@@ -306,7 +321,7 @@ export default function JobDetailPage() {
             destination_date: foundJob.destination_delivery_date,
             destination_remarks: foundJob.remarks,
             tax_id: null,
-            container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || null,
+            container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || foundJob.eta_time || foundJob.vessel_eta || foundJob.vessel_arrival_date || null,
             booking_number: foundJob.booking_number || null,
             booking_no: foundJob.booking_no || null,
             bl_no: foundJob.bl_no || null,
