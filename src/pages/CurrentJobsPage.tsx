@@ -708,9 +708,7 @@ export default function CurrentJobsPage() {
                             <div className="font-medium">
                               {job.sender_province && job.sender_district 
                                 ? `${job.sender_district}, ${job.sender_province}` 
-                                : (job.job_type === 'international' || job.transport_category === 'international')
-                                  ? extractDistrictProvince(job.empty_pickup_address || job.sender_address)
-                                  : job.sender_address || '-'}
+                                : extractDistrictProvince(job.empty_pickup_address || job.sender_address)}
                             </div>
                           </div>
                           <div className="text-xs">
@@ -718,9 +716,7 @@ export default function CurrentJobsPage() {
                             <div className="font-medium">
                               {job.destination_province && job.destination_district 
                                 ? `${job.destination_district}, ${job.destination_province}` 
-                                : (job.job_type === 'international' || job.transport_category === 'international')
-                                  ? extractDistrictProvince(job.container_return_address || job.destination_address)
-                                  : job.destination_address || '-'}
+                                : extractDistrictProvince(job.container_return_address || job.destination_address)}
                             </div>
                           </div>
                         </div>
