@@ -246,7 +246,6 @@ export default function DomesticJobDetail({
     try {
       const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-container', {
         body: {
-          order_number: job.order_code,
           container_no: ocrResult.container_number,
           seal_no: ocrResult.seal_number || null,
         },
