@@ -38,11 +38,6 @@ interface JobDetail {
   origin_location: string | null;
   origin_company_name: string | null;
   equipment_list: string | null;
-  container_return_location: string | null;
-  container_return_address: string | null;
-  container_return_latitude: number | null;
-  container_return_longitude: number | null;
-  container_return_phone: string | null;
 }
 
 export default function ContainerCheckInPage() {
@@ -155,11 +150,6 @@ export default function ContainerCheckInPage() {
             origin_location: foundJob.sender_address || `${foundJob.sender_district || ''}, ${foundJob.sender_province || ''}`.replace(/^, |, $/g, '') || null,
             origin_company_name: foundJob.factory_name || foundJob.sender_name || null,
             equipment_list: foundJob.vehicle_type || foundJob.equipment_list || null,
-            container_return_location: foundJob.container_return_location || null,
-            container_return_address: foundJob.container_return_address || null,
-            container_return_latitude: foundJob.container_return_latitude || null,
-            container_return_longitude: foundJob.container_return_longitude || null,
-            container_return_phone: foundJob.container_return_phone || null,
           };
           setJob(mappedJob);
           
@@ -505,75 +495,6 @@ export default function ContainerCheckInPage() {
           <img src={routeIcon} alt="Route" className="w-4 h-4 mr-2" />
           เส้นทาง
         </Button>
-
-        {/* Container Return Location Card */}
-        {(job.container_return_location || job.container_return_address) && (
-          <Card className="overflow-hidden border-0 shadow-md rounded-2xl">
-            {/* Card Header - Orange theme */}
-            <div className="bg-orange-50 px-4 py-3">
-              <p className="text-sm font-medium text-[#E65100]">{t('containerCheckin.returnLocation') || 'จุดคืนตู้คอนเทนเนอร์'}</p>
-              <p className="text-base font-semibold text-[#E65100]">{job.container_return_location || '-'}</p>
-            </div>
-
-            {/* Map Section */}
-            <div className="relative">
-              {job.container_return_latitude && job.container_return_longitude ? (
-                <div className="h-40">
-                  <GoogleMap 
-                    latitude={job.container_return_latitude}
-                    longitude={job.container_return_longitude}
-                    markerLabel={job.container_return_location || t('containerCheckin.returnLocation') || 'จุดคืนตู้'}
-                    showRoute={false}
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-40 bg-muted flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin className="w-10 h-10 text-muted-foreground mx-auto mb-1" />
-                    <p className="text-xs text-muted-foreground">{t('jobDetail.noLocation')}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Info + Actions */}
-            <div className="p-4 space-y-3">
-              {job.container_return_address && (
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('jobDetail.address') || 'ที่อยู่'}</p>
-                  <p className="text-sm font-semibold text-[#E65100]">{job.container_return_address}</p>
-                </div>
-              )}
-              
-              <div className="flex gap-2">
-                {job.container_return_phone && (
-                  <Button 
-                    variant="outline" 
-                    className="flex-1 h-10 text-sm border-[#E65100] text-[#E65100] rounded-full"
-                    onClick={() => window.open(`tel:${job.container_return_phone}`, '_self')}
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    {job.container_return_phone}
-                  </Button>
-                )}
-                <Button 
-                  variant="outline" 
-                  className="flex-1 h-10 text-sm border-[#E65100] text-[#E65100] rounded-full"
-                  onClick={() => {
-                    if (job.container_return_latitude && job.container_return_longitude) {
-                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${job.container_return_latitude},${job.container_return_longitude}`, '_blank');
-                    } else if (job.container_return_location) {
-                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.container_return_location)}`, '_blank');
-                    }
-                  }}
-                >
-                  <img src={routeIcon} alt="Route" className="w-4 h-4 mr-2" />
-                  {t('containerCheckin.navigate') || 'นำทาง'}
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
       </div>
 
       {/* Fixed Bottom Check-in Button */}
