@@ -110,6 +110,21 @@ export default function ContainerCheckInPage() {
           String(j.id) === jobId
         );
         
+        // Debug: inspect all coordinate and checkpoint fields from API
+        console.log('[ContainerCheckInPage] Raw coordinate fields:', {
+          container_checkpoint: foundJob.container_checkpoint,
+          container_checkpoint_latitude: foundJob.container_checkpoint_latitude,
+          container_checkpoint_longitude: foundJob.container_checkpoint_longitude,
+          empty_pickup_address: foundJob.empty_pickup_address,
+          empty_pickup_depot: foundJob.empty_pickup_depot,
+          empty_pickup_latitude: foundJob.empty_pickup_latitude,
+          empty_pickup_longitude: foundJob.empty_pickup_longitude,
+          depot_latitude: foundJob.depot_latitude,
+          depot_longitude: foundJob.depot_longitude,
+          allCoordKeys: Object.keys(foundJob).filter((k: string) => 
+            k.includes('lat') || k.includes('lng') || k.includes('lon') || k.includes('checkpoint') || k.includes('depot') || k.includes('empty_pickup')
+          )
+        });
         console.log('[ContainerCheckInPage] Looking for jobId:', jobId);
         console.log('[ContainerCheckInPage] Available jobs:', result.data.map((j: any) => ({ id: j.id, order_number: j.order_number })));
         console.log('[ContainerCheckInPage] Found job:', foundJob);
