@@ -376,6 +376,33 @@ export default function DomesticJobDetail({
         setDeliveryCheckedIn(hasDeliveryCheckin);
         setEmptyContainerCheckedIn(hasEmptyContainerCheckin);
         
+        // Extract container_number & seal_number from empty_container checkin for auto-lookup
+        const emptyContainerCheckin = checkins.find((c: any) => c.checkin_type === 'empty_container');
+        if (emptyContainerCheckin) {
+          const checkinContainerNo = emptyContainerCheckin.container_number;
+          const checkinSealNo = emptyContainerCheckin.seal_number;
+          if (checkinContainerNo && !isOcrVerified) {
+            console.log('Auto-lookup from checkin data:', checkinContainerNo, checkinSealNo);
+            try {
+              const { data: lookupData, error: lookupError } = await supabase.functions.invoke('verify-container', {
+                body: {
+                  container_no: checkinContainerNo,
+                  seal_no: checkinSealNo || null,
+                },
+              });
+              if (!lookupError && lookupData?.found) {
+                setVerifiedContainerNumber(lookupData.container_no || checkinContainerNo);
+                setVerifiedSealNumber(lookupData.seal_no || checkinSealNo || null);
+                setIsOcrVerified(true);
+                setVerifiedLookupData(lookupData);
+                console.log('Auto-lookup from checkin success:', lookupData);
+              }
+            } catch (lookupErr) {
+              console.error('Auto-lookup from checkin error:', lookupErr);
+            }
+          }
+        }
+        
         // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
         // Also support format: delivery with destination_sequence_number
         // FALLBACK: If checkin_type is plain "delivery" without sequence, assume sequence 1
@@ -493,14 +520,14 @@ export default function DomesticJobDetail({
     }
   }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
 
-  // Auto-fetch container data from lookup-container API if job has container_number
+  // Fallback auto-fetch: if job has container_number from API (not from checkin)
   useEffect(() => {
     const autoLookupContainer = async () => {
       const containerNo = job.container_number;
       if (!containerNo) return;
       
       try {
-        console.log('Auto-lookup container:', containerNo);
+        console.log('Auto-lookup from job.container_number:', containerNo);
         const { data, error } = await supabase.functions.invoke('verify-container', {
           body: {
             container_no: containerNo,
@@ -518,18 +545,17 @@ export default function DomesticJobDetail({
           setVerifiedSealNumber(data.seal_no || job.seal_number || null);
           setIsOcrVerified(true);
           setVerifiedLookupData(data);
-          console.log('Auto-lookup success:', data);
+          console.log('Auto-lookup from job success:', data);
         }
       } catch (err) {
         console.error('Auto-lookup exception:', err);
       }
     };
     
-    // Only auto-lookup if not already verified and job has container number
     if (job.container_number && !isOcrVerified) {
       autoLookupContainer();
     }
-  }, [job.container_number, job.seal_number]);
+  }, [job.container_number, job.seal_number, isOcrVerified]);
 
   useEffect(() => {
     // Calculate card heights for step positioning
