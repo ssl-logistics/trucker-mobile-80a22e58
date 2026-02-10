@@ -109,7 +109,6 @@ export default function ContainerSealVerificationDialog({
 
       const { data, error } = await supabase.functions.invoke('verify-container', {
         body: {
-          order_number: orderCode,
           container_no: containerNo,
           seal_no: sealNo || null,
         },
