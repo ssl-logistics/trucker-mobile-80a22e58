@@ -1,44 +1,72 @@
 
 
-## Fix: Include coordinates in destinations mapping for tracking waypoints
+# แก้ไขเวลาเรือมาถึงและเวลาเข้ารับตู้เปล่าไม่แสดง
 
-### Problem
-The `destinations` array mapped from the API only contains `sequence`, `location`, and `company_name`. The waypoints extraction code filters by `d.latitude && d.longitude`, which always returns empty because those fields were never mapped.
+## ปัญหา
+ในหน้ารายละเอียดงาน (Job Detail) สำหรับงาน International เช่น OR20260209026 ฟิลด์ "วัน/เวลาเรือถึง" และ "วันเริ่มเข้ารับตู้เปล่า" แสดงเป็น "-" เพราะ API ภายนอกอาจส่งชื่อฟิลด์ต่างจากที่โค้ดแมปไว้
 
-### Solution
-Add `latitude` and `longitude` fields to the destinations mapping in all three places where jobs are transformed, and update the TypeScript interface accordingly.
+## สาเหตุ
+การแมปข้อมูลใน `JobDetailPage.tsx` รองรับชื่อฟิลด์จำกัด:
+- **เรือถึง**: `container_checkpoint_time` หรือ `eta_date` เท่านั้น
+- **รับตู้เปล่า**: `empty_container_date` เท่านั้น
 
-### Technical Details
+แต่ API ภายนอกอาจส่งมาในชื่อฟิลด์อื่น เช่น `vessel_eta`, `empty_pickup_date`, `empty_pickup_time`, `eta_time` เป็นต้น
 
-**File: `src/pages/Home.tsx`**
+## แผนแก้ไข
 
-1. Update the `Job` interface to include coordinates in `destinations`:
+### ขั้นตอนที่ 1: เพิ่ม Debug Log เพื่อดูฟิลด์ทั้งหมดจาก API
+เพิ่ม `console.log` ใน `JobDetailPage.tsx` หลังจากหา `foundJob` ได้แล้ว เพื่อแสดงฟิลด์ทุกตัวที่เกี่ยวข้องกับ container/eta/empty:
+
 ```typescript
-destinations?: Array<{
-  sequence: number;
-  location: string;
-  company_name?: string;
-  latitude?: number;
-  longitude?: number;
-}>;
+console.log('[JobDetailPage] Container fields:', {
+  container_checkpoint_time: foundJob.container_checkpoint_time,
+  eta_date: foundJob.eta_date,
+  eta_time: foundJob.eta_time,
+  vessel_eta: foundJob.vessel_eta,
+  empty_container_date: foundJob.empty_container_date,
+  empty_pickup_date: foundJob.empty_pickup_date,
+  empty_pickup_time: foundJob.empty_pickup_time,
+  allKeys: Object.keys(foundJob).filter(k => 
+    k.includes('eta') || k.includes('empty') || k.includes('vessel') || k.includes('container') || k.includes('checkpoint')
+  )
+});
 ```
 
-2. Update the factory jobs mapping (around line 221-225) to include coordinates:
+### ขั้นตอนที่ 2: เพิ่ม Fallback Field Names ในการแมป
+ปรับการแมปใน `JobDetailPage.tsx` ให้รองรับชื่อฟิลด์เพิ่มเติม:
+
+**ไฟล์: `src/pages/JobDetailPage.tsx`**
 ```typescript
-destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
-  sequence: d.sequence_number || d.sequence || idx + 1,
-  location: ...,
-  company_name: d.company_name || '',
-  latitude: d.latitude || d.destination_latitude || undefined,
-  longitude: d.longitude || d.destination_longitude || undefined,
-})) : undefined
+// เวลาเรือถึง - เพิ่ม fallback หลายชื่อ
+container_checkpoint_time: foundJob.container_checkpoint_time 
+  || foundJob.eta_date 
+  || foundJob.eta_time
+  || foundJob.vessel_eta
+  || foundJob.vessel_arrival_date
+  || null,
+
+// วันรับตู้เปล่า - เพิ่ม fallback
+empty_container_date: foundJob.empty_container_date 
+  || foundJob.empty_pickup_date 
+  || foundJob.first_pickup_date
+  || null,
 ```
 
-3. Apply the same change to the freelance/express-rent jobs mapping (around line 377-381).
+### ขั้นตอนที่ 3: แก้ไขเดียวกันใน `ContainerCheckInPage.tsx`
+ให้หน้า ContainerCheckIn มี fallback เหมือนกัน
 
-**File: `src/pages/PickupDetailPage.tsx`**
+### ขั้นตอนที่ 4: แก้ไขเดียวกันใน `PickupDetailPage.tsx`
+ให้หน้า PickupDetail มี fallback เหมือนกัน (ถ้ามีการแสดงข้อมูลเหล่านี้)
 
-4. Same fix for the PickupDetailPage waypoints extraction -- the `jobAny.destinations` fields also need the correct property names (`latitude`/`longitude`) which should now be available from the mapped data passed via navigation state or API response.
+---
 
-No changes needed to the Edge Function (`create-tracking-room`) -- it already handles `waypoints` correctly.
+## รายละเอียดทางเทคนิค
 
+### ไฟล์ที่ต้องแก้ไข
+1. **`src/pages/JobDetailPage.tsx`** - เพิ่ม debug log + fallback field mapping (บรรทัด ~258, ~290, ~309)
+2. **`src/pages/ContainerCheckInPage.tsx`** - เพิ่ม fallback field mapping (บรรทัด ~127-130)
+
+### ขั้นตอนการทำงาน
+1. เพิ่ม console.log เพื่อดูชื่อฟิลด์จริงจาก API ก่อน
+2. เพิ่ม fallback mapping ตามชื่อฟิลด์ที่เป็นไปได้
+3. หลังจากเห็น log จริงแล้ว สามารถปรับเพิ่มได้อีกถ้ายังไม่ครบ
