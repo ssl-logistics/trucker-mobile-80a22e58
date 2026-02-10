@@ -145,9 +145,18 @@ export default function DomesticJobDetail({
   const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
   const [ocrResult, setOcrResult] = useState<{ container_number: string | null; seal_number: string | null } | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verifiedContainerNumber, setVerifiedContainerNumber] = useState<string | null>(null);
-  const [verifiedSealNumber, setVerifiedSealNumber] = useState<string | null>(null);
-  const [isOcrVerified, setIsOcrVerified] = useState(false);
+  // Persist OCR verified data in localStorage keyed by order_code
+  const ocrStorageKey = `ocr_verified_${job.order_code}`;
+  const savedOcr = (() => {
+    try {
+      const raw = localStorage.getItem(ocrStorageKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+  const [verifiedContainerNumber, setVerifiedContainerNumber] = useState<string | null>(savedOcr?.container_number || null);
+  const [verifiedSealNumber, setVerifiedSealNumber] = useState<string | null>(savedOcr?.seal_number || null);
+  const [isOcrVerified, setIsOcrVerified] = useState(!!savedOcr);
+  const [verifiedLookupData, setVerifiedLookupData] = useState<any>(savedOcr?.lookupData || null);
   
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
@@ -269,10 +278,19 @@ export default function DomesticJobDetail({
           description: verifyResult?.message || 'พบข้อมูลตู้คอนเทนเนอร์ในระบบ',
         });
         
-        // Update local state with verified data - stay on this page
+        // Update local state with verified data and persist to localStorage
         setVerifiedContainerNumber(ocrResult.container_number);
         setVerifiedSealNumber(ocrResult.seal_number);
         setIsOcrVerified(true);
+        setVerifiedLookupData(verifyResult);
+        try {
+          localStorage.setItem(ocrStorageKey, JSON.stringify({
+            container_number: ocrResult.container_number,
+            seal_number: ocrResult.seal_number,
+            lookupData: verifyResult,
+            verified_at: new Date().toISOString(),
+          }));
+        } catch (e) { console.error('Failed to save OCR data:', e); }
         setShowOcrConfirmDialog(false);
       } else {
         toast({
