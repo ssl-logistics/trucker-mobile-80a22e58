@@ -256,14 +256,27 @@ export default function PickupDetailPage() {
           '';
 
         try {
-          const trackingBody = {
+          // Build waypoints from destinations for multi-destination jobs
+          const jobAny = job as any;
+          const waypoints = jobAny.destinations && jobAny.destinations.length > 1
+            ? jobAny.destinations
+                .filter((d: any) => d.latitude && d.longitude)
+                .map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
+            : undefined;
+
+          const trackingBody: any = {
             truck_plate: truckPlate,
             order_code: job.order_code,
             origin_lat: job.origin_latitude ?? 0,
             origin_lng: job.origin_longitude ?? 0,
             destination_lat: job.destination_latitude ?? 0,
             destination_lng: job.destination_longitude ?? 0,
+            current_lat: job.origin_latitude ?? 0,
+            current_lng: job.origin_longitude ?? 0,
           };
+          if (waypoints && waypoints.length > 0) {
+            trackingBody.waypoints = waypoints;
+          }
 
           console.log('📍 create-tracking-room fallback body:', trackingBody);
 
