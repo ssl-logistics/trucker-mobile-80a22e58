@@ -189,16 +189,14 @@ export default function JobDetailPage() {
       if (isInternalDriver || isExternalDriver) {
         // Internal/External drivers use get-driver-assigned-jobs API
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
         // Fetch jobs with multiple statuses to find jobs at any stage
+        // Always include 'completed' so data persists after POD submission
         const fetches = [
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
         ];
-        if (isFromHistory) {
-          fetches.push(getDriverAssignedJobs(user.id, driverType, 50, 'completed'));
-        }
         const results = await Promise.all(fetches);
         
         // Combine the data from all statuses
