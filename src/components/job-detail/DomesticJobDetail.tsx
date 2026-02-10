@@ -263,10 +263,10 @@ export default function DomesticJobDetail({
       
       console.log('Verify container result:', verifyResult);
       
-      if (verifyResult?.matched) {
+      if (verifyResult?.found) {
         toast({
           title: t('containerSealVerification.verified') || 'ตรวจสอบสำเร็จ',
-          description: t('containerSealVerification.matchedMessage') || 'เลขตู้และซีลตรงกับระบบ',
+          description: verifyResult?.message || 'พบข้อมูลตู้คอนเทนเนอร์ในระบบ',
         });
         
         // Update local state with verified data - stay on this page
@@ -275,14 +275,9 @@ export default function DomesticJobDetail({
         setIsOcrVerified(true);
         setShowOcrConfirmDialog(false);
       } else {
-        // Show mismatch error
-        const mismatchMessage = verifyResult?.has_containers_in_db 
-          ? (t('containerSealVerification.containerMismatch') || 'เลขตู้/ซีลไม่ตรงกับระบบ')
-          : (t('containerSealVerification.noContainerInDb') || 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ');
-        
         toast({
-          title: t('containerSealVerification.notMatched') || 'ไม่ตรงกัน',
-          description: mismatchMessage,
+          title: t('containerSealVerification.notMatched') || 'ไม่พบในระบบ',
+          description: t('containerSealVerification.noContainerInDB') || 'ไม่พบเลขตู้นี้ในระบบ',
           variant: "destructive",
         });
       }

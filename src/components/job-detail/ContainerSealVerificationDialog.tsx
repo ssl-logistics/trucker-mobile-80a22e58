@@ -44,8 +44,9 @@ interface OCRResult {
 
 interface VerificationResult {
   success: boolean;
-  matched: boolean;
-  container_matched: boolean;
+  found: boolean;
+  matched?: boolean; // legacy compat
+  container_matched?: boolean;
   seal_matched: boolean;
   container_no?: string;
   seal_no?: string;
@@ -54,6 +55,15 @@ interface VerificationResult {
   message?: string;
   has_containers_in_db?: boolean;
   error?: string;
+  // New lookup-container fields
+  container_type?: string;
+  shipping_lines?: string;
+  shipper?: string;
+  consignee?: string;
+  commodity?: string;
+  transport_direction?: string;
+  child_order_number?: string;
+  parent_order_number?: string;
 }
 
 export default function ContainerSealVerificationDialog({
@@ -177,17 +187,15 @@ export default function ContainerSealVerificationDialog({
         if (verifyResult) {
           setVerificationResult(verifyResult);
           
-          if (verifyResult.matched) {
+          if (verifyResult.found) {
             toast({
               title: t('containerSealVerification.verified') || 'ยืนยันสำเร็จ',
-              description: verifyResult.message || 'เลขตู้และซีลตรงกับระบบ',
+              description: verifyResult.message || 'พบข้อมูลตู้คอนเทนเนอร์ในระบบ',
             });
           } else {
             toast({
-              title: t('containerSealVerification.notMatched') || 'ไม่ตรงกับระบบ',
-              description: verifyResult.has_containers_in_db 
-                ? (t('containerSealVerification.containerMismatch') || 'เลขตู้/ซีลไม่ตรงกับที่ลงทะเบียนในระบบ')
-                : (t('containerSealVerification.noContainerInDB') || 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ'),
+              title: t('containerSealVerification.notMatched') || 'ไม่พบในระบบ',
+              description: t('containerSealVerification.noContainerInDB') || 'ไม่พบเลขตู้นี้ในระบบ',
               variant: 'destructive',
             });
           }
@@ -216,17 +224,15 @@ export default function ContainerSealVerificationDialog({
     if (result) {
       setVerificationResult(result);
       
-      if (result.matched) {
+      if (result.found) {
         toast({
           title: t('containerSealVerification.verified') || 'ยืนยันสำเร็จ',
-          description: result.message || 'เลขตู้และซีลตรงกับระบบ',
+          description: result.message || 'พบข้อมูลตู้คอนเทนเนอร์ในระบบ',
         });
       } else {
         toast({
-          title: t('containerSealVerification.notMatched') || 'ไม่ตรงกับระบบ',
-          description: result.has_containers_in_db 
-            ? (t('containerSealVerification.containerMismatch') || 'เลขตู้/ซีลไม่ตรงกับที่ลงทะเบียนในระบบ')
-            : (t('containerSealVerification.noContainerInDB') || 'ยังไม่มีเลขตู้ลงทะเบียนในระบบ'),
+          title: t('containerSealVerification.notMatched') || 'ไม่พบในระบบ',
+          description: t('containerSealVerification.noContainerInDB') || 'ไม่พบเลขตู้นี้ในระบบ',
           variant: 'destructive',
         });
       }
@@ -526,28 +532,26 @@ export default function ContainerSealVerificationDialog({
                     <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <p className={`font-semibold ${verificationResult.matched ? 'text-green-800' : 'text-red-800'}`}>
-                      {verificationResult.matched 
-                        ? (t('containerSealVerification.verified') || 'ยืนยันสำเร็จ - ข้อมูลตรงกับระบบ')
-                        : (t('containerSealVerification.notMatched') || 'ไม่ตรงกับระบบ')
+                    <p className={`font-semibold ${verificationResult.found ? 'text-green-800' : 'text-red-800'}`}>
+                      {verificationResult.found 
+                        ? (t('containerSealVerification.verified') || 'ยืนยันสำเร็จ - พบข้อมูลในระบบ')
+                        : (t('containerSealVerification.notMatched') || 'ไม่พบในระบบ')
                       }
                     </p>
-                    <p className={`text-sm mt-1 ${verificationResult.matched ? 'text-green-700' : 'text-red-700'}`}>
+                    <p className={`text-sm mt-1 ${verificationResult.found ? 'text-green-700' : 'text-red-700'}`}>
                       {verificationResult.message || (
-                        verificationResult.matched 
-                          ? 'เลขตู้และซีลตรงกับที่ลงทะเบียนในระบบ'
-                          : verificationResult.has_containers_in_db
-                            ? 'เลขตู้/ซีลไม่ตรงกับที่ลงทะเบียนในระบบ กรุณาตรวจสอบอีกครั้ง'
-                            : 'ยังไม่มีเลขตู้ลงทะเบียนในระบบสำหรับงานนี้'
+                        verificationResult.found 
+                          ? 'พบข้อมูลตู้คอนเทนเนอร์ในระบบ'
+                          : 'ไม่พบเลขตู้นี้ในระบบ'
                       )}
                     </p>
-                    {verificationResult.matched && verificationResult.booking_no && (
+                    {verificationResult.found && verificationResult.booking_no && (
                       <p className="text-xs text-green-600 mt-2">
                         Booking: {verificationResult.booking_no}
                       </p>
                     )}
                     {/* Show detailed match status */}
-                    {verificationResult.matched && (
+                    {verificationResult.found && (
                       <div className="flex gap-3 mt-2 text-xs">
                         <span className="flex items-center gap-1 text-green-600">
                           <CheckCircle className="w-3 h-3" />
