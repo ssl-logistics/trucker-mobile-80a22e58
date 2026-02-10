@@ -289,7 +289,7 @@ export default function CurrentJobsPage() {
             freelance_bidder_name: null,
             factory_name: job.factory_name,
             isFactoryJob: true,
-            job_type: job.job_type || job.transport_category || null,
+            job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || null),
             transport_category: job.transport_category || null,
             // Container info for international jobs
             container_number: job.container_number || null,
@@ -434,7 +434,7 @@ export default function CurrentJobsPage() {
             ...job,
             sender_name: job.factory_name || job.sender_name,
             isFactoryJob: true,
-            job_type: job.job_type || job.transport_category || null,
+            job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || null),
             // Multiple destinations support
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
@@ -533,7 +533,7 @@ export default function CurrentJobsPage() {
             factory_name: ticket.factory_name || null,
             isFactoryJob: false,
             isBidJob: true, // Mark as bid job for UI distinction
-            job_type: ticket.job_type || ticket.transport_category || null,
+            job_type: (ticket.booking_no || ticket.bl_no) ? 'international' : (ticket.job_type || ticket.transport_category || null),
             remarks: ticket.notes || ticket.remarks || null,
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
