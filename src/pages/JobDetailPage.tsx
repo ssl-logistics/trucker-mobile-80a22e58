@@ -73,6 +73,8 @@ interface JobDetail {
   destination_remarks: string | null;
   tax_id: string | null;
   booking_number?: string | null;
+  booking_no?: string | null;
+  bl_no?: string | null;
   destinations?: JobDestination[];
 }
 
@@ -259,7 +261,7 @@ export default function JobDetailPage() {
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number || foundJob.order_code || jobId!,
-            job_type: foundJob.job_type || foundJob.transport_category || 'domestic',
+            job_type: (foundJob.booking_no || foundJob.bl_no) ? 'international' : (foundJob.job_type || foundJob.transport_category || 'domestic'),
             employer_name: foundJob.factory_name || foundJob.sender_name || foundJob.employer_name || '',
             transport_type: foundJob.transport_mode || foundJob.transport_type || 'เที่ยวเดียว',
             origin_location: foundJob.sender_district && foundJob.sender_province 
@@ -306,6 +308,8 @@ export default function JobDetailPage() {
             tax_id: null,
             container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || null,
             booking_number: foundJob.booking_number || null,
+            booking_no: foundJob.booking_no || null,
+            bl_no: foundJob.bl_no || null,
             // Map destinations array from API
             destinations: Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0
               ? foundJob.destinations.map((d: any) => ({
