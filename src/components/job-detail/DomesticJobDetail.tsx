@@ -145,18 +145,10 @@ export default function DomesticJobDetail({
   const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
   const [ocrResult, setOcrResult] = useState<{ container_number: string | null; seal_number: string | null } | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  // Persist OCR verified data in localStorage keyed by order_code
-  const ocrStorageKey = `ocr_verified_${job.order_code}`;
-  const savedOcr = (() => {
-    try {
-      const raw = localStorage.getItem(ocrStorageKey);
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  })();
-  const [verifiedContainerNumber, setVerifiedContainerNumber] = useState<string | null>(savedOcr?.container_number || null);
-  const [verifiedSealNumber, setVerifiedSealNumber] = useState<string | null>(savedOcr?.seal_number || null);
-  const [isOcrVerified, setIsOcrVerified] = useState(!!savedOcr);
-  const [verifiedLookupData, setVerifiedLookupData] = useState<any>(savedOcr?.lookupData || null);
+  const [verifiedContainerNumber, setVerifiedContainerNumber] = useState<string | null>(null);
+  const [verifiedSealNumber, setVerifiedSealNumber] = useState<string | null>(null);
+  const [isOcrVerified, setIsOcrVerified] = useState(false);
+  const [verifiedLookupData, setVerifiedLookupData] = useState<any>(null);
   
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
@@ -278,19 +270,11 @@ export default function DomesticJobDetail({
           description: verifyResult?.message || 'พบข้อมูลตู้คอนเทนเนอร์ในระบบ',
         });
         
-        // Update local state with verified data and persist to localStorage
+        // Update local state with verified data
         setVerifiedContainerNumber(ocrResult.container_number);
         setVerifiedSealNumber(ocrResult.seal_number);
         setIsOcrVerified(true);
         setVerifiedLookupData(verifyResult);
-        try {
-          localStorage.setItem(ocrStorageKey, JSON.stringify({
-            container_number: ocrResult.container_number,
-            seal_number: ocrResult.seal_number,
-            lookupData: verifyResult,
-            verified_at: new Date().toISOString(),
-          }));
-        } catch (e) { console.error('Failed to save OCR data:', e); }
         setShowOcrConfirmDialog(false);
       } else {
         toast({
@@ -508,6 +492,44 @@ export default function DomesticJobDetail({
       fetchStatuses();
     }
   }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
+
+  // Auto-fetch container data from lookup-container API if job has container_number
+  useEffect(() => {
+    const autoLookupContainer = async () => {
+      const containerNo = job.container_number;
+      if (!containerNo) return;
+      
+      try {
+        console.log('Auto-lookup container:', containerNo);
+        const { data, error } = await supabase.functions.invoke('verify-container', {
+          body: {
+            container_no: containerNo,
+            seal_no: job.seal_number || null,
+          },
+        });
+        
+        if (error) {
+          console.error('Auto-lookup error:', error);
+          return;
+        }
+        
+        if (data?.found) {
+          setVerifiedContainerNumber(data.container_no || containerNo);
+          setVerifiedSealNumber(data.seal_no || job.seal_number || null);
+          setIsOcrVerified(true);
+          setVerifiedLookupData(data);
+          console.log('Auto-lookup success:', data);
+        }
+      } catch (err) {
+        console.error('Auto-lookup exception:', err);
+      }
+    };
+    
+    // Only auto-lookup if not already verified and job has container number
+    if (job.container_number && !isOcrVerified) {
+      autoLookupContainer();
+    }
+  }, [job.container_number, job.seal_number]);
 
   useEffect(() => {
     // Calculate card heights for step positioning
