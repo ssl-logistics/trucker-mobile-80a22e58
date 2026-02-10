@@ -529,14 +529,26 @@ export default function Home() {
 
       // Create tracking room after successful job acceptance
       try {
-        const trackingBody = {
+        // Build waypoints from destinations for multi-destination jobs
+        const waypoints = selectedJob.destinations && selectedJob.destinations.length > 1
+          ? selectedJob.destinations
+              .filter((d: any) => d.latitude && d.longitude)
+              .map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
+          : undefined;
+
+        const trackingBody: any = {
           truck_plate: licensePlate,
           order_code: selectedJob.order_code,
           origin_lat: selectedJob.origin_lat || 0,
           origin_lng: selectedJob.origin_lng || 0,
           destination_lat: selectedJob.destination_lat || 0,
-          destination_lng: selectedJob.destination_lng || 0
+          destination_lng: selectedJob.destination_lng || 0,
+          current_lat: selectedJob.origin_lat || 0,
+          current_lng: selectedJob.origin_lng || 0,
         };
+        if (waypoints && waypoints.length > 0) {
+          trackingBody.waypoints = waypoints;
+        }
         console.log('📍 create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
         
         const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
@@ -666,7 +678,14 @@ export default function Home() {
             console.warn('[Staff] Could not get GPS position, using origin as fallback:', gpsError);
           }
           
-          const trackingBody = {
+          // Build waypoints from destinations for multi-destination jobs
+          const waypoints = job.destinations && job.destinations.length > 1
+            ? job.destinations
+                .filter((d: any) => d.latitude && d.longitude)
+                .map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
+            : undefined;
+
+          const trackingBody: any = {
             truck_plate: licensePlate,
             order_code: job.order_code,
             origin_lat: job.origin_lat || 0,
@@ -676,6 +695,9 @@ export default function Home() {
             current_lat: currentLat,
             current_lng: currentLng
           };
+          if (waypoints && waypoints.length > 0) {
+            trackingBody.waypoints = waypoints;
+          }
           console.log('📍 [Staff] create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
           
           const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
