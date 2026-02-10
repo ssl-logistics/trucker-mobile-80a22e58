@@ -586,9 +586,9 @@ export default function DomesticJobDetail({
           <div className="mb-3">
             <h2 className="text-lg font-semibold">
               {job.booking_no
-                ? `Booking : ${job.booking_no}`
+                ? `Booking : ${job.booking_no} (ขาออก)`
                 : job.bl_no
-                  ? `BL : ${job.bl_no}`
+                  ? `BL : ${job.bl_no} (ขาเข้า)`
                   : `${job.job_type === 'international' ? t('jobDetail.booking') : t('jobDetail.order')} : ${job.order_code}`}
             </h2>
             <p className="text-base font-medium text-[#005E53]">
