@@ -94,6 +94,13 @@ interface JobDetail {
   bl_no?: string | null;
   // Multiple destinations from API
   destinations?: JobDestination[];
+  // Container return info for international jobs
+  container_return_location?: string | null;
+  container_return_address?: string | null;
+  container_return_latitude?: number | null;
+  container_return_longitude?: number | null;
+  container_return_phone?: string | null;
+  container_return_date?: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -127,10 +134,12 @@ export default function DomesticJobDetail({
   const card1Ref = useRef<HTMLDivElement>(null);
   const emptyContainerRef = useRef<HTMLDivElement>(null);
   const deliveryCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const [cardHeights, setCardHeights] = useState<{ emptyContainer: number; card1: number; deliveryCards: Record<string, number> }>({
+  const containerReturnRef = useRef<HTMLDivElement>(null);
+  const [cardHeights, setCardHeights] = useState<{ emptyContainer: number; card1: number; deliveryCards: Record<string, number>; containerReturn: number }>({
     emptyContainer: 0,
     card1: 0,
-    deliveryCards: {}
+    deliveryCards: {},
+    containerReturn: 0,
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   // destinations state removed - job_destinations table no longer exists
@@ -574,16 +583,17 @@ export default function DomesticJobDetail({
 
   useEffect(() => {
     // Calculate card heights for step positioning
-    const newHeights: { emptyContainer: number; card1: number; deliveryCards: Record<string, number> } = {
+    const newHeights: { emptyContainer: number; card1: number; deliveryCards: Record<string, number>; containerReturn: number } = {
       emptyContainer: emptyContainerRef.current?.offsetHeight || 0,
       card1: card1Ref.current?.offsetHeight || 0,
-      deliveryCards: {}
+      deliveryCards: {},
+      containerReturn: containerReturnRef.current?.offsetHeight || 0,
     };
     deliveryCardRefs.current.forEach((el, key) => {
       newHeights.deliveryCards[key] = el.offsetHeight;
     });
     setCardHeights(newHeights);
-  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn]);
+  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location]);
 
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
@@ -751,6 +761,19 @@ export default function DomesticJobDetail({
                   </div>
                 </div>;
             })}
+
+              {/* Container Return Circle - Only for international jobs with return data */}
+              {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && 
+                (job.container_return_location || job.container_return_latitude) && (
+                <div className="relative flex justify-center" style={{
+                  height: `${cardHeights.containerReturn || 200}px`,
+                  marginBottom: '12px'
+                }}>
+                  <div className="absolute top-0">
+                    <div className="w-7 h-7 rounded-full border-[3px] border-orange-500 bg-white shadow-sm" />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right Content Column */}
@@ -1253,6 +1276,63 @@ export default function DomesticJobDetail({
                 </Card>
               );
             })()}
+
+            {/* Container Return Card - Only for international jobs */}
+            {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && 
+              (job.container_return_location || job.container_return_latitude) && (
+              <Card ref={containerReturnRef} className="p-4 border-2 rounded-2xl border-orange-400 bg-orange-50">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-[#E65100]">จุดคืนตู้คอนเทนเนอร์</h3>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-sm mb-3">
+                    {job.container_return_location && (
+                      <div className="flex">
+                        <span className="text-[#454545] min-w-[100px]">สถานที่</span>
+                        <span className="text-[#454545]">: {job.container_return_location}</span>
+                      </div>
+                    )}
+                    {job.container_return_address && (
+                      <div className="flex">
+                        <span className="text-[#454545] min-w-[100px]">ที่อยู่</span>
+                        <span className="text-[#454545]">: {job.container_return_address}</span>
+                      </div>
+                    )}
+                    {job.container_return_date && (
+                      <div className="flex">
+                        <span className="text-[#454545] min-w-[100px]">วันที่คืนตู้</span>
+                        <span className="text-[#454545]">: {formatDate(job.container_return_date, language)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                    {!isFromHistory && job.container_return_phone && (
+                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]"
+                        onClick={() => {
+                          window.location.href = `tel:${job.container_return_phone}`;
+                        }}>
+                        <Phone className="w-4 h-4" />
+                        <span className="text-xs">{job.container_return_phone}</span>
+                      </Button>
+                    )}
+                    {!isFromHistory && (job.container_return_latitude && job.container_return_longitude) && (
+                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]"
+                        onClick={() => {
+                          const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_return_latitude},${job.container_return_longitude}`;
+                          window.open(url, '_blank');
+                        }}>
+                        <img src={routeIcon} alt="route" className="w-4 h-4" />
+                        <span className="text-xs">นำทาง</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            )}
             </div>
           </div>
         </div>
