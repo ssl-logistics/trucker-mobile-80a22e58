@@ -117,14 +117,14 @@ export function AppHeader({
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button onClick={() => navigate("/notifications")} className="relative p-1.5 hover:bg-white/10 rounded-full transition-colors">
+            <div className="flex items-center gap-0.5 flex-shrink-0 ml-1">
+              <button onClick={() => navigate("/notifications")} className="relative p-1 hover:bg-white/10 rounded-full transition-colors">
                 <Bell className="w-4 h-4 text-[#153860]" />
                 {hasUnread && (
                   <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
                 )}
               </button>
-              <button onClick={() => setShowSignOutDialog(true)} className="p-1.5 hover:bg-white/10 rounded-full transition-colors">
+              <button onClick={() => setShowSignOutDialog(true)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
                 <Power className="w-4 h-4 text-[#153860]" />
               </button>
             </div>
