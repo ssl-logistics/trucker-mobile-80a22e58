@@ -281,48 +281,52 @@ serve(async (req) => {
     console.log('Successfully upserted job:', upsertedJob.id);
 
     // Create notification in database for new job
-    // Only create if job pickup date (start_date) is not in the past AND job_type is "งานด่วน" (urgent)
+    // Send for all job_types (งานด่วน, งานรายวัน, งานสัญญาจ้าง) if pickup date is not in the past
     try {
-      // Check if job type is urgent (งานด่วน)
-      if (upsertedJob.job_type !== 'งานด่วน') {
-        console.log(`Skipping notification creation - job_type is not urgent: ${upsertedJob.job_type}`);
+      // Check if pickup date is in the past (compare dates only, not time)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const pickupDate = new Date(upsertedJob.start_date);
+      pickupDate.setHours(0, 0, 0, 0);
+      
+      if (pickupDate < today) {
+        console.log(`Skipping notification creation - pickup date is in the past: ${upsertedJob.start_date}`);
       } else {
-        // Check if pickup date is in the past (compare dates only, not time)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const pickupDate = new Date(upsertedJob.start_date);
-        pickupDate.setHours(0, 0, 0, 0);
+        console.log(`Creating notification for job (type: ${upsertedJob.job_type}, transport: ${upsertedJob.transport_type})...`);
         
-        if (pickupDate < today) {
-          console.log(`Skipping notification creation - pickup date is in the past: ${upsertedJob.start_date}`);
+        // Dynamic notification title based on job_type and transport_type
+        const jobLabel = upsertedJob.job_type === 'งานด่วน' ? 'งานด่วน' 
+          : upsertedJob.transport_type === 'ขนส่งหลายที่' ? 'งานส่งหลายที่'
+          : upsertedJob.transport_type === 'ขนส่งเที่ยวเดียว' ? 'งานเที่ยวเดียว'
+          : upsertedJob.job_type;
+
+        const titleTh = `📦 ${jobLabel}เข้ามาแล้ว!`;
+        const titleEn = `📦 New Job: ${upsertedJob.job_type}`;
+        
+        const notificationData = {
+          user_id: null, // Broadcast to all users
+          title_th: titleTh,
+          title_en: titleEn,
+          title_ko: `📦 새 작업이 있습니다!`,
+          title_zh: `📦 新工作已到达！`,
+          description_th: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          description_en: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          description_ko: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          description_zh: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+          notification_type: 'new_job',
+          reference_id: upsertedJob.id,
+          reference_type: 'job',
+          is_read: false,
+        };
+
+        const { error: notifError } = await supabase
+          .from('notifications')
+          .insert(notificationData);
+
+        if (notifError) {
+          console.error('Error creating notification:', notifError);
         } else {
-          console.log('Creating notification for urgent job...');
-          
-          const notificationData = {
-            user_id: null, // Broadcast to all users
-            title_th: '📦 งานด่วนเข้ามาแล้ว!',
-            title_en: '📦 Urgent Job Available!',
-            title_ko: '📦 긴급 작업이 있습니다!',
-            title_zh: '📦 紧急工作已到达！',
-            description_th: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-            description_en: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-            description_ko: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-            description_zh: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-            notification_type: 'new_job',
-            reference_id: upsertedJob.id,
-            reference_type: 'job',
-            is_read: false,
-          };
-
-          const { error: notifError } = await supabase
-            .from('notifications')
-            .insert(notificationData);
-
-          if (notifError) {
-            console.error('Error creating notification:', notifError);
-          } else {
-            console.log('Notification created successfully for urgent job');
-          }
+          console.log(`Notification created successfully for ${jobLabel}`);
         }
       }
     } catch (notifError) {
@@ -330,68 +334,66 @@ serve(async (req) => {
     }
 
     // Send push notifications to all registered devices (broadcast)
-    // Only send if job_type is "งานด่วน" (urgent) AND pickup date (start_date) is not in the past
+    // Send for all job_types if pickup date is not in the past
     try {
-      // Check if job type is urgent (งานด่วน)
-      if (upsertedJob.job_type !== 'งานด่วน') {
-        console.log(`Skipping push notification - job_type is not urgent: ${upsertedJob.job_type}`);
+      const todayPush = new Date();
+      todayPush.setHours(0, 0, 0, 0);
+      const pickupDatePush = new Date(upsertedJob.start_date);
+      pickupDatePush.setHours(0, 0, 0, 0);
+      
+      if (pickupDatePush < todayPush) {
+        console.log(`Skipping push notification - pickup date is in the past: ${upsertedJob.start_date}`);
       } else {
-        // Check if pickup date is in the past (compare dates only, not time)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const pickupDate = new Date(upsertedJob.start_date);
-        pickupDate.setHours(0, 0, 0, 0);
+        const pushJobLabel = upsertedJob.job_type === 'งานด่วน' ? 'งานด่วน' 
+          : upsertedJob.transport_type === 'ขนส่งหลายที่' ? 'งานส่งหลายที่'
+          : upsertedJob.transport_type === 'ขนส่งเที่ยวเดียว' ? 'งานเที่ยวเดียว'
+          : upsertedJob.job_type;
+
+        console.log(`Sending push notifications for ${pushJobLabel}...`);
         
-        if (pickupDate < today) {
-          console.log(`Skipping push notification - pickup date is in the past: ${upsertedJob.start_date}`);
-        } else {
-          console.log('Sending push notifications for urgent job...');
+        // Get all push subscriptions directly (no role filtering)
+        const { data: subscriptions, error: subError } = await supabase
+          .from('push_subscriptions')
+          .select('user_id');
+        
+        if (subError) {
+          console.error('Error fetching push subscriptions:', subError);
+        } else if (subscriptions && subscriptions.length > 0) {
+          // Get unique user_ids
+          const userIds = [...new Set(subscriptions.map(s => s.user_id))];
+          console.log(`Found ${userIds.length} users with push subscriptions to notify`);
           
-          // Get all push subscriptions directly (no role filtering)
-          const { data: subscriptions, error: subError } = await supabase
-            .from('push_subscriptions')
-            .select('user_id');
-          
-          if (subError) {
-            console.error('Error fetching push subscriptions:', subError);
-          } else if (subscriptions && subscriptions.length > 0) {
-            // Get unique user_ids
-            const userIds = [...new Set(subscriptions.map(s => s.user_id))];
-            console.log(`Found ${userIds.length} users with push subscriptions to notify`);
-            
-            // Call send-push-notification function
-            const notificationPayload = {
-              user_ids: userIds,
-              title: '📦 งานด่วนเข้ามาแล้ว!',
-              body: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-              data: {
-                type: 'new_job',
-                job_id: upsertedJob.id,
-                order_code: upsertedJob.order_code,
-                // Open Home and auto-open the job detail modal by order_code
-                url: `/home?openJobOrderCode=${upsertedJob.order_code}`
-              }
-            };
-            
-            const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${supabaseKey}`,
-              },
-              body: JSON.stringify(notificationPayload),
-            });
-            
-            if (pushResponse.ok) {
-              const pushResult = await pushResponse.json();
-              console.log('Push notifications sent:', pushResult);
-            } else {
-              const errorText = await pushResponse.text();
-              console.error('Failed to send push notifications:', errorText);
+          // Call send-push-notification function
+          const notificationPayload = {
+            user_ids: userIds,
+            title: `📦 ${pushJobLabel}เข้ามาแล้ว!`,
+            body: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+            data: {
+              type: 'new_job',
+              job_id: upsertedJob.id,
+              order_code: upsertedJob.order_code,
+              url: `/home?openJobOrderCode=${upsertedJob.order_code}`
             }
+          };
+          
+          const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify(notificationPayload),
+          });
+          
+          if (pushResponse.ok) {
+            const pushResult = await pushResponse.json();
+            console.log('Push notifications sent:', pushResult);
           } else {
-            console.log('No push subscriptions found');
+            const errorText = await pushResponse.text();
+            console.error('Failed to send push notifications:', errorText);
           }
+        } else {
+          console.log('No push subscriptions found');
         }
       }
     } catch (pushError) {
