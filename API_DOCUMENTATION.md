@@ -404,9 +404,266 @@ curl -X POST 'https://yhzurkotubkkaokhtmsb.supabase.co/functions/v1/receive-comp
 
 ---
 
+## 📡 GPS Tracking API (SynPower Tracking)
+
+ระบบติดตามรถแบบ Real-time สำหรับการขนส่ง
+
+**Base URL:**
+```
+https://wqtrceqyeshyeozladzi.supabase.co/functions/v1
+```
+
+**Authentication:**
+ทุก endpoint ต้องใส่ `x-api-key` ใน header
+
+### 1. Create Tracking Room
+สร้างห้องติดตามใหม่
+
+**Endpoint:**
+```
+POST /create-tracking-room
+```
+
+**Headers:**
+```
+Content-Type: application/json
+x-api-key: <API_KEY>
+```
+
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `truck_plate` | string | ✅ | ทะเบียนรถ |
+| `origin_lat` | number | ✅ | ละติจูดต้นทาง |
+| `origin_lng` | number | ✅ | ลองจิจูดต้นทาง |
+| `destination_lat` | number | ✅ | ละติจูดปลายทาง |
+| `destination_lng` | number | ✅ | ลองจิจูดปลายทาง |
+| `current_lat` | number | ✅ | ละติจูดปัจจุบัน |
+| `current_lng` | number | ✅ | ลองจิจูดปัจจุบัน |
+| `order_code` | string | ❌ | รหัสออเดอร์ (ซ้ำได้ แยกรอบด้วย created_at) |
+| `waypoints` | array | ❌ | จุดระหว่างทาง `[{ lat, lng }]` |
+
+**Example Request:**
+```json
+{
+  "truck_plate": "กรุงเทพมหานคร 71-0428",
+  "order_code": "OR20260211001",
+  "origin_lat": 13.7563,
+  "origin_lng": 100.5018,
+  "destination_lat": 7.8804,
+  "destination_lng": 98.3923,
+  "current_lat": 13.7563,
+  "current_lng": 100.5018,
+  "waypoints": [
+    { "lat": 11.0077, "lng": 99.8239 },
+    { "lat": 9.1382, "lng": 99.3219 }
+  ]
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "message": "Tracking room created successfully",
+  "room": {
+    "id": "uuid",
+    "room_code": "RMJ0BFIO",
+    "truck_plate": "กรุงเทพมหานคร 71-0428",
+    "order_code": "OR20260211001",
+    "status": "active",
+    "created_at": "2026-02-11T12:00:00Z"
+  },
+  "waypoints_created": 2
+}
+```
+
+**Error Response (409 - ห้องซ้ำ):**
+```json
+{
+  "error": "Order code already exists",
+  "details": "Order code 'OR20260211001' is already used in room 'RMY00JWO'"
+}
+```
+
+---
+
+### 2. Update Truck Position
+อัปเดตพิกัด GPS ปัจจุบันของรถ
+
+**Endpoint:**
+```
+POST /update-truck-position
+```
+
+**Headers:**
+```
+Content-Type: application/json
+x-api-key: <API_KEY>
+```
+
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `room_code` | string | ✅ | รหัสห้องติดตาม |
+| `current_lat` | number | ✅ | ละติจูดปัจจุบัน |
+| `current_lng` | number | ✅ | ลองจิจูดปัจจุบัน |
+
+**Example Request:**
+```json
+{
+  "room_code": "RMJ0BFIO",
+  "current_lat": 12.5683,
+  "current_lng": 99.9581
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "room_code": "RMJ0BFIO",
+    "truck_plate": "กรุงเทพมหานคร 71-0428",
+    "current_lat": 12.5683,
+    "current_lng": 99.9581,
+    "status": "active",
+    "distance_to_origin_km": "145.32",
+    "distance_to_destination_km": "520.18",
+    "updated_at": "2026-02-11T12:05:00Z"
+  }
+}
+```
+
+**หมายเหตุ:** ใช้ได้เฉพาะห้องที่สถานะ `active` หรือ `at_origin`
+
+---
+
+### 3. Truck Arrival
+แจ้งว่ารถถึงต้นทางหรือปลายทาง
+
+**Endpoint:**
+```
+POST /truck-arrival
+```
+
+**Headers:**
+```
+Content-Type: application/json
+x-api-key: <API_KEY>
+```
+
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `room_code` | string | ✅ | รหัสห้องติดตาม |
+| `arrival_type` | string | ✅ | `"origin"` หรือ `"destination"` |
+| `current_lat` | number | ❌ | ละติจูดปัจจุบัน (ถ้าไม่ส่งจะใช้พิกัดอัตโนมัติ) |
+| `current_lng` | number | ❌ | ลองจิจูดปัจจุบัน |
+
+**Example - แจ้งถึงต้นทาง:**
+```json
+{
+  "room_code": "RMJ0BFIO",
+  "arrival_type": "origin",
+  "current_lat": 13.7563,
+  "current_lng": 100.5018
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "รถถึงต้นทางแล้ว",
+  "data": {
+    "room_code": "RMJ0BFIO",
+    "arrival_type": "origin",
+    "status": "at_origin",
+    "updated_at": "2026-02-11T12:10:00Z"
+  }
+}
+```
+
+**สถานะที่เปลี่ยน:**
+- `arrival_type: "origin"` → สถานะเปลี่ยนเป็น `at_origin`
+- `arrival_type: "destination"` → สถานะเปลี่ยนเป็น `completed`
+
+---
+
+### 4. Get Tracking Rooms
+ดึงรายการห้องติดตาม
+
+**Endpoint:**
+```
+GET /get-tracking-rooms
+```
+
+**Headers:**
+```
+x-api-key: <API_KEY>
+```
+
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | string | กรองตามสถานะ (`active`, `at_origin`, `completed`) |
+| `room_code` | string | ดึงห้องเฉพาะตาม room_code |
+| `truck_plate` | string | กรองตามทะเบียนรถ |
+| `limit` | number | จำนวนรายการ (default: 100, max: 1000) |
+| `offset` | number | ตำแหน่งเริ่มต้น |
+
+**Example Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "room_code": "RMJ0BFIO",
+      "truck_plate": "กรุงเทพมหานคร 71-0428",
+      "order_code": "OR20260211001",
+      "status": "active",
+      "origin_lat": 13.7563,
+      "origin_lng": 100.5018,
+      "destination_lat": 7.8804,
+      "destination_lng": 98.3923,
+      "current_lat": 12.5683,
+      "current_lng": 99.9581,
+      "distance_to_origin_km": 145.32,
+      "distance_to_destination_km": 520.18,
+      "waypoints": [
+        { "lat": 11.0077, "lng": 99.8239, "sequence_order": 1, "distance_km": 170.5 },
+        { "lat": 9.1382, "lng": 99.3219, "sequence_order": 2, "distance_km": 380.2 }
+      ],
+      "created_at": "2026-02-11T12:00:00Z",
+      "updated_at": "2026-02-11T12:05:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "limit": 100,
+    "offset": 0
+  }
+}
+```
+
+---
+
+### Tracking Room Status Flow
+
+```
+active → at_origin → completed
+```
+
+- `active`: ห้องถูกสร้าง รถกำลังเดินทาง
+- `at_origin`: รถถึงต้นทางแล้ว
+- `completed`: รถถึงปลายทางแล้ว (ห้องปิด)
+
+---
+
 ## 📞 Support
 
 หากพบปัญหาหรือมีคำถาม กรุณาติดต่อทีมพัฒนา
 
-**API Version:** 1.0  
-**Last Updated:** January 2024
+**API Version:** 1.1  
+**Last Updated:** February 2026
