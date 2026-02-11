@@ -1277,15 +1277,29 @@ export default function DomesticJobDetail({
               );
             })()}
 
-            {/* Container Return Card - Only for international jobs */}
+            {/* Container Return Card - Only for international jobs, unlocked after all deliveries completed */}
             {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && 
-              (job.container_return_location || job.container_return_latitude) && (
-              <Card ref={containerReturnRef} className="p-4 border-2 rounded-2xl border-orange-400 bg-orange-50">
-                <div>
+              (job.container_return_location || job.container_return_latitude) && (() => {
+                // Check if ALL destinations have completed POD
+                const allDeliveriesCompleted = destinations.length > 0
+                  ? destinations.every((dest) => {
+                      const destCheckin = destinationCheckins[dest.sequence_number];
+                      return !!(destCheckin?.sop_completed_at) || !!dest.sop_completed_at;
+                    })
+                  : deliverySopCompleted; // fallback for single destination
+
+                return (
+              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${allDeliveriesCompleted ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-gray-50'}`}>
+                <div className={!allDeliveriesCompleted ? 'opacity-60' : ''}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#E65100]">จุดคืนตู้คอนเทนเนอร์</h3>
                     </div>
+                    {!allDeliveriesCompleted && (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
+                        {t('jobDetail.waitingPreviousStep')}
+                      </span>
+                    )}
                   </div>
 
                   <div className="space-y-1 text-sm mb-3">
@@ -1311,7 +1325,7 @@ export default function DomesticJobDetail({
 
                   <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-2'}`}>
                     {!isFromHistory && job.container_return_phone && (
-                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]"
+                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           window.location.href = `tel:${job.container_return_phone}`;
                         }}>
@@ -1320,7 +1334,7 @@ export default function DomesticJobDetail({
                       </Button>
                     )}
                     {!isFromHistory && (job.container_return_latitude && job.container_return_longitude) && (
-                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]"
+                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_return_latitude},${job.container_return_longitude}`;
                           window.open(url, '_blank');
@@ -1332,7 +1346,8 @@ export default function DomesticJobDetail({
                   </div>
                 </div>
               </Card>
-            )}
+                );
+              })()}
             </div>
           </div>
         </div>
