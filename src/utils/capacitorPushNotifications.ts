@@ -399,9 +399,25 @@ export const setupNativePushListeners = (): void => {
 
   try {
     // Handle incoming push notifications when app is in foreground
+    // Android doesn't show system notifications when app is in foreground,
+    // so we need to show a toast/in-app notification manually
     PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
       console.log('[NativePush] Push notification received in foreground:', JSON.stringify(notification));
-      // You can show a local notification or update UI here
+      
+      try {
+        const title = notification.title || 'แจ้งเตือน';
+        const body = notification.body || '';
+        
+        // Dispatch a custom event so the UI layer can show a toast
+        const event = new CustomEvent('native-push-foreground', {
+          detail: { title, body, data: notification.data }
+        });
+        window.dispatchEvent(event);
+        
+        console.log('[NativePush] Dispatched foreground notification event:', title, body);
+      } catch (err) {
+        console.error('[NativePush] Error dispatching foreground event:', err);
+      }
     });
 
     // Handle notification tap
