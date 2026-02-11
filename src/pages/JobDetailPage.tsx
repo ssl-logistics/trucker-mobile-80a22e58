@@ -332,13 +332,13 @@ export default function JobDetailPage() {
             booking_number: foundJob.booking_number || null,
             booking_no: foundJob.booking_no || null,
             bl_no: foundJob.bl_no || null,
-            // Container return info
-            container_return_location: foundJob.container_return_location || null,
-            container_return_address: foundJob.container_return_address || null,
-            container_return_latitude: foundJob.container_return_latitude || null,
-            container_return_longitude: foundJob.container_return_longitude || null,
-            container_return_phone: foundJob.container_return_phone || null,
-            container_return_date: foundJob.container_return_date || null,
+            // Container return info - support both flat fields and nested object from API
+            container_return_location: foundJob.container_return_location || foundJob.container_return?.location || null,
+            container_return_address: foundJob.container_return_address || foundJob.container_return?.address || null,
+            container_return_latitude: foundJob.container_return_latitude || foundJob.container_return?.latitude || null,
+            container_return_longitude: foundJob.container_return_longitude || foundJob.container_return?.longitude || null,
+            container_return_phone: foundJob.container_return_phone || foundJob.container_return?.phone || null,
+            container_return_date: foundJob.container_return_date || foundJob.container_return?.date || foundJob.container_return?.datetime || null,
             // Map destinations array from API
             destinations: Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0
               ? foundJob.destinations.map((d: any) => ({
