@@ -684,8 +684,8 @@ export default function DeliveryDetailPage() {
   const displayContactName = destination?.contact_name || job?.destination_contact_person || '-';
   const displayAddress = destination?.address || job?.destination_address || job?.destination_location || '-';
   const displayLocation = destination ? `${destination.district || ''}, ${destination.province || ''}` : job?.destination_location || '-';
-  const displayLatitude = destination?.latitude || job?.destination_latitude;
-  const displayLongitude = destination?.longitude || job?.destination_longitude;
+  const displayLatitude = destination?.latitude || job?.destination_latitude || (job as any)?.container_return_latitude || (job as any)?.cargo_loading_latitude || null;
+  const displayLongitude = destination?.longitude || job?.destination_longitude || (job as any)?.container_return_longitude || (job as any)?.cargo_loading_longitude || null;
   const displayDeliveryDate = destination?.delivery_date || job?.start_date;
   const displayDeliveryTime = destination?.delivery_time || job?.destination_time || job?.start_time || '-';
   const displayNotes = destination?.notes || job?.destination_remarks || '-';
