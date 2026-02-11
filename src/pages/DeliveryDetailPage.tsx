@@ -100,6 +100,14 @@ export default function DeliveryDetailPage() {
   const [podPhoto, setPodPhoto] = useState<File | null>(null);
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
+  const [containerReturn, setContainerReturn] = useState<{
+    location: string | null;
+    address: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    phone: string | null;
+    date: string | null;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Check if viewing from history
@@ -212,6 +220,18 @@ export default function DeliveryDetailPage() {
             price: foundJob.transport_price || 0,
           };
           setJob(mappedJob);
+          
+          // Set container return data for international jobs
+          if (foundJob.container_return_location || foundJob.container_return_latitude) {
+            setContainerReturn({
+              location: foundJob.container_return_location || null,
+              address: foundJob.container_return_address || null,
+              latitude: foundJob.container_return_latitude || null,
+              longitude: foundJob.container_return_longitude || null,
+              phone: foundJob.container_return_phone || null,
+              date: foundJob.container_return_date || null,
+            });
+          }
           
           // Set destination state for sequence tracking
           if (targetDestination) {
@@ -921,6 +941,71 @@ export default function DeliveryDetailPage() {
             <div className="text-center">
               <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">{t('delivery.map')}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Container Return Location - Orange themed card for international jobs */}
+        {containerReturn && (containerReturn.latitude || containerReturn.address) && (
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-[#E65100] flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-white" />
+              </div>
+              <h3 className="font-semibold text-[#E65100] text-base">จุดคืนตู้คอนเทนเนอร์</h3>
+            </div>
+
+            {containerReturn.latitude && containerReturn.longitude && (
+              <GoogleMap
+                latitude={containerReturn.latitude}
+                longitude={containerReturn.longitude}
+                markerLabel={containerReturn.location || 'จุดคืนตู้'}
+                showRoute={true}
+              />
+            )}
+
+            {containerReturn.location && (
+              <div>
+                <div className="text-xs text-orange-700 mb-0.5">สถานที่</div>
+                <div className="text-sm font-medium text-gray-900">{containerReturn.location}</div>
+              </div>
+            )}
+
+            {containerReturn.address && (
+              <div>
+                <div className="text-xs text-orange-700 mb-0.5">ที่อยู่</div>
+                <div className="text-sm text-gray-700">{containerReturn.address}</div>
+              </div>
+            )}
+
+            {containerReturn.date && (
+              <div>
+                <div className="text-xs text-orange-700 mb-0.5">วันที่คืนตู้</div>
+                <div className="text-sm font-medium text-gray-900">{formatDate(containerReturn.date, language)}</div>
+              </div>
+            )}
+
+            <div className="flex gap-2 mt-2">
+              {containerReturn.phone && (
+                <a
+                  href={`tel:${containerReturn.phone}`}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#E65100] text-white rounded-lg py-2.5 text-sm font-medium"
+                >
+                  <Phone className="w-4 h-4" />
+                  {containerReturn.phone}
+                </a>
+              )}
+              {containerReturn.latitude && containerReturn.longitude && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${containerReturn.latitude},${containerReturn.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 bg-white border border-[#E65100] text-[#E65100] rounded-lg py-2.5 text-sm font-medium"
+                >
+                  <img src={routeIcon} alt="Navigate" className="w-4 h-4" />
+                  นำทาง
+                </a>
+              )}
             </div>
           </div>
         )}
