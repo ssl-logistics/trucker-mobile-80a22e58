@@ -277,7 +277,7 @@ export default function SettingsPage() {
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true, path: '/notifications' },
         { icon: HelpCircle, label: 'แนะนำการใช้งาน', hasRestartTour: true },
-        { icon: Bug, label: 'Push Debug', path: '/push-debug' },
+        // { icon: Bug, label: 'Push Debug', path: '/push-debug' },
       ]
     },
     {
