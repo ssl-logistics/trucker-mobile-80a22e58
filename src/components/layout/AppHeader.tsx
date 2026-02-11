@@ -104,12 +104,12 @@ export function AppHeader({
                   </>
                 )}
               </Avatar>
-              <div className="min-w-fit h-11 rounded-xl bg-slate-100 px-3 py-1">
-                <div className="text-xs opacity-90 text-[#126D8A] whitespace-nowrap">{t('home.greeting')} {getDayName()}</div>
+              <div className="min-w-0 flex-1 h-11 rounded-xl bg-slate-100 px-3 py-1">
+                <div className="text-xs opacity-90 text-[#126D8A] whitespace-nowrap truncate">{t('home.greeting')} {getDayName()}</div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm text-[#153860] whitespace-nowrap">{userName || t('settings.title')}</span>
+                  <span className="font-semibold text-sm text-[#153860] whitespace-nowrap truncate">{userName || t('settings.title')}</span>
                   {userTypeInfo && (
-                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-white ${userTypeInfo.color}`}>
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-white whitespace-nowrap flex-shrink-0 ${userTypeInfo.color}`}>
                       <userTypeInfo.icon className="w-2.5 h-2.5" />
                       {userTypeInfo.label}
                     </span>
@@ -117,7 +117,7 @@ export function AppHeader({
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button onClick={() => navigate("/notifications")} className="relative p-1.5 hover:bg-white/10 rounded-full transition-colors">
                 <Bell className="w-4 h-4 text-[#153860]" />
                 {hasUnread && (
