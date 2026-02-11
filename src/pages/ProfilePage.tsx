@@ -56,11 +56,13 @@ export default function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
+  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   
-  // Get presigned URL for S3 profile photos
-  const { url: presignedAvatarUrl, isLoading: isAvatarLoading } = usePresignedImageUrl(profile?.avatar_url);
+  // Get presigned URL for S3 profile photos - prioritize uploaded URL
+  const avatarSourceUrl = uploadedAvatarUrl || profile?.avatar_url;
+  const { url: presignedAvatarUrl, isLoading: isAvatarLoading } = usePresignedImageUrl(avatarSourceUrl);
 
   useEffect(() => {
     console.log('ProfilePage user data:', user);
@@ -176,6 +178,7 @@ export default function ProfilePage() {
       console.log('Update profile photo response:', data);
 
       if (response.ok) {
+        setUploadedAvatarUrl(publicUrl);
         setProfile(prev => (prev ? { ...prev, avatar_url: publicUrl } : null));
         await refreshUser();
         toast({ title: t('profile.success'), description: t('profile.success_desc') });
