@@ -124,10 +124,11 @@ serve(async (req) => {
     }
 
     // Check which jobs already have notifications (use reference_id to track by order_number)
+    // Check both old 'new_assigned_job' and new 'new_job' types to avoid duplicates
     const { data: existingNotifs } = await supabase
       .from('notifications')
       .select('reference_id')
-      .eq('notification_type', 'new_assigned_job')
+      .in('notification_type', ['new_job', 'new_assigned_job'])
       .in('reference_id', orderNumbers);
 
     const existingOrderNumbers = new Set((existingNotifs || []).map(n => n.reference_id));
