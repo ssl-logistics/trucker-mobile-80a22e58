@@ -35,15 +35,13 @@ export function useNewJobPolling() {
           } catch {}
         }
 
-        // Get Supabase auth user ID for scoped notifications
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        const authUserId = authUser?.id || null;
-
+        // Use driver ID as user_id for scoped notifications
+        // This is the external driver ID, not Supabase auth user
         const { data, error } = await supabase.functions.invoke('check-new-jobs', {
           body: {
             driver_id: driverId,
             driver_type: driverType,
-            user_id: authUserId,
+            user_id: driverId,
           },
         });
 

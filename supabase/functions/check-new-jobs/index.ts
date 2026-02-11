@@ -23,18 +23,31 @@ serve(async (req) => {
     const body = await req.json();
     const { driver_id, driver_type, user_id, action } = body;
 
-    // Cleanup duplicates action
-    if (action === 'cleanup_duplicates') {
+    // Cleanup action
+    if (action === 'cleanup_duplicates' || action === 'cleanup_all') {
+      // Delete all notifications with null user_id (legacy broadcast)
+      const { data: nullUserNotifs } = await supabase
+        .from('notifications')
+        .select('id')
+        .is('user_id', null);
+
+      let nullDeleted = 0;
+      if (nullUserNotifs && nullUserNotifs.length > 0) {
+        await supabase.from('notifications').delete().in('id', nullUserNotifs.map(n => n.id));
+        nullDeleted = nullUserNotifs.length;
+      }
+
+      // Also cleanup duplicates
       const { data: allNotifs } = await supabase
         .from('notifications')
-        .select('id, reference_id, notification_type, created_at')
+        .select('id, reference_id, notification_type, user_id, created_at')
         .in('notification_type', ['new_job', 'new_assigned_job'])
         .order('created_at', { ascending: true });
 
       const seen = new Set<string>();
       const toDelete: string[] = [];
       for (const n of (allNotifs || [])) {
-        const key = `${n.reference_id}_${n.notification_type}`;
+        const key = `${n.user_id}_${n.reference_id}_${n.notification_type}`;
         if (seen.has(key)) {
           toDelete.push(n.id);
         } else {
@@ -46,18 +59,8 @@ serve(async (req) => {
         await supabase.from('notifications').delete().in('id', toDelete);
       }
 
-      // Also delete old assigned_job type notifications that now have new_job equivalents
-      const { data: oldAssigned } = await supabase
-        .from('notifications')
-        .select('id, reference_id')
-        .eq('notification_type', 'new_assigned_job');
-
-      if (oldAssigned && oldAssigned.length > 0) {
-        await supabase.from('notifications').delete().in('id', oldAssigned.map(n => n.id));
-      }
-
       return new Response(
-        JSON.stringify({ success: true, deleted: toDelete.length, old_assigned_deleted: oldAssigned?.length || 0 }),
+        JSON.stringify({ success: true, null_user_deleted: nullDeleted, duplicates_deleted: toDelete.length }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -200,8 +203,8 @@ serve(async (req) => {
 
     const existingOrderNumbers = new Set((existingNotifs || []).map(n => n.reference_id));
 
-    // Filter only new jobs
-    const newJobs = jobs.filter((j: any) => {
+    // Filter only new jobs (use activeJobs, not jobs)
+    const newJobs = activeJobs.filter((j: any) => {
       const orderNum = j.order_number || j.order_code;
       return orderNum && !existingOrderNumbers.has(orderNum);
     });
