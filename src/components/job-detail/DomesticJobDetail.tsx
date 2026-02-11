@@ -125,8 +125,10 @@ export default function DomesticJobDetail({
     language
   } = useLanguage();
   const card1Ref = useRef<HTMLDivElement>(null);
+  const emptyContainerRef = useRef<HTMLDivElement>(null);
   const deliveryCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const [cardHeights, setCardHeights] = useState<{ card1: number; deliveryCards: Record<string, number> }>({
+  const [cardHeights, setCardHeights] = useState<{ emptyContainer: number; card1: number; deliveryCards: Record<string, number> }>({
+    emptyContainer: 0,
     card1: 0,
     deliveryCards: {}
   });
@@ -572,7 +574,8 @@ export default function DomesticJobDetail({
 
   useEffect(() => {
     // Calculate card heights for step positioning
-    const newHeights: { card1: number; deliveryCards: Record<string, number> } = {
+    const newHeights: { emptyContainer: number; card1: number; deliveryCards: Record<string, number> } = {
+      emptyContainer: emptyContainerRef.current?.offsetHeight || 0,
       card1: card1Ref.current?.offsetHeight || 0,
       deliveryCards: {}
     };
@@ -580,7 +583,7 @@ export default function DomesticJobDetail({
       newHeights.deliveryCards[key] = el.offsetHeight;
     });
     setCardHeights(newHeights);
-  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins]);
+  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn]);
 
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
@@ -682,6 +685,25 @@ export default function DomesticJobDetail({
               height: `calc(100% - 16px)`
             }} />
               
+              {/* Empty Container Circle - Only for international jobs */}
+              {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
+                <div className="relative flex justify-center mb-3" style={{
+                  height: `${cardHeights.emptyContainer || 200}px`
+                }}>
+                  <div className="absolute top-0">
+                    {isOcrVerified ? (
+                      <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                        <CheckCircle className="w-4 h-4 text-white" />
+                      </div>
+                    ) : emptyContainerCheckedIn ? (
+                      <div className="w-7 h-7 rounded-full border-[3px] border-purple-500 bg-white shadow-sm" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Step 1 Circle - Pickup Point */}
               <div className="relative flex justify-center mb-3" style={{
               height: `${cardHeights.card1 || 200}px`
@@ -712,7 +734,7 @@ export default function DomesticJobDetail({
               
               return <div key={dest.id} className="relative flex justify-center" style={{
                 height: `${cardHeights.deliveryCards[dest.id] || 200}px`,
-                marginBottom: index < (destinations.length > 0 ? destinations.length - 1 : 0) ? '12px' : '0'
+                marginBottom: '12px'
               }}>
                   <div className="absolute top-0">
                     {isPodCompleted ? (
@@ -735,7 +757,7 @@ export default function DomesticJobDetail({
             <div className="flex-1 space-y-3">
               {/* Empty Container Pickup Card - Only for international jobs */}
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
-                <Card className="p-4 border-2 rounded-2xl border-teal-500 bg-[#F6FFFE]">
+                <Card ref={emptyContainerRef} className="p-4 border-2 rounded-2xl border-teal-500 bg-[#F6FFFE]">
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
