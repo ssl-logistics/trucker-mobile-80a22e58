@@ -46,6 +46,8 @@ export default function NotificationsPage() {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
+        
+        // RLS filters by user_id automatically - fetch all for current user
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
@@ -57,14 +59,7 @@ export default function NotificationsPage() {
           return;
         }
 
-        if (!data || data.length === 0) {
-          setNotifications([]);
-          return;
-        }
-
-        // Jobs come from external API, reference_id is order_number not UUID
-        // No need to filter by past dates from local jobs table
-        setNotifications(data);
+        setNotifications(data || []);
       } catch (error) {
         console.error('Error fetching notifications:', error);
         setNotifications([]);
