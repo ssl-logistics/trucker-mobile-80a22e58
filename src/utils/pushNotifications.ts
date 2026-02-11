@@ -1,6 +1,11 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getAuthItem } from '@/utils/authStorage';
 
+// Type guard for Notification API
+interface NotificationRegistration extends ServiceWorkerRegistration {
+  pushManager: PushManager;
+}
+
 export interface PushSubscriptionData {
   endpoint: string;
   keys: {
@@ -23,7 +28,7 @@ export const requestNotificationPermission = async (): Promise<NotificationPermi
 };
 
 // Register service worker
-export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration> => {
+export const registerServiceWorker = async (): Promise<NotificationRegistration> => {
   if (!('serviceWorker' in navigator)) {
     throw new Error('Service workers are not supported');
   }
@@ -38,7 +43,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
     // Wait for service worker to be ready
     await navigator.serviceWorker.ready;
     
-    return registration;
+    return registration as NotificationRegistration;
   } catch (error) {
     console.error('Service worker registration failed:', error);
     throw error;
@@ -123,7 +128,7 @@ export const savePushSubscription = async (subscription: PushSubscription): Prom
 // Unsubscribe from push notifications
 export const unsubscribeFromPushNotifications = async (): Promise<void> => {
   try {
-    const registration = await navigator.serviceWorker.ready;
+    const registration = (await navigator.serviceWorker.ready) as NotificationRegistration;
     const subscription = await registration.pushManager.getSubscription();
 
     if (subscription) {
@@ -158,7 +163,7 @@ export const checkPushSubscriptionStatus = async (): Promise<boolean> => {
       return false;
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    const registration = (await navigator.serviceWorker.ready) as NotificationRegistration;
     const subscription = await registration.pushManager.getSubscription();
     
     return subscription !== null;
