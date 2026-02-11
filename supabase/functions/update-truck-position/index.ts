@@ -91,6 +91,23 @@ serve(async (req) => {
         );
       }
 
+      // External tracking API sometimes returns transient 401s (e.g. "Failed to validate API key").
+      // Do NOT propagate 401 to the client (it can cause unhandled errors/blank screens).
+      // Instead return 200 and let the client retry on the next interval.
+      if (response.status === 401) {
+        const msg =
+          responseData?.error || responseData?.details?.error || 'Failed to validate API key';
+        return new Response(
+          JSON.stringify({
+            success: false,
+            should_retry: true,
+            error: msg,
+            details: responseData,
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(
         JSON.stringify({
           error: 'Failed to update truck position',
