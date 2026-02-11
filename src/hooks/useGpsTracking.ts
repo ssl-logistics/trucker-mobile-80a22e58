@@ -52,6 +52,7 @@ async function sendPositionUpdate(roomCode: string, lat: number, lng: number): P
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
       },
       body: JSON.stringify({
         room_code: roomCode,
