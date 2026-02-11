@@ -9,10 +9,11 @@ export function useUnreadNotifications() {
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        // Get unread notifications
+        // Jobs come from external API, reference_id is order_number not UUID
+        // RLS already filters by user_id, just count unread
         const { data: notifications, error } = await supabase
           .from('notifications')
-          .select('id, reference_type, reference_id, is_read')
+          .select('id, is_read')
           .eq('is_read', false);
 
         if (error) {
@@ -22,59 +23,9 @@ export function useUnreadNotifications() {
           return;
         }
 
-        if (!notifications || notifications.length === 0) {
-          setHasUnread(false);
-          setUnreadCount(0);
-          return;
-        }
-
-        // Filter out notifications for past jobs (same logic as NotificationsPage)
-        const jobReferenceIds = notifications
-          .filter(n => n.reference_type === 'job' && n.reference_id)
-          .map(n => n.reference_id as string);
-
-        if (jobReferenceIds.length === 0) {
-          setHasUnread(notifications.length > 0);
-          setUnreadCount(notifications.length);
-          return;
-        }
-
-        // Fetch jobs to check their start dates
-        const { data: jobsData, error: jobsError } = await supabase
-          .from('jobs')
-          .select('id, start_date')
-          .in('id', jobReferenceIds);
-
-        if (jobsError) {
-          console.error('Error fetching jobs for filtering:', jobsError);
-          setHasUnread(notifications.length > 0);
-          setUnreadCount(notifications.length);
-          return;
-        }
-
-        // Create a set of job IDs with past pickup dates
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const pastJobIds = new Set<string>();
-
-        jobsData?.forEach(job => {
-          const pickupDate = new Date(job.start_date);
-          pickupDate.setHours(0, 0, 0, 0);
-          if (pickupDate < today) {
-            pastJobIds.add(job.id);
-          }
-        });
-
-        // Count valid unread notifications (excluding past jobs)
-        const validUnreadCount = notifications.filter(n => {
-          if (n.reference_type === 'job' && n.reference_id) {
-            return !pastJobIds.has(n.reference_id);
-          }
-          return true;
-        }).length;
-
-        setHasUnread(validUnreadCount > 0);
-        setUnreadCount(validUnreadCount);
+        const count = notifications?.length || 0;
+        setHasUnread(count > 0);
+        setUnreadCount(count);
       } catch (error) {
         console.error('Error in useUnreadNotifications:', error);
         setHasUnread(false);

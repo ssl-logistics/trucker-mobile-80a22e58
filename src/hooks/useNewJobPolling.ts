@@ -35,13 +35,15 @@ export function useNewJobPolling() {
           } catch {}
         }
 
-        // user_id for notifications - use null for broadcast since we don't have Supabase auth user
+        // Get Supabase auth user ID for scoped notifications
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const authUserId = authUser?.id || null;
 
         const { data, error } = await supabase.functions.invoke('check-new-jobs', {
           body: {
             driver_id: driverId,
             driver_type: driverType,
-            user_id: null,
+            user_id: authUserId,
           },
         });
 
