@@ -218,7 +218,7 @@ export default function NotificationsPage() {
           <ChevronLeft className="w-5 h-5 text-muted-foreground" />
         </button>
 
-        {viewMode === 'daily' && (
+        {viewMode === 'daily' ? (
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" className="gap-2 font-medium">
@@ -237,6 +237,8 @@ export default function NotificationsPage() {
               />
             </PopoverContent>
           </Popover>
+        ) : (
+          <span className="font-medium text-sm">{formatDisplayDate()}</span>
         )}
 
         <button onClick={() => navigateDate('next')} className="p-1.5 rounded-full hover:bg-muted">
