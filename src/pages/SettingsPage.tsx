@@ -276,7 +276,7 @@ export default function SettingsPage() {
       section: t('settings.general'),
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true, path: '/notifications' },
-        { icon: HelpCircle, label: 'แนะนำการใช้งาน', hasRestartTour: true },
+        { icon: HelpCircle, label: t('settings.app_guide'), hasRestartTour: true },
         // { icon: Bug, label: 'Push Debug', path: '/push-debug' },
       ]
     },
@@ -368,7 +368,7 @@ export default function SettingsPage() {
                       localStorage.removeItem('home-tour-completed');
                       navigate('/home');
                       toast({
-                        description: 'เริ่มแนะนำการใช้งานใหม่',
+                        description: t('settings.app_guide_restart'),
                       });
                     }}
                     className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors"
