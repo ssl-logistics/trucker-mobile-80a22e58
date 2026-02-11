@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
+import { getAuthItem, setAuthItem } from '@/utils/authStorage';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   AlertDialog,
@@ -180,7 +181,20 @@ export default function ProfilePage() {
       if (response.ok) {
         setUploadedAvatarUrl(publicUrl);
         setProfile(prev => (prev ? { ...prev, avatar_url: publicUrl } : null));
-        await refreshUser();
+        
+        // Persist photo URL in localStorage so it survives navigation
+        const storedDriver = await getAuthItem('auth_driver');
+        if (storedDriver) {
+          try {
+            const driverData = JSON.parse(storedDriver);
+            driverData.profile_photo_url = publicUrl;
+            await setAuthItem('auth_driver', JSON.stringify(driverData));
+            window.dispatchEvent(new Event('auth_driver_updated'));
+          } catch (e) {
+            console.error('Error updating local storage:', e);
+          }
+        }
+        
         toast({ title: t('profile.success'), description: t('profile.success_desc') });
       } else {
         toast({ title: t('home.error_load'), description: data?.error || t('profile.error_update'), variant: 'destructive' });
