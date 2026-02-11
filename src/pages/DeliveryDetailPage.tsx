@@ -183,6 +183,16 @@ export default function DeliveryDetailPage() {
           const destData = targetDestination || foundJob;
           
           // Map API response to JobDetail interface
+          console.log('[DeliveryDetailPage] foundJob coordinate fields:', {
+            destination_latitude: foundJob.destination_latitude,
+            destination_longitude: foundJob.destination_longitude,
+            cargo_loading: foundJob.cargo_loading,
+            container_return: foundJob.container_return,
+            destData_lat: destData.latitude,
+            destData_lng: destData.longitude,
+            // Log all keys that contain 'lat' or 'lon' or 'cargo' or 'return'
+            relevantKeys: Object.keys(foundJob).filter((k: string) => /lat|lon|cargo|return|dest/i.test(k)),
+          });
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
