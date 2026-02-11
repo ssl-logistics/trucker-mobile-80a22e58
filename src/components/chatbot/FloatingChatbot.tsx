@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { Bot } from "lucide-react";
 import { ChatbotDrawer } from "./ChatbotDrawer";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Pages that show the bottom navigation bar
 const PAGES_WITH_NAV = ["/home", "/chat", "/dashboard", "/settings"];
@@ -11,6 +12,7 @@ export function FloatingChatbot() {
   const [showChatbot, setShowChatbot] = useState(false);
   const [mounted, setMounted] = useState(false);
   const location = useLocation();
+  const { t } = useLanguage();
 
   // Only show on pages with bottom navigation
   const shouldShow = PAGES_WITH_NAV.includes(location.pathname);
@@ -41,7 +43,7 @@ export function FloatingChatbot() {
         transform: "translate3d(0, 0, 0)",
         WebkitTransform: "translate3d(0, 0, 0)",
       }}
-      aria-label="ผู้ช่วย AI"
+      aria-label={t('chatbot.title')}
     >
       <Bot style={{ width: 24, height: 24 }} />
     </button>
