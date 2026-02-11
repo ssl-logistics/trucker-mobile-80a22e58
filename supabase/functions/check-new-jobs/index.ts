@@ -20,7 +20,47 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { driver_id, driver_type, user_id } = await req.json();
+    const body = await req.json();
+    const { driver_id, driver_type, user_id, action } = body;
+
+    // Cleanup duplicates action
+    if (action === 'cleanup_duplicates') {
+      const { data: allNotifs } = await supabase
+        .from('notifications')
+        .select('id, reference_id, notification_type, created_at')
+        .in('notification_type', ['new_job', 'new_assigned_job'])
+        .order('created_at', { ascending: true });
+
+      const seen = new Set<string>();
+      const toDelete: string[] = [];
+      for (const n of (allNotifs || [])) {
+        const key = `${n.reference_id}_${n.notification_type}`;
+        if (seen.has(key)) {
+          toDelete.push(n.id);
+        } else {
+          seen.add(key);
+        }
+      }
+
+      if (toDelete.length > 0) {
+        await supabase.from('notifications').delete().in('id', toDelete);
+      }
+
+      // Also delete old assigned_job type notifications that now have new_job equivalents
+      const { data: oldAssigned } = await supabase
+        .from('notifications')
+        .select('id, reference_id')
+        .eq('notification_type', 'new_assigned_job');
+
+      if (oldAssigned && oldAssigned.length > 0) {
+        await supabase.from('notifications').delete().in('id', oldAssigned.map(n => n.id));
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, deleted: toDelete.length, old_assigned_deleted: oldAssigned?.length || 0 }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!driver_id || !driver_type) {
       return new Response(
@@ -190,15 +230,34 @@ serve(async (req) => {
       };
     });
 
-    const { error: insertError } = await supabase
-      .from('notifications')
-      .insert(notifications);
+    // Insert notifications one by one to avoid duplicates (multiple tabs may poll simultaneously)
+    let insertedCount = 0;
+    for (const notif of notifications) {
+      // Check if already exists before inserting
+      const { data: existing } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('reference_id', notif.reference_id)
+        .in('notification_type', ['new_job', 'new_assigned_job'])
+        .limit(1);
 
-    if (insertError) {
-      console.error('[check-new-jobs] Error inserting notifications:', insertError);
-    } else {
-      console.log(`[check-new-jobs] Created ${notifications.length} notifications`);
+      if (existing && existing.length > 0) {
+        console.log(`[check-new-jobs] Skipping duplicate for ${notif.reference_id}`);
+        continue;
+      }
+
+      const { error: insertError } = await supabase
+        .from('notifications')
+        .insert(notif);
+
+      if (insertError) {
+        console.error('[check-new-jobs] Error inserting notification:', insertError);
+      } else {
+        insertedCount++;
+      }
     }
+
+    console.log(`[check-new-jobs] Created ${insertedCount} notifications (${notifications.length - insertedCount} skipped as duplicates)`);
 
     // Send push notifications
     if (user_id && notifications.length > 0) {
