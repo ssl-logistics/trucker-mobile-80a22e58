@@ -117,16 +117,25 @@ export default function NotificationsPage() {
 
     fetchNotifications();
 
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-        },
+    // Get current user id for realtime filter
+    const getCurrentUserId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.id;
+    };
+
+    let channel: any;
+    getCurrentUserId().then((userId) => {
+      if (!userId) return;
+      channel = supabase
+        .channel('notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
         async (payload) => {
           console.log('New notification received:', payload);
           const newNotif = payload.new as Notification;
@@ -154,10 +163,11 @@ export default function NotificationsPage() {
           setNotifications((prev) => [newNotif, ...prev]);
         }
       )
-      .subscribe();
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
