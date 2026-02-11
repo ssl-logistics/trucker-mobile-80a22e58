@@ -62,51 +62,9 @@ export default function NotificationsPage() {
           return;
         }
 
-        // Get all job reference IDs from notifications
-        const jobReferenceIds = data
-          .filter(n => n.reference_type === 'job' && n.reference_id)
-          .map(n => n.reference_id as string);
-
-        if (jobReferenceIds.length === 0) {
-          // No job notifications, just set all notifications
-          setNotifications(data);
-          return;
-        }
-
-        // Fetch jobs to check their start dates
-        const { data: jobsData, error: jobsError } = await supabase
-          .from('jobs')
-          .select('id, start_date, start_time')
-          .in('id', jobReferenceIds);
-
-        if (jobsError) {
-          console.error('Error fetching jobs for filtering:', jobsError);
-          setNotifications(data);
-          return;
-        }
-
-        // Create a set of job IDs with past pickup dates
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Compare dates only, not time
-        const pastJobIds = new Set<string>();
-        
-        jobsData?.forEach(job => {
-          const pickupDate = new Date(job.start_date);
-          pickupDate.setHours(0, 0, 0, 0);
-          if (pickupDate < today) {
-            pastJobIds.add(job.id);
-          }
-        });
-
-        // Filter out notifications for past jobs
-        const filteredNotifications = data.filter(n => {
-          if (n.reference_type === 'job' && n.reference_id) {
-            return !pastJobIds.has(n.reference_id);
-          }
-          return true; // Keep non-job notifications
-        });
-
-        setNotifications(filteredNotifications);
+        // Jobs come from external API, reference_id is order_number not UUID
+        // No need to filter by past dates from local jobs table
+        setNotifications(data);
       } catch (error) {
         console.error('Error fetching notifications:', error);
         setNotifications([]);
@@ -139,26 +97,6 @@ export default function NotificationsPage() {
         async (payload) => {
           console.log('New notification received:', payload);
           const newNotif = payload.new as Notification;
-          
-          // Check if this is a job notification and if the job is in the past
-          if (newNotif.reference_type === 'job' && newNotif.reference_id) {
-            const { data: jobData } = await supabase
-              .from('jobs')
-              .select('start_date, start_time')
-              .eq('id', newNotif.reference_id)
-              .single();
-            
-            if (jobData) {
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const pickupDate = new Date(jobData.start_date);
-              pickupDate.setHours(0, 0, 0, 0);
-              if (pickupDate < today) {
-                // Pickup date is in the past, don't add this notification
-                return;
-              }
-            }
-          }
           
           setNotifications((prev) => [newNotif, ...prev]);
         }
@@ -241,32 +179,17 @@ export default function NotificationsPage() {
 
     // Navigate based on notification type
     if (notification.reference_type === 'job' && notification.reference_id) {
-      // reference_id is a job UUID in our database
-      const { data: jobData, error } = await supabase
-        .from('jobs')
-        .select('order_code')
-        .eq('id', notification.reference_id)
-        .maybeSingle();
+      // reference_id is the order_number directly (e.g., "OR20260124001")
+      const orderCode = notification.reference_id;
 
-      if (error || !jobData?.order_code) {
-        console.log('Job not found for notification:', notification.reference_id, 'error:', error);
-        toast({
-          title: t('jobDetail.notFound') || 'ไม่พบข้อมูลงาน',
-          description: t('jobDetail.jobMayBeDeleted') || 'งานนี้อาจถูกลบหรือไม่มีอยู่ในระบบแล้ว',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // "new_job" notifications are jobs that userยังไม่ได้รับงาน (ยังไม่อยู่ในหน้า JobDetail ที่ดึงเฉพาะ accepted jobs)
-      // เลยพาไปหน้า Home เพื่อเปิด modal รายละเอียดงานจาก order_code แทน
       if (notification.notification_type === 'new_job') {
-        navigate('/home', { state: { openJobOrderCode: jobData.order_code } });
+        // New job notification - go to Home to show job detail modal
+        navigate('/home', { state: { openJobOrderCode: orderCode } });
         return;
       }
 
       // Default job flow: open job detail page (accepted jobs)
-      navigate(`/job/${jobData.order_code}`);
+      navigate(`/job/${orderCode}`);
       return;
     }
 
