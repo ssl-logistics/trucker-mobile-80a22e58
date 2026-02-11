@@ -193,13 +193,22 @@ serve(async (req) => {
       );
     }
 
-    // Check which jobs already have notifications (use reference_id to track by order_number)
+    // Check which jobs already have notifications FOR THIS USER
     // Check both old 'new_assigned_job' and new 'new_job' types to avoid duplicates
-    const { data: existingNotifs } = await supabase
+    let existingQuery = supabase
       .from('notifications')
       .select('reference_id')
       .in('notification_type', ['new_job', 'new_assigned_job'])
       .in('reference_id', orderNumbers);
+
+    // Filter by user_id so each driver gets their own notification
+    if (user_id) {
+      existingQuery = existingQuery.eq('user_id', user_id);
+    } else {
+      existingQuery = existingQuery.is('user_id', null);
+    }
+
+    const { data: existingNotifs } = await existingQuery;
 
     const existingOrderNumbers = new Set((existingNotifs || []).map(n => n.reference_id));
 
@@ -264,12 +273,19 @@ serve(async (req) => {
     let insertedCount = 0;
     for (const notif of notifications) {
       // Check if already exists before inserting
-      const { data: existing } = await supabase
+      let checkQuery = supabase
         .from('notifications')
         .select('id')
         .eq('reference_id', notif.reference_id)
-        .in('notification_type', ['new_job', 'new_assigned_job'])
-        .limit(1);
+        .in('notification_type', ['new_job', 'new_assigned_job']);
+
+      if (notif.user_id) {
+        checkQuery = checkQuery.eq('user_id', notif.user_id);
+      } else {
+        checkQuery = checkQuery.is('user_id', null);
+      }
+
+      const { data: existing } = await checkQuery.limit(1);
 
       if (existing && existing.length > 0) {
         console.log(`[check-new-jobs] Skipping duplicate for ${notif.reference_id}`);
