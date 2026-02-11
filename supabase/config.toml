@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.check-new-jobs]
 verify_jwt = false
+
+[functions.get-notifications]
+verify_jwt = false

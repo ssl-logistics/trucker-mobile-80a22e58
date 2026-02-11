@@ -9,6 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -36,22 +37,31 @@ interface Notification {
 export default function NotificationsPage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Fetch notifications from database and filter out past job notifications
+  // Get driver ID from auth context for filtering
+  const driverId = user?.id;
+
+  // Fetch notifications from database filtered by driver ID
   useEffect(() => {
     const fetchNotifications = async () => {
+      if (!driverId) {
+        setNotifications([]);
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         
-        // RLS filters by user_id automatically - fetch all for current user
-        const { data, error } = await supabase
-          .from('notifications')
-          .select('*')
-          .order('created_at', { ascending: false });
+        // Use edge function to bypass RLS (custom auth makes auth.uid() null)
+        const { data: response, error } = await supabase.functions.invoke('get-notifications', {
+          body: { action: 'list', user_id: driverId },
+        });
 
         if (error) {
           console.error('Error fetching notifications:', error);
@@ -59,7 +69,7 @@ export default function NotificationsPage() {
           return;
         }
 
-        setNotifications(data || []);
+        setNotifications(response?.data || []);
       } catch (error) {
         console.error('Error fetching notifications:', error);
         setNotifications([]);
@@ -70,15 +80,9 @@ export default function NotificationsPage() {
 
     fetchNotifications();
 
-    // Get current user id for realtime filter
-    const getCurrentUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user?.id;
-    };
-
+    // Realtime subscription using driver ID
     let channel: any;
-    getCurrentUserId().then((userId) => {
-      if (!userId) return;
+    if (driverId) {
       channel = supabase
         .channel('notifications')
         .on(
@@ -87,7 +91,7 @@ export default function NotificationsPage() {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
-            filter: `user_id=eq.${userId}`,
+            filter: `user_id=eq.${driverId}`,
           },
         async (payload) => {
           console.log('New notification received:', payload);
@@ -97,12 +101,12 @@ export default function NotificationsPage() {
         }
       )
         .subscribe();
-    });
+    }
 
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  }, []);
+  }, [driverId]);
 
   const unreadNotifications = notifications.filter(n => !n.is_read);
   
@@ -160,10 +164,9 @@ export default function NotificationsPage() {
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read
     if (!notification.is_read) {
-      await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notification.id);
+      await supabase.functions.invoke('get-notifications', {
+        body: { action: 'mark_read', user_id: driverId, notification_id: notification.id },
+      });
 
       setNotifications(prev =>
         prev.map(n =>
