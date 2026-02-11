@@ -6,6 +6,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Map language code to answer column
+function getAnswerColumn(lang: string): string {
+  switch (lang) {
+    case 'en': return 'answer_en';
+    case 'ko': return 'answer_ko';
+    case 'zh': return 'answer_zh';
+    default: return 'answer'; // Thai is default
+  }
+}
+
+// Get localized answer from FAQ
+function getLocalizedAnswer(faq: any, lang: string): string {
+  const col = getAnswerColumn(lang);
+  // Fall back to Thai (answer) if translation is missing
+  return faq[col] || faq.answer;
+}
+
 // Check if user message matches any FAQ keywords
 function findMatchingFaq(userMessage: string, faqs: any[]): any | null {
   const lowerMessage = userMessage.toLowerCase().trim();
@@ -37,59 +54,31 @@ function isPersonalQuestion(message: string): boolean {
   return personalKeywords.some(keyword => lowerMessage.includes(keyword.toLowerCase()));
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+// Get privacy rejection message by language
+function getPrivacyRejection(lang: string): string {
+  switch (lang) {
+    case 'en':
+      return "Sorry, I cannot provide personal or confidential information. 🔒\n\nI can only help with:\n- Using The Trucker app\n- How to accept/bid on jobs\n- Check-in and work processes\n- Viewing income and job history\n\nIs there anything about using the app I can help with?";
+    case 'ko':
+      return "죄송합니다. 개인정보나 기밀 정보는 제공할 수 없습니다. 🔒\n\n다음 사항만 도와드릴 수 있습니다:\n- The Trucker 앱 사용법\n- 일자리 수락/입찰 방법\n- 체크인 및 업무 절차\n- 수입 및 업무 이력 확인\n\n앱 사용에 관해 도움이 필요하신가요?";
+    case 'zh':
+      return "抱歉，我无法提供个人或机密信息。🔒\n\n我只能帮助以下方面：\n- 使用 The Trucker 应用\n- 如何接受/竞标工作\n- 签到和工作流程\n- 查看收入和工作历史\n\n有什么关于应用使用的问题我可以帮忙吗？";
+    default:
+      return "ขออภัยครับ ผมไม่สามารถให้ข้อมูลส่วนตัวหรือข้อมูลที่เป็นความลับได้ครับ 🔒\n\nผมช่วยได้เฉพาะเรื่อง:\n- การใช้งานแอป The Trucker\n- วิธีการรับงาน/ประมูลงาน\n- การ Check-in และทำงาน\n- การดูรายได้และประวัติงาน\n\nมีอะไรเกี่ยวกับการใช้งานแอปให้ช่วยไหมครับ?";
   }
+}
 
-  try {
-    const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+// Get system prompt by language
+function getSystemPrompt(lang: string): string {
+  const langInstruction = lang === 'en' 
+    ? 'Reply in English, be concise and friendly with some emojis.'
+    : lang === 'ko'
+    ? 'Reply in Korean (한국어), be concise and friendly with some emojis.'
+    : lang === 'zh'
+    ? 'Reply in Chinese (中文), be concise and friendly with some emojis.'
+    : 'ตอบสั้นกระชับ เป็นภาษาไทย ใช้คำสุภาพ ใส่ emoji เล็กน้อยเพื่อความเป็นมิตร';
 
-    // Get the latest user message
-    const latestUserMessage = messages.filter((m: any) => m.role === "user").pop();
-    const userQuestion = latestUserMessage?.content || "";
-
-    // Check for personal/private information requests
-    if (isPersonalQuestion(userQuestion)) {
-      return new Response(
-        JSON.stringify({ 
-          content: "ขออภัยครับ ผมไม่สามารถให้ข้อมูลส่วนตัวหรือข้อมูลที่เป็นความลับได้ครับ 🔒\n\nผมช่วยได้เฉพาะเรื่อง:\n- การใช้งานแอป The Trucker\n- วิธีการรับงาน/ประมูลงาน\n- การ Check-in และทำงาน\n- การดูรายได้และประวัติงาน\n\nมีอะไรเกี่ยวกับการใช้งานแอปให้ช่วยไหมครับ?" 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Try to find matching FAQ from database
-    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      
-      const { data: faqs, error } = await supabase
-        .from("chatbot_faqs")
-        .select("*")
-        .eq("is_active", true)
-        .order("priority", { ascending: false });
-
-      if (!error && faqs && faqs.length > 0) {
-        const matchedFaq = findMatchingFaq(userQuestion, faqs);
-        if (matchedFaq) {
-          console.log("FAQ matched:", matchedFaq.question);
-          return new Response(
-            JSON.stringify({ content: matchedFaq.answer }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      }
-    }
-
-    // If no FAQ match, use AI but with strict scope
-    const systemPrompt = `คุณเป็นผู้ช่วย AI ของแอปพลิเคชัน The Trucker ซึ่งเป็นแอปสำหรับคนขับรถบรรทุก
+  return `คุณเป็นผู้ช่วย AI ของแอปพลิเคชัน The Trucker ซึ่งเป็นแอปสำหรับคนขับรถบรรทุก
 
 ⚠️ ข้อจำกัดสำคัญ:
 - ตอบได้เฉพาะคำถามเกี่ยวกับการใช้งานแอป The Trucker เท่านั้น
@@ -116,7 +105,62 @@ serve(async (req) => {
 ขั้นตอนการทำงาน:
 1. รับงาน → Check-in ที่จุดรับ → ถ่ายรูป SOP → ขนส่ง → Check-in ที่จุดส่ง → เสร็จสิ้น
 
-ตอบสั้นกระชับ เป็นภาษาไทย ใช้คำสุภาพ ใส่ emoji เล็กน้อยเพื่อความเป็นมิตร`;
+${langInstruction}`;
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { messages, language } = await req.json();
+    const lang = language || 'th';
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+    
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Get the latest user message
+    const latestUserMessage = messages.filter((m: any) => m.role === "user").pop();
+    const userQuestion = latestUserMessage?.content || "";
+
+    // Check for personal/private information requests
+    if (isPersonalQuestion(userQuestion)) {
+      return new Response(
+        JSON.stringify({ content: getPrivacyRejection(lang) }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Try to find matching FAQ from database
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      
+      const { data: faqs, error } = await supabase
+        .from("chatbot_faqs")
+        .select("*")
+        .eq("is_active", true)
+        .order("priority", { ascending: false });
+
+      if (!error && faqs && faqs.length > 0) {
+        const matchedFaq = findMatchingFaq(userQuestion, faqs);
+        if (matchedFaq) {
+          console.log("FAQ matched:", matchedFaq.question);
+          const localizedAnswer = getLocalizedAnswer(matchedFaq, lang);
+          return new Response(
+            JSON.stringify({ content: localizedAnswer }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+
+    // If no FAQ match, use AI but with strict scope
+    const systemPrompt = getSystemPrompt(lang);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -152,7 +196,11 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "ขออภัยครับ ไม่สามารถตอบคำถามได้";
+    const fallback = lang === 'en' ? "Sorry, I cannot answer your question at this time."
+      : lang === 'ko' ? "죄송합니다. 현재 질문에 답변할 수 없습니다."
+      : lang === 'zh' ? "抱歉，目前无法回答您的问题。"
+      : "ขออภัยครับ ไม่สามารถตอบคำถามได้";
+    const content = data.choices?.[0]?.message?.content || fallback;
 
     return new Response(
       JSON.stringify({ content }),

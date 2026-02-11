@@ -93,7 +93,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -153,6 +153,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
             .filter(m => m.id !== "welcome")
             .concat(userMessage)
             .map(m => ({ role: m.role, content: m.content })),
+          language,
         },
       });
 
