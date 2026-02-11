@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, User, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Message {
   id: string;
@@ -92,6 +93,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -106,7 +108,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
         {
           id: "welcome",
           role: "assistant",
-          content: "สวัสดีครับ! ผมเป็นผู้ช่วย AI พร้อมตอบคำถามเกี่ยวกับแอปพลิเคชัน The Trucker ครับ มีอะไรให้ช่วยไหมครับ?",
+          content: t('chatbot.welcome'),
           timestamp: Date.now(),
         },
       ]);
@@ -158,7 +160,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
         throw new Error(response.error.message);
       }
 
-      const assistantContent = response.data?.content || "ขออภัยครับ ไม่สามารถตอบคำถามได้ในขณะนี้";
+      const assistantContent = response.data?.content || t('chatbot.fallback');
       
       // Save to cache
       saveToCache(userMessage.content, assistantContent);
@@ -174,8 +176,8 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
     } catch (error) {
       console.error("Chatbot error:", error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง",
+        title: t('chatbot.error'),
+        description: t('chatbot.errorDesc'),
         variant: "destructive",
       });
     } finally {
@@ -255,7 +257,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="พิมพ์ข้อความ..."
+              placeholder={t('chatbot.placeholder')}
               disabled={isLoading}
               className="flex-1 h-9 text-sm"
             />

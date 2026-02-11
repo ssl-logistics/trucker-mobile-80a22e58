@@ -625,6 +625,14 @@ const thTranslations: Record<string, string> = {
   'chat.adding': 'กำลังเพิ่ม...',
   'chat.addSelected': 'เพิ่มที่เลือก',
 
+  // Chatbot
+  'chatbot.title': 'ผู้ช่วย AI',
+  'chatbot.welcome': 'สวัสดีครับ! ผมเป็นผู้ช่วย AI พร้อมตอบคำถามเกี่ยวกับแอปพลิเคชัน The Trucker ครับ มีอะไรให้ช่วยไหมครับ?',
+  'chatbot.placeholder': 'พิมพ์ข้อความ...',
+  'chatbot.error': 'เกิดข้อผิดพลาด',
+  'chatbot.errorDesc': 'ไม่สามารถส่งข้อความได้ กรุณาลองใหม่อีกครั้ง',
+  'chatbot.fallback': 'ขออภัยครับ ไม่สามารถตอบคำถามได้ในขณะนี้',
+
   // Report Problem Drawer
   'reportProblem.title': 'แจ้งปัญหา',
   'reportProblem.problemAccident': 'แจ้งปัญหา/ อุบัติเหตุ',
@@ -2072,6 +2080,14 @@ const enTranslations: Record<string, string> = {
   'chat.cannotRemoveSelf': 'Cannot remove yourself from group',
   'chat.adding': 'Adding...',
   'chat.addSelected': 'Add Selected',
+
+  // Chatbot
+  'chatbot.title': 'AI Assistant',
+  'chatbot.welcome': 'Hello! I\'m an AI assistant ready to answer your questions about The Trucker app. How can I help you?',
+  'chatbot.placeholder': 'Type a message...',
+  'chatbot.error': 'Error',
+  'chatbot.errorDesc': 'Failed to send message. Please try again.',
+  'chatbot.fallback': 'Sorry, I cannot answer your question at this time.',
 
   // Report Problem Drawer
   'reportProblem.title': 'Report Problem',
@@ -4187,6 +4203,14 @@ const koTranslations: Record<string, string> = {
   'chat.cannotRemoveSelf': '자신을 그룹에서 제거할 수 없습니다',
   'chat.adding': '추가 중...',
   'chat.addSelected': '선택 항목 추가',
+
+  // Chatbot
+  'chatbot.title': 'AI 어시스턴트',
+  'chatbot.welcome': '안녕하세요! The Trucker 앱에 대한 질문에 답변해 드리는 AI 어시스턴트입니다. 무엇을 도와드릴까요?',
+  'chatbot.placeholder': '메시지를 입력하세요...',
+  'chatbot.error': '오류 발생',
+  'chatbot.errorDesc': '메시지를 보낼 수 없습니다. 다시 시도해 주세요.',
+  'chatbot.fallback': '죄송합니다. 현재 질문에 답변할 수 없습니다.',
   
   // Pickup Detail Page
   'pickup.title': '픽업 지점',
@@ -5288,6 +5312,14 @@ const zhTranslations: Record<string, string> = {
   'chat.new_message': '新消息',
   'chat.type_message': '输入消息...',
   'chat.send': '发送',
+
+  // Chatbot
+  'chatbot.title': 'AI 助手',
+  'chatbot.welcome': '你好！我是 AI 助手，随时为您解答有关 The Trucker 应用的问题。有什么可以帮您的吗？',
+  'chatbot.placeholder': '输入消息...',
+  'chatbot.error': '出错',
+  'chatbot.errorDesc': '发送消息失败，请重试。',
+  'chatbot.fallback': '抱歉，目前无法回答您的问题。',
   
   // Dashboard Page
   'dashboard.title': '仪表盘',
