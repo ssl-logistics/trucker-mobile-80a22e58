@@ -9,6 +9,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { useMultiProcessingGuard } from '@/hooks/useProcessingGuard';
 import { useGpsTracking } from '@/hooks/useGpsTracking';
+import { useNewJobPolling } from '@/hooks/useNewJobPolling';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { RejectFactoryJobDialog } from '@/components/home/RejectFactoryJobDialog';
@@ -98,6 +99,9 @@ export default function Home() {
   
   // GPS Tracking hook
   const { startTracking } = useGpsTracking();
+  
+  // Poll for new jobs and create notifications
+  useNewJobPolling();
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
