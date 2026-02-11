@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
-import { format, isSameDay, parseISO } from 'date-fns';
+import { format, isSameDay, isSameMonth, parseISO, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { th, enUS, ko, zhCN } from 'date-fns/locale';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -12,7 +11,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
 interface Notification {
   id: string;
@@ -33,6 +31,7 @@ interface Notification {
   created_at: string;
 }
 
+type ViewMode = 'daily' | 'monthly';
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
@@ -40,13 +39,12 @@ export default function NotificationsPage() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Get driver ID from auth context for filtering
   const driverId = user?.id;
 
-  // Fetch notifications from database filtered by driver ID
+  // Fetch notifications
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!driverId) {
@@ -54,21 +52,16 @@ export default function NotificationsPage() {
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
-        
-        // Use edge function to bypass RLS (custom auth makes auth.uid() null)
         const { data: response, error } = await supabase.functions.invoke('get-notifications', {
           body: { action: 'list', user_id: driverId },
         });
-
         if (error) {
           console.error('Error fetching notifications:', error);
           setNotifications([]);
           return;
         }
-
         setNotifications(response?.data || []);
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -80,26 +73,19 @@ export default function NotificationsPage() {
 
     fetchNotifications();
 
-    // Realtime subscription using driver ID
     let channel: any;
     if (driverId) {
       channel = supabase
         .channel('notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${driverId}`,
-          },
-        async (payload) => {
-          console.log('New notification received:', payload);
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${driverId}`,
+        }, (payload) => {
           const newNotif = payload.new as Notification;
-          
           setNotifications((prev) => [newNotif, ...prev]);
-        }
-      )
+        })
         .subscribe();
     }
 
@@ -108,16 +94,15 @@ export default function NotificationsPage() {
     };
   }, [driverId]);
 
-  const unreadNotifications = notifications.filter(n => !n.is_read);
-  
-  // Filter by tab and selected date
-  const filteredNotifications = (activeTab === 'all' ? notifications : unreadNotifications)
-    .filter(n => {
-      const notifDate = parseISO(n.created_at);
+  // Filter notifications based on view mode
+  const filteredNotifications = notifications.filter(n => {
+    const notifDate = parseISO(n.created_at);
+    if (viewMode === 'daily') {
       return isSameDay(notifDate, selectedDate);
-    });
-  
-  // Get localized content
+    }
+    return isSameMonth(notifDate, selectedDate);
+  });
+
   const getLocalizedTitle = (notification: Notification) => {
     switch (language) {
       case 'en': return notification.title_en || notification.title_th;
@@ -136,7 +121,6 @@ export default function NotificationsPage() {
     }
   };
 
-  // Get locale for date-fns
   const getLocale = () => {
     switch (language) {
       case 'th': return th;
@@ -146,12 +130,13 @@ export default function NotificationsPage() {
     }
   };
 
-  // Format selected date for display
-  const formatSelectedDate = () => {
+  const formatDisplayDate = () => {
+    if (viewMode === 'monthly') {
+      return format(selectedDate, 'MMMM yyyy', { locale: getLocale() });
+    }
     return format(selectedDate, 'd MMMM yyyy', { locale: getLocale() });
   };
 
-  // Format notification date/time
   const formatNotificationDateTime = (dateString: string) => {
     const date = parseISO(dateString);
     return {
@@ -160,40 +145,39 @@ export default function NotificationsPage() {
     };
   };
 
-  // Handle notification click
+  const navigateDate = (direction: 'prev' | 'next') => {
+    if (viewMode === 'monthly') {
+      setSelectedDate(prev => direction === 'next' ? addMonths(prev, 1) : subMonths(prev, 1));
+    } else {
+      setSelectedDate(prev => {
+        const d = new Date(prev);
+        d.setDate(d.getDate() + (direction === 'next' ? 1 : -1));
+        return d;
+      });
+    }
+  };
+
   const handleNotificationClick = async (notification: Notification) => {
-    // Mark as read
     if (!notification.is_read) {
       await supabase.functions.invoke('get-notifications', {
         body: { action: 'mark_read', user_id: driverId, notification_id: notification.id },
       });
-
       setNotifications(prev =>
-        prev.map(n =>
-          n.id === notification.id ? { ...n, is_read: true } : n
-        )
+        prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
       );
     }
 
-    // Navigate based on notification type
     if (notification.reference_type === 'job' && notification.reference_id) {
-      // reference_id is the order_number directly (e.g., "OR20260124001")
       const orderCode = notification.reference_id;
-
       if (notification.notification_type === 'new_job') {
-        // New job notification - go to Home to show job detail modal
         navigate('/home', { state: { openJobOrderCode: orderCode } });
         return;
       }
-
-      // Default job flow: open job detail page (accepted jobs)
       navigate(`/job/${orderCode}`);
       return;
     }
 
-    // For non-job notifications, go to notification detail
     navigate(`/notifications/${notification.id}`);
-
   };
 
   return (
@@ -208,91 +192,100 @@ export default function NotificationsPage() {
         </div>
       </header>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full rounded-none border-b bg-white h-12">
-          <TabsTrigger value="all" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-            {t('notifications.all')}
-          </TabsTrigger>
-          <TabsTrigger value="unread" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-            {t('notifications.unread')}
-          </TabsTrigger>
-        </TabsList>
+      {/* View Mode Toggle */}
+      <div className="flex items-center bg-white border-b px-4 py-2 gap-2">
+        <Button
+          variant={viewMode === 'daily' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setViewMode('daily')}
+          className="flex-1"
+        >
+          {language === 'th' ? 'รายวัน' : language === 'ko' ? '일별' : language === 'zh' ? '每日' : 'Daily'}
+        </Button>
+        <Button
+          variant={viewMode === 'monthly' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setViewMode('monthly')}
+          className="flex-1"
+        >
+          {language === 'th' ? 'รายเดือน' : language === 'ko' ? '월별' : language === 'zh' ? '每月' : 'Monthly'}
+        </Button>
+      </div>
 
-        <TabsContent value={activeTab} className="mt-0">
-          {/* Date Picker */}
-          <div className="flex items-center justify-center px-4 py-3 bg-white">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-center text-left font-normal gap-2",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="h-4 w-4" />
-                  {formatSelectedDate()}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                  locale={getLocale()}
-                />
-              </PopoverContent>
-            </Popover>
+      {/* Date Navigation */}
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-b">
+        <button onClick={() => navigateDate('prev')} className="p-1.5 rounded-full hover:bg-muted">
+          <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+        </button>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" className="gap-2 font-medium">
+              <CalendarIcon className="h-4 w-4" />
+              {formatDisplayDate()}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => date && setSelectedDate(date)}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+              locale={getLocale()}
+            />
+          </PopoverContent>
+        </Popover>
+
+        <button onClick={() => navigateDate('next')} className="p-1.5 rounded-full hover:bg-muted">
+          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        </button>
+      </div>
+
+      {/* Notifications List */}
+      <div className="bg-white">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="text-sm mt-3">{t('common.loading') || 'กำลังโหลด...'}</p>
           </div>
-
-          {/* Notifications List */}
-          <div className="bg-white">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="text-sm mt-3">{t('common.loading') || 'กำลังโหลด...'}</p>
-              </div>
-            ) : filteredNotifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <CalendarIcon className="w-12 h-12 mb-3 opacity-50" />
-                <p className="text-sm">{t('notifications.noNotifications') || 'ไม่มีการแจ้งเตือน'}</p>
-              </div>
-            ) : (
-              filteredNotifications.map((notification) => {
-                const { date, time } = formatNotificationDateTime(notification.created_at);
-                return (
-                  <button
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className="w-full px-4 py-4 border-b hover:bg-gray-50 text-left transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                        notification.is_read ? 'bg-gray-400' : 'bg-red-500'
-                      }`} />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs text-muted-foreground mb-1">
-                          {date} | {time}
-                        </div>
-                        <h3 className="font-semibold text-sm mb-1">
-                          {getLocalizedTitle(notification)}
-                        </h3>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {getLocalizedDescription(notification)}
-                        </p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
+        ) : filteredNotifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <CalendarIcon className="w-12 h-12 mb-3 opacity-50" />
+            <p className="text-sm">{t('notifications.noNotifications') || 'ไม่มีการแจ้งเตือน'}</p>
+          </div>
+        ) : (
+          filteredNotifications.map((notification) => {
+            const { date, time } = formatNotificationDateTime(notification.created_at);
+            return (
+              <button
+                key={notification.id}
+                onClick={() => handleNotificationClick(notification)}
+                className="w-full px-4 py-4 border-b hover:bg-muted/50 text-left transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "w-2 h-2 rounded-full mt-1.5 flex-shrink-0",
+                    notification.is_read ? "bg-muted-foreground/40" : "bg-destructive"
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {date} | {time}
                     </div>
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+                    <h3 className="font-semibold text-sm mb-1">
+                      {getLocalizedTitle(notification)}
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {getLocalizedDescription(notification)}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
