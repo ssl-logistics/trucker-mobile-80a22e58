@@ -86,25 +86,29 @@ export function useUnreadNotifications() {
 
     fetchUnreadCount();
 
-    // Subscribe to realtime updates for notifications
-    const channel = supabase
-      .channel('unread-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-        },
-        () => {
-          // Refetch on any change
-          fetchUnreadCount();
-        }
-      )
-      .subscribe();
+    // Subscribe to realtime updates filtered by current user
+    let channel: any;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user?.id) return;
+      channel = supabase
+        .channel('unread-notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            fetchUnreadCount();
+          }
+        )
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
