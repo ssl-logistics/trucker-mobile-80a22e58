@@ -152,15 +152,17 @@ serve(async (req) => {
       const origin = job.sender_name || job.sender_address || job.origin_location || 'ต้นทาง';
       const dest = job.destination_name || job.destination_address || job.destination_location || 'ปลายทาง';
       const price = job.transport_price || job.price || 0;
-      const transportType = job.transport_category || '';
+      
+      // Use transport_type field to determine job label (matching receive function logic)
+      const transportType = job.transport_type || job.transport_category || '';
       const hasMultiDest = job.destinations && job.destinations.length > 0;
 
       let jobLabel = 'งานใหม่';
-      if (transportType === 'international') {
+      if (transportType === 'ขนส่งระหว่างประเทศ' || transportType === 'international') {
         jobLabel = 'งานระหว่างประเทศ';
-      } else if (hasMultiDest) {
+      } else if (transportType === 'ขนส่งหลายที่' || hasMultiDest) {
         jobLabel = 'งานส่งหลายที่';
-      } else {
+      } else if (transportType === 'ขนส่งเที่ยวเดียว') {
         jobLabel = 'งานเที่ยวเดียว';
       }
 
@@ -180,9 +182,9 @@ serve(async (req) => {
         description_en: `${routeDesc}${price > 0 ? ` | ฿${Number(price).toLocaleString()}` : ''}`,
         description_ko: `${routeDesc}${price > 0 ? ` | ฿${Number(price).toLocaleString()}` : ''}`,
         description_zh: `${routeDesc}${price > 0 ? ` | ฿${Number(price).toLocaleString()}` : ''}`,
-        notification_type: 'new_assigned_job',
+        notification_type: 'new_job',
         reference_id: job.order_number || job.order_code,
-        reference_type: 'assigned_job',
+        reference_type: 'job',
         is_read: false,
       };
     });
