@@ -66,6 +66,24 @@ export const PushNotificationPrompt = () => {
     return false;
   }, [t]);
 
+  // Listen for foreground push notifications and show toast
+  useEffect(() => {
+    const handleForegroundPush = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail) {
+        toast({
+          title: detail.title || 'แจ้งเตือน',
+          description: detail.body || '',
+        });
+      }
+    };
+
+    window.addEventListener('native-push-foreground', handleForegroundPush);
+    return () => {
+      window.removeEventListener('native-push-foreground', handleForegroundPush);
+    };
+  }, []);
+
   useEffect(() => {
     // Initialize push notification listeners
     initializePushNotifications();
