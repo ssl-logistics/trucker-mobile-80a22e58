@@ -76,6 +76,13 @@ interface JobDetail {
   booking_no?: string | null;
   bl_no?: string | null;
   destinations?: JobDestination[];
+  // Container return info for international jobs
+  container_return_location?: string | null;
+  container_return_address?: string | null;
+  container_return_latitude?: number | null;
+  container_return_longitude?: number | null;
+  container_return_phone?: string | null;
+  container_return_date?: string | null;
 }
 
 interface JobApplication {
@@ -325,6 +332,13 @@ export default function JobDetailPage() {
             booking_number: foundJob.booking_number || null,
             booking_no: foundJob.booking_no || null,
             bl_no: foundJob.bl_no || null,
+            // Container return info
+            container_return_location: foundJob.container_return_location || null,
+            container_return_address: foundJob.container_return_address || null,
+            container_return_latitude: foundJob.container_return_latitude || null,
+            container_return_longitude: foundJob.container_return_longitude || null,
+            container_return_phone: foundJob.container_return_phone || null,
+            container_return_date: foundJob.container_return_date || null,
             // Map destinations array from API
             destinations: Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0
               ? foundJob.destinations.map((d: any) => ({
@@ -578,7 +592,7 @@ export default function JobDetailPage() {
 
   // Determine if domestic or international
   const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
-  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก');
+  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก') || job.job_type === 'international';
 
   const handleUpdate = () => {
     loadJobDetail();
