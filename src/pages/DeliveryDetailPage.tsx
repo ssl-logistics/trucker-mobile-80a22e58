@@ -190,8 +190,8 @@ export default function DeliveryDetailPage() {
             destination_location: `${destData.district || foundJob.destination_district || ''}, ${destData.province || foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
             start_date: destData.delivery_date || foundJob.destination_delivery_date || foundJob.sender_pickup_date,
             start_time: destData.delivery_time || foundJob.destination_delivery_time || foundJob.sender_pickup_time,
-            destination_latitude: destData.latitude || foundJob.destination_latitude,
-            destination_longitude: destData.longitude || foundJob.destination_longitude,
+            destination_latitude: destData.latitude || foundJob.destination_latitude || foundJob.cargo_loading?.latitude || foundJob.container_return?.latitude || null,
+            destination_longitude: destData.longitude || foundJob.destination_longitude || foundJob.cargo_loading?.longitude || foundJob.container_return?.longitude || null,
             destination_contact_person: destData.contact_name || foundJob.destination_contact_name,
             destination_address: destData.address || foundJob.destination_address,
             destination_goods_type: foundJob.product_name,
@@ -684,8 +684,8 @@ export default function DeliveryDetailPage() {
   const displayContactName = destination?.contact_name || job?.destination_contact_person || '-';
   const displayAddress = destination?.address || job?.destination_address || job?.destination_location || '-';
   const displayLocation = destination ? `${destination.district || ''}, ${destination.province || ''}` : job?.destination_location || '-';
-  const displayLatitude = destination?.latitude || job?.destination_latitude || (job as any)?.container_return_latitude || (job as any)?.cargo_loading_latitude || null;
-  const displayLongitude = destination?.longitude || job?.destination_longitude || (job as any)?.container_return_longitude || (job as any)?.cargo_loading_longitude || null;
+  const displayLatitude = destination?.latitude || job?.destination_latitude || null;
+  const displayLongitude = destination?.longitude || job?.destination_longitude || null;
   const displayDeliveryDate = destination?.delivery_date || job?.start_date;
   const displayDeliveryTime = destination?.delivery_time || job?.destination_time || job?.start_time || '-';
   const displayNotes = destination?.notes || job?.destination_remarks || '-';
