@@ -144,15 +144,42 @@ serve(async (req) => {
 
     console.log(`[check-new-jobs] Found ${jobs.length} jobs from external API`);
 
-    if (jobs.length === 0) {
+    // Filter out closed jobs and jobs with past pickup dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const activeJobs = jobs.filter((j: any) => {
+      // Skip closed jobs
+      if (j.status === 'closed') {
+        console.log(`[check-new-jobs] Skipping closed job: ${j.order_number || j.order_code}`);
+        return false;
+      }
+
+      // Skip jobs with past pickup dates
+      const pickupDateStr = j.sender_pickup_date || j.pickup_date;
+      if (pickupDateStr) {
+        const pickupDate = new Date(pickupDateStr);
+        pickupDate.setHours(0, 0, 0, 0);
+        if (pickupDate < today) {
+          console.log(`[check-new-jobs] Skipping job with past pickup date: ${j.order_number || j.order_code} (pickup: ${pickupDateStr})`);
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    console.log(`[check-new-jobs] After filtering: ${activeJobs.length} active jobs`);
+
+    if (activeJobs.length === 0) {
       return new Response(
         JSON.stringify({ success: true, new_notifications: 0 }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get order numbers from jobs
-    const orderNumbers = jobs
+    // Get order numbers from active jobs
+    const orderNumbers = activeJobs
       .map((j: any) => j.order_number || j.order_code)
       .filter(Boolean);
 
