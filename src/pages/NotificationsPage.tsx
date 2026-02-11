@@ -218,24 +218,26 @@ export default function NotificationsPage() {
           <ChevronLeft className="w-5 h-5 text-muted-foreground" />
         </button>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" className="gap-2 font-medium">
-              <CalendarIcon className="h-4 w-4" />
-              {formatDisplayDate()}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && setSelectedDate(date)}
-              initialFocus
-              className={cn("p-3 pointer-events-auto")}
-              locale={getLocale()}
-            />
-          </PopoverContent>
-        </Popover>
+        {viewMode === 'daily' && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" className="gap-2 font-medium">
+                <CalendarIcon className="h-4 w-4" />
+                {formatDisplayDate()}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+                locale={getLocale()}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
 
         <button onClick={() => navigateDate('next')} className="p-1.5 rounded-full hover:bg-muted">
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
