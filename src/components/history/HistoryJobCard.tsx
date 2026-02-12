@@ -26,6 +26,10 @@ interface HistoryJob {
   product_quantity?: string | number;
   job_type?: string;
   isBidJob?: boolean;
+  // International job identifiers
+  booking_no?: string;
+  bl_no?: string;
+  transport_category?: string;
   // Support for multiple origins/destinations
   origins?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
   destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
@@ -40,7 +44,7 @@ interface HistoryJobCardProps {
 export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: HistoryJobCardProps) {
   const { t, language } = useLanguage();
 
-  const isDomestic = job.job_type === 'domestic' || !job.job_type;
+  const isDomestic = !job.booking_no && !job.bl_no && !job.transport_category;
   // Multiple locations: has destinations array with items (same logic as JobCard)
   const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 0;
   // Single trip: no destinations array OR has destination fields directly
