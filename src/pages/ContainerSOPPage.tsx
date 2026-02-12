@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan, BadgeCheck } from "lucide-react";
+import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -13,9 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
-import { useOCR } from "@/hooks/useOCR";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
-import { OCRInputField, OCRStatusBadge } from "@/components/ocr/OCRInputField";
 import {
   Dialog,
   DialogContent,
@@ -53,7 +51,6 @@ const ContainerSOPPage = () => {
   const { user } = useAuth();
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const { t, language } = useLanguage();
-  const { extractFromImage, extracting } = useOCR();
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
   
   // Get verified data and job data from navigation state
@@ -76,17 +73,10 @@ const ContainerSOPPage = () => {
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   
-  // OCR fields - initialize with verified data if available
-  const [containerNumber, setContainerNumber] = useState(verifiedData?.verifiedContainer || "");
-  const [sealNumber, setSealNumber] = useState(verifiedData?.verifiedSeal || "");
-  const [containerNumber2, setContainerNumber2] = useState("");
-  const [sealNumber2, setSealNumber2] = useState("");
-  const [ocrContainerNumber, setOcrContainerNumber] = useState<string | null>(verifiedData?.verifiedContainer || null);
-  const [ocrSealNumber, setOcrSealNumber] = useState<string | null>(verifiedData?.verifiedSeal || null);
-  const [ocrContainerNumber2, setOcrContainerNumber2] = useState<string | null>(null);
-  const [ocrSealNumber2, setOcrSealNumber2] = useState<string | null>(null);
-  const [ocrError, setOcrError] = useState<string | null>(null);
-  const [isOcrVerified] = useState(verifiedData?.ocrVerified || false);
+  const [containerNumber] = useState(verifiedData?.verifiedContainer || "");
+  const [sealNumber] = useState(verifiedData?.verifiedSeal || "");
+  const [containerNumber2] = useState("");
+  const [sealNumber2] = useState("");
 
   useEffect(() => {
     if (jobId && user) {
@@ -157,39 +147,13 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const processPhotoFile = async (file: File) => {
+  const processPhotoFile = (file: File) => {
     setPhotoFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
       setPhotoPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
-    
-    // Run OCR extraction
-    setOcrError(null);
-    const result = await extractFromImage(file, 'container_seal');
-    
-    if (result.success && result.data) {
-      if (result.data.container_number) {
-        setOcrContainerNumber(result.data.container_number);
-      }
-      if (result.data.seal_number) {
-        setOcrSealNumber(result.data.seal_number);
-      }
-      if (result.data.container_number_2) {
-        setOcrContainerNumber2(result.data.container_number_2);
-      }
-      if (result.data.seal_number_2) {
-        setOcrSealNumber2(result.data.seal_number_2);
-      }
-      
-      toast({
-        title: t('ocr.success'),
-        description: t('ocr.successDesc'),
-      });
-    } else if (result.error) {
-      setOcrError(result.error);
-    }
   };
 
   const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
@@ -229,8 +193,7 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmClick = () => {
-    // Allow confirmation if OCR is verified (from job detail page) OR if photo is taken
-    if (!photoFile && !isOcrVerified) {
+    if (!photoFile) {
       toast({
         title: t('sop.photoRequired'),
         description: t('containerSop.photoRequiredMessage'),
@@ -242,8 +205,7 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmSOP = async () => {
-    // Allow if OCR verified (even without photoFile) or if photoFile exists
-    if ((!photoFile && !isOcrVerified) || !jobId || !user) return;
+    if (!photoFile || !jobId || !user) return;
 
     setUploading(true);
     try {
@@ -398,91 +360,14 @@ const ContainerSOPPage = () => {
             )}
           </button>
           
-          {/* OCR Status */}
-          {(extracting || ocrError || ocrContainerNumber) && (
-            <div className="mt-2">
-              <OCRStatusBadge 
-                isExtracting={extracting} 
-                hasResult={!!(ocrContainerNumber || ocrSealNumber)} 
-                error={ocrError || undefined}
-              />
-            </div>
-          )}
         </div>
-        
-        {/* OCR Input Fields - Show when photo taken OR when verified from job detail */}
-        {(photoFile || isOcrVerified) && (
-          <Card className="p-4 space-y-4 bg-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
-                <Scan className="w-4 h-4" />
-                {t('ocr.containerSealInfo')}
-              </div>
-              {isOcrVerified && (
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                  <BadgeCheck className="w-3.5 h-3.5" />
-                  {t('containerSealVerification.verified') || 'ยืนยันแล้ว'}
-                </div>
-              )}
-            </div>
-            
-            <OCRInputField
-              id="container-number"
-              label={t('ocr.containerNumber')}
-              value={containerNumber}
-              onChange={setContainerNumber}
-              ocrValue={ocrContainerNumber}
-              isExtracting={extracting}
-              placeholder={t('ocr.containerPlaceholder')}
-            />
-            
-            <OCRInputField
-              id="seal-number"
-              label={t('ocr.sealNumber')}
-              value={sealNumber}
-              onChange={setSealNumber}
-              ocrValue={ocrSealNumber}
-              isExtracting={extracting}
-              placeholder={t('ocr.sealPlaceholder')}
-            />
-            
-            {/* Second container/seal for dual shipments */}
-            {(ocrContainerNumber2 || containerNumber2) && (
-              <>
-                <div className="border-t pt-4">
-                  <p className="text-xs text-muted-foreground mb-3">{t('ocr.container2Label')}</p>
-                </div>
-                
-                <OCRInputField
-                  id="container-number-2"
-                  label={t('ocr.containerNumber2')}
-                  value={containerNumber2}
-                  onChange={setContainerNumber2}
-                  ocrValue={ocrContainerNumber2}
-                  isExtracting={extracting}
-                  placeholder={t('ocr.containerPlaceholder')}
-                />
-                
-                <OCRInputField
-                  id="seal-number-2"
-                  label={t('ocr.sealNumber2')}
-                  value={sealNumber2}
-                  onChange={setSealNumber2}
-                  ocrValue={ocrSealNumber2}
-                  isExtracting={extracting}
-                  placeholder={t('ocr.sealPlaceholder')}
-                />
-              </>
-            )}
-          </Card>
-        )}
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={uploading || (!photoFile && !isOcrVerified)}
+          disabled={uploading || !photoFile}
         >
           {uploading ? t('sop.saving') : isContainerReturn ? 'ยืนยันคืนตู้' : t('containerSop.confirmButton')}
         </Button>
