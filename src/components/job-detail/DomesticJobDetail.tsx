@@ -1396,7 +1396,7 @@ export default function DomesticJobDetail({
                           });
                         }}>
                         <img src={checkInIcon} alt="checkin" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">เช็คอิน</span>
+                        <span className="text-xs">อัปเดตสถานะ</span>
                       </Button>
                     )}
                   </div>
