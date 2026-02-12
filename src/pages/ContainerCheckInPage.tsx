@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, MapPin, Phone, Loader2 } from 'lucide-react';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
@@ -47,6 +47,7 @@ interface JobDetail {
 
 export default function ContainerCheckInPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -88,15 +89,17 @@ export default function ContainerCheckInPage() {
       let result: any;
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [inProgressRes, inTransitRes, deliveredRes] = await Promise.all([
+        const [inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
         ]);
         const combinedData = [
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),
+          ...((completedRes.data as any)?.data || []),
         ];
         result = { success: true, data: combinedData };
       } else {
