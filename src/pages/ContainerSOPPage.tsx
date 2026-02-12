@@ -375,7 +375,7 @@ const ContainerSOPPage = () => {
 
         <div className="space-y-2">
           <Label className="text-base">
-            {t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
+            {isContainerReturn ? 'แนบเอกสารคืนตู้' : t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
           </Label>
           
           <button
