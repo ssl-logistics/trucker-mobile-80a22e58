@@ -228,6 +228,10 @@ export default function JobHistoryPage() {
             origins: job.origins,
             destinations: job.destinations,
             job_type: job.job_type || 'domestic',
+            // International job identifiers
+            booking_no: job.booking_no || null,
+            bl_no: job.bl_no || null,
+            transport_category: job.transport_category || null,
           }));
 
         console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
@@ -303,6 +307,10 @@ export default function JobHistoryPage() {
           transport_price: job.transport_price || 0,
           created_at: job.created_at,
           updated_at: job.updated_at,
+          // International job identifiers
+          booking_no: job.booking_no || null,
+          bl_no: job.bl_no || null,
+          transport_category: job.transport_category || null,
         }));
 
       // Combine company and factory jobs
@@ -358,6 +366,10 @@ export default function JobHistoryPage() {
           origins: job.origins,
           destinations: job.destinations,
           job_type: job.job_type || 'domestic',
+          // Preserve international job identifiers
+          booking_no: job.booking_no || null,
+          bl_no: job.bl_no || null,
+          transport_category: job.transport_category || null,
         }));
 
       // Process bid-won jobs from list-tickets API
