@@ -832,35 +832,14 @@ export default function DomesticJobDetail({
                           <span className="text-sm font-medium text-green-700">{t('jobDetail.ocrCompleted') || 'สแกน OCR เสร็จสิ้น'}</span>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-10 flex items-center justify-center gap-2 border-[#153860]"
-                            onClick={() => {
-                              if (job.container_checkpoint) {
-                                const query = encodeURIComponent(job.container_checkpoint);
-                                window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-                              } else {
-                                toast({
-                                  title: t('jobDetail.error'),
-                                  description: t('containerCheckin.noLocationFound'),
-                                  variant: 'destructive'
-                                });
-                              }
-                            }}
-                          >
-                            <img src={routeIcon} alt="route" className="w-4 h-4" />
-                            <span className="text-xs text-[#153860]">{t('jobDetail.route')}</span>
-                          </Button>
+                        <div>
                           <Button 
                             size="sm" 
-                            className="h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+                            className="w-full h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
                             onClick={() => {
                               const fromParam = new URLSearchParams(location.search).get('from');
                               const queryString = fromParam ? `?from=${fromParam}` : '';
                               if (emptyContainerCheckedIn) {
-                                // After check-in, go to Container SOP for OCR + document attachment
                                 navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: 'empty_container' } });
                               } else {
                                 navigate(`/job/${job.order_code}/container-checkin${queryString}`);
