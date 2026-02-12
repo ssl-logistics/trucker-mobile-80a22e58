@@ -291,13 +291,6 @@ export default function DomesticJobDetail({
         setVerifiedLookupData(verifyResult);
         setShowOcrConfirmDialog(false);
         
-        // Persist verified OCR data to localStorage for reload recovery
-        try {
-          localStorage.setItem(`ocr_verified_${job.order_code}`, JSON.stringify({
-            containerNumber: ocrResult.container_number,
-            sealNumber: ocrResult.seal_number,
-          }));
-        } catch (e) { /* ignore storage errors */ }
       } else {
         toast({
           title: t('containerSealVerification.notMatched') || 'ไม่พบในระบบ',
@@ -405,30 +398,6 @@ export default function DomesticJobDetail({
         setContainerReturnCheckedIn(hasContainerReturnCheckin);
         setContainerReturnConfirmed(hasContainerReturnConfirmed);
         
-        // Restore verified OCR data from localStorage if not already verified
-        if (!isOcrVerified && job.order_code) {
-          try {
-            const saved = localStorage.getItem(`ocr_verified_${job.order_code}`);
-            if (saved) {
-              const { containerNumber, sealNumber } = JSON.parse(saved);
-              if (containerNumber) {
-                console.log('Restoring OCR from localStorage:', containerNumber, sealNumber);
-                const { data: lookupData, error: lookupError } = await supabase.functions.invoke('verify-container', {
-                  body: { container_no: containerNumber, seal_no: sealNumber || null },
-                });
-                if (!lookupError && lookupData?.found) {
-                  setVerifiedContainerNumber(lookupData.container_no || containerNumber);
-                  setVerifiedSealNumber(lookupData.seal_no || sealNumber || null);
-                  setIsOcrVerified(true);
-                  setVerifiedLookupData(lookupData);
-                  console.log('Auto-lookup from localStorage success:', lookupData);
-                }
-              }
-            }
-          } catch (e) {
-            console.error('localStorage restore error:', e);
-          }
-        }
         
         // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
         // Also support format: delivery with destination_sequence_number
@@ -573,13 +542,6 @@ export default function DomesticJobDetail({
           setIsOcrVerified(true);
           setVerifiedLookupData(data);
           console.log('Auto-lookup from job success:', data);
-          // Also persist to localStorage
-          try {
-            localStorage.setItem(`ocr_verified_${job.order_code}`, JSON.stringify({
-              containerNumber: data.container_no || containerNo,
-              sealNumber: data.seal_no || job.seal_number || null,
-            }));
-          } catch (e) { /* ignore */ }
         }
       } catch (err) {
         console.error('Auto-lookup exception:', err);
