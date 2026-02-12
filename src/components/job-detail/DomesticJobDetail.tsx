@@ -872,22 +872,6 @@ export default function DomesticJobDetail({
                           <CheckCircle className="w-5 h-5 text-green-600" />
                           <span className="text-sm font-medium text-green-700">{t('jobDetail.ocrCompleted') || 'สแกน OCR เสร็จสิ้น'}</span>
                         </div>
-                      ) : emptyContainerCheckedIn ? (
-                        <Button 
-                          size="sm" 
-                          className="w-full h-10 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
-                          onClick={() => setShowOcrDrawer(true)}
-                          disabled={isProcessingOcr || extracting}
-                        >
-                          {(isProcessingOcr || extracting) ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Scan className="w-4 h-4" />
-                          )}
-                          <span className="text-xs">
-                            {(isProcessingOcr || extracting) ? t('ocr.processing') : t('ocr.scanButton')}
-                          </span>
-                        </Button>
                       ) : (
                         <div className="grid grid-cols-2 gap-2">
                           <Button 
@@ -914,7 +898,14 @@ export default function DomesticJobDetail({
                             size="sm" 
                             className="h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
                             onClick={() => {
-                              navigate(`/job/${job.order_code}/container-checkin`);
+                              const fromParam = new URLSearchParams(location.search).get('from');
+                              const queryString = fromParam ? `?from=${fromParam}` : '';
+                              if (emptyContainerCheckedIn) {
+                                // After check-in, go to Container SOP for OCR + document attachment
+                                navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: 'empty_container' } });
+                              } else {
+                                navigate(`/job/${job.order_code}/container-checkin${queryString}`);
+                              }
                             }}
                           >
                             <img src={statusIcon} alt="status" className="w-4 h-4" />
