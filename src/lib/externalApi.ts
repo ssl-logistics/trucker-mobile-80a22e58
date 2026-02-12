@@ -100,7 +100,14 @@ export async function callExternalApi<T>(
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[ExternalAPI] Error ${response.status}:`, errorText);
-      return { data: null, error: `API Error: ${response.status}` };
+      // Try to parse error message from response body
+      let errorMessage = `API Error: ${response.status}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.message) errorMessage = errorJson.message;
+        else if (errorJson.error) errorMessage = errorJson.error;
+      } catch {}
+      return { data: null, error: errorMessage };
     }
     
     const data = await response.json();
