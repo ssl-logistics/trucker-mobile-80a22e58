@@ -1378,8 +1378,8 @@ export default function DomesticJobDetail({
                         </Button>
                       </>
                     )}
-                    {containerReturnCheckedIn ? (
-                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
+                {containerReturnCheckedIn ? (
+                       <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#E65100]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           // TODO: Navigate to container return document attachment page
                           toast({
