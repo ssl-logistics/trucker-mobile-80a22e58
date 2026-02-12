@@ -81,7 +81,7 @@ const ContainerSOPPage = () => {
   const [ocrContainerNumber, setOcrContainerNumber] = useState<string | null>(null);
   const [ocrSealNumber, setOcrSealNumber] = useState<string | null>(null);
   const [isOcrVerified, setIsOcrVerified] = useState(false);
-  const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
+  
   const [pendingOcrResult, setPendingOcrResult] = useState<{ container_number: string | null; seal_number: string | null } | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -182,7 +182,6 @@ const ContainerSOPPage = () => {
         const containerNo = result.data.container_number || null;
         const sealNo = result.data.seal_number || null;
         setPendingOcrResult({ container_number: containerNo, seal_number: sealNo });
-        setShowOcrConfirmDialog(true);
       } else if (result.error) {
         toast({
           title: t('ocr.failed'),
@@ -240,7 +239,7 @@ const ContainerSOPPage = () => {
         description: 'กรุณาถ่ายรูปใหม่',
         variant: "destructive",
       });
-      setShowOcrConfirmDialog(false);
+      setPendingOcrResult(null);
       return;
     }
 
@@ -273,7 +272,7 @@ const ContainerSOPPage = () => {
         setOcrContainerNumber(pendingOcrResult.container_number);
         setOcrSealNumber(pendingOcrResult.seal_number);
         setIsOcrVerified(true);
-        setShowOcrConfirmDialog(false);
+        setPendingOcrResult(null);
       } else {
         toast({
           title: 'ไม่พบในระบบ',
@@ -452,37 +451,6 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* OCR verified results display - only for empty container */}
-        {needsOCR && isOcrVerified && (
-          <Card className="p-4 bg-green-50 border-green-300">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="font-semibold text-green-700">ตรวจสอบสำเร็จ</span>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200">
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold">1</span>
-                <span className="text-sm text-green-700 font-medium">เลขตู้ :</span>
-                <span className="text-sm font-bold">{ocrContainerNumber || '-'}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200 ml-7">
-                <span className="text-sm text-green-700 font-medium">เลขซีล :</span>
-                <span className="text-sm font-bold">{ocrSealNumber || '-'}</span>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* OCR processing indicator */}
-        {needsOCR && (isProcessingOcr || extracting) && (
-          <Card className="p-4 bg-blue-50 border-blue-200">
-            <div className="flex items-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-              <span className="text-sm text-blue-700">กำลังอ่านเลขตู้/เลขซีลจากรูป...</span>
-            </div>
-          </Card>
-        )}
-
         <div className="space-y-2">
           <Label className="text-base">
             {isContainerReturn ? 'แนบเอกสารคืนตู้' : isEmptyContainer ? 'แนบเอกสารรับตู้เปล่า' : t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
@@ -507,6 +475,76 @@ const ContainerSOPPage = () => {
               </>
             )}
           </button>
+
+          {/* OCR processing indicator - below photo */}
+          {needsOCR && (isProcessingOcr || extracting) && (
+            <Card className="p-4 bg-blue-50 border-blue-200">
+              <div className="flex items-center gap-3">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <span className="text-sm text-blue-700">กำลังอ่านเลขตู้/เลขซีลจากรูป...</span>
+              </div>
+            </Card>
+          )}
+
+          {/* OCR pending result - inline below photo */}
+          {needsOCR && pendingOcrResult && !isOcrVerified && !isProcessingOcr && !extracting && (
+            <Card className="p-4 bg-blue-50 border-blue-300">
+              <div className="flex items-center gap-2 mb-3">
+                <Scan className="w-5 h-5 text-blue-600" />
+                <span className="font-semibold text-blue-700">ผลการสแกน OCR</span>
+              </div>
+              <div className="space-y-2 mb-3">
+                <div className="bg-white rounded-lg p-3 border border-blue-200">
+                  <div className="text-xs text-muted-foreground mb-1">เลขตู้</div>
+                  <div className="font-bold text-base">{pendingOcrResult.container_number || 'ไม่พบ'}</div>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-blue-200">
+                  <div className="text-xs text-muted-foreground mb-1">เลขซีล</div>
+                  <div className="font-bold text-base">{pendingOcrResult.seal_number || 'ไม่พบ'}</div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => { setPendingOcrResult(null); setShowPhotoDrawer(true); }}
+                >
+                  ถ่ายใหม่
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  onClick={handleConfirmOcr}
+                  disabled={isVerifying || !pendingOcrResult.container_number}
+                >
+                  {isVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                  {isVerifying ? 'ตรวจสอบ...' : 'ยืนยันเลขตู้'}
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* OCR verified results display */}
+          {needsOCR && isOcrVerified && (
+            <Card className="p-4 bg-green-50 border-green-300">
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-semibold text-green-700">ตรวจสอบสำเร็จ</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200">
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold">1</span>
+                  <span className="text-sm text-green-700 font-medium">เลขตู้ :</span>
+                  <span className="text-sm font-bold">{ocrContainerNumber || '-'}</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200 ml-7">
+                  <span className="text-sm text-green-700 font-medium">เลขซีล :</span>
+                  <span className="text-sm font-bold">{ocrSealNumber || '-'}</span>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -554,49 +592,6 @@ const ContainerSOPPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* OCR Confirm Dialog */}
-      <Dialog open={showOcrConfirmDialog} onOpenChange={setShowOcrConfirmDialog}>
-        <DialogContent className="max-w-[340px] rounded-2xl">
-          <DialogHeader className="items-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-              <Scan className="w-8 h-8 text-blue-600" />
-            </div>
-            <DialogTitle className="text-xl text-center">
-              ผลการสแกน OCR
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-muted-foreground mb-1">เลขตู้</div>
-              <div className="font-bold text-lg">{pendingOcrResult?.container_number || 'ไม่พบ'}</div>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-muted-foreground mb-1">เลขซีล</div>
-              <div className="font-bold text-lg">{pendingOcrResult?.seal_number || 'ไม่พบ'}</div>
-            </div>
-          </div>
-          <DialogFooter className="flex-row gap-3 sm:gap-3">
-            <Button
-              variant="outline"
-              onClick={() => { setShowOcrConfirmDialog(false); setPendingOcrResult(null); }}
-              className="flex-1 h-11"
-              disabled={isVerifying}
-            >
-              สแกนใหม่
-            </Button>
-            <Button
-              onClick={handleConfirmOcr}
-              className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
-              disabled={isVerifying || !pendingOcrResult?.container_number}
-            >
-              {isVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              {isVerifying ? 'ตรวจสอบ...' : 'ยืนยัน'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Photo Source Drawer */}
       <Drawer open={showPhotoDrawer} onOpenChange={setShowPhotoDrawer}>
         <DrawerContent>
           <DrawerHeader>
