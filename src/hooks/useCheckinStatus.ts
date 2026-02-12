@@ -5,7 +5,7 @@ import { getDriverCheckins } from '@/lib/externalApi';
 
 export interface CheckinRecord {
   order_number: string;
-  checkin_type: 'pickup' | 'delivery' | 'container' | 'empty_container';
+  checkin_type: 'pickup' | 'delivery' | 'container_pickup' | 'container_return' | 'container_return_confirmed';
   driver_id: string;
   checked_in_at: string;
   latitude?: number;
@@ -15,8 +15,9 @@ export interface CheckinRecord {
 export const useCheckinStatus = (orderNumber: string | undefined, driverId: string | undefined) => {
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
-  const [containerCheckedIn, setContainerCheckedIn] = useState(false);
-  const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
+  const [containerPickupCheckedIn, setContainerPickupCheckedIn] = useState(false);
+  const [containerReturnCheckedIn, setContainerReturnCheckedIn] = useState(false);
+  const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
   const [loading, setLoading] = useState(true);
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const { user } = useAuth();
@@ -54,8 +55,9 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
         console.error('[useCheckinStatus] API error:', error);
         setPickupCheckedIn(false);
         setDeliveryCheckedIn(false);
-        setContainerCheckedIn(false);
-        setEmptyContainerCheckedIn(false);
+        setContainerPickupCheckedIn(false);
+        setContainerReturnCheckedIn(false);
+        setContainerReturnConfirmed(false);
         setLoading(false);
         return;
       }
@@ -91,33 +93,39 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
         // Set states based on checkin types found
         const hasPickup = checkins.some((c: any) => c.checkin_type === 'pickup');
         const hasDelivery = checkins.some((c: any) => c.checkin_type === 'delivery');
-        const hasContainer = checkins.some((c: any) => c.checkin_type === 'container');
-        const hasEmptyContainer = checkins.some((c: any) => c.checkin_type === 'empty_container');
+        const hasContainerPickup = checkins.some((c: any) => c.checkin_type === 'container_pickup');
+        const hasContainerReturn = checkins.some((c: any) => c.checkin_type === 'container_return');
+        const hasContainerReturnConfirmed = checkins.some((c: any) => c.checkin_type === 'container_return_confirmed');
 
         console.log('[useCheckinStatus] Status from API:', {
           pickup: hasPickup,
           delivery: hasDelivery,
-          container: hasContainer,
-          emptyContainer: hasEmptyContainer
+          containerPickup: hasContainerPickup,
+          containerReturn: hasContainerReturn,
+          containerReturnConfirmed: hasContainerReturnConfirmed
         });
 
         setPickupCheckedIn(hasPickup);
         setDeliveryCheckedIn(hasDelivery);
-        setContainerCheckedIn(hasContainer);
-        setEmptyContainerCheckedIn(hasEmptyContainer);
+        setContainerPickupCheckedIn(hasContainerPickup);
+        setContainerReturnCheckedIn(hasContainerReturn);
+        setContainerReturnConfirmed(hasContainerReturnConfirmed);
       } else {
         console.log('[useCheckinStatus] No checkins found from API');
         setPickupCheckedIn(false);
         setDeliveryCheckedIn(false);
-        setContainerCheckedIn(false);
-        setEmptyContainerCheckedIn(false);
+        setContainerPickupCheckedIn(false);
+        setContainerReturnCheckedIn(false);
+        setContainerReturnConfirmed(false);
       }
     } catch (error) {
       console.error('[useCheckinStatus] Error fetching check-in status:', error);
       // On error, reset states
       setPickupCheckedIn(false);
       setDeliveryCheckedIn(false);
-      setContainerCheckedIn(false);
+      setContainerPickupCheckedIn(false);
+      setContainerReturnCheckedIn(false);
+      setContainerReturnConfirmed(false);
     } finally {
       setLoading(false);
     }
@@ -130,23 +138,25 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
     // Update state immediately for optimistic UI
     if (checkin.checkin_type === 'pickup') setPickupCheckedIn(true);
     if (checkin.checkin_type === 'delivery') setDeliveryCheckedIn(true);
-    if (checkin.checkin_type === 'container') setContainerCheckedIn(true);
-    if (checkin.checkin_type === 'empty_container') setEmptyContainerCheckedIn(true);
+    if (checkin.checkin_type === 'container_pickup') setContainerPickupCheckedIn(true);
+    if (checkin.checkin_type === 'container_return') setContainerReturnCheckedIn(true);
+    if (checkin.checkin_type === 'container_return_confirmed') setContainerReturnConfirmed(true);
 
     return true;
   }, []);
 
   // Check if a specific checkin exists
-  const hasCheckedIn = useCallback((checkinType: 'pickup' | 'delivery' | 'container' | 'empty_container'): boolean => {
+  const hasCheckedIn = useCallback((checkinType: 'pickup' | 'delivery' | 'container_pickup' | 'container_return' | 'container_return_confirmed'): boolean => {
     if (checkinType === 'pickup') return pickupCheckedIn;
     if (checkinType === 'delivery') return deliveryCheckedIn;
-    if (checkinType === 'container') return containerCheckedIn;
-    if (checkinType === 'empty_container') return emptyContainerCheckedIn;
+    if (checkinType === 'container_pickup') return containerPickupCheckedIn;
+    if (checkinType === 'container_return') return containerReturnCheckedIn;
+    if (checkinType === 'container_return_confirmed') return containerReturnConfirmed;
     return false;
-  }, [pickupCheckedIn, deliveryCheckedIn, containerCheckedIn, emptyContainerCheckedIn]);
+  }, [pickupCheckedIn, deliveryCheckedIn, containerPickupCheckedIn, containerReturnCheckedIn, containerReturnConfirmed]);
 
   // Get checkin record (simplified - returns null since we don't store full records)
-  const getCheckinRecord = useCallback((checkinType: 'pickup' | 'delivery' | 'container' | 'empty_container'): CheckinRecord | null => {
+  const getCheckinRecord = useCallback((checkinType: 'pickup' | 'delivery' | 'container_pickup' | 'container_return' | 'container_return_confirmed'): CheckinRecord | null => {
     return null;
   }, []);
 
@@ -163,8 +173,9 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
   return {
     pickupCheckedIn,
     deliveryCheckedIn,
-    containerCheckedIn,
-    emptyContainerCheckedIn,
+    containerPickupCheckedIn,
+    containerReturnCheckedIn,
+    containerReturnConfirmed,
     loading,
     saveCheckin,
     hasCheckedIn,
