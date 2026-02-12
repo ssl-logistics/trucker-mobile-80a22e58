@@ -1296,24 +1296,24 @@ export default function DomesticJobDetail({
                   : deliverySopCompleted; // fallback for single destination
 
                 return (
-              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : allDeliveriesCompleted ? 'border-[#E65100] bg-[#FFF8F0]' : 'border-gray-300 bg-gray-50'}`}>
+              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${containerReturnCheckedIn ? 'border-green-500 bg-green-50' : allDeliveriesCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={!allDeliveriesCompleted ? 'opacity-60' : ''}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm text-[#E65100]">จุดคืนตู้คอนเทนเนอร์</h3>
-                      {job.container_return_location && <span className="text-sm font-medium text-[#E65100]">: {job.container_return_location}</span>}
+                      <h3 className="font-semibold text-sm text-[#225795]">จุดคืนตู้คอนเทนเนอร์</h3>
+                      {job.container_return_location && <span className="text-sm font-medium text-[#225795]">: {job.container_return_location}</span>}
                     </div>
                     {!allDeliveriesCompleted ? (
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
                         {t('jobDetail.waitingPreviousStep')}
                       </span>
                     ) : containerReturnCheckedIn ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-blue-600 bg-blue-50">
-                        รอแนบเอกสาร
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-green-600 bg-[#E6F7E6]">
+                        เช็คอินสำเร็จ
                       </span>
                     ) : (
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
-                        รอเช็คอิน
+                        {t('jobDetail.waitingCheckIn')}
                       </span>
                     )}
                   </div>
@@ -1342,7 +1342,7 @@ export default function DomesticJobDetail({
                   <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                     {!isFromHistory && (
                       <>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100] px-[4px] py-[4px]" disabled={!allDeliveriesCompleted}
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!allDeliveriesCompleted}
                           onClick={() => {
                             if (job.container_return_phone) {
                               window.location.href = `tel:${job.container_return_phone}`;
@@ -1357,7 +1357,7 @@ export default function DomesticJobDetail({
                           <Phone className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]" disabled={!allDeliveriesCompleted}
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!allDeliveriesCompleted}
                           onClick={() => {
                             if (job.container_return_latitude && job.container_return_longitude) {
                               const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_return_latitude},${job.container_return_longitude}`;
@@ -1379,7 +1379,7 @@ export default function DomesticJobDetail({
                       </>
                     )}
                     {containerReturnCheckedIn ? (
-                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-blue-600" disabled={!allDeliveriesCompleted}
+                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           // TODO: Navigate to container return document attachment page
                           toast({
@@ -1391,7 +1391,7 @@ export default function DomesticJobDetail({
                         <span className="text-xs">แนบเอกสารคืนตู้</span>
                       </Button>
                     ) : (
-                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#E65100]" disabled={!allDeliveriesCompleted}
+                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           // TODO: Implement actual container return check-in API call
                           setContainerReturnCheckedIn(true);
