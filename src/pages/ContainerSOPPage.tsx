@@ -62,8 +62,10 @@ const ContainerSOPPage = () => {
     verifiedSeal?: string; 
     ocrVerified?: boolean;
     jobData?: any;
+    checkinType?: string;
   } | null;
   const verifiedData = navState;
+  const isContainerReturn = navState?.checkinType === 'container_return';
   
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -294,8 +296,8 @@ const ContainerSOPPage = () => {
         jobId,
         orderCode: jobDetail.order_code,
         userId: user.id,
-        status: 'container_sop_completed',
-        sequenceNumber: 1, // Container checkpoint
+        status: isContainerReturn ? 'container_return_confirmed' : 'container_sop_completed',
+        sequenceNumber: 1,
         containerNumber: containerNumber || undefined,
         sealNumber: sealNumber || undefined,
         containerNumber2: containerNumber2 || undefined,
@@ -348,7 +350,7 @@ const ContainerSOPPage = () => {
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">
-            {t('containerSop.title')} {jobDetail.container_checkpoint}
+            {isContainerReturn ? 'แนบเอกสารคืนตู้' : t('containerSop.title')} {isContainerReturn ? '' : jobDetail.container_checkpoint}
           </h1>
           <div className="w-6" />
         </div>

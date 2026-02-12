@@ -150,6 +150,7 @@ export default function DomesticJobDetail({
   const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
   const [containerReturnCheckedIn, setContainerReturnCheckedIn] = useState(false);
+  const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, { checked_in_at: string | null; sop_completed_at: string | null }>>({});
@@ -395,12 +396,14 @@ export default function DomesticJobDetail({
           c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
         );
         const hasContainerReturnCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return');
-        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin);
+        const hasContainerReturnConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return_confirmed');
+        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'ContainerReturnConfirmed:', hasContainerReturnConfirmed);
         
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
         setEmptyContainerCheckedIn(hasContainerPickupCheckin);
         setContainerReturnCheckedIn(hasContainerReturnCheckin);
+        setContainerReturnConfirmed(hasContainerReturnConfirmed);
         
         // Restore verified OCR data from localStorage if not already verified
         if (!isOcrVerified && job.order_code) {
@@ -1296,7 +1299,7 @@ export default function DomesticJobDetail({
                   : deliverySopCompleted; // fallback for single destination
 
                 return (
-              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${containerReturnCheckedIn ? 'border-green-500 bg-green-50' : allDeliveriesCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500 bg-green-50' : containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : allDeliveriesCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={!allDeliveriesCompleted ? 'opacity-60' : ''}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
@@ -1307,9 +1310,13 @@ export default function DomesticJobDetail({
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
                         {t('jobDetail.waitingPreviousStep')}
                       </span>
-                    ) : containerReturnCheckedIn ? (
+                    ) : containerReturnConfirmed ? (
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-green-600 bg-[#E6F7E6]">
-                        เช็คอินสำเร็จ
+                        คืนตู้สำเร็จ
+                      </span>
+                    ) : containerReturnCheckedIn ? (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-blue-600 bg-blue-50">
+                        รอแนบเอกสาร
                       </span>
                     ) : (
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
@@ -1381,10 +1388,16 @@ export default function DomesticJobDetail({
                     <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           const fromParam = new URLSearchParams(location.search).get('from');
-                          navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
+                          if (containerReturnCheckedIn && !containerReturnConfirmed) {
+                            // After check-in, go to Container SOP for document attachment & confirmation
+                            navigate(`/job/${job.order_code}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
+                          } else {
+                            // Not yet checked in, go to check-in page
+                            navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
+                          }
                         }}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">{containerReturnCheckedIn ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                        <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? 'แนบเอกสาร' : t('jobDetail.updateStatus')}</span>
                       </Button>
                   </div>
                 </div>
