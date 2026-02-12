@@ -152,17 +152,17 @@ export default function InternationalJobDetail({
         console.log('[InternationalJobDetail] Filtered checkins:', checkins.length, 'items');
         
         // Check for different checkin types
-        const hasEmptyContainerCheckin = checkins.some((c: any) => c.checkin_type === 'empty_container');
-        const hasContainerCheckin = checkins.some((c: any) => c.checkin_type === 'container');
-        const hasPickupCheckin = checkins.some((c: any) => c.checkin_type === 'pickup');
-        const hasDeliveryCheckin = checkins.some((c: any) => c.checkin_type === 'delivery');
-        
-        console.log('[InternationalJobDetail] Status - EmptyContainer:', hasEmptyContainerCheckin, 'Container:', hasContainerCheckin, 'Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin);
-        
-        // Set states - empty_container OR container checkin counts as container checkpoint done
-        setEmptyContainerCheckedIn(hasEmptyContainerCheckin || hasContainerCheckin);
-        setPickupCheckedIn(hasPickupCheckin);
-        setDeliveryCheckedIn(hasDeliveryCheckin);
+         const hasContainerReturnCheckin = checkins.some((c: any) => c.checkin_type === 'container_return');
+         const hasContainerPickupCheckin = checkins.some((c: any) => c.checkin_type === 'container_pickup');
+         const hasPickupCheckin = checkins.some((c: any) => c.checkin_type === 'pickup');
+         const hasDeliveryCheckin = checkins.some((c: any) => c.checkin_type === 'delivery');
+         
+         console.log('[InternationalJobDetail] Status - ContainerReturn:', hasContainerReturnCheckin, 'ContainerPickup:', hasContainerPickupCheckin, 'Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin);
+         
+         // Set states - container_return OR container_pickup checkin counts as container checkpoint done
+         setEmptyContainerCheckedIn(hasContainerReturnCheckin || hasContainerPickupCheckin);
+         setPickupCheckedIn(hasPickupCheckin);
+         setDeliveryCheckedIn(hasDeliveryCheckin);
         
       } catch (error) {
         console.error('[InternationalJobDetail] Error fetching checkin status:', error);

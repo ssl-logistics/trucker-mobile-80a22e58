@@ -159,8 +159,9 @@ export default function JobDetailPage() {
   const { 
     pickupCheckedIn, 
     deliveryCheckedIn, 
-    containerCheckedIn, 
-    emptyContainerCheckedIn,
+    containerPickupCheckedIn,
+    containerReturnCheckedIn,
+    containerReturnConfirmed,
     loading: checkinLoading,
     refetch: refetchCheckinStatus 
   } = useCheckinStatus(jobId, user?.id);
@@ -180,11 +181,11 @@ export default function JobDetailPage() {
           ...prev,
           checked_in_at: pickupCheckedIn ? (prev.checked_in_at || new Date().toISOString()) : null,
           delivery_checked_in_at: deliveryCheckedIn ? (prev.delivery_checked_in_at || new Date().toISOString()) : null,
-          container_checked_in_at: (containerCheckedIn || emptyContainerCheckedIn) ? (prev.container_checked_in_at || new Date().toISOString()) : null,
+          container_checked_in_at: (containerPickupCheckedIn || containerReturnCheckedIn) ? (prev.container_checked_in_at || new Date().toISOString()) : null,
         };
       });
     }
-  }, [pickupCheckedIn, deliveryCheckedIn, containerCheckedIn, emptyContainerCheckedIn, checkinLoading]);
+  }, [pickupCheckedIn, deliveryCheckedIn, containerPickupCheckedIn, containerReturnCheckedIn, checkinLoading]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;

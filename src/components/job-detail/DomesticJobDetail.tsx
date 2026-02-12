@@ -390,12 +390,12 @@ export default function DomesticJobDetail({
         const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
         const hasDeliveryConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
-        const hasEmptyContainerCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'empty_container');
-        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'EmptyContainer:', hasEmptyContainerCheckin);
+        const hasContainerReturnCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return');
+        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerReturn:', hasContainerReturnCheckin);
         
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
-        setEmptyContainerCheckedIn(hasEmptyContainerCheckin);
+        setEmptyContainerCheckedIn(hasContainerReturnCheckin);
         
         // Restore verified OCR data from localStorage if not already verified
         if (!isOcrVerified && job.order_code) {
