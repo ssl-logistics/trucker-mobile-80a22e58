@@ -305,16 +305,6 @@ const ContainerSOPPage = () => {
         setOcrSealNumber(pendingOcrResult.seal_number);
         setIsOcrVerified(true);
         setShowOcrConfirmDialog(false);
-        
-        // Persist to localStorage
-        if (jobDetail?.order_code) {
-          try {
-            localStorage.setItem(`ocr_verified_${jobDetail.order_code}`, JSON.stringify({
-              containerNumber: pendingOcrResult.container_number,
-              sealNumber: pendingOcrResult.seal_number,
-            }));
-          } catch (e) { /* ignore */ }
-        }
       } else {
         toast({
           title: 'ไม่พบในระบบ',
