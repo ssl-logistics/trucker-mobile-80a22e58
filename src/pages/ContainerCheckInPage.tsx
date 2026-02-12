@@ -59,6 +59,10 @@ export default function ContainerCheckInPage() {
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   
+  // Determine if this is a container return flow
+  const navState = location.state as { jobData?: any; checkinType?: string } | null;
+  const isContainerReturn = navState?.checkinType === 'container_return';
+  
   // Editable container fields for inbound
   const [container1Number, setContainer1Number] = useState('');
   const [container1Seal, setContainer1Seal] = useState('');
@@ -227,22 +231,42 @@ export default function ContainerCheckInPage() {
           })
         : [];
 
-      // Check if already checked in for container_pickup (or legacy empty_container/container)
-      const hasContainerPickupCheckin = checkins.some((c: any) => 
-        c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
-      );
-      console.log('[ContainerCheckInPage] Has container_pickup checkin:', hasContainerPickupCheckin);
-      
-      if (hasContainerPickupCheckin) {
-        setAlreadyCheckedIn(true);
-        // Redirect to SOP page since already checked in
-        toast({
-          title: t('containerCheckin.alreadyCheckedIn'),
-          description: t('containerCheckin.alreadyCheckedInDesc'),
-        });
-        setTimeout(() => {
-          navigate(`/job/${orderNumber}/container-sop`, { state: { jobData: job } });
-        }, 1500);
+      // Check based on flow type
+      if (isContainerReturn) {
+        // For container return flow, check for existing container_return checkin
+        const hasContainerReturnCheckin = checkins.some((c: any) => 
+          c.checkin_type === 'container_return'
+        );
+        console.log('[ContainerCheckInPage] Has container_return checkin:', hasContainerReturnCheckin);
+        
+        if (hasContainerReturnCheckin) {
+          setAlreadyCheckedIn(true);
+          toast({
+            title: t('containerCheckin.alreadyCheckedIn'),
+            description: t('containerCheckin.alreadyCheckedInDesc'),
+          });
+          // For container return, go back to job detail (no SOP needed, document attachment is on job detail)
+          setTimeout(() => {
+            navigate(`/job/${orderNumber}`);
+          }, 1500);
+        }
+      } else {
+        // For empty container pickup flow, check for existing container_pickup checkin
+        const hasContainerPickupCheckin = checkins.some((c: any) => 
+          c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
+        );
+        console.log('[ContainerCheckInPage] Has container_pickup checkin:', hasContainerPickupCheckin);
+        
+        if (hasContainerPickupCheckin) {
+          setAlreadyCheckedIn(true);
+          toast({
+            title: t('containerCheckin.alreadyCheckedIn'),
+            description: t('containerCheckin.alreadyCheckedInDesc'),
+          });
+          setTimeout(() => {
+            navigate(`/job/${orderNumber}/container-sop`, { state: { jobData: job } });
+          }, 1500);
+        }
       }
     } catch (error) {
       console.error('[ContainerCheckInPage] Error checking existing checkin:', error);
@@ -281,12 +305,12 @@ export default function ContainerCheckInPage() {
       // Call check-in API directly (no proxy)
       const { data: checkinResult, error: checkinError } = await driverCheckin({
         order_number: job.order_code,
-        checkin_type: 'container_pickup',
+        checkin_type: isContainerReturn ? 'container_return' : 'container_pickup',
         driver_id: user.id,
         driver_type: driverType,
         latitude: latitude,
         longitude: longitude,
-        notes: t('containerCheckin.arrivalNote'),
+        notes: isContainerReturn ? t('containerCheckin.returnArrivalNote') || 'ถึงจุดคืนตู้แล้ว' : t('containerCheckin.arrivalNote'),
         container_number: container1Number,
         seal_number: container1Seal,
         container_number_2: container2Number,
@@ -303,8 +327,8 @@ export default function ContainerCheckInPage() {
         jobId: job.id,
         orderCode: job.order_code,
         userId: user.id,
-        status: 'empty_container_checked_in',
-        sequenceNumber: 0, // Empty container checkpoint is before pickup
+        status: isContainerReturn ? 'container_return_checked_in' : 'empty_container_checked_in',
+        sequenceNumber: isContainerReturn ? 99 : 0,
         containerNumber: container1Number,
         sealNumber: container1Seal,
         containerNumber2: container2Number,
@@ -349,8 +373,14 @@ export default function ContainerCheckInPage() {
             <ChevronLeft className="w-6 h-6" />
           </button>
           <div className="text-center">
-            <h1 className="text-base font-semibold">{t('containerCheckin.title')}</h1>
-            <p className="text-xs opacity-80">{job.container_checkpoint || job.origin_location || '-'}</p>
+            <h1 className="text-base font-semibold">
+              {isContainerReturn ? (t('containerCheckin.returnTitle') || 'เช็คอินจุดคืนตู้') : t('containerCheckin.title')}
+            </h1>
+            <p className="text-xs opacity-80">
+              {isContainerReturn 
+                ? (job.container_return_location || '-') 
+                : (job.container_checkpoint || job.origin_location || '-')}
+            </p>
           </div>
         </div>
       </header>
@@ -363,52 +393,91 @@ export default function ContainerCheckInPage() {
         <Card className="overflow-hidden border-0 shadow-md rounded-2xl">
           {/* Card Header */}
           <div className="bg-[#E8F4F8] px-4 py-3">
-            <p className="text-sm font-medium text-[#225795]">{t('jobDetail.emptyContainerPickup')}</p>
-            <p className="text-base font-semibold text-[#225795]">{job.container_checkpoint || job.origin_location || '-'}</p>
+            <p className="text-sm font-medium text-[#225795]">
+              {isContainerReturn ? (t('jobDetail.containerReturn') || 'จุดคืนตู้') : t('jobDetail.emptyContainerPickup')}
+            </p>
+            <p className="text-base font-semibold text-[#225795]">
+              {isContainerReturn 
+                ? (job.container_return_location || '-') 
+                : (job.container_checkpoint || job.origin_location || '-')}
+            </p>
           </div>
 
           {/* Map Section */}
           <div className="relative">
-            {job.container_checkpoint_latitude && job.container_checkpoint_longitude ? (
-              <div className="h-40">
-                <GoogleMap 
-                  latitude={job.container_checkpoint_latitude}
-                  longitude={job.container_checkpoint_longitude}
-                  markerLabel={job.container_checkpoint || t('containerCheckin.title')}
-                  showRoute={false}
-                />
-              </div>
-            ) : (
-              <div className="w-full h-40 bg-muted flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="w-10 h-10 text-muted-foreground mx-auto mb-1" />
-                  <p className="text-xs text-muted-foreground">{t('jobDetail.noLocation')}</p>
+            {(() => {
+              const lat = isContainerReturn ? job.container_return_latitude : job.container_checkpoint_latitude;
+              const lng = isContainerReturn ? job.container_return_longitude : job.container_checkpoint_longitude;
+              const label = isContainerReturn ? (job.container_return_location || '') : (job.container_checkpoint || '');
+              
+              return lat && lng ? (
+                <div className="h-40">
+                  <GoogleMap 
+                    latitude={lat}
+                    longitude={lng}
+                    markerLabel={label || t('containerCheckin.title')}
+                    showRoute={false}
+                  />
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="w-full h-40 bg-muted flex items-center justify-center">
+                  <div className="text-center">
+                    <MapPin className="w-10 h-10 text-muted-foreground mx-auto mb-1" />
+                    <p className="text-xs text-muted-foreground">{t('jobDetail.noLocation')}</p>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Info Section */}
-          <div className="p-4 space-y-3">
-            <div>
-              <p className="text-xs text-muted-foreground">วัน/เวลาเรือถึง</p>
-              <p className="text-sm font-semibold text-[#225795]">
-                {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}
-              </p>
+          {isContainerReturn ? (
+            /* Container Return Info */
+            <div className="p-4 space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground">สถานที่คืนตู้</p>
+                <p className="text-sm font-semibold text-[#225795]">
+                  {job.container_return_location || '-'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">ที่อยู่</p>
+                <p className="text-sm font-semibold text-[#225795]">
+                  {job.container_return_address || '-'}
+                </p>
+              </div>
+              {job.container_return_phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <a href={`tel:${job.container_return_phone}`} className="text-sm font-semibold text-[#225795] underline">
+                    {job.container_return_phone}
+                  </a>
+                </div>
+              )}
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">วันเริ่มเข้ารับตู้เปล่า</p>
-              <p className="text-sm font-semibold text-[#225795]">
-                {job.container_checkpoint_code || 'LCB B1'}
-              </p>
+          ) : (
+            /* Empty Container Pickup Info */
+            <div className="p-4 space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground">วัน/เวลาเรือถึง</p>
+                <p className="text-sm font-semibold text-[#225795]">
+                  {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">วันเริ่มเข้ารับตู้เปล่า</p>
+                <p className="text-sm font-semibold text-[#225795]">
+                  {job.container_checkpoint_code || 'LCB B1'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">วันเริ่มรับตู้เปล่า (FIRST DATE PICK UP CTNR)</p>
+                <p className="text-sm font-semibold text-[#225795]">
+                  {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">วันเริ่มรับตู้เปล่า (FIRST DATE PICK UP CTNR)</p>
-              <p className="text-sm font-semibold text-[#225795]">
-                {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}
-              </p>
-            </div>
-          </div>
+          )}
         </Card>
 
         {/* Container 1 */}
@@ -492,11 +561,15 @@ export default function ContainerCheckInPage() {
           variant="outline" 
           className="w-full h-11 text-sm border-[#225795] text-[#225795] rounded-full" 
           onClick={() => {
-            if (job.container_checkpoint_latitude && job.container_checkpoint_longitude) {
-              const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_checkpoint_latitude},${job.container_checkpoint_longitude}`;
+            const lat = isContainerReturn ? job.container_return_latitude : job.container_checkpoint_latitude;
+            const lng = isContainerReturn ? job.container_return_longitude : job.container_checkpoint_longitude;
+            const label = isContainerReturn ? job.container_return_location : job.container_checkpoint;
+            
+            if (lat && lng) {
+              const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
               window.open(url, '_blank');
-            } else if (job.container_checkpoint) {
-              const query = encodeURIComponent(job.container_checkpoint);
+            } else if (label) {
+              const query = encodeURIComponent(label);
               window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
             } else {
               toast({
@@ -539,7 +612,10 @@ export default function ContainerCheckInPage() {
             </DialogTitle>
             <DialogDescription className="text-center text-base">
               คุณต้องการเช็คอินที่<br />
-              จุดรับตู้เปล่า {job.container_checkpoint || '-'}<br />
+              {isContainerReturn 
+                ? <>จุดคืนตู้ {job.container_return_location || '-'}</>
+                : <>จุดรับตู้เปล่า {job.container_checkpoint || '-'}</>
+              }<br />
               ใช่หรือไม่?
             </DialogDescription>
           </DialogHeader>

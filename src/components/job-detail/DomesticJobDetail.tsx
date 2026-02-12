@@ -1381,7 +1381,7 @@ export default function DomesticJobDetail({
                     <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           const fromParam = new URLSearchParams(location.search).get('from');
-                          navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
+                          navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
                         }}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                         <span className="text-xs">{containerReturnCheckedIn ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
