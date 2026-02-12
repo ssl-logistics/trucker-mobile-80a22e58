@@ -483,57 +483,25 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* OCR Section - only for empty container */}
-        {needsOCR && (
-          <div className="space-y-3">
-            <Label className="text-base font-semibold">
-              สแกนเลขตู้ / เลขซีล <span className="text-red-500">*</span>
-            </Label>
-            
-            {isOcrVerified ? (
-              <Card className="p-4 bg-green-50 border-green-300">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="font-semibold text-green-700">ตรวจสอบสำเร็จ</span>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200">
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold">1</span>
-                    <span className="text-sm text-green-700 font-medium">เลขตู้ :</span>
-                    <span className="text-sm font-bold">{ocrContainerNumber || '-'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200 ml-7">
-                    <span className="text-sm text-green-700 font-medium">เลขซีล :</span>
-                    <span className="text-sm font-bold">{ocrSealNumber || '-'}</span>
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-3 border-green-300 text-green-700"
-                  onClick={() => setShowOcrDrawer(true)}
-                >
-                  <Scan className="w-4 h-4 mr-2" />
-                  สแกนใหม่
-                </Button>
-              </Card>
-            ) : (
-              <Button 
-                className="w-full h-14 flex items-center justify-center gap-3 bg-purple-600 hover:bg-purple-700 text-white"
-                onClick={() => setShowOcrDrawer(true)}
-                disabled={isProcessingOcr || extracting}
-              >
-                {(isProcessingOcr || extracting) ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Scan className="w-5 h-5" />
-                )}
-                <span className="text-base">
-                  {(isProcessingOcr || extracting) ? 'กำลังประมวลผล...' : 'สแกนเลขตู้ / เลขซีล'}
-                </span>
-              </Button>
-            )}
-          </div>
+        {/* OCR verified results display - only for empty container */}
+        {needsOCR && isOcrVerified && (
+          <Card className="p-4 bg-green-50 border-green-300">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <span className="font-semibold text-green-700">ตรวจสอบสำเร็จ</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold">1</span>
+                <span className="text-sm text-green-700 font-medium">เลขตู้ :</span>
+                <span className="text-sm font-bold">{ocrContainerNumber || '-'}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200 ml-7">
+                <span className="text-sm text-green-700 font-medium">เลขซีล :</span>
+                <span className="text-sm font-bold">{ocrSealNumber || '-'}</span>
+              </div>
+            </div>
+          </Card>
         )}
 
         <div className="space-y-2">
