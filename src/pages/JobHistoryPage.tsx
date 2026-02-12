@@ -195,9 +195,6 @@ export default function JobHistoryPage() {
         // For international jobs, also require container return to be completed
         const completedFromApi: CompletedJob[] = allJobs
           .filter((job: any) => {
-            // If API already marks job as completed, include it directly
-            if (job.status === 'completed') return true;
-            
             const transportId = String(job.id);
             const podCount = podCountByTransportId[transportId] || 0;
             const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
