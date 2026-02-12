@@ -516,12 +516,12 @@ export default function DomesticJobDetail({
     }
   }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
 
-  // Fetch OCR container scan data from external API
+  // Fetch OCR container scan data from external API with polling
   useEffect(() => {
+    const containerNo = job.container_number;
+    if (!containerNo) return;
+
     const fetchOcrScans = async () => {
-      const containerNo = job.container_number;
-      if (!containerNo) return;
-      
       try {
         console.log('Fetching OCR scans for container:', containerNo);
         const { data, error } = await getOcrContainerScans(containerNo);
@@ -544,9 +544,14 @@ export default function DomesticJobDetail({
         console.error('OCR scans fetch exception:', err);
       }
     };
-    
-    if (job.container_number && !isOcrVerified) {
-      fetchOcrScans();
+
+    // Fetch immediately
+    fetchOcrScans();
+
+    // Poll every 10 seconds if not yet verified
+    if (!isOcrVerified) {
+      const interval = setInterval(fetchOcrScans, 10000);
+      return () => clearInterval(interval);
     }
   }, [job.container_number, job.seal_number, isOcrVerified]);
 
