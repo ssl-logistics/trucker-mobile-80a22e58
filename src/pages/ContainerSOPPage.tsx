@@ -53,12 +53,14 @@ const ContainerSOPPage = () => {
   const { extractFromImage, extracting } = useOCR();
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
   
-  // Get verified data from navigation state (passed from OCR verification)
-  const verifiedData = location.state as { 
+  // Get verified data and job data from navigation state
+  const navState = location.state as { 
     verifiedContainer?: string; 
     verifiedSeal?: string; 
     ocrVerified?: boolean;
+    jobData?: any;
   } | null;
+  const verifiedData = navState;
   
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,26 @@ const ContainerSOPPage = () => {
 
   const loadJobDetail = async () => {
     try {
+      // Try to use job data from navigation state (external API data)
+      const stateJob = navState?.jobData;
+      if (stateJob) {
+        setJobDetail({
+          id: stateJob.id || jobId || '',
+          order_code: stateJob.order_code || stateJob.order_number || jobId || '',
+          employer_name: stateJob.employer_name || stateJob.factory_name || stateJob.sender_name || '',
+          container_checkpoint: stateJob.container_checkpoint || stateJob.empty_pickup_depot || '',
+          container_number: stateJob.container_number || '',
+          seal_number: stateJob.seal_number || '',
+          container_number_2: stateJob.container_number_2 || '',
+          seal_number_2: stateJob.seal_number_2 || '',
+          start_date: stateJob.start_date || stateJob.sender_pickup_date || '',
+          start_time: stateJob.start_time || stateJob.sender_pickup_time || '',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Fallback: try local database
       const { data, error } = await supabase
         .from('jobs')
         .select('id, order_code, employer_name, container_checkpoint, container_number, seal_number, start_date, start_time')
