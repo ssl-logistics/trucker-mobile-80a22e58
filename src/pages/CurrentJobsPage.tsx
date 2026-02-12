@@ -379,7 +379,7 @@ export default function CurrentJobsPage() {
                 podCountByOrderNumber[orderNumber] = (podCountByOrderNumber[orderNumber] || 0) + 1;
               }
             }
-            if (c.checkin_type === 'container_return') {
+            if (c.checkin_type === 'container_return_confirmed') {
               if (c.transport_order_id) {
                 containerReturnByTransportId.add(String(c.transport_order_id));
               }
