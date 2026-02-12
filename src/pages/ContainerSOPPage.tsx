@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan } from '@/lib/externalApi';
+import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer } from '@/lib/externalApi';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -273,7 +273,31 @@ const ContainerSOPPage = () => {
         }
       }
 
-      // Submit OCR data to external API with image_url
+      // Step 1: Verify container/seal via ocr-extra (read-only check)
+      const { data: verifyResult, error: verifyError } = await verifyOcrContainer({
+        container_no: pendingOcrResult.container_number,
+        seal_no: pendingOcrResult.seal_number || '',
+        order_number: jobId || undefined,
+        driver_id: user?.id || undefined,
+        driver_type: driverType,
+      });
+
+      if (verifyError) {
+        console.error('OCR verify error:', verifyError);
+        const isNotFound = verifyError.toLowerCase().includes('not found') || verifyError.toLowerCase().includes('does not exist');
+        toast({
+          title: isNotFound ? 'ไม่พบข้อมูลตู้คอนเทนเนอร์' : 'ตรวจสอบไม่สำเร็จ',
+          description: isNotFound 
+            ? 'ไม่มีข้อมูลตู้คอนเทนเนอร์นี้อยู่ในระบบ กรุณาตรวจสอบเลขตู้และเลขซีลอีกครั้ง' 
+            : verifyError,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('[OCR] Verify passed:', verifyResult);
+
+      // Step 2: Save to DB via save-ocr-scan
       const { data: ocrResult, error: ocrError } = await submitOcrScan({
         container_no: pendingOcrResult.container_number,
         seal_no: pendingOcrResult.seal_number || '',
@@ -285,13 +309,10 @@ const ContainerSOPPage = () => {
       });
 
       if (ocrError) {
-        console.error('OCR submit error:', ocrError);
-        const isNotFound = ocrError.toLowerCase().includes('not found') || ocrError.toLowerCase().includes('does not exist');
+        console.error('OCR save error:', ocrError);
         toast({
-          title: isNotFound ? 'ไม่พบข้อมูลตู้คอนเทนเนอร์' : 'บันทึกไม่สำเร็จ',
-          description: isNotFound 
-            ? 'ไม่มีข้อมูลตู้คอนเทนเนอร์นี้อยู่ในระบบ กรุณาตรวจสอบเลขตู้และเลขซีลอีกครั้ง' 
-            : ocrError,
+          title: 'บันทึกไม่สำเร็จ',
+          description: ocrError,
           variant: "destructive",
         });
         return;
