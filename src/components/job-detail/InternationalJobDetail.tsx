@@ -152,15 +152,18 @@ export default function InternationalJobDetail({
         console.log('[InternationalJobDetail] Filtered checkins:', checkins.length, 'items');
         
         // Check for different checkin types
+         // Support both new (container_pickup) and legacy (empty_container, container) types
+         const hasContainerPickupCheckin = checkins.some((c: any) => 
+           c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
+         );
          const hasContainerReturnCheckin = checkins.some((c: any) => c.checkin_type === 'container_return');
-         const hasContainerPickupCheckin = checkins.some((c: any) => c.checkin_type === 'container_pickup');
          const hasPickupCheckin = checkins.some((c: any) => c.checkin_type === 'pickup');
          const hasDeliveryCheckin = checkins.some((c: any) => c.checkin_type === 'delivery');
          
-         console.log('[InternationalJobDetail] Status - ContainerReturn:', hasContainerReturnCheckin, 'ContainerPickup:', hasContainerPickupCheckin, 'Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin);
+         console.log('[InternationalJobDetail] Status - ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin);
          
-         // Set states - container_return OR container_pickup checkin counts as container checkpoint done
-         setEmptyContainerCheckedIn(hasContainerReturnCheckin || hasContainerPickupCheckin);
+         // container_pickup checkin counts as container checkpoint done (for unlocking pickup)
+         setEmptyContainerCheckedIn(hasContainerPickupCheckin);
          setPickupCheckedIn(hasPickupCheckin);
          setDeliveryCheckedIn(hasDeliveryCheckin);
         

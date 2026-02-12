@@ -390,12 +390,17 @@ export default function DomesticJobDetail({
         const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
         const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
         const hasDeliveryConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
+        // Support both new (container_pickup) and legacy (empty_container, container) types
+        const hasContainerPickupCheckin = checkins.some((c: DriverCheckin) => 
+          c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
+        );
         const hasContainerReturnCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return');
-        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerReturn:', hasContainerReturnCheckin);
+        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin);
         
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
-        setEmptyContainerCheckedIn(hasContainerReturnCheckin);
+        setEmptyContainerCheckedIn(hasContainerPickupCheckin);
+        setContainerReturnCheckedIn(hasContainerReturnCheckin);
         
         // Restore verified OCR data from localStorage if not already verified
         if (!isOcrVerified && job.order_code) {
