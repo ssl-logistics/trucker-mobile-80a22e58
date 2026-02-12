@@ -8,7 +8,9 @@ export type JobStatusType =
   | 'pickup_sop_completed'
   | 'delivery_checked_in'
   | 'delivery_sop_completed'
-  | 'delivery_confirmed';
+  | 'delivery_confirmed'
+  | 'container_return_checked_in'
+  | 'container_return_confirmed';
 
 const STATUS_LABELS: Record<JobStatusType, string> = {
   empty_container_checked_in: 'เช็คอินจุดรับตู้เปล่าสำเร็จ',
@@ -18,7 +20,10 @@ const STATUS_LABELS: Record<JobStatusType, string> = {
   pickup_sop_completed: 'ดำเนินการจุดรับสินค้าสำเร็จ',
   delivery_checked_in: 'เช็คอินจุดส่งสินค้าสำเร็จ',
   delivery_sop_completed: 'ดำเนินการจุดส่งสินค้าสำเร็จ',
-  delivery_confirmed: 'ยืนยัน POD สำเร็จ',
+  delivery_confirmed: 'ยืนยันการจัดส่งสำเร็จ',
+  container_return_checked_in: 'เช็คอินจุดคืนตู้สำเร็จ',
+  container_return_confirmed: 'ยืนยันคืนตู้สำเร็จ',
+  
 };
 
 interface SendJobStatusParams {
