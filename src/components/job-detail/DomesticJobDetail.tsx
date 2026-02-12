@@ -1315,7 +1315,7 @@ export default function DomesticJobDetail({
                         คืนตู้สำเร็จ
                       </span>
                     ) : containerReturnCheckedIn ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-blue-600 bg-blue-50">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-blue-600 bg-blue-100">
                         รอแนบเอกสาร
                       </span>
                     ) : (
