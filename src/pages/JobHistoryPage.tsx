@@ -167,22 +167,32 @@ export default function JobHistoryPage() {
         // Count PODs per transport_order_id for multi-destination jobs
         const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
         const podCountByTransportId: Record<string, number> = {};
+        const containerReturnByTransportId: Set<string> = new Set();
         
         allCheckins
           .filter(
             (c: any) =>
               c[driverIdField] === driverId &&
-              (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) &&
               c.transport_order_id
           )
           .forEach((c: any) => {
             const transportId = String(c.transport_order_id);
-            podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+            if (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) {
+              podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+            }
+            if (c.checkin_type === "container_return") {
+              containerReturnByTransportId.add(transportId);
+            }
           });
         
         console.log('POD counts by transport ID (history):', podCountByTransportId);
+        console.log('Container return completed by transport ID:', [...containerReturnByTransportId]);
+
+        // Helper: check if job is international
+        const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || job.transport_category);
 
         // Filter jobs that have ALL destinations POD completed OR have 'completed' status from API
+        // For international jobs, also require container return to be completed
         const completedFromApi: CompletedJob[] = allJobs
           .filter((job: any) => {
             // If API already marks job as completed, include it directly
@@ -194,8 +204,15 @@ export default function JobHistoryPage() {
               ? job.destinations.length 
               : 1; // Single destination if no array
             
-            // Job is completed when POD count matches destination count
-            return podCount >= destinationCount;
+            const allPodsCompleted = podCount >= destinationCount;
+            
+            // For international jobs, also require container return
+            if (isInternationalJob(job)) {
+              return allPodsCompleted && containerReturnByTransportId.has(transportId);
+            }
+            
+            // Domestic jobs: just need all PODs
+            return allPodsCompleted;
           })
           .map((job: any) => ({
             id: job.id,
@@ -319,28 +336,43 @@ export default function JobHistoryPage() {
       const allCheckins = checkinsJson?.data || checkinsJson || [];
       const checkins = Array.isArray(allCheckins) ? allCheckins : [];
 
-      // Count PODs per transport_order_id and order_number for multi-destination jobs
+      // Count PODs and container returns per transport_order_id and order_number
       const podCountByTransportId: Record<string, number> = {};
       const podCountByOrderNumber: Record<string, number> = {};
+      const containerReturnByTransportId: Set<string> = new Set();
+      const containerReturnByOrderNumber: Set<string> = new Set();
       
       checkins
         .filter(
-          (c: any) =>
-            c.freelance_driver_id === freelanceDriverId &&
-            (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_"))
+          (c: any) => c.freelance_driver_id === freelanceDriverId
         )
         .forEach((c: any) => {
-          if (c.transport_order_id) {
-            const transportId = String(c.transport_order_id);
-            podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+          if (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) {
+            if (c.transport_order_id) {
+              const transportId = String(c.transport_order_id);
+              podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+            }
+            const orderNumber = c.transport_orders?.order_number || c.order_number || '';
+            if (orderNumber) {
+              podCountByOrderNumber[orderNumber] = (podCountByOrderNumber[orderNumber] || 0) + 1;
+            }
           }
-          const orderNumber = c.transport_orders?.order_number || c.order_number || '';
-          if (orderNumber) {
-            podCountByOrderNumber[orderNumber] = (podCountByOrderNumber[orderNumber] || 0) + 1;
+          if (c.checkin_type === "container_return") {
+            if (c.transport_order_id) {
+              containerReturnByTransportId.add(String(c.transport_order_id));
+            }
+            const orderNumber = c.transport_orders?.order_number || c.order_number || '';
+            if (orderNumber) {
+              containerReturnByOrderNumber.add(orderNumber);
+            }
           }
         });
       
       console.log('Freelance POD counts (history):', { byTransportId: podCountByTransportId, byOrderNumber: podCountByOrderNumber });
+      console.log('Freelance container return (history):', { byTransportId: [...containerReturnByTransportId], byOrderNumber: [...containerReturnByOrderNumber] });
+
+      // Helper: check if job is international
+      const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || job.transport_category);
 
       // Helper function to check if job has ALL PODs completed
       const isJobFullyCompleted = (job: any): boolean => {
@@ -353,7 +385,16 @@ export default function JobHistoryPage() {
           podCountByOrderNumber[job.order_number] || 0
         );
         
-        return podCount >= destinationCount;
+        const allPodsCompleted = podCount >= destinationCount;
+        
+        // For international jobs, also require container return
+        if (isInternationalJob(job)) {
+          const hasContainerReturn = containerReturnByTransportId.has(String(job.id)) || 
+            containerReturnByOrderNumber.has(job.order_number);
+          return allPodsCompleted && hasContainerReturn;
+        }
+        
+        return allPodsCompleted;
       };
 
       // Filter jobs that have ALL destinations POD completed
