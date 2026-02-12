@@ -224,11 +224,13 @@ export default function ContainerCheckInPage() {
           })
         : [];
 
-      // Check if already checked in for container_return
-      const hasContainerReturnCheckin = checkins.some((c: any) => c.checkin_type === 'container_return');
-      console.log('[ContainerCheckInPage] Has container_return checkin:', hasContainerReturnCheckin);
+      // Check if already checked in for container_pickup (or legacy empty_container/container)
+      const hasContainerPickupCheckin = checkins.some((c: any) => 
+        c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
+      );
+      console.log('[ContainerCheckInPage] Has container_pickup checkin:', hasContainerPickupCheckin);
       
-      if (hasContainerReturnCheckin) {
+      if (hasContainerPickupCheckin) {
         setAlreadyCheckedIn(true);
         // Redirect to SOP page since already checked in
         toast({
@@ -276,7 +278,7 @@ export default function ContainerCheckInPage() {
       // Call check-in API directly (no proxy)
       const { data: checkinResult, error: checkinError } = await driverCheckin({
         order_number: job.order_code,
-        checkin_type: 'container_return',
+        checkin_type: 'container_pickup',
         driver_id: user.id,
         driver_type: driverType,
         latitude: latitude,
