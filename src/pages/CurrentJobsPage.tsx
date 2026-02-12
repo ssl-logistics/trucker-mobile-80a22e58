@@ -178,21 +178,21 @@ export default function CurrentJobsPage() {
             allCheckins = (checkinsResult.data as any)?.data || [];
             const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
             
-            allCheckins
-              .filter(
-                (c: any) =>
-                  c[driverIdField] === freelanceDriverId &&
-                  c.transport_order_id
-              )
-              .forEach((c: any) => {
-                const transportId = String(c.transport_order_id);
-                if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')) {
-                  podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
-                }
-                if (c.checkin_type === 'container_return') {
-                  containerReturnByTransportId.add(transportId);
-                }
-              });
+         allCheckins
+               .filter(
+                 (c: any) =>
+                   c[driverIdField] === freelanceDriverId &&
+                   c.transport_order_id
+               )
+               .forEach((c: any) => {
+                 const transportId = String(c.transport_order_id);
+                 if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')) {
+                   podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+                 }
+                 if (c.checkin_type === 'container_return_confirmed') {
+                   containerReturnByTransportId.add(transportId);
+                 }
+               });
             
             // Jobs with ANY check-in record are actually started by the driver
             startedTransportIds = new Set(
@@ -235,31 +235,37 @@ export default function CurrentJobsPage() {
           // International: all PODs completed AND container returned -> remove
           const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || job.transport_category);
           
-          const activeJobs = startedJobs.filter((job: any) => {
-            const transportId = String(job.id);
-            const podCount = podCountByTransportId[transportId] || 0;
-            const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
-              ? job.destinations.length 
-              : 1;
-            
-            const allPodsCompleted = podCount >= destinationCount;
-            
-            if (isInternationalJob(job)) {
-              // International jobs stay until container is returned
-              const hasContainerReturn = containerReturnByTransportId.has(transportId);
-              const isStillActive = !allPodsCompleted || !hasContainerReturn;
-              if (!isStillActive) {
-                console.log(`International job ${job.order_number} completed: ${podCount}/${destinationCount} PODs + container returned`);
-              }
-              return isStillActive;
-            }
-            
-            // Domestic jobs: just need all PODs
-            if (allPodsCompleted) {
-              console.log(`Job ${job.order_number} completed: ${podCount}/${destinationCount} PODs`);
-            }
-            return !allPodsCompleted;
-          });
+           const activeJobs = startedJobs.filter((job: any) => {
+             const transportId = String(job.id);
+             const podCount = podCountByTransportId[transportId] || 0;
+             const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
+               ? job.destinations.length 
+               : 1;
+             
+             const allPodsCompleted = podCount >= destinationCount;
+             
+             if (isInternationalJob(job)) {
+               // International jobs stay until container return is CONFIRMED
+               // Only check for container_return_confirmed, not just container_return
+               const hasContainerReturnConfirmed = allCheckins.some((c: any) => {
+                 const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
+                 return c[driverIdField] === freelanceDriverId &&
+                   c.transport_order_id === job.id &&
+                   c.checkin_type === 'container_return_confirmed';
+               });
+               const isStillActive = !allPodsCompleted || !hasContainerReturnConfirmed;
+               if (!isStillActive) {
+                 console.log(`International job ${job.order_number} completed: ${podCount}/${destinationCount} PODs + container return confirmed`);
+               }
+               return isStillActive;
+             }
+             
+             // Domestic jobs: just need all PODs
+             if (allPodsCompleted) {
+               console.log(`Job ${job.order_number} completed: ${podCount}/${destinationCount} PODs`);
+             }
+             return !allPodsCompleted;
+           });
           console.log('Active jobs after filtering completed:', activeJobs.length, '(excluded:', startedJobs.length - activeJobs.length, ')');
           console.log(`[CurrentJobsPage] Final accepted jobs count: ${activeJobs.length}`);
           // Map to AcceptedJob format
