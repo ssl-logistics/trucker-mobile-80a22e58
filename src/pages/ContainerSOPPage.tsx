@@ -283,9 +283,12 @@ const ContainerSOPPage = () => {
 
       if (ocrError) {
         console.error('OCR submit error:', ocrError);
+        const isNotFound = ocrError.toLowerCase().includes('not found') || ocrError.toLowerCase().includes('does not exist');
         toast({
-          title: 'บันทึกไม่สำเร็จ',
-          description: ocrError,
+          title: isNotFound ? 'ไม่พบข้อมูลตู้คอนเทนเนอร์' : 'บันทึกไม่สำเร็จ',
+          description: isNotFound 
+            ? 'ไม่มีข้อมูลตู้คอนเทนเนอร์นี้อยู่ในระบบ กรุณาตรวจสอบเลขตู้และเลขซีลอีกครั้ง' 
+            : ocrError,
           variant: "destructive",
         });
         return;
