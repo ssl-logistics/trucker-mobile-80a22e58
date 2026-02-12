@@ -497,7 +497,7 @@ export default function InternationalJobDetail({
                     if (jobApplication?.container_sop_completed_at) {
                       navigate(`/job/${job.id}/container-summary`);
                     } else if (emptyContainerCheckedIn) {
-                      navigate(`/job/${job.id}/container-sop`);
+                      navigate(`/job/${job.id}/container-sop`, { state: { jobData: job, checkinType: 'empty_container' } });
                     } else {
                       navigate(`/job/${job.id}/container-checkin`);
                     }
