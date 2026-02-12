@@ -249,25 +249,27 @@ const ContainerSOPPage = () => {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Upload photo to storage first to get public URL
+      // Upload photo to S3 via edge function
       let imageUrl: string | undefined;
       if (photoFile) {
-        const fileExt = photoFile.name.split('.').pop();
-        const fileName = `ocr_${jobId}_${Date.now()}.${fileExt}`;
-        const filePath = `container-photos/${fileName}`;
+        try {
+          const formData = new FormData();
+          formData.append('file', photoFile);
+          formData.append('folder', 'container-photos');
+          formData.append('fileName', `ocr_${jobId}_${Date.now()}.${photoFile.name.split('.').pop() || 'jpg'}`);
 
-        const { error: uploadError } = await supabase.storage
-          .from('pickup_sop_photos')
-          .upload(filePath, photoFile);
+          const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
+            body: formData
+          });
 
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage
-            .from('pickup_sop_photos')
-            .getPublicUrl(filePath);
-          imageUrl = urlData.publicUrl;
-          console.log('[OCR] Uploaded image URL:', imageUrl);
-        } else {
-          console.warn('[OCR] Photo upload failed, continuing without image_url:', uploadError);
+          if (!uploadError && uploadData?.url) {
+            imageUrl = uploadData.url;
+            console.log('[OCR] Uploaded image URL:', imageUrl);
+          } else {
+            console.warn('[OCR] S3 upload failed, continuing without image_url:', uploadError || uploadData?.error);
+          }
+        } catch (uploadErr) {
+          console.warn('[OCR] S3 upload exception, continuing without image_url:', uploadErr);
         }
       }
 
