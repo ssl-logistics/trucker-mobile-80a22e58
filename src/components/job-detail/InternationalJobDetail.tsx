@@ -15,7 +15,8 @@ import { formatDate } from '@/lib/dateUtils';
 import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
-import statusIcon from '@/assets/status-icon.png'; import { getDriverCheckins } from '@/lib/externalApi';
+import statusIcon from '@/assets/status-icon.png'; 
+import { getDriverCheckins, driverCheckin } from '@/lib/externalApi';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -95,6 +96,8 @@ export default function InternationalJobDetail({
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
+  const [containerReturnCheckedIn, setContainerReturnCheckedIn] = useState(false);
+  const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   
   const { isInternalDriver, isExternalDriver } = useUserRole();
@@ -107,6 +110,8 @@ export default function InternationalJobDetail({
       setEmptyContainerCheckedIn(false);
       setPickupCheckedIn(false);
       setDeliveryCheckedIn(false);
+      setContainerReturnCheckedIn(false);
+      setContainerReturnConfirmed(false);
       setIsLoadingCheckinStatus(true);
       
       try {
@@ -157,15 +162,18 @@ export default function InternationalJobDetail({
            c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
          );
          const hasContainerReturnCheckin = checkins.some((c: any) => c.checkin_type === 'container_return');
+         const hasContainerReturnConfirmedCheckin = checkins.some((c: any) => c.checkin_type === 'container_return_confirmed');
          const hasPickupCheckin = checkins.some((c: any) => c.checkin_type === 'pickup');
          const hasDeliveryCheckin = checkins.some((c: any) => c.checkin_type === 'delivery');
          
-         console.log('[InternationalJobDetail] Status - ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin);
+         console.log('[InternationalJobDetail] Status - ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'ContainerReturnConfirmed:', hasContainerReturnConfirmedCheckin, 'Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin);
          
          // container_pickup checkin counts as container checkpoint done (for unlocking pickup)
          setEmptyContainerCheckedIn(hasContainerPickupCheckin);
          setPickupCheckedIn(hasPickupCheckin);
          setDeliveryCheckedIn(hasDeliveryCheckin);
+         setContainerReturnCheckedIn(hasContainerReturnCheckin);
+         setContainerReturnConfirmed(hasContainerReturnConfirmedCheckin);
         
       } catch (error) {
         console.error('[InternationalJobDetail] Error fetching checkin status:', error);
@@ -210,6 +218,63 @@ export default function InternationalJobDetail({
       onUpdate();
     }
   };
+
+  const handleContainerReturnCheckin = async () => {
+    try {
+      const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+      
+      const payload = {
+        order_number: job.order_code,
+        checkin_type: 'container_return',
+        driver_id: userId,
+        driver_type: driverType,
+        notes: 'Check-in at container return location',
+        latitude: 0,
+        longitude: 0
+      };
+
+      console.log('[InternationalJobDetail] Sending container return check-in:', payload);
+      
+      const { error } = await driverCheckin(payload);
+      
+      if (error) {
+        console.error('[InternationalJobDetail] Error sending check-in:', error);
+        toast({
+          title: t('jobDetail.error'),
+          description: error?.toString() || t('jobDetail.checkInError'),
+          variant: 'destructive'
+        });
+      } else {
+        console.log('[InternationalJobDetail] Container return check-in sent successfully');
+        toast({
+          title: t('jobDetail.checkInSuccess') || 'บันทึกสำเร็จ',
+          description: t('jobDetail.checkInDesc') || 'บันทึกเช็คอินเสร็จสิ้น'
+        });
+        // Refresh checkin status
+        setContainerReturnCheckedIn(true);
+        // Refetch to verify
+        setTimeout(() => {
+          const fetchRefresh = async () => {
+            const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+            const { data: checkinResult } = await getDriverCheckins(userId, driverType, job.order_code);
+            const allCheckins = Array.isArray(checkinResult) ? checkinResult : (checkinResult as any)?.data || [];
+            const hasReturn = allCheckins.some((c: any) => c.checkin_type === 'container_return' && 
+              (c.transport_order_id === job.id || c.order_number === job.order_code));
+            setContainerReturnCheckedIn(hasReturn);
+          };
+          fetchRefresh();
+        }, 500);
+      }
+    } catch (error) {
+      console.error('[InternationalJobDetail] Exception in handleContainerReturnCheckin:', error);
+      toast({
+        title: t('jobDetail.error'),
+        description: t('jobDetail.checkInError'),
+        variant: 'destructive'
+      });
+    }
+  };
+
   const containerData = {
     checkpoint: job.container_checkpoint || '-',
     checkpointCode: job.container_checkpoint_code || '-',
@@ -584,6 +649,58 @@ export default function InternationalJobDetail({
                           <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </>}
+                  </div>
+                </div>
+              </Card>
+
+              {/* Container Return Location Card */}
+              <Card className={`p-4 border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500 bg-green-50' : containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : containerReturnConfirmed === false && deliveryCheckedIn ? 'border-orange-200 bg-[#FFF8F0]' : 'border-gray-300 bg-gray-50'}`}>
+                <div className={`${!deliveryCheckedIn ? 'opacity-60' : ''}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-[#225795]">
+                        {t('jobDetail.containerReturn') || 'จุดคืนตู้คอนเทนเนอร์'}
+                      </h3>
+                    </div>
+                    {deliveryCheckedIn && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${containerReturnConfirmed ? 'text-green-600 bg-green-50' : containerReturnCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                        {containerReturnConfirmed ? t('jobDetail.podSuccess') || 'คืนเสร็จสิ้น' : containerReturnCheckedIn ? t('jobDetail.waitingPod') || 'รอยืนยันการคืน' : t('jobDetail.waitingCheckIn') || 'รอเช็คอิน'}
+                      </span>}
+                  </div>
+
+                  <h4 className="font-semibold text-base text-[#225795] mb-2">
+                    {(job as any).container_return_location || '-'}
+                  </h4>
+
+                  <div className="space-y-1 text-sm mb-3">
+                    <div className="flex">
+                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.returnAddress') || 'ที่อยู่'}</span>
+                      <span className="text-[#454545]">: {(job as any).container_return_address || '-'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.contactPhone') || 'เบอร์ติดต่อ'}</span>
+                      <span className="text-[#454545]">: {(job as any).container_return_phone || '-'}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      size="sm" 
+                      className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" 
+                      onClick={handleContainerReturnCheckin}
+                      disabled={!deliveryCheckedIn || containerReturnConfirmed}
+                    >
+                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                      <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') || 'ดูข้อมูล' : containerReturnCheckedIn ? t('jobDetail.waitingPod') || 'รอยืนยัน' : t('jobDetail.updateStatus') || 'เช็คอิน'}</span>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      size="sm" 
+                      className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" 
+                      disabled={!containerReturnCheckedIn}
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span className="text-xs">{t('jobDetail.call') || 'โทร'}</span>
+                    </Button>
                   </div>
                 </div>
               </Card>
