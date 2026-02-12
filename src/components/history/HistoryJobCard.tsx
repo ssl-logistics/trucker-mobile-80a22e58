@@ -13,8 +13,10 @@ interface HistoryJob {
   sender_name: string;
   sender_pickup_date: string;
   sender_pickup_time?: string;
+  sender_address?: string;
   sender_province?: string;
   sender_district?: string;
+  destination_address?: string;
   destination_province?: string;
   destination_district?: string;
   transport_price?: number;
@@ -64,6 +66,8 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
     if (job.sender_district || job.sender_province) {
       return [job.sender_district, job.sender_province].filter(Boolean).join(', ');
     }
+    // Fallback to sender_address for international jobs
+    if (job.sender_address) return job.sender_address;
     return '-';
   };
 
@@ -79,7 +83,7 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
     // Fallback to job-level fields
     const location = (job.destination_district || job.destination_province)
       ? [job.destination_district, job.destination_province].filter(Boolean).join(', ')
-      : '-';
+      : (job.destination_address || '-');
     return [{ location }];
   };
 
