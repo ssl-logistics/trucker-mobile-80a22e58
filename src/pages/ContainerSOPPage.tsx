@@ -73,7 +73,6 @@ const ContainerSOPPage = () => {
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
-  const [showOcrDrawer, setShowOcrDrawer] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   
@@ -162,6 +161,45 @@ const ContainerSOPPage = () => {
       setPhotoPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
+
+    // Auto-run OCR after attaching document if needsOCR
+    if (needsOCR) {
+      runOcrOnFile(file);
+    }
+  };
+
+  const runOcrOnFile = async (file: File) => {
+    setIsProcessingOcr(true);
+    try {
+      toast({
+        title: t('ocr.processing'),
+        description: t('common.pleaseWait') || 'รอสักครู่...',
+      });
+
+      const result = await extractFromImage(file, 'container_seal');
+
+      if (result.success && result.data) {
+        const containerNo = result.data.container_number || null;
+        const sealNo = result.data.seal_number || null;
+        setPendingOcrResult({ container_number: containerNo, seal_number: sealNo });
+        setShowOcrConfirmDialog(true);
+      } else if (result.error) {
+        toast({
+          title: t('ocr.failed'),
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('OCR error:', error);
+      toast({
+        title: t('ocr.error'),
+        description: t('ocr.errorDesc'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingOcr(false);
+    }
   };
 
   const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
@@ -193,75 +231,6 @@ const ContainerSOPPage = () => {
       }
     };
     input.click();
-  };
-
-  // OCR photo handling
-  const handleOcrPhotoSelect = async (source: 'camera' | 'gallery') => {
-    setShowOcrDrawer(false);
-    setIsProcessingOcr(true);
-    
-    try {
-      let file: File | null = null;
-      
-      if (isNative) {
-        if (source === 'camera') {
-          file = await takePhoto();
-        } else {
-          file = await selectFromGallery();
-        }
-      }
-      
-      if (!file) {
-        file = await new Promise<File | null>((resolve) => {
-          const input = document.createElement('input');
-          input.type = 'file';
-          input.accept = 'image/*';
-          if (source === 'camera') {
-            input.capture = 'environment';
-          }
-          input.onchange = (e) => {
-            const selectedFile = (e.target as HTMLInputElement).files?.[0];
-            resolve(selectedFile || null);
-          };
-          input.oncancel = () => resolve(null);
-          input.click();
-        });
-      }
-      
-      if (!file) {
-        setIsProcessingOcr(false);
-        return;
-      }
-      
-      toast({
-        title: t('ocr.processing'),
-        description: t('common.pleaseWait') || 'รอสักครู่...',
-      });
-      
-      const result = await extractFromImage(file, 'container_seal');
-      
-      if (result.success && result.data) {
-        const containerNo = result.data.container_number || null;
-        const sealNo = result.data.seal_number || null;
-        setPendingOcrResult({ container_number: containerNo, seal_number: sealNo });
-        setShowOcrConfirmDialog(true);
-      } else if (result.error) {
-        toast({
-          title: t('ocr.failed'),
-          description: result.error,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('OCR error:', error);
-      toast({
-        title: t('ocr.error'),
-        description: t('ocr.errorDesc'),
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessingOcr(false);
-    }
   };
 
   const handleConfirmOcr = async () => {
@@ -504,6 +473,16 @@ const ContainerSOPPage = () => {
           </Card>
         )}
 
+        {/* OCR processing indicator */}
+        {needsOCR && (isProcessingOcr || extracting) && (
+          <Card className="p-4 bg-blue-50 border-blue-200">
+            <div className="flex items-center gap-3">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+              <span className="text-sm text-blue-700">กำลังอ่านเลขตู้/เลขซีลจากรูป...</span>
+            </div>
+          </Card>
+        )}
+
         <div className="space-y-2">
           <Label className="text-base">
             {isContainerReturn ? 'แนบเอกสารคืนตู้' : isEmptyContainer ? 'แนบเอกสารรับตู้เปล่า' : t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
@@ -631,30 +610,6 @@ const ContainerSOPPage = () => {
             <Button variant="outline" className="w-full h-14 text-base justify-start gap-3" onClick={() => handlePhotoSelect('gallery')}>
               <ImageIcon className="w-6 h-6" />
               {t('sop.selectFromGallery')}
-            </Button>
-          </div>
-          <DrawerFooter>
-            <DrawerClose asChild>
-              <Button variant="outline" className="w-full h-12">{t('sop.cancel')}</Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-
-      {/* OCR Source Drawer */}
-      <Drawer open={showOcrDrawer} onOpenChange={setShowOcrDrawer}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle className="text-center">เลือกแหล่งรูปสำหรับสแกน</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-4 space-y-3">
-            <Button variant="outline" className="w-full h-14 text-base justify-start gap-3" onClick={() => handleOcrPhotoSelect('camera')}>
-              <Camera className="w-6 h-6" />
-              ถ่ายรูป
-            </Button>
-            <Button variant="outline" className="w-full h-14 text-base justify-start gap-3" onClick={() => handleOcrPhotoSelect('gallery')}>
-              <ImageIcon className="w-6 h-6" />
-              เลือกจากแกลเลอรี
             </Button>
           </div>
           <DrawerFooter>
