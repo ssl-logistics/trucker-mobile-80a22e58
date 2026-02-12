@@ -64,6 +64,10 @@ interface CompletedJob {
   transport_price: number;
   created_at: string;
   updated_at: string;
+  // International job identifiers
+  booking_no?: string | null;
+  bl_no?: string | null;
+  transport_category?: string | null;
   // Flag to identify bid jobs vs transport jobs
   isBidJob?: boolean;
   // For bid jobs, store the ticket_number for navigation
@@ -436,6 +440,10 @@ export default function JobHistoryPage() {
               origins: ticket.origins,
               destinations: ticket.destinations,
               job_type: ticket.job_type || 'domestic',
+              // International job identifiers (bid jobs)
+              booking_no: ticket.booking_no || null,
+              bl_no: ticket.bl_no || null,
+              transport_category: ticket.transport_category || null,
             };
           });
         
