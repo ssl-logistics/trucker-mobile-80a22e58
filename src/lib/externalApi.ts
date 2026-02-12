@@ -33,6 +33,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'list-tickets': 'EXPRESS_RENT_API_KEY',
   'get-express-rent-posts': 'EXPRESS_RENT_API_KEY',
   'update-freelance-driver': 'EXPRESS_RENT_API_KEY',
+  'get-ocr-container-scans': 'EXPRESS_RENT_API_KEY',
 };
 
 // Endpoints that should use the bidding API URL
@@ -468,6 +469,17 @@ export async function receivePod(body: {
   return callExternalApi<{ success: boolean }>('receive-pod', {
     method: 'POST',
     body,
+  });
+}
+
+// ==================== OCR Container Scans APIs ====================
+
+export async function getOcrContainerScans(containerNo: string, limit = 10) {
+  return callExternalApi<{ data: any[] }>('get-ocr-container-scans', {
+    params: {
+      container_no: containerNo,
+      limit: String(limit),
+    },
   });
 }
 

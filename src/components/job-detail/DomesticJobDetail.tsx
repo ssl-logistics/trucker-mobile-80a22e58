@@ -13,7 +13,7 @@ import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { formatDate } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
-import { useNativeCamera } from '@/hooks/useNativeCamera'; import { getDriverCheckins } from '@/lib/externalApi';
+import { useNativeCamera } from '@/hooks/useNativeCamera'; import { getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
 import {
   Drawer,
   DrawerClose,
@@ -516,40 +516,37 @@ export default function DomesticJobDetail({
     }
   }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
 
-  // Fallback auto-fetch: if job has container_number from API (not from checkin)
+  // Fetch OCR container scan data from external API
   useEffect(() => {
-    const autoLookupContainer = async () => {
+    const fetchOcrScans = async () => {
       const containerNo = job.container_number;
       if (!containerNo) return;
       
       try {
-        console.log('Auto-lookup from job.container_number:', containerNo);
-        const { data, error } = await supabase.functions.invoke('verify-container', {
-          body: {
-            container_no: containerNo,
-            seal_no: job.seal_number || null,
-          },
-        });
+        console.log('Fetching OCR scans for container:', containerNo);
+        const { data, error } = await getOcrContainerScans(containerNo);
         
         if (error) {
-          console.error('Auto-lookup error:', error);
+          console.error('OCR scans fetch error:', error);
           return;
         }
         
-        if (data?.found) {
-          setVerifiedContainerNumber(data.container_no || containerNo);
-          setVerifiedSealNumber(data.seal_no || job.seal_number || null);
+        const scans = (data as any)?.data || [];
+        if (scans.length > 0) {
+          const latestScan = scans[0];
+          setVerifiedContainerNumber(latestScan.container_no || containerNo);
+          setVerifiedSealNumber(latestScan.seal_no || job.seal_number || null);
           setIsOcrVerified(true);
-          setVerifiedLookupData(data);
-          console.log('Auto-lookup from job success:', data);
+          setVerifiedLookupData(latestScan);
+          console.log('OCR scan data loaded:', latestScan);
         }
       } catch (err) {
-        console.error('Auto-lookup exception:', err);
+        console.error('OCR scans fetch exception:', err);
       }
     };
     
     if (job.container_number && !isOcrVerified) {
-      autoLookupContainer();
+      fetchOcrScans();
     }
   }, [job.container_number, job.seal_number, isOcrVerified]);
 
