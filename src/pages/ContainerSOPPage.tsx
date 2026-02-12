@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/hooks/use-toast";
@@ -49,6 +51,7 @@ const ContainerSOPPage = () => {
   const { jobId } = useParams();
   const location = useLocation();
   const { user } = useAuth();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const { t, language } = useLanguage();
   const { extractFromImage, extracting } = useOCR();
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
@@ -91,34 +94,55 @@ const ContainerSOPPage = () => {
 
   const loadJobDetail = async () => {
     try {
-      // Try to use job data from navigation state (external API data)
+      let foundJob: any = null;
+
+      // 1. Try navigation state first (fastest)
       const stateJob = navState?.jobData;
       if (stateJob) {
-        setJobDetail({
-          id: stateJob.id || jobId || '',
-          order_code: stateJob.order_code || stateJob.order_number || jobId || '',
-          employer_name: stateJob.employer_name || stateJob.factory_name || stateJob.sender_name || '',
-          container_checkpoint: stateJob.container_checkpoint || stateJob.empty_pickup_depot || '',
-          container_number: stateJob.container_number || '',
-          seal_number: stateJob.seal_number || '',
-          container_number_2: stateJob.container_number_2 || '',
-          seal_number_2: stateJob.seal_number_2 || '',
-          start_date: stateJob.start_date || stateJob.sender_pickup_date || '',
-          start_time: stateJob.start_time || stateJob.sender_pickup_time || '',
-        });
-        setLoading(false);
-        return;
+        foundJob = stateJob;
       }
 
-      // Fallback: try local database
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('id, order_code, employer_name, container_checkpoint, container_number, seal_number, start_date, start_time')
-        .eq('id', jobId)
-        .single();
+      // 2. Fetch from external API if no state data
+      if (!foundJob) {
+        if (isInternalDriver || isExternalDriver) {
+          const driverType = isInternalDriver ? 'internal' : 'external';
+          const [inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
+            getDriverAssignedJobs(user!.id, driverType, 50, 'in_progress'),
+            getDriverAssignedJobs(user!.id, driverType, 50, 'in_transit'),
+            getDriverAssignedJobs(user!.id, driverType, 50, 'delivered'),
+            getDriverAssignedJobs(user!.id, driverType, 50, 'completed'),
+          ]);
+          foundJob = [
+            ...((inProgressRes.data as any)?.data || []),
+            ...((inTransitRes.data as any)?.data || []),
+            ...((deliveredRes.data as any)?.data || []),
+            ...((completedRes.data as any)?.data || []),
+          ].find((j: any) => j.order_number === jobId);
+        } else {
+          // Freelance drivers
+          const { data: result } = await getFreelanceAcceptedJobs(user!.id);
+          if (result?.data) {
+            foundJob = result.data.find((j: any) => j.order_number === jobId);
+          }
+        }
+      }
 
-      if (error) throw error;
-      setJobDetail(data);
+      if (foundJob) {
+        setJobDetail({
+          id: foundJob.id || jobId || '',
+          order_code: foundJob.order_code || foundJob.order_number || jobId || '',
+          employer_name: foundJob.employer_name || foundJob.factory_name || foundJob.sender_name || '',
+          container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || '',
+          container_number: foundJob.container_number || '',
+          seal_number: foundJob.seal_number || '',
+          container_number_2: foundJob.container_number_2 || '',
+          seal_number_2: foundJob.seal_number_2 || '',
+          start_date: foundJob.start_date || foundJob.sender_pickup_date || '',
+          start_time: foundJob.start_time || foundJob.sender_pickup_time || '',
+        });
+      } else {
+        throw new Error('Job not found');
+      }
     } catch (error) {
       console.error('Error loading job details:', error);
       toast({
