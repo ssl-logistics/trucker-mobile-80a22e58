@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
+import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan } from '@/lib/externalApi';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -246,44 +246,43 @@ const ContainerSOPPage = () => {
     setIsVerifying(true);
     
     try {
-      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-container', {
-        body: {
-          container_no: pendingOcrResult.container_number,
-          seal_no: pendingOcrResult.seal_number || null,
-        },
+      // Determine driver type
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+
+      // Submit OCR data to external API
+      const { data: ocrResult, error: ocrError } = await submitOcrScan({
+        container_no: pendingOcrResult.container_number,
+        seal_no: pendingOcrResult.seal_number || '',
+        order_number: jobId || undefined,
+        driver_id: user?.id || undefined,
+        driver_type: driverType,
       });
-      
-      if (verifyError) {
-        console.error('Verify container error:', verifyError);
+
+      if (ocrError) {
+        console.error('OCR submit error:', ocrError);
         toast({
-          title: 'ตรวจสอบไม่สำเร็จ',
-          description: verifyError.message,
+          title: 'บันทึกไม่สำเร็จ',
+          description: ocrError,
           variant: "destructive",
         });
         return;
       }
-      
-      if (verifyResult?.found) {
-        toast({
-          title: 'ตรวจสอบสำเร็จ',
-          description: verifyResult?.message || 'พบข้อมูลตู้คอนเทนเนอร์ในระบบ',
-        });
-        
-        setOcrContainerNumber(pendingOcrResult.container_number);
-        setOcrSealNumber(pendingOcrResult.seal_number);
-        setIsOcrVerified(true);
-        setPendingOcrResult(null);
-      } else {
-        toast({
-          title: 'ไม่พบในระบบ',
-          description: 'ไม่พบเลขตู้นี้ในระบบ',
-          variant: "destructive",
-        });
-      }
-    } catch (verifyErr) {
-      console.error('Verify container exception:', verifyErr);
+
+      console.log('[OCR] Submit result:', ocrResult);
+
       toast({
-        title: 'ตรวจสอบไม่สำเร็จ',
+        title: 'บันทึกสำเร็จ',
+        description: 'บันทึกข้อมูลเลขตู้และเลขซีลเรียบร้อย',
+      });
+        
+      setOcrContainerNumber(pendingOcrResult.container_number);
+      setOcrSealNumber(pendingOcrResult.seal_number);
+      setIsOcrVerified(true);
+      setPendingOcrResult(null);
+    } catch (verifyErr) {
+      console.error('OCR submit exception:', verifyErr);
+      toast({
+        title: 'บันทึกไม่สำเร็จ',
         description: 'กรุณาลองใหม่อีกครั้ง',
         variant: "destructive",
       });
