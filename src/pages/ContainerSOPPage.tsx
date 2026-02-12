@@ -370,41 +370,23 @@ const ContainerSOPPage = () => {
       
       if (photoFile) {
         const fileExt = photoFile.name.split('.').pop();
-        const fileName = `${jobId}_${Date.now()}.${fileExt}`;
-        const filePath = `container-photos/${fileName}`;
+        const fileName = `container_sop_${jobId}_${Date.now()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('pickup_sop_photos')
-          .upload(filePath, photoFile);
+        const formData = new FormData();
+        formData.append('file', photoFile);
+        formData.append('folder', 'container-photos');
+        formData.append('fileName', fileName);
 
-        if (uploadError) throw uploadError;
+        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
+          body: formData
+        });
 
-        const { data } = supabase.storage
-          .from('pickup_sop_photos')
-          .getPublicUrl(filePath);
-        publicUrl = data.publicUrl;
-
-        const { error: dbError } = await supabase
-          .from('pickup_sop_photos')
-          .insert({
-            job_id: jobId,
-            driver_id: user.id,
-            photo_url: publicUrl,
-            photo_type: 'container'
-          });
-
-        if (dbError) throw dbError;
+        if (uploadError || !uploadData?.url) {
+          throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
+        }
+        publicUrl = uploadData.url;
+        console.log('[ContainerSOP] Uploaded to S3:', publicUrl);
       }
-
-      const { error: updateError } = await supabase
-        .from('job_applications')
-        .update({ 
-          container_sop_completed_at: new Date().toISOString()
-        })
-        .eq('job_id', jobId)
-        .eq('driver_id', user.id);
-
-      if (updateError) throw updateError;
 
       const finalContainerNumber = ocrContainerNumber || containerNumber || undefined;
       const finalSealNumber = ocrSealNumber || sealNumber || undefined;
