@@ -249,13 +249,36 @@ const ContainerSOPPage = () => {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Submit OCR data to external API
+      // Upload photo to storage first to get public URL
+      let imageUrl: string | undefined;
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `ocr_${jobId}_${Date.now()}.${fileExt}`;
+        const filePath = `container-photos/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('pickup_sop_photos')
+          .upload(filePath, photoFile);
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('pickup_sop_photos')
+            .getPublicUrl(filePath);
+          imageUrl = urlData.publicUrl;
+          console.log('[OCR] Uploaded image URL:', imageUrl);
+        } else {
+          console.warn('[OCR] Photo upload failed, continuing without image_url:', uploadError);
+        }
+      }
+
+      // Submit OCR data to external API with image_url
       const { data: ocrResult, error: ocrError } = await submitOcrScan({
         container_no: pendingOcrResult.container_number,
         seal_no: pendingOcrResult.seal_number || '',
         order_number: jobId || undefined,
         driver_id: user?.id || undefined,
         driver_type: driverType,
+        image_url: imageUrl,
       });
 
       if (ocrError) {

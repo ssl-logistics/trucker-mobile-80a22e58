@@ -491,6 +491,7 @@ export async function submitOcrScan(body: {
   order_number?: string;
   driver_id?: string;
   driver_type?: 'internal' | 'external' | 'freelance';
+  image_url?: string;
 }) {
   return callExternalApi<{ success: boolean; data?: any }>('ocr-extra', {
     method: 'POST',
