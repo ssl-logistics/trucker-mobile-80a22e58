@@ -483,12 +483,15 @@ export async function receivePod(body: {
 
 // ==================== OCR Container Scans APIs ====================
 
-export async function getOcrContainerScans(containerNo: string, limit = 10) {
+export async function getOcrContainerScans(containerNo?: string, limit = 10, orderNumber?: string) {
+  const params: Record<string, string> = {
+    limit: String(limit),
+  };
+  if (containerNo) params.container_no = containerNo;
+  if (orderNumber) params.order_number = orderNumber;
+  
   return callExternalApi<{ data: any[] }>('get-ocr-container-scans', {
-    params: {
-      container_no: containerNo,
-      limit: String(limit),
-    },
+    params,
   });
 }
 

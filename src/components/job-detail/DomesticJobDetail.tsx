@@ -519,12 +519,15 @@ export default function DomesticJobDetail({
   // Fetch OCR container scan data from external API with polling
   useEffect(() => {
     const containerNo = job.container_number;
-    if (!containerNo) return;
+    const orderNumber = job.order_code;
+    
+    // Need at least one identifier to query
+    if (!containerNo && !orderNumber) return;
 
     const fetchOcrScans = async () => {
       try {
-        console.log('Fetching OCR scans for container:', containerNo);
-        const { data, error } = await getOcrContainerScans(containerNo);
+        console.log('Fetching OCR scans for container:', containerNo, 'order:', orderNumber);
+        const { data, error } = await getOcrContainerScans(containerNo || undefined, 10, orderNumber || undefined);
         
         if (error) {
           console.error('OCR scans fetch error:', error);
@@ -553,7 +556,7 @@ export default function DomesticJobDetail({
       const interval = setInterval(fetchOcrScans, 10000);
       return () => clearInterval(interval);
     }
-  }, [job.container_number, job.seal_number, isOcrVerified]);
+  }, [job.container_number, job.seal_number, job.order_code, isOcrVerified]);
 
   useEffect(() => {
     // Calculate card heights for step positioning
