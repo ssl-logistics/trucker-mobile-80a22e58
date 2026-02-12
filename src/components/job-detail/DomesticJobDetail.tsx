@@ -26,6 +26,7 @@ import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
 import statusIcon from '@/assets/status-icon.png';
+import checkInIcon from '@/assets/check-in-icon.png';
 
 interface DriverCheckin {
   order_number: string;
@@ -148,6 +149,7 @@ export default function DomesticJobDetail({
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
   const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
+  const [containerReturnCheckedIn, setContainerReturnCheckedIn] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, { checked_in_at: string | null; sop_completed_at: string | null }>>({});
@@ -1300,6 +1302,10 @@ export default function DomesticJobDetail({
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
                         {t('jobDetail.waitingPreviousStep')}
                       </span>
+                    ) : containerReturnCheckedIn ? (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-blue-600 bg-blue-50">
+                        รอแนบเอกสาร
+                      </span>
                     ) : (
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
                         รอเช็คอิน
@@ -1367,17 +1373,32 @@ export default function DomesticJobDetail({
                         </Button>
                       </>
                     )}
-                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#E65100]" disabled={!allDeliveriesCompleted}
-                      onClick={() => {
-                        // TODO: Navigate to container return check-in page
-                        toast({
-                          title: 'เช็คอินคืนตู้',
-                          description: 'ฟีเจอร์เช็คอินและแนบเอกสารคืนตู้กำลังพัฒนา',
-                        });
-                      }}>
-                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      <span className="text-xs">เช็คอิน/แนบเอกสาร</span>
-                    </Button>
+                    {containerReturnCheckedIn ? (
+                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-blue-600" disabled={!allDeliveriesCompleted}
+                        onClick={() => {
+                          // TODO: Navigate to container return document attachment page
+                          toast({
+                            title: 'แนบเอกสารคืนตู้',
+                            description: 'ฟีเจอร์แนบเอกสารคืนตู้กำลังพัฒนา',
+                          });
+                        }}>
+                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                        <span className="text-xs">แนบเอกสารคืนตู้</span>
+                      </Button>
+                    ) : (
+                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#E65100]" disabled={!allDeliveriesCompleted}
+                        onClick={() => {
+                          // TODO: Implement actual container return check-in API call
+                          setContainerReturnCheckedIn(true);
+                          toast({
+                            title: 'เช็คอินสำเร็จ',
+                            description: 'เช็คอินจุดคืนตู้เรียบร้อยแล้ว กรุณาแนบเอกสารคืนตู้',
+                          });
+                        }}>
+                        <img src={checkInIcon} alt="checkin" className="w-4 h-4 brightness-0 invert" />
+                        <span className="text-xs">เช็คอิน</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Card>
