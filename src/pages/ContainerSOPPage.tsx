@@ -484,7 +484,7 @@ const ContainerSOPPage = () => {
           onClick={handleConfirmClick}
           disabled={uploading || (!photoFile && !isOcrVerified)}
         >
-          {uploading ? t('sop.saving') : t('containerSop.confirmButton')}
+          {uploading ? t('sop.saving') : isContainerReturn ? 'ยืนยันคืนตู้' : t('containerSop.confirmButton')}
         </Button>
       </div>
 
