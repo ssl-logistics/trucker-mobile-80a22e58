@@ -1291,7 +1291,7 @@ export default function DomesticJobDetail({
                   : deliverySopCompleted; // fallback for single destination
 
                 return (
-              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${allDeliveriesCompleted ? 'border-[#E65100] bg-[#FFF8F0]' : 'border-gray-300 bg-gray-50'}`}>
+              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : allDeliveriesCompleted ? 'border-[#E65100] bg-[#FFF8F0]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={!allDeliveriesCompleted ? 'opacity-60' : ''}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
