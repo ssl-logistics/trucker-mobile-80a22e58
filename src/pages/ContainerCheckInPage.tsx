@@ -241,7 +241,7 @@ export default function ContainerCheckInPage() {
           description: t('containerCheckin.alreadyCheckedInDesc'),
         });
         setTimeout(() => {
-          navigate(`/container-sop/${orderNumber}`);
+          navigate(`/job/${orderNumber}/container-sop`);
         }, 1500);
       }
     } catch (error) {
