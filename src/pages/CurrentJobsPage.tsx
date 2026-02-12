@@ -152,20 +152,22 @@ export default function CurrentJobsPage() {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
          // Fetch jobs and check-ins in parallel using external API directly
-        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs for in_transit + delivered`);
-        const [inTransitResult, deliveredResult, checkinsResult] = await Promise.all([
+        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs for in_transit + delivered + completed`);
+        const [inTransitResult, deliveredResult, completedResult, checkinsResult] = await Promise.all([
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'delivered'),
+          getDriverAssignedJobs(freelanceDriverId, driverType, 100, 'completed'),
           getDriverCheckins(freelanceDriverId, driverType, 'all'),
         ]);
 
-        // Merge in_transit and delivered results
+        // Merge in_transit, delivered, and completed results
         const inTransitJobs = (!inTransitResult.error && inTransitResult.data) ? ((inTransitResult.data as any)?.data || []) : [];
         const deliveredJobs = (!deliveredResult.error && deliveredResult.data) ? ((deliveredResult.data as any)?.data || []) : [];
-        const mergedApiJobs = [...inTransitJobs, ...deliveredJobs];
-        console.log(`[CurrentJobsPage] Merged jobs: ${inTransitJobs.length} in_transit + ${deliveredJobs.length} delivered = ${mergedApiJobs.length} total`);
+        const completedJobs = (!completedResult.error && completedResult.data) ? ((completedResult.data as any)?.data || []) : [];
+        const mergedApiJobs = [...inTransitJobs, ...deliveredJobs, ...completedJobs];
+        console.log(`[CurrentJobsPage] Merged jobs: ${inTransitJobs.length} in_transit + ${deliveredJobs.length} delivered + ${completedJobs.length} completed = ${mergedApiJobs.length} total`);
 
-        if (mergedApiJobs.length > 0 || (!inTransitResult.error && !deliveredResult.error)) {
+        if (mergedApiJobs.length > 0 || (!inTransitResult.error && !deliveredResult.error && !completedResult.error)) {
           // Get check-ins to determine which jobs are actually started and which are completed
           let startedTransportIds = new Set<string>();
           // Track POD count per transport_order_id for multi-destination jobs
@@ -338,7 +340,7 @@ export default function CurrentJobsPage() {
            mappedJobs.forEach(j => console.log(`  - ${j.order_number} (status: ${j.status})`));
            setAcceptedJobs(mappedJobs);
         } else {
-          console.error('Error loading driver assigned jobs:', inTransitResult.error, deliveredResult.error);
+          console.error('Error loading driver assigned jobs:', inTransitResult.error, deliveredResult.error, completedResult.error);
           setAcceptedJobs([]);
         }
         
