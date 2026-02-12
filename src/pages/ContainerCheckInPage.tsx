@@ -77,8 +77,23 @@ export default function ContainerCheckInPage() {
 
   useEffect(() => {
     if (job) {
-      setContainer1Number(job.container_number || '');
-      setContainer1Seal(job.seal_number || '');
+      // Try to load OCR-verified container/seal data from empty container pickup step
+      let ocrContainer = '';
+      let ocrSeal = '';
+      if (job.order_code) {
+        try {
+          const saved = localStorage.getItem(`ocr_verified_${job.order_code}`);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            ocrContainer = parsed.containerNumber || '';
+            ocrSeal = parsed.sealNumber || '';
+          }
+        } catch (e) {
+          console.warn('Failed to load OCR data:', e);
+        }
+      }
+      setContainer1Number(ocrContainer || job.container_number || '');
+      setContainer1Seal(ocrSeal || job.seal_number || '');
       setContainer2Number(job.container_number_2 || '');
       setContainer2Seal(job.seal_number_2 || '');
     }
@@ -498,7 +513,7 @@ export default function ContainerCheckInPage() {
                   className="h-10 text-sm font-semibold"
                 />
               ) : (
-                <p className="text-sm font-bold text-[#225795]">{job.container_number || '-'}</p>
+                <p className="text-sm font-bold text-[#225795]">{container1Number || '-'}</p>
               )}
             </div>
             <div>
@@ -511,7 +526,7 @@ export default function ContainerCheckInPage() {
                   className="h-10 text-sm font-semibold"
                 />
               ) : (
-                <p className="text-sm font-bold text-[#225795]">{job.seal_number || '-'}</p>
+                <p className="text-sm font-bold text-[#225795]">{container1Seal || '-'}</p>
               )}
             </div>
           </div>
