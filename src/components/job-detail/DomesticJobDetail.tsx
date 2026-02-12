@@ -1289,26 +1289,25 @@ export default function DomesticJobDetail({
                   : deliverySopCompleted; // fallback for single destination
 
                 return (
-              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${allDeliveriesCompleted ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-gray-50'}`}>
+              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${allDeliveriesCompleted ? 'border-[#E65100] bg-[#FFF8F0]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={!allDeliveriesCompleted ? 'opacity-60' : ''}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#E65100]">จุดคืนตู้คอนเทนเนอร์</h3>
+                      {job.container_return_location && <span className="text-sm font-medium text-[#E65100]">: {job.container_return_location}</span>}
                     </div>
-                    {!allDeliveriesCompleted && (
+                    {!allDeliveriesCompleted ? (
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
                         {t('jobDetail.waitingPreviousStep')}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
+                        รอเช็คอิน
                       </span>
                     )}
                   </div>
 
                   <div className="space-y-1 text-sm mb-3">
-                    {job.container_return_location && (
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">สถานที่</span>
-                        <span className="text-[#454545]">: {job.container_return_location}</span>
-                      </div>
-                    )}
                     {job.container_return_address && (
                       <div className="flex">
                         <span className="text-[#454545] min-w-[100px]">ที่อยู่</span>
@@ -1321,28 +1320,64 @@ export default function DomesticJobDetail({
                         <span className="text-[#454545]">: {formatDate(job.container_return_date, language)}</span>
                       </div>
                     )}
+                    {job.container_return_phone && (
+                      <div className="flex">
+                        <span className="text-[#454545] min-w-[100px]">เบอร์โทร</span>
+                        <span className="text-[#454545]">: {job.container_return_phone}</span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                    {!isFromHistory && job.container_return_phone && (
-                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]" disabled={!allDeliveriesCompleted}
-                        onClick={() => {
-                          window.location.href = `tel:${job.container_return_phone}`;
-                        }}>
-                        <Phone className="w-4 h-4" />
-                        <span className="text-xs">{job.container_return_phone}</span>
-                      </Button>
+                  <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                    {!isFromHistory && (
+                      <>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100] px-[4px] py-[4px]" disabled={!allDeliveriesCompleted}
+                          onClick={() => {
+                            if (job.container_return_phone) {
+                              window.location.href = `tel:${job.container_return_phone}`;
+                            } else {
+                              toast({
+                                title: t('jobDetail.error'),
+                                description: t('jobDetail.noPhoneNumber'),
+                                variant: 'destructive'
+                              });
+                            }
+                          }}>
+                          <Phone className="w-4 h-4" />
+                          <span className="text-xs">{t('jobDetail.call')}</span>
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]" disabled={!allDeliveriesCompleted}
+                          onClick={() => {
+                            if (job.container_return_latitude && job.container_return_longitude) {
+                              const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_return_latitude},${job.container_return_longitude}`;
+                              window.open(url, '_blank');
+                            } else if (job.container_return_address) {
+                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.container_return_address)}`;
+                              window.open(url, '_blank');
+                            } else {
+                              toast({
+                                title: t('jobDetail.error'),
+                                description: t('jobDetail.noLocation'),
+                                variant: 'destructive'
+                              });
+                            }
+                          }}>
+                          <img src={routeIcon} alt="route" className="w-4 h-4" />
+                          <span className="text-xs">{t('jobDetail.route')}</span>
+                        </Button>
+                      </>
                     )}
-                    {!isFromHistory && (job.container_return_latitude && job.container_return_longitude) && (
-                      <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#E65100] text-[#E65100]" disabled={!allDeliveriesCompleted}
-                        onClick={() => {
-                          const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_return_latitude},${job.container_return_longitude}`;
-                          window.open(url, '_blank');
-                        }}>
-                        <img src={routeIcon} alt="route" className="w-4 h-4" />
-                        <span className="text-xs">นำทาง</span>
-                      </Button>
-                    )}
+                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#E65100]" disabled={!allDeliveriesCompleted}
+                      onClick={() => {
+                        // TODO: Navigate to container return check-in page
+                        toast({
+                          title: 'เช็คอินคืนตู้',
+                          description: 'ฟีเจอร์เช็คอินและแนบเอกสารคืนตู้กำลังพัฒนา',
+                        });
+                      }}>
+                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                      <span className="text-xs">เช็คอิน/แนบเอกสาร</span>
+                    </Button>
                   </div>
                 </div>
               </Card>
