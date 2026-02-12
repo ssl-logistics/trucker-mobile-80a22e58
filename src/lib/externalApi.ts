@@ -34,7 +34,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'get-express-rent-posts': 'EXPRESS_RENT_API_KEY',
   'update-freelance-driver': 'EXPRESS_RENT_API_KEY',
   'get-ocr-container-scans': 'EXPRESS_RENT_API_KEY',
-  'ocr-extra': 'EXPRESS_RENT_API_KEY',
+  'save-ocr-scan': 'EXPRESS_RENT_API_KEY',
 };
 
 // Endpoints that should use the bidding API URL
@@ -498,9 +498,10 @@ export async function submitOcrScan(body: {
   order_number?: string;
   driver_id?: string;
   driver_type?: 'internal' | 'external' | 'freelance';
+  scanned_at?: string;
   image_url?: string;
 }) {
-  return callExternalApi<{ success: boolean; data?: any }>('ocr-extra', {
+  return callExternalApi<{ success: boolean; data?: any }>('save-ocr-scan', {
     method: 'POST',
     body,
   });

@@ -280,6 +280,7 @@ const ContainerSOPPage = () => {
         order_number: jobId || undefined,
         driver_id: user?.id || undefined,
         driver_type: driverType,
+        scanned_at: new Date().toISOString(),
         image_url: imageUrl,
       });
 
