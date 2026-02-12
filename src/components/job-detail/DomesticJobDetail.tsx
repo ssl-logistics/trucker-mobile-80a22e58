@@ -1378,32 +1378,14 @@ export default function DomesticJobDetail({
                         </Button>
                       </>
                     )}
-                {containerReturnCheckedIn ? (
-                       <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#E65100]" disabled={!allDeliveriesCompleted}
+                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
-                          // TODO: Navigate to container return document attachment page
-                          toast({
-                            title: 'แนบเอกสารคืนตู้',
-                            description: 'ฟีเจอร์แนบเอกสารคืนตู้กำลังพัฒนา',
-                          });
+                          const fromParam = new URLSearchParams(location.search).get('from');
+                          navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                         }}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">แนบเอกสารคืนตู้</span>
+                        <span className="text-xs">{containerReturnCheckedIn ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                       </Button>
-                    ) : (
-                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
-                        onClick={() => {
-                          // TODO: Implement actual container return check-in API call
-                          setContainerReturnCheckedIn(true);
-                          toast({
-                            title: 'เช็คอินสำเร็จ',
-                            description: 'เช็คอินจุดคืนตู้เรียบร้อยแล้ว กรุณาแนบเอกสารคืนตู้',
-                          });
-                        }}>
-                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">อัปเดตสถานะ</span>
-                      </Button>
-                    )}
                   </div>
                 </div>
               </Card>
