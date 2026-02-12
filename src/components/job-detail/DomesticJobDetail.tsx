@@ -1395,7 +1395,7 @@ export default function DomesticJobDetail({
                             description: 'เช็คอินจุดคืนตู้เรียบร้อยแล้ว กรุณาแนบเอกสารคืนตู้',
                           });
                         }}>
-                        <img src={checkInIcon} alt="checkin" className="w-4 h-4 brightness-0 invert" />
+                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                         <span className="text-xs">อัปเดตสถานะ</span>
                       </Button>
                     )}
