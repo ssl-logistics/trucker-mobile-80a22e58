@@ -769,7 +769,7 @@ export default function DomesticJobDetail({
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.emptyContainerPickup')}</h3>
+                        <h3 className="font-semibold text-sm text-[#225795]">{job.bl_no ? t('jobDetail.loadedContainerPickup') : t('jobDetail.emptyContainerPickup')}</h3>
                       </div>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1 ${
                         isOcrVerified 
