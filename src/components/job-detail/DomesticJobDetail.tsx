@@ -106,6 +106,7 @@ interface JobDetail {
 interface JobApplication {
   checked_in_at: string | null;
   sop_completed_at: string | null;
+  container_sop_completed_at?: string | null;
   job_started_at: string | null;
   delivery_checked_in_at: string | null;
   delivery_sop_completed_at: string | null;
@@ -874,7 +875,8 @@ export default function DomesticJobDetail({
 
               {/* Pickup Point Card */}
               {/* For international jobs, pickup is locked until empty container is checked in */}
-              {(() => {
+              {/* For BL (inbound) jobs, hide pickup card entirely */}
+              {!job.bl_no && (() => {
                 const isInternationalJob = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
                 // Lock pickup if: international job AND (not checked in OR checked in but OCR not verified)
                 const isPickupLocked = isInternationalJob && (!emptyContainerCheckedIn || (emptyContainerCheckedIn && !isOcrVerified));
@@ -1016,6 +1018,10 @@ export default function DomesticJobDetail({
                 // Subsequent destinations require previous destination's SOP to be completed
                 const getPreviousCompleted = () => {
                   if (index === 0) {
+                    // For BL (inbound) jobs, unlock after container SOP instead of pickup SOP
+                    if (job.bl_no) {
+                      return isOcrVerified || !!jobApplication?.container_sop_completed_at;
+                    }
                     return pickupSopCompleted || !!jobApplication?.sop_completed_at;
                   }
                   const prevDest = destinations[index - 1];
