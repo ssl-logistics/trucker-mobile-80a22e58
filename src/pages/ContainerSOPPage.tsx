@@ -198,6 +198,7 @@ const ContainerSOPPage = () => {
           console.log('[OCR] Booking job - auto-accepting OCR results:', containerNo, sealNo);
           setOcrContainerNumber(containerNo);
           setOcrSealNumber(sealNo);
+          setPhotoFile(file); // Keep the photo file for confirmation
           setIsOcrVerified(true);
           toast({
             title: 'อ่านข้อมูลสำเร็จ',
