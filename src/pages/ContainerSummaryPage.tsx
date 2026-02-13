@@ -116,7 +116,14 @@ export default function ContainerSummaryPage() {
 
       if (!checkinError) {
         const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
-        const checkins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
+        const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
+        
+        // Filter checkins to only those matching the current order number
+        const checkins = allCheckins.filter((c: any) => {
+          const orderNum = c.transport_orders?.order_number;
+          // If order_number is available, match it; otherwise include (for records without transport_orders)
+          return !orderNum || orderNum === jobId;
+        });
 
         // Find container pickup check-in
         const containerCheckin = checkins.find((c: any) =>
