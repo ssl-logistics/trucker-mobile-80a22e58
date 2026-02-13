@@ -641,44 +641,105 @@ export default function JobHistoryPage() {
               <div className="text-center py-8 text-gray-500">{t('jobHistory.noData')}</div>
             ) : (
               <>
-                {/* Completed jobs from external API */}
-                {filteredCompletedJobs.map(job => (
-                  <HistoryJobCard 
-                    key={job.id}
-                    job={job}
-                    onClick={() => {
-                      if (job.isBidJob && job.ticket_number) {
-                        navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
-                      } else {
-                        navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
-                      }
-                    }}
-                    getTranslatedVehicleType={getTranslatedVehicleType}
-                  />
-                ))}
-
-                {/* Local job applications */}
-                {filteredApplications.map(app => {
-                  if (!app.jobs) return null;
-                  
+                {/* Domestic jobs section */}
+                {(() => {
+                  const domesticJobs = filteredCompletedJobs.filter(job => !job.booking_no && !job.bl_no && !job.transport_category);
+                  const domesticApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type !== 'international');
+                  if (domesticJobs.length === 0 && domesticApps.length === 0) return null;
                   return (
-                    <HistoryJobCard 
-                      key={app.id}
-                      job={{
-                        id: app.jobs.id,
-                        order_number: app.jobs.order_code,
-                        sender_name: app.jobs.destination_company_name || app.jobs.employer_name,
-                        sender_pickup_date: app.jobs.start_date,
-                        sender_pickup_time: app.jobs.start_time,
-                        transport_price: app.jobs.price,
-                        job_type: app.jobs.job_type,
-                        status: app.status,
-                      }}
-                      onClick={() => navigate(`/job/${app.jobs!.id}`)}
-                      getTranslatedVehicleType={getTranslatedVehicleType}
-                    />
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold">
+                          {t('jobType.domestic')} ({domesticJobs.length + domesticApps.length})
+                        </span>
+                      </div>
+                      {domesticJobs.map(job => (
+                        <HistoryJobCard 
+                          key={job.id}
+                          job={job}
+                          onClick={() => {
+                            if (job.isBidJob && job.ticket_number) {
+                              navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
+                            } else {
+                              navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
+                            }
+                          }}
+                          getTranslatedVehicleType={getTranslatedVehicleType}
+                        />
+                      ))}
+                      {domesticApps.map(app => {
+                        if (!app.jobs) return null;
+                        return (
+                          <HistoryJobCard 
+                            key={app.id}
+                            job={{
+                              id: app.jobs.id,
+                              order_number: app.jobs.order_code,
+                              sender_name: app.jobs.destination_company_name || app.jobs.employer_name,
+                              sender_pickup_date: app.jobs.start_date,
+                              sender_pickup_time: app.jobs.start_time,
+                              transport_price: app.jobs.price,
+                              job_type: app.jobs.job_type,
+                              status: app.status,
+                            }}
+                            onClick={() => navigate(`/job/${app.jobs!.id}`)}
+                            getTranslatedVehicleType={getTranslatedVehicleType}
+                          />
+                        );
+                      })}
+                    </div>
                   );
-                })}
+                })()}
+
+                {/* International jobs section */}
+                {(() => {
+                  const internationalJobs = filteredCompletedJobs.filter(job => !!(job.booking_no || job.bl_no || job.transport_category));
+                  const internationalApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type === 'international');
+                  if (internationalJobs.length === 0 && internationalApps.length === 0) return null;
+                  return (
+                    <div className="space-y-3 mt-4">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-block px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-sm font-semibold">
+                          {t('jobType.international')} ({internationalJobs.length + internationalApps.length})
+                        </span>
+                      </div>
+                      {internationalJobs.map(job => (
+                        <HistoryJobCard 
+                          key={`intl-${job.id}`}
+                          job={job}
+                          onClick={() => {
+                            if (job.isBidJob && job.ticket_number) {
+                              navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
+                            } else {
+                              navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
+                            }
+                          }}
+                          getTranslatedVehicleType={getTranslatedVehicleType}
+                        />
+                      ))}
+                      {internationalApps.map(app => {
+                        if (!app.jobs) return null;
+                        return (
+                          <HistoryJobCard 
+                            key={`intl-${app.id}`}
+                            job={{
+                              id: app.jobs.id,
+                              order_number: app.jobs.order_code,
+                              sender_name: app.jobs.destination_company_name || app.jobs.employer_name,
+                              sender_pickup_date: app.jobs.start_date,
+                              sender_pickup_time: app.jobs.start_time,
+                              transport_price: app.jobs.price,
+                              job_type: app.jobs.job_type,
+                              status: app.status,
+                            }}
+                            onClick={() => navigate(`/job/${app.jobs!.id}`)}
+                            getTranslatedVehicleType={getTranslatedVehicleType}
+                          />
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </>
             )}
           </div>
