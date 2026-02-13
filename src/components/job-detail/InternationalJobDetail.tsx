@@ -422,7 +422,7 @@ export default function InternationalJobDetail({
                 <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm text-[#225795]">{isInbound ? (t('jobDetail.loadedContainerPickup') || 'รับตู้หนัก') : t('jobDetail.containerCheckpoint')}</h3>
+                      <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.containerCheckpoint')}</h3>
                     </div>
                     {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
