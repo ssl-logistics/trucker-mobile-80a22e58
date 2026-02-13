@@ -53,6 +53,8 @@ interface JobDetail {
   seal_number_2: string | null;
   empty_container_date: string | null;
   tax_id: string | null;
+  booking_no?: string | null;
+  bl_no?: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -101,8 +103,8 @@ export default function InternationalJobDetail({
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   
   const { isInternalDriver, isExternalDriver } = useUserRole();
-  const isInbound = job.transport_type?.includes('ขาเข้า');
-  const isOutbound = job.transport_type?.includes('ขาออก');
+  const isInbound = job.transport_type?.includes('ขาเข้า') || !!job.bl_no;
+  const isOutbound = job.transport_type?.includes('ขาออก') || !!job.booking_no;
 
   // Fetch check-in status from API (same pattern as DomesticJobDetail)
   useEffect(() => {
