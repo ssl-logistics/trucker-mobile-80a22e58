@@ -1333,7 +1333,10 @@ export default function DomesticJobDetail({
                     <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           const fromParam = new URLSearchParams(location.search).get('from');
-                          if (containerReturnCheckedIn && !containerReturnConfirmed) {
+                          if (containerReturnConfirmed) {
+                            // Already confirmed, go to SOP page to view info
+                            navigate(`/job/${job.order_code}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
+                          } else if (containerReturnCheckedIn) {
                             // After check-in, go to Container SOP for document attachment & confirmation
                             navigate(`/job/${job.order_code}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
                           } else {
