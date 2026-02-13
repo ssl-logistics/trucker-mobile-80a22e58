@@ -1180,7 +1180,7 @@ export default function DomesticJobDetail({
                     <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                       {!isFromHistory && (
                         <>
-                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}
+                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at) || isPodCompleted}
                             onClick={() => {
                               const phone = job.destination_contact_phone;
                               if (phone) {
@@ -1196,7 +1196,7 @@ export default function DomesticJobDetail({
                             <Phone className="w-4 h-4" />
                             <span className="text-xs">{t('jobDetail.call')}</span>
                           </Button>
-                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}
+                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at) || isPodCompleted}
                             onClick={() => {
                               const lat = job.destination_latitude;
                               const lng = job.destination_longitude;
@@ -1294,7 +1294,7 @@ export default function DomesticJobDetail({
                   <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                     {!isFromHistory && (
                       <>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!allDeliveriesCompleted}
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!allDeliveriesCompleted || containerReturnConfirmed}
                           onClick={() => {
                             if (job.container_return_phone) {
                               window.location.href = `tel:${job.container_return_phone}`;
@@ -1309,7 +1309,7 @@ export default function DomesticJobDetail({
                           <Phone className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!allDeliveriesCompleted}
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!allDeliveriesCompleted || containerReturnConfirmed}
                           onClick={() => {
                             if (job.container_return_latitude && job.container_return_longitude) {
                               const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_return_latitude},${job.container_return_longitude}`;
