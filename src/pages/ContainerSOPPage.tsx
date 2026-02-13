@@ -74,7 +74,8 @@ const ContainerSOPPage = () => {
   const isInboundFromJobData = !!jobDetail?.bl_no || jobDetail?.transport_type?.includes('ขาเข้า');
   const isLoadedContainer = checkinTypeFromState === 'loaded_container' || (!isContainerReturn && checkinTypeFromState !== 'empty_container' && isInboundFromJobData);
   const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
-  const needsOCR = isLoadedContainer; // Only inbound BL needs OCR, booking (outbound) does not
+  const needsOCR = isEmptyContainer || isLoadedContainer;
+  const needsApiVerify = isLoadedContainer; // Only inbound BL needs API verification
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
@@ -283,49 +284,57 @@ const ContainerSOPPage = () => {
         }
       }
 
-      // Step 1: Verify container/seal via ocr-extra (read-only check)
-      const { data: verifyResult, error: verifyError } = await verifyOcrContainer({
-        container_no: pendingOcrResult.container_number,
-        seal_no: pendingOcrResult.seal_number || '',
-        order_number: jobId || undefined,
-        driver_id: user?.id || undefined,
-        driver_type: driverType,
-      });
+      // Step 1: Verify container/seal via ocr-extra (only for inbound BL)
+      if (needsApiVerify) {
+        const { data: verifyResult, error: verifyError } = await verifyOcrContainer({
+          container_no: pendingOcrResult.container_number,
+          seal_no: pendingOcrResult.seal_number || '',
+          order_number: jobId || undefined,
+          driver_id: user?.id || undefined,
+          driver_type: driverType,
+        });
 
-      if (verifyError) {
-        console.error('OCR verify error:', verifyError);
-        const isDuplicate = verifyError.toLowerCase().includes('duplicate') || verifyError.toLowerCase().includes('already scanned');
-        const isNotFound = verifyError.toLowerCase().includes('not found') || verifyError.toLowerCase().includes('does not exist');
-        
-        if (isDuplicate) {
+        if (verifyError) {
+          console.error('OCR verify error:', verifyError);
+          const isDuplicate = verifyError.toLowerCase().includes('duplicate') || verifyError.toLowerCase().includes('already scanned');
+          const isNotFound = verifyError.toLowerCase().includes('not found') || verifyError.toLowerCase().includes('does not exist');
+          
+          if (isDuplicate) {
+            toast({
+              title: 'ตู้นี้ดำเนินการไปแล้ว',
+              description: 'ตู้คอนเทนเนอร์นี้ถูกสแกนและบันทึกในระบบแล้ว ไม่จำเป็นต้องดำเนินการซ้ำ',
+              variant: "destructive",
+            });
+            setOcrContainerNumber(pendingOcrResult.container_number);
+            setOcrSealNumber(pendingOcrResult.seal_number);
+            setIsOcrVerified(true);
+            return;
+          }
+          
           toast({
-            title: 'ตู้นี้ดำเนินการไปแล้ว',
-            description: 'ตู้คอนเทนเนอร์นี้ถูกสแกนและบันทึกในระบบแล้ว ไม่จำเป็นต้องดำเนินการซ้ำ',
+            title: isNotFound ? 'ไม่พบข้อมูลตู้คอนเทนเนอร์' : 'ตรวจสอบไม่สำเร็จ',
+            description: isNotFound 
+              ? 'ไม่มีข้อมูลตู้คอนเทนเนอร์นี้อยู่ในระบบ กรุณาตรวจสอบเลขตู้และเลขซีลอีกครั้ง' 
+              : verifyError,
             variant: "destructive",
           });
-          // Auto-mark as verified since it was already processed
-          setOcrContainerNumber(pendingOcrResult.container_number);
-          setOcrSealNumber(pendingOcrResult.seal_number);
-          setIsOcrVerified(true);
           return;
         }
-        
+
+        console.log('[OCR] Verify passed:', verifyResult);
+
         toast({
-          title: isNotFound ? 'ไม่พบข้อมูลตู้คอนเทนเนอร์' : 'ตรวจสอบไม่สำเร็จ',
-          description: isNotFound 
-            ? 'ไม่มีข้อมูลตู้คอนเทนเนอร์นี้อยู่ในระบบ กรุณาตรวจสอบเลขตู้และเลขซีลอีกครั้ง' 
-            : verifyError,
-          variant: "destructive",
+          title: 'ตรวจสอบสำเร็จ',
+          description: 'เลขตู้และเลขซีลถูกต้อง',
         });
-        return;
+      } else {
+        // Booking (outbound): skip API verify, just accept OCR results
+        console.log('[OCR] Booking job - skipping API verification, using OCR data directly');
+        toast({
+          title: 'อ่านข้อมูลสำเร็จ',
+          description: `เลขตู้: ${pendingOcrResult.container_number}`,
+        });
       }
-
-      console.log('[OCR] Verify passed:', verifyResult);
-
-      toast({
-        title: 'ตรวจสอบสำเร็จ',
-        description: 'เลขตู้และเลขซีลถูกต้อง',
-      });
 
       // Save image URL for later use in handleConfirmSOP
       if (imageUrl) {
