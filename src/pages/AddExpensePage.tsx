@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2, X } from "lucide-react";
+import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown } from "lucide-react";
 import confirmSuccessIcon from "@/assets/confirm-success-icon.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,6 +111,7 @@ const AddExpensePage = () => {
   ]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingOCRFields, setEditingOCRFields] = useState<Set<string>>(new Set());
 
   const handleAddExpense = () => {
     const newExpense: ExpenseItem = {
