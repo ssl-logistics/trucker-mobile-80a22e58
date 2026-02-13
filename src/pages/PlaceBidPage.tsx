@@ -48,8 +48,9 @@ export default function PlaceBidPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+    // Validate file type - accept images and PDFs
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'application/pdf'];
+    if (!file.type.startsWith('image/') && !allowedTypes.includes(file.type)) {
       toast({
         title: t('placeBid.invalidFileType'),
         description: t('placeBid.pleaseUploadImage'),
@@ -228,11 +229,17 @@ export default function PlaceBidPage() {
             
             {slipImage ? (
               <div className="relative">
-                <img 
-                  src={slipImage} 
-                  alt="Payment slip" 
-                  className="w-full max-h-64 object-contain rounded-lg border"
-                />
+                {slipImage.endsWith('.pdf') || slipImage.includes('application/pdf') ? (
+                  <div className="w-full h-48 flex items-center justify-center rounded-lg border bg-muted">
+                    <span className="text-sm text-muted-foreground">📄 PDF Uploaded</span>
+                  </div>
+                ) : (
+                  <img 
+                    src={slipImage} 
+                    alt="Payment slip" 
+                    className="w-full max-h-64 object-contain rounded-lg border"
+                  />
+                )}
                 <button
                   onClick={handleRemoveSlip}
                   className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1"
@@ -255,7 +262,7 @@ export default function PlaceBidPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,.pdf"
               onChange={handleFileChange}
               className="hidden"
             />
