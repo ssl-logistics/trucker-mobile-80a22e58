@@ -1147,16 +1147,24 @@ export default function DomesticJobDetail({
             (() => {
               // Use ONLY actual check-in status from API, NOT jobApplication data
               const isPodCompleted = deliverySopCompleted;
+              // For BL (inbound) jobs, unlock after OCR/container SOP instead of pickup SOP
+              const isFallbackUnlocked = job.bl_no
+                ? (isOcrVerified || !!jobApplication?.container_sop_completed_at)
+                : (pickupSopCompleted || !!jobApplication?.sop_completed_at);
               
               return (
-                <Card ref={(el) => { if (el) deliveryCardRefs.current.set('fallback', el); else deliveryCardRefs.current.delete('fallback'); }} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : (pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                  <div className={`${!(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
+                <Card ref={(el) => { if (el) deliveryCardRefs.current.set('fallback', el); else deliveryCardRefs.current.delete('fallback'); }} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isFallbackUnlocked ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                  <div className={`${!isFallbackUnlocked ? 'opacity-60' : ''}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
                         {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
                       </div>
-                      {(pickupSopCompleted || jobApplication?.sop_completed_at) && (
+                      {!isFallbackUnlocked ? (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
+                          {t('jobDetail.waitingPreviousStep')}
+                        </span>
+                      ) : (
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                           {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
                         </span>
@@ -1189,7 +1197,7 @@ export default function DomesticJobDetail({
                     <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                       {!isFromHistory && (
                         <>
-                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at) || isPodCompleted}
+                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!isFallbackUnlocked || isPodCompleted}
                             onClick={() => {
                               const phone = job.destination_contact_phone;
                               if (phone) {
@@ -1205,7 +1213,7 @@ export default function DomesticJobDetail({
                             <Phone className="w-4 h-4" />
                             <span className="text-xs">{t('jobDetail.call')}</span>
                           </Button>
-                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at) || isPodCompleted}
+                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!isFallbackUnlocked || isPodCompleted}
                             onClick={() => {
                               const lat = job.destination_latitude;
                               const lng = job.destination_longitude;
@@ -1231,7 +1239,7 @@ export default function DomesticJobDetail({
                       <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
                         navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
-                      }} disabled={!(pickupSopCompleted || jobApplication?.sop_completed_at)}>
+                      }} disabled={!isFallbackUnlocked}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                         <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                       </Button>
