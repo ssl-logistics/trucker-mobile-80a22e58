@@ -857,9 +857,10 @@ export default function DomesticJobDetail({
                             className="w-full h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
                             onClick={() => {
                               const fromParam = new URLSearchParams(location.search).get('from');
-                              const queryString = fromParam ? `?from=${fromParam}` : '';
-                              if (emptyContainerCheckedIn) {
-                                navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: 'empty_container' } });
+                               const queryString = fromParam ? `?from=${fromParam}` : '';
+                               if (emptyContainerCheckedIn) {
+                                 const isInboundJob = !!job.bl_no || job.transport_type?.includes('ขาเข้า');
+                                 navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: isInboundJob ? 'loaded_container' : 'empty_container' } });
                               } else {
                                 navigate(`/job/${job.order_code}/container-checkin${queryString}`);
                               }
