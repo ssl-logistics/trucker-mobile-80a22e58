@@ -79,6 +79,8 @@ interface AcceptedJob {
   isBidJob?: boolean; // Flag for bid jobs - navigate to /bid-job/:ticketNumber
   job_type?: string | null; // domestic or international
   transport_category?: string | null;
+  bl_no?: string | null;
+  booking_no?: string | null;
   // Container info for international jobs
   container_number?: string | null;
   container_number_2?: string | null;
@@ -317,6 +319,8 @@ export default function CurrentJobsPage() {
             isFactoryJob: true,
             job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || null),
             transport_category: job.transport_category || null,
+            bl_no: job.bl_no || null,
+            booking_no: job.booking_no || null,
             // Container info for international jobs
             container_number: job.container_number || null,
             container_number_2: job.container_number_2 || null,
@@ -483,6 +487,8 @@ export default function CurrentJobsPage() {
             sender_name: job.factory_name || job.sender_name,
             isFactoryJob: true,
             job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || null),
+            bl_no: job.bl_no || null,
+            booking_no: job.booking_no || null,
             // Multiple destinations support
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
@@ -582,6 +588,8 @@ export default function CurrentJobsPage() {
             isFactoryJob: false,
             isBidJob: true, // Mark as bid job for UI distinction
             job_type: (ticket.booking_no || ticket.bl_no) ? 'international' : (ticket.job_type || ticket.transport_category || null),
+            bl_no: ticket.bl_no || null,
+            booking_no: ticket.booking_no || null,
             remarks: ticket.notes || ticket.remarks || null,
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
@@ -733,11 +741,15 @@ export default function CurrentJobsPage() {
                           : 'bg-orange-100 text-orange-700'
                       }`}>
                         {translateJobType(job.job_type, language)}
-                        {(job.job_type === 'domestic' || job.job_type === 'ในประเทศ' || job.job_type === 'ภายในประเทศ') && (
+                        {(job.job_type === 'domestic' || job.job_type === 'ในประเทศ' || job.job_type === 'ภายในประเทศ') ? (
                           <span className="ml-1">
                             {job.destinations && Array.isArray(job.destinations) && job.destinations.length > 0
                               ? `(${t('job.multipleDestinations')})`
                               : `(${t('job.singleTrip')})`}
+                          </span>
+                        ) : (
+                          <span className="ml-1">
+                            {job.bl_no ? '(BL)' : job.booking_no ? '(Booking)' : ''}
                           </span>
                         )}
                       </span>
