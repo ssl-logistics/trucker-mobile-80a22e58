@@ -226,7 +226,14 @@ const AddExpensePage = () => {
   };
 
   const getTotalOCRAmount = (expense: ExpenseItem) => {
-    return expense.receiptPhotos.reduce((sum, p) => sum + (p.ocrAmount || 0), 0);
+    return expense.receiptPhotos.reduce((sum, p) => {
+      // Use updated line items if they exist, otherwise use ocrAmount
+      if (p.ocrDetailed?.line_items && p.ocrDetailed.line_items.length > 0) {
+        const lineItemsTotal = p.ocrDetailed.line_items.reduce((itemSum, item) => itemSum + (item.amount || 0), 0);
+        return sum + lineItemsTotal;
+      }
+      return sum + (p.ocrAmount || 0);
+    }, 0);
   };
 
   const isAnyPhotoExtracting = (expense: ExpenseItem) => {
@@ -577,47 +584,156 @@ const AddExpensePage = () => {
                           <span className="text-green-900">฿{photo.ocrAmount?.toLocaleString()}</span>
                         </div>
                         
-                        {/* Line items from this receipt */}
-                        {photo.ocrDetailed?.line_items && photo.ocrDetailed.line_items.length > 0 && (
-                          <div className="space-y-0.5 pl-2">
-                            {photo.ocrDetailed.line_items.map((item, itemIdx) => (
-                              <div key={itemIdx} className="flex justify-between text-xs">
-                                <span className="text-green-700 truncate flex-1 mr-2">• {item.description}</span>
-                                <span className="text-green-800 whitespace-nowrap">฿{item.amount.toLocaleString()}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                         {/* Line items from this receipt */}
+                         {photo.ocrDetailed?.line_items && photo.ocrDetailed.line_items.length > 0 && (
+                           <div className="space-y-1 pl-2">
+                             {photo.ocrDetailed.line_items.map((item, itemIdx) => (
+                               <div key={itemIdx} className="flex justify-between items-center text-xs group">
+                                 <div className="flex-1 mr-2">
+                                   <span className="text-green-700 truncate">• {item.description}</span>
+                                 </div>
+                                 <span className="text-green-800 whitespace-nowrap mr-1">฿{item.amount.toLocaleString()}</span>
+                                 <button
+                                   type="button"
+                                   onClick={() => {
+                                     const updatedPhotos = expense.receiptPhotos.map((p) => {
+                                       if (p.id === photo.id && p.ocrDetailed?.line_items) {
+                                         return {
+                                           ...p,
+                                           ocrDetailed: {
+                                             ...p.ocrDetailed,
+                                             line_items: p.ocrDetailed.line_items.filter((_, i) => i !== itemIdx),
+                                             grand_total: (p.ocrDetailed.grand_total || 0) - item.amount,
+                                           }
+                                         };
+                                       }
+                                       return p;
+                                     });
+                                     handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
+                                   }}
+                                   className="opacity-0 group-hover:opacity-100 p-0.5 text-red-500 hover:text-red-700 transition-all"
+                                   title="ลบรายการนี้"
+                                 >
+                                   <Trash2 className="w-3 h-3" />
+                                 </button>
+                               </div>
+                             ))}
+                           </div>
+                         )}
                         
-                        {/* Receipt info */}
-                        {(photo.ocrDetailed?.receipt_number || photo.ocrDetailed?.container_number) && (
-                          <div className="text-xs text-green-600 pt-1">
-                            {photo.ocrDetailed.receipt_number && <span>เลขที่: {photo.ocrDetailed.receipt_number} </span>}
-                            {photo.ocrDetailed.container_number && <span>ตู้: {photo.ocrDetailed.container_number}</span>}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Total */}
-                  <div className="flex justify-between text-sm font-bold pt-2 border-t border-green-200">
-                    <span className="text-green-800">ยอดรวมทั้งหมด:</span>
-                    <span className="text-green-900">฿{getTotalOCRAmount(expense).toLocaleString()}</span>
-                  </div>
-                  
-                  {/* Apply Button */}
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={() => {
-                      handleExpenseChange(expense.id, 'amount', String(getTotalOCRAmount(expense)));
-                      handleExpenseChange(expense.id, 'showOCRDetails', false);
-                    }}
-                  >
-                    ใช้ยอดรวม ฿{getTotalOCRAmount(expense).toLocaleString()}
-                  </Button>
+                         {/* Receipt info */}
+                         {(photo.ocrDetailed?.receipt_number || photo.ocrDetailed?.container_number) && (
+                           <div className="text-xs text-green-600 pt-1">
+                             {photo.ocrDetailed.receipt_number && <span>เลขที่: {photo.ocrDetailed.receipt_number} </span>}
+                             {photo.ocrDetailed.container_number && <span>ตู้: {photo.ocrDetailed.container_number}</span>}
+                           </div>
+                         )}
+                         
+                         {/* Add new line item button */}
+                         {photo.ocrDetailed && (
+                           <div className="pt-2 border-t border-green-200">
+                             <button
+                               type="button"
+                               onClick={() => {
+                                 const updatedPhotos = expense.receiptPhotos.map((p) => {
+                                   if (p.id === photo.id && p.ocrDetailed?.line_items) {
+                                     return {
+                                       ...p,
+                                       ocrDetailed: {
+                                         ...p.ocrDetailed,
+                                         line_items: [...p.ocrDetailed.line_items, { description: '', amount: 0 }]
+                                       }
+                                     };
+                                   }
+                                   return p;
+                                 });
+                                 handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
+                               }}
+                               className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1"
+                             >
+                               <Plus className="w-3 h-3" />
+                               เพิ่มรายการ
+                             </button>
+                           </div>
+                         )}
+                         
+                         {/* Edit line item inputs */}
+                         {photo.ocrDetailed?.line_items && photo.ocrDetailed.line_items.length > 0 && (
+                           <div className="mt-2 pt-2 border-t border-green-200 space-y-1.5">
+                             {photo.ocrDetailed.line_items.map((item, itemIdx) => (
+                               <div key={`edit-${itemIdx}`} className="flex gap-1 text-xs">
+                                 <input
+                                   type="text"
+                                   value={item.description}
+                                   onChange={(e) => {
+                                     const updatedPhotos = expense.receiptPhotos.map((p) => {
+                                       if (p.id === photo.id && p.ocrDetailed?.line_items) {
+                                         const newItems = [...p.ocrDetailed.line_items];
+                                         newItems[itemIdx] = { ...item, description: e.target.value };
+                                         return {
+                                           ...p,
+                                           ocrDetailed: {
+                                             ...p.ocrDetailed,
+                                             line_items: newItems
+                                           }
+                                         };
+                                       }
+                                       return p;
+                                     });
+                                     handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
+                                   }}
+                                   placeholder="รายการ"
+                                   className="flex-1 px-1.5 py-0.5 border border-green-300 rounded text-xs bg-white/50"
+                                 />
+                                 <input
+                                   type="number"
+                                   value={item.amount}
+                                   onChange={(e) => {
+                                     const updatedPhotos = expense.receiptPhotos.map((p) => {
+                                       if (p.id === photo.id && p.ocrDetailed?.line_items) {
+                                         const newItems = [...p.ocrDetailed.line_items];
+                                         newItems[itemIdx] = { ...item, amount: parseInt(e.target.value) || 0 };
+                                         return {
+                                           ...p,
+                                           ocrDetailed: {
+                                             ...p.ocrDetailed,
+                                             line_items: newItems
+                                           }
+                                         };
+                                       }
+                                       return p;
+                                     });
+                                     handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
+                                   }}
+                                   placeholder="0"
+                                   className="w-16 px-1.5 py-0.5 border border-green-300 rounded text-xs bg-white/50"
+                                 />
+                               </div>
+                             ))}
+                           </div>
+                         )}
+                       </div>
+                     ))}
+                   </div>
+                   
+                   {/* Total */}
+                   <div className="flex justify-between text-sm font-bold pt-2 border-t border-green-200">
+                     <span className="text-green-800">ยอดรวมทั้งหมด:</span>
+                     <span className="text-green-900">฿{getTotalOCRAmount(expense).toLocaleString()}</span>
+                   </div>
+                   
+                   {/* Apply Button */}
+                   <Button
+                     type="button"
+                     size="sm"
+                     className="w-full bg-green-600 hover:bg-green-700 mt-3"
+                     onClick={() => {
+                       handleExpenseChange(expense.id, 'amount', String(getTotalOCRAmount(expense)));
+                       handleExpenseChange(expense.id, 'showOCRDetails', false);
+                     }}
+                   >
+                     ใช้ยอดรวม ฿{getTotalOCRAmount(expense).toLocaleString()}
+                   </Button>
                 </div>
               )}
               
