@@ -189,7 +189,7 @@ export default function JobHistoryPage() {
         console.log('Container return confirmed by transport ID:', [...containerReturnConfirmedByTransportId]);
 
         // Helper: check if job is international
-        const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || job.transport_category);
+        const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
 
         // Filter jobs that have ALL destinations POD completed OR have 'completed' status from API
         // For international jobs, also require container return to be completed
@@ -369,7 +369,7 @@ export default function JobHistoryPage() {
        console.log('Freelance container return confirmed (history):', { byTransportId: [...containerReturnConfirmedByTransportId], byOrderNumber: [...containerReturnConfirmedByOrderNumber] });
 
       // Helper: check if job is international
-      const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || job.transport_category);
+      const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
 
       // Helper function to check if job has ALL PODs completed
       const isJobFullyCompleted = (job: any): boolean => {
