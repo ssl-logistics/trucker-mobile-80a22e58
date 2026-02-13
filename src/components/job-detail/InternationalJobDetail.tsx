@@ -321,7 +321,7 @@ export default function InternationalJobDetail({
           </Card>
           <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
             <img src={routeIcon} alt="route" className="w-5 h-5 mb-1" />
-            <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">4</span></div>
+            <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{isInbound ? 3 : 4}</span></div>
           </Card>
           <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
             <img src={boxIcon} alt="goods" className="w-5 h-5 mb-1" />
@@ -365,7 +365,9 @@ export default function InternationalJobDetail({
               <div className="absolute left-1/2 -translate-x-1/2 w-0.5" style={{
               top: '8px',
               height: `calc(100% - 16px)`,
-              background: jobApplication?.delivery_sop_completed_at ? '#ef4444' : jobApplication?.sop_completed_at ? `linear-gradient(to bottom, #ef4444 0%, #ef4444 ${cardHeights.card1 + cardHeights.card2 > 0 ? (cardHeights.card1 + 12 + cardHeights.card2 / 2) / (cardHeights.card1 + 12 + cardHeights.card2 + 12 + cardHeights.card3) * 100 : 66}%, #d1d5db ${cardHeights.card1 + cardHeights.card2 > 0 ? (cardHeights.card1 + 12 + cardHeights.card2 / 2) / (cardHeights.card1 + 12 + cardHeights.card2 + 12 + cardHeights.card3) * 100 : 66}%, #d1d5db 100%)` : jobApplication?.container_sop_completed_at ? `linear-gradient(to bottom, #ef4444 0%, #ef4444 ${cardHeights.card1 > 0 ? cardHeights.card1 / 2 / (cardHeights.card1 + 12 + cardHeights.card2 + 12 + cardHeights.card3) * 100 : 33}%, #d1d5db ${cardHeights.card1 > 0 ? cardHeights.card1 / 2 / (cardHeights.card1 + 12 + cardHeights.card2 + 12 + cardHeights.card3) * 100 : 33}%, #d1d5db 100%)` : '#d1d5db'
+              background: isInbound
+                ? (jobApplication?.delivery_sop_completed_at ? '#ef4444' : jobApplication?.container_sop_completed_at ? `linear-gradient(to bottom, #ef4444 0%, #ef4444 ${cardHeights.card1 > 0 ? cardHeights.card1 / 2 / (cardHeights.card1 + 12 + cardHeights.card3) * 100 : 50}%, #d1d5db ${cardHeights.card1 > 0 ? cardHeights.card1 / 2 / (cardHeights.card1 + 12 + cardHeights.card3) * 100 : 50}%, #d1d5db 100%)` : '#d1d5db')
+                : (jobApplication?.delivery_sop_completed_at ? '#ef4444' : jobApplication?.sop_completed_at ? `linear-gradient(to bottom, #ef4444 0%, #ef4444 ${cardHeights.card1 + cardHeights.card2 > 0 ? (cardHeights.card1 + 12 + cardHeights.card2 / 2) / (cardHeights.card1 + 12 + cardHeights.card2 + 12 + cardHeights.card3) * 100 : 66}%, #d1d5db ${cardHeights.card1 + cardHeights.card2 > 0 ? (cardHeights.card1 + 12 + cardHeights.card2 / 2) / (cardHeights.card1 + 12 + cardHeights.card2 + 12 + cardHeights.card3) * 100 : 66}%, #d1d5db 100%)` : jobApplication?.container_sop_completed_at ? `linear-gradient(to bottom, #ef4444 0%, #ef4444 ${cardHeights.card1 > 0 ? cardHeights.card1 / 2 / (cardHeights.card1 + 12 + cardHeights.card2 + 12 + cardHeights.card3) * 100 : 33}%, #d1d5db ${cardHeights.card1 > 0 ? cardHeights.card1 / 2 / (cardHeights.card1 + 12 + cardHeights.card2 + 12 + cardHeights.card3) * 100 : 33}%, #d1d5db 100%)` : '#d1d5db')
             }} />
               
               {/* Step 1 Circle - Container Checkpoint */}
@@ -379,16 +381,18 @@ export default function InternationalJobDetail({
                 </div>
               </div>
 
-              {/* Step 2 Circle - Pickup/Loading Point */}
-              <div className="relative flex justify-center mb-3" style={{
-              height: `${cardHeights.card2 || 200}px`
-            }}>
-                <div className="absolute top-0">
-                  {jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    </div> : jobApplication?.container_sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
+              {/* Step 2 Circle - Pickup/Loading Point (hidden for inbound) */}
+              {!isInbound && (
+                <div className="relative flex justify-center mb-3" style={{
+                height: `${cardHeights.card2 || 200}px`
+              }}>
+                  <div className="absolute top-0">
+                    {jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                        <CheckCircle className="w-4 h-4 text-white" />
+                      </div> : jobApplication?.container_sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Step 3 Circle - Delivery/Return Point */}
               <div className="relative flex justify-center" style={{
@@ -397,7 +401,7 @@ export default function InternationalJobDetail({
                 <div className="absolute top-0">
                   {jobApplication?.delivery_sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
                       <CheckCircle className="w-4 h-4 text-white" />
-                    </div> : jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
+                    </div> : (isInbound ? jobApplication?.container_sop_completed_at : jobApplication?.sop_completed_at) ? <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> : <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />}
                 </div>
               </div>
             </div>
@@ -409,7 +413,7 @@ export default function InternationalJobDetail({
                 <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.containerCheckpoint')}</h3>
+                      <h3 className="font-semibold text-sm text-[#225795]">{isInbound ? (t('jobDetail.loadedContainerPickup') || 'จุดรับตู้หนัก') : t('jobDetail.containerCheckpoint')}</h3>
                     </div>
                     {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
@@ -509,7 +513,8 @@ export default function InternationalJobDetail({
                 </div>
               </Card>
 
-              {/* Pickup/Loading Point Card */}
+              {/* Pickup/Loading Point Card (hidden for inbound) */}
+              {!isInbound && (
               <Card ref={card2Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.container_sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-1">
@@ -576,17 +581,18 @@ export default function InternationalJobDetail({
                   </div>
                 </div>
               </Card>
+              )}
 
               {/* Delivery/Return Point Card */}
-              <Card ref={card3Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                <div className={`${!jobApplication?.sop_completed_at ? 'opacity-60' : ''}`}>
+              <Card ref={card3Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : (isInbound ? jobApplication?.container_sop_completed_at : jobApplication?.sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                <div className={`${!(isInbound ? jobApplication?.container_sop_completed_at : jobApplication?.sop_completed_at) ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">
                         {isInbound ? t('jobDetail.emptyReturn') : t('jobDetail.fullReturn')}
                       </h3>
                     </div>
-                    {jobApplication?.sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                    {(isInbound ? jobApplication?.container_sop_completed_at : jobApplication?.sop_completed_at) && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
@@ -627,15 +633,15 @@ export default function InternationalJobDetail({
 
                   <div className="grid grid-cols-3 gap-2">
                     {isInbound ? <>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.sop_completed_at}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!(isInbound ? jobApplication?.container_sop_completed_at : jobApplication?.sop_completed_at)}>
                           <Phone className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at}>
+                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(isInbound ? jobApplication?.container_sop_completed_at : jobApplication?.sop_completed_at)}>
                           <img src={routeIcon} alt="route" className="w-4 h-4" />
                           <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
-                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
+                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!(isInbound ? jobApplication?.container_sop_completed_at : jobApplication?.sop_completed_at)}>
                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                         </Button>
