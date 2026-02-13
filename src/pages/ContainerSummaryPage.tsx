@@ -24,6 +24,10 @@ interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   sop_photo_url: string | null;
+  // Container return specific
+  return_checked_in_at: string | null;
+  return_confirmed_at: string | null;
+  return_photo_url: string | null;
 }
 
 export default function ContainerSummaryPage() {
@@ -37,6 +41,7 @@ export default function ContainerSummaryPage() {
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
   const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
+  const { url: returnPhotoUrl } = usePresignedImageUrl(sopData?.return_photo_url || null);
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
@@ -105,25 +110,48 @@ export default function ContainerSummaryPage() {
       const { data: checkinResult, error: checkinError } = await getDriverCheckins(driverId, driverType, jobId);
 
       let checkedInAt: string | null = null;
+      let returnCheckedInAt: string | null = null;
+      let returnConfirmedAt: string | null = null;
+      let returnPhotoUrl: string | null = null;
+
       if (!checkinError) {
         const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
         const checkins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
-        // Find container check-in (container_pickup or container_return)
+        // Find container pickup check-in
         const containerCheckin = checkins.find((c: any) =>
-          c.checkin_type === 'container_pickup' || c.checkin_type === 'container_return'
+          c.checkin_type === 'container_pickup'
         );
         if (containerCheckin) {
           checkedInAt = containerCheckin.checkin_time || containerCheckin.checked_in_at || containerCheckin.created_at || null;
+        }
+
+        // Find container return check-in
+        const returnCheckin = checkins.find((c: any) =>
+          c.checkin_type === 'container_return'
+        );
+        if (returnCheckin) {
+          returnCheckedInAt = returnCheckin.checkin_time || returnCheckin.checked_in_at || returnCheckin.created_at || null;
+        }
+
+        // Find container return confirmed
+        const returnConfirmed = checkins.find((c: any) =>
+          c.checkin_type === 'container_return_confirmed'
+        );
+        if (returnConfirmed) {
+          returnConfirmedAt = returnConfirmed.checkin_time || returnConfirmed.checked_in_at || returnConfirmed.created_at || null;
+          returnPhotoUrl = returnConfirmed.photo_url || null;
         }
       }
 
       // Fetch SOP data from external API
       const { data: sopResult, error: sopError } = await getDriverSop(driverId, driverType, jobId);
 
+      let sopCompletedAt: string | null = null;
+      let sopPhotoUrlVal: string | null = null;
+
       if (!sopError && sopResult) {
         const sopDataArr = (sopResult as any)?.data || sopResult || [];
-        // Find container SOP (container_pickup or container_return type)
         const containerSOP = Array.isArray(sopDataArr)
           ? sopDataArr.find((s: any) =>
               s.sop_type === 'container_pickup' || s.sop_type === 'container_return' ||
@@ -133,27 +161,19 @@ export default function ContainerSummaryPage() {
 
         if (containerSOP) {
           const productImages = containerSOP.product_images || [];
-          const photoUrl = productImages.length > 0 ? productImages[0] : null;
-
-          setSopData({
-            checked_in_at: checkedInAt || containerSOP.checked_in_at || null,
-            sop_completed_at: containerSOP.recorded_at || containerSOP.created_at || null,
-            sop_photo_url: photoUrl,
-          });
-        } else {
-          setSopData({
-            checked_in_at: checkedInAt,
-            sop_completed_at: null,
-            sop_photo_url: null,
-          });
+          sopPhotoUrlVal = productImages.length > 0 ? productImages[0] : null;
+          sopCompletedAt = containerSOP.recorded_at || containerSOP.created_at || null;
         }
-      } else {
-        setSopData({
-          checked_in_at: checkedInAt,
-          sop_completed_at: null,
-          sop_photo_url: null,
-        });
       }
+
+      setSopData({
+        checked_in_at: checkedInAt,
+        sop_completed_at: sopCompletedAt,
+        sop_photo_url: sopPhotoUrlVal,
+        return_checked_in_at: returnCheckedInAt,
+        return_confirmed_at: returnConfirmedAt,
+        return_photo_url: returnPhotoUrl,
+      });
 
     } catch (error) {
       console.error('Error loading container summary:', error);
@@ -252,6 +272,54 @@ export default function ContainerSummaryPage() {
               <img 
                 src={sopPhotoUrl} 
                 alt="Container Photo" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Container Return Check-in */}
+        {sopData?.return_checked_in_at && (
+          <Card className="p-4 bg-green-50 border-green-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-green-900">เช็คอินจุดคืนตู้สำเร็จ</div>
+                <div className="text-sm text-green-700">
+                  {formatDateTime(sopData.return_checked_in_at, language)}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Container Return Confirmed */}
+        {sopData?.return_confirmed_at && (
+          <Card className="p-4 bg-green-50 border-green-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-green-900">ยืนยันคืนตู้สำเร็จ</div>
+                <div className="text-sm text-green-700">
+                  {formatDateTime(sopData.return_confirmed_at, language)}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Container Return Document Photo */}
+        {returnPhotoUrl && (
+          <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">เอกสารคืนตู้</div>
+            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+              <img 
+                src={returnPhotoUrl} 
+                alt="Container Return Document" 
                 className="w-full h-full object-cover"
               />
             </div>
