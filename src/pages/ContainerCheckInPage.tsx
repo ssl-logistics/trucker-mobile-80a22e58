@@ -303,7 +303,7 @@ export default function ContainerCheckInPage() {
             description: t('containerCheckin.alreadyCheckedInDesc'),
           });
           setTimeout(() => {
-            navigate(`/job/${orderNumber}/container-sop`, { state: { jobData: job, checkinType: 'empty_container' } });
+            navigate(`/job/${orderNumber}/container-sop`, { state: { jobData: job, checkinType: isInbound ? 'loaded_container' : 'empty_container' } });
           }, 1500);
         }
       }
