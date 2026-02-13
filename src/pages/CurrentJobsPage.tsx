@@ -237,7 +237,7 @@ export default function CurrentJobsPage() {
           // Filter out completed jobs
           // Domestic: all PODs completed -> remove
           // International: all PODs completed AND container returned -> remove
-          const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || job.transport_category);
+          const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
           
            const activeJobs = startedJobs.filter((job: any) => {
              const transportId = String(job.id);
@@ -400,7 +400,7 @@ export default function CurrentJobsPage() {
       }
       
       // Helper: check if job is international
-      const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || job.transport_category);
+      const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
 
       // Helper function to check if job has all PODs completed (and container returned for international)
       const isJobFullyCompleted = (job: any): boolean => {
