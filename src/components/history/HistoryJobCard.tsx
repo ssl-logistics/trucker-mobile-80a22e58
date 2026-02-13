@@ -125,11 +125,11 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
         </div>
 
         {/* Transport Type Badge */}
-        <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
-          isDomestic
-            ? 'bg-blue-100 text-blue-800'
-            : 'bg-orange-100 text-orange-800'
-        }`}>
+         <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
+           isDomestic
+             ? 'bg-blue-100 text-blue-700'
+             : 'bg-orange-100 text-orange-700'
+         }`}>
           {isDomestic 
             ? `${t('jobType.domestic')}${isSingleTrip ? ` (${t('job.one_way')})` : ` (${t('job.multiple_destinations')})`}`
             : `${translateJobType(job.job_type || '', language)} ${job.bl_no ? '(BL)' : job.booking_no ? '(Booking)' : ''}`
