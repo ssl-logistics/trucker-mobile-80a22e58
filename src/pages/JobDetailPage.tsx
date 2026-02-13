@@ -592,8 +592,9 @@ export default function JobDetailPage() {
   }
 
   // Determine if domestic or international
-  const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
+  // Check international FIRST - if job_type is 'international' (has bl_no/booking_no), it's always international
   const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก') || job.job_type === 'international';
+  const isDomestic = !isInternational && (job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่'));
 
   const handleUpdate = () => {
     loadJobDetail();
