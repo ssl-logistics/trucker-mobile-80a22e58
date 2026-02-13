@@ -43,6 +43,8 @@ interface JobDetail {
   seal_number_2?: string;
   start_date: string;
   start_time: string;
+  bl_no?: string;
+  transport_type?: string;
 }
 
 const ContainerSOPPage = () => {
@@ -64,11 +66,15 @@ const ContainerSOPPage = () => {
     checkinType?: string;
   } | null;
   const isContainerReturn = navState?.checkinType === 'container_return';
-  const isEmptyContainer = navState?.checkinType === 'empty_container';
-  const isLoadedContainer = navState?.checkinType === 'loaded_container';
-  const needsOCR = isEmptyContainer || isLoadedContainer; // OCR for both empty and loaded container pickup
+  const checkinTypeFromState = navState?.checkinType;
   
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
+  
+  // Detect inbound from job data as fallback when navState doesn't have explicit loaded_container
+  const isInboundFromJobData = !!jobDetail?.bl_no || jobDetail?.transport_type?.includes('ขาเข้า');
+  const isLoadedContainer = checkinTypeFromState === 'loaded_container' || (!isContainerReturn && checkinTypeFromState !== 'empty_container' && isInboundFromJobData);
+  const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
+  const needsOCR = isEmptyContainer || isLoadedContainer;
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
@@ -140,6 +146,8 @@ const ContainerSOPPage = () => {
           seal_number_2: foundJob.seal_number_2 || '',
           start_date: foundJob.start_date || foundJob.sender_pickup_date || '',
           start_time: foundJob.start_time || foundJob.sender_pickup_time || '',
+          bl_no: foundJob.bl_no || '',
+          transport_type: foundJob.transport_type || '',
         });
       } else {
         throw new Error('Job not found');
@@ -508,9 +516,11 @@ const ContainerSOPPage = () => {
 
   const confirmButtonText = isContainerReturn 
     ? 'ยืนยันคืนตู้' 
-    : isEmptyContainer 
-      ? 'ยืนยันรับตู้เปล่า' 
-      : t('containerSop.confirmButton');
+    : isLoadedContainer
+      ? 'ยืนยันรับตู้หนัก'
+      : isEmptyContainer 
+        ? 'ยืนยันรับตู้เปล่า' 
+        : t('containerSop.confirmButton');
 
   const isConfirmDisabled = uploading || !photoFile || (needsOCR && !isOcrVerified);
 
