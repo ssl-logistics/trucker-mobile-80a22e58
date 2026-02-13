@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer } from '@/lib/externalApi';
+import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer, driverCheckin } from '@/lib/externalApi';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -390,6 +390,32 @@ const ContainerSOPPage = () => {
 
       const finalContainerNumber = ocrContainerNumber || containerNumber || undefined;
       const finalSealNumber = ocrSealNumber || sealNumber || undefined;
+
+      // Send driverCheckin to external API for container return confirmation
+      if (isContainerReturn) {
+        const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        try {
+          const checkinPayload = {
+            order_number: jobDetail!.order_code,
+            driver_id: user.id,
+            driver_type: driverType,
+            checkin_type: 'container_return_confirmed',
+            photo_url: publicUrl,
+            notes: 'ยืนยันคืนตู้สำเร็จ',
+            container_number: finalContainerNumber,
+            seal_number: finalSealNumber,
+          };
+          console.log('[ContainerSOP] Sending container_return_confirmed checkin:', checkinPayload);
+          const { error: checkinError } = await driverCheckin(checkinPayload);
+          if (checkinError) {
+            console.warn('[ContainerSOP] driverCheckin error (non-blocking):', checkinError);
+          } else {
+            console.log('[ContainerSOP] container_return_confirmed checkin sent successfully');
+          }
+        } catch (checkinErr) {
+          console.warn('[ContainerSOP] driverCheckin exception (non-blocking):', checkinErr);
+        }
+      }
 
       await sendJobStatus({
         jobId,
