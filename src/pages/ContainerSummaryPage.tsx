@@ -106,6 +106,9 @@ export default function ContainerSummaryPage() {
         });
       }
 
+      // Get the job's UUID for filtering checkins
+      const jobUuid = foundJob?.id || null;
+
       // Fetch check-in data from external API
       const { data: checkinResult, error: checkinError } = await getDriverCheckins(driverId, driverType, jobId);
 
@@ -118,11 +121,15 @@ export default function ContainerSummaryPage() {
         const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
         const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
         
-        // Filter checkins to only those matching the current order number
+        // Filter checkins by transport_order_id (UUID) or order_number to ensure correct job
         const checkins = allCheckins.filter((c: any) => {
+          // Match by transport_order_id (UUID) if available
+          if (jobUuid && c.transport_order_id) {
+            return c.transport_order_id === jobUuid;
+          }
+          // Fallback: match by order_number
           const orderNum = c.transport_orders?.order_number;
-          // If order_number is available, match it; otherwise include (for records without transport_orders)
-          return !orderNum || orderNum === jobId;
+          return orderNum === jobId;
         });
 
         // Find container pickup check-in
