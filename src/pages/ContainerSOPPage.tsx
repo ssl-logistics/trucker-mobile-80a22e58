@@ -192,7 +192,20 @@ const ContainerSOPPage = () => {
       if (result.success && result.data) {
         const containerNo = result.data.container_number || null;
         const sealNo = result.data.seal_number || null;
-        setPendingOcrResult({ container_number: containerNo, seal_number: sealNo });
+        
+        if (!needsApiVerify && containerNo) {
+          // Booking (outbound): auto-accept OCR results without API verify
+          console.log('[OCR] Booking job - auto-accepting OCR results:', containerNo, sealNo);
+          setOcrContainerNumber(containerNo);
+          setOcrSealNumber(sealNo);
+          setIsOcrVerified(true);
+          toast({
+            title: 'อ่านข้อมูลสำเร็จ',
+            description: `เลขตู้: ${containerNo}`,
+          });
+        } else {
+          setPendingOcrResult({ container_number: containerNo, seal_number: sealNo });
+        }
       } else if (result.error) {
         toast({
           title: t('ocr.failed'),
@@ -629,23 +642,25 @@ const ContainerSOPPage = () => {
                </div>
                <div className="flex gap-2">
                  <Button
-                   variant="outline"
-                   size="sm"
-                   className="flex-1"
-                   onClick={() => { setPendingOcrResult(null); setShowPhotoDrawer(true); }}
-                 >
-                   ถ่ายใหม่
-                 </Button>
-                 <Button
-                   size="sm"
-                   className="flex-1 bg-blue-600 hover:bg-blue-700"
-                   onClick={handleConfirmOcr}
-                   disabled={isVerifying || !pendingOcrResult.container_number}
-                 >
-                   {isVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-                   {isVerifying ? 'ตรวจสอบ...' : 'ยืนยันเลขตู้'}
-                 </Button>
-               </div>
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => { setPendingOcrResult(null); setShowPhotoDrawer(true); }}
+                  >
+                    ถ่ายใหม่
+                  </Button>
+                  {needsApiVerify && (
+                  <Button
+                    size="sm"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    onClick={handleConfirmOcr}
+                    disabled={isVerifying || !pendingOcrResult.container_number}
+                  >
+                    {isVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                    {isVerifying ? 'ตรวจสอบ...' : 'ยืนยันเลขตู้'}
+                  </Button>
+                  )}
+                </div>
              </Card>
            )}
 
