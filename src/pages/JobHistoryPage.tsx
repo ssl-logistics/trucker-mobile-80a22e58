@@ -650,7 +650,7 @@ export default function JobHistoryPage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold">
-                          {t('jobType.domestic')} ({domesticJobs.length + domesticApps.length})
+                          {t('jobType.domestic')}
                         </span>
                       </div>
                       {domesticJobs.map(job => (
@@ -700,7 +700,7 @@ export default function JobHistoryPage() {
                     <div className="space-y-3 mt-4">
                       <div className="flex items-center gap-2">
                         <span className="inline-block px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-sm font-semibold">
-                          {t('jobType.international')} ({internationalJobs.length + internationalApps.length})
+                          {t('jobType.international')}
                         </span>
                       </div>
                       {internationalJobs.map(job => (
