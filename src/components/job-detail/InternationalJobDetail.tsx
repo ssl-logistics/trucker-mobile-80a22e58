@@ -513,9 +513,9 @@ export default function InternationalJobDetail({
                 </div>
               </Card>
 
-              {/* Pickup/Loading Point Card (hidden for inbound) */}
-              {!isInbound && (
-              <Card ref={card2Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.container_sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+               {/* Pickup/Loading Point Card (hidden for inbound) */}
+               {!isInbound && (
+                 <Card ref={card2Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.container_sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
