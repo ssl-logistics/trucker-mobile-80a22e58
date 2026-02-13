@@ -508,7 +508,7 @@ export default function InternationalJobDetail({
                     </Button>
                     <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={!jobApplication?.job_started_at} onClick={() => {
                     if (jobApplication?.container_sop_completed_at) {
-                      navigate(`/job/${job.id}/container-summary`);
+                      navigate(`/job/${job.id}/container-summary`, { state: { jobData: job, checkinType: 'container_pickup' } });
                     } else if (emptyContainerCheckedIn) {
                       navigate(`/job/${job.id}/container-sop`, { state: { jobData: job, checkinType: isInbound ? 'loaded_container' : 'empty_container' } });
                     } else {
