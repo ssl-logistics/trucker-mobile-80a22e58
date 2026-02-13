@@ -105,6 +105,14 @@ export default function InternationalJobDetail({
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const isInbound = job.transport_type?.includes('ขาเข้า') || !!job.bl_no;
   const isOutbound = job.transport_type?.includes('ขาออก') || !!job.booking_no;
+  
+  console.log('[InternationalJobDetail] Flow detection:', {
+    transport_type: job.transport_type,
+    bl_no: job.bl_no,
+    booking_no: job.booking_no,
+    isInbound,
+    isOutbound,
+  });
 
   // Fetch check-in status from API (same pattern as DomesticJobDetail)
   useEffect(() => {
