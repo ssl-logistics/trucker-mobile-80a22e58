@@ -84,6 +84,7 @@ const ContainerSOPPage = () => {
   
   const [pendingOcrResult, setPendingOcrResult] = useState<{ container_number: string | null; seal_number: string | null } | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [ocrImageUrl, setOcrImageUrl] = useState<string | undefined>(undefined);
 
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
@@ -312,33 +313,15 @@ const ContainerSOPPage = () => {
 
       console.log('[OCR] Verify passed:', verifyResult);
 
-      // Step 2: Save to DB via save-ocr-scan
-      const { data: ocrResult, error: ocrError } = await submitOcrScan({
-        container_no: pendingOcrResult.container_number,
-        seal_no: pendingOcrResult.seal_number || '',
-        order_number: jobId || undefined,
-        driver_id: user?.id || undefined,
-        driver_type: driverType,
-        scanned_at: new Date().toISOString(),
-        image_url: imageUrl,
-      });
-
-      if (ocrError) {
-        console.error('OCR save error:', ocrError);
-        toast({
-          title: 'บันทึกไม่สำเร็จ',
-          description: ocrError,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('[OCR] Submit result:', ocrResult);
-
       toast({
-        title: 'บันทึกสำเร็จ',
-        description: 'บันทึกข้อมูลเลขตู้และเลขซีลเรียบร้อย',
+        title: 'ตรวจสอบสำเร็จ',
+        description: 'เลขตู้และเลขซีลถูกต้อง',
       });
+
+      // Save image URL for later use in handleConfirmSOP
+      if (imageUrl) {
+        setOcrImageUrl(imageUrl);
+      }
         
       setOcrContainerNumber(pendingOcrResult.container_number);
       setOcrSealNumber(pendingOcrResult.seal_number);
@@ -429,6 +412,41 @@ const ContainerSOPPage = () => {
           }
         } catch (checkinErr) {
           console.warn('[ContainerSOP] driverCheckin exception (non-blocking):', checkinErr);
+        }
+      }
+
+      // Save OCR scan data to TMS when confirming container pickup (not return)
+      if (needsOCR && isOcrVerified && finalContainerNumber && !isContainerReturn) {
+        const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        try {
+          const { data: ocrResult, error: ocrError } = await submitOcrScan({
+            container_no: finalContainerNumber,
+            seal_no: finalSealNumber || '',
+            order_number: jobId || undefined,
+            driver_id: user.id,
+            driver_type: driverType,
+            scanned_at: new Date().toISOString(),
+            image_url: ocrImageUrl,
+          });
+
+          if (ocrError) {
+            console.error('[ContainerSOP] save-ocr-scan error:', ocrError);
+            // Check for duplicate - treat as success
+            const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
+            if (!isDuplicate) {
+              toast({
+                title: 'บันทึกข้อมูล OCR ไม่สำเร็จ',
+                description: ocrError,
+                variant: "destructive",
+              });
+              return;
+            }
+            console.log('[ContainerSOP] Duplicate scan detected, continuing...');
+          } else {
+            console.log('[ContainerSOP] save-ocr-scan success:', ocrResult);
+          }
+        } catch (ocrErr) {
+          console.warn('[ContainerSOP] save-ocr-scan exception (non-blocking):', ocrErr);
         }
       }
 
