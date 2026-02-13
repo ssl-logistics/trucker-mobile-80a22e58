@@ -644,7 +644,7 @@ const AddExpensePage = () => {
                                    className="p-0.5 text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
                                    title="ลบรายการนี้"
                                  >
-                                   <X className="w-3 h-3" />
+                                   <Trash2 className="w-3 h-3" />
                                  </button>
                                </div>
                              ))}
