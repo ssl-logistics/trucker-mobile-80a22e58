@@ -46,7 +46,7 @@ interface HistoryJobCardProps {
 export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: HistoryJobCardProps) {
   const { t, language } = useLanguage();
 
-  const isDomestic = !job.booking_no && !job.bl_no && !job.transport_category;
+  const isDomestic = !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic');
   // Multiple locations: has destinations array with items (same logic as JobCard)
   const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 0;
   // Single trip: no destinations array OR has destination fields directly
