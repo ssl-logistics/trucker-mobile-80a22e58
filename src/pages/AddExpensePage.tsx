@@ -482,6 +482,9 @@ const AddExpensePage = () => {
                   </span>
                 )}
               </Label>
+              <p className="text-xs text-muted-foreground">
+                หาก OCR อ่านผิด สามารถแนบรูปใหม่หรือแก้ไขข้อมูลได้
+              </p>
               
               {/* Photo Grid */}
               <div className="grid grid-cols-2 gap-3">
