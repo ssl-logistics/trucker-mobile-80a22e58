@@ -1,72 +1,52 @@
 
 
-# แก้ไขเวลาเรือมาถึงและเวลาเข้ารับตู้เปล่าไม่แสดง
+# Plan: แก้ไข Flow งานขาเข้า (Inbound) ให้เป็น 3 ขั้นตอน
 
-## ปัญหา
-ในหน้ารายละเอียดงาน (Job Detail) สำหรับงาน International เช่น OR20260209026 ฟิลด์ "วัน/เวลาเรือถึง" และ "วันเริ่มเข้ารับตู้เปล่า" แสดงเป็น "-" เพราะ API ภายนอกอาจส่งชื่อฟิลด์ต่างจากที่โค้ดแมปไว้
+## สรุปการเปลี่ยนแปลง
 
-## สาเหตุ
-การแมปข้อมูลใน `JobDetailPage.tsx` รองรับชื่อฟิลด์จำกัด:
-- **เรือถึง**: `container_checkpoint_time` หรือ `eta_date` เท่านั้น
-- **รับตู้เปล่า**: `empty_container_date` เท่านั้น
+งานขาเข้า (Inbound) ปัจจุบันมี 4 ขั้นตอน: รับตู้ -> รับสินค้า -> ส่งสินค้า -> คืนตู้
+เปลี่ยนเป็น 3 ขั้นตอน: **รับตู้หนัก (พร้อม OCR)** -> **ส่งสินค้า** -> **คืนตู้**
 
-แต่ API ภายนอกอาจส่งมาในชื่อฟิลด์อื่น เช่น `vessel_eta`, `empty_pickup_date`, `empty_pickup_time`, `eta_time` เป็นต้น
+## ขั้นตอนที่ต้องทำ
 
-## แผนแก้ไข
+### 1. แก้ไข InternationalJobDetail.tsx - ซ่อน Card "จุดรับสินค้า" สำหรับงานขาเข้า
 
-### ขั้นตอนที่ 1: เพิ่ม Debug Log เพื่อดูฟิลด์ทั้งหมดจาก API
-เพิ่ม `console.log` ใน `JobDetailPage.tsx` หลังจากหา `foundJob` ได้แล้ว เพื่อแสดงฟิลด์ทุกตัวที่เกี่ยวข้องกับ container/eta/empty:
+- เมื่อ `isInbound = true` จะไม่แสดง Card ที่ 2 (Pickup/Loading Point) เลย
+- Timeline จะเหลือ 3 จุด: รับตู้หนัก -> ส่งสินค้า -> คืนตู้
+- เปลี่ยนชื่อ Card 1 จาก "จุดรับตู้เปล่า" เป็น "จุดรับตู้หนัก" สำหรับขาเข้า
 
-```typescript
-console.log('[JobDetailPage] Container fields:', {
-  container_checkpoint_time: foundJob.container_checkpoint_time,
-  eta_date: foundJob.eta_date,
-  eta_time: foundJob.eta_time,
-  vessel_eta: foundJob.vessel_eta,
-  empty_container_date: foundJob.empty_container_date,
-  empty_pickup_date: foundJob.empty_pickup_date,
-  empty_pickup_time: foundJob.empty_pickup_time,
-  allKeys: Object.keys(foundJob).filter(k => 
-    k.includes('eta') || k.includes('empty') || k.includes('vessel') || k.includes('container') || k.includes('checkpoint')
-  )
-});
-```
+### 2. ปรับ Logic การปลดล็อค Card สำหรับขาเข้า
 
-### ขั้นตอนที่ 2: เพิ่ม Fallback Field Names ในการแมป
-ปรับการแมปใน `JobDetailPage.tsx` ให้รองรับชื่อฟิลด์เพิ่มเติม:
+- **Card ส่งสินค้า**: ปลดล็อคทันทีหลัง OCR/SOP ที่จุดรับตู้หนักเสร็จ (ข้ามขั้นตอนรับสินค้า)
+- เงื่อนไขเดิม: ต้องผ่านจุดรับสินค้าก่อน (`sop_completed_at`) -> เปลี่ยนเป็นผ่านจุดรับตู้ (`container_sop_completed_at`) โดยตรง
+- **Card คืนตู้**: ปลดล็อคหลังส่งสินค้าเสร็จ (เหมือนเดิม)
 
-**ไฟล์: `src/pages/JobDetailPage.tsx`**
-```typescript
-// เวลาเรือถึง - เพิ่ม fallback หลายชื่อ
-container_checkpoint_time: foundJob.container_checkpoint_time 
-  || foundJob.eta_date 
-  || foundJob.eta_time
-  || foundJob.vessel_eta
-  || foundJob.vessel_arrival_date
-  || null,
+### 3. ปรับ Timeline Indicator
 
-// วันรับตู้เปล่า - เพิ่ม fallback
-empty_container_date: foundJob.empty_container_date 
-  || foundJob.empty_pickup_date 
-  || foundJob.first_pickup_date
-  || null,
-```
+- ลดจำนวนวงกลมบน Timeline จาก 4 เหลือ 3 สำหรับขาเข้า
+- ปรับความสูงและ gradient ของเส้น Timeline ให้สอดคล้อง
 
-### ขั้นตอนที่ 3: แก้ไขเดียวกันใน `ContainerCheckInPage.tsx`
-ให้หน้า ContainerCheckIn มี fallback เหมือนกัน
+### 4. ปรับ Summary Card จำนวนจุด
 
-### ขั้นตอนที่ 4: แก้ไขเดียวกันใน `PickupDetailPage.tsx`
-ให้หน้า PickupDetail มี fallback เหมือนกัน (ถ้ามีการแสดงข้อมูลเหล่านี้)
+- เปลี่ยนจำนวนจุดรับ/ส่งจาก "4" เป็น "3" สำหรับงานขาเข้า
 
 ---
 
 ## รายละเอียดทางเทคนิค
 
-### ไฟล์ที่ต้องแก้ไข
-1. **`src/pages/JobDetailPage.tsx`** - เพิ่ม debug log + fallback field mapping (บรรทัด ~258, ~290, ~309)
-2. **`src/pages/ContainerCheckInPage.tsx`** - เพิ่ม fallback field mapping (บรรทัด ~127-130)
+### ไฟล์ที่ต้องแก้ไข: `src/components/job-detail/InternationalJobDetail.tsx`
 
-### ขั้นตอนการทำงาน
-1. เพิ่ม console.log เพื่อดูชื่อฟิลด์จริงจาก API ก่อน
-2. เพิ่ม fallback mapping ตามชื่อฟิลด์ที่เป็นไปได้
-3. หลังจากเห็น log จริงแล้ว สามารถปรับเพิ่มได้อีกถ้ายังไม่ครบ
+**การเปลี่ยนแปลงหลัก:**
+
+1. **Summary card** (line ~324): เปลี่ยนจำนวนจุดจาก hardcode `4` เป็น `{isInbound ? 3 : 4}`
+
+2. **Timeline circles** (lines ~370-403): Wrap Step 2 circle ด้วย `{!isInbound && (...)}` เพื่อซ่อนสำหรับขาเข้า
+
+3. **Pickup/Loading Card** (lines ~512-578): Wrap ทั้ง Card ด้วย `{!isInbound && (...)}` เพื่อซ่อนสำหรับขาเข้า พร้อมลบ `ref={card2Ref}` ออกจากเงื่อนไขที่ซ่อน
+
+4. **Delivery Card unlock condition** (lines ~580-654): สำหรับขาเข้า เปลี่ยนเงื่อนไขการปลดล็อคจาก `sop_completed_at` เป็น `container_sop_completed_at`
+
+5. **Card 1 label**: สำหรับขาเข้า เปลี่ยนชื่อเป็น "จุดรับตู้หนัก" แทน "จุดรับตู้เปล่า"
+
+6. **Container Return Card** unlock: สำหรับขาเข้า ให้ unlock หลังจาก delivery เสร็จ (เหมือนเดิม ไม่ต้องเปลี่ยน)
+
