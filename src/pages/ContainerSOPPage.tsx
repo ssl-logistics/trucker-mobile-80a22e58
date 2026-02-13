@@ -284,7 +284,22 @@ const ContainerSOPPage = () => {
 
       if (verifyError) {
         console.error('OCR verify error:', verifyError);
+        const isDuplicate = verifyError.toLowerCase().includes('duplicate') || verifyError.toLowerCase().includes('already scanned');
         const isNotFound = verifyError.toLowerCase().includes('not found') || verifyError.toLowerCase().includes('does not exist');
+        
+        if (isDuplicate) {
+          toast({
+            title: 'ตู้นี้ดำเนินการไปแล้ว',
+            description: 'ตู้คอนเทนเนอร์นี้ถูกสแกนและบันทึกในระบบแล้ว ไม่จำเป็นต้องดำเนินการซ้ำ',
+            variant: "destructive",
+          });
+          // Auto-mark as verified since it was already processed
+          setOcrContainerNumber(pendingOcrResult.container_number);
+          setOcrSealNumber(pendingOcrResult.seal_number);
+          setIsOcrVerified(true);
+          return;
+        }
+        
         toast({
           title: isNotFound ? 'ไม่พบข้อมูลตู้คอนเทนเนอร์' : 'ตรวจสอบไม่สำเร็จ',
           description: isNotFound 
