@@ -237,55 +237,7 @@ export default function ContainerSummaryPage() {
         {/* Action Buttons */}
         <JobActionButtons jobId={jobId!} orderNumber={jobId!} checkinType={checkinType as any} />
 
-        {/* Check-in Status */}
-        {sopData?.checked_in_at && (
-          <Card className="p-4 bg-green-50 border-green-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-green-900">{t('containerSummary.checkInSuccess')}</div>
-                <div className="text-sm text-green-700">
-                  {formatDateTime(sopData.checked_in_at, language)}
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* SOP Status */}
-        {sopData?.sop_completed_at && (
-          <Card className="p-4 bg-green-50 border-green-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-green-900">{t('containerSummary.containerSuccess')}</div>
-                <div className="text-sm text-green-700">
-                  {formatDateTime(sopData.sop_completed_at, language)}
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* SOP Photo */}
-        {sopPhotoUrl && (
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">{t('containerSummary.containerPhoto')}</div>
-            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-              <img 
-                src={sopPhotoUrl} 
-                alt="Container Photo" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Container Return Check-in */}
+        {/* Container Return Check-in Status */}
         {sopData?.return_checked_in_at && (
           <Card className="p-4 bg-green-50 border-green-200">
             <div className="flex items-center gap-3">
@@ -296,23 +248,6 @@ export default function ContainerSummaryPage() {
                 <div className="font-semibold text-green-900">เช็คอินจุดคืนตู้สำเร็จ</div>
                 <div className="text-sm text-green-700">
                   {formatDateTime(sopData.return_checked_in_at, language)}
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Container Return Confirmed */}
-        {sopData?.return_confirmed_at && (
-          <Card className="p-4 bg-green-50 border-green-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-green-900">ยืนยันคืนตู้สำเร็จ</div>
-                <div className="text-sm text-green-700">
-                  {formatDateTime(sopData.return_confirmed_at, language)}
                 </div>
               </div>
             </div>
