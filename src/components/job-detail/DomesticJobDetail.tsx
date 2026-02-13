@@ -692,7 +692,8 @@ export default function DomesticJobDetail({
                 </div>
               )}
 
-              {/* Step 1 Circle - Pickup Point */}
+              {/* Step 1 Circle - Pickup Point (hidden for BL inbound jobs) */}
+              {!job.bl_no && (
               <div className="relative flex justify-center mb-3" style={{
               height: `${cardHeights.card1 || 200}px`
             }}>
@@ -702,6 +703,7 @@ export default function DomesticJobDetail({
                     </div> : <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" />}
                 </div>
               </div>
+              )}
 
               {/* Delivery Point Circles */}
               {(destinations.length > 0 ? destinations : [{
