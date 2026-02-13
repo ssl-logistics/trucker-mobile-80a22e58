@@ -593,15 +593,19 @@ export default function InternationalJobDetail({
                   )}
 
                {/* Delivery/Return Point Card */}
-               <Card ref={card3Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.sop_completed_at || (isInbound && jobApplication?.container_sop_completed_at) ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                 <div className={`${isInbound ? (!jobApplication?.container_sop_completed_at ? 'opacity-60' : '') : (!jobApplication?.sop_completed_at ? 'opacity-60' : '')}`}>
+               {/* Delivery/Return Point Card */}
+               {(() => {
+                 const deliveryUnlocked = isInbound ? !!jobApplication?.container_sop_completed_at : !!jobApplication?.sop_completed_at;
+                 return (
+               <Card ref={card3Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : deliveryUnlocked ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                 <div className={`${!deliveryUnlocked ? 'opacity-60' : ''}`}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">
                         {isInbound ? t('jobDetail.emptyReturn') : t('jobDetail.fullReturn')}
                       </h3>
                     </div>
-                    {jobApplication?.sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                    {deliveryUnlocked && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
                       </span>}
                   </div>
@@ -641,21 +645,23 @@ export default function InternationalJobDetail({
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!jobApplication?.sop_completed_at}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!deliveryUnlocked}>
                       <Phone className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.call')}</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!jobApplication?.sop_completed_at}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!deliveryUnlocked}>
                       <img src={routeIcon} alt="route" className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
-                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!jobApplication?.sop_completed_at}>
+                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!deliveryUnlocked}>
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
                 </div>
               </Card>
+                 );
+               })()}
 
               {/* Container Return Location Card */}
               <Card className={`p-4 border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500 bg-green-50' : containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : containerReturnConfirmed === false && deliveryCheckedIn ? 'border-orange-200 bg-[#FFF8F0]' : 'border-gray-300 bg-gray-50'}`}>
