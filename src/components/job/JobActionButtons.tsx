@@ -10,9 +10,10 @@ interface JobActionButtonsProps {
   jobId?: string;
   orderNumber?: string;
   isPodCompleted?: boolean;
+  checkinType?: 'container_pickup' | 'container_return';
 }
 
-export default function JobActionButtons({ jobId, orderNumber, isPodCompleted }: JobActionButtonsProps) {
+export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType }: JobActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -25,24 +26,31 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted }:
     return null;
   }
 
+  // Hide expense buttons for container return in history view
+  const hideExpenseButtons = isFromHistory && checkinType === 'container_return';
+
   return (
     <>
-      <div className={`grid gap-3 ${isFromHistory ? 'grid-cols-2' : 'grid-cols-3'}`}>
-        <button 
-          className="flex flex-col items-center gap-1 text-primary"
-          onClick={() => navigate(`/job/${jobId}/expenses`)}
-        >
-          <img src={expenseViewIcon} alt="" className="w-8 h-8" />
-          <span className="text-xs font-medium">{t('jobActions.viewExpenses')}</span>
-        </button>
+      <div className={`grid gap-3 ${hideExpenseButtons ? 'hidden' : isFromHistory ? 'grid-cols-2' : 'grid-cols-3'}`}>
+        {!hideExpenseButtons && (
+          <>
+            <button 
+              className="flex flex-col items-center gap-1 text-primary"
+              onClick={() => navigate(`/job/${jobId}/expenses`)}
+            >
+              <img src={expenseViewIcon} alt="" className="w-8 h-8" />
+              <span className="text-xs font-medium">{t('jobActions.viewExpenses')}</span>
+            </button>
 
-        <button 
-          className="flex flex-col items-center gap-1 text-primary"
-          onClick={() => navigate(`/job/${jobId}/add-expense`, { state: { returnPath: location.pathname } })}
-        >
-          <img src={expenseAddIcon} alt="" className="w-8 h-8" />
-          <span className="text-xs font-medium">{t('jobActions.addExpense')}</span>
-        </button>
+            <button 
+              className="flex flex-col items-center gap-1 text-primary"
+              onClick={() => navigate(`/job/${jobId}/add-expense`, { state: { returnPath: location.pathname } })}
+            >
+              <img src={expenseAddIcon} alt="" className="w-8 h-8" />
+              <span className="text-xs font-medium">{t('jobActions.addExpense')}</span>
+            </button>
+          </>
+        )}
 
         {!isFromHistory && (
           <button 
