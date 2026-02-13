@@ -584,15 +584,45 @@ const AddExpensePage = () => {
                           <span className="text-green-900">฿{photo.ocrAmount?.toLocaleString()}</span>
                         </div>
                         
-                         {/* Line items from this receipt */}
+                         {/* Line items from this receipt - editable inline */}
                          {photo.ocrDetailed?.line_items && photo.ocrDetailed.line_items.length > 0 && (
                            <div className="space-y-1 pl-2">
                              {photo.ocrDetailed.line_items.map((item, itemIdx) => (
-                               <div key={itemIdx} className="flex justify-between items-center text-xs group">
-                                 <div className="flex-1 mr-2">
-                                   <span className="text-green-700 truncate">• {item.description}</span>
-                                 </div>
-                                 <span className="text-green-800 whitespace-nowrap mr-1">฿{item.amount.toLocaleString()}</span>
+                               <div key={itemIdx} className="flex items-center text-xs gap-1">
+                                 <span className="text-green-700">•</span>
+                                 <input
+                                   type="text"
+                                   value={item.description}
+                                   onChange={(e) => {
+                                     const updatedPhotos = expense.receiptPhotos.map((p) => {
+                                       if (p.id === photo.id && p.ocrDetailed?.line_items) {
+                                         const newItems = [...p.ocrDetailed.line_items];
+                                         newItems[itemIdx] = { ...item, description: e.target.value };
+                                         return { ...p, ocrDetailed: { ...p.ocrDetailed, line_items: newItems } };
+                                       }
+                                       return p;
+                                     });
+                                     handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
+                                   }}
+                                   className="flex-1 px-1 py-0.5 bg-transparent border-b border-transparent hover:border-green-300 focus:border-green-500 focus:outline-none text-xs text-green-700 min-w-0"
+                                 />
+                                 <span className="text-green-800">฿</span>
+                                 <input
+                                   type="number"
+                                   value={item.amount}
+                                   onChange={(e) => {
+                                     const updatedPhotos = expense.receiptPhotos.map((p) => {
+                                       if (p.id === photo.id && p.ocrDetailed?.line_items) {
+                                         const newItems = [...p.ocrDetailed.line_items];
+                                         newItems[itemIdx] = { ...item, amount: parseInt(e.target.value) || 0 };
+                                         return { ...p, ocrDetailed: { ...p.ocrDetailed, line_items: newItems } };
+                                       }
+                                       return p;
+                                     });
+                                     handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
+                                   }}
+                                   className="w-16 px-1 py-0.5 bg-transparent border-b border-transparent hover:border-green-300 focus:border-green-500 focus:outline-none text-xs text-green-800 text-right"
+                                 />
                                  <button
                                    type="button"
                                    onClick={() => {
@@ -611,103 +641,11 @@ const AddExpensePage = () => {
                                      });
                                      handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
                                    }}
-                                   className="opacity-0 group-hover:opacity-100 p-0.5 text-red-500 hover:text-red-700 transition-all"
+                                   className="p-0.5 text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
                                    title="ลบรายการนี้"
                                  >
-                                   <Trash2 className="w-3 h-3" />
+                                   <X className="w-3 h-3" />
                                  </button>
-                               </div>
-                             ))}
-                           </div>
-                         )}
-                        
-                         {/* Receipt info */}
-                         {(photo.ocrDetailed?.receipt_number || photo.ocrDetailed?.container_number) && (
-                           <div className="text-xs text-green-600 pt-1">
-                             {photo.ocrDetailed.receipt_number && <span>เลขที่: {photo.ocrDetailed.receipt_number} </span>}
-                             {photo.ocrDetailed.container_number && <span>ตู้: {photo.ocrDetailed.container_number}</span>}
-                           </div>
-                         )}
-                         
-                         {/* Add new line item button */}
-                         {photo.ocrDetailed && (
-                           <div className="pt-2 border-t border-green-200">
-                             <button
-                               type="button"
-                               onClick={() => {
-                                 const updatedPhotos = expense.receiptPhotos.map((p) => {
-                                   if (p.id === photo.id && p.ocrDetailed?.line_items) {
-                                     return {
-                                       ...p,
-                                       ocrDetailed: {
-                                         ...p.ocrDetailed,
-                                         line_items: [...p.ocrDetailed.line_items, { description: '', amount: 0 }]
-                                       }
-                                     };
-                                   }
-                                   return p;
-                                 });
-                                 handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
-                               }}
-                               className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1"
-                             >
-                               <Plus className="w-3 h-3" />
-                               เพิ่มรายการ
-                             </button>
-                           </div>
-                         )}
-                         
-                         {/* Edit line item inputs */}
-                         {photo.ocrDetailed?.line_items && photo.ocrDetailed.line_items.length > 0 && (
-                           <div className="mt-2 pt-2 border-t border-green-200 space-y-1.5">
-                             {photo.ocrDetailed.line_items.map((item, itemIdx) => (
-                               <div key={`edit-${itemIdx}`} className="flex gap-1 text-xs">
-                                 <input
-                                   type="text"
-                                   value={item.description}
-                                   onChange={(e) => {
-                                     const updatedPhotos = expense.receiptPhotos.map((p) => {
-                                       if (p.id === photo.id && p.ocrDetailed?.line_items) {
-                                         const newItems = [...p.ocrDetailed.line_items];
-                                         newItems[itemIdx] = { ...item, description: e.target.value };
-                                         return {
-                                           ...p,
-                                           ocrDetailed: {
-                                             ...p.ocrDetailed,
-                                             line_items: newItems
-                                           }
-                                         };
-                                       }
-                                       return p;
-                                     });
-                                     handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
-                                   }}
-                                   placeholder="รายการ"
-                                   className="flex-1 px-1.5 py-0.5 border border-green-300 rounded text-xs bg-white/50"
-                                 />
-                                 <input
-                                   type="number"
-                                   value={item.amount}
-                                   onChange={(e) => {
-                                     const updatedPhotos = expense.receiptPhotos.map((p) => {
-                                       if (p.id === photo.id && p.ocrDetailed?.line_items) {
-                                         const newItems = [...p.ocrDetailed.line_items];
-                                         newItems[itemIdx] = { ...item, amount: parseInt(e.target.value) || 0 };
-                                         return {
-                                           ...p,
-                                           ocrDetailed: {
-                                             ...p.ocrDetailed,
-                                             line_items: newItems
-                                           }
-                                         };
-                                       }
-                                       return p;
-                                     });
-                                     handleExpenseChange(expense.id, 'receiptPhotos', updatedPhotos);
-                                   }}
-                                   placeholder="0"
-                                   className="w-16 px-1.5 py-0.5 border border-green-300 rounded text-xs bg-white/50"
-                                 />
                                </div>
                              ))}
                            </div>
