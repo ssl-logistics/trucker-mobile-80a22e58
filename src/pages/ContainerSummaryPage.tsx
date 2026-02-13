@@ -295,6 +295,36 @@ export default function ContainerSummaryPage() {
           </Card>
         )}
 
+        {/* Container Return Confirmed */}
+        {sopData?.return_confirmed_at && (
+          <Card className="p-4 bg-green-50 border-green-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-green-900">ยืนยันคืนตู้สำเร็จ</div>
+                <div className="text-sm text-green-700">
+                  {formatDateTime(sopData.return_confirmed_at, language)}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Container Return Document Photo */}
+        {returnPhotoUrl && (
+          <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">เอกสารคืนตู้</div>
+            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+              <img 
+                src={returnPhotoUrl} 
+                alt="Container Return Document" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
