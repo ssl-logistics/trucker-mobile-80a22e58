@@ -698,11 +698,6 @@ export default function JobHistoryPage() {
                   if (internationalJobs.length === 0 && internationalApps.length === 0) return null;
                   return (
                     <div className="space-y-3 mt-4">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-block px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-sm font-semibold">
-                          {t('jobType.international')}
-                        </span>
-                      </div>
                       {internationalJobs.map(job => (
                         <HistoryJobCard 
                           key={`intl-${job.id}`}
