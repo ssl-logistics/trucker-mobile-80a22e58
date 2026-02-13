@@ -132,7 +132,7 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
          }`}>
           {isDomestic 
             ? `${t('jobType.domestic')}${isSingleTrip ? ` (${t('job.one_way')})` : ` (${t('job.multiple_destinations')})`}`
-            : `${translateJobType(job.job_type || '', language)} ${job.bl_no ? '(BL)' : job.booking_no ? '(Booking)' : ''}`
+            : `${translateJobType('ระหว่างประเทศ', language)} ${job.bl_no ? '(BL)' : job.booking_no ? '(Booking)' : ''}`
           }
         </span>
 
