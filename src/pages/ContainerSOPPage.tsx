@@ -65,7 +65,8 @@ const ContainerSOPPage = () => {
   } | null;
   const isContainerReturn = navState?.checkinType === 'container_return';
   const isEmptyContainer = navState?.checkinType === 'empty_container';
-  const needsOCR = isEmptyContainer; // OCR only for empty container pickup
+  const isLoadedContainer = navState?.checkinType === 'loaded_container';
+  const needsOCR = isEmptyContainer || isLoadedContainer; // OCR for both empty and loaded container pickup
   
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -499,9 +500,11 @@ const ContainerSOPPage = () => {
 
   const pageTitle = isContainerReturn 
     ? 'แนบเอกสารคืนตู้' 
-    : isEmptyContainer 
-      ? `แนบเอกสารรับตู้เปล่า ${jobDetail.container_checkpoint}`
-      : `${t('containerSop.title')} ${jobDetail.container_checkpoint}`;
+    : isLoadedContainer
+      ? `ยืนยันรับตู้หนัก ${jobDetail.container_checkpoint}`
+      : isEmptyContainer 
+        ? `แนบเอกสารรับตู้เปล่า ${jobDetail.container_checkpoint}`
+        : `${t('containerSop.title')} ${jobDetail.container_checkpoint}`;
 
   const confirmButtonText = isContainerReturn 
     ? 'ยืนยันคืนตู้' 
@@ -543,7 +546,7 @@ const ContainerSOPPage = () => {
 
         <div className="space-y-2">
           <Label className="text-base">
-            {isContainerReturn ? 'แนบเอกสารคืนตู้' : isEmptyContainer ? 'แนบเอกสารรับตู้เปล่า' : t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
+            {isContainerReturn ? 'แนบเอกสารคืนตู้' : isLoadedContainer ? 'แนบเอกสารรับตู้หนัก' : isEmptyContainer ? 'แนบเอกสารรับตู้เปล่า' : t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
           </Label>
           
           <button
