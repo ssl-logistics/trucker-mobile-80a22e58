@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { formatDateTime } from '@/lib/dateUtils';
+import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
+import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop } from '@/lib/externalApi';
 
 interface JobDetail {
   id: string;
@@ -18,84 +20,152 @@ interface JobDetail {
   start_time: string;
 }
 
-interface JobApplication {
-  container_checked_in_at: string | null;
-  container_sop_completed_at: string | null;
-}
-
-interface SOPPhoto {
-  photo_url: string;
-  created_at: string;
+interface SOPData {
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+  sop_photo_url: string | null;
 }
 
 export default function ContainerSummaryPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
-  const [application, setApplication] = useState<JobApplication | null>(null);
-  const [sopPhoto, setSOPPhoto] = useState<SOPPhoto | null>(null);
+  const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
+
+  const fromParam = new URLSearchParams(location.search).get('from');
+  const checkinType = (location.state as any)?.checkinType || 'container_pickup';
 
   useEffect(() => {
-    loadData();
+    if (user && jobId) {
+      loadData();
+    }
   }, [jobId, user]);
 
   const loadData = async () => {
     if (!user || !jobId) return;
 
     setLoading(true);
-    
-    // Load job details
-    const { data: jobData, error: jobError } = await supabase
-      .from('jobs')
-      .select('id, order_code, employer_name, container_checkpoint, start_date, start_time')
-      .eq('id', jobId)
-      .single();
 
-    if (jobError) {
+    try {
+      const driverId = user.id;
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+
+      // Try to get job from navigation state first
+      const stateJob = (location.state as any)?.job || (location.state as any)?.jobData;
+      let foundJob: any = null;
+
+      // Fetch job from external API - try multiple statuses
+      if (isInternalDriver || isExternalDriver) {
+        const [inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'in_progress'),
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'in_transit'),
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'delivered'),
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'completed'),
+        ]);
+        const allJobs = [
+          ...((inProgressRes.data as any)?.data || []),
+          ...((inTransitRes.data as any)?.data || []),
+          ...((deliveredRes.data as any)?.data || []),
+          ...((completedRes.data as any)?.data || []),
+        ];
+        foundJob = allJobs.find((j: any) => j.order_number === jobId);
+      } else {
+        const { data: jobResult, error: jobError } = await getFreelanceAcceptedJobs(driverId);
+        if (!jobError && jobResult) {
+          const jobData = (jobResult as any)?.data || jobResult || [];
+          foundJob = Array.isArray(jobData)
+            ? jobData.find((j: any) => j.order_number === jobId)
+            : null;
+        }
+      }
+
+      // Fallback to navigation state
+      if (!foundJob && stateJob) {
+        foundJob = stateJob;
+      }
+
+      if (foundJob) {
+        setJob({
+          id: foundJob.order_number || foundJob.order_code || foundJob.id,
+          order_code: foundJob.order_number || foundJob.order_code || jobId!,
+          employer_name: foundJob.sender_name || foundJob.factory_name || foundJob.employer_name || '',
+          container_checkpoint: foundJob.container_pickup_location || foundJob.container_checkpoint || foundJob.container_return_location || '',
+          start_date: foundJob.sender_pickup_date || foundJob.start_date || '',
+          start_time: foundJob.sender_pickup_time || foundJob.start_time || '',
+        });
+      }
+
+      // Fetch check-in data from external API
+      const { data: checkinResult, error: checkinError } = await getDriverCheckins(driverId, driverType, jobId);
+
+      let checkedInAt: string | null = null;
+      if (!checkinError) {
+        const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
+        const checkins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
+
+        // Find container check-in (container_pickup or container_return)
+        const containerCheckin = checkins.find((c: any) =>
+          c.checkin_type === 'container_pickup' || c.checkin_type === 'container_return'
+        );
+        if (containerCheckin) {
+          checkedInAt = containerCheckin.checkin_time || containerCheckin.checked_in_at || containerCheckin.created_at || null;
+        }
+      }
+
+      // Fetch SOP data from external API
+      const { data: sopResult, error: sopError } = await getDriverSop(driverId, driverType, jobId);
+
+      if (!sopError && sopResult) {
+        const sopDataArr = (sopResult as any)?.data || sopResult || [];
+        // Find container SOP (container_pickup or container_return type)
+        const containerSOP = Array.isArray(sopDataArr)
+          ? sopDataArr.find((s: any) =>
+              s.sop_type === 'container_pickup' || s.sop_type === 'container_return' ||
+              s.status === 'container_pickup' || s.status === 'container_return'
+            )
+          : null;
+
+        if (containerSOP) {
+          const productImages = containerSOP.product_images || [];
+          const photoUrl = productImages.length > 0 ? productImages[0] : null;
+
+          setSopData({
+            checked_in_at: checkedInAt || containerSOP.checked_in_at || null,
+            sop_completed_at: containerSOP.recorded_at || containerSOP.created_at || null,
+            sop_photo_url: photoUrl,
+          });
+        } else {
+          setSopData({
+            checked_in_at: checkedInAt,
+            sop_completed_at: null,
+            sop_photo_url: null,
+          });
+        }
+      } else {
+        setSopData({
+          checked_in_at: checkedInAt,
+          sop_completed_at: null,
+          sop_photo_url: null,
+        });
+      }
+
+    } catch (error) {
+      console.error('Error loading container summary:', error);
       toast({
         title: t('containerSummary.error'),
         description: t('containerSummary.loadError'),
         variant: 'destructive'
       });
-      navigate('/current-jobs');
-      return;
-    }
-    
-    setJob(jobData);
-
-    // Load job application
-    const { data: appData } = await supabase
-      .from('job_applications')
-      .select('container_checked_in_at, container_sop_completed_at')
-      .eq('job_id', jobId)
-      .eq('driver_id', user.id)
-      .single();
-
-    if (appData) {
-      setApplication(appData);
-    }
-
-    // Load SOP photo
-    const { data: photoData } = await supabase
-      .from('pickup_sop_photos')
-      .select('photo_url, created_at')
-      .eq('job_id', jobId)
-      .eq('driver_id', user.id)
-      .eq('photo_type', 'container')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (photoData) {
-      setSOPPhoto(photoData);
     }
 
     setLoading(false);
   };
-
 
   if (loading) {
     return (
@@ -106,17 +176,31 @@ export default function ContainerSummaryPage() {
     );
   }
 
-  if (!job) return null;
+  if (!job) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">{t('containerSummary.loadError') || 'ไม่พบข้อมูลงาน'}</p>
+          <button 
+            onClick={() => navigate(fromParam === 'history' ? '/history' : '/current-jobs')}
+            className="text-primary underline"
+          >
+            {t('common.back') || 'กลับ'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.order_code}`)} className="p-1">
+          <button onClick={() => navigate(`/job/${job.order_code}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: (location.state as any)?.jobData || job } })} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{job.container_checkpoint}</h1>
+          <h1 className="text-lg font-semibold">{job.container_checkpoint || t('containerSummary.checkInSuccess')}</h1>
           <div className="w-6" />
         </div>
       </header>
@@ -124,10 +208,10 @@ export default function ContainerSummaryPage() {
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
         {/* Action Buttons */}
-        <JobActionButtons jobId={jobId} orderNumber={jobId} />
+        <JobActionButtons jobId={jobId!} orderNumber={jobId!} />
 
         {/* Check-in Status */}
-        {application?.container_checked_in_at && (
+        {sopData?.checked_in_at && (
           <Card className="p-4 bg-green-50 border-green-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
@@ -136,7 +220,7 @@ export default function ContainerSummaryPage() {
               <div className="flex-1">
                 <div className="font-semibold text-green-900">{t('containerSummary.checkInSuccess')}</div>
                 <div className="text-sm text-green-700">
-                  {formatDateTime(application.container_checked_in_at, language)}
+                  {formatDateTime(sopData.checked_in_at, language)}
                 </div>
               </div>
             </div>
@@ -144,7 +228,7 @@ export default function ContainerSummaryPage() {
         )}
 
         {/* SOP Status */}
-        {application?.container_sop_completed_at && (
+        {sopData?.sop_completed_at && (
           <Card className="p-4 bg-green-50 border-green-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
@@ -153,7 +237,7 @@ export default function ContainerSummaryPage() {
               <div className="flex-1">
                 <div className="font-semibold text-green-900">{t('containerSummary.containerSuccess')}</div>
                 <div className="text-sm text-green-700">
-                  {formatDateTime(application.container_sop_completed_at, language)}
+                  {formatDateTime(sopData.sop_completed_at, language)}
                 </div>
               </div>
             </div>
@@ -161,12 +245,12 @@ export default function ContainerSummaryPage() {
         )}
 
         {/* SOP Photo */}
-        {sopPhoto && (
+        {sopPhotoUrl && (
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">{t('containerSummary.containerPhoto')}</div>
             <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
               <img 
-                src={sopPhoto.photo_url} 
+                src={sopPhotoUrl} 
                 alt="Container Photo" 
                 className="w-full h-full object-cover"
               />
