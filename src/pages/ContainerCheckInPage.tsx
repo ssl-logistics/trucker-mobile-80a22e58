@@ -17,7 +17,7 @@ import { sendJobStatus } from '@/lib/jobStatusService';
 import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
-import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
+import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans } from '@/lib/externalApi';
 
 interface JobDetail {
   id: string;
@@ -68,6 +68,7 @@ export default function ContainerCheckInPage() {
   const [container1Seal, setContainer1Seal] = useState('');
   const [container2Number, setContainer2Number] = useState('');
   const [container2Seal, setContainer2Seal] = useState('');
+  const [isOcrVerified, setIsOcrVerified] = useState(false);
   
   const isInbound = job?.transport_type?.includes('ขาเข้า');
   
@@ -83,6 +84,44 @@ export default function ContainerCheckInPage() {
       setContainer2Seal(job.seal_number_2 || '');
     }
   }, [job]);
+
+  // Fetch OCR container scan data with polling
+  useEffect(() => {
+    const containerNo = job?.container_number;
+    const orderCode = job?.order_code;
+    
+    if (!containerNo && !orderCode) return;
+
+    const fetchOcrScans = async () => {
+      try {
+        console.log('Fetching OCR scans for container:', containerNo, 'order:', orderCode);
+        const { data, error } = await getOcrContainerScans(containerNo || undefined, 10, orderCode || undefined);
+        
+        if (error) {
+          console.error('OCR scans fetch error:', error);
+          return;
+        }
+
+        const scans = (data as any)?.data || [];
+        if (scans.length > 0) {
+          const latestScan = scans[0];
+          setContainer1Number(latestScan.container_no || containerNo || '');
+          setContainer1Seal(latestScan.seal_no || job?.seal_number || '');
+          setIsOcrVerified(true);
+          console.log('OCR data loaded:', { container: latestScan.container_no, seal: latestScan.seal_no });
+        }
+      } catch (err) {
+        console.error('Error fetching OCR scans:', err);
+      }
+    };
+
+    fetchOcrScans(); // Initial fetch
+
+    if (!isOcrVerified) {
+      const interval = setInterval(fetchOcrScans, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [job?.container_number, job?.seal_number, job?.order_code, isOcrVerified]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
