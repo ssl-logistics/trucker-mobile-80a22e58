@@ -74,7 +74,7 @@ const ContainerSOPPage = () => {
   const isInboundFromJobData = !!jobDetail?.bl_no || jobDetail?.transport_type?.includes('ขาเข้า');
   const isLoadedContainer = checkinTypeFromState === 'loaded_container' || (!isContainerReturn && checkinTypeFromState !== 'empty_container' && isInboundFromJobData);
   const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
-  const needsOCR = isEmptyContainer || isLoadedContainer;
+  const needsOCR = isLoadedContainer; // Only inbound BL needs OCR, booking (outbound) does not
   const [loading, setLoading] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
