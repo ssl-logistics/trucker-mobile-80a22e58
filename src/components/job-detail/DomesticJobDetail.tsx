@@ -869,7 +869,7 @@ export default function DomesticJobDetail({
                             }}
                           >
                             <img src={statusIcon} alt="status" className="w-4 h-4" />
-                            <span className="text-xs">{emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                            <span className="text-[10px] leading-tight text-center">{emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                           </Button>
                         </div>
                       )}
@@ -996,13 +996,13 @@ export default function DomesticJobDetail({
                         } else {
                           navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job } });
                         }
-                      }} className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isPickupLocked || isLoadingCheckinStatus}>
+                      }} className="h-auto min-h-[40px] flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isPickupLocked || isLoadingCheckinStatus}>
                           {isLoadingCheckinStatus ? (
                             <Loader2 className="w-4 h-4 animate-spin text-white" />
                           ) : (
                             <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           )}
-                          <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-[10px] leading-tight text-center">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1138,7 +1138,7 @@ export default function DomesticJobDetail({
                           navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                         }} disabled={isDestinationLocked}>
                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                          <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-[10px] leading-tight text-center">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1243,7 +1243,7 @@ export default function DomesticJobDetail({
                         navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                       }} disabled={!isFallbackUnlocked}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                        <span className="text-[10px] leading-tight text-center">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                     </div>
                   </div>
@@ -1364,7 +1364,7 @@ export default function DomesticJobDetail({
                           }
                         }}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                        <span className="text-[10px] leading-tight text-center">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                   </div>
                 </div>
