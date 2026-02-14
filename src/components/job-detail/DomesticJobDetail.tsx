@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -770,50 +770,37 @@ export default function DomesticJobDetail({
             <div className="flex-1 space-y-3">
               {/* Empty Container Pickup Card - Only for international jobs */}
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
-                <Card ref={emptyContainerRef} className="p-4 border-2 rounded-2xl border-teal-500 bg-[#F6FFFE]">
-                  <div>
-                    <div className="mb-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm text-[#225795]">{job.bl_no ? t('jobDetail.loadedContainerPickup') : t('jobDetail.emptyContainerPickup')}</h3>
-                      </div>
-                      <div className="mt-1">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap inline-flex items-center gap-1 ${
-                        isOcrVerified 
-                          ? 'text-green-600 bg-green-50' 
-                          : emptyContainerCheckedIn 
-                            ? 'text-purple-600 bg-purple-50' 
-                            : 'text-orange-500 bg-[#FFF7E6]'
-                      }`}>
-                        {isOcrVerified && <CheckCircle className="w-3 h-3" />}
-                        {isOcrVerified 
-                          ? t('jobDetail.completed') 
-                          : emptyContainerCheckedIn 
-                            ? t('jobDetail.waitingOCR') 
-                            : t('jobDetail.waitingCheckIn')}
-                      </span>
-                      </div>
-                    </div>
-                    
-                    <div className="text-sm font-medium text-[#225795] mb-2">
-                      {job.container_checkpoint || '-'}
-                    </div>
+                <Card ref={emptyContainerRef} className={`overflow-hidden border-2 rounded-2xl ${isOcrVerified ? 'border-green-500' : emptyContainerCheckedIn ? 'border-purple-500' : 'border-teal-500'}`}>
+                  <div className={`px-4 py-2.5 flex items-center justify-between ${isOcrVerified ? 'bg-green-500' : emptyContainerCheckedIn ? 'bg-purple-500' : 'bg-teal-600'}`}>
+                    <h3 className="font-semibold text-sm text-white">{job.bl_no ? t('jobDetail.loadedContainerPickup') : t('jobDetail.emptyContainerPickup')}</h3>
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20 inline-flex items-center gap-1">
+                      {isOcrVerified && <CheckCircle className="w-3 h-3" />}
+                      {isOcrVerified 
+                        ? t('jobDetail.completed') 
+                        : emptyContainerCheckedIn 
+                          ? t('jobDetail.waitingOCR') 
+                          : t('jobDetail.waitingCheckIn')}
+                    </span>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_checkpoint || '-'}</p>
 
-                    <div className="space-y-1 text-sm mb-3">
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[130px]">{t('jobDetail.shipArrivalDateTime')}</span>
-                        <span className="text-[#454545]">: {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}</span>
+                    <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{t('jobDetail.shipArrivalDateTime')}: {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}</span>
                       </div>
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[130px]">{t('jobDetail.emptyContainerPickupDate')}</span>
-                        <span className="text-[#454545]">: {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}</span>
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{t('jobDetail.emptyContainerPickupDate')}: {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}</span>
                       </div>
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[130px]">{t('jobDetail.receiver')}</span>
-                        <span className="text-[#454545]">: {job.origin_company_name || '-'}</span>
+                      <div className="flex items-start gap-2">
+                        <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{t('jobDetail.receiver')}: {job.origin_company_name || '-'}</span>
                       </div>
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[130px]">{t('jobDetail.containerTypeQty')}</span>
-                        <span className="text-[#454545]">: {job.equipment_list || '-'}</span>
+                      <div className="flex items-start gap-2">
+                        <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{t('jobDetail.containerTypeQty')}: {job.equipment_list || '-'}</span>
                       </div>
                     </div>
 
@@ -855,25 +842,23 @@ export default function DomesticJobDetail({
                           <span className="text-sm font-medium text-green-700">{t('jobDetail.ocrCompleted') || 'สแกน OCR เสร็จสิ้น'}</span>
                         </div>
                       ) : (
-                        <div>
-                          <Button 
-                            size="sm" 
-                            className="w-full h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
-                            onClick={() => {
-                              const fromParam = new URLSearchParams(location.search).get('from');
-                               const queryString = fromParam ? `?from=${fromParam}` : '';
-                               if (emptyContainerCheckedIn) {
-                                 const isInboundJob = !!job.bl_no || job.transport_type?.includes('ขาเข้า');
-                                 navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: isInboundJob ? 'loaded_container' : 'empty_container' } });
-                              } else {
-                                navigate(`/job/${job.order_code}/container-checkin${queryString}`);
-                              }
-                            }}
-                          >
-                            <img src={statusIcon} alt="status" className="w-4 h-4" />
-                            <span className="text-[10px] leading-tight text-center">{emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
-                          </Button>
-                        </div>
+                        <Button 
+                          size="sm" 
+                          className="w-full h-9 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+                          onClick={() => {
+                            const fromParam = new URLSearchParams(location.search).get('from');
+                             const queryString = fromParam ? `?from=${fromParam}` : '';
+                             if (emptyContainerCheckedIn) {
+                               const isInboundJob = !!job.bl_no || job.transport_type?.includes('ขาเข้า');
+                               navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: isInboundJob ? 'loaded_container' : 'empty_container' } });
+                            } else {
+                              navigate(`/job/${job.order_code}/container-checkin${queryString}`);
+                            }
+                          }}
+                        >
+                          <img src={statusIcon} alt="status" className="w-3.5 h-3.5" />
+                          <span className="text-[11px]">{emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -889,54 +874,53 @@ export default function DomesticJobDetail({
                 const isPickupLocked = isInternationalJob && (!emptyContainerCheckedIn || (emptyContainerCheckedIn && !isOcrVerified));
                 
                 return (
-                  <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : isPickupLocked ? 'border-gray-300 bg-gray-50' : 'border-teal-500 bg-[#F6FFFE]'}`}>
-                    <div className={isPickupLocked ? 'opacity-60' : ''}>
-                      <div className="mb-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.pickupPoint')}</h3>
-                          {job.origin_company_name && <span className="text-sm font-medium text-[#225795]">: {job.origin_company_name}</span>}
+                  <Card ref={card1Ref} className={`overflow-hidden border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500' : pickupCheckedIn ? 'border-teal-500' : isPickupLocked ? 'border-gray-300' : 'border-teal-500'}`}>
+                    <div className={`px-4 py-2.5 flex items-center justify-between ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'bg-green-500' : pickupCheckedIn ? 'bg-teal-600' : isPickupLocked ? 'bg-gray-400' : 'bg-teal-600'}`}>
+                      <h3 className="font-semibold text-sm text-white">{t('jobDetail.pickupPoint')}</h3>
+                      {isLoadingCheckinStatus ? (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
+                          <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
+                          {t('common.checking')}
+                        </span>
+                      ) : isPickupLocked ? (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
+                          {t('jobDetail.waitingPreviousStep')}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
+                          {(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`p-4 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                      {job.origin_company_name && (
+                        <p className="font-semibold text-sm text-[#225795] mb-2">{job.origin_company_name}</p>
+                      )}
+
+                      <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{job.origin_location || '-'}</span>
                         </div>
-                        <div className="mt-1">
-                        {isLoadingCheckinStatus ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                            <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
-                            {t('common.checking')}
-                          </span>
-                        ) : isPickupLocked ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                            {t('jobDetail.waitingPreviousStep')}
-                          </span>
-                        ) : (
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'text-green-600 bg-[#E6F7E6]' : pickupCheckedIn ? 'text-orange-500 bg-[#FFF7E6]' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                            {(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
-                          </span>
+                        <div className="flex items-start gap-2">
+                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{job.origin_contact_person || '-'}</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
+                        </div>
+                        {job.origin_remarks && job.origin_remarks !== '-' && (
+                          <div className="flex items-start gap-2">
+                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span>{job.origin_remarks}</span>
+                          </div>
                         )}
-                        </div>
                       </div>
-
-                      <div className="space-y-1 text-sm mb-3">
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                          <span className="text-[#454545]">: {job.origin_contact_person || '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position')}</span>
-                          <span className="text-[#454545]">: {job.origin_location || '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                          <span className="text-[#454545]">: {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.pickupTime')}</span>
-                          <span className="text-[#454545]">: {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
-                          <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
-                        </div>
-                      </div>
-
 
                       <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
                         {new URLSearchParams(location.search).get('from') !== 'history' && (
@@ -944,7 +928,7 @@ export default function DomesticJobDetail({
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]"
+                              className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
                               disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
                               onClick={() => {
                                 const phone = job.origin_contact_phone;
@@ -959,13 +943,13 @@ export default function DomesticJobDetail({
                                 }
                               }}
                             >
-                              <Phone className="w-4 h-4" />
-                              <span className="text-xs">{t('jobDetail.call')}</span>
+                              <Phone className="w-3.5 h-3.5" />
+                              <span className="text-[11px]">{t('jobDetail.call')}</span>
                             </Button>
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]"
+                              className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
                               disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
                               onClick={() => {
                                 const lat = job.origin_latitude;
@@ -985,8 +969,8 @@ export default function DomesticJobDetail({
                                 }
                               }}
                             >
-                              <img src={routeIcon} alt="route" className="w-4 h-4" />
-                              <span className="text-xs">{t('jobDetail.route')}</span>
+                              <Navigation className="w-3.5 h-3.5" />
+                              <span className="text-[11px]">{t('jobDetail.route')}</span>
                             </Button>
                           </>
                         )}
@@ -1000,13 +984,13 @@ export default function DomesticJobDetail({
                         } else {
                           navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job } });
                         }
-                      }} className="h-auto min-h-[40px] flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" disabled={isPickupLocked || isLoadingCheckinStatus}>
+                      }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
                           {isLoadingCheckinStatus ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                           ) : (
-                            <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                            <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
                           )}
-                          <span className="text-[10px] leading-tight text-center">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-[11px]">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1056,53 +1040,53 @@ export default function DomesticJobDetail({
                 const statusInfo = getStatusInfo();
                 
                 return (
-                  <Card key={dest.id} ref={(el) => { if (el) deliveryCardRefs.current.set(dest.id, el); else deliveryCardRefs.current.delete(dest.id); }} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isPreviousCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                    <div className={`${isDestinationLocked ? 'opacity-60' : ''}`}>
-                      <div className="mb-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
-                          {dest.company_name && <span className="text-sm font-medium text-[#225795]">: {dest.company_name}</span>}
-                        </div>
-                        <div className="mt-1">
-                        {isDestinationLocked ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                            {t('jobDetail.waitingPreviousStep')}
-                          </span>
-                        ) : (
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${statusInfo.textColor} ${statusInfo.bgColor}`}>
-                            {statusInfo.text}
-                          </span>
-                        )}
-                        </div>
-                      </div>
+                  <Card key={dest.id} ref={(el) => { if (el) deliveryCardRefs.current.set(dest.id, el); else deliveryCardRefs.current.delete(dest.id); }} className={`overflow-hidden border-2 rounded-2xl ${isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
+                    <div className={`px-4 py-2.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
+                      <h3 className="font-semibold text-sm text-white">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
+                      {isDestinationLocked ? (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
+                          {t('jobDetail.waitingPreviousStep')}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
+                          {statusInfo.text}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`p-4 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                      {dest.company_name && (
+                        <p className="font-semibold text-sm text-[#225795] mb-2">{dest.company_name}</p>
+                      )}
 
-                      <div className="space-y-1 text-sm mb-3">
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                          <span className="text-[#454545]">: {dest.contact_name || '-'}</span>
+                      <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position')}</span>
-                          <span className="text-[#454545]">: {dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{dest.contact_name || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
-                          <span className="text-[#454545]">: {dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                          <span className="text-[#454545]">: {job.origin_goods_type || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{job.origin_goods_type || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
-                          <span className="text-[#454545]">: {dest.notes || '-'}</span>
-                        </div>
+                        {dest.notes && dest.notes !== '-' && (
+                          <div className="flex items-start gap-2">
+                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span>{dest.notes}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                         {!isFromHistory && (
                           <>
-                            <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={isDestinationLocked || isPodCompleted}
+                            <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={isDestinationLocked || isPodCompleted}
                               onClick={() => {
                                 const phone = dest.contact_phone;
                                 if (phone) {
@@ -1115,10 +1099,10 @@ export default function DomesticJobDetail({
                                   });
                                 }
                               }}>
-                              <Phone className="w-4 h-4" />
-                              <span className="text-xs">{t('jobDetail.call')}</span>
+                              <Phone className="w-3.5 h-3.5" />
+                              <span className="text-[11px]">{t('jobDetail.call')}</span>
                             </Button>
-                            <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={isDestinationLocked || isPodCompleted}
+                            <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={isDestinationLocked || isPodCompleted}
                               onClick={() => {
                                 if (dest.address) {
                                   const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest.address)}`;
@@ -1134,17 +1118,17 @@ export default function DomesticJobDetail({
                                   });
                                 }
                               }}>
-                              <img src={routeIcon} alt="route" className="w-4 h-4" />
-                              <span className="text-xs">{t('jobDetail.route')}</span>
+                              <Navigation className="w-3.5 h-3.5" />
+                              <span className="text-[11px]">{t('jobDetail.route')}</span>
                             </Button>
                           </>
                         )}
-                        <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => {
+                        <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
                           const fromParam = new URLSearchParams(location.search).get('from');
                           navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                         }} disabled={isDestinationLocked}>
-                          <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                          <span className="text-[10px] leading-tight text-center">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
+                          <span className="text-[11px]">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1161,53 +1145,53 @@ export default function DomesticJobDetail({
                 : (pickupSopCompleted || !!jobApplication?.sop_completed_at);
               
               return (
-                <Card ref={(el) => { if (el) deliveryCardRefs.current.set('fallback', el); else deliveryCardRefs.current.delete('fallback'); }} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isFallbackUnlocked ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                  <div className={`${!isFallbackUnlocked ? 'opacity-60' : ''}`}>
-                      <div className="mb-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
-                          {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
-                        </div>
-                        <div className="mt-1">
-                        {!isFallbackUnlocked ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                            {t('jobDetail.waitingPreviousStep')}
-                          </span>
-                        ) : (
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                            {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
-                          </span>
-                        )}
-                        </div>
-                      </div>
+                <Card ref={(el) => { if (el) deliveryCardRefs.current.set('fallback', el); else deliveryCardRefs.current.delete('fallback'); }} className={`overflow-hidden border-2 rounded-2xl ${isPodCompleted ? 'border-green-500' : isFallbackUnlocked ? 'border-teal-500' : 'border-gray-300'}`}>
+                  <div className={`px-4 py-2.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isFallbackUnlocked ? 'bg-teal-600' : 'bg-gray-400'}`}>
+                    <h3 className="font-semibold text-sm text-white">{t('jobDetail.deliveryPoint')}</h3>
+                    {!isFallbackUnlocked ? (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
+                        {t('jobDetail.waitingPreviousStep')}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
+                        {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`p-4 ${!isFallbackUnlocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                    {job.destination_company_name && (
+                      <p className="font-semibold text-sm text-[#225795] mb-2">{job.destination_company_name}</p>
+                    )}
 
-                    <div className="space-y-1 text-sm mb-3">
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                        <span className="text-[#454545]">: {job.destination_contact_person || '-'}</span>
+                    <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{job.destination_location || '-'}</span>
                       </div>
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.position')}</span>
-                        <span className="text-[#454545]">: {job.destination_location || '-'}</span>
+                      <div className="flex items-start gap-2">
+                        <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{job.destination_contact_person || '-'}</span>
                       </div>
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                        <span className="text-[#454545]">: {job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
+                      <div className="flex items-start gap-2">
+                        <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
                       </div>
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.deliveryTime')}</span>
-                        <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                       </div>
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
-                        <span className="text-[#454545]">: {job.destination_remarks || '-'}</span>
-                      </div>
+                      {job.destination_remarks && job.destination_remarks !== '-' && (
+                        <div className="flex items-start gap-2">
+                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{job.destination_remarks}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                       {!isFromHistory && (
                         <>
-                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!isFallbackUnlocked || isPodCompleted}
+                          <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={!isFallbackUnlocked || isPodCompleted}
                             onClick={() => {
                               const phone = job.destination_contact_phone;
                               if (phone) {
@@ -1220,10 +1204,10 @@ export default function DomesticJobDetail({
                                 });
                               }
                             }}>
-                            <Phone className="w-4 h-4" />
-                            <span className="text-xs">{t('jobDetail.call')}</span>
+                            <Phone className="w-3.5 h-3.5" />
+                            <span className="text-[11px]">{t('jobDetail.call')}</span>
                           </Button>
-                          <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!isFallbackUnlocked || isPodCompleted}
+                          <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={!isFallbackUnlocked || isPodCompleted}
                             onClick={() => {
                               const lat = job.destination_latitude;
                               const lng = job.destination_longitude;
@@ -1241,17 +1225,17 @@ export default function DomesticJobDetail({
                                 });
                               }
                             }}>
-                            <img src={routeIcon} alt="route" className="w-4 h-4" />
-                            <span className="text-xs">{t('jobDetail.route')}</span>
+                            <Navigation className="w-3.5 h-3.5" />
+                            <span className="text-[11px]">{t('jobDetail.route')}</span>
                           </Button>
                         </>
                       )}
-                      <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" onClick={() => {
+                      <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
                         navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                       }} disabled={!isFallbackUnlocked}>
-                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-[10px] leading-tight text-center">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                        <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
+                        <span className="text-[11px]">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                     </div>
                   </div>
@@ -1271,51 +1255,35 @@ export default function DomesticJobDetail({
                   : deliverySopCompleted; // fallback for single destination
 
                 return (
-              <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500 bg-green-50' : containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : allDeliveriesCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                <div className={!allDeliveriesCompleted ? 'opacity-60' : ''}>
-                    <div className="mb-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm text-[#225795]">จุดคืนตู้คอนเทนเนอร์</h3>
-                        {job.container_return_location && <span className="text-sm font-medium text-[#225795]">: {job.container_return_location}</span>}
-                      </div>
-                      <div className="mt-1">
-                      {!allDeliveriesCompleted ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                          {t('jobDetail.waitingPreviousStep')}
-                        </span>
-                      ) : containerReturnConfirmed ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-green-600 bg-[#E6F7E6]">
-                          คืนตู้สำเร็จ
-                        </span>
-                      ) : containerReturnCheckedIn ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-blue-600 bg-blue-100">
-                          รอแนบเอกสาร
-                        </span>
-                      ) : (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
-                          {t('jobDetail.waitingCheckIn')}
-                        </span>
-                      )}
-                      </div>
-                    </div>
+              <Card ref={containerReturnRef} className={`overflow-hidden border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500' : containerReturnCheckedIn ? 'border-blue-500' : allDeliveriesCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
+                <div className={`px-4 py-2.5 flex items-center justify-between ${containerReturnConfirmed ? 'bg-green-500' : containerReturnCheckedIn ? 'bg-blue-500' : allDeliveriesCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
+                  <h3 className="font-semibold text-sm text-white">จุดคืนตู้คอนเทนเนอร์</h3>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
+                    {!allDeliveriesCompleted ? t('jobDetail.waitingPreviousStep') : containerReturnConfirmed ? 'คืนตู้สำเร็จ' : containerReturnCheckedIn ? 'รอแนบเอกสาร' : t('jobDetail.waitingCheckIn')}
+                  </span>
+                </div>
+                <div className={`p-4 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                  {job.container_return_location && (
+                    <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_return_location}</p>
+                  )}
 
-                  <div className="space-y-1 text-sm mb-3">
+                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                     {job.container_return_address && (
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">ที่อยู่</span>
-                        <span className="text-[#454545]">: {job.container_return_address}</span>
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{job.container_return_address}</span>
                       </div>
                     )}
                     {job.container_return_date && (
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">วันที่คืนตู้</span>
-                        <span className="text-[#454545]">: {formatDate(job.container_return_date, language)}</span>
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>วันที่คืนตู้: {formatDate(job.container_return_date, language)}</span>
                       </div>
                     )}
                     {job.container_return_phone && (
-                      <div className="flex">
-                        <span className="text-[#454545] min-w-[100px]">เบอร์โทร</span>
-                        <span className="text-[#454545]">: {job.container_return_phone}</span>
+                      <div className="flex items-start gap-2">
+                        <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span>{job.container_return_phone}</span>
                       </div>
                     )}
                   </div>
@@ -1323,7 +1291,7 @@ export default function DomesticJobDetail({
                   <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                     {!isFromHistory && (
                       <>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!allDeliveriesCompleted || containerReturnConfirmed}
+                        <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={!allDeliveriesCompleted || containerReturnConfirmed}
                           onClick={() => {
                             if (job.container_return_phone) {
                               window.location.href = `tel:${job.container_return_phone}`;
@@ -1335,10 +1303,10 @@ export default function DomesticJobDetail({
                               });
                             }
                           }}>
-                          <Phone className="w-4 h-4" />
-                          <span className="text-xs">{t('jobDetail.call')}</span>
+                          <Phone className="w-3.5 h-3.5" />
+                          <span className="text-[11px]">{t('jobDetail.call')}</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!allDeliveriesCompleted || containerReturnConfirmed}
+                        <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={!allDeliveriesCompleted || containerReturnConfirmed}
                           onClick={() => {
                             if (job.container_return_latitude && job.container_return_longitude) {
                               const url = `https://www.google.com/maps/dir/?api=1&destination=${job.container_return_latitude},${job.container_return_longitude}`;
@@ -1354,27 +1322,24 @@ export default function DomesticJobDetail({
                               });
                             }
                           }}>
-                          <img src={routeIcon} alt="route" className="w-4 h-4" />
-                          <span className="text-xs">{t('jobDetail.route')}</span>
+                          <Navigation className="w-3.5 h-3.5" />
+                          <span className="text-[11px]">{t('jobDetail.route')}</span>
                         </Button>
                       </>
                     )}
-                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-transparent bg-[#225896]" disabled={!allDeliveriesCompleted}
+                    <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" disabled={!allDeliveriesCompleted}
                         onClick={() => {
                           const fromParam = new URLSearchParams(location.search).get('from');
                           if (containerReturnConfirmed) {
-                            // Already confirmed, go to summary page to view info
                             navigate(`/job/${job.order_code}/container-summary${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
                           } else if (containerReturnCheckedIn) {
-                            // After check-in, go to Container SOP for document attachment & confirmation
                             navigate(`/job/${job.order_code}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
                           } else {
-                            // Not yet checked in, go to check-in page
                             navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
                           }
                         }}>
-                        <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-[10px] leading-tight text-center">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                        <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
+                        <span className="text-[11px]">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                   </div>
                 </div>
