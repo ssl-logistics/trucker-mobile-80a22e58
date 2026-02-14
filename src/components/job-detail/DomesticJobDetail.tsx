@@ -661,11 +661,21 @@ export default function DomesticJobDetail({
             width: '28px',
             paddingTop: '8px'
           }}>
-              {/* Continuous Vertical Line */}
-              <div className="absolute left-1/2 -translate-x-1/2 w-0.5 bg-gray-300" style={{
-              top: '8px',
-              height: `calc(100% - 16px)`
-            }} />
+              {/* Continuous Vertical Line - only when multiple steps */}
+              {(() => {
+                const isInternational = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
+                const hasEmptyContainer = isInternational;
+                const hasPickup = !job.bl_no;
+                const deliveryCount = destinations.length > 0 ? destinations.length : 1;
+                const hasContainerReturn = isInternational && (job.container_return_location || job.container_return_latitude);
+                const totalSteps = (hasEmptyContainer ? 1 : 0) + (hasPickup ? 1 : 0) + deliveryCount + (hasContainerReturn ? 1 : 0);
+                return totalSteps > 1 ? (
+                  <div className="absolute left-1/2 -translate-x-1/2 w-0.5 bg-gray-300" style={{
+                    top: '8px',
+                    height: `calc(100% - 16px)`
+                  }} />
+                ) : null;
+              })()}
               
               {/* Empty Container Circle - Only for international jobs */}
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
