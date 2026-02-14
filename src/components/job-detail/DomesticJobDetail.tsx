@@ -576,7 +576,7 @@ export default function DomesticJobDetail({
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
 
-  return <div className="min-h-screen bg-background pb-20">
+  return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
       <header className="bg-[#1a3a5c] text-white px-4 py-3 sticky top-0 z-50">
         <div className="flex items-center gap-3">
