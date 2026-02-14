@@ -518,7 +518,7 @@ export default function InternationalJobDetail({
                     }
                   }}>
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      <span className="text-xs">{jobApplication?.container_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                      <span className="text-xs">{jobApplication?.container_sop_completed_at ? t('jobDetail.viewInfo') : emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
                 </div>
@@ -587,7 +587,7 @@ export default function InternationalJobDetail({
                     }
                   }} disabled={!jobApplication?.container_sop_completed_at}>
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                      <span className="text-xs">{jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : jobApplication?.checked_in_at ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                     </Button>
                    </div>
                  </div>
@@ -657,7 +657,7 @@ export default function InternationalJobDetail({
                     </Button>
                     <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!deliveryUnlocked}>
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                      <span className="text-xs">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                     </Button>
                   </div>
                 </div>
@@ -702,7 +702,7 @@ export default function InternationalJobDetail({
                       disabled={!deliveryCheckedIn || containerReturnConfirmed}
                     >
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') || 'ดูข้อมูล' : containerReturnCheckedIn ? t('jobDetail.waitingPod') || 'รอยืนยัน' : t('jobDetail.updateStatus') || 'เช็คอิน'}</span>
+                      <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                     </Button>
                     <Button 
                       variant="outline"

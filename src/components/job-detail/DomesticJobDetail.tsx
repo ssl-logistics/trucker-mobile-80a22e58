@@ -869,7 +869,7 @@ export default function DomesticJobDetail({
                             }}
                           >
                             <img src={statusIcon} alt="status" className="w-4 h-4" />
-                            <span className="text-xs">{t('jobDetail.updateStatus')}</span>
+                            <span className="text-xs">{emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                           </Button>
                         </div>
                       )}
@@ -1002,7 +1002,7 @@ export default function DomesticJobDetail({
                           ) : (
                             <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                           )}
-                          <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1138,7 +1138,7 @@ export default function DomesticJobDetail({
                           navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                         }} disabled={isDestinationLocked}>
                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                          <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1243,7 +1243,7 @@ export default function DomesticJobDetail({
                         navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                       }} disabled={!isFallbackUnlocked}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : t('jobDetail.updateStatus')}</span>
+                        <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                     </div>
                   </div>
@@ -1364,7 +1364,7 @@ export default function DomesticJobDetail({
                           }
                         }}>
                         <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                        <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? 'แนบเอกสาร' : t('jobDetail.updateStatus')}</span>
+                        <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                   </div>
                 </div>
