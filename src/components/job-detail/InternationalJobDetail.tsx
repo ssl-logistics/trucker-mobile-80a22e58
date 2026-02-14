@@ -422,13 +422,13 @@ export default function InternationalJobDetail({
               {/* Container Checkpoint Card */}
               <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.container_sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.job_started_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!jobApplication?.job_started_at ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.containerCheckpoint')}</h3>
                     </div>
-                    {jobApplication?.job_started_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                    {jobApplication?.job_started_at && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.container_sop_completed_at ? 'text-green-600 bg-green-50' : emptyContainerCheckedIn ? 'text-purple-600 bg-purple-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {jobApplication?.container_sop_completed_at ? t('jobDetail.containerSuccess') : emptyContainerCheckedIn ? t('jobDetail.waitingOCR') : t('jobDetail.waitingCheckIn')}
-                      </span>}
+                      </span></div>}
                   </div>
 
                   <h4 className="font-semibold text-base text-[#225795] mb-2">
@@ -528,15 +528,15 @@ export default function InternationalJobDetail({
                   {!isInbound && (
                   <Card ref={card2Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.sop_completed_at ? 'border-green-500 bg-green-50' : jobApplication?.container_sop_completed_at ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                  <div className={`${!jobApplication?.container_sop_completed_at ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">
                         {isInbound ? t('jobDetail.unloadingPoint') : t('jobDetail.loadingPoint')}
                       </h3>
                     </div>
-                    {jobApplication?.container_sop_completed_at && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                    {jobApplication?.container_sop_completed_at && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : jobApplication?.checked_in_at ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
-                      </span>}
+                      </span></div>}
                   </div>
 
                   <h4 className="font-semibold text-base text-[#225795] mb-2">
@@ -601,15 +601,15 @@ export default function InternationalJobDetail({
                  return (
                <Card ref={card3Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : deliveryUnlocked ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                  <div className={`${!deliveryUnlocked ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">
                         {isInbound ? t('jobDetail.emptyReturn') : t('jobDetail.fullReturn')}
                       </h3>
                     </div>
-                    {deliveryUnlocked && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                    {deliveryUnlocked && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
-                      </span>}
+                      </span></div>}
                   </div>
 
                   <h4 className="font-semibold text-base text-[#225795] mb-2">
@@ -668,15 +668,15 @@ export default function InternationalJobDetail({
               {/* Container Return Location Card */}
               <Card className={`p-4 border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500 bg-green-50' : containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : containerReturnConfirmed === false && deliveryCheckedIn ? 'border-orange-200 bg-[#FFF8F0]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={`${!deliveryCheckedIn ? 'opacity-60' : ''}`}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">
                         {t('jobDetail.containerReturn') || 'จุดคืนตู้คอนเทนเนอร์'}
                       </h3>
                     </div>
-                    {deliveryCheckedIn && <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${containerReturnConfirmed ? 'text-green-600 bg-green-50' : containerReturnCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                    {deliveryCheckedIn && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${containerReturnConfirmed ? 'text-green-600 bg-green-50' : containerReturnCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {containerReturnConfirmed ? t('jobDetail.podSuccess') || 'คืนเสร็จสิ้น' : containerReturnCheckedIn ? t('jobDetail.waitingPod') || 'รอยืนยันการคืน' : t('jobDetail.waitingCheckIn') || 'รอเช็คอิน'}
-                      </span>}
+                      </span></div>}
                   </div>
 
                   <h4 className="font-semibold text-base text-[#225795] mb-2">

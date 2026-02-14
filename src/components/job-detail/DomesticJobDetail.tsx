@@ -772,11 +772,12 @@ export default function DomesticJobDetail({
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
                 <Card ref={emptyContainerRef} className="p-4 border-2 rounded-2xl border-teal-500 bg-[#F6FFFE]">
                   <div>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="mb-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-[#225795]">{job.bl_no ? t('jobDetail.loadedContainerPickup') : t('jobDetail.emptyContainerPickup')}</h3>
                       </div>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1 ${
+                      <div className="mt-1">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap inline-flex items-center gap-1 ${
                         isOcrVerified 
                           ? 'text-green-600 bg-green-50' 
                           : emptyContainerCheckedIn 
@@ -790,6 +791,7 @@ export default function DomesticJobDetail({
                             ? t('jobDetail.waitingOCR') 
                             : t('jobDetail.waitingCheckIn')}
                       </span>
+                      </div>
                     </div>
                     
                     <div className="text-sm font-medium text-[#225795] mb-2">
@@ -889,11 +891,12 @@ export default function DomesticJobDetail({
                 return (
                   <Card ref={card1Ref} className={`p-4 border-2 rounded-2xl ${(pickupSopCompleted || jobApplication?.sop_completed_at) ? 'border-green-500 bg-green-50' : pickupCheckedIn ? 'border-teal-500 bg-[#F6FFFE]' : isPickupLocked ? 'border-gray-300 bg-gray-50' : 'border-teal-500 bg-[#F6FFFE]'}`}>
                     <div className={isPickupLocked ? 'opacity-60' : ''}>
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="mb-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.pickupPoint')}</h3>
                           {job.origin_company_name && <span className="text-sm font-medium text-[#225795]">: {job.origin_company_name}</span>}
                         </div>
+                        <div className="mt-1">
                         {isLoadingCheckinStatus ? (
                           <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
                             <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
@@ -908,6 +911,7 @@ export default function DomesticJobDetail({
                             {(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                           </span>
                         )}
+                        </div>
                       </div>
 
                       <div className="space-y-1 text-sm mb-3">
@@ -1054,11 +1058,12 @@ export default function DomesticJobDetail({
                 return (
                   <Card key={dest.id} ref={(el) => { if (el) deliveryCardRefs.current.set(dest.id, el); else deliveryCardRefs.current.delete(dest.id); }} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isPreviousCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                     <div className={`${isDestinationLocked ? 'opacity-60' : ''}`}>
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="mb-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
                           {dest.company_name && <span className="text-sm font-medium text-[#225795]">: {dest.company_name}</span>}
                         </div>
+                        <div className="mt-1">
                         {isDestinationLocked ? (
                           <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
                             {t('jobDetail.waitingPreviousStep')}
@@ -1068,6 +1073,7 @@ export default function DomesticJobDetail({
                             {statusInfo.text}
                           </span>
                         )}
+                        </div>
                       </div>
 
                       <div className="space-y-1 text-sm mb-3">
@@ -1157,21 +1163,23 @@ export default function DomesticJobDetail({
               return (
                 <Card ref={(el) => { if (el) deliveryCardRefs.current.set('fallback', el); else deliveryCardRefs.current.delete('fallback'); }} className={`p-4 border-2 rounded-2xl ${isPodCompleted ? 'border-green-500 bg-green-50' : isFallbackUnlocked ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                   <div className={`${!isFallbackUnlocked ? 'opacity-60' : ''}`}>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
-                        {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
+                      <div className="mb-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-sm text-[#225795]">{t('jobDetail.deliveryPoint')}</h3>
+                          {job.destination_company_name && <span className="text-sm font-medium text-[#225795]">: {job.destination_company_name}</span>}
+                        </div>
+                        <div className="mt-1">
+                        {!isFallbackUnlocked ? (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
+                            {t('jobDetail.waitingPreviousStep')}
+                          </span>
+                        ) : (
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                            {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
+                          </span>
+                        )}
+                        </div>
                       </div>
-                      {!isFallbackUnlocked ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                          {t('jobDetail.waitingPreviousStep')}
-                        </span>
-                      ) : (
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${isPodCompleted ? 'text-green-600 bg-[#E6F7E6]' : deliveryCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                          {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
-                        </span>
-                      )}
-                    </div>
 
                     <div className="space-y-1 text-sm mb-3">
                       <div className="flex">
@@ -1265,29 +1273,31 @@ export default function DomesticJobDetail({
                 return (
               <Card ref={containerReturnRef} className={`p-4 border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500 bg-green-50' : containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : allDeliveriesCompleted ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
                 <div className={!allDeliveriesCompleted ? 'opacity-60' : ''}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm text-[#225795]">จุดคืนตู้คอนเทนเนอร์</h3>
-                      {job.container_return_location && <span className="text-sm font-medium text-[#225795]">: {job.container_return_location}</span>}
+                    <div className="mb-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-sm text-[#225795]">จุดคืนตู้คอนเทนเนอร์</h3>
+                        {job.container_return_location && <span className="text-sm font-medium text-[#225795]">: {job.container_return_location}</span>}
+                      </div>
+                      <div className="mt-1">
+                      {!allDeliveriesCompleted ? (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
+                          {t('jobDetail.waitingPreviousStep')}
+                        </span>
+                      ) : containerReturnConfirmed ? (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-green-600 bg-[#E6F7E6]">
+                          คืนตู้สำเร็จ
+                        </span>
+                      ) : containerReturnCheckedIn ? (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-blue-600 bg-blue-100">
+                          รอแนบเอกสาร
+                        </span>
+                      ) : (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
+                          {t('jobDetail.waitingCheckIn')}
+                        </span>
+                      )}
+                      </div>
                     </div>
-                    {!allDeliveriesCompleted ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-gray-500 bg-gray-100">
-                        {t('jobDetail.waitingPreviousStep')}
-                      </span>
-                    ) : containerReturnConfirmed ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-green-600 bg-[#E6F7E6]">
-                        คืนตู้สำเร็จ
-                      </span>
-                    ) : containerReturnCheckedIn ? (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-blue-600 bg-blue-100">
-                        รอแนบเอกสาร
-                      </span>
-                    ) : (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-orange-500 bg-[#FFF7E6]">
-                        {t('jobDetail.waitingCheckIn')}
-                      </span>
-                    )}
-                  </div>
 
                   <div className="space-y-1 text-sm mb-3">
                     {job.container_return_address && (
