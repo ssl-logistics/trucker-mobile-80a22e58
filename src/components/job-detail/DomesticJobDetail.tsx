@@ -928,10 +928,10 @@ export default function DomesticJobDetail({
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="h-12 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
-                              disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
-                              onClick={() => {
-                                const phone = job.origin_contact_phone;
+                              className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
+                               disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
+                               onClick={() => {
+                                 const phone = job.origin_contact_phone;
                                 if (phone) {
                                   window.location.href = `tel:${phone}`;
                                 } else {
@@ -949,10 +949,10 @@ export default function DomesticJobDetail({
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="h-12 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
-                              disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
-                              onClick={() => {
-                                const lat = job.origin_latitude;
+                              className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
+                               disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
+                               onClick={() => {
+                                 const lat = job.origin_latitude;
                                 const lng = job.origin_longitude;
                                 if (lat && lng) {
                                   const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
@@ -984,7 +984,7 @@ export default function DomesticJobDetail({
                         } else {
                           navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job } });
                         }
-                      }} className="h-12 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
+                      }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
                           {isLoadingCheckinStatus ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                           ) : (
