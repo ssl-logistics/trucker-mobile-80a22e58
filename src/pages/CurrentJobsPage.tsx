@@ -227,7 +227,8 @@ export default function CurrentJobsPage() {
              const status = (job.status || '').toLowerCase();
              const hasCheckIn = startedTransportIds.has(String(job.id));
              const isInTransit = status === 'in_transit';
-             const shouldInclude = hasCheckIn || isInTransit;
+             const isDelivered = status === 'delivered';
+             const shouldInclude = hasCheckIn || isInTransit || isDelivered;
              if (shouldInclude) {
                console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}`);
              }
