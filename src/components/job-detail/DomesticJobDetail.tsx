@@ -857,7 +857,7 @@ export default function DomesticJobDetail({
                           }}
                         >
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5" />
-                          <span className="text-[11px]">{emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       )}
                     </div>
@@ -944,7 +944,7 @@ export default function DomesticJobDetail({
                               }}
                             >
                               <Phone className="w-3.5 h-3.5" />
-                              <span className="text-[11px]">{t('jobDetail.call')}</span>
+                              <span className="text-xs">{t('jobDetail.call')}</span>
                             </Button>
                             <Button 
                               variant="outline" 
@@ -970,7 +970,7 @@ export default function DomesticJobDetail({
                               }}
                             >
                               <Navigation className="w-3.5 h-3.5" />
-                              <span className="text-[11px]">{t('jobDetail.route')}</span>
+                              <span className="text-xs">{t('jobDetail.route')}</span>
                             </Button>
                           </>
                         )}
@@ -990,7 +990,7 @@ export default function DomesticJobDetail({
                           ) : (
                             <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
                           )}
-                          <span className="text-[11px]">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1100,7 +1100,7 @@ export default function DomesticJobDetail({
                                 }
                               }}>
                               <Phone className="w-3.5 h-3.5" />
-                              <span className="text-[11px]">{t('jobDetail.call')}</span>
+                              <span className="text-xs">{t('jobDetail.call')}</span>
                             </Button>
                             <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={isDestinationLocked || isPodCompleted}
                               onClick={() => {
@@ -1119,7 +1119,7 @@ export default function DomesticJobDetail({
                                 }
                               }}>
                               <Navigation className="w-3.5 h-3.5" />
-                              <span className="text-[11px]">{t('jobDetail.route')}</span>
+                              <span className="text-xs">{t('jobDetail.route')}</span>
                             </Button>
                           </>
                         )}
@@ -1128,7 +1128,7 @@ export default function DomesticJobDetail({
                           navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                         }} disabled={isDestinationLocked}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
-                          <span className="text-[11px]">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1205,7 +1205,7 @@ export default function DomesticJobDetail({
                               }
                             }}>
                             <Phone className="w-3.5 h-3.5" />
-                            <span className="text-[11px]">{t('jobDetail.call')}</span>
+                            <span className="text-xs">{t('jobDetail.call')}</span>
                           </Button>
                           <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={!isFallbackUnlocked || isPodCompleted}
                             onClick={() => {
@@ -1226,7 +1226,7 @@ export default function DomesticJobDetail({
                               }
                             }}>
                             <Navigation className="w-3.5 h-3.5" />
-                            <span className="text-[11px]">{t('jobDetail.route')}</span>
+                            <span className="text-xs">{t('jobDetail.route')}</span>
                           </Button>
                         </>
                       )}
@@ -1235,7 +1235,7 @@ export default function DomesticJobDetail({
                         navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                       }} disabled={!isFallbackUnlocked}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
-                        <span className="text-[11px]">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                        <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                     </div>
                   </div>
@@ -1304,7 +1304,7 @@ export default function DomesticJobDetail({
                             }
                           }}>
                           <Phone className="w-3.5 h-3.5" />
-                          <span className="text-[11px]">{t('jobDetail.call')}</span>
+                          <span className="text-xs">{t('jobDetail.call')}</span>
                         </Button>
                         <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5" disabled={!allDeliveriesCompleted || containerReturnConfirmed}
                           onClick={() => {
@@ -1323,7 +1323,7 @@ export default function DomesticJobDetail({
                             }
                           }}>
                           <Navigation className="w-3.5 h-3.5" />
-                          <span className="text-[11px]">{t('jobDetail.route')}</span>
+                          <span className="text-xs">{t('jobDetail.route')}</span>
                         </Button>
                       </>
                     )}
@@ -1339,7 +1339,7 @@ export default function DomesticJobDetail({
                           }
                         }}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
-                        <span className="text-[11px]">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                        <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                   </div>
                 </div>
