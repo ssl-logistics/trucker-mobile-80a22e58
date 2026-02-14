@@ -595,7 +595,7 @@ export default function DomesticJobDetail({
           </div>
           <Badge
           variant="secondary"
-          className={`text-white text-xs shrink-0 ${
+          className={`text-black text-xs shrink-0 ${
           job.job_type === 'international' ? 'bg-orange-500/80' : 'bg-blue-400/80'}`
           }>
 
