@@ -2,6 +2,7 @@ import { Clock, MapPin, CircleDot } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { formatDate } from '@/lib/dateUtils';
 import { translateJobType } from '@/utils/apiDataTranslations';
 import coinsIcon from '@/assets/coins-icon-2.png';
@@ -45,6 +46,7 @@ interface HistoryJobCardProps {
 
 export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: HistoryJobCardProps) {
   const { t, language } = useLanguage();
+  const { canViewPrice } = useUserRole();
 
   const isDomestic = !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic');
   // Multiple locations: has destinations array with items (same logic as JobCard)
@@ -163,10 +165,12 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
           </div>
           
           {/* Price */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200">
-            <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-            <span className="text-xl font-bold text-teal-600">฿ {(job.transport_price || 0).toLocaleString()}</span>
-          </div>
+          {canViewPrice && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200">
+              <img src={coinsIcon} alt="coins" className="w-5 h-5" />
+              <span className="text-xl font-bold text-teal-600">฿ {(job.transport_price || 0).toLocaleString()}</span>
+            </div>
+          )}
         </div>
 
         {/* Goods Info */}

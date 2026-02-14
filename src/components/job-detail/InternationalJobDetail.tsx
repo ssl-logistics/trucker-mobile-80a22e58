@@ -102,7 +102,7 @@ export default function InternationalJobDetail({
   const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   
-  const { isInternalDriver, isExternalDriver } = useUserRole();
+  const { isInternalDriver, isExternalDriver, canViewPrice } = useUserRole();
   const isInbound = job.transport_type?.includes('ขาเข้า') || !!job.bl_no;
   const isOutbound = job.transport_type?.includes('ขาออก') || !!job.booking_no;
 
@@ -317,10 +317,12 @@ export default function InternationalJobDetail({
       <div className="px-4 py-4 space-y-4">
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-2">
-          <Card className="p-2 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
-            <img src={coinsIcon} alt="price" className="w-6 h-6 mb-1" />
-            <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {job.price.toLocaleString()}</div>
-          </Card>
+          {canViewPrice && (
+            <Card className="p-2 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
+              <img src={coinsIcon} alt="price" className="w-6 h-6 mb-1" />
+              <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {job.price.toLocaleString()}</div>
+            </Card>
+          )}
            <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
              <img src={routeIcon} alt="route" className="w-5 h-5 mb-1" />
              <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{isInbound ? 3 : 4}</span></div>

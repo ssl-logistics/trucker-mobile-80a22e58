@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { formatDate } from '@/lib/dateUtils';
 import { 
   translateGoodsType, 
@@ -57,6 +58,7 @@ interface JobCardProps {
 
 export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed, showCancelButton = false, onCancel, isFactoryJob = false, isProcessing = false, useStartJobLabel = false }: JobCardProps) => {
   const { t, language } = useLanguage();
+  const { canViewPrice } = useUserRole();
   const navigate = useNavigate();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
@@ -172,10 +174,12 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             )}
           </div>
           
-          <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 sm:px-4 sm:py-2">
-            <img src={coinsIcon} alt="coins" className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-xl font-bold text-teal-700 sm:text-2xl">฿ {job.price.toLocaleString()}</span>
-          </div>
+          {canViewPrice && (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 sm:px-4 sm:py-2">
+              <img src={coinsIcon} alt="coins" className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="text-xl font-bold text-teal-700 sm:text-2xl">฿ {job.price.toLocaleString()}</span>
+            </div>
+          )}
         </div>
 
         <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1 sm:p-4 sm:text-base sm:space-y-2">
@@ -317,13 +321,15 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             </div>
 
             {/* Price */}
-            <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
-              <Banknote className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">{t('job.price')}</p>
-                <p className="font-bold text-lg text-primary">฿{job.price.toLocaleString()}</p>
+            {canViewPrice && (
+              <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+                <Banknote className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{t('job.price')}</p>
+                  <p className="font-bold text-lg text-primary">฿{job.price.toLocaleString()}</p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Date & Time */}
             <div className="grid grid-cols-2 gap-3">

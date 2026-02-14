@@ -108,7 +108,8 @@ export default function CurrentJobsPage() {
   const {
     role,
     isInternalDriver,
-    isExternalDriver
+    isExternalDriver,
+    canViewPrice
   } = useUserRole();
   const [acceptedJobs, setAcceptedJobs] = useState<AcceptedJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -783,10 +784,12 @@ export default function CurrentJobsPage() {
                       </div>
                       
                       <div className="text-right space-y-2">
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-                          <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-                          <span className="text-lg font-bold text-teal-500">฿ {(job.transport_price || 0).toLocaleString()}</span>
-                        </div>
+                        {canViewPrice && (
+                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
+                            <img src={coinsIcon} alt="coins" className="w-5 h-5" />
+                            <span className="text-lg font-bold text-teal-500">฿ {(job.transport_price || 0).toLocaleString()}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
                           <CalendarIconLucide className="w-4 h-4 text-gray-500" />
                           <div className="text-left">

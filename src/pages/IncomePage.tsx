@@ -39,7 +39,7 @@ export default function IncomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useLanguage();
-  const { isInternalDriver, isExternalDriver } = useUserRole();
+  const { isInternalDriver, isExternalDriver, canViewPrice } = useUserRole();
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [loading, setLoading] = useState(true);
   const [paidJobs, setPaidJobs] = useState<IncomeJob[]>([]);
@@ -417,7 +417,7 @@ export default function IncomePage() {
                             </div> : <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
                               <Receipt className="w-3 h-3" />
                             </div>}
-                          ฿ {income.amount.toLocaleString()}
+                          {canViewPrice && <>฿ {income.amount.toLocaleString()}</>}
                         </div>
                       </div>
                       <button onClick={() => handleViewJobDetail(income)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
@@ -440,7 +440,7 @@ export default function IncomePage() {
                           <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
                             <div className="w-2 h-2 bg-green-600 rounded-full" />
                           </div>
-                          ฿ {income.amount.toLocaleString()}
+                          {canViewPrice && <>฿ {income.amount.toLocaleString()}</>}
                         </div>
                       </div>
                       <button onClick={() => handleViewJobDetail(income)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
@@ -463,7 +463,7 @@ export default function IncomePage() {
                           <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
                             <Receipt className="w-3 h-3" />
                           </div>
-                          ฿ {income.amount.toLocaleString()}
+                          {canViewPrice && <>฿ {income.amount.toLocaleString()}</>}
                         </div>
                       </div>
                       <button onClick={() => handleViewJobDetail(income)} className="w-full py-2.5 border-2 border-foreground rounded-lg font-medium hover:bg-accent transition-colors">
