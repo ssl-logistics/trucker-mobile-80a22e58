@@ -113,7 +113,7 @@ export default function JobRouteExpensesPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useLanguage();
-  const { isInternalDriver, isExternalDriver } = useUserRole();
+  const { isInternalDriver, isExternalDriver, canViewPrice } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [destinations, setDestinations] = useState<JobDestination[]>([]);
@@ -359,10 +359,12 @@ export default function JobRouteExpensesPage() {
           <TabsContent value="route" className="space-y-4">
             {/* Summary Cards */}
             <div className="grid grid-cols-3 gap-3 mb-4">
-              <Card className="p-3 text-center bg-muted/50">
-                <img src={coinsIcon} alt="coins" className="w-6 h-6 mx-auto mb-1" />
-                <div className="text-lg font-semibold text-primary">฿ {job.price.toLocaleString()}</div>
-              </Card>
+              {canViewPrice && (
+                <Card className="p-3 text-center bg-muted/50">
+                  <img src={coinsIcon} alt="coins" className="w-6 h-6 mx-auto mb-1" />
+                  <div className="text-lg font-semibold text-primary">฿ {job.price.toLocaleString()}</div>
+                </Card>
+              )}
               <Card className="p-3 text-center bg-muted/50">
                 <img src={routeIcon} alt="route" className="w-6 h-6 mx-auto mb-1" />
                 <div className="text-sm font-medium text-muted-foreground">{t('jobRoute.pickupDelivery')}: {totalPoints}</div>

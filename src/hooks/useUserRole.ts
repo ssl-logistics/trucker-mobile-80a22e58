@@ -26,5 +26,7 @@ export const useUserRole = () => {
     // Only freelance_driver can access Dashboard and Bidding
     canAccessDashboard: currentUserType === 'freelance_driver',
     canAccessBidding: currentUserType === 'freelance_driver',
+    // Only freelance drivers can view job prices
+    canViewPrice: currentUserType === 'freelance_driver',
   };
 };
