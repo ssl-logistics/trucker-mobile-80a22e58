@@ -1234,7 +1234,7 @@ export default function DomesticJobDetail({
                         const fromParam = new URLSearchParams(location.search).get('from');
                         navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                       }} disabled={!isFallbackUnlocked}>
-                        <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
+                        <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                         <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                     </div>
