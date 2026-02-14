@@ -1,52 +1,15 @@
 
 
-# Plan: แก้ไข Flow งานขาเข้า (Inbound) ให้เป็น 3 ขั้นตอน
+## Plan: ปรับสีพื้นหลังหน้ารายละเอียดงานให้ตรงกับหน้างานปัจจุบัน
 
-## สรุปการเปลี่ยนแปลง
+### สิ่งที่จะเปลี่ยน
+เปลี่ยนสีพื้นหลังของหน้ารายละเอียดงาน (DomesticJobDetail) จาก `bg-background` เป็น `bg-gradient-to-b from-blue-50 to-white` ให้ตรงกับหน้างานปัจจุบัน (CurrentJobsPage)
 
-งานขาเข้า (Inbound) ปัจจุบันมี 4 ขั้นตอน: รับตู้ -> รับสินค้า -> ส่งสินค้า -> คืนตู้
-เปลี่ยนเป็น 3 ขั้นตอน: **รับตู้หนัก (พร้อม OCR)** -> **ส่งสินค้า** -> **คืนตู้**
+### รายละเอียดทางเทคนิค
 
-## ขั้นตอนที่ต้องทำ
+**ไฟล์ที่แก้ไข:** `src/components/job-detail/DomesticJobDetail.tsx`
 
-### 1. แก้ไข InternationalJobDetail.tsx - ซ่อน Card "จุดรับสินค้า" สำหรับงานขาเข้า
+- บรรทัด 579: เปลี่ยน `className="min-h-screen bg-background pb-20"` เป็น `className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20"`
 
-- เมื่อ `isInbound = true` จะไม่แสดง Card ที่ 2 (Pickup/Loading Point) เลย
-- Timeline จะเหลือ 3 จุด: รับตู้หนัก -> ส่งสินค้า -> คืนตู้
-- เปลี่ยนชื่อ Card 1 จาก "จุดรับตู้เปล่า" เป็น "จุดรับตู้หนัก" สำหรับขาเข้า
-
-### 2. ปรับ Logic การปลดล็อค Card สำหรับขาเข้า
-
-- **Card ส่งสินค้า**: ปลดล็อคทันทีหลัง OCR/SOP ที่จุดรับตู้หนักเสร็จ (ข้ามขั้นตอนรับสินค้า)
-- เงื่อนไขเดิม: ต้องผ่านจุดรับสินค้าก่อน (`sop_completed_at`) -> เปลี่ยนเป็นผ่านจุดรับตู้ (`container_sop_completed_at`) โดยตรง
-- **Card คืนตู้**: ปลดล็อคหลังส่งสินค้าเสร็จ (เหมือนเดิม)
-
-### 3. ปรับ Timeline Indicator
-
-- ลดจำนวนวงกลมบน Timeline จาก 4 เหลือ 3 สำหรับขาเข้า
-- ปรับความสูงและ gradient ของเส้น Timeline ให้สอดคล้อง
-
-### 4. ปรับ Summary Card จำนวนจุด
-
-- เปลี่ยนจำนวนจุดรับ/ส่งจาก "4" เป็น "3" สำหรับงานขาเข้า
-
----
-
-## รายละเอียดทางเทคนิค
-
-### ไฟล์ที่ต้องแก้ไข: `src/components/job-detail/InternationalJobDetail.tsx`
-
-**การเปลี่ยนแปลงหลัก:**
-
-1. **Summary card** (line ~324): เปลี่ยนจำนวนจุดจาก hardcode `4` เป็น `{isInbound ? 3 : 4}`
-
-2. **Timeline circles** (lines ~370-403): Wrap Step 2 circle ด้วย `{!isInbound && (...)}` เพื่อซ่อนสำหรับขาเข้า
-
-3. **Pickup/Loading Card** (lines ~512-578): Wrap ทั้ง Card ด้วย `{!isInbound && (...)}` เพื่อซ่อนสำหรับขาเข้า พร้อมลบ `ref={card2Ref}` ออกจากเงื่อนไขที่ซ่อน
-
-4. **Delivery Card unlock condition** (lines ~580-654): สำหรับขาเข้า เปลี่ยนเงื่อนไขการปลดล็อคจาก `sop_completed_at` เป็น `container_sop_completed_at`
-
-5. **Card 1 label**: สำหรับขาเข้า เปลี่ยนชื่อเป็น "จุดรับตู้หนัก" แทน "จุดรับตู้เปล่า"
-
-6. **Container Return Card** unlock: สำหรับขาเข้า ให้ unlock หลังจาก delivery เสร็จ (เหมือนเดิม ไม่ต้องเปลี่ยน)
+แก้ไขแค่ 1 จุด ไม่กระทบข้อมูลหรือ layout อื่นใด
 
