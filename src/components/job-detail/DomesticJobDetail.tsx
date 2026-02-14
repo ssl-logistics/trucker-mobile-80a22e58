@@ -592,7 +592,6 @@ export default function DomesticJobDetail({
               {job.transport_type?.includes('ขาเข้า') && ` (${t('jobDetail.inbound')})`}
               {job.transport_type?.includes('ขาออก') && ` (${t('jobDetail.outbound')})`}
             </h1>
-            <p className="text-xs text-white/70 truncate">{job.employer_name}</p>
           </div>
           <Badge 
             variant="secondary" 
