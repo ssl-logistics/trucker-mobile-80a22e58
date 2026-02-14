@@ -595,7 +595,7 @@ export default function DomesticJobDetail({
           </div>
           <Badge 
             variant="secondary" 
-            className={`text-white text-[10px] shrink-0 ${
+            className={`text-white text-xs shrink-0 ${
               job.job_type === 'international' ? 'bg-orange-500/80' : 'bg-blue-400/80'
             }`}
           >
@@ -612,18 +612,18 @@ export default function DomesticJobDetail({
         {/* Compact Summary Row */}
         <div className="flex items-center gap-2">
           {canViewPrice && (
-            <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-sm font-semibold">
+           <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-base font-semibold">
               <span>฿</span>
               <span>{(job.price ?? 0).toLocaleString()}</span>
             </div>
           )}
-          <div className="flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-xs">
-            <MapPin className="w-3 h-3" />
+          <div className="flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-sm">
+            <MapPin className="w-3.5 h-3.5" />
             <span>{destinations.length > 0 ? destinations.length + 1 : 2} {t('jobDetail.pickupDeliveryPoints')}</span>
           </div>
           {job.job_type !== 'international' && (
-            <div className="flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-xs">
-              <Package className="w-3 h-3" />
+            <div className="flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-sm">
+              <Package className="w-3.5 h-3.5" />
               <span>{job.origin_goods_quantity || '-'}</span>
             </div>
           )}
