@@ -900,19 +900,19 @@ export default function DomesticJobDetail({
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{job.origin_location || '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.origin_location || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{job.origin_contact_person || '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.origin_contact_person || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
                         </div>
                         {job.origin_remarks && job.origin_remarks !== '-' && (
                           <div className="flex items-start gap-2">
