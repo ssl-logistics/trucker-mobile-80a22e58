@@ -887,7 +887,7 @@ export default function DomesticJobDetail({
                           {t('jobDetail.waitingPreviousStep')}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
                           {(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                         </span>
                       )}
