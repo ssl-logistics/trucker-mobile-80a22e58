@@ -897,7 +897,7 @@ export default function DomesticJobDetail({
                         <p className="font-semibold text-sm text-[#225795] mb-2">{job.origin_company_name}</p>
                       )}
 
-                      <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                      <div className="space-y-1.5 text-xs text-foreground mb-3">
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.origin_location || '-'}</span>
