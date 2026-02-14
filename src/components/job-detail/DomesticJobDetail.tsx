@@ -576,90 +576,83 @@ export default function DomesticJobDetail({
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
 
-  return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
+  return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
-        <div className="flex items-center justify-between">
+      <header className="bg-[#1a3a5c] text-white px-4 py-3 sticky top-0 z-50">
+        <div className="flex items-center gap-3">
           <button onClick={() => {
-            // If from history page or POD is completed, go to home instead of current-jobs
             const isPodCompleted = !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at);
             navigate((isFromHistory || isPodCompleted) ? '/home' : '/current-jobs');
-          }} className="p-1">
-            <ChevronLeft className="w-6 h-6" />
+          }} className="p-1 -ml-1 hover:bg-white/10 rounded-lg transition-colors">
+            <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="flex-1 text-center">
-            <h1 className="text-xl font-semibold">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base font-semibold truncate">
               {job.order_code}
               {job.transport_type?.includes('ขาเข้า') && ` (${t('jobDetail.inbound')})`}
               {job.transport_type?.includes('ขาออก') && ` (${t('jobDetail.outbound')})`}
             </h1>
-            <div className="flex items-center justify-center gap-2 mt-1">
-              <Badge 
-                variant="secondary" 
-                className={`text-white text-xs ${
-                  job.job_type === 'international' ? 'bg-orange-500' : 'bg-blue-500'
-                }`}
-              >
-                {job.job_type === 'international' ? t('jobDetail.international') : t('jobDetail.domestic')}
-              </Badge>
-            </div>
-            {job.booking_number && (
-              <div className="text-xs text-white/80 mt-1">
-                {t('jobDetail.bookingNumber')}: {job.booking_number}
-              </div>
-            )}
+            <p className="text-xs text-white/70 truncate">{job.employer_name}</p>
           </div>
-          <div className="w-6" />
+          <Badge 
+            variant="secondary" 
+            className={`text-white text-[10px] shrink-0 ${
+              job.job_type === 'international' ? 'bg-orange-500/80' : 'bg-blue-400/80'
+            }`}
+          >
+            {job.job_type === 'international' ? t('jobDetail.international') : t('jobDetail.domestic')}
+          </Badge>
         </div>
+        {job.booking_number && (
+          <p className="text-[10px] text-white/50 mt-1 ml-7">{t('jobDetail.bookingNumber')}: {job.booking_number}</p>
+        )}
       </header>
 
       {/* Content */}
-      <div className="px-4 py-4 space-y-4">
-        {/* Summary Cards */}
-        <div className={`grid gap-2 ${job.job_type === 'international' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+      <div className="px-4 py-3 space-y-3">
+        {/* Compact Summary Row */}
+        <div className="flex items-center gap-2">
           {canViewPrice && (
-            <Card className="p-2 bg-[#E8F5F4] border-0 flex flex-col items-center justify-center">
-              <img src={coinsIcon} alt="price" className="w-6 h-6 mb-1" />
-              <div className="text-base font-bold text-[#0A8778] whitespace-nowrap">฿ {(job.price ?? 0).toLocaleString()}</div>
-            </Card>
+            <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-sm font-semibold">
+              <span>฿</span>
+              <span>{(job.price ?? 0).toLocaleString()}</span>
+            </div>
           )}
-          <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
-            <img src={routeIcon} alt="route" className="w-5 h-5 mb-1" />
-            <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{destinations.length > 0 ? destinations.length + 1 : 2}</span></div>
-          </Card>
+          <div className="flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-xs">
+            <MapPin className="w-3 h-3" />
+            <span>{destinations.length > 0 ? destinations.length + 1 : 2} {t('jobDetail.pickupDeliveryPoints')}</span>
+          </div>
           {job.job_type !== 'international' && (
-            <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
-              <img src={boxIcon} alt="goods" className="w-5 h-5 mb-1" />
-              <div className="text-xs text-gray-700 text-center">{t('jobDetail.totalGoods')} : <span className="font-semibold">{job.origin_goods_quantity || '-'}</span></div>
-            </Card>
+            <div className="flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-xs">
+              <Package className="w-3 h-3" />
+              <span>{job.origin_goods_quantity || '-'}</span>
+            </div>
           )}
         </div>
 
         {/* Report Problem Button - Hidden when viewing from history */}
         {new URLSearchParams(location.search).get('from') !== 'history' && (
-          <Button variant="outline" className="w-full h-12 border-2 border-gray-300 bg-white hover:bg-gray-50 hover:text-inherit" onClick={() => setIsReportDrawerOpen(true)}>
-            <div className="flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-                <path d="M0 3.5C0 1.568 1.568 0 3.5 0H28.5C30.432 0 32 1.568 32 3.5V22.5C32 23.4283 31.6313 24.3185 30.9749 24.9749C30.3185 25.6313 29.4283 26 28.5 26H16.12L10.974 31.146C10.5661 31.5524 10.047 31.8289 9.48224 31.9407C8.91743 32.0525 8.33217 31.9946 7.80023 31.7743C7.26828 31.5539 6.81346 31.1811 6.49309 30.7027C6.17272 30.2243 6.00115 29.6618 6 29.086V26H3.5C2.57174 26 1.6815 25.6313 1.02513 24.9749C0.368749 24.3185 0 23.4283 0 22.5L0 3.5ZM3.5 3C3.36739 3 3.24021 3.05268 3.14645 3.14645C3.05268 3.24021 3 3.36739 3 3.5V22.5C3 22.776 3.224 23 3.5 23H7.5C7.89782 23 8.27936 23.158 8.56066 23.4393C8.84196 23.7206 9 24.1022 9 24.5V28.88L14.44 23.44C14.721 23.1586 15.1023 23.0004 15.5 23H28.5C28.6326 23 28.7598 22.9473 28.8536 22.8536C28.9473 22.7598 29 22.6326 29 22.5V3.5C29 3.36739 28.9473 3.24021 28.8536 3.14645C28.7598 3.05268 28.6326 3 28.5 3H3.5ZM17.5 7.5V12.5C17.5 12.8978 17.342 13.2794 17.0607 13.5607C16.7794 13.842 16.3978 14 16 14C15.6022 14 15.2206 13.842 14.9393 13.5607C14.658 13.2794 14.5 12.8978 14.5 12.5V7.5C14.5 7.10218 14.658 6.72064 14.9393 6.43934C15.2206 6.15804 15.6022 6 16 6C16.3978 6 16.7794 6.15804 17.0607 6.43934C17.342 6.72064 17.5 7.10218 17.5 7.5ZM18 18C18 18.5304 17.7893 19.0391 17.4142 19.4142C17.0391 19.7893 16.5304 20 16 20C15.4696 20 14.9609 19.7893 14.5858 19.4142C14.2107 19.0391 14 18.5304 14 18C14 17.4696 14.2107 16.9609 14.5858 16.5858C14.9609 16.2107 15.4696 16 16 16C16.5304 16 17.0391 16.2107 17.4142 16.5858C17.7893 16.9609 18 17.4696 18 18Z" fill="#0A8778" />
-              </svg>
-              <span className="font-medium">{t('jobDetail.reportProblem')}</span>
-            </div>
-          </Button>
+          <button 
+            onClick={() => setIsReportDrawerOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors text-sm font-medium text-foreground"
+          >
+            <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
+              <path d="M0 3.5C0 1.568 1.568 0 3.5 0H28.5C30.432 0 32 1.568 32 3.5V22.5C32 23.4283 31.6313 24.3185 30.9749 24.9749C30.3185 25.6313 29.4283 26 28.5 26H16.12L10.974 31.146C10.5661 31.5524 10.047 31.8289 9.48224 31.9407C8.91743 32.0525 8.33217 31.9946 7.80023 31.7743C7.26828 31.5539 6.81346 31.1811 6.49309 30.7027C6.17272 30.2243 6.00115 29.6618 6 29.086V26H3.5C2.57174 26 1.6815 25.6313 1.02513 24.9749C0.368749 24.3185 0 23.4283 0 22.5L0 3.5ZM3.5 3C3.36739 3 3.24021 3.05268 3.14645 3.14645C3.05268 3.24021 3 3.36739 3 3.5V22.5C3 22.776 3.224 23 3.5 23H7.5C7.89782 23 8.27936 23.158 8.56066 23.4393C8.84196 23.7206 9 24.1022 9 24.5V28.88L14.44 23.44C14.721 23.1586 15.1023 23.0004 15.5 23H28.5C28.6326 23 28.7598 22.9473 28.8536 22.8536C28.9473 22.7598 29 22.6326 29 22.5V3.5C29 3.36739 28.9473 3.24021 28.8536 3.14645C28.7598 3.05268 28.6326 3 28.5 3H3.5ZM17.5 7.5V12.5C17.5 12.8978 17.342 13.2794 17.0607 13.5607C16.7794 13.842 16.3978 14 16 14C15.6022 14 15.2206 13.842 14.9393 13.5607C14.658 13.2794 14.5 12.8978 14.5 12.5V7.5C14.5 7.10218 14.658 6.72064 14.9393 6.43934C15.2206 6.15804 15.6022 6 16 6C16.3978 6 16.7794 6.15804 17.0607 6.43934C17.342 6.72064 17.5 7.10218 17.5 7.5ZM18 18C18 18.5304 17.7893 19.0391 17.4142 19.4142C17.0391 19.7893 16.5304 20 16 20C15.4696 20 14.9609 19.7893 14.5858 19.4142C14.2107 19.0391 14 18.5304 14 18C14 17.4696 14.2107 16.9609 14.5858 16.5858C14.9609 16.2107 15.4696 16 16 16C16.5304 16 17.0391 16.2107 17.4142 16.5858C17.7893 16.9609 18 17.4696 18 18Z" fill="currentColor" className="text-muted-foreground" />
+            </svg>
+            <span>{t('jobDetail.reportProblem')}</span>
+          </button>
         )}
 
         {/* Route Info */}
         <div>
           <div className="mb-3">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-base font-semibold text-foreground">
               {job.booking_no
                 ? `Booking : ${job.booking_no} (ขาออก)`
                 : job.bl_no
                   ? `BL : ${job.bl_no} (ขาเข้า)`
                   : `${job.job_type === 'international' ? t('jobDetail.booking') : t('jobDetail.order')} : ${job.order_code}`}
             </h2>
-            <p className="text-base font-medium text-[#005E53]">
-              {t('jobDetail.employer')} : {job.employer_name}
-            </p>
           </div>
 
           {/* Step Tracker + Content Wrapper */}
