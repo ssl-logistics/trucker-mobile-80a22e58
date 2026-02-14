@@ -988,7 +988,7 @@ export default function DomesticJobDetail({
                           {isLoadingCheckinStatus ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                           ) : (
-                            <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
+                            <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                           )}
                           <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
