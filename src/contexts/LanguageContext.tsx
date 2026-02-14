@@ -537,7 +537,7 @@ const thTranslations: Record<string, string> = {
   'jobDetail.route': 'เส้นทาง',
   'jobDetail.viewInfo': 'ดูข้อมูล',
   'jobDetail.updateStatus': 'อัปเดตสถานะ',
-  'jobDetail.uploadEvidence': 'แนบหลักฐาน',
+  'jobDetail.uploadEvidence': 'อัพโหลดหลักฐาน',
   'jobDetail.ocrCompleted': 'สแกน OCR เสร็จสิ้น',
   'jobDetail.completed': 'เสร็จสิ้น',
   'jobDetail.startJob': 'เริ่มงาน',
