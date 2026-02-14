@@ -984,7 +984,7 @@ export default function DomesticJobDetail({
                         } else {
                           navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job } });
                         }
-                      }} className="h-9 flex items-center justify-center gap-1.5 px-5 py-1 bg-[#225896] border-transparent hover:bg-[#1a4578] min-w-fit whitespace-nowrap" disabled={isPickupLocked || isLoadingCheckinStatus}>
+                      }} className="h-9 flex items-center justify-center gap-1.5 px-5 py-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
                           {isLoadingCheckinStatus ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                           ) : (
