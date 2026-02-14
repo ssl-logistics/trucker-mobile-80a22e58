@@ -578,7 +578,7 @@ export default function DomesticJobDetail({
 
   return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-3 sticky top-0 z-50 rounded-b-xl page-header-safe">
+      <header className="bg-[#1a3a5c] text-white px-4 py-3 sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <button onClick={() => {
             const isPodCompleted = !!(deliverySopCompleted || jobApplication?.delivery_sop_completed_at);
