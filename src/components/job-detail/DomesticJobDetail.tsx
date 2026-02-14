@@ -644,8 +644,8 @@ export default function DomesticJobDetail({
 
         {/* Route Info */}
         <div>
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-foreground">
+          <div className="mb-3">
+            <h2 className="text-base font-semibold text-foreground">
               {job.booking_no
                 ? `Booking : ${job.booking_no} (ขาออก)`
                 : job.bl_no
@@ -655,7 +655,7 @@ export default function DomesticJobDetail({
           </div>
 
           {/* Step Tracker + Content Wrapper */}
-          <div className="relative flex gap-4">
+          <div className="relative flex gap-3">
             {/* Left Timeline Column with Continuous Line */}
             <div className="relative flex flex-col" style={{
             width: '28px',
@@ -769,7 +769,7 @@ export default function DomesticJobDetail({
             </div>
 
             {/* Right Content Column */}
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-3">
               {/* Empty Container Pickup Card - Only for international jobs */}
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
                 <Card ref={emptyContainerRef} className={`overflow-hidden border-2 rounded-2xl ${isOcrVerified ? 'border-green-500' : emptyContainerCheckedIn ? 'border-purple-500' : 'border-teal-500'}`}>
@@ -785,23 +785,23 @@ export default function DomesticJobDetail({
                     </span>
                   </div>
                   <div className="p-4 bg-white">
-                    <p className="font-bold text-base text-[#225795] mb-3">{job.container_checkpoint || '-'}</p>
+                    <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_checkpoint || '-'}</p>
 
-                    <div className="space-y-2.5 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-start gap-2.5">
-                        <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                    <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>{t('jobDetail.shipArrivalDateTime')}: {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}</span>
                       </div>
-                      <div className="flex items-start gap-2.5">
-                        <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>{t('jobDetail.emptyContainerPickupDate')}: {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}</span>
                       </div>
-                      <div className="flex items-start gap-2.5">
-                        <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>{t('jobDetail.receiver')}: {job.origin_company_name || '-'}</span>
                       </div>
-                      <div className="flex items-start gap-2.5">
-                        <Package className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>{t('jobDetail.containerTypeQty')}: {job.equipment_list || '-'}</span>
                       </div>
                     </div>
@@ -896,41 +896,41 @@ export default function DomesticJobDetail({
                     </div>
                     <div className={`p-4 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       {job.origin_company_name && (
-                        <p className="font-bold text-base text-[#225795] mb-3">{job.origin_company_name}</p>
+                        <p className="font-semibold text-sm text-[#225795] mb-2">{job.origin_company_name}</p>
                       )}
 
-                      <div className="space-y-2.5 text-sm text-foreground mb-4">
-                        <div className="flex items-start gap-2.5">
-                          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="space-y-1.5 text-xs text-foreground mb-3">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.origin_location || '-'}</span>
                         </div>
-                        <div className="flex items-start gap-2.5">
-                          <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                        <div className="flex items-start gap-2">
+                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.origin_contact_person || '-'}</span>
                         </div>
-                        <div className="flex items-start gap-2.5">
-                          <Package className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                        <div className="flex items-start gap-2">
+                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {job.origin_goods_type ? `${job.origin_goods_type}${job.origin_goods_quantity ? ` (${job.origin_goods_quantity})` : ''}` : '-'}</span>
                         </div>
-                        <div className="flex items-start gap-2.5">
-                          <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
                         </div>
                         {job.origin_remarks && job.origin_remarks !== '-' && (
-                          <div className="flex items-start gap-2.5">
-                            <FileText className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                          <div className="flex items-start gap-2">
+                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                             <span>{job.origin_remarks}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className={`grid gap-2.5 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                      <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
                         {new URLSearchParams(location.search).get('from') !== 'history' && (
                           <>
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="h-10 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
+                              className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
                                disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
                                onClick={() => {
                                  const phone = job.origin_contact_phone;
@@ -945,13 +945,13 @@ export default function DomesticJobDetail({
                                 }
                               }}
                             >
-                              <Phone className="w-4 h-4" />
-                              <span className="text-sm">{t('jobDetail.call')}</span>
+                              <Phone className="w-3.5 h-3.5" />
+                              <span className="text-xs">{t('jobDetail.call')}</span>
                             </Button>
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="h-10 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
+                              className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
                                disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
                                onClick={() => {
                                  const lat = job.origin_latitude;
@@ -971,8 +971,8 @@ export default function DomesticJobDetail({
                                 }
                               }}
                             >
-                              <Navigation className="w-4 h-4" />
-                              <span className="text-sm">{t('jobDetail.route')}</span>
+                              <Navigation className="w-3.5 h-3.5" />
+                              <span className="text-xs">{t('jobDetail.route')}</span>
                             </Button>
                           </>
                         )}
@@ -986,13 +986,13 @@ export default function DomesticJobDetail({
                         } else {
                           navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job } });
                         }
-                      }} className="h-10 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
+                      }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
                           {isLoadingCheckinStatus ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                           ) : (
-                            <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert hidden sm:block" />
+                            <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                           )}
-                          <span className="text-sm">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{(pickupSopCompleted || jobApplication?.sop_completed_at) ? t('jobDetail.viewInfo') : (pickupCheckedIn || jobApplication?.checked_in_at) ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -1057,29 +1057,29 @@ export default function DomesticJobDetail({
                     </div>
                     <div className={`p-4 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       {dest.company_name && (
-                        <p className="font-bold text-base text-[#225795] mb-3">{dest.company_name}</p>
+                        <p className="font-semibold text-sm text-[#225795] mb-2">{dest.company_name}</p>
                       )}
 
-                      <div className="space-y-2.5 text-sm text-muted-foreground mb-4">
-                        <div className="flex items-start gap-2.5">
-                          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span>{dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
                         </div>
-                        <div className="flex items-start gap-2.5">
-                          <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                        <div className="flex items-start gap-2">
+                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span>{dest.contact_name || '-'}</span>
                         </div>
-                        <div className="flex items-start gap-2.5">
-                          <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
-                        <div className="flex items-start gap-2.5">
-                          <Package className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                        <div className="flex items-start gap-2">
+                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span>{job.origin_goods_type || '-'}</span>
                         </div>
                         {dest.notes && dest.notes !== '-' && (
-                          <div className="flex items-start gap-2.5">
-                            <FileText className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                          <div className="flex items-start gap-2">
+                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                             <span>{dest.notes}</span>
                           </div>
                         )}
@@ -1162,29 +1162,29 @@ export default function DomesticJobDetail({
                   </div>
                   <div className={`p-4 ${!isFallbackUnlocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                     {job.destination_company_name && (
-                      <p className="font-bold text-base text-[#225795] mb-3">{job.destination_company_name}</p>
+                      <p className="font-semibold text-sm text-[#225795] mb-2">{job.destination_company_name}</p>
                     )}
 
-                    <div className="space-y-2.5 text-sm text-foreground mb-4">
-                      <div className="flex items-start gap-2.5">
-                        <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                    <div className="space-y-1.5 text-xs text-foreground mb-3">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.destination_location || '-'}</span>
                       </div>
-                      <div className="flex items-start gap-2.5">
-                        <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.destination_contact_person || '-'}</span>
                       </div>
-                      <div className="flex items-start gap-2.5">
-                        <Package className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
                       </div>
-                      <div className="flex items-start gap-2.5">
-                        <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                       </div>
                       {job.destination_remarks && job.destination_remarks !== '-' && (
-                        <div className="flex items-start gap-2.5">
-                          <FileText className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                        <div className="flex items-start gap-2">
+                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span>{job.destination_remarks}</span>
                         </div>
                       )}
@@ -1266,25 +1266,25 @@ export default function DomesticJobDetail({
                 </div>
                 <div className={`p-4 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                   {job.container_return_location && (
-                    <p className="font-bold text-base text-[#225795] mb-3">{job.container_return_location}</p>
+                    <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_return_location}</p>
                   )}
 
-                  <div className="space-y-2.5 text-sm text-muted-foreground mb-4">
+                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                     {job.container_return_address && (
-                      <div className="flex items-start gap-2.5">
-                        <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>{job.container_return_address}</span>
                       </div>
                     )}
                     {job.container_return_date && (
-                      <div className="flex items-start gap-2.5">
-                        <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>วันที่คืนตู้: {formatDate(job.container_return_date, language)}</span>
                       </div>
                     )}
                     {job.container_return_phone && (
-                      <div className="flex items-start gap-2.5">
-                        <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                      <div className="flex items-start gap-2">
+                        <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>{job.container_return_phone}</span>
                       </div>
                     )}
