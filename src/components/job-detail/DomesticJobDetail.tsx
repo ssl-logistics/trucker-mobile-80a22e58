@@ -1153,7 +1153,7 @@ export default function DomesticJobDetail({
                         {t('jobDetail.waitingPreviousStep')}
                       </span>
                     ) : (
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
                         {isPodCompleted ? t('jobDetail.podSuccess') : deliveryCheckedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
                       </span>
                     )}
@@ -1163,22 +1163,22 @@ export default function DomesticJobDetail({
                       <p className="font-semibold text-sm text-[#225795] mb-2">{job.destination_company_name}</p>
                     )}
 
-                    <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                    <div className="space-y-1.5 text-xs text-foreground mb-3">
                       <div className="flex items-start gap-2">
                         <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{job.destination_location || '-'}</span>
+                        <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.destination_location || '-'}</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{job.destination_contact_person || '-'}</span>
+                        <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.destination_contact_person || '-'}</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
+                        <span><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {job.destination_goods_type ? `${job.destination_goods_type}${job.destination_goods_quantity ? ` (${job.destination_goods_quantity})` : ''}` : '-'}</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
+                        <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                       </div>
                       {job.destination_remarks && job.destination_remarks !== '-' && (
                         <div className="flex items-start gap-2">
