@@ -928,7 +928,7 @@ export default function DomesticJobDetail({
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="h-9 flex items-center justify-center gap-1.5 px-5 py-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
+                              className="h-9 flex items-center justify-center gap-1.5 px-2 py-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
                                disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
                                onClick={() => {
                                  const phone = job.origin_contact_phone;
@@ -949,7 +949,7 @@ export default function DomesticJobDetail({
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="h-9 flex items-center justify-center gap-1.5 px-5 py-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
+                              className="h-9 flex items-center justify-center gap-1.5 px-2 py-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
                                disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
                                onClick={() => {
                                  const lat = job.origin_latitude;
