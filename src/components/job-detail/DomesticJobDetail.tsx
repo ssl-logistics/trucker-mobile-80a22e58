@@ -1063,12 +1063,12 @@ export default function DomesticJobDetail({
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
-                          <span className="truncate">{dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
+                          <span>{dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
-                          <span className="truncate">{dest.contact_name || '-'}</span>
+                          <span>{dest.contact_name || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
@@ -1084,7 +1084,7 @@ export default function DomesticJobDetail({
                       <div className="flex items-start gap-2">
                             <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                             <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.remarks') || 'หมายเหตุ'}</span>
-                            <span className="truncate">{dest.notes}</span>
+                            <span>{dest.notes}</span>
                           </div>
                       }
                       </div>
@@ -1271,21 +1271,18 @@ export default function DomesticJobDetail({
                     <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_return_location}</p>
                     }
 
-                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                  <div className="space-y-1 text-sm mb-3">
                     <div className="flex items-start gap-2">
-                      <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.returnAddress') || 'ที่อยู่'}</span>
-                      <span className="truncate">{job.container_return_address || '-'}</span>
+                      <MapPin className="w-4 h-4 text-[#454545] mt-0.5 shrink-0" />
+                      <span className="text-[#454545]">{job.container_return_address || '-'}</span>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <Calendar className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerReturnDate') || 'วันที่คืนตู้'}</span>
-                      <span>{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-[#454545] shrink-0" />
+                      <span className="text-[#454545]">{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPhone') || 'เบอร์ติดต่อ'}</span>
-                      <span>{job.container_return_phone || '-'}</span>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-[#454545] shrink-0" />
+                      <span className="text-[#454545]">{job.container_return_phone || '-'}</span>
                     </div>
                   </div>
 
