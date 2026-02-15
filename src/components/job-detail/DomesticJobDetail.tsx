@@ -1059,22 +1059,18 @@ export default function DomesticJobDetail({
                     <p className="font-semibold text-sm text-[#225795] mb-2">{dest.company_name}</p>
                     }
 
-                      <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                      <div className="space-y-1.5 text-xs text-foreground mb-3">
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{dest.contact_name || '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {dest.contact_name || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{job.origin_goods_type || '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
                         {dest.notes && dest.notes !== '-' &&
                       <div className="flex items-start gap-2">
