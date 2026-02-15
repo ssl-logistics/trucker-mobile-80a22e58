@@ -27,6 +27,22 @@ interface JobDestination {
   sop_completed_at: string | null;
 }
 
+interface JobOrigin {
+  id: string;
+  sequence_number: number;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  province: string | null;
+  district: string | null;
+  pickup_date: string | null;
+  pickup_time: string | null;
+  goods_type: string | null;
+  goods_quantity: string | null;
+  notes: string | null;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -76,6 +92,7 @@ interface JobDetail {
   booking_no?: string | null;
   bl_no?: string | null;
   destinations?: JobDestination[];
+  origins?: JobOrigin[];
   // Container return info for international jobs
   container_return_location?: string | null;
   container_return_address?: string | null;
@@ -356,6 +373,24 @@ export default function JobDetailPage() {
                   notes: d.notes || null,
                   checked_in_at: null,
                   sop_completed_at: null,
+                }))
+              : undefined,
+            // Map origins array from API
+            origins: Array.isArray(foundJob.origins) && foundJob.origins.length > 0
+              ? foundJob.origins.map((o: any) => ({
+                  id: o.id || `origin-${o.sequence_number}`,
+                  sequence_number: o.sequence_number || 1,
+                  company_name: o.company_name || null,
+                  contact_name: o.contact_name || null,
+                  contact_phone: o.contact_phone || null,
+                  address: o.address || null,
+                  province: o.province || null,
+                  district: o.district || null,
+                  pickup_date: o.pickup_date || null,
+                  pickup_time: o.pickup_time || null,
+                  goods_type: o.goods_type || o.product_name || null,
+                  goods_quantity: o.goods_quantity || o.product_quantity ? String(o.goods_quantity || o.product_quantity) : null,
+                  notes: o.notes || null,
                 }))
               : undefined,
           };
