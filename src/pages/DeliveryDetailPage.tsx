@@ -687,10 +687,8 @@ export default function DeliveryDetailPage() {
       });
       setShowConfirmDialog(false);
       
-      // Navigate to POD page with job data to avoid re-fetching
-      navigate(`/job/${job.order_code}/delivery-sop${destinationId ? `/${destinationId}` : ''}`, {
-        state: { jobData: job }
-      });
+      // Reload current page to show POD section
+      loadJobDetail();
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
