@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
-import { formatDate, formatDateTime } from '@/lib/dateUtils';
+import { formatDate } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
 import { useNativeCamera } from '@/hooks/useNativeCamera';import { getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
 import {
@@ -793,7 +793,7 @@ export default function DomesticJobDetail({
                     <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                       <div className="flex items-start gap-2">
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{t('jobDetail.emptyContainerPickupDate')}: {(job.empty_pickup_date || job.empty_container_date) ? formatDateTime(job.empty_pickup_date || job.empty_container_date || '', language) : '-'}</span>
+                        <span>{t('jobDetail.emptyContainerPickupDate')}: {(job.empty_pickup_date || job.empty_container_date) ? formatDate(job.empty_pickup_date || job.empty_container_date || '', language) : '-'}{job.empty_pickup_time ? ` ${job.empty_pickup_time}` : ''}</span>
                       </div>
                       {job.empty_pickup_address && (
                         <div className="flex items-start gap-2">
