@@ -85,6 +85,10 @@ interface JobDetail {
   container_checkpoint?: string | null;
   container_checkpoint_time?: string | null;
   empty_container_date?: string | null;
+  empty_pickup_address?: string | null;
+  empty_pickup_phone?: string | null;
+  empty_pickup_date?: string | null;
+  empty_pickup_time?: string | null;
   equipment_list?: string | null;
   container_number?: string | null;
   container_number_2?: string | null;
@@ -789,12 +793,20 @@ export default function DomesticJobDetail({
                     <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                       <div className="flex items-start gap-2">
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{t('jobDetail.emptyContainerPickupDate')}: {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}</span>
+                        <span>{t('jobDetail.emptyContainerPickupDate')}: {(job.empty_pickup_date || job.empty_container_date) ? formatDate(job.empty_pickup_date || job.empty_container_date || '', language) : '-'}{job.empty_pickup_time ? ` ${job.empty_pickup_time}` : ''}</span>
                       </div>
-                      <div className="flex items-start gap-2">
-                        <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{t('jobDetail.receiver')}: {job.origin_company_name || '-'}</span>
-                      </div>
+                      {job.empty_pickup_address && (
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{job.empty_pickup_address}</span>
+                        </div>
+                      )}
+                      {job.empty_pickup_phone && (
+                        <div className="flex items-start gap-2">
+                          <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>{job.empty_pickup_phone}</span>
+                        </div>
+                      )}
                       <div className="flex items-start gap-2">
                         <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>{t('jobDetail.containerTypeQty')}: {job.equipment_list || '-'}</span>
