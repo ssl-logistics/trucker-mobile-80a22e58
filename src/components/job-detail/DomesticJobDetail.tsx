@@ -807,10 +807,6 @@ export default function DomesticJobDetail({
                           <span>{job.empty_pickup_phone}</span>
                         </div>
                       )}
-                      <div className="flex items-start gap-2">
-                        <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{t('jobDetail.containerTypeQty')}: {job.equipment_list || '-'}</span>
-                      </div>
                     </div>
 
                     {/* Container/Seal info */}
