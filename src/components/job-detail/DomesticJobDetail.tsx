@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -1267,17 +1267,17 @@ export default function DomesticJobDetail({
                     }
 
                   <div className="space-y-1 text-sm mb-3">
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.returnAddress') || 'ที่อยู่'}</span>
-                      <span className="text-[#454545]">: {job.container_return_address || '-'}</span>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-[#454545] mt-0.5 shrink-0" />
+                      <span className="text-[#454545]">{job.container_return_address || '-'}</span>
                     </div>
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerReturnDate') || 'วันที่คืนตู้'}</span>
-                      <span className="text-[#454545]">: {job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-[#454545] shrink-0" />
+                      <span className="text-[#454545]">{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
                     </div>
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.contactPhone') || 'เบอร์ติดต่อ'}</span>
-                      <span className="text-[#454545]">: {job.container_return_phone || '-'}</span>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-[#454545] shrink-0" />
+                      <span className="text-[#454545]">{job.container_return_phone || '-'}</span>
                     </div>
                   </div>
 
