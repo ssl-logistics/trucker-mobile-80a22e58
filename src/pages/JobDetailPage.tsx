@@ -287,6 +287,7 @@ export default function JobDetailPage() {
         if (foundJob) {
           // Debug: dump ALL keys from API response to find correct field names
           console.log('[JobDetailPage] ALL API keys:', Object.keys(foundJob).sort());
+          console.log('[JobDetailPage] FULL RAW JSON:', JSON.stringify(foundJob, null, 2));
           console.log('[JobDetailPage] ALL API values (date/location related):', 
             Object.fromEntries(
               Object.entries(foundJob).filter(([k]) => 
