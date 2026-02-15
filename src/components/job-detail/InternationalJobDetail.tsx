@@ -457,20 +457,20 @@ export default function InternationalJobDetail({
                     {isInbound ? (
                       <>
                         <div className="flex">
-                          <span className="text-[#454545] min-w-[160px]">{t('jobDetail.shipArrivalDateTime')}</span>
-                          <span className="text-[#454545]">: {formatDate(job.start_date, language)} | {job.start_time.substring(0, 5)}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.emptyContainerPickup')}</span>
+                          <span className="text-[#454545]">: {job.origin_location || '-'}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-[#454545] min-w-[160px]">{t('jobDetail.emptyContainerPickupDate')}</span>
-                          <span className="text-[#454545]">: {containerData.emptyDate ? formatDate(containerData.emptyDate, language) : '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.emptyContainerDate')}</span>
+                          <span className="text-[#454545]">: {containerData.emptyDate ? formatDate(containerData.emptyDate, language) : formatDate(job.start_date, language)}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-[#454545] min-w-[160px]">{t('jobDetail.receiver')}</span>
-                          <span className="text-[#454545]">: {job.destination_company_name || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerNumber')}</span>
+                          <span className="text-[#454545]">: {containerData.containerNumber}</span>
                         </div>
                         <div className="flex">
-                          <span className="text-[#454545] min-w-[160px]">{t('jobDetail.containerTypeQty')}</span>
-                          <span className="text-[#454545]">: {job.origin_goods_quantity || '-'}</span>
+                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.sealNumber')}</span>
+                          <span className="text-[#454545]">: {containerData.sealNumber}</span>
                         </div>
                       </>
                     ) : (
