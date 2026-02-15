@@ -641,26 +641,41 @@ const ContainerSOPPage = () => {
                    />
                  </div>
                </div>
-               <div className="flex gap-2">
-                 <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => { setPendingOcrResult(null); setShowPhotoDrawer(true); }}
-                  >
-                    ถ่ายใหม่
-                  </Button>
-                  {needsApiVerify && (
+                <div className="flex gap-2">
                   <Button
-                    size="sm"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
-                    onClick={handleConfirmOcr}
-                    disabled={isVerifying || !pendingOcrResult.container_number}
-                  >
-                    {isVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-                    {isVerifying ? 'ตรวจสอบ...' : 'ยืนยันเลขตู้'}
-                  </Button>
-                  )}
+                     variant="outline"
+                     size="sm"
+                     className="flex-1"
+                     onClick={() => { setPendingOcrResult(null); setShowPhotoDrawer(true); }}
+                   >
+                     ถ่ายใหม่
+                   </Button>
+                   {needsApiVerify ? (
+                   <Button
+                     size="sm"
+                     className="flex-1 bg-blue-600 hover:bg-blue-700"
+                     onClick={handleConfirmOcr}
+                     disabled={isVerifying || !pendingOcrResult.container_number}
+                   >
+                     {isVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                     {isVerifying ? 'ตรวจสอบ...' : 'ยืนยันเลขตู้'}
+                   </Button>
+                   ) : (
+                   <Button
+                     size="sm"
+                     className="flex-1 bg-teal-600 hover:bg-teal-700"
+                     onClick={() => {
+                       setOcrContainerNumber(pendingOcrResult.container_number);
+                       setOcrSealNumber(pendingOcrResult.seal_number);
+                       setIsOcrVerified(true);
+                       setPendingOcrResult(null);
+                       toast({ title: 'ยืนยันเลขตู้สำเร็จ' });
+                     }}
+                     disabled={!pendingOcrResult.container_number}
+                   >
+                     ยืนยันเลขตู้
+                   </Button>
+                   )}
                 </div>
              </Card>
            )}
