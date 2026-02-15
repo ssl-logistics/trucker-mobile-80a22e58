@@ -50,7 +50,7 @@ export default function DeliverySOPCheckInPage() {
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
-  const { isInternalDriver, isExternalDriver } = useUserRole();
+  const { isInternalDriver, isExternalDriver, loading: roleLoading } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [destination, setDestination] = useState<DestinationInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,9 +61,12 @@ export default function DeliverySOPCheckInPage() {
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
 
+
   useEffect(() => {
-    loadJobDetail();
-  }, [jobId, destinationId, user]);
+    if (!roleLoading) {
+      loadJobDetail();
+    }
+  }, [jobId, destinationId, user, roleLoading]);
 
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
