@@ -858,7 +858,7 @@ export default function DomesticJobDetail({
                       }
                     }}>
 
-                          <img src={statusIcon} alt="status" className="w-3.5 h-3.5" />
+                          <img src={statusIcon} alt="status" className="w-3.5 h-3.5 hidden sm:block" />
                           <span className="text-xs">{emptyContainerCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                   }
@@ -1129,7 +1129,7 @@ export default function DomesticJobDetail({
                         const fromParam = new URLSearchParams(location.search).get('from');
                         navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
                       }} disabled={isDestinationLocked}>
-                          <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
+                          <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                           <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
@@ -1340,7 +1340,7 @@ export default function DomesticJobDetail({
                           navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
                         }
                       }}>
-                        <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert" />
+                        <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                         <span className="text-xs">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
                   </div>
