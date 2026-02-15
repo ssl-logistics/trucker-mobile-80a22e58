@@ -732,7 +732,7 @@ export default function InternationalJobDetail({
                     </div>
                     <div className="flex">
                       <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerReturnDate') || 'วันที่คืนตู้'}</span>
-                      <span className="text-[#454545]">: {(job as any).container_return_datetime ? formatDate((job as any).container_return_datetime, language) : '-'}</span>
+                      <span className="text-[#454545]">: {(job as any).container_return_date || (job as any).container_return_datetime ? formatDate((job as any).container_return_date || (job as any).container_return_datetime, language) : '-'}</span>
                     </div>
                     <div className="flex">
                       <span className="text-[#454545] min-w-[140px]">{t('jobDetail.contactPhone') || 'เบอร์ติดต่อ'}</span>
