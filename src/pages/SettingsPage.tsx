@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug } from 'lucide-react';
+import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -46,6 +46,9 @@ export default function SettingsPage() {
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSendingTestPush, setIsSendingTestPush] = useState(false);
+  const [chatbotEnabled, setChatbotEnabled] = useState(() => {
+    return localStorage.getItem('chatbot_enabled') !== 'false';
+  });
 
   useEffect(() => {
     if (user) {
@@ -277,7 +280,7 @@ export default function SettingsPage() {
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true, path: '/notifications' },
         { icon: HelpCircle, label: t('settings.app_guide'), hasRestartTour: true },
-        // { icon: Bug, label: 'Push Debug', path: '/push-debug' },
+        { icon: Bot, label: t('settings.ai_chatbot') || 'AI Chatbot', hasChatbotToggle: true },
       ]
     },
     {
@@ -358,6 +361,26 @@ export default function SettingsPage() {
                         checked={notificationsEnabled}
                         onCheckedChange={handleNotificationToggle}
                         disabled={isNotificationLoading}
+                      />
+                    </div>
+                  </div>
+                ) : item.hasChatbotToggle ? (
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <item.icon className="w-5 h-5 text-foreground" />
+                      <span className="text-foreground">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-green-600">
+                        {chatbotEnabled ? t('settings.notifications_enabled') : t('settings.notifications_disabled')}
+                      </span>
+                      <Switch
+                        checked={chatbotEnabled}
+                        onCheckedChange={(enabled) => {
+                          setChatbotEnabled(enabled);
+                          localStorage.setItem('chatbot_enabled', String(enabled));
+                          window.dispatchEvent(new Event('chatbot-toggle'));
+                        }}
                       />
                     </div>
                   </div>
