@@ -285,20 +285,27 @@ export default function JobDetailPage() {
           (stateJob ? stateJob : null); // Final fallback: use stateJob regardless of ID match (user navigated here intentionally)
 
         if (foundJob) {
-          // Debug log to inspect container/eta/empty fields from API
-          console.log('[JobDetailPage] Container/ETA fields:', {
+          // Debug log to inspect container/eta/empty/return fields from API
+          console.log('[JobDetailPage] Container/ETA/Return fields:', {
             container_checkpoint_time: foundJob.container_checkpoint_time,
             eta_date: foundJob.eta_date,
-            eta_time: foundJob.eta_time,
-            vessel_eta: foundJob.vessel_eta,
-            vessel_arrival_date: foundJob.vessel_arrival_date,
             empty_container_date: foundJob.empty_container_date,
             empty_pickup_date: foundJob.empty_pickup_date,
-            empty_pickup_time: foundJob.empty_pickup_time,
-            first_pickup_date: foundJob.first_pickup_date,
             allRelatedKeys: Object.keys(foundJob).filter(k => 
-              k.includes('eta') || k.includes('empty') || k.includes('vessel') || k.includes('container') || k.includes('checkpoint')
+              k.includes('eta') || k.includes('empty') || k.includes('vessel') || k.includes('container') || k.includes('checkpoint') || k.includes('return') || k.includes('depot')
             )
+          });
+          console.log('[JobDetailPage] Return fields raw:', {
+            container_return_location: foundJob.container_return_location,
+            container_return: foundJob.container_return,
+            return_depot: foundJob.return_depot,
+            return_location: foundJob.return_location,
+            return_address: foundJob.return_address,
+            return_date: foundJob.return_date,
+            return_phone: foundJob.return_phone,
+            full_container_return: foundJob.full_container_return,
+            return_full_container_location: foundJob.return_full_container_location,
+            return_full_container_date: foundJob.return_full_container_date,
           });
           // Map API response to JobDetail interface
           // Handle different field names from different APIs
@@ -358,13 +365,13 @@ export default function JobDetailPage() {
             booking_number: foundJob.booking_number || null,
             booking_no: foundJob.booking_no || null,
             bl_no: foundJob.bl_no || null,
-            // Container return info - support both flat fields and nested object from API
-            container_return_location: foundJob.container_return_location || foundJob.container_return?.location || null,
-            container_return_address: foundJob.container_return_address || foundJob.container_return?.address || null,
-            container_return_latitude: foundJob.container_return_latitude || foundJob.container_return?.latitude || null,
-            container_return_longitude: foundJob.container_return_longitude || foundJob.container_return?.longitude || null,
-            container_return_phone: foundJob.container_return_phone || foundJob.container_return?.phone || null,
-            container_return_date: foundJob.container_return_date || foundJob.container_return?.date || foundJob.container_return?.datetime || null,
+            // Container return info - support flat fields, nested object, and alternative field names from API
+            container_return_location: foundJob.container_return_location || foundJob.container_return?.location || foundJob.return_depot || foundJob.return_location || foundJob.return_full_container_location || foundJob.full_container_return?.location || null,
+            container_return_address: foundJob.container_return_address || foundJob.container_return?.address || foundJob.return_address || foundJob.return_full_container_address || foundJob.full_container_return?.address || null,
+            container_return_latitude: foundJob.container_return_latitude || foundJob.container_return?.latitude || foundJob.return_latitude || foundJob.full_container_return?.latitude || null,
+            container_return_longitude: foundJob.container_return_longitude || foundJob.container_return?.longitude || foundJob.return_longitude || foundJob.full_container_return?.longitude || null,
+            container_return_phone: foundJob.container_return_phone || foundJob.container_return?.phone || foundJob.return_phone || foundJob.return_contact_phone || foundJob.full_container_return?.phone || null,
+            container_return_date: foundJob.container_return_date || foundJob.container_return?.date || foundJob.container_return?.datetime || foundJob.return_date || foundJob.return_full_container_date || foundJob.full_container_return?.date || null,
             // Map destinations array from API
             destinations: Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0
               ? foundJob.destinations.map((d: any) => ({
