@@ -1062,23 +1062,28 @@ export default function DomesticJobDetail({
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
                           <span>{dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contact') || 'ผู้ติดต่อ'}</span>
                           <span>{dest.contact_name || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.time') || 'เวลา'}</span>
                           <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goods') || 'สินค้า'}</span>
                           <span>{job.origin_goods_type || '-'}</span>
                         </div>
                         {dest.notes && dest.notes !== '-' &&
                       <div className="flex items-start gap-2">
                             <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.notes') || 'หมายเหตุ'}</span>
                             <span>{dest.notes}</span>
                           </div>
                       }
