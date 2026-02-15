@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, CheckCircle, Camera } from 'lucide-react';
+import { ChevronLeft, Phone, CheckCircle, Camera, MapPin, User, Clock, Package, FileText, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -580,29 +580,34 @@ export default function InternationalJobDetail({
                           {origin.district && origin.province ? `${origin.district}, ${origin.province}` : (origin.address || '-')}
                         </h4>
 
-                        <div className="space-y-1 text-sm mb-3">
-                          <div className="flex">
-                            <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
-                            <span className="text-[#454545]">: {origin.contact_name || '-'}</span>
+                        <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                          <div className="flex items-start gap-2">
+                            <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson')}</span>
+                            <span className="truncate">{origin.contact_name || '-'}</span>
                           </div>
                           {origin.company_name && (
-                            <div className="flex">
-                              <span className="text-[#454545] min-w-[100px]">{t('jobDetail.companyName') || 'บริษัท'}</span>
-                              <span className="text-[#454545]">: {origin.company_name}</span>
+                            <div className="flex items-start gap-2">
+                              <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.companyName') || 'บริษัท'}</span>
+                              <span className="truncate">{origin.company_name}</span>
                             </div>
                           )}
-                          <div className="flex">
-                            <span className="text-[#454545] min-w-[100px]">{t('jobDetail.goodsType')}</span>
-                            <span className="text-[#454545]">: {origin.goods_type || '-'} {origin.goods_quantity ? `(${origin.goods_quantity})` : ''}</span>
+                          <div className="flex items-start gap-2">
+                            <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType')}</span>
+                            <span className="truncate">{origin.goods_type || '-'} {origin.goods_quantity ? `(${origin.goods_quantity})` : ''}</span>
                           </div>
-                          <div className="flex">
-                            <span className="text-[#454545] min-w-[100px]">{t('jobDetail.pickupTime')}</span>
-                            <span className="text-[#454545]">: {origin.pickup_date ? formatDate(origin.pickup_date, language) : formatDate(job.start_date, language)} | {origin.pickup_time ? origin.pickup_time.substring(0, 5) : job.start_time.substring(0, 5)}</span>
+                          <div className="flex items-start gap-2">
+                            <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.pickupTime')}</span>
+                            <span>{origin.pickup_date ? formatDate(origin.pickup_date, language) : formatDate(job.start_date, language)} | {origin.pickup_time ? origin.pickup_time.substring(0, 5) : job.start_time.substring(0, 5)}</span>
                           </div>
                           {origin.notes && (
-                            <div className="flex">
-                              <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
-                              <span className="text-[#454545]">: {origin.notes}</span>
+                            <div className="flex items-start gap-2">
+                              <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.remarks')}</span>
+                              <span className="truncate">{origin.notes}</span>
                             </div>
                           )}
                         </div>
@@ -658,32 +663,38 @@ export default function InternationalJobDetail({
                     {isInbound ? (job.origin_location || '-') : job.origin_location}
                   </h4>
 
-                  <div className="space-y-1 text-sm mb-3">
+                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                     {isInbound ? <>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.returnDeadline')}</span>
-                          <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : '-'} | {job.destination_time || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.returnDeadline')}</span>
+                          <span>{job.destination_date ? formatDate(job.destination_date, language) : '-'} | {job.destination_time || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerPacker')}</span>
-                          <span className="text-[#454545]">: {job.origin_company_name || job.origin_contact_person || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerPacker')}</span>
+                          <span className="truncate">{job.origin_company_name || job.origin_contact_person || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.remarks')}</span>
-                          <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.remarks')}</span>
+                          <span className="truncate">{job.origin_remarks || '-'}</span>
                         </div>
                       </> : <>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.fullReturnDate')}</span>
-                          <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.fullReturnDate')}</span>
+                          <span>{job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerPacker')}</span>
-                          <span className="text-[#454545]">: {(job as any).shipper_load || job.origin_company_name || job.origin_contact_person || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerPacker')}</span>
+                          <span className="truncate">{(job as any).shipper_load || job.origin_company_name || job.origin_contact_person || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.remarks')}</span>
-                          <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
+                        <div className="flex items-start gap-2">
+                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.remarks')}</span>
+                          <span className="truncate">{job.origin_remarks || '-'}</span>
                         </div>
                       </>}
                   </div>
@@ -725,18 +736,21 @@ export default function InternationalJobDetail({
                     {(job as any).container_return_location || '-'}
                   </h4>
 
-                  <div className="space-y-1 text-sm mb-3">
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.returnAddress') || 'ที่อยู่'}</span>
-                      <span className="text-[#454545]">: {(job as any).container_return_address || '-'}</span>
+                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.returnAddress') || 'ที่อยู่'}</span>
+                      <span className="truncate">{(job as any).container_return_address || '-'}</span>
                     </div>
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerReturnDate') || 'วันที่คืนตู้'}</span>
-                      <span className="text-[#454545]">: {(job as any).container_return_date || (job as any).container_return_datetime ? formatDate((job as any).container_return_date || (job as any).container_return_datetime, language) : '-'}</span>
+                    <div className="flex items-start gap-2">
+                      <Calendar className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerReturnDate') || 'วันที่คืนตู้'}</span>
+                      <span>{(job as any).container_return_date || (job as any).container_return_datetime ? formatDate((job as any).container_return_date || (job as any).container_return_datetime, language) : '-'}</span>
                     </div>
-                    <div className="flex">
-                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.contactPhone') || 'เบอร์ติดต่อ'}</span>
-                      <span className="text-[#454545]">: {(job as any).container_return_phone || '-'}</span>
+                    <div className="flex items-start gap-2">
+                      <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPhone') || 'เบอร์ติดต่อ'}</span>
+                      <span>{(job as any).container_return_phone || '-'}</span>
                     </div>
                   </div>
 
