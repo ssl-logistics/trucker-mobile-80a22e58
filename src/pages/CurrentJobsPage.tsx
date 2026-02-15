@@ -806,6 +806,7 @@ export default function CurrentJobsPage() {
                     </div>
 
 
+                    {!job.bl_no && !job.booking_no && (
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
                       <div>
                         <span className="text-[#375c7b]">{t('job.goods')} : </span>
@@ -820,6 +821,7 @@ export default function CurrentJobsPage() {
                         <span>{job.product_quantity || '-'}</span>
                       </div>
                     </div>
+                    )}
 
                     <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => {
                       // Navigate to correct page based on job type
