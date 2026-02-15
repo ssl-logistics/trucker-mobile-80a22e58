@@ -109,7 +109,7 @@ export function AppHeader({
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-sm text-[#153860] whitespace-nowrap truncate">{userName || t('settings.title')}</span>
                   {userTypeInfo && (
-                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-white whitespace-nowrap flex-shrink-0 ${userTypeInfo.color}`}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-white whitespace-nowrap flex-shrink-0 ${userTypeInfo.color}`}>
                       <userTypeInfo.icon className="w-2.5 h-2.5" />
                       {userTypeInfo.label}
                     </span>
