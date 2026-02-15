@@ -545,11 +545,6 @@ export default function JobHistoryPage() {
     // First filter out applications with null jobs
     let filtered = apps.filter(app => app.jobs !== null);
 
-    // Filter to only show last 3 months
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    filtered = filtered.filter(app => new Date(app.applied_at) >= threeMonthsAgo);
-
     // Filter by tab
     if (activeTab === "in-progress") {
       filtered = filtered.filter(app => app.job_started_at && !app.payment_completed_at);
@@ -570,11 +565,6 @@ export default function JobHistoryPage() {
 
   const filterCompletedJobs = (jobs: CompletedJob[]) => {
     let filtered = [...jobs];
-
-    // Filter to only show last 3 months
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    filtered = filtered.filter(job => new Date(job.sender_pickup_date) >= threeMonthsAgo);
 
     // Filter by tab - only show in "all" or "completed" tabs
     if (activeTab === "in-progress") {
