@@ -649,12 +649,18 @@ export default function DomesticJobDetail({
         {/* Route Info */}
         <div>
           <div className="mb-3">
-            <h2 className="text-base font-semibold text-foreground">
-              {job.booking_no ?
-            `Booking : ${job.booking_no} (ขาออก)` :
-            job.bl_no ?
-            `BL : ${job.bl_no} (ขาเข้า)` :
-            `${job.job_type === 'international' ? t('jobDetail.booking') : t('jobDetail.order')} : ${job.order_code}`}
+            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+              {job.booking_no ? <>
+                <FileText className="w-4 h-4 text-[#225795] shrink-0" />
+                <span>Booking : {job.booking_no} ({t('jobDetail.outbound') || 'ขาออก'})</span>
+              </> :
+              job.bl_no ? <>
+                <FileText className="w-4 h-4 text-[#225795] shrink-0" />
+                <span>BL : {job.bl_no} ({t('jobDetail.inbound') || 'ขาเข้า'})</span>
+              </> : <>
+                <FileText className="w-4 h-4 text-[#225795] shrink-0" />
+                <span>{job.job_type === 'international' ? t('jobDetail.booking') : t('jobDetail.order')} : {job.order_code}</span>
+              </>}
             </h2>
           </div>
 
