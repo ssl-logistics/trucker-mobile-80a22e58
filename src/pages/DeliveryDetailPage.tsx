@@ -95,7 +95,7 @@ export default function DeliveryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPaymentDrawer, setShowPaymentDrawer] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("cash");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [showPodConfirmDialog, setShowPodConfirmDialog] = useState(false);
   const [podPhoto, setPodPhoto] = useState<File | null>(null);
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
@@ -790,78 +790,7 @@ export default function DeliveryDetailPage() {
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
 
-            {/* Payment Method Selection - Integrated with POD */}
-            {podPhoto && (
-              <div className="border-t pt-4 mt-4">
-                <h4 className="font-semibold text-base mb-3 text-gray-800">{t('delivery.paymentChannel')}</h4>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setSelectedPaymentMethod("cash")}
-                    className={`w-full flex items-center gap-4 p-3 rounded-lg border-2 transition-all ${
-                      selectedPaymentMethod === "cash"
-                        ? "border-teal-500 bg-teal-50"
-                        : "border-gray-200 bg-white hover:bg-gray-50"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedPaymentMethod === "cash" ? "border-teal-500" : "border-gray-300"
-                      }`}
-                    >
-                      {selectedPaymentMethod === "cash" && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
-                    </div>
-                    <span className="text-sm font-medium">{t('delivery.cash')}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setSelectedPaymentMethod("mobile_banking")}
-                    className={`w-full flex items-center justify-between gap-4 p-3 rounded-lg border-2 transition-all ${
-                      selectedPaymentMethod === "mobile_banking"
-                        ? "border-teal-500 bg-teal-50"
-                        : "border-gray-200 bg-white hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPaymentMethod === "mobile_banking" ? "border-teal-500" : "border-gray-300"
-                        }`}
-                      >
-                        {selectedPaymentMethod === "mobile_banking" && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
-                      </div>
-                      <span className="text-sm font-medium">{t('delivery.mobileBanking')}</span>
-                    </div>
-                    <Phone className="w-4 h-4 text-gray-400" />
-                  </button>
-
-                  <button
-                    onClick={() => setSelectedPaymentMethod("qr_code")}
-                    className={`w-full flex items-center justify-between gap-4 p-3 rounded-lg border-2 transition-all ${
-                      selectedPaymentMethod === "qr_code"
-                        ? "border-teal-500 bg-teal-50"
-                        : "border-gray-200 bg-white hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPaymentMethod === "qr_code" ? "border-teal-500" : "border-gray-300"
-                        }`}
-                      >
-                        {selectedPaymentMethod === "qr_code" && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
-                      </div>
-                      <span className="text-sm font-medium">{t('delivery.qrCode')}</span>
-                    </div>
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <rect x="3" y="3" width="7" height="7" rx="1" />
-                      <rect x="14" y="3" width="7" height="7" rx="1" />
-                      <rect x="3" y="14" width="7" height="7" rx="1" />
-                      <rect x="14" y="14" width="7" height="7" rx="1" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Payment method removed - sending null to API */}
           </div>
         )}
 
@@ -1013,91 +942,7 @@ export default function DeliveryDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Payment Method Drawer */}
-      <Drawer open={showPaymentDrawer} onOpenChange={setShowPaymentDrawer}>
-        <DrawerContent>
-          <DrawerHeader className="text-left">
-            <DrawerTitle className="text-xl">{t('delivery.makePayment')}</DrawerTitle>
-            <DrawerDescription className="text-base mt-2">{t('delivery.paymentChannel')}</DrawerDescription>
-          </DrawerHeader>
-          <div className="px-4 pb-4 space-y-3">
-            <button
-              onClick={() => setSelectedPaymentMethod("cash")}
-              className={`w-full flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
-                selectedPaymentMethod === "cash"
-                  ? "border-teal-500 bg-teal-50"
-                  : "border-gray-200 bg-white hover:bg-gray-50"
-              }`}
-            >
-              <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  selectedPaymentMethod === "cash" ? "border-teal-500" : "border-gray-300"
-                }`}
-              >
-                {selectedPaymentMethod === "cash" && <div className="w-3 h-3 rounded-full bg-teal-500" />}
-              </div>
-              <span className="text-base font-medium">{t('delivery.cash')}</span>
-            </button>
-
-            <button
-              onClick={() => setSelectedPaymentMethod("mobile_banking")}
-              className={`w-full flex items-center justify-between gap-4 p-4 rounded-lg border-2 transition-all ${
-                selectedPaymentMethod === "mobile_banking"
-                  ? "border-teal-500 bg-teal-50"
-                  : "border-gray-200 bg-white hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    selectedPaymentMethod === "mobile_banking" ? "border-teal-500" : "border-gray-300"
-                  }`}
-                >
-                  {selectedPaymentMethod === "mobile_banking" && <div className="w-3 h-3 rounded-full bg-teal-500" />}
-                </div>
-                <span className="text-base font-medium">{t('delivery.mobileBanking')}</span>
-              </div>
-              <Phone className="w-5 h-5 text-gray-400" />
-            </button>
-
-            <button
-              onClick={() => setSelectedPaymentMethod("qr_code")}
-              className={`w-full flex items-center justify-between gap-4 p-4 rounded-lg border-2 transition-all ${
-                selectedPaymentMethod === "qr_code"
-                  ? "border-teal-500 bg-teal-50"
-                  : "border-gray-200 bg-white hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    selectedPaymentMethod === "qr_code" ? "border-teal-500" : "border-gray-300"
-                  }`}
-                >
-                  {selectedPaymentMethod === "qr_code" && <div className="w-3 h-3 rounded-full bg-teal-500" />}
-                </div>
-                <span className="text-base font-medium">{t('delivery.qrCode')}</span>
-              </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-            </button>
-          </div>
-          <DrawerFooter>
-            <Button onClick={handlePaymentConfirm} className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700">
-              {t('delivery.confirmPayment')}
-            </Button>
-            <DrawerClose asChild>
-              <Button variant="outline" className="w-full h-12 text-base">
-                {t('delivery.cancel')}
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+      {/* Payment Method Drawer removed - sending null to API */}
 
       {/* POD Confirmation Dialog */}
       <Dialog open={showPodConfirmDialog} onOpenChange={setShowPodConfirmDialog}>
