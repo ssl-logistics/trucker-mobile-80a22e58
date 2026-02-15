@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +48,7 @@ interface DestinationInfo {
 export default function DeliverySOPCheckInPage() {
   const navigate = useNavigate();
   const { jobId, destinationId } = useParams();
+  const location = useLocation();
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { isInternalDriver, isExternalDriver, loading: roleLoading } = useUserRole();
@@ -61,8 +62,27 @@ export default function DeliverySOPCheckInPage() {
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
 
-
   useEffect(() => {
+    // Try to use job data passed via navigation state first
+    const stateJobData = (location.state as any)?.jobData;
+    if (stateJobData && jobId) {
+      const targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
+      const mappedJob: JobDetail = {
+        id: stateJobData.id || stateJobData.transport_order_id,
+        order_code: stateJobData.order_number || stateJobData.order_code || jobId,
+        employer_name: stateJobData.destination_name || stateJobData.destination_company_name || stateJobData.employer_name,
+        destination_location: `${stateJobData.destination_district || ''}, ${stateJobData.destination_province || ''}`,
+        destination_company_name: stateJobData.destination_company_name || stateJobData.destination_name,
+        start_date: stateJobData.destination_delivery_date || stateJobData.sender_pickup_date || stateJobData.start_date,
+        start_time: stateJobData.destination_delivery_time || stateJobData.sender_pickup_time || stateJobData.start_time,
+      };
+      setJob(mappedJob);
+      setDestination({ sequence_number: targetSequenceNumber });
+      setLoading(false);
+      return;
+    }
+
+    // Fallback: fetch from API
     if (!roleLoading) {
       loadJobDetail();
     }

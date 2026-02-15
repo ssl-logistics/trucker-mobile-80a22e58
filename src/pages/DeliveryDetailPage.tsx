@@ -687,8 +687,10 @@ export default function DeliveryDetailPage() {
       });
       setShowConfirmDialog(false);
       
-      // Navigate to POD page
-      navigate(`/job/${job.order_code}/delivery-sop${destinationId ? `/${destinationId}` : ''}`);
+      // Navigate to POD page with job data to avoid re-fetching
+      navigate(`/job/${job.order_code}/delivery-sop${destinationId ? `/${destinationId}` : ''}`, {
+        state: { jobData: job }
+      });
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
