@@ -11,6 +11,7 @@ const PAGES_WITH_NAV = ["/home", "/chat", "/dashboard", "/settings"];
 export function FloatingChatbot() {
   const [showChatbot, setShowChatbot] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [enabled, setEnabled] = useState(() => localStorage.getItem('chatbot_enabled') !== 'false');
   const location = useLocation();
   const { t } = useLanguage();
 
@@ -19,6 +20,9 @@ export function FloatingChatbot() {
 
   useEffect(() => {
     setMounted(true);
+    const handler = () => setEnabled(localStorage.getItem('chatbot_enabled') !== 'false');
+    window.addEventListener('chatbot-toggle', handler);
+    return () => window.removeEventListener('chatbot-toggle', handler);
   }, []);
 
   const buttonContent = (
@@ -49,8 +53,7 @@ export function FloatingChatbot() {
     </button>
   );
 
-  // Don't render if not on a main page
-  if (!shouldShow) {
+  if (!shouldShow || !enabled) {
     return null;
   }
 
