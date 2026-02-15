@@ -285,28 +285,19 @@ export default function JobDetailPage() {
           (stateJob ? stateJob : null); // Final fallback: use stateJob regardless of ID match (user navigated here intentionally)
 
         if (foundJob) {
-          // Debug log to inspect container/eta/empty/return fields from API
-          console.log('[JobDetailPage] Container/ETA/Return fields:', {
-            container_checkpoint_time: foundJob.container_checkpoint_time,
-            eta_date: foundJob.eta_date,
-            empty_container_date: foundJob.empty_container_date,
-            empty_pickup_date: foundJob.empty_pickup_date,
-            allRelatedKeys: Object.keys(foundJob).filter(k => 
-              k.includes('eta') || k.includes('empty') || k.includes('vessel') || k.includes('container') || k.includes('checkpoint') || k.includes('return') || k.includes('depot')
+          // Debug: dump ALL keys from API response to find correct field names
+          console.log('[JobDetailPage] ALL API keys:', Object.keys(foundJob).sort());
+          console.log('[JobDetailPage] ALL API values (date/location related):', 
+            Object.fromEntries(
+              Object.entries(foundJob).filter(([k]) => 
+                k.includes('date') || k.includes('time') || k.includes('empty') || 
+                k.includes('return') || k.includes('depot') || k.includes('container') || 
+                k.includes('checkpoint') || k.includes('pickup') || k.includes('eta') ||
+                k.includes('vessel') || k.includes('location') || k.includes('address') ||
+                k.includes('phone') || k.includes('contact')
+              )
             )
-          });
-          console.log('[JobDetailPage] Return fields raw:', {
-            container_return_location: foundJob.container_return_location,
-            container_return: foundJob.container_return,
-            return_depot: foundJob.return_depot,
-            return_location: foundJob.return_location,
-            return_address: foundJob.return_address,
-            return_date: foundJob.return_date,
-            return_phone: foundJob.return_phone,
-            full_container_return: foundJob.full_container_return,
-            return_full_container_location: foundJob.return_full_container_location,
-            return_full_container_date: foundJob.return_full_container_date,
-          });
+          );
           // Map API response to JobDetail interface
           // Handle different field names from different APIs
           const mappedJob: JobDetail = {
