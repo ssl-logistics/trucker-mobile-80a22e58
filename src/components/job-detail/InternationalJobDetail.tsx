@@ -731,12 +731,33 @@ export default function InternationalJobDetail({
                       <span className="text-[#454545]">: {(job as any).container_return_address || '-'}</span>
                     </div>
                     <div className="flex">
+                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerReturnDate') || 'วันที่คืนตู้'}</span>
+                      <span className="text-[#454545]">: {(job as any).container_return_datetime ? formatDate((job as any).container_return_datetime, language) : '-'}</span>
+                    </div>
+                    <div className="flex">
                       <span className="text-[#454545] min-w-[140px]">{t('jobDetail.contactPhone') || 'เบอร์ติดต่อ'}</span>
                       <span className="text-[#454545]">: {(job as any).container_return_phone || '-'}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button 
+                      variant="outline"
+                      size="sm" 
+                      className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" 
+                      disabled={!(isOutbound ? !!jobApplication?.sop_completed_at : deliveryCheckedIn)}
+                      onClick={() => {
+                        const phone = (job as any).container_return_phone;
+                        if (phone) window.open(`tel:${phone}`);
+                      }}
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span className="text-xs">{t('jobDetail.call')}</span>
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(isOutbound ? !!jobApplication?.sop_completed_at : deliveryCheckedIn)}>
+                      <img src={routeIcon} alt="route" className="w-4 h-4" />
+                      <span className="text-xs">{t('jobDetail.route')}</span>
+                    </Button>
                     <Button 
                       size="sm" 
                       className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" 
@@ -745,15 +766,6 @@ export default function InternationalJobDetail({
                     >
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       <span className="text-[10px] leading-tight text-center">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      size="sm" 
-                      className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" 
-                      disabled={!containerReturnCheckedIn}
-                    >
-                      <Phone className="w-4 h-4" />
-                      <span className="text-xs">{t('jobDetail.call') || 'โทร'}</span>
                     </Button>
                   </div>
                 </div>
