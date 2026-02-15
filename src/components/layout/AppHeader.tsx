@@ -60,7 +60,7 @@ export function AppHeader({
       return { label: t('home.external_driver'), icon: Building2, color: 'bg-orange-500' };
     }
     if (isFreelanceDriver) {
-      return { label: t('home.freelance_driver'), icon: Truck, color: 'bg-green-500' };
+      return { label: t('home.freelance_driver'), icon: Truck, color: 'bg-red-500' };
     }
     return null;
   };
