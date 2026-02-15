@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
-import { driverCheckin } from '@/lib/externalApi';
+import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
 import {
   Dialog,
   DialogContent,
@@ -71,65 +71,70 @@ export default function DeliverySOPCheckInPage() {
     setLoading(true);
     
     try {
-      // Fetch from API via proxy using order_number
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
+      let allJobs: any[] = [];
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch job details');
+      if (isInternalDriver || isExternalDriver) {
+        // For internal/external drivers, use getDriverAssignedJobs
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        const [inTransitRes, deliveredRes, completedRes] = await Promise.all([
+          getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
+        ]) as any[];
+        allJobs = [
+          ...((inTransitRes as any)?.data || []),
+          ...((deliveredRes as any)?.data || []),
+          ...((completedRes as any)?.data || []),
+        ];
+      } else {
+        // For freelance drivers, use getFreelanceAcceptedJobs
+        const result = await getFreelanceAcceptedJobs(user.id) as any;
+        allJobs = result?.data || [];
       }
 
-      const result = await response.json();
+      // Find the specific job by order_number
+      const foundJob = allJobs.find((j: any) => 
+        j.order_number === jobId || String(j.id) === jobId
+      );
       
-      if (result.success && result.data) {
-        // Find the specific job by order_number
-        const foundJob = result.data.find((j: any) => j.order_number === jobId);
+      if (foundJob) {
+        // Determine sequence number from URL param
+        const targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
         
-         if (foundJob) {
-          // Determine sequence number from URL param
-          const targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
-          
-          // Check if job has multiple destinations
-          const destinationsArray = foundJob.destinations || [];
-          let targetDestination: any = null;
-          
-          if (destinationsArray.length > 0) {
-            targetDestination = destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
-              || destinationsArray[0];
-            console.log('Multi-destination job, target sequence:', targetSequenceNumber);
-          }
-          
-          // Set destination state
-          if (targetDestination) {
-            setDestination({
-              sequence_number: targetDestination.sequence_number || targetSequenceNumber,
-            });
-          } else {
-            setDestination({
-              sequence_number: 1,
-            });
-          }
-          
-          // Map API response to JobDetail interface
-          const mappedJob: JobDetail = {
-            id: foundJob.id,
-            order_code: foundJob.order_number,
-            employer_name: foundJob.destination_name || foundJob.destination_company_name,
-            destination_location: `${foundJob.destination_district}, ${foundJob.destination_province}`,
-            destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
-            start_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date,
-            start_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time,
-          };
-          setJob(mappedJob);
-        } else {
-          throw new Error('Job not found');
+        // Check if job has multiple destinations
+        const destinationsArray = foundJob.destinations || [];
+        let targetDestination: any = null;
+        
+        if (destinationsArray.length > 0) {
+          targetDestination = destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
+            || destinationsArray[0];
+          console.log('Multi-destination job, target sequence:', targetSequenceNumber);
         }
+        
+        // Set destination state
+        if (targetDestination) {
+          setDestination({
+            sequence_number: targetDestination.sequence_number || targetSequenceNumber,
+          });
+        } else {
+          setDestination({
+            sequence_number: 1,
+          });
+        }
+        
+        // Map API response to JobDetail interface
+        const mappedJob: JobDetail = {
+          id: foundJob.id,
+          order_code: foundJob.order_number,
+          employer_name: foundJob.destination_name || foundJob.destination_company_name,
+          destination_location: `${foundJob.destination_district || ''}, ${foundJob.destination_province || ''}`,
+          destination_company_name: foundJob.destination_company_name || foundJob.destination_name,
+          start_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date,
+          start_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time,
+        };
+        setJob(mappedJob);
+      } else {
+        throw new Error('Job not found');
       }
     } catch (error) {
       console.error('Error loading job detail:', error);
