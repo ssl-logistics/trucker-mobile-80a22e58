@@ -799,17 +799,20 @@ export default function DomesticJobDetail({
                     <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                       <div className="flex items-start gap-2">
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{t('jobDetail.emptyContainerPickupDate')}: {(job.empty_pickup_date || job.empty_container_date) ? formatDate(job.empty_pickup_date || job.empty_container_date || '', language) : '-'}{job.empty_pickup_time ? ` ${job.empty_pickup_time}` : ''}</span>
+                        <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
+                        <span>{(job.empty_pickup_date || job.empty_container_date) ? formatDate(job.empty_pickup_date || job.empty_container_date || '', language) : '-'}{job.empty_pickup_time ? ` ${job.empty_pickup_time}` : ''}</span>
                       </div>
                       {job.empty_pickup_address && (
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
                           <span>{job.empty_pickup_address}</span>
                         </div>
                       )}
                       {job.empty_pickup_phone && (
                         <div className="flex items-start gap-2">
                           <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ติดต่อ'}</span>
                           <span>{job.empty_pickup_phone}</span>
                         </div>
                       )}
