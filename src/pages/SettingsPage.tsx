@@ -372,7 +372,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-green-600">
-                        {chatbotEnabled ? t('settings.notifications_enabled') : t('settings.notifications_disabled')}
+                        {chatbotEnabled ? t('settings.chatbot_on') : t('settings.chatbot_off')}
                       </span>
                       <Switch
                         checked={chatbotEnabled}
