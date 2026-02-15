@@ -1266,25 +1266,19 @@ export default function DomesticJobDetail({
                     <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_return_location}</p>
                     }
 
-                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
-                    {job.container_return_address &&
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{job.container_return_address}</span>
-                      </div>
-                      }
-                    {job.container_return_date &&
-                      <div className="flex items-start gap-2">
-                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>วันที่คืนตู้: {formatDate(job.container_return_date, language)}</span>
-                      </div>
-                      }
-                    {job.container_return_phone &&
-                      <div className="flex items-start gap-2">
-                        <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{job.container_return_phone}</span>
-                      </div>
-                      }
+                  <div className="space-y-1 text-sm mb-3">
+                    <div className="flex">
+                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.returnAddress') || 'ที่อยู่'}</span>
+                      <span className="text-[#454545]">: {job.container_return_address || '-'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerReturnDate') || 'วันที่คืนตู้'}</span>
+                      <span className="text-[#454545]">: {job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-[#454545] min-w-[140px]">{t('jobDetail.contactPhone') || 'เบอร์ติดต่อ'}</span>
+                      <span className="text-[#454545]">: {job.container_return_phone || '-'}</span>
+                    </div>
                   </div>
 
                   <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
