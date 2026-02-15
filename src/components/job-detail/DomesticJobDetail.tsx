@@ -666,7 +666,8 @@ export default function DomesticJobDetail({
               const isInternational = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
               const hasEmptyContainer = isInternational;
               const hasPickup = !job.bl_no;
-              const deliveryCount = destinations.length > 0 ? destinations.length : 1;
+              const hasDelivery = !job.booking_no;
+              const deliveryCount = hasDelivery ? (destinations.length > 0 ? destinations.length : 1) : 0;
               const hasContainerReturn = isInternational && (job.container_return_location || job.container_return_latitude);
               const totalSteps = (hasEmptyContainer ? 1 : 0) + (hasPickup ? 1 : 0) + deliveryCount + (hasContainerReturn ? 1 : 0);
               return totalSteps > 1 ?
@@ -709,21 +710,19 @@ export default function DomesticJobDetail({
               </div>
             }
 
-              {/* Delivery Point Circles */}
-              {(destinations.length > 0 ? destinations : [{
+              {/* Delivery Point Circles - Hidden for Booking (outbound) jobs */}
+              {!job.booking_no && (destinations.length > 0 ? destinations : [{
               id: 'fallback',
               sequence_number: 1
             }]).map((dest, index) => {
-              // For destinations array, check destinationCheckins using sequence_number
-              // For fallback single destination, use deliverySopCompleted/deliveryCheckedIn
               const seq = dest.sequence_number;
               const destCheckinData = destinationCheckins[seq];
 
               const isPodCompleted = dest.id === 'fallback' ?
-              deliverySopCompleted // Use ONLY actual API check-in status
+              deliverySopCompleted
               : !!(destCheckinData?.sop_completed_at || dest.sop_completed_at);
               const isCheckedIn = dest.id === 'fallback' ?
-              deliveryCheckedIn // Use ONLY actual API check-in status
+              deliveryCheckedIn
               : !!(destCheckinData?.checked_in_at || dest.checked_in_at);
 
               return <div key={dest.id} className="relative flex justify-center" style={{
@@ -997,8 +996,8 @@ export default function DomesticJobDetail({
             })()}
 
 
-              {/* Delivery Point Cards - Multiple destinations */}
-              {destinations.length > 0 ? destinations.map((dest, index) => {
+              {/* Delivery Point Cards - Hidden for Booking (outbound) jobs */}
+              {!job.booking_no && (destinations.length > 0 ? destinations.map((dest, index) => {
               // Get check-in status from destinationCheckins state (enriched from API)
               const destCheckin = destinationCheckins[dest.sequence_number];
               const isPodCompleted = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
@@ -1239,18 +1238,20 @@ export default function DomesticJobDetail({
                   </div>
                 </Card>);
 
-            })()}
+            })())}
 
             {/* Container Return Card - Only for international jobs, unlocked after all deliveries completed */}
             {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
             job.container_return_location || job.container_return_latitude) && (() => {
-              // Check if ALL destinations have completed POD
-              const allDeliveriesCompleted = destinations.length > 0 ?
-              destinations.every((dest) => {
-                const destCheckin = destinationCheckins[dest.sequence_number];
-                return !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
-              }) :
-              deliverySopCompleted; // fallback for single destination
+              // For booking (outbound) jobs without delivery, unlock after pickup SOP
+              const allDeliveriesCompleted = job.booking_no
+                ? (pickupSopCompleted || !!jobApplication?.sop_completed_at)
+                : (destinations.length > 0 ?
+                  destinations.every((dest) => {
+                    const destCheckin = destinationCheckins[dest.sequence_number];
+                    return !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
+                  }) :
+                  deliverySopCompleted);
 
               return (
                 <Card ref={containerReturnRef} className={`overflow-hidden border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500' : containerReturnCheckedIn ? 'border-blue-500' : allDeliveriesCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
