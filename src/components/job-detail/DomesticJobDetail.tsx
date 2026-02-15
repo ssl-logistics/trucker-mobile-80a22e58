@@ -49,22 +49,6 @@ interface JobDestination {
   sop_completed_at: string | null;
 }
 
-interface JobOrigin {
-  id: string;
-  sequence_number: number;
-  company_name: string | null;
-  contact_name: string | null;
-  contact_phone: string | null;
-  address: string | null;
-  province: string | null;
-  district: string | null;
-  pickup_date: string | null;
-  pickup_time: string | null;
-  goods_type: string | null;
-  goods_quantity: string | null;
-  notes: string | null;
-}
-
 interface JobDetail {
   id: string;
   order_code: string;
@@ -109,8 +93,6 @@ interface JobDetail {
   booking_number?: string | null;
   booking_no?: string | null;
   bl_no?: string | null;
-  // Multiple origins from API
-  origins?: JobOrigin[];
   // Multiple destinations from API
   destinations?: JobDestination[];
   // Container return info for international jobs
@@ -153,13 +135,11 @@ export default function DomesticJobDetail({
   } = useLanguage();
   const card1Ref = useRef<HTMLDivElement>(null);
   const emptyContainerRef = useRef<HTMLDivElement>(null);
-  const originCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const deliveryCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const containerReturnRef = useRef<HTMLDivElement>(null);
-  const [cardHeights, setCardHeights] = useState<{emptyContainer: number;card1: number;originCards: Record<string, number>;deliveryCards: Record<string, number>;containerReturn: number;}>({
+  const [cardHeights, setCardHeights] = useState<{emptyContainer: number;card1: number;deliveryCards: Record<string, number>;containerReturn: number;}>({
     emptyContainer: 0,
     card1: 0,
-    originCards: {},
     deliveryCards: {},
     containerReturn: 0
   });
@@ -581,24 +561,19 @@ export default function DomesticJobDetail({
 
   useEffect(() => {
     // Calculate card heights for step positioning
-    const newHeights: typeof cardHeights = {
+    const newHeights: {emptyContainer: number;card1: number;deliveryCards: Record<string, number>;containerReturn: number;} = {
       emptyContainer: emptyContainerRef.current?.offsetHeight || 0,
       card1: card1Ref.current?.offsetHeight || 0,
-      originCards: {},
       deliveryCards: {},
       containerReturn: containerReturnRef.current?.offsetHeight || 0
     };
-    originCardRefs.current.forEach((el, key) => {
-      newHeights.originCards[key] = el.offsetHeight;
-    });
     deliveryCardRefs.current.forEach((el, key) => {
       newHeights.deliveryCards[key] = el.offsetHeight;
     });
     setCardHeights(newHeights);
-  }, [jobApplication, job.destinations, job.origins, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location]);
+  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location]);
 
-  // Use origins and destinations from job props if available, otherwise empty array
-  const origins: JobOrigin[] = job.origins || [];
+  // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
 
   return <div className="min-h-screen bg-background pb-20">
@@ -644,7 +619,7 @@ export default function DomesticJobDetail({
         }
           <div className="flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-sm">
             <MapPin className="w-3.5 h-3.5" />
-            <span>{(origins.length > 0 ? origins.length : 1) + (destinations.length > 0 ? destinations.length : 1)} {t('jobDetail.pickupDeliveryPoints')}</span>
+            <span>{destinations.length > 0 ? destinations.length + 1 : 2} {t('jobDetail.pickupDeliveryPoints')}</span>
           </div>
           {job.job_type !== 'international' &&
         <div className="flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-sm">
@@ -691,10 +666,9 @@ export default function DomesticJobDetail({
               const isInternational = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
               const hasEmptyContainer = isInternational;
               const hasPickup = !job.bl_no;
-              const pickupCount = hasPickup ? (origins.length > 0 ? origins.length : 1) : 0;
               const deliveryCount = destinations.length > 0 ? destinations.length : 1;
               const hasContainerReturn = isInternational && (job.container_return_location || job.container_return_latitude);
-              const totalSteps = (hasEmptyContainer ? 1 : 0) + pickupCount + deliveryCount + (hasContainerReturn ? 1 : 0);
+              const totalSteps = (hasEmptyContainer ? 1 : 0) + (hasPickup ? 1 : 0) + deliveryCount + (hasContainerReturn ? 1 : 0);
               return totalSteps > 1 ?
               <div className="absolute left-1/2 -translate-x-1/2 w-0.5 bg-gray-300" style={{
                 top: '8px',
@@ -722,32 +696,18 @@ export default function DomesticJobDetail({
                 </div>
             }
 
-              {/* Step 1 Circle(s) - Pickup Point(s) (hidden for BL inbound jobs) */}
-              {!job.bl_no && (origins.length > 1 ?
-                origins.map((origin) => (
-                  <div key={origin.id} className="relative flex justify-center mb-3" style={{
-                    height: `${cardHeights.originCards[origin.id] || 200}px`
-                  }}>
-                    <div className="absolute top-0">
-                      {pickupSopCompleted || jobApplication?.sop_completed_at ?
-                        <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-                          <CheckCircle className="w-4 h-4 text-white" />
-                        </div> :
-                        <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" />
-                      }
-                    </div>
-                  </div>
-                )) :
-                <div className="relative flex justify-center mb-3" style={{
-                  height: `${cardHeights.card1 || 200}px`
-                }}>
-                  <div className="absolute top-0">
-                    {pickupSopCompleted || jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div> : <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" />}
-                  </div>
+              {/* Step 1 Circle - Pickup Point (hidden for BL inbound jobs) */}
+              {!job.bl_no &&
+            <div className="relative flex justify-center mb-3" style={{
+              height: `${cardHeights.card1 || 200}px`
+            }}>
+                <div className="absolute top-0">
+                  {pickupSopCompleted || jobApplication?.sop_completed_at ? <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div> : <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" />}
                 </div>
-              )}
+              </div>
+            }
 
               {/* Delivery Point Circles */}
               {(destinations.length > 0 ? destinations : [{
@@ -903,117 +863,14 @@ export default function DomesticJobDetail({
                 </Card>
             }
 
-              {/* Pickup Point Card(s) */}
+              {/* Pickup Point Card */}
               {/* For international jobs, pickup is locked until empty container is checked in */}
               {/* For BL (inbound) jobs, hide pickup card entirely */}
               {!job.bl_no && (() => {
               const isInternationalJob = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
+              // Lock pickup if: international job AND (not checked in OR checked in but OCR not verified)
               const isPickupLocked = isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isOcrVerified);
 
-              // Multiple origins
-              if (origins.length > 1) {
-                return origins.map((origin, index) => (
-                  <Card key={origin.id} ref={(el) => {if (el) originCardRefs.current.set(origin.id, el); else originCardRefs.current.delete(origin.id);}} className={`overflow-hidden border-2 rounded-2xl ${pickupSopCompleted || jobApplication?.sop_completed_at ? 'border-green-500' : pickupCheckedIn ? 'border-teal-500' : isPickupLocked ? 'border-gray-300' : 'border-teal-500'}`}>
-                    <div className={`px-4 py-2.5 flex items-center justify-between ${pickupSopCompleted || jobApplication?.sop_completed_at ? 'bg-green-500' : pickupCheckedIn ? 'bg-teal-600' : isPickupLocked ? 'bg-gray-400' : 'bg-teal-600'}`}>
-                      <h3 className="font-semibold text-sm text-white">{t('jobDetail.pickupPoint')} #{origin.sequence_number}</h3>
-                      {isLoadingCheckinStatus ?
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
-                          <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
-                          {t('common.checking')}
-                        </span> :
-                        isPickupLocked ?
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
-                          {t('jobDetail.waitingPreviousStep')}
-                        </span> :
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
-                          {pickupSopCompleted || jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
-                        </span>
-                      }
-                    </div>
-                    <div className={`p-4 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                      {origin.company_name &&
-                        <p className="font-semibold text-sm text-[#225795] mb-2">{origin.company_name}</p>
-                      }
-                      <div className="space-y-1.5 text-xs text-foreground mb-3">
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {origin.district && origin.province ? `${origin.district}, ${origin.province}` : origin.province || origin.address || '-'}</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {origin.contact_name || '-'}</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {origin.goods_type ? `${origin.goods_type}${origin.goods_quantity ? ` (${origin.goods_quantity})` : ''}` : '-'}</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {origin.pickup_date ? formatDate(origin.pickup_date, language) : formatDate(job.start_date, language)} | {origin.pickup_time ? origin.pickup_time.substring(0, 5) : job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
-                        </div>
-                        {origin.notes && origin.notes !== '-' &&
-                          <div className="flex items-start gap-2">
-                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                            <span>{origin.notes}</span>
-                          </div>
-                        }
-                      </div>
-                      <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
-                        {!isFromHistory &&
-                          <>
-                            <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
-                              disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
-                              onClick={() => {
-                                const phone = origin.contact_phone;
-                                if (phone) {
-                                  window.location.href = `tel:${phone}`;
-                                } else {
-                                  toast({ title: t('jobDetail.error'), description: t('jobDetail.noPhoneNumber'), variant: 'destructive' });
-                                }
-                              }}>
-                              <Phone className="w-3.5 h-3.5" />
-                              <span className="text-xs">{t('jobDetail.call')}</span>
-                            </Button>
-                            <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
-                              disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
-                              onClick={() => {
-                                if (origin.address) {
-                                  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(origin.address)}`, '_blank');
-                                } else if (origin.district && origin.province) {
-                                  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${origin.district}, ${origin.province}`)}`, '_blank');
-                                } else {
-                                  toast({ title: t('jobDetail.error'), description: t('jobDetail.noLocation'), variant: 'destructive' });
-                                }
-                              }}>
-                              <Navigation className="w-3.5 h-3.5" />
-                              <span className="text-xs">{t('jobDetail.route')}</span>
-                            </Button>
-                          </>
-                        }
-                        <Button size="sm" onClick={() => {
-                          const fromParam = new URLSearchParams(location.search).get('from');
-                          const queryString = fromParam ? `?from=${fromParam}` : '';
-                          if (pickupSopCompleted || jobApplication?.sop_completed_at) {
-                            navigate(`/job/${job.order_code}/pickup-summary${queryString}`, { state: { jobData: job } });
-                          } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
-                            navigate(`/job/${job.order_code}/sop${queryString}`, { state: { jobData: job } });
-                          } else {
-                            navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job } });
-                          }
-                        }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
-                          {isLoadingCheckinStatus ?
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> :
-                            <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
-                          }
-                          <span className="text-xs">{pickupSopCompleted || jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : pickupCheckedIn || jobApplication?.checked_in_at ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ));
-              }
-
-              // Single origin (fallback to original job fields)
               return (
                 <Card ref={card1Ref} className={`overflow-hidden border-2 rounded-2xl ${pickupSopCompleted || jobApplication?.sop_completed_at ? 'border-green-500' : pickupCheckedIn ? 'border-teal-500' : isPickupLocked ? 'border-gray-300' : 'border-teal-500'}`}>
                     <div className={`px-4 py-2.5 flex items-center justify-between ${pickupSopCompleted || jobApplication?.sop_completed_at ? 'bg-green-500' : pickupCheckedIn ? 'bg-teal-600' : isPickupLocked ? 'bg-gray-400' : 'bg-teal-600'}`}>
@@ -1027,6 +884,7 @@ export default function DomesticJobDetail({
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
                           {t('jobDetail.waitingPreviousStep')}
                         </span> :
+
                     <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
                           {pickupSopCompleted || jobApplication?.sop_completed_at ? t('jobDetail.sopSuccess') : pickupCheckedIn ? t('jobDetail.waitingSop') : t('jobDetail.waitingCheckIn')}
                         </span>
@@ -1036,6 +894,7 @@ export default function DomesticJobDetail({
                       {job.origin_company_name &&
                     <p className="font-semibold text-sm text-[#225795] mb-2">{job.origin_company_name}</p>
                     }
+
                       <div className="space-y-1.5 text-xs text-foreground mb-3">
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
@@ -1060,28 +919,54 @@ export default function DomesticJobDetail({
                           </div>
                       }
                       </div>
-                      <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
-                        {!isFromHistory &&
+
+                      <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                        {new URLSearchParams(location.search).get('from') !== 'history' &&
                       <>
-                            <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
+                            <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
                           disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
                           onClick={() => {
                             const phone = job.origin_contact_phone;
-                            if (phone) { window.location.href = `tel:${phone}`; }
-                            else { toast({ title: t('jobDetail.error'), description: t('jobDetail.noPhoneNumber'), variant: 'destructive' }); }
+                            if (phone) {
+                              window.location.href = `tel:${phone}`;
+                            } else {
+                              toast({
+                                title: t('jobDetail.error'),
+                                description: t('jobDetail.noPhoneNumber'),
+                                variant: 'destructive'
+                              });
+                            }
                           }}>
+
                               <Phone className="w-3.5 h-3.5" />
                               <span className="text-xs">{t('jobDetail.call')}</span>
                             </Button>
-                            <Button variant="outline" size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
+                            <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-9 flex items-center justify-center gap-1.5 p-1 border-[#225795]/30 text-[#225795] hover:bg-[#225795]/5"
                           disabled={isPickupLocked || pickupSopCompleted || !!jobApplication?.sop_completed_at}
                           onClick={() => {
                             const lat = job.origin_latitude;
                             const lng = job.origin_longitude;
-                            if (lat && lng) { window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank'); }
-                            else if (job.origin_address) { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.origin_address)}`, '_blank'); }
-                            else { toast({ title: t('jobDetail.error'), description: t('jobDetail.noLocation'), variant: 'destructive' }); }
+                            if (lat && lng) {
+                              const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                              window.open(url, '_blank');
+                            } else if (job.origin_address) {
+                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.origin_address)}`;
+                              window.open(url, '_blank');
+                            } else {
+                              toast({
+                                title: t('jobDetail.error'),
+                                description: t('jobDetail.noLocation'),
+                                variant: 'destructive'
+                              });
+                            }
                           }}>
+
                               <Navigation className="w-3.5 h-3.5" />
                               <span className="text-xs">{t('jobDetail.route')}</span>
                             </Button>
@@ -1100,6 +985,7 @@ export default function DomesticJobDetail({
                       }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
                           {isLoadingCheckinStatus ?
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> :
+
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                         }
                           <span className="text-xs">{pickupSopCompleted || jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : pickupCheckedIn || jobApplication?.checked_in_at ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
@@ -1107,6 +993,7 @@ export default function DomesticJobDetail({
                       </div>
                     </div>
                   </Card>);
+
             })()}
 
 
