@@ -790,10 +790,6 @@ export default function DomesticJobDetail({
                     <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                       <div className="flex items-start gap-2">
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span>{t('jobDetail.shipArrivalDateTime')}: {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span>{t('jobDetail.emptyContainerPickupDate')}: {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}</span>
                       </div>
                       <div className="flex items-start gap-2">
