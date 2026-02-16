@@ -17,7 +17,7 @@ export const useBankCheck = () => {
   const navigate = useNavigate();
 
   // Check bank info directly from the user object (loaded from external API)
-  const hasBankInfo = !isFreelanceDriver || (!!user?.bank_name && !!user?.account_number);
+  const hasBankInfo = !isFreelanceDriver || (!!user?.bank_name && !!(user?.bank_account_number || user?.account_number));
 
   /**
    * Returns true if bank info exists (or not freelance).
@@ -25,7 +25,7 @@ export const useBankCheck = () => {
    */
   const requireBankInfo = useCallback((): boolean => {
     if (!isFreelanceDriver) return true;
-    if (user?.bank_name && user?.account_number) return true;
+    if (user?.bank_name && (user?.bank_account_number || user?.account_number)) return true;
 
     toast({
       title: t('account.bank_required'),

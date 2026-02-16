@@ -43,8 +43,8 @@ export default function AccountPage() {
     if (!isFreelanceDriver || !user) return;
     
     setBankName(user.bank_name || '');
-    setBankAccountNumber(user.account_number || '');
-    setBankAccountName(user.account_name || user.full_name || '');
+    setBankAccountNumber(user.bank_account_number || user.account_number || '');
+    setBankAccountName(user.bank_account_name || user.account_name || user.full_name || '');
     setBankLoaded(true);
   }, [isFreelanceDriver, user]);
 
@@ -71,6 +71,8 @@ export default function AccountPage() {
         try {
           const driverObj = JSON.parse(storedDriver);
           driverObj.bank_name = bankName.trim();
+          driverObj.bank_account_number = bankAccountNumber.trim();
+          driverObj.bank_account_name = bankAccountName.trim() || user.full_name || '';
           driverObj.account_number = bankAccountNumber.trim();
           driverObj.account_name = bankAccountName.trim() || user.full_name || '';
           await setAuthItem('auth_driver', JSON.stringify(driverObj));
