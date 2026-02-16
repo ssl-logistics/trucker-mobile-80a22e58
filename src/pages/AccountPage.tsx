@@ -7,8 +7,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { AUTH_KEYS, removeAuthItem } from '@/utils/authStorage';
@@ -36,7 +34,6 @@ export default function AccountPage() {
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [isSavingBank, setIsSavingBank] = useState(false);
   const [bankLoaded, setBankLoaded] = useState(false);
-  const [bankNote, setBankNote] = useState('');
 
   // Load existing bank info
   useEffect(() => {
@@ -211,20 +208,6 @@ export default function AccountPage() {
                 className="mt-1"
               />
             </div>
-
-            <Separator className="my-2" />
-
-            <div>
-              <label className="text-sm text-muted-foreground">หมายเหตุ</label>
-              <Textarea
-                value={bankNote}
-                onChange={(e) => setBankNote(e.target.value)}
-                placeholder="บันทึกข้อมูลเพิ่มเติม..."
-                className="mt-1"
-                rows={3}
-              />
-            </div>
-
             <Button
               onClick={handleSaveBank}
               disabled={isSavingBank || !bankName.trim() || !bankAccountNumber.trim()}
