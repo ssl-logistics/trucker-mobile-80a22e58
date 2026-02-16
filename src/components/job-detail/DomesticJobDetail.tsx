@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2 } from 'lucide-react';
 import {
@@ -628,13 +628,27 @@ export default function DomesticJobDetail({
   // The display order for rendering (uses local reorder if available)
   const displayDestinations = localDestOrder.length > 0 ? localDestOrder : destinations;
 
+  // Map checkin data by destination ID (not sequence_number) so it survives reordering
+  // Original destinations from API have the original sequence numbers that match the checkin keys
+  const destCheckinById = useMemo(() => {
+    const map: Record<string, { checked_in_at: string | null; sop_completed_at: string | null }> = {};
+    const origDests = job.destinations || [];
+    origDests.forEach(d => {
+      const checkin = destinationCheckins[d.sequence_number];
+      if (checkin) {
+        map[d.id] = checkin;
+      }
+    });
+    return map;
+  }, [destinationCheckins, job.destinations]);
+
   const handleSwapRequest = (fromIdx: number, toIdx: number) => {
     if (toIdx < 0 || toIdx >= displayDestinations.length) return;
     // Prevent swapping destinations that are already checked in
     const fromDest = displayDestinations[fromIdx];
     const toDest = displayDestinations[toIdx];
-    const fromCheckin = destinationCheckins[fromDest.sequence_number];
-    const toCheckin = destinationCheckins[toDest.sequence_number];
+    const fromCheckin = destCheckinById[fromDest.id];
+    const toCheckin = destCheckinById[toDest.id];
     const fromCheckedIn = !!(fromCheckin?.checked_in_at || fromDest.checked_in_at);
     const toCheckedIn = !!(toCheckin?.checked_in_at || toDest.checked_in_at);
     if (fromCheckedIn || toCheckedIn) {
@@ -781,7 +795,7 @@ export default function DomesticJobDetail({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <div className="flex items-center gap-1 flex-wrap flex-1">
                 {displayDestinations.map((dest, idx) => {
-                  const destCheckin = destinationCheckins[dest.sequence_number];
+                  const destCheckin = destCheckinById[dest.id];
                   const isPodDone = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
                   return (
                     <button
@@ -876,7 +890,7 @@ export default function DomesticJobDetail({
               sequence_number: 1
             }]).map((dest, index) => {
               const seq = dest.sequence_number;
-              const destCheckinData = destinationCheckins[seq];
+              const destCheckinData = destCheckinById[dest.id];
 
               const isPodCompleted = dest.id === 'fallback' ?
               deliverySopCompleted
@@ -1162,7 +1176,7 @@ export default function DomesticJobDetail({
               {/* Delivery Point Cards - Hidden for Booking (outbound) jobs */}
               {!job.booking_no && (displayDestinations.length > 0 ? displayDestinations.map((dest, index) => {
               // Get check-in status from destinationCheckins state (enriched from API)
-              const destCheckin = destinationCheckins[dest.sequence_number];
+              const destCheckin = destCheckinById[dest.id];
               const isPodCompleted = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
               const isCheckedIn = !!destCheckin?.checked_in_at || !!dest.checked_in_at;
 
@@ -1178,7 +1192,7 @@ export default function DomesticJobDetail({
                   return pickupSopCompleted || !!jobApplication?.sop_completed_at;
                 }
                 const prevDest = displayDestinations[index - 1];
-                const prevCheckin = destinationCheckins[prevDest?.sequence_number];
+                const prevCheckin = destCheckinById[prevDest?.id];
                 return !!prevCheckin?.sop_completed_at || !!prevDest?.sop_completed_at;
               };
               const isPreviousCompleted = getPreviousCompleted();
@@ -1492,7 +1506,7 @@ export default function DomesticJobDetail({
                 ? (pickupSopCompleted || !!jobApplication?.sop_completed_at)
                 : (displayDestinations.length > 0 ?
                   displayDestinations.every((dest) => {
-                    const destCheckin = destinationCheckins[dest.sequence_number];
+                    const destCheckin = destCheckinById[dest.id];
                     return !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
                   }) :
                   deliverySopCompleted);
