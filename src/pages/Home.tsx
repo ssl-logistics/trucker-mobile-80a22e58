@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { useMultiProcessingGuard } from '@/hooks/useProcessingGuard';
+import { useBankCheck } from '@/hooks/useBankCheck';
 import { useGpsTracking } from '@/hooks/useGpsTracking';
 import { useNewJobPolling } from '@/hooks/useNewJobPolling';
 import { JobCard } from '@/components/home/JobCard';
@@ -64,6 +65,7 @@ export default function Home() {
   
   // Global processing guard for all job actions
   const { isProcessingKey, withGuard: withJobGuard } = useMultiProcessingGuard();
+  const { requireBankInfo } = useBankCheck();
   
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -475,6 +477,7 @@ export default function Home() {
     }
   };
   const handleAcceptJob = (job: Job) => {
+    if (!requireBankInfo()) return;
     setSelectedJob(job);
     setConfirmDialogOpen(true);
   };
@@ -766,6 +769,7 @@ export default function Home() {
   // Handle factory job accept with double-click and duplicate order protection
   const handleAcceptFactoryJob = async (job: Job) => {
     if (!user) return;
+    if (!requireBankInfo()) return;
     
     // For Internal/External drivers, jobs are already assigned - just navigate to job detail
     if (userType === 'internal_driver' || userType === 'external_driver') {

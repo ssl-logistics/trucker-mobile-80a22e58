@@ -463,6 +463,8 @@ const thTranslations: Record<string, string> = {
   'account.bank_saving': 'กำลังบันทึก...',
   'account.bank_save_success': 'บันทึกข้อมูลธนาคารสำเร็จ',
   'account.bank_save_error': 'ไม่สามารถบันทึกข้อมูลธนาคารได้',
+  'account.bank_required': 'กรุณากรอกข้อมูลธนาคาร',
+  'account.bank_required_desc': 'คุณต้องกรอกข้อมูลบัญชีธนาคารก่อนรับงาน',
   
   // Contact Page
   'contact.title': 'ติดต่อศูนย์',
@@ -1946,6 +1948,8 @@ const enTranslations: Record<string, string> = {
   'account.bank_saving': 'Saving...',
   'account.bank_save_success': 'Bank info saved successfully',
   'account.bank_save_error': 'Unable to save bank info',
+  'account.bank_required': 'Bank info required',
+  'account.bank_required_desc': 'Please fill in your bank account details before accepting a job.',
   
   // Contact Page
   'contact.title': 'Contact Center',
@@ -3367,6 +3371,8 @@ const koTranslations: Record<string, string> = {
   'account.bank_saving': '저장 중...',
   'account.bank_save_success': '은행 정보가 저장되었습니다',
   'account.bank_save_error': '은행 정보를 저장할 수 없습니다',
+  'account.bank_required': '은행 정보 필요',
+  'account.bank_required_desc': '일을 수락하기 전에 은행 계좌 정보를 입력해주세요.',
   
   // Contact Page
   'contact.title': '고객센터',
@@ -4607,6 +4613,8 @@ const zhTranslations: Record<string, string> = {
   'account.bank_saving': '保存中...',
   'account.bank_save_success': '银行信息已保存',
   'account.bank_save_error': '无法保存银行信息',
+  'account.bank_required': '需要银行信息',
+  'account.bank_required_desc': '接受工作前请填写银行账户信息。',
   
   // Change Password Page
   'changePassword.title': '更改密码',
