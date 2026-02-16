@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Edit, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { AUTH_KEYS, removeAuthItem } from '@/utils/authStorage';
 import {
@@ -22,14 +24,76 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { isFreelanceDriver } = useUserRole();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Bank info state (freelance only)
+  const [bankName, setBankName] = useState('');
+  const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [isSavingBank, setIsSavingBank] = useState(false);
+  const [bankLoaded, setBankLoaded] = useState(false);
+
+  // Load existing bank info
+  useEffect(() => {
+    if (!isFreelanceDriver || !user?.id) return;
+    
+    const loadBankInfo = async () => {
+      const { data } = await supabase
+        .from('bank_accounts')
+        .select('bank_name, account_number')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (data) {
+        setBankName(data.bank_name || '');
+        setBankAccountNumber(data.account_number || '');
+      }
+      setBankLoaded(true);
+    };
+
+    loadBankInfo();
+  }, [isFreelanceDriver, user?.id]);
+
+  const handleSaveBank = async () => {
+    if (!user?.id || !bankName.trim() || !bankAccountNumber.trim()) return;
+
+    setIsSavingBank(true);
+    try {
+      // Upsert bank info
+      const { error } = await supabase
+        .from('bank_accounts')
+        .upsert(
+          {
+            user_id: user.id,
+            bank_name: bankName.trim(),
+            account_name: user.full_name || '',
+            account_number: bankAccountNumber.trim(),
+          },
+          { onConflict: 'user_id' }
+        );
+
+      if (error) throw error;
+
+      toast({
+        title: t('account.bank_save_success'),
+      });
+    } catch (error: any) {
+      console.error('Save bank error:', error);
+      toast({
+        title: t('account.bank_save_error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingBank(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     
     try {
-      // Get user email for deletion
       const userEmail = user?.email;
       const driverCode = user?.driver_code;
       
@@ -37,7 +101,6 @@ export default function AccountPage() {
         throw new Error('ไม่พบอีเมลผู้ใช้');
       }
 
-      // Call delete-driver edge function which uses external API
       const { data, error } = await supabase.functions.invoke('delete-driver', {
         body: { 
           email: userEmail,
@@ -45,23 +108,15 @@ export default function AccountPage() {
         },
       });
 
-      if (error) {
-        throw error;
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: t('account.delete_success'),
         description: t('account.delete_success_desc'),
       });
 
-      // Clear all auth storage items properly
       await Promise.all(AUTH_KEYS.map(key => removeAuthItem(key)));
-      
-      // Navigate to sign-in page
       navigate('/sign-in', { replace: true });
     } catch (error: any) {
       console.error('Delete account error:', error);
@@ -113,6 +168,37 @@ export default function AccountPage() {
             </button>
           </div>
         </div>
+
+        {/* Bank Info - Freelance only */}
+        {isFreelanceDriver && bankLoaded && (
+          <div className="bg-white rounded-lg p-4 space-y-4">
+            <div>
+              <label className="text-sm text-muted-foreground">{t('account.bank_name')}</label>
+              <Input
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                placeholder={t('account.bank_name')}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground">{t('account.bank_account_number')}</label>
+              <Input
+                value={bankAccountNumber}
+                onChange={(e) => setBankAccountNumber(e.target.value)}
+                placeholder={t('account.bank_account_number')}
+                className="mt-1"
+              />
+            </div>
+            <Button
+              onClick={handleSaveBank}
+              disabled={isSavingBank || !bankName.trim() || !bankAccountNumber.trim()}
+              className="w-full"
+            >
+              {isSavingBank ? t('account.bank_saving') : t('account.bank_save')}
+            </Button>
+          </div>
+        )}
 
         {/* Delete Account Button */}
         <div className="pt-6">

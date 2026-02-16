@@ -457,6 +457,12 @@ const thTranslations: Record<string, string> = {
   'account.delete_success_desc': 'บัญชีของคุณถูกลบเรียบร้อยแล้ว',
   'account.delete_error': 'เกิดข้อผิดพลาด',
   'account.delete_error_desc': 'ไม่สามารถลบบัญชีได้ กรุณาลองใหม่อีกครั้ง',
+  'account.bank_name': 'ชื่อธนาคาร',
+  'account.bank_account_number': 'เลขบัญชีธนาคาร',
+  'account.bank_save': 'บันทึก',
+  'account.bank_saving': 'กำลังบันทึก...',
+  'account.bank_save_success': 'บันทึกข้อมูลธนาคารสำเร็จ',
+  'account.bank_save_error': 'ไม่สามารถบันทึกข้อมูลธนาคารได้',
   
   // Contact Page
   'contact.title': 'ติดต่อศูนย์',
@@ -1934,6 +1940,12 @@ const enTranslations: Record<string, string> = {
   'account.delete_success_desc': 'Your account has been deleted',
   'account.delete_error': 'Error',
   'account.delete_error_desc': 'Unable to delete account. Please try again.',
+  'account.bank_name': 'Bank Name',
+  'account.bank_account_number': 'Bank Account Number',
+  'account.bank_save': 'Save',
+  'account.bank_saving': 'Saving...',
+  'account.bank_save_success': 'Bank info saved successfully',
+  'account.bank_save_error': 'Unable to save bank info',
   
   // Contact Page
   'contact.title': 'Contact Center',
@@ -3349,6 +3361,12 @@ const koTranslations: Record<string, string> = {
   'account.delete_success_desc': '계정이 성공적으로 삭제되었습니다',
   'account.delete_error': '오류 발생',
   'account.delete_error_desc': '계정을 삭제할 수 없습니다. 다시 시도해 주세요.',
+  'account.bank_name': '은행명',
+  'account.bank_account_number': '은행 계좌번호',
+  'account.bank_save': '저장',
+  'account.bank_saving': '저장 중...',
+  'account.bank_save_success': '은행 정보가 저장되었습니다',
+  'account.bank_save_error': '은행 정보를 저장할 수 없습니다',
   
   // Contact Page
   'contact.title': '고객센터',
@@ -4583,6 +4601,12 @@ const zhTranslations: Record<string, string> = {
   'account.delete_success_desc': '您的账户已被成功删除',
   'account.delete_error': '发生错误',
   'account.delete_error_desc': '无法删除账户，请重试',
+  'account.bank_name': '银行名称',
+  'account.bank_account_number': '银行账号',
+  'account.bank_save': '保存',
+  'account.bank_saving': '保存中...',
+  'account.bank_save_success': '银行信息已保存',
+  'account.bank_save_error': '无法保存银行信息',
   
   // Change Password Page
   'changePassword.title': '更改密码',
