@@ -437,6 +437,7 @@ const thTranslations: Record<string, string> = {
   'profile.select_photo_source': 'เลือกแหล่งที่มาของรูปภาพ',
   'profile.take_photo': 'ถ่ายรูป',
   'profile.select_from_gallery': 'เลือกจากแกลเลอรี่',
+  'profile.location': 'พื้นที่ทำงาน',
   
   // Account Page
   'account.title': 'บัญชี',
@@ -1913,6 +1914,7 @@ const enTranslations: Record<string, string> = {
   'profile.select_photo_source': 'Select Photo Source',
   'profile.take_photo': 'Take Photo',
   'profile.select_from_gallery': 'Select from Gallery',
+  'profile.location': 'Work Area',
   
   // Account Page
   'account.title': 'Account',

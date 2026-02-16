@@ -396,7 +396,7 @@ export default function ProfilePage() {
       {profile?.location && (
         <div className="bg-white mt-2 px-4 py-3">
           <div className="text-sm text-muted-foreground mb-1">
-            {t('profile.location') || 'พื้นที่ทำงาน'}
+            {t('profile.location')}
           </div>
           <div className="text-foreground">{profile.location}</div>
         </div>
