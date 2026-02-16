@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { AUTH_KEYS, removeAuthItem } from '@/utils/authStorage';
+import { AUTH_KEYS, removeAuthItem, setAuthItem, getAuthItem } from '@/utils/authStorage';
+import { updateFreelanceDriver } from '@/lib/externalApi';
+import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,58 +25,58 @@ import {
 
 export default function AccountPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
-  const { isFreelanceDriver } = useUserRole();
+  const { isFreelanceDriver, userType } = useUserRole();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Bank info state (freelance only)
   const [bankName, setBankName] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [bankAccountName, setBankAccountName] = useState('');
   const [isSavingBank, setIsSavingBank] = useState(false);
   const [bankLoaded, setBankLoaded] = useState(false);
 
-  // Load existing bank info
+  // Load existing bank info from auth_driver (external API data)
   useEffect(() => {
-    if (!isFreelanceDriver || !user?.id) return;
+    if (!isFreelanceDriver || !user) return;
     
-    const loadBankInfo = async () => {
-      const { data } = await supabase
-        .from('bank_accounts')
-        .select('bank_name, account_number')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (data) {
-        setBankName(data.bank_name || '');
-        setBankAccountNumber(data.account_number || '');
-      }
-      setBankLoaded(true);
-    };
-
-    loadBankInfo();
-  }, [isFreelanceDriver, user?.id]);
+    setBankName(user.bank_name || '');
+    setBankAccountNumber(user.account_number || '');
+    setBankAccountName(user.account_name || user.full_name || '');
+    setBankLoaded(true);
+  }, [isFreelanceDriver, user]);
 
   const handleSaveBank = async () => {
     if (!user?.id || !bankName.trim() || !bankAccountNumber.trim()) return;
 
     setIsSavingBank(true);
     try {
-      // Upsert bank info
-      const { error } = await supabase
-        .from('bank_accounts')
-        .upsert(
-          {
-            user_id: user.id,
-            bank_name: bankName.trim(),
-            account_name: user.full_name || '',
-            account_number: bankAccountNumber.trim(),
-          },
-          { onConflict: 'user_id' }
-        );
+      const driverType = getDriverTypeFromUserType(userType || 'freelance_driver');
+      
+      const { data, error } = await updateFreelanceDriver({
+        driver_id: user.id,
+        driver_type: driverType,
+        bank_name: bankName.trim(),
+        account_number: bankAccountNumber.trim(),
+        account_name: bankAccountName.trim() || user.full_name || '',
+      });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
+
+      // Update local auth_driver with new bank info
+      const storedDriver = await getAuthItem('auth_driver');
+      if (storedDriver) {
+        try {
+          const driverObj = JSON.parse(storedDriver);
+          driverObj.bank_name = bankName.trim();
+          driverObj.account_number = bankAccountNumber.trim();
+          driverObj.account_name = bankAccountName.trim() || user.full_name || '';
+          await setAuthItem('auth_driver', JSON.stringify(driverObj));
+          window.dispatchEvent(new Event('auth_driver_updated'));
+        } catch {}
+      }
 
       toast({
         title: t('account.bank_save_success'),
@@ -198,6 +200,15 @@ export default function AccountPage() {
                   <SelectItem value="ธนาคารไอซีบีซี">ธนาคารไอซีบีซี (ICBC)</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground">{t('account.bank_account_name')}</label>
+              <Input
+                value={bankAccountName}
+                onChange={(e) => setBankAccountName(e.target.value)}
+                placeholder={t('account.bank_account_name')}
+                className="mt-1"
+              />
             </div>
             <div>
               <label className="text-sm text-muted-foreground">{t('account.bank_account_number')}</label>
