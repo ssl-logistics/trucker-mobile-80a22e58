@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, ArrowUp, ArrowDown, Repeat2 } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -175,6 +175,10 @@ export default function DomesticJobDetail({
   const [pendingSwap, setPendingSwap] = useState<{fromIdx: number; toIdx: number; fromName: string; toName: string} | null>(null);
   const [showSwapConfirm, setShowSwapConfirm] = useState(false);
   const [activeDestIdx, setActiveDestIdx] = useState<number | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const dragStartY = useRef<number>(0);
+  const dragItemRef = useRef<number | null>(null);
   const [showOcrDrawer, setShowOcrDrawer] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
@@ -1156,22 +1160,68 @@ export default function DomesticJobDetail({
                     </div>
                     {/* Compact reorder mode - only arrows */}
                     {isReorderMode && displayDestinations.length > 1 ? (
-                      <div className="flex items-center justify-center gap-3 py-2 bg-white">
-                        <button
-                          onClick={() => handleSwapRequest(index, index - 1)}
-                          disabled={index === 0}
-                          className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-colors"
-                        >
-                          <ArrowUp className="w-4 h-4 text-gray-600" />
-                        </button>
-                        <span className="text-[10px] text-gray-400 font-medium">{t('jobDetail.dragToSwap')}</span>
-                        <button
-                          onClick={() => handleSwapRequest(index, index + 1)}
-                          disabled={index === displayDestinations.length - 1}
-                          className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-colors"
-                        >
-                          <ArrowDown className="w-4 h-4 text-gray-600" />
-                        </button>
+                      <div
+                        className={`flex items-center gap-3 px-3 py-2.5 bg-white cursor-grab active:cursor-grabbing select-none transition-all ${
+                          dragIdx === index ? 'opacity-50 scale-95' : ''
+                        } ${dragOverIdx === index && dragIdx !== index ? 'border-t-2 border-orange-400' : ''}`}
+                        draggable
+                        onDragStart={(e) => {
+                          setDragIdx(index);
+                          dragItemRef.current = index;
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                          setDragOverIdx(index);
+                        }}
+                        onDragLeave={() => setDragOverIdx(null)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const fromIdx = dragItemRef.current;
+                          if (fromIdx !== null && fromIdx !== index) {
+                            handleSwapRequest(fromIdx, index);
+                          }
+                          setDragIdx(null);
+                          setDragOverIdx(null);
+                          dragItemRef.current = null;
+                        }}
+                        onDragEnd={() => {
+                          setDragIdx(null);
+                          setDragOverIdx(null);
+                          dragItemRef.current = null;
+                        }}
+                        onTouchStart={(e) => {
+                          dragStartY.current = e.touches[0].clientY;
+                          setDragIdx(index);
+                          dragItemRef.current = index;
+                        }}
+                        onTouchMove={(e) => {
+                          const touch = e.touches[0];
+                          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+                          const cardEl = elements.find(el => el.getAttribute('data-reorder-idx'));
+                          if (cardEl) {
+                            const overIdx = parseInt(cardEl.getAttribute('data-reorder-idx')!, 10);
+                            setDragOverIdx(overIdx);
+                          }
+                        }}
+                        onTouchEnd={() => {
+                          const fromIdx = dragItemRef.current;
+                          if (fromIdx !== null && dragOverIdx !== null && fromIdx !== dragOverIdx) {
+                            handleSwapRequest(fromIdx, dragOverIdx);
+                          }
+                          setDragIdx(null);
+                          setDragOverIdx(null);
+                          dragItemRef.current = null;
+                        }}
+                        data-reorder-idx={index}
+                      >
+                        <GripVertical className="w-5 h-5 text-gray-400 shrink-0" />
+                        <span className="text-sm font-medium text-gray-700 flex-1">
+                          {t('jobDetail.deliveryPoint')} #{index + 1}
+                          {dest.company_name ? ` — ${dest.company_name}` : ''}
+                          {dest.district ? ` (${dest.district})` : ''}
+                        </span>
                       </div>
                     ) : (
                     <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
