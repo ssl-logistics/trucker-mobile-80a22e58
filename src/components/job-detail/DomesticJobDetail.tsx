@@ -1,6 +1,16 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, ArrowUp, ArrowDown, Repeat2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -159,6 +169,12 @@ export default function DomesticJobDetail({
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, {checked_in_at: string | null;sop_completed_at: string | null;}>>({});
+  // Reorder state for multi-destination
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [localDestOrder, setLocalDestOrder] = useState<JobDestination[]>([]);
+  const [pendingSwap, setPendingSwap] = useState<{fromIdx: number; toIdx: number; fromName: string; toName: string} | null>(null);
+  const [showSwapConfirm, setShowSwapConfirm] = useState(false);
+  const [activeDestIdx, setActiveDestIdx] = useState<number | null>(null);
   const [showOcrDrawer, setShowOcrDrawer] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
@@ -580,6 +596,41 @@ export default function DomesticJobDetail({
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
 
+  // Sync localDestOrder when destinations change
+  useEffect(() => {
+    if (destinations.length > 0) {
+      setLocalDestOrder([...destinations]);
+    }
+  }, [JSON.stringify(destinations)]);
+
+  // The display order for rendering (uses local reorder if available)
+  const displayDestinations = localDestOrder.length > 0 ? localDestOrder : destinations;
+
+  const handleSwapRequest = (fromIdx: number, toIdx: number) => {
+    if (toIdx < 0 || toIdx >= displayDestinations.length) return;
+    const fromName = displayDestinations[fromIdx].company_name || `#${displayDestinations[fromIdx].sequence_number}`;
+    const toName = displayDestinations[toIdx].company_name || `#${displayDestinations[toIdx].sequence_number}`;
+    setPendingSwap({ fromIdx, toIdx, fromName, toName });
+    setShowSwapConfirm(true);
+  };
+
+  const confirmSwap = () => {
+    if (!pendingSwap) return;
+    const newOrder = [...displayDestinations];
+    [newOrder[pendingSwap.fromIdx], newOrder[pendingSwap.toIdx]] = [newOrder[pendingSwap.toIdx], newOrder[pendingSwap.fromIdx]];
+    setLocalDestOrder(newOrder);
+    setShowSwapConfirm(false);
+    setPendingSwap(null);
+    toast({ title: t('jobDetail.swapSuccess') || 'สลับจุดส่งสำเร็จ' });
+  };
+
+  const scrollToDestination = (destId: string) => {
+    const el = deliveryCardRefs.current.get(destId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="text-white px-4 py-3 sticky top-0 z-50 bg-[#dbedff]">
@@ -664,6 +715,42 @@ export default function DomesticJobDetail({
             </h2>
           </div>
 
+          {/* Quick-Nav Pills for Multi-Destination */}
+          {!job.booking_no && displayDestinations.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <div className="flex items-center gap-1 flex-wrap flex-1">
+                {displayDestinations.map((dest, idx) => {
+                  const destCheckin = destinationCheckins[dest.sequence_number];
+                  const isPodDone = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
+                  return (
+                    <button
+                      key={dest.id}
+                      onClick={() => { setActiveDestIdx(idx); scrollToDestination(dest.id); }}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors ${
+                        activeDestIdx === idx ? 'bg-[#225795] text-white' :
+                        isPodDone ? 'bg-green-100 text-green-700 border border-green-300' :
+                        'bg-gray-100 text-gray-600 border border-gray-200'
+                      }`}
+                    >
+                      {t('jobDetail.deliveryPoint') || 'จุดส่ง'} {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+              {!isFromHistory && (
+                <button
+                  onClick={() => setIsReorderMode(!isReorderMode)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-colors ${
+                    isReorderMode ? 'bg-orange-100 text-orange-700 border border-orange-300' : 'bg-gray-100 text-gray-500 border border-gray-200'
+                  }`}
+                >
+                  <Repeat2 className="w-3 h-3" />
+                  {isReorderMode ? (t('jobDetail.doneReorder') || 'เสร็จ') : (t('jobDetail.reorder') || 'สลับ')}
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Step Tracker + Content Wrapper */}
           <div className="relative flex gap-3">
             {/* Left Timeline Column with Continuous Line */}
@@ -721,7 +808,7 @@ export default function DomesticJobDetail({
             }
 
               {/* Delivery Point Circles - Hidden for Booking (outbound) jobs */}
-              {!job.booking_no && (destinations.length > 0 ? destinations : [{
+              {!job.booking_no && (displayDestinations.length > 0 ? displayDestinations : [{
               id: 'fallback',
               sequence_number: 1
             }]).map((dest, index) => {
@@ -1010,7 +1097,7 @@ export default function DomesticJobDetail({
 
 
               {/* Delivery Point Cards - Hidden for Booking (outbound) jobs */}
-              {!job.booking_no && (destinations.length > 0 ? destinations.map((dest, index) => {
+              {!job.booking_no && (displayDestinations.length > 0 ? displayDestinations.map((dest, index) => {
               // Get check-in status from destinationCheckins state (enriched from API)
               const destCheckin = destinationCheckins[dest.sequence_number];
               const isPodCompleted = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
@@ -1027,7 +1114,7 @@ export default function DomesticJobDetail({
                   }
                   return pickupSopCompleted || !!jobApplication?.sop_completed_at;
                 }
-                const prevDest = destinations[index - 1];
+                const prevDest = displayDestinations[index - 1];
                 const prevCheckin = destinationCheckins[prevDest?.sequence_number];
                 return !!prevCheckin?.sop_completed_at || !!prevDest?.sop_completed_at;
               };
@@ -1050,9 +1137,9 @@ export default function DomesticJobDetail({
               const statusInfo = getStatusInfo();
 
               return (
-                <Card key={dest.id} ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}} className={`overflow-hidden border-2 rounded-2xl ${isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
-                    <div className={`px-4 py-2.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
-                      <h3 className="font-semibold text-sm text-white">{t('jobDetail.deliveryPoint')} {destinations.length > 1 ? `#${dest.sequence_number}` : ''}</h3>
+                <Card key={dest.id} ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}} className={`overflow-hidden border-2 rounded-xl ${isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
+                    <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
+                      <h3 className="font-medium text-xs text-white">{t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''} {dest.company_name ? `- ${dest.company_name}` : ''}</h3>
                       {isDestinationLocked ?
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
                           {t('jobDetail.waitingPreviousStep')}
@@ -1063,10 +1150,27 @@ export default function DomesticJobDetail({
                         </span>
                     }
                     </div>
-                    <div className={`p-4 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                      {dest.company_name &&
-                    <p className="font-semibold text-sm text-[#225795] mb-2">{dest.company_name}</p>
-                    }
+                    <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                      {/* Reorder arrows in reorder mode */}
+                      {isReorderMode && displayDestinations.length > 1 && (
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <button
+                            onClick={() => handleSwapRequest(index, index - 1)}
+                            disabled={index === 0}
+                            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-colors"
+                          >
+                            <ArrowUp className="w-4 h-4 text-gray-600" />
+                          </button>
+                          <span className="text-[10px] text-gray-400 font-medium">{t('jobDetail.dragToSwap') || 'กดลูกศรเพื่อสลับ'}</span>
+                          <button
+                            onClick={() => handleSwapRequest(index, index + 1)}
+                            disabled={index === displayDestinations.length - 1}
+                            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-colors"
+                          >
+                            <ArrowDown className="w-4 h-4 text-gray-600" />
+                          </button>
+                        </div>
+                      )}
 
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         <div className="flex items-start gap-2">
@@ -1260,8 +1364,8 @@ export default function DomesticJobDetail({
               // For booking (outbound) jobs without delivery, unlock after pickup SOP
               const allDeliveriesCompleted = job.booking_no
                 ? (pickupSopCompleted || !!jobApplication?.sop_completed_at)
-                : (destinations.length > 0 ?
-                  destinations.every((dest) => {
+                : (displayDestinations.length > 0 ?
+                  displayDestinations.every((dest) => {
                     const destCheckin = destinationCheckins[dest.sequence_number];
                     return !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
                   }) :
@@ -1467,5 +1571,27 @@ export default function DomesticJobDetail({
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Swap Confirmation Dialog */}
+      <AlertDialog open={showSwapConfirm} onOpenChange={setShowSwapConfirm}>
+        <AlertDialogContent className="w-[calc(100%-2rem)] rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">{t('jobDetail.confirmSwap') || 'ยืนยันการสลับจุดส่ง'}</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              {pendingSwap && (
+                <span className="flex items-center justify-center gap-2 mt-2">
+                  <span className="px-2 py-1 bg-blue-50 rounded-lg text-sm font-medium text-blue-700">{pendingSwap.fromName}</span>
+                  <Repeat2 className="w-4 h-4 text-gray-400" />
+                  <span className="px-2 py-1 bg-blue-50 rounded-lg text-sm font-medium text-blue-700">{pendingSwap.toName}</span>
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2">
+            <AlertDialogCancel className="flex-1 mt-0">{t('common.cancel') || 'ยกเลิก'}</AlertDialogCancel>
+            <AlertDialogAction className="flex-1 bg-[#225795]" onClick={confirmSwap}>{t('common.confirm') || 'ยืนยัน'}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>;
 }
