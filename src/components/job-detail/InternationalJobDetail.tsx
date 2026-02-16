@@ -34,6 +34,22 @@ interface JobOrigin {
   notes: string | null;
 }
 
+interface JobDestination {
+  id: string;
+  sequence_number: number;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  province: string | null;
+  district: string | null;
+  delivery_date: string | null;
+  delivery_time: string | null;
+  notes: string | null;
+  checked_in_at: string | null;
+  sop_completed_at: string | null;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -73,6 +89,7 @@ interface JobDetail {
   booking_no?: string | null;
   bl_no?: string | null;
   origins?: JobOrigin[];
+  destinations?: JobDestination[];
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -119,6 +136,8 @@ export default function InternationalJobDetail({
   const [containerReturnCheckedIn, setContainerReturnCheckedIn] = useState(false);
   const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
+  // Per-destination delivery status for multi-destination BL jobs
+  const [deliveryCheckinsBySeq, setDeliveryCheckinsBySeq] = useState<Record<number, { checkedIn: boolean; podDone: boolean }>>({});
   
   const { isInternalDriver, isExternalDriver, canViewPrice } = useUserRole();
   const isInbound = job.transport_type?.includes('ขาเข้า') || !!job.bl_no;
@@ -194,6 +213,22 @@ export default function InternationalJobDetail({
          setDeliveryCheckedIn(hasDeliveryCheckin);
          setContainerReturnCheckedIn(hasContainerReturnCheckin);
          setContainerReturnConfirmed(hasContainerReturnConfirmedCheckin);
+
+         // Build per-destination delivery status for multi-destination BL jobs
+         const deliveryCheckins = checkins.filter((c: any) => c.checkin_type === 'delivery');
+         const podCheckins = checkins.filter((c: any) => c.checkin_type === 'delivery_confirmed');
+         const seqStatus: Record<number, { checkedIn: boolean; podDone: boolean }> = {};
+         deliveryCheckins.forEach((c: any) => {
+           const seq = c.destination_sequence_number || 1;
+           if (!seqStatus[seq]) seqStatus[seq] = { checkedIn: false, podDone: false };
+           seqStatus[seq].checkedIn = true;
+         });
+         podCheckins.forEach((c: any) => {
+           const seq = c.destination_sequence_number || 1;
+           if (!seqStatus[seq]) seqStatus[seq] = { checkedIn: false, podDone: false };
+           seqStatus[seq].podDone = true;
+         });
+         setDeliveryCheckinsBySeq(seqStatus);
         
       } catch (error) {
         console.error('[InternationalJobDetail] Error fetching checkin status:', error);
@@ -343,7 +378,7 @@ export default function InternationalJobDetail({
           )}
            <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
              <img src={routeIcon} alt="route" className="w-5 h-5 mb-1" />
-             <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{isOutbound ? (1 + (job.origins?.length || 1) + 1) : (isInbound ? 3 : 4)}</span></div>
+             <div className="text-xs text-gray-700 text-center">{t('jobDetail.pickupDeliveryPoints')} : <span className="font-semibold">{isOutbound ? (1 + (job.origins?.length || 1) + 1) : (isInbound ? (1 + (job.destinations?.length || 1) + 1) : 4)}</span></div>
            </Card>
           <Card className="p-2 bg-[#E8E8E8] border-0 flex flex-col items-center justify-center">
             <img src={boxIcon} alt="goods" className="w-5 h-5 mb-1" />
@@ -637,86 +672,181 @@ export default function InternationalJobDetail({
                 })()}
 
 
-               {/* Delivery/Return Point Card - Hidden for Outbound/Booking */}
+               {/* Delivery Point Cards - For Inbound BL: supports multiple destinations */}
                {!isOutbound && (() => {
                  const deliveryUnlocked = isInbound ? !!jobApplication?.container_sop_completed_at : !!jobApplication?.sop_completed_at;
+                 const hasMultiDestinations = isInbound && job.destinations && job.destinations.length > 0;
+                 
+                 if (hasMultiDestinations) {
+                   // Multi-destination BL job
+                   const destinations = job.destinations!;
+                   return destinations.map((dest, index) => {
+                     const seq = dest.sequence_number;
+                     const destStatus = deliveryCheckinsBySeq[seq] || { checkedIn: false, podDone: false };
+                     // First destination unlocks after container SOP; subsequent unlock after previous POD
+                     const prevSeq = index > 0 ? destinations[index - 1].sequence_number : null;
+                     const prevDone = prevSeq !== null ? (deliveryCheckinsBySeq[prevSeq]?.podDone || false) : true;
+                     const isDestUnlocked = deliveryUnlocked && prevDone;
+                     
+                     return (
+                       <Card key={dest.id} ref={index === 0 ? card3Ref : undefined} className={`p-4 border-2 rounded-2xl ${destStatus.podDone ? 'border-green-500 bg-green-50' : isDestUnlocked ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                         <div className={`${!isDestUnlocked ? 'opacity-60' : ''}`}>
+                           <div className="mb-1">
+                             <div className="flex items-center gap-2">
+                               <h3 className="font-semibold text-sm text-[#225795]">
+                                 {t('jobDetail.deliveryPoint') || 'จุดส่งสินค้า'} #{index + 1}
+                               </h3>
+                             </div>
+                             {isDestUnlocked && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${destStatus.podDone ? 'text-green-600 bg-green-50' : destStatus.checkedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                                 {destStatus.podDone ? t('jobDetail.podSuccess') : destStatus.checkedIn ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
+                               </span></div>}
+                           </div>
+                           
+                           <h4 className="font-semibold text-base text-[#225795] mb-2">
+                             {dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.address || '-')}
+                           </h4>
+                           
+                           <div className="space-y-1 text-sm mb-3">
+                             <div className="flex">
+                               <span className="text-[#454545] min-w-[100px]">{t('jobDetail.contactPerson')}</span>
+                               <span className="text-[#454545]">: {dest.contact_name || '-'}</span>
+                             </div>
+                             {dest.company_name && (
+                               <div className="flex">
+                                 <span className="text-[#454545] min-w-[100px]">{t('jobDetail.companyName') || 'บริษัท'}</span>
+                                 <span className="text-[#454545]">: {dest.company_name}</span>
+                               </div>
+                             )}
+                             <div className="flex">
+                               <span className="text-[#454545] min-w-[100px]">{t('jobDetail.deliveryDate') || 'วันส่ง'}</span>
+                               <span className="text-[#454545]">: {dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} {dest.delivery_time ? `| ${dest.delivery_time.substring(0, 5)}` : ''}</span>
+                             </div>
+                             {dest.notes && (
+                               <div className="flex">
+                                 <span className="text-[#454545] min-w-[100px]">{t('jobDetail.remarks')}</span>
+                                 <span className="text-[#454545]">: {dest.notes}</span>
+                               </div>
+                             )}
+                           </div>
+                           
+                           <div className="grid grid-cols-3 gap-2">
+                             <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!isDestUnlocked}
+                               onClick={() => { if (dest.contact_phone) window.open(`tel:${dest.contact_phone}`); }}>
+                               <Phone className="w-4 h-4" />
+                               <span className="text-xs">{t('jobDetail.call')}</span>
+                             </Button>
+                             <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!isDestUnlocked}>
+                               <img src={routeIcon} alt="route" className="w-4 h-4" />
+                               <span className="text-xs">{t('jobDetail.route')}</span>
+                             </Button>
+                             <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" 
+                               disabled={!isDestUnlocked}
+                               onClick={() => {
+                                 const destId = dest.id;
+                                 if (destStatus.podDone) {
+                                   // View summary
+                                   navigate(`/job/${job.order_code}`);
+                                 } else if (destStatus.checkedIn) {
+                                   navigate(`/job/${job.order_code}/delivery-sop/${seq}`, { state: { jobData: job, destId } });
+                                 } else {
+                                   navigate(`/job/${job.order_code}/delivery/${seq}`, { state: { jobData: job, destId } });
+                                 }
+                               }}>
+                               <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                               <span className="text-[10px] leading-tight text-center">{destStatus.podDone ? t('jobDetail.viewInfo') : destStatus.checkedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                             </Button>
+                           </div>
+                         </div>
+                       </Card>
+                     );
+                   });
+                 }
+                 
+                 // Single delivery point (legacy / no destinations array)
                  return (
-               <Card ref={card3Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : deliveryUnlocked ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
-                 <div className={`${!deliveryUnlocked ? 'opacity-60' : ''}`}>
-                  <div className="mb-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm text-[#225795]">
-                        {isInbound ? t('jobDetail.emptyReturn') : t('jobDetail.fullReturn')}
-                      </h3>
-                    </div>
-                    {deliveryUnlocked && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
-                        {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
-                      </span></div>}
-                  </div>
+                   <Card ref={card3Ref} className={`p-4 border-2 rounded-2xl ${jobApplication?.delivery_sop_completed_at ? 'border-green-500 bg-green-50' : deliveryUnlocked ? 'border-teal-500 bg-[#F6FFFE]' : 'border-gray-300 bg-gray-50'}`}>
+                     <div className={`${!deliveryUnlocked ? 'opacity-60' : ''}`}>
+                       <div className="mb-1">
+                         <div className="flex items-center gap-2">
+                           <h3 className="font-semibold text-sm text-[#225795]">
+                             {isInbound ? t('jobDetail.deliveryPoint') || 'จุดส่งสินค้า' : t('jobDetail.fullReturn')}
+                           </h3>
+                         </div>
+                         {deliveryUnlocked && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${jobApplication?.delivery_sop_completed_at ? 'text-green-600 bg-green-50' : jobApplication?.delivery_checked_in_at ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                             {jobApplication?.delivery_sop_completed_at ? t('jobDetail.podSuccess') : jobApplication?.delivery_checked_in_at ? t('jobDetail.waitingPod') : t('jobDetail.waitingCheckIn')}
+                           </span></div>}
+                       </div>
 
-                  <h4 className="font-semibold text-base text-[#225795] mb-2">
-                    {isInbound ? (job.origin_location || '-') : job.origin_location}
-                  </h4>
+                       <h4 className="font-semibold text-base text-[#225795] mb-2">
+                         {isInbound ? (job.destination_location || '-') : job.origin_location}
+                       </h4>
 
-                  <div className="space-y-1 text-sm mb-3">
-                    {isInbound ? <>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.returnDeadline')}</span>
-                          <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : '-'} | {job.destination_time || '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerPacker')}</span>
-                          <span className="text-[#454545]">: {job.origin_company_name || job.origin_contact_person || '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.remarks')}</span>
-                          <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
-                        </div>
-                      </> : <>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.fullReturnDate')}</span>
-                          <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time || '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerPacker')}</span>
-                          <span className="text-[#454545]">: {(job as any).shipper_load || job.origin_company_name || job.origin_contact_person || '-'}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-[#454545] min-w-[140px]">{t('jobDetail.remarks')}</span>
-                          <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
-                        </div>
-                      </>}
-                  </div>
+                       <div className="space-y-1 text-sm mb-3">
+                         {isInbound ? <>
+                             <div className="flex">
+                               <span className="text-[#454545] min-w-[140px]">{t('jobDetail.deliveryDate') || 'วันส่ง'}</span>
+                               <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : '-'} | {job.destination_time || '-'}</span>
+                             </div>
+                             <div className="flex">
+                               <span className="text-[#454545] min-w-[140px]">{t('jobDetail.contactPerson')}</span>
+                               <span className="text-[#454545]">: {job.destination_contact_person || '-'}</span>
+                             </div>
+                             <div className="flex">
+                               <span className="text-[#454545] min-w-[140px]">{t('jobDetail.remarks')}</span>
+                               <span className="text-[#454545]">: {job.destination_remarks || '-'}</span>
+                             </div>
+                           </> : <>
+                             <div className="flex">
+                               <span className="text-[#454545] min-w-[140px]">{t('jobDetail.fullReturnDate')}</span>
+                               <span className="text-[#454545]">: {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time || '-'}</span>
+                             </div>
+                             <div className="flex">
+                               <span className="text-[#454545] min-w-[140px]">{t('jobDetail.containerPacker')}</span>
+                               <span className="text-[#454545]">: {(job as any).shipper_load || job.origin_company_name || job.origin_contact_person || '-'}</span>
+                             </div>
+                             <div className="flex">
+                               <span className="text-[#454545] min-w-[140px]">{t('jobDetail.remarks')}</span>
+                               <span className="text-[#454545]">: {job.origin_remarks || '-'}</span>
+                             </div>
+                           </>}
+                       </div>
 
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!deliveryUnlocked}>
-                      <Phone className="w-4 h-4" />
-                      <span className="text-xs">{t('jobDetail.call')}</span>
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!deliveryUnlocked}>
-                      <img src={routeIcon} alt="route" className="w-4 h-4" />
-                      <span className="text-xs">{t('jobDetail.route')}</span>
-                    </Button>
-                    <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!deliveryUnlocked}>
-                      <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
-                      <span className="text-[10px] leading-tight text-center">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
-                    </Button>
-                  </div>
-                </div>
-              </Card>
+                       <div className="grid grid-cols-3 gap-2">
+                         <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" disabled={!deliveryUnlocked}>
+                           <Phone className="w-4 h-4" />
+                           <span className="text-xs">{t('jobDetail.call')}</span>
+                         </Button>
+                         <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!deliveryUnlocked}>
+                           <img src={routeIcon} alt="route" className="w-4 h-4" />
+                           <span className="text-xs">{t('jobDetail.route')}</span>
+                         </Button>
+                         <Button size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" onClick={() => navigate(`/job/${job.id}/delivery`)} disabled={!deliveryUnlocked}>
+                           <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
+                           <span className="text-[10px] leading-tight text-center">{jobApplication?.delivery_sop_completed_at ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                         </Button>
+                       </div>
+                     </div>
+                   </Card>
                  );
                })()}
 
               {/* Container Return Location Card - For all international jobs */}
+              {(() => {
+                const hasMultiDest = isInbound && job.destinations && job.destinations.length > 0;
+                const allDestPodDone = hasMultiDest 
+                  ? job.destinations!.every(d => deliveryCheckinsBySeq[d.sequence_number]?.podDone)
+                  : deliveryCheckedIn;
+                const containerReturnUnlocked = isOutbound ? !!jobApplication?.sop_completed_at : allDestPodDone;
+                return (
               <Card className={`p-4 border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500 bg-green-50' : containerReturnCheckedIn ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}>
-                <div className={`${!(isOutbound ? !!jobApplication?.sop_completed_at : deliveryCheckedIn) ? 'opacity-60' : ''}`}>
+                <div className={`${!containerReturnUnlocked ? 'opacity-60' : ''}`}>
                   <div className="mb-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-[#225795]">
                         {t('jobDetail.containerReturn') || 'จุดคืนตู้คอนเทนเนอร์'}
                       </h3>
                     </div>
-                    {(isOutbound ? !!jobApplication?.sop_completed_at : deliveryCheckedIn) && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${containerReturnConfirmed ? 'text-green-600 bg-green-50' : containerReturnCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
+                    {containerReturnUnlocked && <div className="mt-1"><span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${containerReturnConfirmed ? 'text-green-600 bg-green-50' : containerReturnCheckedIn ? 'text-blue-600 bg-blue-50' : 'text-orange-500 bg-[#FFF7E6]'}`}>
                         {containerReturnConfirmed ? t('jobDetail.podSuccess') || 'คืนเสร็จสิ้น' : containerReturnCheckedIn ? t('jobDetail.waitingPod') || 'รอยืนยันการคืน' : t('jobDetail.waitingCheckIn') || 'รอเช็คอิน'}
                       </span></div>}
                   </div>
@@ -745,7 +875,7 @@ export default function InternationalJobDetail({
                       variant="outline"
                       size="sm" 
                       className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860] px-[4px] py-[4px]" 
-                      disabled={!(isOutbound ? !!jobApplication?.sop_completed_at : deliveryCheckedIn)}
+                      disabled={!containerReturnUnlocked}
                       onClick={() => {
                         const phone = (job as any).container_return_phone;
                         if (phone) window.open(`tel:${phone}`);
@@ -754,7 +884,7 @@ export default function InternationalJobDetail({
                       <Phone className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.call')}</span>
                     </Button>
-                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!(isOutbound ? !!jobApplication?.sop_completed_at : deliveryCheckedIn)}>
+                    <Button variant="outline" size="sm" className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 border-[#153860]" disabled={!containerReturnUnlocked}>
                       <img src={routeIcon} alt="route" className="w-4 h-4" />
                       <span className="text-xs">{t('jobDetail.route')}</span>
                     </Button>
@@ -762,7 +892,7 @@ export default function InternationalJobDetail({
                       size="sm" 
                       className="h-10 flex flex-col items-center justify-center gap-0.5 p-1 bg-[#225896] border-transparent" 
                       onClick={handleContainerReturnCheckin}
-                      disabled={!(isOutbound ? !!jobApplication?.sop_completed_at : deliveryCheckedIn) || containerReturnConfirmed}
+                      disabled={!containerReturnUnlocked || containerReturnConfirmed}
                     >
                       <img src={statusIcon} alt="status" className="w-4 h-4 brightness-0 invert" />
                       <span className="text-[10px] leading-tight text-center">{containerReturnConfirmed ? t('jobDetail.viewInfo') : containerReturnCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
@@ -770,6 +900,8 @@ export default function InternationalJobDetail({
                   </div>
                 </div>
               </Card>
+                );
+              })()}
             </div>
           </div>
         </div>
