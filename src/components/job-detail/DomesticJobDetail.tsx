@@ -622,7 +622,12 @@ export default function DomesticJobDetail({
     if (!pendingSwap) return;
     const newOrder = [...displayDestinations];
     [newOrder[pendingSwap.fromIdx], newOrder[pendingSwap.toIdx]] = [newOrder[pendingSwap.toIdx], newOrder[pendingSwap.fromIdx]];
-    setLocalDestOrder(newOrder);
+    // Reassign sequence_number to match new visual order so API calls use the correct sequence
+    const resequenced = newOrder.map((dest, idx) => ({
+      ...dest,
+      sequence_number: idx + 1,
+    }));
+    setLocalDestOrder(resequenced);
     setShowSwapConfirm(false);
     setPendingSwap(null);
     toast({ title: t('jobDetail.swapSuccess') || 'สลับจุดส่งสำเร็จ' });
