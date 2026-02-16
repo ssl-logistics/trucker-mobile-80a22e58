@@ -1141,39 +1141,40 @@ export default function DomesticJobDetail({
               return (
                 <Card key={dest.id} ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}} className={`overflow-hidden border-2 rounded-xl ${isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
                     <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
-                      <h3 className="font-medium text-xs text-white">{t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}</h3>
-                      {isDestinationLocked ?
+                      <h3 className="font-medium text-xs text-white">
+                        {t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}
+                        {isReorderMode && dest.company_name ? ` — ${dest.company_name}` : ''}
+                      </h3>
+                      {!isReorderMode && (isDestinationLocked ?
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
                           {t('jobDetail.waitingPreviousStep')}
                         </span> :
-
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
                           {statusInfo.text}
                         </span>
-                    }
+                    )}
                     </div>
+                    {/* Compact reorder mode - only arrows */}
+                    {isReorderMode && displayDestinations.length > 1 ? (
+                      <div className="flex items-center justify-center gap-3 py-2 bg-white">
+                        <button
+                          onClick={() => handleSwapRequest(index, index - 1)}
+                          disabled={index === 0}
+                          className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-colors"
+                        >
+                          <ArrowUp className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <span className="text-[10px] text-gray-400 font-medium">{t('jobDetail.dragToSwap')}</span>
+                        <button
+                          onClick={() => handleSwapRequest(index, index + 1)}
+                          disabled={index === displayDestinations.length - 1}
+                          className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-colors"
+                        >
+                          <ArrowDown className="w-4 h-4 text-gray-600" />
+                        </button>
+                      </div>
+                    ) : (
                     <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                      {/* Reorder arrows in reorder mode */}
-                      {isReorderMode && displayDestinations.length > 1 && (
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <button
-                            onClick={() => handleSwapRequest(index, index - 1)}
-                            disabled={index === 0}
-                            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-colors"
-                          >
-                            <ArrowUp className="w-4 h-4 text-gray-600" />
-                          </button>
-                          <span className="text-[10px] text-gray-400 font-medium">{t('jobDetail.dragToSwap') || 'กดลูกศรเพื่อสลับ'}</span>
-                          <button
-                            onClick={() => handleSwapRequest(index, index + 1)}
-                            disabled={index === displayDestinations.length - 1}
-                            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition-colors"
-                          >
-                            <ArrowDown className="w-4 h-4 text-gray-600" />
-                          </button>
-                        </div>
-                      )}
-
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
@@ -1253,6 +1254,7 @@ export default function DomesticJobDetail({
                         </Button>
                       </div>
                     </div>
+                    )}
                   </Card>);
 
             }) :
