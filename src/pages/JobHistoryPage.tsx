@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Clock, CircleDot, MapPin, Calendar as CalendarIconLucide } from "lucide-react";
 import coinsIcon from '@/assets/coins-icon.png';
@@ -15,6 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { getFreelanceAcceptedJobs, getFactoryAssignedJobs, getDriverCheckins, getDriverAssignedJobs } from '@/lib/externalApi';
 import { HistoryJobCard } from '@/components/history/HistoryJobCard';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 interface JobApplication {
   id: string;
   applied_at: string;
@@ -607,6 +608,7 @@ export default function JobHistoryPage() {
       </header>
 
       {/* Tabs */}
+      <PullToRefresh onRefresh={async () => { await Promise.all([loadCompletedJobs(), loadJobHistory()]); }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start rounded-none bg-white h-auto p-0">
           <TabsTrigger value="all" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
@@ -751,5 +753,6 @@ export default function JobHistoryPage() {
           </div>
         </TabsContent>
       </Tabs>
+      </PullToRefresh>
     </div>;
 }

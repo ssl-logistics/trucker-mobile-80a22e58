@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide } from 'lucide-react';
@@ -23,6 +23,7 @@ import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { translateJobType } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { 
   getDriverAssignedJobs, 
   getFactoryAssignedJobs, 
@@ -698,6 +699,8 @@ export default function CurrentJobsPage() {
         </div>
       </header>
 
+      <PullToRefresh onRefresh={async () => { await loadAcceptedJobs(); }}>
+
       {/* Search and Filter Bar */}
       <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm sticky top-0 z-40">
         <div className="flex items-center gap-2">
@@ -839,6 +842,8 @@ export default function CurrentJobsPage() {
         })}
           </div>}
       </div>
+
+      </PullToRefresh>
 
       {/* Filter Drawer */}
       <Drawer open={filterOpen} onOpenChange={setFilterOpen}>

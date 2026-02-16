@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Wallet, Receipt } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "@/hooks/use-toast";
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { getDriverCheckins, getDriverAssignedJobs } from '@/lib/externalApi';
 interface CompletedJob {
   id: string;
@@ -372,7 +373,7 @@ export default function IncomePage() {
         </div>
       </header>
 
-      <div className="px-4 pt-6">
+      <PullToRefresh onRefresh={async () => { await loadIncomeData(); }} className="px-4 pt-6">
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="all">{t('income.all')}</TabsTrigger>
@@ -473,6 +474,6 @@ export default function IncomePage() {
                 </div>)}
           </TabsContent>
         </Tabs>
-      </div>
+      </PullToRefresh>
     </div>;
 }

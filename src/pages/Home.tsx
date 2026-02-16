@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { HomeTour } from '@/components/onboarding/HomeTour';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
@@ -963,7 +964,13 @@ export default function Home() {
       </div>
 
       {/* Scrollable Content - Responsive container */}
-      <div className="flex-1 pb-24 lg:pb-8">
+      <PullToRefresh onRefresh={async () => {
+        if (userType === 'internal_driver' || userType === 'external_driver') {
+          await loadFactoryJobs();
+        } else if (userType === 'freelance_driver') {
+          await Promise.all([loadJobs(), loadFactoryJobs()]);
+        }
+      }} className="flex-1 pb-24 lg:pb-8">
         {/* Jobs Section - Centered with max-width on larger screens */}
         <div data-tour="available-jobs" className="px-4 mt-6 sm:px-6 lg:px-8 xl:px-10 max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-4">
@@ -1033,7 +1040,7 @@ export default function Home() {
             )}
           </div>
         </div>
-      </div>
+      </PullToRefresh>
 
       <BottomNavigation />
 
