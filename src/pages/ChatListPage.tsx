@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 
 interface Conversation {
   id: string;
@@ -213,18 +214,20 @@ export default function ChatListPage() {
         <h1 className="text-xl font-semibold text-[#153860] text-center px-4 py-3">{t('chat.title')}</h1>
       </div>
       
-      <div className="p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input type="text" placeholder={t('chat.search')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-gray-300 border-none" />
+      <PullToRefresh onRefresh={async () => { await loadConversations(); }}>
+        <div className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input type="text" placeholder={t('chat.search')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-gray-300 border-none" />
+          </div>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        {renderSection(t('chat.company'), companyChats.length, companyChats, 'company')}
-        {renderSection(t('chat.friends'), friendChats.length, friendChats, 'friends')}
-        {renderSection(t('chat.groups'), groupChats.length, groupChats, 'groups')}
-      </div>
+        <div className="space-y-2">
+          {renderSection(t('chat.company'), companyChats.length, companyChats, 'company')}
+          {renderSection(t('chat.friends'), friendChats.length, friendChats, 'friends')}
+          {renderSection(t('chat.groups'), groupChats.length, groupChats, 'groups')}
+        </div>
+      </PullToRefresh>
 
       <BottomNavigation />
     </div>;

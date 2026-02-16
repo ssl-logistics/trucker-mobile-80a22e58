@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { formatDate as formatThaiDate } from "@/lib/dateUtils";
 import { MultiBidPaymentModal } from "@/components/bidding/MultiBidPaymentModal";
 import { listTickets } from "@/lib/externalApi";
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import type { Database } from "@/integrations/supabase/types";
 
 type BiddingJob = Database["public"]["Tables"]["jobs"]["Row"];
@@ -744,6 +745,7 @@ export default function BiddingPage() {
       </header>
 
       {/* Tabs */}
+      <PullToRefresh onRefresh={async () => { await Promise.all([loadAvailableJobs(), loadAcceptedJobs()]); }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-white">
           <TabsTrigger value="bidding" className="rounded-none">
@@ -846,6 +848,7 @@ export default function BiddingPage() {
           )}
         </TabsContent>
       </Tabs>
+      </PullToRefresh>
 
       {/* Filter Drawer for Bidding Tab */}
       <Drawer open={filterOpen} onOpenChange={setFilterOpen}>

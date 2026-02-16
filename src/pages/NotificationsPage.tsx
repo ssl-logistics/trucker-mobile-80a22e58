@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
 import { format, isSameDay, isSameMonth, parseISO, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
@@ -11,6 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 
 interface Notification {
   id: string;
@@ -247,6 +248,13 @@ export default function NotificationsPage() {
       </div>
 
       {/* Notifications List */}
+      <PullToRefresh onRefresh={async () => {
+        if (!driverId) return;
+        const { data: response } = await supabase.functions.invoke('get-notifications', {
+          body: { action: 'list', user_id: driverId },
+        });
+        setNotifications(response?.data || []);
+      }}>
       <div className="bg-white">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -290,6 +298,7 @@ export default function NotificationsPage() {
           })
         )}
       </div>
+      </PullToRefresh>
     </div>
   );
 }
