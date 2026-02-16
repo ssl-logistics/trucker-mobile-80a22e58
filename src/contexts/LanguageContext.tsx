@@ -314,6 +314,7 @@ const thTranslations: Record<string, string> = {
   'common.noData': 'ไม่มีข้อมูล',
   'common.copied': 'คัดลอกแล้ว',
   'common.cancel': 'ยกเลิก',
+  'common.confirm': 'ยืนยัน',
   'common.paid': 'ชำระแล้ว',
 
   // Income Page
@@ -1757,6 +1758,7 @@ const enTranslations: Record<string, string> = {
   'common.noData': 'No data',
   'common.copied': 'Copied',
   'common.cancel': 'Cancel',
+  'common.confirm': 'Confirm',
   'common.paid': 'Paid',
 
   // Income Page
@@ -3199,6 +3201,7 @@ const koTranslations: Record<string, string> = {
   'common.noData': '데이터 없음',
   'common.copied': '복사됨',
   'common.cancel': '취소',
+  'common.confirm': '확인',
   'common.paid': '지불됨',
 
   // Income Page
