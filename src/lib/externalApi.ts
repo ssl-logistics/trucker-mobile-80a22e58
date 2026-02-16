@@ -539,6 +539,9 @@ export async function updateFreelanceDriver(body: {
   vehicle_type?: string;
   fuel_type?: string;
   manufacturing_year?: number;
+  bank_name?: string;
+  account_number?: string;
+  account_name?: string;
 }) {
   return callExternalApi<{ 
     success: boolean; 
