@@ -600,9 +600,27 @@ export default function DomesticJobDetail({
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
 
-  // Sync localDestOrder when destinations change
+  // localStorage key for persisting reorder
+  const reorderStorageKey = `dest_order_${job.order_code}`;
+
+  // Sync localDestOrder when destinations change, restore saved order from localStorage
   useEffect(() => {
     if (destinations.length > 0) {
+      try {
+        const saved = localStorage.getItem(reorderStorageKey);
+        if (saved) {
+          const savedOrder: { id: string; sequence_number: number }[] = JSON.parse(saved);
+          // Rebuild order from saved sequence: map saved id->sequence, then sort destinations by it
+          const idToSeq = new Map(savedOrder.map(s => [s.id, s.sequence_number]));
+          const reordered = [...destinations]
+            .map(d => ({ ...d, sequence_number: idToSeq.get(d.id) ?? d.sequence_number }))
+            .sort((a, b) => a.sequence_number - b.sequence_number);
+          setLocalDestOrder(reordered);
+          return;
+        }
+      } catch (e) {
+        console.error('Error restoring dest order:', e);
+      }
       setLocalDestOrder([...destinations]);
     }
   }, [JSON.stringify(destinations)]);
@@ -639,6 +657,12 @@ export default function DomesticJobDetail({
       sequence_number: idx + 1,
     }));
     setLocalDestOrder(resequenced);
+    // Persist to localStorage so order survives navigation
+    try {
+      localStorage.setItem(reorderStorageKey, JSON.stringify(resequenced.map(d => ({ id: d.id, sequence_number: d.sequence_number }))));
+    } catch (e) {
+      console.error('Error saving dest order:', e);
+    }
     setShowSwapConfirm(false);
     setPendingSwap(null);
     toast({ title: t('jobDetail.swapSuccess') || 'สลับจุดส่งสำเร็จ' });
