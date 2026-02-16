@@ -65,8 +65,18 @@ export default function DeliverySOPCheckInPage() {
   useEffect(() => {
     // Try to use job data passed via navigation state first
     const stateJobData = (location.state as any)?.jobData;
+    const stateDestId = (location.state as any)?.destId;
     if (stateJobData && jobId) {
-      const targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
+      let targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
+      
+      // If destId is passed, find the actual destination and use its original sequence_number
+      if (stateDestId && stateJobData.destinations?.length > 0) {
+        const matchedDest = stateJobData.destinations.find((d: any) => d.id === stateDestId);
+        if (matchedDest) {
+          targetSequenceNumber = matchedDest.sequence_number;
+        }
+      }
+      
       const mappedJob: JobDetail = {
         id: stateJobData.id || stateJobData.transport_order_id,
         order_code: stateJobData.order_number || stateJobData.order_code || jobId,
@@ -129,9 +139,14 @@ export default function DeliverySOPCheckInPage() {
         let targetDestination: any = null;
         
         if (destinationsArray.length > 0) {
-          targetDestination = destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
+          // Prefer lookup by destination ID (stable across reorders) over sequence_number
+          const stateDestIdFallback = (location.state as any)?.destId;
+          targetDestination = (stateDestIdFallback 
+            ? destinationsArray.find((d: any) => d.id === stateDestIdFallback)
+            : null) 
+            || destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
             || destinationsArray[0];
-          console.log('Multi-destination job, target sequence:', targetSequenceNumber);
+          console.log('Multi-destination job, target sequence:', targetSequenceNumber, 'destId:', stateDestIdFallback);
         }
         
         // Set destination state
