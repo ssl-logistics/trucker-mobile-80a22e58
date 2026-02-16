@@ -647,7 +647,7 @@ export default function DomesticJobDetail({
     setShowSwapConfirm(true);
   };
 
-  const confirmSwap = () => {
+  const confirmSwap = async () => {
     if (!pendingSwap) return;
     const newOrder = [...displayDestinations];
     [newOrder[pendingSwap.fromIdx], newOrder[pendingSwap.toIdx]] = [newOrder[pendingSwap.toIdx], newOrder[pendingSwap.fromIdx]];
@@ -666,6 +666,23 @@ export default function DomesticJobDetail({
     setShowSwapConfirm(false);
     setPendingSwap(null);
     toast({ title: t('jobDetail.swapSuccess') || 'สลับจุดส่งสำเร็จ' });
+
+    // Send reorder to API (fire-and-forget, localStorage is the primary persistence)
+    try {
+      const { data, error } = await supabase.functions.invoke('reorder-destinations', {
+        body: {
+          order_number: job.order_code,
+          destinations: resequenced.map(d => ({ id: d.id, sequence_number: d.sequence_number })),
+        },
+      });
+      if (error) {
+        console.error('Reorder API error:', error);
+      } else {
+        console.log('Reorder API success:', data);
+      }
+    } catch (e) {
+      console.error('Reorder API exception:', e);
+    }
   };
 
   const scrollToDestination = (destId: string) => {
