@@ -1141,7 +1141,7 @@ export default function DomesticJobDetail({
               return (
                 <Card key={dest.id} ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}} className={`overflow-hidden border-2 rounded-xl ${isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
                     <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
-                      <h3 className="font-medium text-xs text-white">{t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''} {dest.company_name ? `- ${dest.company_name}` : ''}</h3>
+                      <h3 className="font-medium text-xs text-white">{t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}</h3>
                       {isDestinationLocked ?
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
                           {t('jobDetail.waitingPreviousStep')}
