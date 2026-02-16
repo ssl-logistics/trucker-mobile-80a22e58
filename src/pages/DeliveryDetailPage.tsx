@@ -138,6 +138,7 @@ export default function DeliveryDetailPage() {
       // Use different API based on driver type - call external API directly
       let foundJob: any = null;
       const stateJob = (location.state as any)?.jobData || (location.state as any)?.job;
+      const stateDestId = (location.state as any)?.destId;
       
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
@@ -182,9 +183,13 @@ export default function DeliveryDetailPage() {
           
           if (hasMultipleDestinations) {
             // Multi-destination job - find the matching destination
-            targetDestination = destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
+            // Prefer lookup by destination ID (stable across reorders) over sequence_number
+            targetDestination = (stateDestId 
+              ? destinationsArray.find((d: any) => d.id === stateDestId)
+              : null) 
+              || destinationsArray.find((d: any) => d.sequence_number === targetSequenceNumber) 
               || destinationsArray[0];
-            console.log('Multi-destination job, target sequence:', targetSequenceNumber, 'found:', targetDestination?.sequence_number);
+            console.log('Multi-destination job, target sequence:', targetSequenceNumber, 'destId:', stateDestId, 'found:', targetDestination?.sequence_number, targetDestination?.id);
           }
           
           // Use target destination data if available, otherwise use job-level data
