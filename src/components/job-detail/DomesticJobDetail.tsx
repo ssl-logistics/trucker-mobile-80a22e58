@@ -612,8 +612,19 @@ export default function DomesticJobDetail({
 
   const handleSwapRequest = (fromIdx: number, toIdx: number) => {
     if (toIdx < 0 || toIdx >= displayDestinations.length) return;
-    const fromName = displayDestinations[fromIdx].company_name || `#${displayDestinations[fromIdx].sequence_number}`;
-    const toName = displayDestinations[toIdx].company_name || `#${displayDestinations[toIdx].sequence_number}`;
+    // Prevent swapping destinations that are already checked in
+    const fromDest = displayDestinations[fromIdx];
+    const toDest = displayDestinations[toIdx];
+    const fromCheckin = destinationCheckins[fromDest.sequence_number];
+    const toCheckin = destinationCheckins[toDest.sequence_number];
+    const fromCheckedIn = !!(fromCheckin?.checked_in_at || fromDest.checked_in_at);
+    const toCheckedIn = !!(toCheckin?.checked_in_at || toDest.checked_in_at);
+    if (fromCheckedIn || toCheckedIn) {
+      toast({ title: t('jobDetail.cannotReorder') || 'สลับไม่ได้', description: t('jobDetail.cannotReorderCheckedIn') || 'จุดส่งที่เช็คอินแล้วไม่สามารถสลับได้', variant: 'destructive' });
+      return;
+    }
+    const fromName = fromDest.company_name || `#${fromDest.sequence_number}`;
+    const toName = toDest.company_name || `#${toDest.sequence_number}`;
     setPendingSwap({ fromIdx, toIdx, fromName, toName });
     setShowSwapConfirm(true);
   };
@@ -1163,19 +1174,23 @@ export default function DomesticJobDetail({
                         </span>
                     )}
                     </div>
-                    {/* Compact reorder mode - only arrows */}
+                    {/* Compact reorder mode - only drag for non-checked-in items */}
                     {isReorderMode && displayDestinations.length > 1 ? (
                       <div
-                        className={`flex items-center gap-3 px-3 py-2.5 bg-white cursor-grab active:cursor-grabbing select-none transition-all ${
-                          dragIdx === index ? 'opacity-50 scale-95' : ''
-                        } ${dragOverIdx === index && dragIdx !== index ? 'border-t-2 border-orange-400' : ''}`}
-                        draggable
+                        className={`flex items-center gap-3 px-3 py-2.5 select-none transition-all ${
+                          isCheckedIn || isPodCompleted
+                            ? 'bg-gray-100 cursor-not-allowed opacity-60'
+                            : `bg-white cursor-grab active:cursor-grabbing ${dragIdx === index ? 'opacity-50 scale-95' : ''} ${dragOverIdx === index && dragIdx !== index ? 'border-t-2 border-orange-400' : ''}`
+                        }`}
+                        draggable={!isCheckedIn && !isPodCompleted}
                         onDragStart={(e) => {
+                          if (isCheckedIn || isPodCompleted) { e.preventDefault(); return; }
                           setDragIdx(index);
                           dragItemRef.current = index;
                           e.dataTransfer.effectAllowed = 'move';
                         }}
                         onDragOver={(e) => {
+                          if (isCheckedIn || isPodCompleted) return;
                           e.preventDefault();
                           e.dataTransfer.dropEffect = 'move';
                           setDragOverIdx(index);
@@ -1183,6 +1198,7 @@ export default function DomesticJobDetail({
                         onDragLeave={() => setDragOverIdx(null)}
                         onDrop={(e) => {
                           e.preventDefault();
+                          if (isCheckedIn || isPodCompleted) return;
                           const fromIdx = dragItemRef.current;
                           if (fromIdx !== null && fromIdx !== index) {
                             handleSwapRequest(fromIdx, index);
@@ -1197,11 +1213,13 @@ export default function DomesticJobDetail({
                           dragItemRef.current = null;
                         }}
                         onTouchStart={(e) => {
+                          if (isCheckedIn || isPodCompleted) return;
                           dragStartY.current = e.touches[0].clientY;
                           setDragIdx(index);
                           dragItemRef.current = index;
                         }}
                         onTouchMove={(e) => {
+                          if (isCheckedIn || isPodCompleted) return;
                           const touch = e.touches[0];
                           const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
                           const cardEl = elements.find(el => el.getAttribute('data-reorder-idx'));
@@ -1211,6 +1229,7 @@ export default function DomesticJobDetail({
                           }
                         }}
                         onTouchEnd={() => {
+                          if (isCheckedIn || isPodCompleted) { setDragIdx(null); setDragOverIdx(null); dragItemRef.current = null; return; }
                           const fromIdx = dragItemRef.current;
                           if (fromIdx !== null && dragOverIdx !== null && fromIdx !== dragOverIdx) {
                             handleSwapRequest(fromIdx, dragOverIdx);
@@ -1221,12 +1240,19 @@ export default function DomesticJobDetail({
                         }}
                         data-reorder-idx={index}
                       >
-                        <GripVertical className="w-5 h-5 text-gray-400 shrink-0" />
+                        {isCheckedIn || isPodCompleted ? (
+                          <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                        ) : (
+                          <GripVertical className="w-5 h-5 text-gray-400 shrink-0" />
+                        )}
                         <span className="text-sm font-medium text-gray-700 flex-1">
                           {t('jobDetail.deliveryPoint')} #{index + 1}
                           {dest.company_name ? ` — ${dest.company_name}` : ''}
                           {dest.district ? ` (${dest.district})` : ''}
                         </span>
+                        {(isCheckedIn || isPodCompleted) && (
+                          <span className="text-[10px] text-gray-400">{t('jobDetail.cannotReorder') || 'สลับไม่ได้'}</span>
+                        )}
                       </div>
                     ) : (
                     <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
