@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { AUTH_KEYS, removeAuthItem } from '@/utils/authStorage';
 import {
@@ -174,12 +175,29 @@ export default function AccountPage() {
           <div className="bg-white rounded-lg p-4 space-y-4">
             <div>
               <label className="text-sm text-muted-foreground">{t('account.bank_name')}</label>
-              <Input
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-                placeholder={t('account.bank_name')}
-                className="mt-1"
-              />
+              <Select value={bankName} onValueChange={setBankName}>
+                <SelectTrigger className="mt-1 bg-background">
+                  <SelectValue placeholder={t('account.bank_name')} />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="ธนาคารกรุงเทพ">ธนาคารกรุงเทพ (BBL)</SelectItem>
+                  <SelectItem value="ธนาคารกสิกรไทย">ธนาคารกสิกรไทย (KBANK)</SelectItem>
+                  <SelectItem value="ธนาคารกรุงไทย">ธนาคารกรุงไทย (KTB)</SelectItem>
+                  <SelectItem value="ธนาคารไทยพาณิชย์">ธนาคารไทยพาณิชย์ (SCB)</SelectItem>
+                  <SelectItem value="ธนาคารกรุงศรีอยุธยา">ธนาคารกรุงศรีอยุธยา (BAY)</SelectItem>
+                  <SelectItem value="ธนาคารทหารไทยธนชาต">ธนาคารทหารไทยธนชาต (TTB)</SelectItem>
+                  <SelectItem value="ธนาคารออมสิน">ธนาคารออมสิน (GSB)</SelectItem>
+                  <SelectItem value="ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร">ธ.ก.ส. (BAAC)</SelectItem>
+                  <SelectItem value="ธนาคารอาคารสงเคราะห์">ธนาคารอาคารสงเคราะห์ (GHB)</SelectItem>
+                  <SelectItem value="ธนาคารซีไอเอ็มบีไทย">ธนาคารซีไอเอ็มบีไทย (CIMBT)</SelectItem>
+                  <SelectItem value="ธนาคารยูโอบี">ธนาคารยูโอบี (UOB)</SelectItem>
+                  <SelectItem value="ธนาคารแลนด์แอนด์เฮ้าส์">ธนาคารแลนด์แอนด์เฮ้าส์ (LHBANK)</SelectItem>
+                  <SelectItem value="ธนาคารเกียรตินาคินภัทร">ธนาคารเกียรตินาคินภัทร (KKP)</SelectItem>
+                  <SelectItem value="ธนาคารอิสลามแห่งประเทศไทย">ธนาคารอิสลามแห่งประเทศไทย (IBANK)</SelectItem>
+                  <SelectItem value="ธนาคารทิสโก้">ธนาคารทิสโก้ (TISCO)</SelectItem>
+                  <SelectItem value="ธนาคารไอซีบีซี">ธนาคารไอซีบีซี (ICBC)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="text-sm text-muted-foreground">{t('account.bank_account_number')}</label>
