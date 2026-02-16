@@ -148,7 +148,6 @@ export default function DomesticJobDetail({
     containerReturn: 0
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
-  const [activeDestIndex, setActiveDestIndex] = useState(0);
   // destinations state removed - job_destinations table no longer exists
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
@@ -678,7 +677,7 @@ export default function DomesticJobDetail({
               const hasEmptyContainer = isInternational;
               const hasPickup = !job.bl_no;
               const hasDelivery = !job.booking_no;
-              const deliveryCount = hasDelivery ? 1 : 0; // Always 1 circle shown (switcher handles multi)
+              const deliveryCount = hasDelivery ? (destinations.length > 0 ? destinations.length : 1) : 0;
               const hasContainerReturn = isInternational && (job.container_return_location || job.container_return_latitude);
               const totalSteps = (hasEmptyContainer ? 1 : 0) + (hasPickup ? 1 : 0) + deliveryCount + (hasContainerReturn ? 1 : 0);
               return totalSteps > 1 ?
@@ -722,36 +721,7 @@ export default function DomesticJobDetail({
             }
 
               {/* Delivery Point Circles - Hidden for Booking (outbound) jobs */}
-              {!job.booking_no && (destinations.length > 1 ?
-              // Multi-destination: show only active destination circle
-              (() => {
-                const dest = destinations[activeDestIndex];
-                if (!dest) return null;
-                const seq = dest.sequence_number;
-                const destCheckinData = destinationCheckins[seq];
-                const isPodCompleted = !!(destCheckinData?.sop_completed_at || dest.sop_completed_at);
-                const isCheckedIn = !!(destCheckinData?.checked_in_at || dest.checked_in_at);
-
-                return <div key={dest.id} className="relative flex justify-center" style={{
-                  height: `${cardHeights.deliveryCards[dest.id] || 200}px`,
-                  marginBottom: '12px'
-                }}>
-                  <div className="absolute top-0">
-                    {isPodCompleted ?
-                      <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div> :
-                    isCheckedIn ?
-                      <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> :
-                    pickupSopCompleted || jobApplication?.sop_completed_at ?
-                      <div className="w-7 h-7 rounded-full border-[3px] border-teal-500 bg-white shadow-sm" /> :
-                      <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />
-                    }
-                  </div>
-                </div>;
-              })() :
-              // Single or fallback
-              (destinations.length > 0 ? destinations : [{
+              {!job.booking_no && (destinations.length > 0 ? destinations : [{
               id: 'fallback',
               sequence_number: 1
             }]).map((dest, index) => {
@@ -783,7 +753,7 @@ export default function DomesticJobDetail({
                   }
                   </div>
                 </div>;
-            }))}
+            })}
 
               {/* Container Return Circle - Only for international jobs with return data */}
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
@@ -1040,35 +1010,7 @@ export default function DomesticJobDetail({
 
 
               {/* Delivery Point Cards - Hidden for Booking (outbound) jobs */}
-              {!job.booking_no && (destinations.length > 1 ? (
-                <>
-                  {/* Destination Switcher */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                    {destinations.map((dest, idx) => {
-                      const destChk = destinationCheckins[dest.sequence_number];
-                      const completed = !!destChk?.sop_completed_at || !!dest.sop_completed_at;
-                      return (
-                        <button
-                          key={dest.id}
-                          onClick={() => setActiveDestIndex(idx)}
-                          className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                            activeDestIndex === idx
-                              ? 'bg-[#225795] text-white'
-                              : completed
-                                ? 'bg-green-100 text-green-700 border border-green-300'
-                                : 'bg-gray-100 text-gray-600 border border-gray-200'
-                          }`}
-                        >
-                          {completed && <CheckCircle className="w-3 h-3" />}
-                          {t('jobDetail.deliveryPoint')} #{dest.sequence_number}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {/* Show only active destination */}
-                  {destinations.filter((_, idx) => idx === activeDestIndex).map((dest, _) => {
-                    const index = activeDestIndex;
-              
+              {!job.booking_no && (destinations.length > 0 ? destinations.map((dest, index) => {
               // Get check-in status from destinationCheckins state (enriched from API)
               const destCheckin = destinationCheckins[dest.sequence_number];
               const isPodCompleted = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
@@ -1206,9 +1148,8 @@ export default function DomesticJobDetail({
                       </div>
                     </div>
                   </Card>);
-                  })}
-                </>
-              ) :
+
+            }) :
             // Fallback to original single destination from jobs table
             (() => {
               // Use ONLY actual check-in status from API, NOT jobApplication data
