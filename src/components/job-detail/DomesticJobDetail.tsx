@@ -738,15 +738,17 @@ export default function DomesticJobDetail({
                 })}
               </div>
               {!isFromHistory && (
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setIsReorderMode(!isReorderMode)}
-                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-colors ${
-                    isReorderMode ? 'bg-orange-100 text-orange-700 border border-orange-300' : 'bg-gray-100 text-gray-500 border border-gray-200'
+                  className={`h-7 px-3 text-[11px] font-medium gap-1.5 rounded-lg shadow-sm ${
+                    isReorderMode ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5'
                   }`}
                 >
-                  <Repeat2 className="w-3 h-3" />
-                  {isReorderMode ? (t('jobDetail.doneReorder') || 'เสร็จ') : (t('jobDetail.reorder') || 'สลับ')}
-                </button>
+                  <Repeat2 className="w-3.5 h-3.5" />
+                  {isReorderMode ? t('jobDetail.doneReorder') : t('jobDetail.reorder')}
+                </Button>
               )}
             </div>
           )}
