@@ -542,6 +542,7 @@ export async function updateFreelanceDriver(body: {
   bank_name?: string;
   account_number?: string;
   account_name?: string;
+  profile_photo_url?: string;
 }) {
   return callExternalApi<{ 
     success: boolean; 

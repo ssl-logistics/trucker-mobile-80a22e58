@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { getAuthItem, setAuthItem } from '@/utils/authStorage';
+import { updateFreelanceDriver } from '@/lib/externalApi';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   AlertDialog,
@@ -157,28 +158,17 @@ export default function ProfilePage() {
 
       const publicUrl: string = uploadJson.url;
 
-      // Update via external API
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            driver_id: user.id,
-            driver_type: getDriverTypeFromUserType(userType),
-            profile_photo_url: publicUrl,
-          }),
-        }
-      );
+      // Update via external API directly
+      const driverType = getDriverTypeFromUserType(userType);
+      const { data, error: updateError } = await updateFreelanceDriver({
+        driver_id: user.id,
+        driver_type: driverType as 'internal' | 'external' | 'freelance',
+        profile_photo_url: publicUrl,
+      } as any);
 
-      const data = await response.json();
-      console.log('Update profile photo response:', data);
+      console.log('Update profile photo response:', data, updateError);
 
-      if (response.ok) {
+      if (!updateError) {
         setUploadedAvatarUrl(publicUrl);
         setProfile(prev => (prev ? { ...prev, avatar_url: publicUrl } : null));
         
@@ -197,7 +187,7 @@ export default function ProfilePage() {
         
         toast({ title: t('profile.success'), description: t('profile.success_desc') });
       } else {
-        toast({ title: t('home.error_load'), description: data?.error || t('profile.error_update'), variant: 'destructive' });
+        toast({ title: t('home.error_load'), description: updateError || t('profile.error_update'), variant: 'destructive' });
       }
     } catch (error) {
       console.error('Error updating profile photo:', error);
