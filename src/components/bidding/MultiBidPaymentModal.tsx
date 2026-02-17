@@ -564,7 +564,7 @@ export function MultiBidPaymentModal({
                     </div>
                     <div className="text-right flex flex-col items-end">
                       <p className="text-xs text-muted-foreground">{t("bidding.marketPrice")}</p>
-                      {hasPaidHint || isFreeJob || !marketPrice ? (
+                      {hasPaidHint || isFreeJob || !marketPrice || hintFee <= 0 ? (
                         <p className={`text-sm font-semibold ${isFreeJob ? "text-emerald-600" : "text-primary"}`}>
                           {marketPrice ? formatPrice(marketPrice) : formatPrice(job.price)}
                         </p>
