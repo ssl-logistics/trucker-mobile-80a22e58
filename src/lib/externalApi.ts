@@ -543,14 +543,24 @@ export async function updateFreelanceDriver(body: {
   account_number?: string;
   account_name?: string;
   profile_photo_url?: string;
+  avatar_url?: string;
 }) {
   // Map driver_id based on driver_type
-  const { driver_id, driver_type, ...restBody } = body;
+  const { driver_id, driver_type, profile_photo_url, ...restBody } = body;
   
   const requestBody: Record<string, unknown> = {
     ...restBody,
     driver_type,
   };
+  
+  // Internal drivers use avatar_url column, freelance uses profile_photo_url
+  if (profile_photo_url) {
+    if (driver_type === 'internal') {
+      requestBody.avatar_url = profile_photo_url;
+    } else {
+      requestBody.profile_photo_url = profile_photo_url;
+    }
+  }
   
   // Internal uses internal_driver_id, freelance uses driver_id
   if (driver_type === 'internal') {
