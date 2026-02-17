@@ -238,8 +238,16 @@ serve(async (req) => {
       const hasMultiDest = job.destinations && job.destinations.length > 0;
 
       let jobLabel = 'งานใหม่';
-      if (transportType === 'ขนส่งระหว่างประเทศ' || transportType === 'international') {
-        jobLabel = 'งานระหว่างประเทศ';
+      const transportCat = job.transport_category || '';
+      const transportDir = job.transport_type || '';
+      if (transportCat === 'international' || job.booking_no || job.bl_no) {
+        if (job.bl_no) {
+          jobLabel = 'งานขาเข้า (BL)';
+        } else if (job.booking_no) {
+          jobLabel = 'งานขาออก (Booking)';
+        } else {
+          jobLabel = 'งานระหว่างประเทศ';
+        }
       } else if (transportType === 'ขนส่งหลายที่' || hasMultiDest) {
         jobLabel = 'งานส่งหลายที่';
       } else if (transportType === 'ขนส่งเที่ยวเดียว') {
