@@ -547,7 +547,7 @@ export function MultiBidPaymentModal({
           <div className="space-y-3">
             <p className="text-sm font-medium">{t("bidding.enterBidAmounts")}</p>
             {selectedJobs.map((job) => {
-              const isFreeJob = !job.market_price && (!job.price || job.price === 0);
+              const isFreeJob = !job.price || job.price === 0;
               const hasPaidHint = paidHintJobs.has(job.id);
               const isPendingPayment = pendingPaymentJobId === job.id;
               const hintFee = job.price_hint || 0;
