@@ -26,8 +26,9 @@ serve(async (req) => {
     const body = await req.json();
     console.log('Updating driver with data:', JSON.stringify(body));
 
-    // Validate required fields
-    if (!body.driver_id) {
+    // Validate required fields - accept driver_id or type-specific ID
+    const driverId = body.driver_id || body.internal_driver_id || body.external_driver_id || body.freelance_driver_id;
+    if (!driverId) {
       return new Response(
         JSON.stringify({ error: 'driver_id is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
