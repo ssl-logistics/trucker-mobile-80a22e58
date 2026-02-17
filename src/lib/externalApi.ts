@@ -389,7 +389,7 @@ export async function listTickets(options: {
   }
 }
 
-// Create a bid for a ticket
+// Create a bid for a ticket (via internal proxy edge function)
 export async function createBid(body: {
   ticket_id: string;
   contractor_id: string;
@@ -400,10 +400,22 @@ export async function createBid(body: {
   freelancer_name?: string;
   freelancer_phone?: string;
 }) {
-  return callExternalApi<{ success: boolean; data?: any; error?: string }>('create-bid', {
-    method: 'POST',
-    body,
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke('create-bid', {
+      body,
+    });
+
+    if (error) {
+      console.error('[createBid] Edge function error:', error);
+      return { data: null, error: error.message || 'Failed to create bid' };
+    }
+
+    return { data, error: null };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[createBid] Error:', errorMessage);
+    return { data: null, error: errorMessage };
+  }
 }
 
 // ==================== Report Problem APIs ====================
