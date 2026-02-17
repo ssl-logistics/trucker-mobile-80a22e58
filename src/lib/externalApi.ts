@@ -544,28 +544,12 @@ export async function updateFreelanceDriver(body: {
   account_name?: string;
   profile_photo_url?: string;
 }) {
-  // Map driver_id to the correct field based on driver_type
-  const { driver_id, driver_type, ...restBody } = body;
-  
-  const requestBody: Record<string, unknown> = {
-    ...restBody,
-    driver_type,
-  };
-  
-  if (driver_type === 'internal') {
-    requestBody.internal_driver_id = driver_id;
-  } else if (driver_type === 'external') {
-    requestBody.external_driver_id = driver_id;
-  } else {
-    requestBody.freelance_driver_id = driver_id;
-  }
-  
   return callExternalApi<{ 
     success: boolean; 
     message?: string;
     data?: { driver: any };
   }>('update-freelance-driver', {
     method: 'PUT',
-    body: requestBody,
+    body,
   });
 }
