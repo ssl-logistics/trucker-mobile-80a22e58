@@ -298,6 +298,8 @@ serve(async (req) => {
         const jobLabel = upsertedJob.job_type === 'งานด่วน' ? 'งานด่วน' 
           : upsertedJob.transport_type === 'ขนส่งหลายที่' ? 'งานส่งหลายที่'
           : upsertedJob.transport_type === 'ขนส่งเที่ยวเดียว' ? 'งานเที่ยวเดียว'
+          : upsertedJob.transport_type === 'ขนส่งขาเข้า' ? 'งานขาเข้า (BL)'
+          : upsertedJob.transport_type === 'ขนส่งขาออก' ? 'งานขาออก (Booking)'
           : upsertedJob.job_type;
 
         const titleTh = `📦 ${jobLabel}เข้ามาแล้ว!`;
@@ -347,6 +349,8 @@ serve(async (req) => {
         const pushJobLabel = upsertedJob.job_type === 'งานด่วน' ? 'งานด่วน' 
           : upsertedJob.transport_type === 'ขนส่งหลายที่' ? 'งานส่งหลายที่'
           : upsertedJob.transport_type === 'ขนส่งเที่ยวเดียว' ? 'งานเที่ยวเดียว'
+          : upsertedJob.transport_type === 'ขนส่งขาเข้า' ? 'งานขาเข้า (BL)'
+          : upsertedJob.transport_type === 'ขนส่งขาออก' ? 'งานขาออก (Booking)'
           : upsertedJob.job_type;
 
         console.log(`Sending push notifications for ${pushJobLabel}...`);
