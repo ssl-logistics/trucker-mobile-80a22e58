@@ -475,8 +475,6 @@ export function MultiBidPaymentModal({
   };
 
   const allBidsValid = selectedJobs.every((job) => {
-    // Free jobs don't need bid amount validation
-    if (!job.price || job.price === 0) return true;
     const amount = parseFloat(bidAmounts[job.id] || "0");
     return !isNaN(amount) && amount > 0;
   });
@@ -832,24 +830,23 @@ export function MultiBidPaymentModal({
                     </div>
                   )}
                   
-                  {!isFreeJob && (
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">
-                        {t("placeBid.priceLabel")} <span className="text-destructive">*</span>
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">฿</span>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          placeholder="0"
-                          value={bidAmounts[job.id] || ""}
-                          onChange={(e) => handleBidAmountChange(job.id, e.target.value)}
-                          className="pl-8 text-lg font-semibold"
-                        />
-                      </div>
+                  {/* Always show bid input for bidding jobs */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">
+                      {t("placeBid.priceLabel")} <span className="text-destructive">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">฿</span>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={bidAmounts[job.id] || ""}
+                        onChange={(e) => handleBidAmountChange(job.id, e.target.value)}
+                        className="pl-8 text-lg font-semibold"
+                      />
                     </div>
-                  )}
+                  </div>
                   {/* Always show bidding fee */}
                   <p className="text-xs text-muted-foreground">
                     {t("bidding.biddingFee")}: <span className="font-medium text-foreground">฿{BIDDING_FEE_PER_JOB}</span>
