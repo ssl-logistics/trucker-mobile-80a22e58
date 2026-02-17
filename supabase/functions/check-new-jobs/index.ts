@@ -277,38 +277,36 @@ serve(async (req) => {
       };
     });
 
-    // Insert notifications one by one to avoid duplicates (multiple tabs may poll simultaneously)
+    // Insert all notifications at once, skip duplicates via DB unique index
     let insertedCount = 0;
-    for (const notif of notifications) {
-      // Check if already exists before inserting
-      let checkQuery = supabase
-        .from('notifications')
-        .select('id')
-        .eq('reference_id', notif.reference_id)
-        .in('notification_type', ['new_job', 'new_assigned_job']);
+    const { data: insertedData, error: insertError } = await supabase
+      .from('notifications')
+      .insert(notifications)
+      .select('id');
 
-      if (notif.user_id) {
-        checkQuery = checkQuery.eq('user_id', notif.user_id);
+    if (insertError) {
+      // If unique constraint violation, try one by one to insert non-duplicates
+      if (insertError.code === '23505') {
+        console.log('[check-new-jobs] Bulk insert hit unique constraint, inserting one by one...');
+        for (const notif of notifications) {
+          const { error: singleErr } = await supabase
+            .from('notifications')
+            .insert(notif);
+          if (singleErr) {
+            if (singleErr.code === '23505') {
+              console.log(`[check-new-jobs] Skipping duplicate for ${notif.reference_id}`);
+            } else {
+              console.error('[check-new-jobs] Error inserting notification:', singleErr);
+            }
+          } else {
+            insertedCount++;
+          }
+        }
       } else {
-        checkQuery = checkQuery.is('user_id', null);
+        console.error('[check-new-jobs] Error inserting notifications:', insertError);
       }
-
-      const { data: existing } = await checkQuery.limit(1);
-
-      if (existing && existing.length > 0) {
-        console.log(`[check-new-jobs] Skipping duplicate for ${notif.reference_id}`);
-        continue;
-      }
-
-      const { error: insertError } = await supabase
-        .from('notifications')
-        .insert(notif);
-
-      if (insertError) {
-        console.error('[check-new-jobs] Error inserting notification:', insertError);
-      } else {
-        insertedCount++;
-      }
+    } else {
+      insertedCount = insertedData?.length || notifications.length;
     }
 
     console.log(`[check-new-jobs] Created ${insertedCount} notifications (${notifications.length - insertedCount} skipped as duplicates)`);
