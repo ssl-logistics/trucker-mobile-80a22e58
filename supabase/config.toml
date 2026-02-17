@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.get-notifications]
 verify_jwt = false
+
+[functions.create-bid]
+verify_jwt = false
