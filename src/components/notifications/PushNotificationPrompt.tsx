@@ -231,6 +231,8 @@ export const PushNotificationPrompt = () => {
                 title: 'เปิดการแจ้งเตือนสำเร็จ!',
                 description: 'คุณจะได้รับการแจ้งเตือนเมื่อมีงานใหม่',
               });
+              // After notification permission granted, request GPS permission
+              requestGpsPermission();
             }
           } catch (error) {
             console.error('[PushPrompt] Error registering after settings return:', error);
@@ -260,6 +262,8 @@ export const PushNotificationPrompt = () => {
           description: t('toast.notificationEnabledDesc'),
         });
         setShowPrompt(false);
+        // After notification permission granted, request GPS permission
+        requestGpsPermission();
       } else {
         // Check if permission was denied
         const isDenied = await isNotificationPermissionDenied();
