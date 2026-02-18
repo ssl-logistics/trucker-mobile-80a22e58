@@ -105,33 +105,42 @@ export default function IncomePage() {
             podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
           });
 
-        // Filter jobs with ALL destinations POD completed for income
-        const finishedJobs = allJobs.filter((job: any) => {
+        // Show ALL jobs (same as history page), use POD status for paid/unpaid
+        const paid: IncomeJob[] = [];
+        const unpaid: IncomeJob[] = [];
+        
+        allJobs.forEach((job: any) => {
           const transportId = String(job.id);
           const podCount = podCountByTransportId[transportId] || 0;
           const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
             ? job.destinations.length 
             : 1;
-          return podCount >= destinationCount;
+          const isCompleted = podCount >= destinationCount;
+          
+          const incomeJob: IncomeJob = {
+            id: job.id,
+            jobId: job.order_number,
+            jobTitle: job.destination_company_name || job.factory_name || job.sender_name,
+            employer: job.factory_name || job.sender_name,
+            amount: job.transport_price || 0,
+            status: isCompleted ? "paid" : "pending",
+            date: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
+            month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
+              month: "long"
+            }),
+            orderCode: job.order_number
+          };
+          
+          if (isCompleted) {
+            paid.push(incomeJob);
+          } else {
+            unpaid.push(incomeJob);
+          }
         });
 
-        const paid: IncomeJob[] = finishedJobs.map((job: any) => ({
-          id: job.id,
-          jobId: job.order_number,
-          jobTitle: job.destination_company_name || job.factory_name || job.sender_name,
-          employer: job.factory_name || job.sender_name,
-          amount: job.transport_price || 0,
-          status: "paid" as const,
-          date: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
-          month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
-            month: "long"
-          }),
-          orderCode: job.order_number
-        }));
-
-        console.log('Total income jobs for internal/external driver:', paid.length);
+        console.log('Total income jobs for internal/external driver:', paid.length, 'paid,', unpaid.length, 'unpaid');
         setPaidJobs(paid);
-        setUnpaidJobs([]);
+        setUnpaidJobs(unpaid);
         setLoading(false);
         return;
       }
@@ -214,34 +223,22 @@ export default function IncomePage() {
         return podCount >= destinationCount;
       };
 
-      // Only show jobs with ALL PODs completed in income
-      const finishedJobs = allJobs.filter(job => isJobFullyCompleted(job));
-
+      // Show ALL jobs (same as history page), use POD status for paid/unpaid
       console.log('Confirmed order numbers for bid jobs:', Object.keys(podCountByOrderNumber));
 
-      // Process bid-won jobs - only show if ALL PODs are completed
-      let bidCompletedJobs: IncomeJob[] = [];
+      // Process bid-won jobs
+      let bidJobs: IncomeJob[] = [];
       if (bidWonJobsRes && bidWonJobsRes.data) {
         const bidData = bidWonJobsRes.data;
         const tickets = bidData.data || bidData.tickets || [];
         
-        // Filter only tickets where current user has an accepted bid AND has ALL PODs completed
-        bidCompletedJobs = tickets
+        // Filter only tickets where current user has an accepted bid
+        bidJobs = tickets
           .filter((ticket: any) => {
-            const ticketNumber = ticket.ticket_number;
-            
-            // Check if current user has an accepted bid on this ticket
             const userAcceptedBid = ticket.bids?.find((b: any) => 
               b.status === 'accepted' && b.contractor_id === user.id
             );
-            if (!userAcceptedBid) return false;
-            
-            // Check if ALL PODs are completed for this ticket
-            const podCount = podCountByOrderNumber[ticketNumber] || 0;
-            const destinationCount = Array.isArray(ticket.destinations) && ticket.destinations.length > 0
-              ? ticket.destinations.length
-              : 1;
-            return podCount >= destinationCount;
+            return !!userAcceptedBid;
           })
           .map((ticket: any) => {
             const customer = ticket.customer || {};
@@ -254,13 +251,20 @@ export default function IncomePage() {
             const bidPrice = acceptedBid?.bid_price || ticket.price || 0;
             const pickupDate = ticket.pickup_date || ticket.created_at?.split('T')[0] || new Date().toISOString().split('T')[0];
             
+            const ticketNumber = ticket.ticket_number;
+            const podCount = podCountByOrderNumber[ticketNumber] || 0;
+            const destinationCount = Array.isArray(ticket.destinations) && ticket.destinations.length > 0
+              ? ticket.destinations.length
+              : 1;
+            const isCompleted = podCount >= destinationCount;
+            
             return {
               id: ticket.id,
               jobId: ticket.ticket_number,
               jobTitle: employerName,
               employer: employerName,
               amount: bidPrice,
-              status: "paid" as const,
+              status: isCompleted ? "paid" as const : "pending" as const,
               date: new Date(pickupDate).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
               month: new Date(pickupDate).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
                 month: "long"
@@ -271,20 +275,19 @@ export default function IncomePage() {
             };
           });
         
-        console.log(`Found ${bidCompletedJobs.length} bid jobs with POD confirmed for income`);
+        console.log(`Found ${bidJobs.length} bid jobs for income`);
       }
 
-      // Process the transport jobs data
-      const paid: IncomeJob[] = [];
-
-      finishedJobs.forEach((job) => {
-        const incomeJob: IncomeJob = {
+      // Process ALL transport jobs (not just finished)
+      const transportJobs: IncomeJob[] = allJobs.map((job) => {
+        const isCompleted = isJobFullyCompleted(job);
+        return {
           id: job.id,
           jobId: job.order_number,
           jobTitle: job.destination_company_name || job.sender_name,
           employer: job.sender_name,
           amount: job.transport_price,
-          status: "paid",
+          status: isCompleted ? "paid" as const : "pending" as const,
           date: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
           month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
             month: "long"
@@ -292,18 +295,20 @@ export default function IncomePage() {
           orderCode: job.order_number,
           isBidJob: false,
         };
-        paid.push(incomeJob);
       });
 
       // Combine transport jobs and bid jobs, deduplicate by orderCode
-      const allPaidJobs = [...paid, ...bidCompletedJobs];
-      const uniquePaidJobs = allPaidJobs.filter((job, index, self) =>
+      const allIncomeJobs = [...transportJobs, ...bidJobs];
+      const uniqueJobs = allIncomeJobs.filter((job, index, self) =>
         index === self.findIndex((j) => j.orderCode === job.orderCode)
       );
 
-      console.log('Total income jobs:', uniquePaidJobs.length, '(Transport:', paid.length, ', Bid:', bidCompletedJobs.length, ')');
-      setPaidJobs(uniquePaidJobs);
-      setUnpaidJobs([]);
+      const paid = uniqueJobs.filter(j => j.status === 'paid');
+      const unpaid = uniqueJobs.filter(j => j.status === 'pending');
+
+      console.log('Total income jobs:', uniqueJobs.length, '(Paid:', paid.length, ', Unpaid:', unpaid.length, ')');
+      setPaidJobs(paid);
+      setUnpaidJobs(unpaid);
     } catch (error) {
       console.error("Error loading income data:", error);
       toast({
