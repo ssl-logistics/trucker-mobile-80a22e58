@@ -10,7 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "@/hooks/use-toast";
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
-import { getDriverCheckins, getDriverAssignedJobs } from '@/lib/externalApi';
+import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getFactoryAssignedJobs } from '@/lib/externalApi';
 interface CompletedJob {
   id: string;
   order_number: string;
@@ -66,7 +66,7 @@ export default function IncomePage() {
         const statuses = ['in_progress', 'in_transit', 'delivered', 'completed'];
         const [checkinsResult, ...jobResults] = await Promise.all([
           getDriverCheckins(driverId, driverType, 'all'),
-          ...statuses.map(s => getDriverAssignedJobs(driverId, driverType, 100, s)),
+          ...statuses.map(s => getDriverAssignedJobs(driverId, driverType, 1000, s)),
         ]);
 
         // Combine and deduplicate jobs from all statuses
@@ -137,27 +137,9 @@ export default function IncomePage() {
       }
 
       // For Freelance drivers: Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const [companyJobsRes, factoryJobsRes, checkinsResult, bidWonJobsRes] = await Promise.all([
-        fetch(
-          `${supabaseUrl}/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${encodeURIComponent(user.id)}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-          }
-        ),
-        fetch(
-          `${supabaseUrl}/functions/v1/get-factory-assigned-jobs-proxy?freelance_driver_id=${encodeURIComponent(user.id)}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        ),
+      const [companyJobsResult, factoryJobsResult, checkinsResult, bidWonJobsRes] = await Promise.all([
+        getFreelanceAcceptedJobs(user.id, 1000),
+        getFactoryAssignedJobs(user.id, 1000),
         getDriverCheckins(user.id, 'freelance', 'all'),
         // Fetch bid-won jobs from list-tickets API
         supabase.functions.invoke('list-tickets', {
@@ -168,19 +150,17 @@ export default function IncomePage() {
         }).catch(() => null),
       ]);
 
-      if (!companyJobsRes.ok) {
-        console.error('Failed to fetch company jobs');
+      if (companyJobsResult.error) {
+        console.error('Failed to fetch company jobs:', companyJobsResult.error);
       }
 
-      const companyJobsJson = await companyJobsRes.json();
-      const factoryJobsJson = await factoryJobsRes.json();
       const checkinsJson = checkinsResult.error ? null : checkinsResult.data;
 
       // Get company jobs
-      const companyJobs: CompletedJob[] = companyJobsJson.data || [];
+      const companyJobs: CompletedJob[] = (companyJobsResult.data as any)?.data || companyJobsResult.data || [];
 
       // Get factory jobs - only those that have been accepted
-      const allFactoryJobs = factoryJobsJson.data || [];
+      const allFactoryJobs = (factoryJobsResult.data as any)?.data || factoryJobsResult.data || [];
       const acceptedFactoryJobs: CompletedJob[] = allFactoryJobs
         .filter((job: any) => job.freelance_accepted_at)
         .map((job: any) => ({
