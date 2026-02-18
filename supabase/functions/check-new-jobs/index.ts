@@ -145,7 +145,19 @@ serve(async (req) => {
       }
     }
 
-    console.log(`[check-new-jobs] Found ${jobs.length} jobs from external API`);
+    // Deduplicate jobs by order_number before processing
+    const seenOrderNumbers = new Set<string>();
+    const uniqueJobs: any[] = [];
+    for (const j of jobs) {
+      const orderNum = j.order_number || j.order_code;
+      if (orderNum && !seenOrderNumbers.has(orderNum)) {
+        seenOrderNumbers.add(orderNum);
+        uniqueJobs.push(j);
+      }
+    }
+    jobs = uniqueJobs;
+
+    console.log(`[check-new-jobs] Found ${jobs.length} unique jobs from external API`);
 
     // Filter out closed jobs and jobs with past pickup dates
     const today = new Date();
