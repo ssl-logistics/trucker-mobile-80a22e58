@@ -294,10 +294,11 @@ export async function getFactoryAssignedJobs(freelanceDriverId: string, limit = 
   });
 }
 
-export async function getFreelanceAcceptedJobs(freelanceDriverId: string) {
+export async function getFreelanceAcceptedJobs(freelanceDriverId: string, limit = 1000) {
   return callExternalApi<{ data: any[] }>('get-freelance-accepted-jobs', {
     params: {
       freelance_driver_id: freelanceDriverId,
+      limit: String(limit),
     },
   });
 }
