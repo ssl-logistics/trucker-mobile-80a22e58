@@ -93,5 +93,3 @@ verify_jwt = false
 [functions.create-bid]
 verify_jwt = false
 
-[functions.update-destination-coordinates]
-verify_jwt = false

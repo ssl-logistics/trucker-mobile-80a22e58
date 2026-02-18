@@ -12,7 +12,7 @@ import JobActionButtons from "@/components/job/JobActionButtons";
 import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
-import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
+import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates } from '@/lib/externalApi';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import {
@@ -693,12 +693,10 @@ export default function DeliveryDetailPage() {
         try {
           const destId = destination?.id || job.id;
           console.log('[DeliveryDetailPage] Updating missing destination coordinates:', { destId, latitude, longitude });
-          const { data: coordResult, error: coordError } = await supabase.functions.invoke('update-destination-coordinates', {
-            body: {
-              destination_id: destId,
-              latitude,
-              longitude,
-            },
+          const { data: coordResult, error: coordError } = await updateDestinationCoordinates({
+            destination_id: destId,
+            latitude,
+            longitude,
           });
           if (coordError) {
             console.warn('[DeliveryDetailPage] Failed to update destination coordinates:', coordError);

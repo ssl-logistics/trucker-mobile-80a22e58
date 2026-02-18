@@ -36,6 +36,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'get-ocr-container-scans': 'EXPRESS_RENT_API_KEY',
   'save-ocr-scan': 'EXPRESS_RENT_API_KEY',
   'ocr-extra': 'EXPRESS_RENT_API_KEY',
+  'update-destination-coordinates': 'EXPRESS_RENT_API_KEY',
 };
 
 // Endpoints that should use the bidding API URL
@@ -590,5 +591,18 @@ export async function updateFreelanceDriver(body: {
   }>('update-freelance-driver', {
     method: 'PUT',
     body: requestBody,
+  });
+}
+
+// ==================== Destination Coordinate APIs ====================
+
+export async function updateDestinationCoordinates(body: {
+  destination_id: string;
+  latitude: number;
+  longitude: number;
+}) {
+  return callExternalApi<{ success: boolean; message?: string }>('update-destination-coordinates', {
+    method: 'POST',
+    body,
   });
 }
