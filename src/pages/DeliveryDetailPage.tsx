@@ -686,26 +686,27 @@ export default function DeliveryDetailPage() {
         longitude: longitude
       });
 
-      // Update destination coordinates if missing
-      const destHasNoCoords = destination && (!destination.latitude || !destination.longitude);
+      // Update destination coordinates if missing (fire-and-forget, non-blocking)
+      const destHasNoCoords = destination && (!destination.latitude || !destination.longitude || destination.latitude === 0 || destination.longitude === 0);
       const jobHasNoCoords = !destination && (!job.destination_latitude || !job.destination_longitude);
       if ((destHasNoCoords || jobHasNoCoords) && latitude && longitude) {
-        try {
-          const destId = destination?.id || job.id;
-          console.log('[DeliveryDetailPage] Updating missing destination coordinates:', { destId, latitude, longitude });
-          const { data: coordResult, error: coordError } = await updateDestinationCoordinates({
-            destination_id: destId,
-            latitude,
-            longitude,
-          });
-          if (coordError) {
-            console.warn('[DeliveryDetailPage] Failed to update destination coordinates:', coordError);
-          } else {
-            console.log('[DeliveryDetailPage] Destination coordinates updated:', coordResult);
+        // Run in background - don't await, don't block check-in flow
+        (async () => {
+          try {
+            const destId = destination?.id || job.id;
+            console.log('[DeliveryDetailPage] Updating missing destination coordinates:', { destId, latitude, longitude });
+            const { error: coordError } = await updateDestinationCoordinates({
+              destination_id: destId,
+              latitude,
+              longitude,
+            });
+            if (coordError) {
+              console.warn('[DeliveryDetailPage] Failed to update destination coordinates (non-critical):', coordError);
+            }
+          } catch {
+            // Silently ignore - this is a best-effort feature
           }
-        } catch (coordErr) {
-          console.warn('[DeliveryDetailPage] Error updating destination coordinates:', coordErr);
-        }
+        })();
       }
 
       toast({
