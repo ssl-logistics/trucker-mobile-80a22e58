@@ -20,6 +20,8 @@ interface JobDestination {
   address: string | null;
   province: string | null;
   district: string | null;
+  latitude: number | null;
+  longitude: number | null;
   delivery_date: string | null;
   delivery_time: string | null;
   notes: string | null;
@@ -372,14 +374,16 @@ export default function JobDetailPage() {
                   company_name: d.company_name || null,
                   contact_name: d.contact_name || null,
                   contact_phone: d.contact_phone || null,
-                  address: d.address || null,
-                  province: d.province || null,
-                  district: d.district || null,
-                  delivery_date: d.delivery_date || null,
-                  delivery_time: d.delivery_time || null,
-                  notes: d.notes || null,
-                  checked_in_at: null,
-                  sop_completed_at: null,
+                   address: d.address || null,
+                   province: d.province || null,
+                   district: d.district || null,
+                   latitude: d.latitude || null,
+                   longitude: d.longitude || null,
+                   delivery_date: d.delivery_date || null,
+                   delivery_time: d.delivery_time || null,
+                   notes: d.notes || null,
+                   checked_in_at: null,
+                   sop_completed_at: null,
                 }))
               : undefined,
             // Map origins array from API

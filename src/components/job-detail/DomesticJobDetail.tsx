@@ -52,6 +52,8 @@ interface JobDestination {
   address: string | null;
   province: string | null;
   district: string | null;
+  latitude: number | null;
+  longitude: number | null;
   delivery_date: string | null;
   delivery_time: string | null;
   notes: string | null;
@@ -709,7 +711,7 @@ export default function DomesticJobDetail({
       console.error('Reorder API exception:', e);
     }
 
-    // Update tracking waypoints if GPS tracking is active
+    // Update tracking waypoints if GPS tracking is active (direct external API call)
     try {
       const trackingStateStr = localStorage.getItem('gps_tracking_state');
       if (trackingStateStr) {
@@ -717,17 +719,23 @@ export default function DomesticJobDetail({
         if (trackingState.isTracking && trackingState.roomCode) {
           const waypoints = resequenced
             .filter(d => d.latitude && d.longitude && d.latitude !== 0 && d.longitude !== 0)
-            .map(d => ({ lat: d.latitude, lng: d.longitude }));
+            .map(d => ({ lat: d.latitude!, lng: d.longitude! }));
           
           if (waypoints.length > 0) {
-            const { data: wpData, error: wpError } = await supabase.functions.invoke('update-tracking-waypoints', {
-              body: {
+            const wpResponse = await fetch('https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/update-tracking-waypoints', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+              },
+              body: JSON.stringify({
                 room_code: trackingState.roomCode,
                 waypoints,
-              },
+              }),
             });
-            if (wpError) {
-              console.error('Update tracking waypoints error:', wpError);
+            const wpData = await wpResponse.json();
+            if (!wpResponse.ok) {
+              console.error('Update tracking waypoints error:', wpData);
             } else {
               console.log('Update tracking waypoints success:', wpData);
             }
