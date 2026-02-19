@@ -101,9 +101,16 @@ export default function ShippingPage() {
 
         const combined = [...companyJobs, ...acceptedFactoryJobs, ...bidJobs];
         
+        // Filter out closed/cancelled jobs (same as CurrentJobsPage)
+        const excludedStatuses = ['closed', 'cancelled', 'ยกเลิก', 'ปิดงาน'];
+        const activeJobs = combined.filter((job: any) => {
+          const status = (job.status || '').toLowerCase().trim();
+          return !excludedStatuses.some(s => status.includes(s.toLowerCase()));
+        });
+        
         // Deduplicate by order_number
         const seen = new Set<string>();
-        const dedupedJobs = combined.filter((job: any) => {
+        const dedupedJobs = activeJobs.filter((job: any) => {
           const key = job.order_number || job.id;
           if (seen.has(key)) return false;
           seen.add(key);
