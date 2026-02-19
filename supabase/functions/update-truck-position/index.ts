@@ -127,6 +127,26 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error updating truck position:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Network errors (connection reset, timeout, etc.) are transient.
+    // Return 200 so the client doesn't crash; it will retry on the next interval.
+    const isNetworkError =
+      errorMessage.includes('connection') ||
+      errorMessage.includes('SendRequest') ||
+      errorMessage.includes('timeout') ||
+      errorMessage.includes('reset');
+
+    if (isNetworkError) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          should_retry: true,
+          error: errorMessage,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
