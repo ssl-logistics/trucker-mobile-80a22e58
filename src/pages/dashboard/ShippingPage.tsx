@@ -149,35 +149,26 @@ export default function ShippingPage() {
       ? allJobs
       : allJobs.filter((job: any) => job.vehicle_type === vehicleType);
 
-    // Filter by date
-    filteredJobs = filterByDate(filteredJobs);
-
-    // Determine which jobs have started (have any checkin)
-    const startedTransportIds = new Set(
-      checkins
-        .filter((c: any) => c.freelance_driver_id === user.id && c.transport_order_id)
-        .map((c: any) => String(c.transport_order_id))
-    );
-
-    // Current jobs = started but not fully completed (same logic as CurrentJobsPage)
+    // Completed jobs = fully POD'd (+ container return for international)
+    // Uses same logic as JobHistoryPage
     const completedJobsList = filterCompletedJobs(filteredJobs, checkins, user.id);
     const completedIds = new Set(completedJobsList.map((j: any) => String(j.id)));
 
-    // Current/active jobs: started OR in_transit/delivered, but NOT completed
-    const currentJobs = filteredJobs.filter((job: any) => {
-      const status = (job.status || '').toLowerCase();
-      const hasCheckIn = startedTransportIds.has(String(job.id));
-      const isActive = hasCheckIn || status === 'in_transit' || status === 'delivered';
-      return isActive && !completedIds.has(String(job.id));
-    });
+    // Current/active jobs = ALL jobs that are NOT fully completed
+    // Same logic as CurrentJobsPage (no status filter needed)
+    const currentJobs = filteredJobs.filter((job: any) => !completedIds.has(String(job.id)));
 
-    const totalJobs = currentJobs.length + completedJobsList.length;
-    const successJobs = completedJobsList.length;
-    const inDeliveryJobs = currentJobs.length;
+    // Apply date filter for display stats
+    const dateFilteredCompleted = filterByDate(completedJobsList);
+    const dateFilteredCurrent = filterByDate(currentJobs);
+
+    const totalJobs = dateFilteredCurrent.length + dateFilteredCompleted.length;
+    const successJobs = dateFilteredCompleted.length;
+    const inDeliveryJobs = dateFilteredCurrent.length;
 
     // Region stats from completed + current jobs
     const regionMap: Record<string, number> = {};
-    const allActiveAndCompleted = [...currentJobs, ...completedJobsList];
+    const allActiveAndCompleted = [...dateFilteredCurrent, ...dateFilteredCompleted];
     allActiveAndCompleted.forEach((job: any) => {
       const province = job.sender_province || job.destination_province || '';
       const region = getRegionFromProvince(province);
