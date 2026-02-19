@@ -23,6 +23,15 @@ export default function DashboardPage() {
     navigate("/");
   };
   const dashboardItems = [{
+    id: "finance",
+    title: t("dashboard.finance"),
+    description: t("dashboard.finance_desc"),
+    icon: TrendingUp,
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-50",
+    path: "/dashboard/finance",
+    imageSrc: financeBg
+  }, {
     id: "shipping",
     title: t("dashboard.shipping"),
     description: t("dashboard.shipping_desc"),
@@ -40,15 +49,6 @@ export default function DashboardPage() {
     bgColor: "bg-purple-50",
     path: "/dashboard/customer",
     imageSrc: customerBg
-  }, {
-    id: "finance",
-    title: t("dashboard.finance"),
-    description: t("dashboard.finance_desc"),
-    icon: TrendingUp,
-    color: "from-blue-500 to-blue-600",
-    bgColor: "bg-blue-50",
-    path: "/dashboard/finance",
-    imageSrc: financeBg
   }, {
     id: "product",
     title: t("dashboard.product"),
