@@ -282,7 +282,7 @@ export default function CurrentJobsPage() {
             transport_type_id: job.transport_type_id,
             transport_mode: job.transport_mode,
             status: job.status,
-            sender_name: job.factory_name || job.sender_name || '',
+            sender_name: job.factory_name || job.sender_company_name || job.sender_name || job.company_name || job.employer_name || '',
             sender_address: job.sender_address || '',
             sender_latitude: job.sender_latitude,
             sender_longitude: job.sender_longitude,
