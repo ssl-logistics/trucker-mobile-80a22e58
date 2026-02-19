@@ -7,7 +7,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
-import { getDriverCheckins } from '@/lib/externalApi';
+import { getDriverCheckins, getFreelanceAcceptedJobs, getFactoryAssignedJobs } from '@/lib/externalApi';
 import { filterCompletedJobs } from '@/utils/jobCompletionFilter';
 
 // External API job interface
@@ -60,29 +60,35 @@ export default function CustomerPage() {
 
       try {
         // Fetch jobs and checkins in parallel from external API
-        const [jobsRes, checkinsResult] = await Promise.all([
-          fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${encodeURIComponent(user.id)}`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
-          ),
+        const [freelanceResult, factoryResult, checkinsResult] = await Promise.all([
+          getFreelanceAcceptedJobs(user.id),
+          getFactoryAssignedJobs(user.id),
           getDriverCheckins(user.id, 'freelance', 'all'),
         ]);
 
-        const jobsJson = await jobsRes.json();
+        const freelanceJobs: ExternalJob[] = Array.isArray(freelanceResult.data) 
+          ? freelanceResult.data 
+          : ((freelanceResult.data as any)?.data || []);
+        const factoryJobs: ExternalJob[] = Array.isArray(factoryResult.data)
+          ? factoryResult.data
+          : ((factoryResult.data as any)?.data || []);
+        
+        // Combine and deduplicate
+        const allExternalJobs = [...freelanceJobs];
+        const seenIds = new Set(allExternalJobs.map(j => String(j.id)));
+        factoryJobs.forEach(j => {
+          if (!seenIds.has(String(j.id))) {
+            allExternalJobs.push(j);
+          }
+        });
 
-        const externalJobs: ExternalJob[] = Array.isArray(jobsJson) ? jobsJson : (jobsJson.data || []);
         const allCheckinsRaw = checkinsResult.error
           ? []
           : ((checkinsResult.data as any)?.data || checkinsResult.data || []);
         const checkins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
         // Use shared completion filter (POD + container return for international)
-        const completedJobs = filterCompletedJobs(externalJobs, checkins, user.id);
+        const completedJobs = filterCompletedJobs(allExternalJobs, checkins, user.id);
         
         completedJobs.forEach(job => {
           allJobs.push({
