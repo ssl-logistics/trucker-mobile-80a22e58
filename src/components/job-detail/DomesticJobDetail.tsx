@@ -708,6 +708,35 @@ export default function DomesticJobDetail({
     } catch (e) {
       console.error('Reorder API exception:', e);
     }
+
+    // Update tracking waypoints if GPS tracking is active
+    try {
+      const trackingStateStr = localStorage.getItem('gps_tracking_state');
+      if (trackingStateStr) {
+        const trackingState = JSON.parse(trackingStateStr);
+        if (trackingState.isTracking && trackingState.roomCode) {
+          const waypoints = resequenced
+            .filter(d => d.latitude && d.longitude && d.latitude !== 0 && d.longitude !== 0)
+            .map(d => ({ lat: d.latitude, lng: d.longitude }));
+          
+          if (waypoints.length > 0) {
+            const { data: wpData, error: wpError } = await supabase.functions.invoke('update-tracking-waypoints', {
+              body: {
+                room_code: trackingState.roomCode,
+                waypoints,
+              },
+            });
+            if (wpError) {
+              console.error('Update tracking waypoints error:', wpError);
+            } else {
+              console.log('Update tracking waypoints success:', wpData);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Update tracking waypoints exception:', e);
+    }
   };
 
   const scrollToDestination = (destId: string) => {
