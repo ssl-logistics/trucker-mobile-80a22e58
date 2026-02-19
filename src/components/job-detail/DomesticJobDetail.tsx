@@ -722,20 +722,14 @@ export default function DomesticJobDetail({
             .map(d => ({ lat: d.latitude!, lng: d.longitude! }));
           
           if (waypoints.length > 0) {
-            const wpResponse = await fetch('https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/update-tracking-waypoints', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-              },
-              body: JSON.stringify({
+            const { data: wpData, error: wpError } = await supabase.functions.invoke('update-tracking-waypoints', {
+              body: {
                 room_code: trackingState.roomCode,
                 waypoints,
-              }),
+              },
             });
-            const wpData = await wpResponse.json();
-            if (!wpResponse.ok) {
-              console.error('Update tracking waypoints error:', wpData);
+            if (wpError) {
+              console.error('Update tracking waypoints error:', wpError);
             } else {
               console.log('Update tracking waypoints success:', wpData);
             }
