@@ -6,41 +6,31 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  getFreelanceAcceptedJobs,
+  getFactoryAssignedJobs,
+  getDriverCheckins,
+} from '@/lib/externalApi';
+import { filterCompletedJobs } from '@/utils/jobCompletionFilter';
+import { supabase } from '@/integrations/supabase/client';
 
 import profitIcon from '@/assets/profit-icon.png';
 import successIcon from '@/assets/success-icon.png';
 import deliveryIcon from '@/assets/delivery-icon.png';
 import cancelIcon from '@/assets/cancel-icon.png';
 
-interface JobStatsData {
-  jobStats: {
-    total: number;
-    success: number;
-    inProgress: number;
-    cancelled: number;
-  };
-  regionStats: {
-    north: number;
-    central: number;
-    northeast: number;
-    east: number;
-    west: number;
-    south: number;
-  };
-}
-
 export default function ShippingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const {
-    t,
-    language
-  } = useLanguage();
+  const { t, language } = useLanguage();
   const [timePeriod, setTimePeriod] = useState('month');
   const [vehicleType, setVehicleType] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [statsData, setStatsData] = useState<JobStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Raw data
+  const [allJobs, setAllJobs] = useState<any[]>([]);
+  const [checkins, setCheckins] = useState<any[]>([]);
 
   const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
   const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -48,48 +38,49 @@ export default function ShippingPage() {
   const chineseMonths = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
   const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : language === 'zh' ? chineseMonths : englishMonths;
 
-  // Fetch job stats from API
+  // Fetch all jobs + checkins once
   useEffect(() => {
-    const fetchJobStats = async () => {
+    const fetchData = async () => {
       if (!user?.id) return;
-      
+
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-job-stats?freelance_driver_id=${user.id}&time_period=${timePeriod}&vehicle_type=${vehicleType}&date=${selectedDate.toISOString()}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            },
-          }
-        );
+        const [companyJobsRes, factoryJobsRes, checkinsRes] = await Promise.all([
+          getFreelanceAcceptedJobs(user.id),
+          getFactoryAssignedJobs(user.id),
+          getDriverCheckins(user.id, 'freelance', 'all'),
+        ]);
 
-        if (response.ok) {
-          const data = await response.json();
-          setStatsData(data);
-        } else {
-          console.error('Failed to fetch job stats');
-          // Set empty stats on error
-          setStatsData({
-            jobStats: { total: 0, success: 0, inProgress: 0, cancelled: 0 },
-            regionStats: { north: 0, central: 0, northeast: 0, east: 0, west: 0, south: 0 }
-          });
-        }
+        const companyJobs = Array.isArray(companyJobsRes.data)
+          ? companyJobsRes.data
+          : ((companyJobsRes.data as any)?.data || []);
+
+        const factoryJobsRaw = (factoryJobsRes.data as any)?.data || [];
+        const acceptedFactoryJobs = factoryJobsRaw
+          .filter((job: any) => job.freelance_accepted_at)
+          .map((job: any) => ({
+            ...job,
+            sender_name: job.factory_name || job.sender_name,
+            sender_pickup_date: job.sender_pickup_date || job.pickup_date,
+            order_number: job.order_number || job.job_order_number,
+          }));
+
+        const combined = [...companyJobs, ...acceptedFactoryJobs];
+        setAllJobs(combined);
+
+        const allCheckinsRaw = checkinsRes.error
+          ? []
+          : ((checkinsRes.data as any)?.data || checkinsRes.data || []);
+        setCheckins(Array.isArray(allCheckinsRaw) ? allCheckinsRaw : []);
       } catch (error) {
-        console.error('Error fetching job stats:', error);
-        setStatsData({
-          jobStats: { total: 0, success: 0, inProgress: 0, cancelled: 0 },
-          regionStats: { north: 0, central: 0, northeast: 0, east: 0, west: 0, south: 0 }
-        });
+        console.error('Error fetching shipping data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchJobStats();
-  }, [user?.id, timePeriod, vehicleType, selectedDate]);
+    fetchData();
+  }, [user?.id]);
 
   const getDisplayDate = () => {
     const day = selectedDate.getDate();
@@ -103,6 +94,7 @@ export default function ShippingPage() {
       return `${t('finance.buddhist_era')} ${year}`;
     }
   };
+
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);
     if (timePeriod === 'day') {
@@ -115,45 +107,105 @@ export default function ShippingPage() {
     setSelectedDate(newDate);
   };
 
-  // Transform API data to display format
+  // Filter jobs by date
+  const filterByDate = (jobs: any[]) => {
+    return jobs.filter((job: any) => {
+      const jobDate = new Date(job.sender_pickup_date || job.created_at);
+      if (isNaN(jobDate.getTime())) return false;
+
+      if (timePeriod === 'day') {
+        return (
+          jobDate.getDate() === selectedDate.getDate() &&
+          jobDate.getMonth() === selectedDate.getMonth() &&
+          jobDate.getFullYear() === selectedDate.getFullYear()
+        );
+      } else if (timePeriod === 'month') {
+        return (
+          jobDate.getMonth() === selectedDate.getMonth() &&
+          jobDate.getFullYear() === selectedDate.getFullYear()
+        );
+      } else {
+        return jobDate.getFullYear() === selectedDate.getFullYear();
+      }
+    });
+  };
+
+  // Compute stats
   const { jobStats, regionStats } = useMemo(() => {
-    if (!statsData) {
+    if (!user?.id) {
       return {
         jobStats: [
-          { label: t('shipping.all_jobs'), value: 0, change: 0, icon: 'profit' },
-          { label: t('shipping.success'), value: 0, change: 0, icon: 'success' },
-          { label: t('shipping.in_delivery'), value: 0, change: 0, icon: 'delivery' },
-          { label: t('shipping.cancelled'), value: 0, change: 0, icon: 'cancel' }
+          { label: t('shipping.all_jobs'), value: 0, icon: 'profit' },
+          { label: t('shipping.success'), value: 0, icon: 'success' },
+          { label: t('shipping.in_delivery'), value: 0, icon: 'delivery' },
+          { label: t('shipping.cancelled'), value: 0, icon: 'cancel' },
         ],
-        regionStats: [
-          { region: t('shipping.north'), value: 0, change: 0 },
-          { region: t('shipping.central'), value: 0, change: 0 },
-          { region: t('shipping.northeast'), value: 0, change: 0 },
-          { region: t('shipping.east'), value: 0, change: 0 },
-          { region: t('shipping.west'), value: 0, change: 0 },
-          { region: t('shipping.south'), value: 0, change: 0 }
-        ]
+        regionStats: [],
       };
     }
 
+    // Filter by vehicle type
+    let filteredJobs = vehicleType === 'all'
+      ? allJobs
+      : allJobs.filter((job: any) => job.vehicle_type === vehicleType);
+
+    // Filter by date
+    filteredJobs = filterByDate(filteredJobs);
+
+    // Determine which jobs have started (have any checkin)
+    const startedTransportIds = new Set(
+      checkins
+        .filter((c: any) => c.freelance_driver_id === user.id && c.transport_order_id)
+        .map((c: any) => String(c.transport_order_id))
+    );
+
+    // Current jobs = started but not fully completed (same logic as CurrentJobsPage)
+    const completedJobsList = filterCompletedJobs(filteredJobs, checkins, user.id);
+    const completedIds = new Set(completedJobsList.map((j: any) => String(j.id)));
+
+    // Current/active jobs: started OR in_transit/delivered, but NOT completed
+    const currentJobs = filteredJobs.filter((job: any) => {
+      const status = (job.status || '').toLowerCase();
+      const hasCheckIn = startedTransportIds.has(String(job.id));
+      const isActive = hasCheckIn || status === 'in_transit' || status === 'delivered';
+      return isActive && !completedIds.has(String(job.id));
+    });
+
+    const totalJobs = currentJobs.length + completedJobsList.length;
+    const successJobs = completedJobsList.length;
+    const inDeliveryJobs = currentJobs.length;
+
+    // Region stats from completed + current jobs
+    const regionMap: Record<string, number> = {};
+    const allActiveAndCompleted = [...currentJobs, ...completedJobsList];
+    allActiveAndCompleted.forEach((job: any) => {
+      const province = job.sender_province || job.destination_province || '';
+      const region = getRegionFromProvince(province);
+      if (region) {
+        regionMap[region] = (regionMap[region] || 0) + 1;
+      }
+    });
+
     return {
       jobStats: [
-        { label: t('shipping.all_jobs'), value: statsData.jobStats.total, change: 0, icon: 'profit' },
-        { label: t('shipping.success'), value: statsData.jobStats.success, change: 0, icon: 'success' },
-        { label: t('shipping.in_delivery'), value: statsData.jobStats.inProgress, change: 0, icon: 'delivery' },
-        { label: t('shipping.cancelled'), value: statsData.jobStats.cancelled, change: 0, icon: 'cancel' }
+        { label: t('shipping.all_jobs'), value: totalJobs, icon: 'profit' },
+        { label: t('shipping.success'), value: successJobs, icon: 'success' },
+        { label: t('shipping.in_delivery'), value: inDeliveryJobs, icon: 'delivery' },
+        { label: t('shipping.cancelled'), value: 0, icon: 'cancel' },
       ],
       regionStats: [
-        { region: t('shipping.north'), value: statsData.regionStats.north, change: 0 },
-        { region: t('shipping.central'), value: statsData.regionStats.central, change: 0 },
-        { region: t('shipping.northeast'), value: statsData.regionStats.northeast, change: 0 },
-        { region: t('shipping.east'), value: statsData.regionStats.east, change: 0 },
-        { region: t('shipping.west'), value: statsData.regionStats.west, change: 0 },
-        { region: t('shipping.south'), value: statsData.regionStats.south, change: 0 }
-      ]
+        { region: t('shipping.north'), value: regionMap['north'] || 0 },
+        { region: t('shipping.central'), value: regionMap['central'] || 0 },
+        { region: t('shipping.northeast'), value: regionMap['northeast'] || 0 },
+        { region: t('shipping.east'), value: regionMap['east'] || 0 },
+        { region: t('shipping.west'), value: regionMap['west'] || 0 },
+        { region: t('shipping.south'), value: regionMap['south'] || 0 },
+      ],
     };
-  }, [statsData, t]);
-  return <div className="min-h-screen bg-background pb-20">
+  }, [allJobs, checkins, user?.id, timePeriod, vehicleType, selectedDate, t]);
+
+  return (
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-10 shadow-md">
         <div className="flex items-center justify-center relative">
@@ -213,17 +265,20 @@ export default function ShippingPage() {
               <h3 className="font-bold text-gray-800">{t('shipping.job_data')}</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {jobStats.map((stat, index) => <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              {jobStats.map((stat, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-2xl">
-                    {stat.icon === 'profit' ? <img src={profitIcon} alt="Profit" className="w-10 h-10" /> : stat.icon === 'success' ? <img src={successIcon} alt="Success" className="w-10 h-10" /> : stat.icon === 'delivery' ? <img src={deliveryIcon} alt="Delivery" className="w-10 h-10" /> : stat.icon === 'cancel' ? <img src={cancelIcon} alt="Cancel" className="w-10 h-10" /> : stat.icon}
+                    {stat.icon === 'profit' ? <img src={profitIcon} alt="Profit" className="w-10 h-10" /> :
+                     stat.icon === 'success' ? <img src={successIcon} alt="Success" className="w-10 h-10" /> :
+                     stat.icon === 'delivery' ? <img src={deliveryIcon} alt="Delivery" className="w-10 h-10" /> :
+                     stat.icon === 'cancel' ? <img src={cancelIcon} alt="Cancel" className="w-10 h-10" /> : null}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-gray-600">{stat.label}</p>
-                    <div className="flex items-center gap-1 flex-wrap">
-                      <p className="text-xl font-bold text-primary">{stat.value}</p>
-                    </div>
+                    <p className="text-xl font-bold text-primary">{stat.value}</p>
                   </div>
-                </div>)}
+                </div>
+              ))}
             </div>
           </Card>
         )}
@@ -239,15 +294,38 @@ export default function ShippingPage() {
               <h3 className="font-bold text-gray-800">{t('shipping.by_region')}</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {regionStats.map((stat, index) => <div key={index} className="p-3 bg-gray-50 rounded-lg">
+              {regionStats.map((stat, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-700 mb-1">{stat.region}</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-xl font-bold text-primary">{stat.value}</p>
-                  </div>
-                </div>)}
+                  <p className="text-xl font-bold text-primary">{stat.value}</p>
+                </div>
+              ))}
             </div>
           </Card>
         )}
       </div>
-    </div>;
+    </div>
+  );
+}
+
+// Map Thai province to region
+function getRegionFromProvince(province: string): string | null {
+  if (!province) return null;
+  const p = province.replace('จังหวัด', '').trim();
+
+  const northProvinces = ['เชียงใหม่', 'เชียงราย', 'ลำปาง', 'ลำพูน', 'แม่ฮ่องสอน', 'น่าน', 'พะเยา', 'แพร่', 'อุตรดิตถ์'];
+  const northeastProvinces = ['กาฬสินธุ์', 'ขอนแก่น', 'ชัยภูมิ', 'นครพนม', 'นครราชสีมา', 'บึงกาฬ', 'บุรีรัมย์', 'มหาสารคาม', 'มุกดาหาร', 'ยโสธร', 'ร้อยเอ็ด', 'เลย', 'ศรีสะเกษ', 'สกลนคร', 'สุรินทร์', 'หนองคาย', 'หนองบัวลำภู', 'อำนาจเจริญ', 'อุดรธานี', 'อุบลราชธานี'];
+  const centralProvinces = ['กรุงเทพมหานคร', 'กรุงเทพ', 'นนทบุรี', 'ปทุมธานี', 'สมุทรปราการ', 'สมุทรสาคร', 'สมุทรสงคราม', 'นครปฐม', 'พระนครศรีอยุธยา', 'อ่างทอง', 'ลพบุรี', 'สิงห์บุรี', 'ชัยนาท', 'สระบุรี', 'นครนายก', 'นครสวรรค์', 'อุทัยธานี', 'พิจิตร', 'กำแพงเพชร', 'สุโขทัย', 'พิษณุโลก', 'ตาก', 'เพชรบูรณ์'];
+  const eastProvinces = ['ชลบุรี', 'ระยอง', 'จันทบุรี', 'ตราด', 'ฉะเชิงเทรา', 'ปราจีนบุรี', 'สระแก้ว'];
+  const westProvinces = ['กาญจนบุรี', 'ราชบุรี', 'สุพรรณบุรี', 'เพชรบุรี', 'ประจวบคีรีขันธ์'];
+  const southProvinces = ['ชุมพร', 'ระนอง', 'สุราษฎร์ธานี', 'พังงา', 'กระบี่', 'ภูเก็ต', 'นครศรีธรรมราช', 'ตรัง', 'พัทลุง', 'สงขลา', 'สตูล', 'ปัตตานี', 'ยะลา', 'นราธิวาส'];
+
+  if (northProvinces.some(np => p.includes(np))) return 'north';
+  if (northeastProvinces.some(np => p.includes(np))) return 'northeast';
+  if (centralProvinces.some(np => p.includes(np))) return 'central';
+  if (eastProvinces.some(np => p.includes(np))) return 'east';
+  if (westProvinces.some(np => p.includes(np))) return 'west';
+  if (southProvinces.some(np => p.includes(np))) return 'south';
+
+  return null;
 }
