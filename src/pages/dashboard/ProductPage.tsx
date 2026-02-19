@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDriverCheckins } from '@/lib/externalApi';
+import { filterCompletedJobs } from '@/utils/jobCompletionFilter';
 // External API job interface
 interface ExternalJob {
   id: string;
@@ -80,20 +81,8 @@ export default function ProductPage() {
           : ((checkinsResult.data as any)?.data || checkinsResult.data || []);
         const checkins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
-        // Get transport_order_ids that have delivery_confirmed
-        const confirmedTransportIds = new Set(
-          checkins
-            .filter(
-              (c: any) =>
-                c.freelance_driver_id === user.id &&
-                c.checkin_type === 'delivery_confirmed' &&
-                c.transport_order_id
-            )
-            .map((c: any) => String(c.transport_order_id))
-        );
-
-        // Only include jobs with delivery_confirmed in product statistics
-        const completedJobs = externalJobs.filter(job => confirmedTransportIds.has(String(job.id)));
+        // Use shared completion filter (POD + container return for international)
+        const completedJobs = filterCompletedJobs(externalJobs, checkins, user.id);
         
         completedJobs.forEach(job => {
           allJobs.push({
