@@ -796,10 +796,11 @@ export default function Home() {
       setIsFactoryJobProcessing(true);
       
       try {
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/respond-factory-job-proxy`, {
+        const response = await fetch(`https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
           body: JSON.stringify({
             order_number: orderCode,
@@ -871,10 +872,11 @@ export default function Home() {
       setIsFactoryJobProcessing(true);
       
       try {
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/respond-factory-job-proxy`, {
+        const response = await fetch(`https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/respond-factory-job`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
           },
           body: JSON.stringify({
             order_number: orderCode,
