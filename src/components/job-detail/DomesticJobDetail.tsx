@@ -860,7 +860,7 @@ export default function DomesticJobDetail({
                   size="sm"
                   onClick={() => setIsReorderMode(!isReorderMode)}
                   className={`h-7 px-3 text-[11px] font-medium gap-1.5 rounded-lg shadow-sm ${
-                    isReorderMode ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5'
+                    isReorderMode ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5 hover:text-black'
                   }`}
                 >
                   <Repeat2 className="w-3.5 h-3.5" />
