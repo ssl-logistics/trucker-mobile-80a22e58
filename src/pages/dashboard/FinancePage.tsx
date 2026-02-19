@@ -6,7 +6,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client'; import { getDriverCheckins } from '@/lib/externalApi';
+import { supabase } from '@/integrations/supabase/client';
+import { getDriverCheckins } from '@/lib/externalApi';
+import { filterCompletedJobs } from '@/utils/jobCompletionFilter';
 import profitIcon from '@/assets/profit-icon.png';
 import expensesIcon from '@/assets/expenses-icon.png';
 
@@ -82,20 +84,8 @@ export default function FinancePage() {
           : ((checkinsResult.data as any)?.data || checkinsResult.data || []);
         const checkins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
-        // Get transport_order_ids that have delivery_confirmed
-        const confirmedTransportIds = new Set(
-          checkins
-            .filter(
-              (c: any) =>
-                c.freelance_driver_id === user.id &&
-                c.checkin_type === 'delivery_confirmed' &&
-                c.transport_order_id
-            )
-            .map((c: any) => String(c.transport_order_id))
-        );
-
-        // Only include jobs with delivery_confirmed in finance
-        const completedJobs = allJobs.filter(job => confirmedTransportIds.has(String(job.id)));
+        // Use shared completion filter (POD + container return for international)
+        const completedJobs = filterCompletedJobs(allJobs, checkins, user.id);
         setJobs(completedJobs);
 
         setExpenses(expenseRes.data || []);
