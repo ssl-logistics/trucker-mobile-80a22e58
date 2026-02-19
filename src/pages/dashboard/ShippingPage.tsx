@@ -156,19 +156,20 @@ export default function ShippingPage() {
 
     // Current/active jobs = ALL jobs that are NOT fully completed
     // Same logic as CurrentJobsPage (no status filter needed)
+    // NOTE: Don't apply date filter to current jobs - they're still active regardless of pickup date
     const currentJobs = filteredJobs.filter((job: any) => !completedIds.has(String(job.id)));
 
-    // Apply date filter for display stats
+    // Apply date filter only to completed jobs (for "success" stats)
     const dateFilteredCompleted = filterByDate(completedJobsList);
-    const dateFilteredCurrent = filterByDate(currentJobs);
 
-    const totalJobs = dateFilteredCurrent.length + dateFilteredCompleted.length;
+    // In delivery = ALL current jobs (no date filter, matches CurrentJobsPage)
+    const inDeliveryJobs = currentJobs.length;
     const successJobs = dateFilteredCompleted.length;
-    const inDeliveryJobs = dateFilteredCurrent.length;
+    const totalJobs = inDeliveryJobs + successJobs;
 
     // Region stats from completed + current jobs
     const regionMap: Record<string, number> = {};
-    const allActiveAndCompleted = [...dateFilteredCurrent, ...dateFilteredCompleted];
+    const allActiveAndCompleted = [...currentJobs, ...dateFilteredCompleted];
     allActiveAndCompleted.forEach((job: any) => {
       const province = job.sender_province || job.destination_province || '';
       const region = getRegionFromProvince(province);
