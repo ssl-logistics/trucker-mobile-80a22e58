@@ -10,6 +10,7 @@ import {
   getFreelanceAcceptedJobs,
   getFactoryAssignedJobs,
   getDriverCheckins,
+  listTickets,
 } from '@/lib/externalApi';
 import { filterCompletedJobs } from '@/utils/jobCompletionFilter';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,17 +39,18 @@ export default function ShippingPage() {
   const chineseMonths = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
   const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : language === 'zh' ? chineseMonths : englishMonths;
 
-  // Fetch all jobs + checkins once
+  // Fetch all jobs + checkins + bid jobs once
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) return;
 
       setIsLoading(true);
       try {
-        const [companyJobsRes, factoryJobsRes, checkinsRes] = await Promise.all([
+        const [companyJobsRes, factoryJobsRes, checkinsRes, bidJobsRes] = await Promise.all([
           getFreelanceAcceptedJobs(user.id),
           getFactoryAssignedJobs(user.id),
           getDriverCheckins(user.id, 'freelance', 'all'),
+          listTickets({ freelanceDriverId: user.id, bidsStatus: 'accepted' }).catch(() => ({ data: null, error: 'Failed' })),
         ]);
 
         const companyJobs = Array.isArray(companyJobsRes.data)
@@ -65,8 +67,50 @@ export default function ShippingPage() {
             order_number: job.order_number || job.job_order_number,
           }));
 
-        const combined = [...companyJobs, ...acceptedFactoryJobs];
-        setAllJobs(combined);
+        // Process bid-won jobs
+        let bidJobs: any[] = [];
+        if (!bidJobsRes.error && bidJobsRes.data) {
+          const tickets = (bidJobsRes.data as any)?.data || (bidJobsRes.data as any)?.tickets || (Array.isArray(bidJobsRes.data) ? bidJobsRes.data : []);
+          bidJobs = tickets
+            .filter((ticket: any) => {
+              const status = (ticket.status || '').toLowerCase();
+              if (['cancelled', 'closed'].includes(status)) return false;
+              const userAcceptedBid = ticket.bids?.find((b: any) =>
+                b.status === 'accepted' && b.contractor_id === user.id
+              );
+              return !!userAcceptedBid;
+            })
+            .map((ticket: any) => ({
+              id: ticket.id,
+              order_number: ticket.ticket_number || ticket.order_code || ticket.post_code || ticket.ticket_code,
+              status: ticket.status || 'accepted',
+              sender_name: ticket.customer?.company_name || ticket.creator?.company_name || ticket.creator?.full_name || ticket.company_name || ticket.employer_name || '',
+              sender_pickup_date: ticket.pickup_location?.date || ticket.pickup_date || ticket.start_date || ticket.created_at?.split('T')[0],
+              sender_province: ticket.route?.origin_district?.province?.name || ticket.pickup_location?.province || '',
+              destination_province: ticket.route?.destination_district?.province?.name || ticket.dropoff_location?.province || '',
+              vehicle_type: ticket.vehicle_type?.name || ticket.truck_type || ticket.vehicle_type || null,
+              transport_price: ticket.bids?.find((b: any) => b.status === 'accepted' && b.contractor_id === user.id)?.bid_price || ticket.price || 0,
+              isBidJob: true,
+              created_at: ticket.created_at,
+              destinations: ticket.destinations,
+              booking_no: ticket.booking_no || null,
+              bl_no: ticket.bl_no || null,
+              transport_category: ticket.transport_category || null,
+            }));
+        }
+
+        const combined = [...companyJobs, ...acceptedFactoryJobs, ...bidJobs];
+        
+        // Deduplicate by order_number
+        const seen = new Set<string>();
+        const dedupedJobs = combined.filter((job: any) => {
+          const key = job.order_number || job.id;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        
+        setAllJobs(dedupedJobs);
 
         const allCheckinsRaw = checkinsRes.error
           ? []
@@ -130,7 +174,7 @@ export default function ShippingPage() {
     });
   };
 
-  // Compute stats
+  // Compute stats - aligned with CurrentJobsPage logic
   const { jobStats, regionStats } = useMemo(() => {
     if (!user?.id) {
       return {
@@ -149,25 +193,63 @@ export default function ShippingPage() {
       ? allJobs
       : allJobs.filter((job: any) => job.vehicle_type === vehicleType);
 
-    // Completed jobs = fully POD'd (+ container return for international)
-    // Uses same logic as JobHistoryPage
-    const completedJobsList = filterCompletedJobs(filteredJobs, checkins, user.id);
-    const completedIds = new Set(completedJobsList.map((j: any) => String(j.id)));
+    // Build POD count and container return maps from checkins (same as CurrentJobsPage)
+    const podCountByTransportId: Record<string, number> = {};
+    const podCountByOrderNumber: Record<string, number> = {};
+    const containerReturnByTransportId = new Set<string>();
+    const containerReturnByOrderNumber = new Set<string>();
 
-    // Current/active jobs = ALL jobs that are NOT fully completed
-    // Same logic as CurrentJobsPage (no status filter needed)
-    // NOTE: Don't apply date filter to current jobs - they're still active regardless of pickup date
-    const currentJobs = filteredJobs.filter((job: any) => !completedIds.has(String(job.id)));
+    checkins
+      .filter((c: any) => c.freelance_driver_id === user.id)
+      .forEach((c: any) => {
+        if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')) {
+          if (c.transport_order_id) {
+            const tid = String(c.transport_order_id);
+            podCountByTransportId[tid] = (podCountByTransportId[tid] || 0) + 1;
+          }
+          const orderNum = c.transport_orders?.order_number || c.order_number || '';
+          if (orderNum) {
+            podCountByOrderNumber[orderNum] = (podCountByOrderNumber[orderNum] || 0) + 1;
+          }
+        }
+        if (c.checkin_type === 'container_return_confirmed') {
+          if (c.transport_order_id) containerReturnByTransportId.add(String(c.transport_order_id));
+          const orderNum = c.transport_orders?.order_number || c.order_number || '';
+          if (orderNum) containerReturnByOrderNumber.add(orderNum);
+        }
+      });
 
-    // Apply date filter only to completed jobs (for "success" stats)
+    const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
+
+    const isJobFullyCompleted = (job: any): boolean => {
+      const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0
+        ? job.destinations.length
+        : 1;
+      const podCount = Math.max(
+        podCountByTransportId[String(job.id)] || 0,
+        podCountByOrderNumber[job.order_number] || 0
+      );
+      const allPodsCompleted = podCount >= destinationCount;
+      if (isInternationalJob(job)) {
+        const hasContainerReturn = containerReturnByTransportId.has(String(job.id)) ||
+          containerReturnByOrderNumber.has(job.order_number);
+        return allPodsCompleted && hasContainerReturn;
+      }
+      return allPodsCompleted;
+    };
+
+    // Split into completed and active (same logic as CurrentJobsPage)
+    const completedJobsList = filteredJobs.filter(j => isJobFullyCompleted(j));
+    const currentJobs = filteredJobs.filter(j => !isJobFullyCompleted(j));
+
+    // Apply date filter only to completed jobs
     const dateFilteredCompleted = filterByDate(completedJobsList);
 
-    // In delivery = ALL current jobs (no date filter, matches CurrentJobsPage)
     const inDeliveryJobs = currentJobs.length;
     const successJobs = dateFilteredCompleted.length;
     const totalJobs = inDeliveryJobs + successJobs;
 
-    // Region stats from completed + current jobs
+    // Region stats
     const regionMap: Record<string, number> = {};
     const allActiveAndCompleted = [...currentJobs, ...dateFilteredCompleted];
     allActiveAndCompleted.forEach((job: any) => {
