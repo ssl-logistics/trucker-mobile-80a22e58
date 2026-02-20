@@ -195,6 +195,24 @@ export default function PlaceBidPage() {
 
       {/* Content */}
       <div className="px-4 py-6 space-y-6">
+        {/* Pickup & Delivery Dates */}
+        {job && (
+          <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">{t('placeBid.pickupDate') || 'วันรับสินค้า'}</span>
+              <span className="text-sm font-medium">
+                {job.start_date ? `${job.start_date} ${job.start_time || ''}`.trim() : '-'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">{t('placeBid.deliveryDate') || 'วันส่งสินค้า'}</span>
+              <span className="text-sm font-medium">
+                {job.destination_date ? `${job.destination_date} ${job.destination_time || ''}`.trim() : '-'}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Bid Amount */}
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">
