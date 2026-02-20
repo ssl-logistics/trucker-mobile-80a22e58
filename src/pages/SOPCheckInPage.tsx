@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +44,7 @@ interface JobDetail {
 export default function SOPCheckInPage() {
   const navigate = useNavigate();
   const { jobId } = useParams();
+  const location = useLocation();
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { isInternalDriver, isExternalDriver } = useUserRole();
@@ -364,7 +365,8 @@ export default function SOPCheckInPage() {
         <div className="flex items-center justify-between">
           <button onClick={() => {
             const fromParam = new URLSearchParams(location.search).get('from');
-            navigate(`/job/${job.order_code}${fromParam ? `?from=${fromParam}` : ''}`);
+            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+            navigate(`${backRoute}${fromParam ? `?from=${fromParam}` : ''}`);
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>

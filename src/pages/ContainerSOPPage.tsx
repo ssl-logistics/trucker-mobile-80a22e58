@@ -497,7 +497,8 @@ const ContainerSOPPage = () => {
         description: t('containerSop.successMessage'),
       });
 
-      navigate(`/job/${jobId}`);
+      const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${jobId}` : `/job/${jobId}`;
+      navigate(backRoute);
     } catch (error) {
       console.error('Error saving SOP:', error);
       toast({
@@ -552,7 +553,10 @@ const ContainerSOPPage = () => {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${jobId}`)}>
+          <button onClick={() => {
+            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${jobId}` : `/job/${jobId}`;
+            navigate(backRoute);
+          }}>
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{pageTitle}</h1>

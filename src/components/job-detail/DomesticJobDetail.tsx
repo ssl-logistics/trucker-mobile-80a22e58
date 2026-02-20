@@ -134,12 +134,14 @@ interface DomesticJobDetailProps {
   jobApplication: JobApplication | null;
   userId: string;
   onUpdate: () => void;
+  isBidJob?: boolean;
 }
 export default function DomesticJobDetail({
   job,
   jobApplication,
   userId,
-  onUpdate
+  onUpdate,
+  isBidJob = false
 }: DomesticJobDetailProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -1070,9 +1072,9 @@ export default function DomesticJobDetail({
                       const queryString = fromParam ? `?from=${fromParam}` : '';
                       if (emptyContainerCheckedIn) {
                         const isInboundJob = !!job.bl_no || job.transport_type?.includes('ขาเข้า');
-                        navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: isInboundJob ? 'loaded_container' : 'empty_container' } });
+                        navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: isInboundJob ? 'loaded_container' : 'empty_container', isBidJob } });
                       } else {
-                        navigate(`/job/${job.order_code}/container-checkin${queryString}`);
+                        navigate(`/job/${job.order_code}/container-checkin${queryString}`, { state: { isBidJob } });
                       }
                     }}>
 
@@ -1194,11 +1196,11 @@ export default function DomesticJobDetail({
                         const fromParam = new URLSearchParams(location.search).get('from');
                         const queryString = fromParam ? `?from=${fromParam}` : '';
                         if (pickupSopCompleted || jobApplication?.sop_completed_at) {
-                          navigate(`/job/${job.order_code}/pickup-summary${queryString}`, { state: { jobData: job } });
+                          navigate(`/job/${job.order_code}/pickup-summary${queryString}`, { state: { jobData: job, isBidJob } });
                         } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
-                          navigate(`/job/${job.order_code}/sop${queryString}`, { state: { jobData: job } });
+                          navigate(`/job/${job.order_code}/sop${queryString}`, { state: { jobData: job, isBidJob } });
                         } else {
-                          navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job } });
+                          navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job, isBidJob } });
                         }
                       }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
                           {isLoadingCheckinStatus ?
@@ -1425,7 +1427,7 @@ export default function DomesticJobDetail({
                       }
                         <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
-                        navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, destId: dest.id, reorderedSequence: dest.sequence_number } });
+                        navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob } });
                       }} disabled={isDestinationLocked}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                           <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
@@ -1529,7 +1531,7 @@ export default function DomesticJobDetail({
                       }
                       <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
-                        navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job } });
+                        navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, isBidJob } });
                       }} disabled={!isFallbackUnlocked}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                         <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
@@ -1627,11 +1629,11 @@ export default function DomesticJobDetail({
                       onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
                         if (containerReturnConfirmed) {
-                          navigate(`/job/${job.order_code}/container-summary${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
+                          navigate(`/job/${job.order_code}/container-summary${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return', isBidJob } });
                         } else if (containerReturnCheckedIn) {
-                          navigate(`/job/${job.order_code}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
+                          navigate(`/job/${job.order_code}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return', isBidJob } });
                         } else {
-                          navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return' } });
+                          navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return', isBidJob } });
                         }
                       }}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />

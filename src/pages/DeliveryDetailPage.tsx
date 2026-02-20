@@ -579,7 +579,8 @@ export default function DeliveryDetailPage() {
     
     setShowPodConfirmDialog(false);
     setIsSubmittingPod(false);
-    navigate(`/job/${job.order_code}`, { state: { jobData: job } });
+    const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+    navigate(backRoute, { state: { jobData: job } });
   };
 
   const [isCheckingIn, setIsCheckingIn] = useState(false);
@@ -767,7 +768,8 @@ export default function DeliveryDetailPage() {
         <div className="flex items-center justify-between">
           <button onClick={() => {
             const fromParam = new URLSearchParams(location.search).get('from');
-            navigate(`/job/${job.order_code}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: (location.state as any)?.jobData || job } });
+            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+            navigate(`${backRoute}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: (location.state as any)?.jobData || job } });
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
