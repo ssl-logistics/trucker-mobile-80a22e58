@@ -365,7 +365,7 @@ export default function SOPCheckInPage() {
         <div className="flex items-center justify-between">
           <button onClick={() => {
             const fromParam = new URLSearchParams(location.search).get('from');
-            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+            const backRoute = (isBidJob || (location.state as any)?.isBidJob) ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
             navigate(`${backRoute}${fromParam ? `?from=${fromParam}` : ''}`);
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
