@@ -16,6 +16,8 @@ interface BidTicket {
   price: number | null;
   distance_km: number | null;
   notes: string | null;
+  pickup_datetime: string | null;
+  delivery_datetime: string | null;
   created_at: string;
   updated_at: string;
   vehicle_type: {
@@ -234,8 +236,8 @@ export default function BidJobDetailPage() {
       destination_longitude: ticket.route?.destination_longitude || null,
       destination_contact_phone: null,
       price: bidPrice,
-      start_date: ticket.created_at.split('T')[0],
-      start_time: '00:00',
+      start_date: ticket.pickup_datetime ? ticket.pickup_datetime.split('T')[0] : ticket.created_at.split('T')[0],
+      start_time: ticket.pickup_datetime ? ticket.pickup_datetime.split('T')[1]?.substring(0, 5) || '00:00' : '00:00',
       equipment_list: ticket.vehicle_type?.name || null,
       safety_equipment: null,
       container_checkpoint: null,
@@ -255,8 +257,8 @@ export default function BidJobDetailPage() {
       destination_bill_of_lading: null,
       destination_goods_type: ticket.product,
       destination_goods_quantity: ticket.weight_tons ? `${ticket.weight_tons} ตัน` : null,
-      destination_time: null,
-      destination_date: null,
+      destination_time: ticket.delivery_datetime ? ticket.delivery_datetime.split('T')[1]?.substring(0, 5) || null : null,
+      destination_date: ticket.delivery_datetime ? ticket.delivery_datetime.split('T')[0] : null,
       destination_remarks: ticket.notes,
       tax_id: null,
     };
