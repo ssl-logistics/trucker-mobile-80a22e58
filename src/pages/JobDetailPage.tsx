@@ -274,187 +274,173 @@ export default function JobDetailPage() {
       const result = await response.json();
       console.log('Job API response:', result, 'userType:', userType);
 
+      // Helper: map a transport API job to JobDetail and set state
+      const mapAndSetTransportJob = (fj: any) => {
+        console.log('[JobDetailPage] Mapping transport job:', fj.order_number || fj.order_code);
+        const mappedJob: JobDetail = {
+          id: fj.id,
+          order_code: fj.order_number || fj.order_code || jobId!,
+          job_type: (fj.booking_no || fj.bl_no) ? 'international' : (fj.job_type || fj.transport_category || 'domestic'),
+          employer_name: fj.factory_name || fj.sender_name || fj.employer_name || '',
+          transport_type: fj.transport_mode || fj.transport_type || 'เที่ยวเดียว',
+          origin_location: fj.sender_district && fj.sender_province 
+            ? `${fj.sender_district}, ${fj.sender_province}` 
+            : (fj.sender_address || fj.origin_location || fj.origin_address || ''),
+          origin_address: fj.sender_address || fj.origin_address || null,
+          origin_company_name: fj.sender_name || fj.origin_company_name || null,
+          origin_latitude: fj.sender_latitude || fj.origin_latitude || null,
+          origin_longitude: fj.sender_longitude || fj.origin_longitude || null,
+          origin_contact_phone: fj.sender_contact_phone || fj.origin_contact_phone || null,
+          destination_location: fj.destination_district && fj.destination_province 
+            ? `${fj.destination_district}, ${fj.destination_province}` 
+            : (fj.destination_address || fj.destination_location || ''),
+          destination_address: fj.destination_address || null,
+          destination_company_name: fj.destination_company_name || fj.destination_name || null,
+          destination_latitude: fj.destination_latitude || null,
+          destination_longitude: fj.destination_longitude || null,
+          destination_contact_phone: fj.destination_contact_phone || null,
+          price: fj.transport_price ?? fj.price ?? 0,
+          start_date: fj.sender_pickup_date || fj.start_date || '',
+          start_time: fj.sender_pickup_time || fj.start_time || '',
+          equipment_list: fj.vehicle_type || fj.equipment_list || null,
+          safety_equipment: null,
+          container_checkpoint: fj.container_checkpoint || fj.empty_pickup_depot || null,
+          container_checkpoint_code: fj.container_checkpoint_code || null,
+          empty_container_date: fj.empty_container_date || fj.empty_pickup_date || fj.first_pickup_date || fj.sender_pickup_date || null,
+          empty_pickup_address: fj.empty_pickup_address || null,
+          empty_pickup_phone: fj.empty_pickup_phone || null,
+          empty_pickup_date: fj.empty_pickup_date || fj.sender_pickup_date || null,
+          empty_pickup_time: fj.empty_pickup_time || fj.sender_pickup_time || null,
+          container_number: fj.container_number || null,
+          container_number_2: fj.container_number_2 || null,
+          seal_number: fj.seal_number || null,
+          seal_number_2: fj.seal_number_2 || null,
+          origin_contact_person: fj.sender_contact_name,
+          origin_contact_role: null,
+          origin_bill_of_lading: fj.bill_of_lading || null,
+          origin_goods_type: fj.product_name,
+          origin_goods_quantity: fj.product_quantity ? String(fj.product_quantity) : null,
+          origin_remarks: fj.remarks,
+          destination_contact_person: fj.destination_contact_name,
+          destination_bill_of_lading: null,
+          destination_goods_type: fj.product_name,
+          destination_goods_quantity: fj.product_quantity ? String(fj.product_quantity) : null,
+          destination_time: fj.destination_delivery_time,
+          destination_date: fj.destination_delivery_date,
+          destination_remarks: fj.remarks,
+          tax_id: null,
+          container_checkpoint_time: fj.container_checkpoint_time || fj.eta_date || fj.eta_time || fj.vessel_eta || fj.vessel_arrival_date || null,
+          booking_number: fj.booking_number || null,
+          booking_no: fj.booking_no || null,
+          bl_no: fj.bl_no || null,
+          container_return_location: fj.container_return_location || fj.container_return?.location || fj.return_depot || fj.return_location || fj.return_full_container_location || fj.full_container_return?.location || null,
+          container_return_address: fj.container_return_address || fj.container_return?.address || fj.return_address || fj.return_full_container_address || fj.full_container_return?.address || null,
+          container_return_latitude: fj.container_return_latitude || fj.container_return?.latitude || fj.return_latitude || fj.full_container_return?.latitude || null,
+          container_return_longitude: fj.container_return_longitude || fj.container_return?.longitude || fj.return_longitude || fj.full_container_return?.longitude || null,
+          container_return_phone: fj.container_return_phone || fj.container_return?.phone || fj.return_phone || fj.return_contact_phone || fj.full_container_return?.phone || null,
+          container_return_date: fj.container_return_date || fj.container_return_datetime || fj.container_return?.date || fj.container_return?.datetime || fj.return_date || fj.return_full_container_date || fj.full_container_return?.date || null,
+          destinations: Array.isArray(fj.destinations) && fj.destinations.length > 0
+            ? fj.destinations.map((d: any) => ({
+                id: d.id || `dest-${d.sequence_number}`,
+                sequence_number: d.sequence_number || 1,
+                company_name: d.company_name || null,
+                contact_name: d.contact_name || null,
+                contact_phone: d.contact_phone || null,
+                address: d.address || null,
+                province: d.province || null,
+                district: d.district || null,
+                latitude: d.latitude || null,
+                longitude: d.longitude || null,
+                delivery_date: d.delivery_date || null,
+                delivery_time: d.delivery_time || null,
+                notes: d.notes || null,
+                checked_in_at: null,
+                sop_completed_at: null,
+              }))
+            : undefined,
+          origins: Array.isArray(fj.origins) && fj.origins.length > 0
+            ? fj.origins.map((o: any) => ({
+                id: o.id || `origin-${o.sequence_number}`,
+                sequence_number: o.sequence_number || 1,
+                company_name: o.company_name || null,
+                contact_name: o.contact_name || null,
+                contact_phone: o.contact_phone || null,
+                address: o.address || null,
+                province: o.province || null,
+                district: o.district || null,
+                pickup_date: o.pickup_date || null,
+                pickup_time: o.pickup_time || null,
+                goods_type: o.goods_type || o.product_name || null,
+                goods_quantity: o.goods_quantity || o.product_quantity ? String(o.goods_quantity || o.product_quantity) : null,
+                notes: o.notes || null,
+              }))
+            : undefined,
+        };
+        setJob(mappedJob);
+        const jobApp: JobApplication = {
+          checked_in_at: null,
+          sop_completed_at: null,
+          job_started_at: fj.status === 'in_progress' ? new Date().toISOString() : null,
+          delivery_checked_in_at: fj.status === 'delivered' || fj.status === 'completed' ? new Date().toISOString() : null,
+          delivery_sop_completed_at: fj.status === 'completed' ? new Date().toISOString() : null,
+          container_checked_in_at: null,
+          container_sop_completed_at: null,
+          status: fj.status,
+        };
+        setJobApplication(jobApp);
+      };
+
+      // Helper: try local DB redirect
+      const tryLocalDbRedirect = async () => {
+        try {
+          const { data: localJob, error: localJobError } = await supabase
+            .from('jobs')
+            .select('id, order_code, status')
+            .or(`id.eq.${jobId},order_code.eq.${jobId}`)
+            .maybeSingle();
+          if (!localJobError && localJob?.order_code) {
+            if (localJob.status === 'open_for_bidding') {
+              navigate(`/bidding/${localJob.id}`, { replace: true });
+              return;
+            }
+            navigate('/home', { state: { openJobOrderCode: localJob.order_code }, replace: true });
+            return;
+          }
+        } catch (e) {
+          console.error('Local job redirect failed:', e);
+        }
+        toast({
+          title: t('jobDetail.error'),
+          description: t('jobDetail.notFound'),
+          variant: 'destructive',
+        });
+      };
+
       if (result.success && result.data) {
-        // Find the specific job by order_number (fallback: use navigation state if API list no longer includes it)
         const stateJob = (location.state as any)?.job || (location.state as any)?.jobData;
         const apiData = Array.isArray(result.data) ? result.data : [];
 
         console.log('[JobDetailPage] Looking for jobId:', jobId, 'in', apiData.length, 'API jobs, stateJob:', !!stateJob, stateJob?.order_number);
 
-        const foundJob =
-          apiData.find((j: any) => j.order_number === jobId || j.order_code === jobId) ??
-          (stateJob && (stateJob.order_number === jobId || stateJob.order_code === jobId) ? stateJob : null) ??
-          (stateJob ? stateJob : null); // Final fallback: use stateJob regardless of ID match (user navigated here intentionally)
+        // Only match by ID in API data — do NOT use stateJob as primary source
+        const foundJob = apiData.find((j: any) => j.order_number === jobId || j.order_code === jobId);
 
         if (foundJob) {
-          // Debug: dump ALL keys from API response to find correct field names
-          console.log('[JobDetailPage] ALL API keys:', Object.keys(foundJob).sort());
-          console.log('[JobDetailPage] FULL RAW JSON:', JSON.stringify(foundJob, null, 2));
-          console.log('[JobDetailPage] ALL API values (date/location related):', 
-            Object.fromEntries(
-              Object.entries(foundJob).filter(([k]) => 
-                k.includes('date') || k.includes('time') || k.includes('empty') || 
-                k.includes('return') || k.includes('depot') || k.includes('container') || 
-                k.includes('checkpoint') || k.includes('pickup') || k.includes('eta') ||
-                k.includes('vessel') || k.includes('location') || k.includes('address') ||
-                k.includes('phone') || k.includes('contact')
-              )
-            )
-          );
-          // Map API response to JobDetail interface
-          // Handle different field names from different APIs
-          const mappedJob: JobDetail = {
-            id: foundJob.id,
-            order_code: foundJob.order_number || foundJob.order_code || jobId!,
-            job_type: (foundJob.booking_no || foundJob.bl_no) ? 'international' : (foundJob.job_type || foundJob.transport_category || 'domestic'),
-            employer_name: foundJob.factory_name || foundJob.sender_name || foundJob.employer_name || '',
-            transport_type: foundJob.transport_mode || foundJob.transport_type || 'เที่ยวเดียว',
-            origin_location: foundJob.sender_district && foundJob.sender_province 
-              ? `${foundJob.sender_district}, ${foundJob.sender_province}` 
-              : (foundJob.sender_address || foundJob.origin_location || foundJob.origin_address || ''),
-            origin_address: foundJob.sender_address || foundJob.origin_address || null,
-            origin_company_name: foundJob.sender_name || foundJob.origin_company_name || null,
-            origin_latitude: foundJob.sender_latitude || foundJob.origin_latitude || null,
-            origin_longitude: foundJob.sender_longitude || foundJob.origin_longitude || null,
-            origin_contact_phone: foundJob.sender_contact_phone || foundJob.origin_contact_phone || null,
-            destination_location: foundJob.destination_district && foundJob.destination_province 
-              ? `${foundJob.destination_district}, ${foundJob.destination_province}` 
-              : (foundJob.destination_address || foundJob.destination_location || ''),
-            destination_address: foundJob.destination_address || null,
-            destination_company_name: foundJob.destination_company_name || foundJob.destination_name || null,
-            destination_latitude: foundJob.destination_latitude || null,
-            destination_longitude: foundJob.destination_longitude || null,
-            destination_contact_phone: foundJob.destination_contact_phone || null,
-            price: foundJob.transport_price ?? foundJob.price ?? 0,
-            start_date: foundJob.sender_pickup_date || foundJob.start_date || '',
-            start_time: foundJob.sender_pickup_time || foundJob.start_time || '',
-            equipment_list: foundJob.vehicle_type || foundJob.equipment_list || null,
-            safety_equipment: null,
-            container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || null,
-            container_checkpoint_code: foundJob.container_checkpoint_code || null,
-            empty_container_date: foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.first_pickup_date || foundJob.sender_pickup_date || null,
-            empty_pickup_address: foundJob.empty_pickup_address || null,
-            empty_pickup_phone: foundJob.empty_pickup_phone || null,
-            empty_pickup_date: foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
-            empty_pickup_time: foundJob.empty_pickup_time || foundJob.sender_pickup_time || null,
-            container_number: foundJob.container_number || null,
-            container_number_2: foundJob.container_number_2 || null,
-            seal_number: foundJob.seal_number || null,
-            seal_number_2: foundJob.seal_number_2 || null,
-            origin_contact_person: foundJob.sender_contact_name,
-            origin_contact_role: null,
-            origin_bill_of_lading: foundJob.bill_of_lading || null,
-            origin_goods_type: foundJob.product_name,
-            origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
-            origin_remarks: foundJob.remarks,
-            destination_contact_person: foundJob.destination_contact_name,
-            destination_bill_of_lading: null,
-            destination_goods_type: foundJob.product_name,
-            destination_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
-            destination_time: foundJob.destination_delivery_time,
-            destination_date: foundJob.destination_delivery_date,
-            destination_remarks: foundJob.remarks,
-            tax_id: null,
-            container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || foundJob.eta_time || foundJob.vessel_eta || foundJob.vessel_arrival_date || null,
-            booking_number: foundJob.booking_number || null,
-            booking_no: foundJob.booking_no || null,
-            bl_no: foundJob.bl_no || null,
-            // Container return info - support flat fields, nested object, and alternative field names from API
-            container_return_location: foundJob.container_return_location || foundJob.container_return?.location || foundJob.return_depot || foundJob.return_location || foundJob.return_full_container_location || foundJob.full_container_return?.location || null,
-            container_return_address: foundJob.container_return_address || foundJob.container_return?.address || foundJob.return_address || foundJob.return_full_container_address || foundJob.full_container_return?.address || null,
-            container_return_latitude: foundJob.container_return_latitude || foundJob.container_return?.latitude || foundJob.return_latitude || foundJob.full_container_return?.latitude || null,
-            container_return_longitude: foundJob.container_return_longitude || foundJob.container_return?.longitude || foundJob.return_longitude || foundJob.full_container_return?.longitude || null,
-            container_return_phone: foundJob.container_return_phone || foundJob.container_return?.phone || foundJob.return_phone || foundJob.return_contact_phone || foundJob.full_container_return?.phone || null,
-            container_return_date: foundJob.container_return_date || foundJob.container_return_datetime || foundJob.container_return?.date || foundJob.container_return?.datetime || foundJob.return_date || foundJob.return_full_container_date || foundJob.full_container_return?.date || null,
-            // Map destinations array from API
-            destinations: Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0
-              ? foundJob.destinations.map((d: any) => ({
-                  id: d.id || `dest-${d.sequence_number}`,
-                  sequence_number: d.sequence_number || 1,
-                  company_name: d.company_name || null,
-                  contact_name: d.contact_name || null,
-                  contact_phone: d.contact_phone || null,
-                   address: d.address || null,
-                   province: d.province || null,
-                   district: d.district || null,
-                   latitude: d.latitude || null,
-                   longitude: d.longitude || null,
-                   delivery_date: d.delivery_date || null,
-                   delivery_time: d.delivery_time || null,
-                   notes: d.notes || null,
-                   checked_in_at: null,
-                   sop_completed_at: null,
-                }))
-              : undefined,
-            // Map origins array from API
-            origins: Array.isArray(foundJob.origins) && foundJob.origins.length > 0
-              ? foundJob.origins.map((o: any) => ({
-                  id: o.id || `origin-${o.sequence_number}`,
-                  sequence_number: o.sequence_number || 1,
-                  company_name: o.company_name || null,
-                  contact_name: o.contact_name || null,
-                  contact_phone: o.contact_phone || null,
-                  address: o.address || null,
-                  province: o.province || null,
-                  district: o.district || null,
-                  pickup_date: o.pickup_date || null,
-                  pickup_time: o.pickup_time || null,
-                  goods_type: o.goods_type || o.product_name || null,
-                  goods_quantity: o.goods_quantity || o.product_quantity ? String(o.goods_quantity || o.product_quantity) : null,
-                  notes: o.notes || null,
-                }))
-              : undefined,
-          };
-
-          setJob(mappedJob);
-
-          // Create job application based on status from API
-          // Note: 'delivered' status means arrived at destination but NOT POD completed
-          // Only 'completed' status means POD is done
-          const jobApplicationData: JobApplication = {
-            checked_in_at: null,
-            sop_completed_at: null,
-            job_started_at: foundJob.status === 'in_progress' ? new Date().toISOString() : null,
-            delivery_checked_in_at: foundJob.status === 'delivered' || foundJob.status === 'completed' ? new Date().toISOString() : null,
-            delivery_sop_completed_at: foundJob.status === 'completed' ? new Date().toISOString() : null,
-            container_checked_in_at: null,
-            container_sop_completed_at: null,
-            status: foundJob.status,
-          };
-
-          setJobApplication(jobApplicationData);
+          // Found in transport API — use regular mapping (unchanged flow for all job types)
+          mapAndSetTransportJob(foundJob);
         } else {
-          // Not found in transport jobs, try Bid Jobs (list-tickets API)
+          // Not found in transport jobs — try Bid Jobs FIRST (list-tickets API)
           console.log('Job not found in transport jobs, trying bid jobs for:', jobId);
           const bidJobFound = await loadBidJobDetail();
           
           if (!bidJobFound) {
-            // Not in accepted jobs list. Try local DB and redirect.
-            try {
-              const { data: localJob, error: localJobError } = await supabase
-                .from('jobs')
-                .select('id, order_code, status')
-                .or(`id.eq.${jobId},order_code.eq.${jobId}`)
-                .maybeSingle();
-
-              if (!localJobError && localJob?.order_code) {
-                if (localJob.status === 'open_for_bidding') {
-                  navigate(`/bidding/${localJob.id}`, { replace: true });
-                  return;
-                }
-
-                navigate('/home', { state: { openJobOrderCode: localJob.order_code }, replace: true });
-                return;
-              }
-            } catch (e) {
-              console.error('Local job redirect failed:', e);
+            // Bid job not found — try stateJob as final fallback
+            if (stateJob) {
+              console.log('[JobDetailPage] Using stateJob fallback for:', jobId);
+              mapAndSetTransportJob(stateJob);
+            } else {
+              await tryLocalDbRedirect();
             }
-
-            toast({
-              title: t('jobDetail.error'),
-              description: t('jobDetail.notFound'),
-              variant: 'destructive',
-            });
           }
         }
       } else {
@@ -463,31 +449,7 @@ export default function JobDetailPage() {
         const bidJobFound = await loadBidJobDetail();
         
         if (!bidJobFound) {
-          try {
-            const { data: localJob, error: localJobError } = await supabase
-              .from('jobs')
-              .select('id, order_code, status')
-              .or(`id.eq.${jobId},order_code.eq.${jobId}`)
-              .maybeSingle();
-
-            if (!localJobError && localJob?.order_code) {
-              if (localJob.status === 'open_for_bidding') {
-                navigate(`/bidding/${localJob.id}`, { replace: true });
-                return;
-              }
-
-              navigate('/home', { state: { openJobOrderCode: localJob.order_code }, replace: true });
-              return;
-            }
-          } catch (e) {
-            console.error('Local job redirect failed:', e);
-          }
-
-          toast({
-            title: t('jobDetail.error'),
-            description: t('jobDetail.notFound'),
-            variant: 'destructive',
-          });
+          await tryLocalDbRedirect();
         }
       }
     } catch (error) {
@@ -534,40 +496,45 @@ export default function JobDetailPage() {
             return false;
           }
 
-          console.log('Found bid job:', foundTicket);
+          console.log('Found bid job:', JSON.stringify(foundTicket, null, 2));
 
-          // Map ticket to JobDetail
+          // Map ticket to JobDetail — use ALL fields from bid API
           const customer = foundTicket.customer || {};
           const creator = foundTicket.creator || {};
           const route = foundTicket.route || {};
           const originDistrict = route.origin_district || {};
           const destDistrict = route.destination_district || {};
+          // Get employer: prefer customer, fallback to creator
+          const employerName = customer.company_name || customer.full_name || creator.company_name || creator.full_name || '';
+          const employerPhone = customer.phone || creator.phone || null;
+          const contactPerson = customer.full_name || creator.full_name || null;
+          // Destination location from route
+          const originLoc = originDistrict.name && originDistrict.province?.name
+            ? `${originDistrict.name}, ${originDistrict.province.name}` : '';
+          const destLoc = destDistrict.name && destDistrict.province?.name
+            ? `${destDistrict.name}, ${destDistrict.province.name}` : '';
 
           const mappedJob: JobDetail = {
             id: foundTicket.id,
             order_code: foundTicket.ticket_number,
             job_type: 'domestic',
-            employer_name: customer.company_name || customer.full_name || creator.company_name || creator.full_name || '',
+            employer_name: employerName,
             transport_type: 'เที่ยวเดียว',
-            origin_location: originDistrict.name && originDistrict.province?.name
-              ? `${originDistrict.name}, ${originDistrict.province.name}`
-              : '',
+            origin_location: originLoc,
             origin_address: null,
-            origin_company_name: customer.company_name || customer.full_name || '',
+            origin_company_name: customer.company_name || creator.company_name || employerName || '',
             origin_latitude: route.origin_latitude || null,
             origin_longitude: route.origin_longitude || null,
-            origin_contact_phone: customer.phone || null,
-            destination_location: destDistrict.name && destDistrict.province?.name
-              ? `${destDistrict.name}, ${destDistrict.province.name}`
-              : '',
+            origin_contact_phone: employerPhone,
+            destination_location: destLoc,
             destination_address: null,
             destination_company_name: null,
             destination_latitude: route.destination_latitude || null,
             destination_longitude: route.destination_longitude || null,
             destination_contact_phone: null,
-            price: userAcceptedBid.bid_price || foundTicket.price || 0,
-            start_date: foundTicket.pickup_date || (foundTicket.pickup_datetime ? foundTicket.pickup_datetime.split('T')[0] : null) || foundTicket.created_at?.split('T')[0] || '',
-            start_time: foundTicket.pickup_time || (foundTicket.pickup_datetime ? foundTicket.pickup_datetime.split('T')[1]?.substring(0, 5) : null) || '00:00',
+            price: userAcceptedBid.bid_price || foundTicket.market_price || foundTicket.price || 0,
+            start_date: foundTicket.pickup_datetime ? foundTicket.pickup_datetime.split('T')[0] : foundTicket.created_at?.split('T')[0] || '',
+            start_time: foundTicket.pickup_datetime ? foundTicket.pickup_datetime.split('T')[1]?.substring(0, 5) || '00:00' : '00:00',
             equipment_list: foundTicket.vehicle_type?.name || null,
             safety_equipment: null,
             container_checkpoint: null,
@@ -578,7 +545,7 @@ export default function JobDetailPage() {
             container_number_2: null,
             seal_number: null,
             seal_number_2: null,
-            origin_contact_person: customer.full_name || null,
+            origin_contact_person: contactPerson,
             origin_contact_role: null,
             origin_bill_of_lading: null,
             origin_goods_type: foundTicket.product || null,
@@ -588,8 +555,8 @@ export default function JobDetailPage() {
             destination_bill_of_lading: null,
             destination_goods_type: foundTicket.product || null,
             destination_goods_quantity: foundTicket.weight_tons ? `${foundTicket.weight_tons} ตัน` : null,
-            destination_time: foundTicket.delivery_time || (foundTicket.delivery_datetime ? foundTicket.delivery_datetime.split('T')[1]?.substring(0, 5) : null) || null,
-            destination_date: foundTicket.delivery_date || (foundTicket.delivery_datetime ? foundTicket.delivery_datetime.split('T')[0] : null) || null,
+            destination_time: foundTicket.delivery_datetime ? foundTicket.delivery_datetime.split('T')[1]?.substring(0, 5) || null : null,
+            destination_date: foundTicket.delivery_datetime ? foundTicket.delivery_datetime.split('T')[0] : null,
             destination_remarks: foundTicket.notes || null,
             tax_id: null,
           };
