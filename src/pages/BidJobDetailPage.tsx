@@ -296,6 +296,7 @@ export default function BidJobDetailPage() {
       jobApplication={jobApplication}
       userId={user.id}
       onUpdate={loadTicketDetail}
+      isBidJob={true}
     />
   );
 }

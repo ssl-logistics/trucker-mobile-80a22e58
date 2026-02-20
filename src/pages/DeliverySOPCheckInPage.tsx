@@ -314,7 +314,8 @@ export default function DeliverySOPCheckInPage() {
          description: t('deliverySop.sopSuccessMessage'),
        });
 
-       navigate(`/job/${job.order_code}`);
+       const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+       navigate(backRoute);
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
@@ -347,7 +348,10 @@ export default function DeliverySOPCheckInPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(`/job/${job.order_code}`)} className="p-1">
+           <button onClick={() => {
+            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+            navigate(backRoute);
+          }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('deliverySop.title')} {displayCompanyName}</h1>
