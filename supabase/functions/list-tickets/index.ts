@@ -91,15 +91,7 @@ serve(async (req) => {
 
     const responseText = await response.text();
     console.log('External API response status:', response.status);
-    console.log('External API response preview:', responseText.substring(0, 2000));
-
-    // Log full first ticket for debugging field mapping
-    try {
-      const parsed = JSON.parse(responseText);
-      if (parsed?.data?.[0]) {
-        console.log('FULL FIRST TICKET:', JSON.stringify(parsed.data[0]));
-      }
-    } catch { /* ignore */ }
+    console.log('External API response preview:', responseText.substring(0, 500));
 
     let responseData;
     try {
