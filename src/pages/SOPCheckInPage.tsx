@@ -143,6 +143,24 @@ export default function SOPCheckInPage() {
     setLoading(true);
     
     try {
+      // Priority 1: Use job data from navigation state
+      const stateJobData = (location.state as any)?.jobData;
+      const stateIsBidJob = (location.state as any)?.isBidJob;
+      if (stateJobData) {
+        setIsBidJob(!!stateIsBidJob);
+        setJob({
+          id: stateJobData.id,
+          order_code: stateJobData.order_code || jobId,
+          employer_name: stateJobData.employer_name || '-',
+          origin_location: stateJobData.origin_location || '-',
+          origin_company_name: stateJobData.origin_company_name ?? null,
+          start_date: stateJobData.start_date || '',
+          start_time: stateJobData.start_time || '00:00',
+        });
+        setLoading(false);
+        return;
+      }
+
       let foundJob: any = null;
 
       // For Internal/External drivers, use get-driver-assigned-jobs
@@ -176,6 +194,31 @@ export default function SOPCheckInPage() {
       }
       
       if (foundJob) {
+        // Check if this is a bid job by remarks pattern
+        const isBidOrigin = foundJob.remarks?.includes('งานจากระบบประมูลภายนอก');
+        if (isBidOrigin) {
+          try {
+            const tickets = await fetchAcceptedBidTickets(50);
+            const ticket = tickets.find((t) => t.ticket_number === jobId || t.id === jobId);
+            if (ticket) {
+              setIsBidJob(true);
+              const mapped = mapBidTicketToPickupLikeJobDetail(ticket);
+              setJob({
+                id: mapped.id,
+                order_code: mapped.order_code,
+                employer_name: mapped.employer_name,
+                origin_location: mapped.origin_location,
+                origin_company_name: mapped.origin_company_name,
+                start_date: mapped.start_date,
+                start_time: mapped.start_time,
+              });
+              setLoading(false);
+              return;
+            }
+          } catch {
+            // Fall through to use freelance API data
+          }
+        }
         setIsBidJob(false);
         // Map API response to JobDetail interface
         const mappedJob: JobDetail = {
