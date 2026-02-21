@@ -143,6 +143,23 @@ export default function PickupDetailPage() {
         const foundJob = result.data.find((j: any) => j.order_number === jobId);
         
         if (foundJob) {
+          // Check if this is a bid job by remarks pattern
+          const isBidOrigin = foundJob.remarks?.includes('งานจากระบบประมูลภายนอก');
+          if (isBidOrigin) {
+            // For bid jobs, try to load from bid tickets for correct date/time
+            try {
+              const tickets = await fetchAcceptedBidTickets(50);
+              const ticket = tickets.find((t) => t.ticket_number === jobId || t.id === jobId);
+              if (ticket) {
+                setIsBidJob(true);
+                setJob(mapBidTicketToPickupLikeJobDetail(ticket) as unknown as JobDetail);
+                setLoading(false);
+                return;
+              }
+            } catch {
+              // Fall through to use freelance API data
+            }
+          }
           setIsBidJob(false);
           // Map API response to JobDetail interface
           const mappedJob: JobDetail = {
