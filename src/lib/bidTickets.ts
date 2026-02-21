@@ -40,12 +40,16 @@ function extractTickets(payload: any): BidTicket[] {
   return [];
 }
 
-export async function fetchAcceptedBidTickets(limit = 50): Promise<BidTicket[]> {
+export async function fetchAcceptedBidTickets(limit = 50, freelanceDriverId?: string): Promise<BidTicket[]> {
+  const body: Record<string, string> = {
+    bids_status: 'accepted',
+    limit: String(limit),
+  };
+  if (freelanceDriverId) {
+    body.freelance_driver_id = freelanceDriverId;
+  }
   const { data, error } = await supabase.functions.invoke('list-tickets', {
-    body: {
-      bids_status: 'accepted',
-      limit: String(limit),
-    },
+    body,
   });
 
   if (error) throw error;

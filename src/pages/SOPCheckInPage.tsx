@@ -198,7 +198,7 @@ export default function SOPCheckInPage() {
         const isBidOrigin = foundJob.remarks?.includes('งานจากระบบประมูลภายนอก');
         if (isBidOrigin) {
           try {
-            const tickets = await fetchAcceptedBidTickets(50);
+            const tickets = await fetchAcceptedBidTickets(50, user?.id);
             const ticket = tickets.find((t) => t.ticket_number === jobId || t.id === jobId);
             if (ticket) {
               setIsBidJob(true);
@@ -233,7 +233,7 @@ export default function SOPCheckInPage() {
         setJob(mappedJob);
       } else {
         // Fallback: try to load as Bid job (ticket_number)
-        const tickets = await fetchAcceptedBidTickets(50);
+        const tickets = await fetchAcceptedBidTickets(50, user?.id);
         const ticket = tickets.find((t) => t.ticket_number === jobId || t.id === jobId);
         if (!ticket) throw new Error('Job not found');
 
