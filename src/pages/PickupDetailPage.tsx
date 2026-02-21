@@ -148,7 +148,7 @@ export default function PickupDetailPage() {
           if (isBidOrigin) {
             // For bid jobs, try to load from bid tickets for correct date/time
             try {
-              const tickets = await fetchAcceptedBidTickets(50);
+              const tickets = await fetchAcceptedBidTickets(50, user.id);
               const ticket = tickets.find((t) => t.ticket_number === jobId || t.id === jobId);
               if (ticket) {
                 setIsBidJob(true);
@@ -185,7 +185,7 @@ export default function PickupDetailPage() {
           setJob(mappedJob);
         } else {
           // Fallback: try to load as Bid job (ticket_number)
-          const tickets = await fetchAcceptedBidTickets(50);
+          const tickets = await fetchAcceptedBidTickets(50, user.id);
           const ticket = tickets.find((t) => t.ticket_number === jobId || t.id === jobId);
           if (!ticket) throw new Error('Job not found');
 
