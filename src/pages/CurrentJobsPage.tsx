@@ -609,9 +609,15 @@ export default function CurrentJobsPage() {
       }
 
       // Combine all job sources
-      const allJobs = [...companyJobs, ...factoryJobs, ...bidWonJobs];
+      // Bid jobs have correct timezone-converted dates, so they should take priority
+      // Filter out company/factory duplicates of bid jobs before combining
+      const bidOrderNumbers = new Set(bidWonJobs.map((j: any) => j.order_number).filter(Boolean));
+      const filteredCompanyJobs = companyJobs.filter((j: any) => !bidOrderNumbers.has(j.order_number));
+      const filteredFactoryJobs = factoryJobs.filter((j: any) => !bidOrderNumbers.has(j.order_number));
+      
+      const allJobs = [...filteredCompanyJobs, ...filteredFactoryJobs, ...bidWonJobs];
       const uniqueJobs = dedupeJobs(allJobs);
-      console.log('Total current jobs:', uniqueJobs.length, '(Company:', companyJobs.length, ', Factory:', factoryJobs.length, ', Bid-Won:', bidWonJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
+      console.log('Total current jobs:', uniqueJobs.length, '(Company:', filteredCompanyJobs.length, ', Factory:', filteredFactoryJobs.length, ', Bid-Won:', bidWonJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
 
       setAcceptedJobs(uniqueJobs);
     } catch (error) {
