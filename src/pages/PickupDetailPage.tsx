@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, MapPin, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,6 +40,7 @@ interface JobDetail {
 }
 export default function PickupDetailPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -86,7 +87,37 @@ export default function PickupDetailPage() {
     setLoading(true);
     
     try {
-      // Use different API based on driver type
+      // Priority 1: Use job data from navigation state (passed from DomesticJobDetail)
+      const stateJobData = (location.state as any)?.jobData;
+      const stateIsBidJob = (location.state as any)?.isBidJob;
+      if (stateJobData) {
+        setIsBidJob(!!stateIsBidJob);
+        const mappedJob: JobDetail = {
+          id: stateJobData.id,
+          order_code: stateJobData.order_code || jobId,
+          order_number: stateJobData.order_code || jobId,
+          employer_name: stateJobData.employer_name || '-',
+          origin_location: stateJobData.origin_location || '-',
+          start_date: stateJobData.start_date || '',
+          start_time: stateJobData.start_time || '00:00',
+          origin_latitude: stateJobData.origin_latitude ?? null,
+          origin_longitude: stateJobData.origin_longitude ?? null,
+          destination_latitude: stateJobData.destination_latitude ?? null,
+          destination_longitude: stateJobData.destination_longitude ?? null,
+          origin_contact_person: stateJobData.origin_contact_person ?? null,
+          origin_contact_role: stateJobData.origin_contact_role ?? null,
+          origin_goods_type: stateJobData.origin_goods_type ?? null,
+          origin_goods_quantity: stateJobData.origin_goods_quantity ?? null,
+          origin_remarks: stateJobData.origin_remarks ?? null,
+          origin_address: stateJobData.origin_address ?? null,
+          origin_company_name: stateJobData.origin_company_name ?? null,
+        };
+        setJob(mappedJob);
+        setLoading(false);
+        return;
+      }
+
+      // Priority 2: Fetch from API
       let result: any;
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
