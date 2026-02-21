@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export interface BidTicket {
   id: string;
@@ -7,6 +8,8 @@ export interface BidTicket {
   status?: string;
   product?: string | null;
   weight_tons?: number | null;
+  pickup_datetime?: string | null;
+  delivery_datetime?: string | null;
   notes?: string | null;
   route?: {
     origin_district?: {
@@ -69,8 +72,12 @@ export function mapBidTicketToPickupLikeJobDetail(ticket: BidTicket) {
     order_number: ticket.ticket_number,
     employer_name: employer,
     origin_location: originLocation,
-    start_date: ticket.created_at?.split('T')?.[0] || '',
-    start_time: '00:00',
+    start_date: ticket.pickup_datetime
+      ? formatInTimeZone(new Date(ticket.pickup_datetime), 'Asia/Bangkok', 'yyyy-MM-dd')
+      : ticket.created_at?.split('T')?.[0] || '',
+    start_time: ticket.pickup_datetime
+      ? formatInTimeZone(new Date(ticket.pickup_datetime), 'Asia/Bangkok', 'HH:mm')
+      : '00:00',
     origin_contact_person: ticket.customer?.full_name || null,
     origin_contact_role: ticket.customer?.phone || null,
     origin_goods_type: ticket.product ?? null,
