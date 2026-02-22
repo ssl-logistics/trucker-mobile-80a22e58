@@ -325,7 +325,7 @@ export default function JobDetailPage() {
             destination_latitude: foundJob.destination_latitude || null,
             destination_longitude: foundJob.destination_longitude || null,
             destination_contact_phone: foundJob.destination_contact_phone || null,
-            price: foundJob.transport_price ?? foundJob.price ?? 0,
+            price: (stateJob?.transport_price != null ? stateJob.transport_price : null) ?? foundJob.transport_price ?? foundJob.price ?? 0,
             start_date: foundJob.sender_pickup_date || foundJob.start_date || '',
             start_time: foundJob.sender_pickup_time || foundJob.start_time || '',
             equipment_list: foundJob.vehicle_type || foundJob.equipment_list || null,
