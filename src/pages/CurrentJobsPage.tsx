@@ -581,7 +581,7 @@ export default function CurrentJobsPage() {
             product_unit: ticket.product_unit || null,
             vehicle_type: ticket.vehicle_type?.name || ticket.truck_type || ticket.vehicle_type || null,
             vehicle_category: null,
-            transport_price: ticket.bids?.find((b: any) => b.status === 'accepted' && b.contractor_id === freelanceDriverId)?.bid_price || ticket.price || 0,
+            transport_price: ticket.transport_price || ticket.bids?.find((b: any) => b.status === 'accepted' && b.contractor_id === freelanceDriverId)?.bid_price || ticket.price || 0,
             driver_name: null,
             driver_phone: null,
             license_plate: null,
