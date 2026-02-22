@@ -490,8 +490,6 @@ export default function CurrentJobsPage() {
             ...job,
             sender_name: job.factory_name || job.sender_name,
             isFactoryJob: true,
-            // Ensure transport_price is set from available price fields
-            transport_price: job.transport_price || job.price || job.freight_price || 0,
             job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || null),
             bl_no: job.bl_no || null,
             booking_no: job.booking_no || null,
@@ -800,7 +798,7 @@ export default function CurrentJobsPage() {
                         {canViewPrice && (
                           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
                             <img src={coinsIcon} alt="coins" className="w-5 h-5" />
-                            <span className="text-lg font-bold text-teal-500">฿ {(job.transport_price || (job as any).price || (job as any).freight_price || 0).toLocaleString()}</span>
+                            <span className="text-lg font-bold text-teal-500">฿ {(job.transport_price || 0).toLocaleString()}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
