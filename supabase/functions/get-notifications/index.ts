@@ -16,7 +16,8 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const { action, user_id, notification_id } = await req.json()
+    const body = await req.json()
+    const { action, user_id, notification_id } = body
 
     if (!user_id) {
       return new Response(
@@ -69,6 +70,54 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, count: data?.length || 0 }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Create status change notification (called from client when job status changes)
+    if (action === 'create_status_notification') {
+      const { title_th, title_en, description_th, description_en, notification_type, reference_type, order_code, status: jobStatus } = body
+
+      // Insert notification into database
+      const { error: insertError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id,
+          title_th,
+          title_en,
+          description_th,
+          description_en,
+          notification_type: notification_type || 'job_status',
+          reference_type: reference_type || 'job',
+          is_read: false,
+        })
+
+      if (insertError) {
+        console.error('Failed to insert notification:', insertError)
+        throw insertError
+      }
+
+      // Send push notification
+      try {
+        const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
+          body: {
+            user_id,
+            title: title_th,
+            body: description_th,
+            url: '/notifications',
+            tag: `job-status-${order_code}-${jobStatus}`,
+          },
+        })
+
+        if (pushError) {
+          console.error('Failed to send push notification:', pushError)
+        }
+      } catch (pushErr) {
+        console.error('Push notification error (non-blocking):', pushErr)
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

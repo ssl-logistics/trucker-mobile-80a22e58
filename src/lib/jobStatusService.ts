@@ -169,10 +169,10 @@ async function createStatusNotification(
   const descTh = `งาน ${orderCode}: ${STATUS_LABELS[status]}`;
   const descEn = `Job ${orderCode}: status updated`;
 
-  // Insert notification into database
-  const { error: insertError } = await supabase
-    .from('notifications')
-    .insert({
+  // Use edge function (service role) to insert notification - bypasses RLS
+  const { error } = await supabase.functions.invoke('get-notifications', {
+    body: {
+      action: 'create_status_notification',
       user_id: userId,
       title_th: titles.th,
       title_en: titles.en,
@@ -180,25 +180,12 @@ async function createStatusNotification(
       description_en: descEn,
       notification_type: 'job_status',
       reference_type: 'job',
-      is_read: false,
-    });
-
-  if (insertError) {
-    console.error('Failed to insert notification:', insertError);
-  }
-
-  // Send push notification
-  const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
-    body: {
-      user_id: userId,
-      title: titles.th,
-      body: descTh,
-      url: '/notifications',
-      tag: `job-status-${orderCode}-${status}`,
+      order_code: orderCode,
+      status,
     },
   });
 
-  if (pushError) {
-    console.error('Failed to send push notification:', pushError);
+  if (error) {
+    console.error('Failed to create status notification:', error);
   }
 }
