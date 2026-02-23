@@ -23,7 +23,19 @@ const STATUS_LABELS: Record<JobStatusType, string> = {
   delivery_confirmed: 'ยืนยันการจัดส่งสำเร็จ',
   container_return_checked_in: 'เช็คอินจุดคืนตู้สำเร็จ',
   container_return_confirmed: 'ยืนยันคืนตู้สำเร็จ',
-  
+};
+
+const STATUS_NOTIFICATION_TITLES: Record<JobStatusType, { th: string; en: string }> = {
+  empty_container_checked_in: { th: '📍 เช็คอินจุดรับตู้เปล่า', en: '📍 Empty Container Check-in' },
+  container_checked_in: { th: '📍 เช็คอินจุดรับตู้', en: '📍 Container Check-in' },
+  container_sop_completed: { th: '✅ ดำเนินการจุดรับตู้เสร็จ', en: '✅ Container SOP Completed' },
+  pickup_checked_in: { th: '📍 เช็คอินจุดรับสินค้า', en: '📍 Pickup Check-in' },
+  pickup_sop_completed: { th: '✅ ดำเนินการจุดรับสินค้าเสร็จ', en: '✅ Pickup SOP Completed' },
+  delivery_checked_in: { th: '📍 เช็คอินจุดส่งสินค้า', en: '📍 Delivery Check-in' },
+  delivery_sop_completed: { th: '✅ ดำเนินการจุดส่งสินค้าเสร็จ', en: '✅ Delivery SOP Completed' },
+  delivery_confirmed: { th: '🎉 ยืนยันการจัดส่งสำเร็จ', en: '🎉 Delivery Confirmed' },
+  container_return_checked_in: { th: '📍 เช็คอินจุดคืนตู้', en: '📍 Container Return Check-in' },
+  container_return_confirmed: { th: '🎉 ยืนยันคืนตู้สำเร็จ', en: '🎉 Container Return Confirmed' },
 };
 
 interface SendJobStatusParams {
@@ -133,9 +145,60 @@ export async function sendJobStatus({
     }
 
     console.log('Job status sent successfully:', data);
+
+    // Create in-app notification and send push notification
+    try {
+      await createStatusNotification(userId, orderCode, status);
+    } catch (notifError) {
+      console.error('Failed to create status notification (non-blocking):', notifError);
+    }
+
     return true;
   } catch (error) {
     console.error('Error in sendJobStatus:', error);
     return false;
+  }
+}
+
+async function createStatusNotification(
+  userId: string,
+  orderCode: string,
+  status: JobStatusType
+): Promise<void> {
+  const titles = STATUS_NOTIFICATION_TITLES[status];
+  const descTh = `งาน ${orderCode}: ${STATUS_LABELS[status]}`;
+  const descEn = `Job ${orderCode}: status updated`;
+
+  // Insert notification into database
+  const { error: insertError } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: userId,
+      title_th: titles.th,
+      title_en: titles.en,
+      description_th: descTh,
+      description_en: descEn,
+      notification_type: 'job_status',
+      reference_type: 'job',
+      is_read: false,
+    });
+
+  if (insertError) {
+    console.error('Failed to insert notification:', insertError);
+  }
+
+  // Send push notification
+  const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
+    body: {
+      user_id: userId,
+      title: titles.th,
+      body: descTh,
+      url: '/notifications',
+      tag: `job-status-${orderCode}-${status}`,
+    },
+  });
+
+  if (pushError) {
+    console.error('Failed to send push notification:', pushError);
   }
 }
