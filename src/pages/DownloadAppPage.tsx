@@ -40,9 +40,7 @@ const DownloadAppPage: React.FC = () => {
 
   const loadApkFiles = async () => {
     try {
-      const { data, error } = await supabase.storage.from('apk-files').list('', {
-        sortBy: { column: 'created_at', order: 'desc' },
-      });
+      const { data, error } = await supabase.functions.invoke('list-apk-files');
 
       if (error) {
         console.error('Error loading APK files:', error);
@@ -50,19 +48,8 @@ const DownloadAppPage: React.FC = () => {
         return;
       }
 
-      const files: ApkFile[] = (data || [])
-        .filter(f => f.name.endsWith('.apk'))
-        .map(f => {
-          const { data: urlData } = supabase.storage.from('apk-files').getPublicUrl(f.name);
-          return {
-            name: f.name,
-            size: f.metadata?.size || 0,
-            created_at: f.created_at || '',
-            url: urlData.publicUrl,
-          };
-        });
-
-      setApkFiles(files);
+      console.log('APK files result:', data);
+      setApkFiles(data?.files || []);
     } catch (err) {
       console.error('Error:', err);
     } finally {

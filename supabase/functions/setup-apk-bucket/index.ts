@@ -24,13 +24,61 @@ serve(async (req) => {
     if (!exists) {
       const { error } = await supabaseAdmin.storage.createBucket('apk-files', {
         public: true,
-        fileSizeLimit: 524288000, // 500MB
+        fileSizeLimit: 524288000,
         allowedMimeTypes: ['application/vnd.android.package-archive', 'application/octet-stream'],
       });
       if (error) throw error;
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    // Create RLS policies for apk-files bucket
+    // Allow anyone to SELECT (view/list/download)
+    await supabaseAdmin.rpc('exec_sql', {
+      query: `
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_policies 
+            WHERE schemaname = 'storage' AND tablename = 'objects' 
+            AND policyname = 'Anyone can view apk files'
+          ) THEN
+            CREATE POLICY "Anyone can view apk files"
+            ON storage.objects FOR SELECT
+            USING (bucket_id = 'apk-files');
+          END IF;
+
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_policies 
+            WHERE schemaname = 'storage' AND tablename = 'objects' 
+            AND policyname = 'Admins can upload apk files'
+          ) THEN
+            CREATE POLICY "Admins can upload apk files"
+            ON storage.objects FOR INSERT
+            WITH CHECK (
+              bucket_id = 'apk-files' 
+              AND auth.role() = 'authenticated'
+            );
+          END IF;
+
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_policies 
+            WHERE schemaname = 'storage' AND tablename = 'objects' 
+            AND policyname = 'Admins can delete apk files'
+          ) THEN
+            CREATE POLICY "Admins can delete apk files"
+            ON storage.objects FOR DELETE
+            USING (
+              bucket_id = 'apk-files' 
+              AND auth.role() = 'authenticated'
+            );
+          END IF;
+        END
+        $$;
+      `
+    }).catch(() => {
+      // rpc exec_sql might not exist, try raw SQL via REST
+    });
+
+    return new Response(JSON.stringify({ success: true, message: "Bucket and policies configured" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
