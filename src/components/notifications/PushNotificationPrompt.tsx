@@ -85,6 +85,11 @@ export const PushNotificationPrompt = () => {
   }, []);
 
   useEffect(() => {
+    // Skip notification prompt on download page
+    if (window.location.hash.includes('/download')) {
+      return;
+    }
+
     // Initialize push notification listeners
     initializePushNotifications();
 
