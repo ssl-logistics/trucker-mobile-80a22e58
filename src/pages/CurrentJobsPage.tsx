@@ -620,6 +620,53 @@ export default function CurrentJobsPage() {
       console.log('Total current jobs:', uniqueJobs.length, '(Company:', filteredCompanyJobs.length, ', Factory:', filteredFactoryJobs.length, ', Bid-Won:', bidWonJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
 
       setAcceptedJobs(uniqueJobs);
+
+      // Auto-create tracking rooms for accepted bid jobs that don't have one yet
+      for (const bidJob of bidWonJobs) {
+        const orderNum = bidJob.order_number;
+        if (!orderNum) continue;
+        const existingRoomCode = localStorage.getItem(`room_code_${orderNum}`);
+        if (existingRoomCode) {
+          console.log(`[Tracking] Bid job ${orderNum} already has room_code: ${existingRoomCode}`);
+          continue;
+        }
+
+        try {
+          // Get driver's vehicle plate
+          const province = (user.plate_province || '').trim();
+          const number = (user.plate_number || '').trim();
+          const truckPlate = [province, number].filter(Boolean).join(' ').trim() || user.id;
+
+          const trackingBody = {
+            truck_plate: truckPlate,
+            order_code: orderNum,
+            origin_lat: bidJob.sender_latitude || 0,
+            origin_lng: bidJob.sender_longitude || 0,
+            destination_lat: bidJob.destination_latitude || 0,
+            destination_lng: bidJob.destination_longitude || 0,
+            current_lat: bidJob.sender_latitude || 0,
+            current_lng: bidJob.sender_longitude || 0,
+          };
+
+          console.log(`[Tracking] Creating tracking room for bid job ${orderNum}:`, trackingBody);
+
+          const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
+            body: trackingBody,
+          });
+
+          if (trackingResponse.error) {
+            console.error(`[Tracking] Error creating room for ${orderNum}:`, trackingResponse.error);
+          } else {
+            const roomCode = trackingResponse.data?.room?.room_code;
+            if (roomCode) {
+              localStorage.setItem(`room_code_${orderNum}`, roomCode);
+              console.log(`[Tracking] Room created for bid job ${orderNum}: ${roomCode}`);
+            }
+          }
+        } catch (trackingErr) {
+          console.error(`[Tracking] Failed to create room for bid job ${orderNum}:`, trackingErr);
+        }
+      }
     } catch (error) {
       console.error('Error fetching accepted jobs:', error);
       toast({
