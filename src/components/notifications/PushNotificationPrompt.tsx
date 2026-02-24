@@ -369,6 +369,10 @@ export const PushNotificationPrompt = () => {
     localStorage.setItem('push_notification_denied_prompt', new Date().toISOString());
   };
 
+  // Hide all prompts on download page
+  const isDownloadPage = window.location.hash.includes('/download');
+  if (isDownloadPage) return null;
+
   // Denied permission prompt - show option to open settings
   if (showDeniedPrompt) {
     return (
