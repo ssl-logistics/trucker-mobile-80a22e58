@@ -227,7 +227,7 @@ const DownloadAppPage: React.FC = () => {
         )}
 
         <p className="text-center text-primary-foreground/60 text-xs mt-8">
-          © {new Date().getFullYear()} The Troob. All rights reserved.
+          © {new Date().getFullYear()} The Trucker. All rights reserved.
         </p>
       </div>
     </div>
