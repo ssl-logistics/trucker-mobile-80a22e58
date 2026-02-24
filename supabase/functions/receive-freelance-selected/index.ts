@@ -107,7 +107,7 @@ serve(async (req) => {
       console.log('Notification created for driver:', payload.contractor_id);
     }
 
-    // If accepted, update job application status as well
+    // If accepted, update job application status and create tracking room
     if (bidStatus === 'accepted') {
       const { error: appError } = await supabase
         .from('job_applications')
@@ -124,6 +124,57 @@ serve(async (req) => {
         console.error('Error updating job application:', appError);
       } else {
         console.log('Job application status updated to accepted');
+      }
+
+      // Create tracking room for the accepted bid job
+      try {
+        // Get driver's vehicle info for truck plate
+        const { data: vehicle } = await supabase
+          .from('vehicles')
+          .select('plate_number, plate_province')
+          .eq('driver_id', payload.contractor_id)
+          .limit(1)
+          .single();
+
+        const truckPlate = vehicle
+          ? [vehicle.plate_province, vehicle.plate_number].filter(Boolean).join(' ').trim()
+          : payload.contractor_id; // fallback to driver ID if no vehicle
+
+        const trackingApiKey = Deno.env.get('TRACKING_API_KEY');
+        if (trackingApiKey) {
+          const trackingBody = {
+            truck_plate: truckPlate,
+            order_code: payload.ticket_id,
+            origin_lat: 0,
+            origin_lng: 0,
+            destination_lat: 0,
+            destination_lng: 0,
+            current_lat: 0,
+            current_lng: 0,
+          };
+
+          console.log('Creating tracking room for bid job:', JSON.stringify(trackingBody));
+
+          const trackingResponse = await fetch(
+            'https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/create-tracking-room',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': trackingApiKey,
+              },
+              body: JSON.stringify(trackingBody),
+            }
+          );
+
+          const trackingResult = await trackingResponse.text();
+          console.log('Tracking room response:', trackingResponse.status, trackingResult);
+        } else {
+          console.warn('TRACKING_API_KEY not configured, skipping tracking room creation');
+        }
+      } catch (trackingError) {
+        console.error('Error creating tracking room for bid job:', trackingError);
+        // Don't fail the webhook because of tracking room error
       }
     }
 
