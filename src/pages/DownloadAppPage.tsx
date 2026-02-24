@@ -113,7 +113,7 @@ const DownloadAppPage: React.FC = () => {
           <div className="w-20 h-20 bg-primary-foreground/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Smartphone className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-primary-foreground mb-2">The Troob</h1>
+          <h1 className="text-3xl font-bold text-primary-foreground mb-2">The Trucker</h1>
           <p className="text-primary-foreground/80">ดาวน์โหลดแอปพลิเคชันสำหรับ Android</p>
         </div>
 
