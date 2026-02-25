@@ -62,7 +62,7 @@ export default function TermsPage() {
         </div>
 
         {/* Data Sharing Section */}
-        <div>
+        <div className="mb-6">
           <h3 className="font-semibold text-foreground mb-3 text-sm">{t("terms.sharing_title")}</h3>
           <p className="text-foreground leading-relaxed mb-3 text-sm">{t("terms.sharing_intro")}</p>
           <ul className="space-y-2 ml-4">
@@ -76,6 +76,58 @@ export default function TermsPage() {
             <li className="text-foreground leading-relaxed text-sm">
               <span className="font-semibold text-sm">{t("terms.sharing_anonymous")}</span> {t("terms.sharing_anonymous_desc")}
             </li>
+          </ul>
+        </div>
+
+        {/* GPS Location Policy Section */}
+        <div className="mb-6">
+          <h3 className="font-semibold text-foreground mb-3 text-sm">{t("terms.gps_title")}</h3>
+          <p className="text-foreground leading-relaxed mb-3 text-sm">{t("terms.gps_intro")}</p>
+          <ul className="space-y-2 ml-4">
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.gps_purpose_1")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.gps_purpose_2")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.gps_purpose_3")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.gps_purpose_4")}</li>
+          </ul>
+          <div className="mt-3 space-y-2 ml-4">
+            <p className="text-foreground leading-relaxed text-sm">
+              <span className="font-semibold">{t("terms.gps_background")}</span> {t("terms.gps_background_desc")}
+            </p>
+            <p className="text-foreground leading-relaxed text-sm">
+              <span className="font-semibold">{t("terms.gps_consent")}</span> {t("terms.gps_consent_desc")}
+            </p>
+          </div>
+        </div>
+
+        {/* Financial Data Policy Section */}
+        <div className="mb-6">
+          <h3 className="font-semibold text-foreground mb-3 text-sm">{t("terms.financial_title")}</h3>
+          <p className="text-foreground leading-relaxed mb-3 text-sm">{t("terms.financial_intro")}</p>
+          <ul className="space-y-2 ml-4">
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.financial_purpose_1")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.financial_purpose_2")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.financial_purpose_3")}</li>
+          </ul>
+          <div className="mt-3 space-y-2 ml-4">
+            <p className="text-foreground leading-relaxed text-sm">
+              <span className="font-semibold">{t("terms.financial_security")}</span> {t("terms.financial_security_desc")}
+            </p>
+            <p className="text-foreground leading-relaxed text-sm">
+              <span className="font-semibold">{t("terms.financial_retention")}</span> {t("terms.financial_retention_desc")}
+            </p>
+          </div>
+        </div>
+
+        {/* Terms of Service Section */}
+        <div>
+          <h3 className="font-semibold text-foreground mb-3 text-sm">{t("terms.service_title")}</h3>
+          <p className="text-foreground leading-relaxed mb-3 text-sm">{t("terms.service_intro")}</p>
+          <ul className="space-y-2 ml-4">
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.service_1")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.service_2")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.service_3")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.service_4")}</li>
+            <li className="text-foreground leading-relaxed text-sm">{t("terms.service_5")}</li>
           </ul>
         </div>
       </div>
