@@ -637,6 +637,24 @@ export default function CurrentJobsPage() {
           const number = (user.plate_number || '').trim();
           const truckPlate = [province, number].filter(Boolean).join(' ').trim() || user.id;
 
+          // Get actual GPS position for current_lat/current_lng
+          let currentLat = bidJob.sender_latitude || 0;
+          let currentLng = bidJob.sender_longitude || 0;
+          try {
+            const gpsPos = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+              });
+            });
+            currentLat = gpsPos.coords.latitude;
+            currentLng = gpsPos.coords.longitude;
+            console.log(`📍 [Tracking] Got GPS for bid job ${orderNum}:`, currentLat, currentLng);
+          } catch (gpsErr) {
+            console.warn(`[Tracking] Could not get GPS for ${orderNum}, using origin:`, gpsErr);
+          }
+
           const trackingBody = {
             truck_plate: truckPlate,
             order_code: orderNum,
@@ -644,8 +662,8 @@ export default function CurrentJobsPage() {
             origin_lng: bidJob.sender_longitude || 0,
             destination_lat: bidJob.destination_latitude || 0,
             destination_lng: bidJob.destination_longitude || 0,
-            current_lat: bidJob.sender_latitude || 0,
-            current_lng: bidJob.sender_longitude || 0,
+            current_lat: currentLat,
+            current_lng: currentLng,
           };
 
           console.log(`[Tracking] Creating tracking room for bid job ${orderNum}:`, trackingBody);

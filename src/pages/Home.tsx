@@ -541,6 +541,24 @@ export default function Home() {
 
       // Create tracking room after successful job acceptance
       try {
+        // Get actual GPS position for current_lat/current_lng
+        let currentLat = selectedJob.origin_lat || 0;
+        let currentLng = selectedJob.origin_lng || 0;
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          currentLat = position.coords.latitude;
+          currentLng = position.coords.longitude;
+          console.log('📍 [Freelance] Got GPS position:', currentLat, currentLng);
+        } catch (gpsError) {
+          console.warn('[Freelance] Could not get GPS position, using origin as fallback:', gpsError);
+        }
+
         // Build waypoints from destinations for multi-destination jobs
         const waypoints = selectedJob.destinations && selectedJob.destinations.length > 1
           ? selectedJob.destinations
@@ -555,8 +573,8 @@ export default function Home() {
           origin_lng: selectedJob.origin_lng || 0,
           destination_lat: selectedJob.destination_lat || 0,
           destination_lng: selectedJob.destination_lng || 0,
-          current_lat: selectedJob.origin_lat || 0,
-          current_lng: selectedJob.origin_lng || 0,
+          current_lat: currentLat,
+          current_lng: currentLng,
         };
         if (waypoints && waypoints.length > 0) {
           trackingBody.waypoints = waypoints;
