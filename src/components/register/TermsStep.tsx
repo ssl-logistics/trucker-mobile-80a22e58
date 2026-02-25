@@ -98,7 +98,46 @@ const TermsStep = ({
           </ul>
         </section>
 
-        <div className="h-20" />
+        <section>
+          <h3 className="font-semibold mb-2">{t('terms.gps_title')}</h3>
+          <p className="mb-2">{t('terms.gps_intro')}</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>{t('terms.gps_purpose_1')}</li>
+            <li>{t('terms.gps_purpose_2')}</li>
+            <li>{t('terms.gps_purpose_3')}</li>
+            <li>{t('terms.gps_purpose_4')}</li>
+          </ul>
+          <div className="mt-2 space-y-1">
+            <p><strong>{t('terms.gps_background')}</strong> {t('terms.gps_background_desc')}</p>
+            <p><strong>{t('terms.gps_consent')}</strong> {t('terms.gps_consent_desc')}</p>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="font-semibold mb-2">{t('terms.financial_title')}</h3>
+          <p className="mb-2">{t('terms.financial_intro')}</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>{t('terms.financial_purpose_1')}</li>
+            <li>{t('terms.financial_purpose_2')}</li>
+            <li>{t('terms.financial_purpose_3')}</li>
+          </ul>
+          <div className="mt-2 space-y-1">
+            <p><strong>{t('terms.financial_security')}</strong> {t('terms.financial_security_desc')}</p>
+            <p><strong>{t('terms.financial_retention')}</strong> {t('terms.financial_retention_desc')}</p>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="font-semibold mb-2">{t('terms.service_title')}</h3>
+          <p className="mb-2">{t('terms.service_intro')}</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>{t('terms.service_1')}</li>
+            <li>{t('terms.service_2')}</li>
+            <li>{t('terms.service_3')}</li>
+            <li>{t('terms.service_4')}</li>
+            <li>{t('terms.service_5')}</li>
+          </ul>
+        </section>
       </div>
 
       {/* Sticky bottom section */}
