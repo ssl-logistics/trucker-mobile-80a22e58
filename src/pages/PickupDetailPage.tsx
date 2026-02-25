@@ -312,6 +312,24 @@ export default function PickupDetailPage() {
                 .map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
             : undefined;
 
+          // Get actual GPS position for current_lat/current_lng
+          let currentLat = job.origin_latitude ?? 0;
+          let currentLng = job.origin_longitude ?? 0;
+          try {
+            const gpsPos = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+              });
+            });
+            currentLat = gpsPos.coords.latitude;
+            currentLng = gpsPos.coords.longitude;
+            console.log('📍 [PickupDetail] Got GPS position:', currentLat, currentLng);
+          } catch (gpsErr) {
+            console.warn('[PickupDetail] Could not get GPS, using origin as fallback:', gpsErr);
+          }
+
           const trackingBody: any = {
             truck_plate: truckPlate,
             order_code: job.order_code,
@@ -319,8 +337,8 @@ export default function PickupDetailPage() {
             origin_lng: job.origin_longitude ?? 0,
             destination_lat: job.destination_latitude ?? 0,
             destination_lng: job.destination_longitude ?? 0,
-            current_lat: job.origin_latitude ?? 0,
-            current_lng: job.origin_longitude ?? 0,
+            current_lat: currentLat,
+            current_lng: currentLng,
           };
           if (waypoints && waypoints.length > 0) {
             trackingBody.waypoints = waypoints;
