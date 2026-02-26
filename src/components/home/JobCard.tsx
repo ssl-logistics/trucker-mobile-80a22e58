@@ -253,8 +253,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
       {/* Job Detail Modal */}
       <Dialog open={detailModalOpen} onOpenChange={handleModalClose}>
-        <DialogContent className="max-w-md max-h-[85vh] flex flex-col p-0">
-          <div className="overflow-y-auto flex-1 px-6 pt-6">
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto pb-20">
           <DialogHeader>
             <DialogTitle className="text-center">
               {t('job.jobDetails')}
@@ -409,13 +408,12 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               {t('job.employerLabel')}: <span className="font-medium text-foreground">{job.employer_name}</span>
             </div>
           </div>
-          </div>
 
-          <div className="sticky bottom-0 px-6 py-4 border-t bg-background">
+          <DialogFooter>
             <Button variant="outline" onClick={() => setDetailModalOpen(false)} className="w-full">
               {t('job.close')}
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>
