@@ -132,6 +132,11 @@ export default function IncomePage() {
         // Only show completed jobs (same filtering as history page)
         const paid: IncomeJob[] = [];
         
+        console.log('[Income] All jobs count:', allJobs.length);
+        console.log('[Income] All checkins count:', allCheckins.length);
+        console.log('[Income] POD counts by transportId:', podCountByTransportId);
+        console.log('[Income] Container return confirmed:', [...containerReturnConfirmedByTransportId]);
+        
         allJobs.forEach((job: any) => {
           const transportId = String(job.id);
           const podCount = podCountByTransportId[transportId] || 0;
@@ -142,10 +147,18 @@ export default function IncomePage() {
           
           // For international jobs, also require container return confirmed
           if (isInternationalJob(job)) {
-            if (!allPodsCompleted || !containerReturnConfirmedByTransportId.has(transportId)) return;
+            if (!allPodsCompleted || !containerReturnConfirmedByTransportId.has(transportId)) {
+              console.log(`[Income] SKIP international job ${job.order_number}: pods=${podCount}/${destinationCount}, containerReturn=${containerReturnConfirmedByTransportId.has(transportId)}`);
+              return;
+            }
           } else {
-            if (!allPodsCompleted) return;
+            if (!allPodsCompleted) {
+              console.log(`[Income] SKIP domestic job ${job.order_number}: pods=${podCount}/${destinationCount}`);
+              return;
+            }
           }
+          
+          console.log(`[Income] PASS job ${job.order_number}: pods=${podCount}/${destinationCount}, date=${job.sender_pickup_date}`);
           
           paid.push({
             id: job.id,
@@ -163,7 +176,7 @@ export default function IncomePage() {
           });
         });
 
-        console.log('Total income jobs for internal/external driver:', paid.length);
+        console.log('[Income] Total completed:', paid.length, 'Order numbers:', paid.map(j => j.orderCode));
         setPaidJobs(paid);
         setUnpaidJobs([]);
         setLoading(false);
