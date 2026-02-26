@@ -253,7 +253,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
       {/* Job Detail Modal */}
       <Dialog open={detailModalOpen} onOpenChange={handleModalClose}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto pb-20">
           <DialogHeader>
             <DialogTitle className="text-center">
               {t('job.jobDetails')}
