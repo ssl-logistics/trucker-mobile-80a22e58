@@ -17,20 +17,33 @@ export interface CheckinData {
   order_number?: string;
 }
 
+export type DriverType = 'freelance' | 'internal' | 'external';
+
 /** Check if a job is international */
 export function isInternationalJob(job: any): boolean {
   return !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
 }
 
+/** Get the correct driver ID field based on driver type */
+function getDriverIdField(driverType: DriverType): keyof CheckinData {
+  switch (driverType) {
+    case 'internal': return 'internal_driver_id';
+    case 'external': return 'external_driver_id';
+    default: return 'freelance_driver_id';
+  }
+}
+
 /** Build POD count and container return maps from checkins */
-export function buildCheckinMaps(checkins: CheckinData[], driverId: string) {
+export function buildCheckinMaps(checkins: CheckinData[], driverId: string, driverType: DriverType = 'freelance') {
   const podCountByTransportId: Record<string, number> = {};
   const podCountByOrderNumber: Record<string, number> = {};
   const containerReturnConfirmedByTransportId = new Set<string>();
   const containerReturnConfirmedByOrderNumber = new Set<string>();
 
+  const driverIdField = getDriverIdField(driverType);
+
   checkins
-    .filter((c) => c.freelance_driver_id === driverId)
+    .filter((c) => c[driverIdField] === driverId)
     .forEach((c) => {
       if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')) {
         if (c.transport_order_id) {
@@ -90,7 +103,7 @@ export function isJobFullyCompleted(
 }
 
 /** Filter an array of jobs to only fully completed ones */
-export function filterCompletedJobs(jobs: any[], checkins: any[], driverId: string): any[] {
-  const maps = buildCheckinMaps(checkins, driverId);
+export function filterCompletedJobs(jobs: any[], checkins: any[], driverId: string, driverType: DriverType = 'freelance'): any[] {
+  const maps = buildCheckinMaps(checkins, driverId, driverType);
   return jobs.filter((job) => isJobFullyCompleted(job, maps));
 }

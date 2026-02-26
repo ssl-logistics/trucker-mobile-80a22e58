@@ -11,6 +11,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "@/hooks/use-toast";
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getFactoryAssignedJobs } from '@/lib/externalApi';
+import { buildCheckinMaps, isJobFullyCompleted, isInternationalJob } from '@/utils/jobCompletionFilter';
 interface CompletedJob {
   id: string;
   order_number: string;
@@ -105,60 +106,40 @@ export default function IncomePage() {
           : ((checkinsResult.data as any)?.data || checkinsResult.data || []);
         const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
-        // Count PODs and container returns per transport_order_id for multi-destination jobs
-        const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
-        const podCountByTransportId: Record<string, number> = {};
-        const containerReturnConfirmedByTransportId: Set<string> = new Set();
-        
-        allCheckins
-          .filter(
-            (c: any) =>
-              c[driverIdField] === driverId &&
-              c.transport_order_id
-          )
-          .forEach((c: any) => {
-            const transportId = String(c.transport_order_id);
-            if (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) {
-              podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
-            }
-            if (c.checkin_type === "container_return_confirmed") {
-              containerReturnConfirmedByTransportId.add(transportId);
-            }
-          });
+        // Use shared filtering utility (same as history page)
+        const dtType = isInternalDriver ? 'internal' as const : 'external' as const;
+        const maps = buildCheckinMaps(allCheckins, driverId, dtType);
 
-        // Helper: check if job is international
-        const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
+        console.log('[Income] All jobs count:', allJobs.length);
+        console.log('[Income] All checkins count:', allCheckins.length);
+        console.log('[Income] POD counts by transportId:', maps.podCountByTransportId);
+        console.log('[Income] POD counts by orderNumber:', maps.podCountByOrderNumber);
+        console.log('[Income] Container return confirmed:', [...maps.containerReturnConfirmedByTransportId]);
 
         // Only show completed jobs (same filtering as history page)
         const paid: IncomeJob[] = [];
         
-        console.log('[Income] All jobs count:', allJobs.length);
-        console.log('[Income] All checkins count:', allCheckins.length);
-        console.log('[Income] POD counts by transportId:', podCountByTransportId);
-        console.log('[Income] Container return confirmed:', [...containerReturnConfirmedByTransportId]);
-        
         allJobs.forEach((job: any) => {
-          const transportId = String(job.id);
-          const podCount = podCountByTransportId[transportId] || 0;
-          const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
-            ? job.destinations.length 
-            : 1;
-          const allPodsCompleted = podCount >= destinationCount;
+          const completed = isJobFullyCompleted(job, maps);
           
-          // For international jobs, also require container return confirmed
-          if (isInternationalJob(job)) {
-            if (!allPodsCompleted || !containerReturnConfirmedByTransportId.has(transportId)) {
-              console.log(`[Income] SKIP international job ${job.order_number}: pods=${podCount}/${destinationCount}, containerReturn=${containerReturnConfirmedByTransportId.has(transportId)}`);
-              return;
-            }
-          } else {
-            if (!allPodsCompleted) {
+          if (!completed) {
+            const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
+              ? job.destinations.length : 1;
+            const podCount = Math.max(
+              maps.podCountByTransportId[String(job.id)] || 0,
+              maps.podCountByOrderNumber[job.order_number] || 0
+            );
+            if (isInternationalJob(job)) {
+              const hasReturn = maps.containerReturnConfirmedByTransportId.has(String(job.id)) ||
+                maps.containerReturnConfirmedByOrderNumber.has(job.order_number);
+              console.log(`[Income] SKIP international job ${job.order_number}: pods=${podCount}/${destinationCount}, containerReturn=${hasReturn}`);
+            } else {
               console.log(`[Income] SKIP domestic job ${job.order_number}: pods=${podCount}/${destinationCount}`);
-              return;
             }
+            return;
           }
           
-          console.log(`[Income] PASS job ${job.order_number}: pods=${podCount}/${destinationCount}, date=${job.sender_pickup_date}`);
+          console.log(`[Income] PASS job ${job.order_number}: date=${job.sender_pickup_date}`);
           
           paid.push({
             id: job.id,
@@ -226,65 +207,10 @@ export default function IncomePage() {
       const allCheckins = checkinsJson?.data || checkinsJson || [];
       const checkins = Array.isArray(allCheckins) ? allCheckins : [];
 
-      // Count PODs and container returns per transport_order_id and order_number
-      const podCountByTransportId: Record<string, number> = {};
-      const podCountByOrderNumber: Record<string, number> = {};
-      const containerReturnConfirmedByTransportId: Set<string> = new Set();
-      const containerReturnConfirmedByOrderNumber: Set<string> = new Set();
-      
-      checkins
-        .filter(
-          (c: any) => c.freelance_driver_id === user.id
-        )
-        .forEach((c: any) => {
-          if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')) {
-            if (c.transport_order_id) {
-              const transportId = String(c.transport_order_id);
-              podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
-            }
-            const orderNumber = c.transport_orders?.order_number || c.order_number || '';
-            if (orderNumber) {
-              podCountByOrderNumber[orderNumber] = (podCountByOrderNumber[orderNumber] || 0) + 1;
-            }
-          }
-          if (c.checkin_type === 'container_return_confirmed') {
-            if (c.transport_order_id) {
-              containerReturnConfirmedByTransportId.add(String(c.transport_order_id));
-            }
-            const orderNumber = c.transport_orders?.order_number || c.order_number || '';
-            if (orderNumber) {
-              containerReturnConfirmedByOrderNumber.add(orderNumber);
-            }
-          }
-        });
+      // Use shared filtering utility
+      const freelanceMaps = buildCheckinMaps(checkins, user.id, 'freelance');
 
-      // Helper: check if job is international
-      const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
-
-      // Helper function to check if job has ALL PODs completed (same as history page)
-      const isJobFullyCompleted = (job: any): boolean => {
-        const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
-          ? job.destinations.length 
-          : 1;
-        
-        const podCount = Math.max(
-          podCountByTransportId[String(job.id)] || 0,
-          podCountByOrderNumber[job.order_number] || 0
-        );
-        
-        const allPodsCompleted = podCount >= destinationCount;
-        
-        // For international jobs, also require container return confirmed
-        if (isInternationalJob(job)) {
-          const hasContainerReturn = containerReturnConfirmedByTransportId.has(String(job.id)) ||
-            containerReturnConfirmedByOrderNumber.has(job.order_number);
-          return allPodsCompleted && hasContainerReturn;
-        }
-        
-        return allPodsCompleted;
-      };
-
-      console.log('Confirmed order numbers for bid jobs:', Object.keys(podCountByOrderNumber));
+      console.log('Confirmed order numbers for bid jobs:', Object.keys(freelanceMaps.podCountByOrderNumber));
 
       // Process bid-won jobs - only show completed ones (same as history)
       let bidJobs: IncomeJob[] = [];
@@ -301,7 +227,7 @@ export default function IncomePage() {
             
             // Only show if all PODs completed (same as history)
             const ticketNumber = ticket.ticket_number;
-            const podCount = podCountByOrderNumber[ticketNumber] || 0;
+            const podCount = freelanceMaps.podCountByOrderNumber[ticketNumber] || 0;
             const destinationCount = Array.isArray(ticket.destinations) && ticket.destinations.length > 0
               ? ticket.destinations.length
               : 1;
@@ -341,7 +267,7 @@ export default function IncomePage() {
 
       // Process transport jobs - only show completed ones (same as history)
       const transportJobs: IncomeJob[] = allJobs
-        .filter((job) => isJobFullyCompleted(job))
+        .filter((job) => isJobFullyCompleted(job, freelanceMaps))
         .map((job) => ({
           id: job.id,
           jobId: job.order_number,
