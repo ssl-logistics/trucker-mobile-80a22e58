@@ -418,11 +418,16 @@ export default function IncomePage() {
 
       <PullToRefresh onRefresh={async () => { await loadIncomeData(); }} className="px-4 pt-6">
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="all">{t('income.all')}</TabsTrigger>
-            <TabsTrigger value="paid">{t('income.paid')}</TabsTrigger>
-            <TabsTrigger value="unpaid">{t('income.unpaid')}</TabsTrigger>
-          </TabsList>
+          {/* Hide paid/unpaid tabs for internal/external drivers */}
+          {(isInternalDriver || isExternalDriver) ? (
+            <div className="mb-4" />
+          ) : (
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="all">{t('income.all')}</TabsTrigger>
+              <TabsTrigger value="paid">{t('income.paid')}</TabsTrigger>
+              <TabsTrigger value="unpaid">{t('income.unpaid')}</TabsTrigger>
+            </TabsList>
+          )}
 
           {/* Month Filter */}
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -456,11 +461,13 @@ export default function IncomePage() {
                           <h3 className="font-semibold text-base mb-1">{income.employer}</h3>
                         </div>
                         <div className={`flex items-center gap-2 font-semibold ${income.status === "paid" ? "text-green-600" : "text-muted-foreground"}`}>
-                          {income.status === "paid" ? <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
-                              <div className="w-2 h-2 bg-green-600 rounded-full" />
-                            </div> : <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
-                              <Receipt className="w-3 h-3" />
-                            </div>}
+                          {!(isInternalDriver || isExternalDriver) && (
+                            income.status === "paid" ? <div className="w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center">
+                                <div className="w-2 h-2 bg-green-600 rounded-full" />
+                              </div> : <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
+                                <Receipt className="w-3 h-3" />
+                              </div>
+                          )}
                           {canViewPrice && <>฿ {income.amount.toLocaleString()}</>}
                         </div>
                       </div>
