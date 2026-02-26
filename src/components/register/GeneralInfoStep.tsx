@@ -403,7 +403,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
         />
 
         <div className="space-y-2">
-          <Label>{t('generalInfo.priceRange')}</Label>
+          <Label>{t('generalInfo.priceRange')} <span className="text-destructive">*</span></Label>
           <div className="flex items-center gap-2">
             <Input
               placeholder={t('generalInfo.priceMin')}
