@@ -145,10 +145,10 @@ export default function JobHistoryPage() {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
         const [inProgressResult, inTransitResult, deliveredResult, completedResult, checkinsRes] = await Promise.all([
-          getDriverAssignedJobs(driverId, driverType, 100, 'in_progress'),
-          getDriverAssignedJobs(driverId, driverType, 100, 'in_transit'),
-          getDriverAssignedJobs(driverId, driverType, 100, 'delivered'),
-          getDriverAssignedJobs(driverId, driverType, 100, 'completed'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'in_progress'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'in_transit'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'delivered'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'completed'),
           getDriverCheckins(driverId, driverType),
         ]);
 
@@ -258,8 +258,8 @@ export default function JobHistoryPage() {
       // For Freelance drivers: Fetch company jobs, factory jobs, checkins, and bid-won jobs in parallel
       const freelanceDriverId = driverId;
       const [companyJobsRes, factoryJobsRes, checkinsRes2, bidWonJobsRes] = await Promise.all([
-        getFreelanceAcceptedJobs(freelanceDriverId),
-        getFactoryAssignedJobs(freelanceDriverId),
+        getFreelanceAcceptedJobs(freelanceDriverId, 1000),
+        getFactoryAssignedJobs(freelanceDriverId, 1000),
         getDriverCheckins(freelanceDriverId, 'freelance'),
         // Fetch bid-won jobs from list-tickets API (includes completed status)
         supabase.functions.invoke('list-tickets', {
