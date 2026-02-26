@@ -158,7 +158,15 @@ export default function NotificationsPage() {
     }
   };
 
+  const isLocationNotification = (notification: Notification) => {
+    return notification.notification_type === 'proximity_alert' || 
+           notification.notification_type === 'location_alert' ||
+           notification.notification_type === 'checkin_proximity';
+  };
+
   const handleNotificationClick = async (notification: Notification) => {
+    if (isLocationNotification(notification)) return;
+
     if (!notification.is_read) {
       await supabase.functions.invoke('get-notifications', {
         body: { action: 'mark_read', user_id: driverId, notification_id: notification.id },
@@ -273,7 +281,11 @@ export default function NotificationsPage() {
               <button
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className="w-full px-4 py-4 border-b hover:bg-muted/50 text-left transition-colors"
+                className={cn(
+                  "w-full px-4 py-4 border-b text-left transition-colors",
+                  isLocationNotification(notification) ? "cursor-default" : "hover:bg-muted/50"
+                )}
+                disabled={isLocationNotification(notification)}
               >
                 <div className="flex items-start gap-3">
                   <div className={cn(
