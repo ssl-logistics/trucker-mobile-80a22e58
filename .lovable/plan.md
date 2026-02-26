@@ -1,101 +1,46 @@
 
 
-# แผนเพิ่มฟังก์ชันแจ้งเตือนเมื่อรถใกล้จุดรับ/ส่ง แต่ยังไม่อัพโหลดหลักฐาน
+# แก้ไขการ Filter เดือนใน IncomePage
 
-## สรุปภาพรวม
+## ปัญหา
 
-เพิ่มระบบตรวจจับว่ารถอยู่ห่างจากจุดรับสินค้า (Pickup) หรือจุดส่งสินค้า (Delivery) ไม่เกิน 1 กม. แต่ยังไม่ได้อัพโหลดหลักฐาน (SOP) โดยจะส่งทั้ง Notification ในแอป และ Push Notification
+ตัวเลือกเดือน (Select) มี value เป็น "jan", "feb", ... แต่ไม่มี logic ที่ใช้ `selectedMonth` ไป filter ข้อมูลจริง ทำให้เลือกเดือนไหนก็แสดงข้อมูลทั้งหมดเหมือนเดิม
 
-## ขั้นตอนการทำงาน
+## วิธีแก้ไข
 
-### 1. สร้าง Hook ใหม่: `useProximityAlert`
+แก้ไขไฟล์ `src/pages/IncomePage.tsx`:
 
-สร้างไฟล์ `src/hooks/useProximityAlert.ts` ที่ทำงานดังนี้:
-
-- ทำงานคู่กับ GPS Tracking ที่มีอยู่แล้ว (ทุกๆ 30 วินาที ตรวจสอบระยะทาง)
-- ดึงพิกัดรถปัจจุบันจาก `navigator.geolocation`
-- ดึงงานที่กำลังทำอยู่ (Current Jobs) เพื่อได้พิกัดจุดรับ/จุดส่ง
-- คำนวณระยะทางด้วยสูตร Haversine
-- ตรวจสอบสถานะ SOP/Check-in จาก External API (`getDriverCheckins`, `getDriverSop`)
-- ถ้าระยะทาง <= 1 กม. และยังไม่มีหลักฐาน -> ส่งแจ้งเตือน
-- ใช้ cooldown (ไม่แจ้งซ้ำภายใน 30 นาทีต่อจุด)
-
-### 2. ฟังก์ชันคำนวณระยะทาง (Haversine)
-
-```text
-function haversineDistance(lat1, lng1, lat2, lng2) -> km
-- ใช้สูตร Haversine มาตรฐาน
-- คืนค่าเป็นกิโลเมตร
-```
-
-### 3. Logic ตรวจสอบ
-
-สำหรับแต่ละงานที่กำลังทำ:
-- **จุดรับ (Pickup)**: ใช้พิกัด `sender_latitude`, `sender_longitude` เทียบกับพิกัดรถ
-  - ถ้า <= 1 กม. และยังไม่ได้ Check-in Pickup หรือยังไม่ได้ทำ Pickup SOP -> แจ้งเตือน
-- **จุดส่ง (Delivery)**: ใช้พิกัด `destination_latitude`, `destination_longitude` (รวม multi-destination)
-  - ถ้า <= 1 กม. และยังไม่ได้ทำ Delivery SOP/POD -> แจ้งเตือน
-
-### 4. ส่ง In-App Notification
-
-ใช้ Edge Function `get-notifications` ที่มีอยู่แล้ว (action: `create_status_notification`) เพื่อ:
-- บันทึกแจ้งเตือนในฐานข้อมูล (ตาราง `notifications`)
-- ส่ง Push Notification ผ่าน `send-push-notification`
-
-เนื้อหาแจ้งเตือน:
-- ภาษาไทย: "คุณอยู่ใกล้จุดรับสินค้า งาน {order_code} แล้ว กรุณาอัพโหลดหลักฐาน"
-- ภาษาอังกฤษ: "You are near the pickup point for job {order_code}. Please upload evidence."
-
-### 5. ติดตั้ง Hook ใน App
-
-เพิ่ม `useProximityAlert()` ใน `src/pages/Home.tsx` (หรือ component ที่ mount ตลอด เช่น `App.tsx`) เพื่อให้ทำงานตลอดเวลาที่ user login อยู่
-
-### 6. Cooldown และ Deduplication
-
-- เก็บ record ใน `localStorage` ว่าเคยแจ้งเตือนจุดไหนไปแล้ว (`proximity_alert_{orderCode}_{type}`)
-- ไม่แจ้งซ้ำภายใน 30 นาที
-- เมื่อ SOP เสร็จแล้ว ล้าง cooldown ออก
-
----
+1. **เพิ่ม mapping** จาก select value ("jan", "feb", ...) เป็นเลขเดือน (0-11)
+2. **เพิ่มฟังก์ชัน filter** ที่กรองงานตาม `sender_pickup_date` เทียบกับเดือนที่เลือก
+3. **ใช้ filtered data** แทนข้อมูลดิบในการ group และแสดงผล
 
 ## รายละเอียดทางเทคนิค
-
-### ไฟล์ที่สร้างใหม่
-| ไฟล์ | รายละเอียด |
-|------|-----------|
-| `src/hooks/useProximityAlert.ts` | Hook หลักสำหรับตรวจจับระยะทางและส่งแจ้งเตือน |
 
 ### ไฟล์ที่แก้ไข
 | ไฟล์ | การแก้ไข |
 |------|----------|
-| `src/pages/Home.tsx` | เพิ่ม `useProximityAlert()` |
+| `src/pages/IncomePage.tsx` | เพิ่ม filter logic ก่อน groupJobsByMonth |
 
-### การทำงานของ Hook
+### Logic ที่เพิ่ม
 
 ```text
-useProximityAlert
-  |
-  +-- ทุก 30 วินาที
-  |     |
-  |     +-- getCurrentPosition()
-  |     +-- โหลด Current Jobs (getDriverAssignedJobs / getFreelanceAcceptedJobs)
-  |     +-- สำหรับแต่ละงาน:
-  |           +-- คำนวณระยะทางจุดรับ (Haversine)
-  |           +-- คำนวณระยะทางจุดส่ง (Haversine)
-  |           +-- ตรวจสอบ SOP status (getDriverCheckins)
-  |           +-- ถ้า distance <= 1km && ไม่มี SOP && ไม่อยู่ใน cooldown
-  |                 +-- เรียก get-notifications (create_status_notification)
-  |                 +-- บันทึก cooldown ใน localStorage
-  |
-  +-- Cleanup on unmount
+monthMap = { jan: 0, feb: 1, mar: 2, ... , dec: 11 }
+
+filterByMonth(jobs, selectedMonth):
+  if selectedMonth === "all" -> return jobs
+  else -> return jobs.filter(job => 
+    new Date(job.date ต้นทาง sender_pickup_date).getMonth() === monthMap[selectedMonth]
+  )
 ```
 
-### ข้อมูลพิกัดที่ใช้
-- **พิกัดรถ**: จาก `navigator.geolocation.getCurrentPosition()`
-- **พิกัดจุดรับ**: `sender_latitude`, `sender_longitude` จาก API response
-- **พิกัดจุดส่ง**: `destination_latitude`, `destination_longitude` หรือ `destinations[].latitude/longitude` สำหรับ multi-destination
+### ปัญหาที่ต้องแก้เพิ่ม
 
-### สถานะที่ตรวจสอบ
-- **จุดรับ**: ดูว่ามี check-in type `pickup` หรือ SOP type `pickup` หรือยัง
-- **จุดส่ง**: ดูว่ามี check-in type `delivery` + `delivery_confirmed` หรือยัง
+ปัจจุบัน `IncomeJob.date` เก็บเป็น string ที่ถูก format แล้ว (เช่น "1/9/2568") ซึ่งไม่สามารถ parse กลับเป็น Date ได้ง่าย ดังนั้นจะ **เพิ่ม field `rawDate`** (ISO string) ใน `IncomeJob` interface เพื่อใช้ในการ filter เดือนอย่างแม่นยำ
+
+### ขั้นตอน
+1. เพิ่ม `rawDate: string` ใน `IncomeJob` interface
+2. ตอน map job เป็น IncomeJob ให้เก็บ `rawDate: job.sender_pickup_date` ด้วย
+3. สร้าง `monthMap` object
+4. สร้างฟังก์ชัน `filterBySelectedMonth` ที่ใช้ `rawDate` เทียบกับ `selectedMonth`
+5. Apply filter ก่อน `groupJobsByMonth` ในทั้ง 3 tabs (all, paid, unpaid)
 
