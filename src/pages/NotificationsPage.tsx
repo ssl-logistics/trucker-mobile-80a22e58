@@ -159,9 +159,12 @@ export default function NotificationsPage() {
   };
 
   const isLocationNotification = (notification: Notification) => {
-    return notification.notification_type === 'proximity_alert' || 
-           notification.notification_type === 'location_alert' ||
-           notification.notification_type === 'checkin_proximity';
+    if (notification.notification_type === 'proximity_alert' || 
+        notification.notification_type === 'location_alert' ||
+        notification.notification_type === 'checkin_proximity') return true;
+    // Checkin notifications stored as job_status — detect by title
+    const title = notification.title_th || '';
+    return title.includes('เช็คอิน') || title.includes('📍');
   };
 
   const handleNotificationClick = async (notification: Notification) => {
