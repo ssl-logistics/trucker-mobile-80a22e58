@@ -97,25 +97,48 @@ export async function callExternalApi<T>(
     
     console.log(`[ExternalAPI] ${method} ${endpoint}`, params || body || '');
     
-    const response = await fetch(url, fetchOptions);
+    // Retry logic for transient network errors
+    const MAX_RETRIES = 2;
+    let lastError: string = '';
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[ExternalAPI] Error ${response.status}:`, errorText);
-      // Try to parse error message from response body
-      let errorMessage = `API Error: ${response.status}`;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const errorJson = JSON.parse(errorText);
-        if (errorJson.message) errorMessage = errorJson.message;
-        else if (errorJson.error) errorMessage = errorJson.error;
-      } catch {}
-      return { data: null, error: errorMessage };
+        if (attempt > 0) {
+          console.log(`[ExternalAPI] Retry ${attempt}/${MAX_RETRIES} for ${endpoint}`);
+          await new Promise(r => setTimeout(r, 1000 * attempt));
+        }
+        
+        const response = await fetch(url, fetchOptions);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[ExternalAPI] Error ${response.status}:`, errorText);
+          let errorMessage = `API Error: ${response.status}`;
+          try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.message) errorMessage = errorJson.message;
+            else if (errorJson.error) errorMessage = errorJson.error;
+          } catch {}
+          // Don't retry on 4xx client errors
+          if (response.status >= 400 && response.status < 500) {
+            return { data: null, error: errorMessage };
+          }
+          lastError = errorMessage;
+          continue;
+        }
+        
+        const data = await response.json();
+        console.log(`[ExternalAPI] Success:`, endpoint, data?.data?.length || 'N/A', 'items');
+        
+        return { data, error: null };
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : 'Unknown error';
+        console.error(`[ExternalAPI] Fetch error (attempt ${attempt}):`, lastError);
+      }
     }
     
-    const data = await response.json();
-    console.log(`[ExternalAPI] Success:`, endpoint, data?.data?.length || 'N/A', 'items');
-    
-    return { data, error: null };
+    console.error(`[ExternalAPI] All retries exhausted for ${endpoint}`);
+    return { data: null, error: lastError };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     console.error(`[ExternalAPI] Fetch error:`, errorMessage);
