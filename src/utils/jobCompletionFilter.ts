@@ -81,6 +81,13 @@ export function isJobFullyCompleted(
 ): boolean {
   const { podCountByTransportId, podCountByOrderNumber, containerReturnConfirmedByTransportId, containerReturnConfirmedByOrderNumber } = maps;
 
+  // Jobs still in_progress or in_transit are never considered fully completed,
+  // even if checkin data suggests otherwise (data inconsistency safeguard)
+  const status = (job.status || '').toLowerCase();
+  if (status === 'in_progress' || status === 'in_transit') {
+    return false;
+  }
+
   const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0
     ? job.destinations.length
     : 1;
