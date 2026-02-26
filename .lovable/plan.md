@@ -1,52 +1,101 @@
 
 
-# Plan: แก้ไข Flow งานขาเข้า (Inbound) ให้เป็น 3 ขั้นตอน
+# แผนเพิ่มฟังก์ชันแจ้งเตือนเมื่อรถใกล้จุดรับ/ส่ง แต่ยังไม่อัพโหลดหลักฐาน
 
-## สรุปการเปลี่ยนแปลง
+## สรุปภาพรวม
 
-งานขาเข้า (Inbound) ปัจจุบันมี 4 ขั้นตอน: รับตู้ -> รับสินค้า -> ส่งสินค้า -> คืนตู้
-เปลี่ยนเป็น 3 ขั้นตอน: **รับตู้หนัก (พร้อม OCR)** -> **ส่งสินค้า** -> **คืนตู้**
+เพิ่มระบบตรวจจับว่ารถอยู่ห่างจากจุดรับสินค้า (Pickup) หรือจุดส่งสินค้า (Delivery) ไม่เกิน 1 กม. แต่ยังไม่ได้อัพโหลดหลักฐาน (SOP) โดยจะส่งทั้ง Notification ในแอป และ Push Notification
 
-## ขั้นตอนที่ต้องทำ
+## ขั้นตอนการทำงาน
 
-### 1. แก้ไข InternationalJobDetail.tsx - ซ่อน Card "จุดรับสินค้า" สำหรับงานขาเข้า
+### 1. สร้าง Hook ใหม่: `useProximityAlert`
 
-- เมื่อ `isInbound = true` จะไม่แสดง Card ที่ 2 (Pickup/Loading Point) เลย
-- Timeline จะเหลือ 3 จุด: รับตู้หนัก -> ส่งสินค้า -> คืนตู้
-- เปลี่ยนชื่อ Card 1 จาก "จุดรับตู้เปล่า" เป็น "จุดรับตู้หนัก" สำหรับขาเข้า
+สร้างไฟล์ `src/hooks/useProximityAlert.ts` ที่ทำงานดังนี้:
 
-### 2. ปรับ Logic การปลดล็อค Card สำหรับขาเข้า
+- ทำงานคู่กับ GPS Tracking ที่มีอยู่แล้ว (ทุกๆ 30 วินาที ตรวจสอบระยะทาง)
+- ดึงพิกัดรถปัจจุบันจาก `navigator.geolocation`
+- ดึงงานที่กำลังทำอยู่ (Current Jobs) เพื่อได้พิกัดจุดรับ/จุดส่ง
+- คำนวณระยะทางด้วยสูตร Haversine
+- ตรวจสอบสถานะ SOP/Check-in จาก External API (`getDriverCheckins`, `getDriverSop`)
+- ถ้าระยะทาง <= 1 กม. และยังไม่มีหลักฐาน -> ส่งแจ้งเตือน
+- ใช้ cooldown (ไม่แจ้งซ้ำภายใน 30 นาทีต่อจุด)
 
-- **Card ส่งสินค้า**: ปลดล็อคทันทีหลัง OCR/SOP ที่จุดรับตู้หนักเสร็จ (ข้ามขั้นตอนรับสินค้า)
-- เงื่อนไขเดิม: ต้องผ่านจุดรับสินค้าก่อน (`sop_completed_at`) -> เปลี่ยนเป็นผ่านจุดรับตู้ (`container_sop_completed_at`) โดยตรง
-- **Card คืนตู้**: ปลดล็อคหลังส่งสินค้าเสร็จ (เหมือนเดิม)
+### 2. ฟังก์ชันคำนวณระยะทาง (Haversine)
 
-### 3. ปรับ Timeline Indicator
+```text
+function haversineDistance(lat1, lng1, lat2, lng2) -> km
+- ใช้สูตร Haversine มาตรฐาน
+- คืนค่าเป็นกิโลเมตร
+```
 
-- ลดจำนวนวงกลมบน Timeline จาก 4 เหลือ 3 สำหรับขาเข้า
-- ปรับความสูงและ gradient ของเส้น Timeline ให้สอดคล้อง
+### 3. Logic ตรวจสอบ
 
-### 4. ปรับ Summary Card จำนวนจุด
+สำหรับแต่ละงานที่กำลังทำ:
+- **จุดรับ (Pickup)**: ใช้พิกัด `sender_latitude`, `sender_longitude` เทียบกับพิกัดรถ
+  - ถ้า <= 1 กม. และยังไม่ได้ Check-in Pickup หรือยังไม่ได้ทำ Pickup SOP -> แจ้งเตือน
+- **จุดส่ง (Delivery)**: ใช้พิกัด `destination_latitude`, `destination_longitude` (รวม multi-destination)
+  - ถ้า <= 1 กม. และยังไม่ได้ทำ Delivery SOP/POD -> แจ้งเตือน
 
-- เปลี่ยนจำนวนจุดรับ/ส่งจาก "4" เป็น "3" สำหรับงานขาเข้า
+### 4. ส่ง In-App Notification
+
+ใช้ Edge Function `get-notifications` ที่มีอยู่แล้ว (action: `create_status_notification`) เพื่อ:
+- บันทึกแจ้งเตือนในฐานข้อมูล (ตาราง `notifications`)
+- ส่ง Push Notification ผ่าน `send-push-notification`
+
+เนื้อหาแจ้งเตือน:
+- ภาษาไทย: "คุณอยู่ใกล้จุดรับสินค้า งาน {order_code} แล้ว กรุณาอัพโหลดหลักฐาน"
+- ภาษาอังกฤษ: "You are near the pickup point for job {order_code}. Please upload evidence."
+
+### 5. ติดตั้ง Hook ใน App
+
+เพิ่ม `useProximityAlert()` ใน `src/pages/Home.tsx` (หรือ component ที่ mount ตลอด เช่น `App.tsx`) เพื่อให้ทำงานตลอดเวลาที่ user login อยู่
+
+### 6. Cooldown และ Deduplication
+
+- เก็บ record ใน `localStorage` ว่าเคยแจ้งเตือนจุดไหนไปแล้ว (`proximity_alert_{orderCode}_{type}`)
+- ไม่แจ้งซ้ำภายใน 30 นาที
+- เมื่อ SOP เสร็จแล้ว ล้าง cooldown ออก
 
 ---
 
 ## รายละเอียดทางเทคนิค
 
-### ไฟล์ที่ต้องแก้ไข: `src/components/job-detail/InternationalJobDetail.tsx`
+### ไฟล์ที่สร้างใหม่
+| ไฟล์ | รายละเอียด |
+|------|-----------|
+| `src/hooks/useProximityAlert.ts` | Hook หลักสำหรับตรวจจับระยะทางและส่งแจ้งเตือน |
 
-**การเปลี่ยนแปลงหลัก:**
+### ไฟล์ที่แก้ไข
+| ไฟล์ | การแก้ไข |
+|------|----------|
+| `src/pages/Home.tsx` | เพิ่ม `useProximityAlert()` |
 
-1. **Summary card** (line ~324): เปลี่ยนจำนวนจุดจาก hardcode `4` เป็น `{isInbound ? 3 : 4}`
+### การทำงานของ Hook
 
-2. **Timeline circles** (lines ~370-403): Wrap Step 2 circle ด้วย `{!isInbound && (...)}` เพื่อซ่อนสำหรับขาเข้า
+```text
+useProximityAlert
+  |
+  +-- ทุก 30 วินาที
+  |     |
+  |     +-- getCurrentPosition()
+  |     +-- โหลด Current Jobs (getDriverAssignedJobs / getFreelanceAcceptedJobs)
+  |     +-- สำหรับแต่ละงาน:
+  |           +-- คำนวณระยะทางจุดรับ (Haversine)
+  |           +-- คำนวณระยะทางจุดส่ง (Haversine)
+  |           +-- ตรวจสอบ SOP status (getDriverCheckins)
+  |           +-- ถ้า distance <= 1km && ไม่มี SOP && ไม่อยู่ใน cooldown
+  |                 +-- เรียก get-notifications (create_status_notification)
+  |                 +-- บันทึก cooldown ใน localStorage
+  |
+  +-- Cleanup on unmount
+```
 
-3. **Pickup/Loading Card** (lines ~512-578): Wrap ทั้ง Card ด้วย `{!isInbound && (...)}` เพื่อซ่อนสำหรับขาเข้า พร้อมลบ `ref={card2Ref}` ออกจากเงื่อนไขที่ซ่อน
+### ข้อมูลพิกัดที่ใช้
+- **พิกัดรถ**: จาก `navigator.geolocation.getCurrentPosition()`
+- **พิกัดจุดรับ**: `sender_latitude`, `sender_longitude` จาก API response
+- **พิกัดจุดส่ง**: `destination_latitude`, `destination_longitude` หรือ `destinations[].latitude/longitude` สำหรับ multi-destination
 
-4. **Delivery Card unlock condition** (lines ~580-654): สำหรับขาเข้า เปลี่ยนเงื่อนไขการปลดล็อคจาก `sop_completed_at` เป็น `container_sop_completed_at`
-
-5. **Card 1 label**: สำหรับขาเข้า เปลี่ยนชื่อเป็น "จุดรับตู้หนัก" แทน "จุดรับตู้เปล่า"
-
-6. **Container Return Card** unlock: สำหรับขาเข้า ให้ unlock หลังจาก delivery เสร็จ (เหมือนเดิม ไม่ต้องเปลี่ยน)
+### สถานะที่ตรวจสอบ
+- **จุดรับ**: ดูว่ามี check-in type `pickup` หรือ SOP type `pickup` หรือยัง
+- **จุดส่ง**: ดูว่ามี check-in type `delivery` + `delivery_confirmed` หรือยัง
 
