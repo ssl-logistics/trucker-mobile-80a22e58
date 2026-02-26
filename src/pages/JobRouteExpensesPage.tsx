@@ -550,17 +550,11 @@ export default function JobRouteExpensesPage() {
             </div>
           </TabsContent>
 
-          {/* Expenses Tab */}
+          {/* Expenses Tab - Read-only display */}
           <TabsContent value="expenses" className="space-y-4">
             {expenses.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">{t('jobRoute.noExpenses')}</p>
-                <button
-                  onClick={() => navigate(`/job/${jobId}/add-expense`)}
-                  className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-                >
-                  {t('jobRoute.addExpense')}
-                </button>
+                <p className="text-muted-foreground">{t('jobRoute.noExpenses')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -570,38 +564,45 @@ export default function JobRouteExpensesPage() {
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                       <Fuel className="w-5 h-5 text-primary" />
                     </div>
-                    <div className="text-2xl font-bold text-primary">
-                      ฿ {expenses.reduce((sum, exp) => sum + Number(exp.amount), 0).toLocaleString()}
+                    <div>
+                      <div className="text-sm text-muted-foreground">{t('jobRoute.expenses')}</div>
+                      <div className="text-2xl font-bold text-primary">
+                        ฿ {expenses.reduce((sum, exp) => sum + Number(exp.amount), 0).toLocaleString()}
+                      </div>
                     </div>
                   </div>
                 </Card>
 
                 {/* Expense Items */}
                 {expenses.map((expense) => (
-                  <div key={expense.id} className="space-y-2">
-                    <div className="text-sm font-medium text-foreground">
-                      {expense.expense_type} : ฿ {Number(expense.amount).toLocaleString()}
+                  <Card key={expense.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                          <Fuel className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-foreground">{expense.expense_type}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {expense.created_at ? new Date(expense.created_at).toLocaleDateString() : '-'}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold text-foreground">
+                        ฿ {Number(expense.amount).toLocaleString()}
+                      </div>
                     </div>
-                    <div className="relative rounded-lg overflow-hidden bg-muted">
-                      <img 
-                        src={expense.receipt_photo_url} 
-                        alt={`${t('jobRoute.receipt')} ${expense.expense_type}`}
-                        className="w-full h-auto object-cover"
-                      />
-                      <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/90 flex items-center justify-center shadow-md">
-                        <Package className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    </div>
-                  </div>
+                    {expense.receipt_photo_url && (
+                      <div className="mt-3 rounded-lg overflow-hidden">
+                        <img 
+                          src={expense.receipt_photo_url} 
+                          alt={expense.expense_type}
+                          className="w-full h-auto object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+                  </Card>
                 ))}
-
-                {/* Add More Button */}
-                <button
-                  onClick={() => navigate(`/job/${jobId}/add-expense`)}
-                  className="w-full px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-                >
-                  {t('jobRoute.addExpense')}
-                </button>
               </div>
             )}
           </TabsContent>
