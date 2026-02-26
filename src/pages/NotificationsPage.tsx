@@ -306,7 +306,9 @@ export default function NotificationsPage() {
                       {getLocalizedDescription(notification)}
                     </p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />
+                  {!isLocationNotification(notification) && (
+                    <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />
+                  )}
                 </div>
               </button>
             );
