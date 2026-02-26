@@ -134,13 +134,21 @@ export default function JobRouteExpensesPage() {
       // For Internal/External drivers, use get-driver-assigned-jobs API (direct external call)
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const { data: result, error } = await getDriverAssignedJobs(user.id, driverType, 100);
+        
+        // Fetch all statuses so completed jobs are also found
+        const [inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
+          getDriverAssignedJobs(user.id, driverType, 1000, 'in_progress'),
+          getDriverAssignedJobs(user.id, driverType, 1000, 'in_transit'),
+          getDriverAssignedJobs(user.id, driverType, 1000, 'delivered'),
+          getDriverAssignedJobs(user.id, driverType, 1000, 'completed'),
+        ]);
 
-        if (error) {
-          throw new Error(error);
-        }
-
-        const apiJobs = result?.data || [];
+        const apiJobs = [
+          ...((inProgressRes.data as any)?.data || []),
+          ...((inTransitRes.data as any)?.data || []),
+          ...((deliveredRes.data as any)?.data || []),
+          ...((completedRes.data as any)?.data || []),
+        ];
         
         // Map factory jobs to ApiJobDetail format
         allJobs = apiJobs.map((job: any) => ({
