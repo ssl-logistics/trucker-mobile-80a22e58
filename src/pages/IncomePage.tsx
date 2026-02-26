@@ -120,6 +120,12 @@ export default function IncomePage() {
         const paid: IncomeJob[] = [];
         
         allJobs.forEach((job: any) => {
+          const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
+            ? job.destinations.length : 1;
+          const podByTid = maps.podCountByTransportId[String(job.id)] || 0;
+          const podByOn = maps.podCountByOrderNumber[job.order_number] || 0;
+          console.log(`[Income] CHECK job ${job.order_number}: id=${job.id}, destinations=${destinationCount}, podByTransportId=${podByTid}, podByOrderNumber=${podByOn}, isIntl=${isInternationalJob(job)}`);
+          
           const completed = isJobFullyCompleted(job, maps);
           
           if (!completed) {
