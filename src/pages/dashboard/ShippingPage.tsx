@@ -12,7 +12,7 @@ import {
   getDriverCheckins,
   listTickets,
 } from '@/lib/externalApi';
-import { filterCompletedJobs } from '@/utils/jobCompletionFilter';
+import { buildCheckinMaps, isJobFullyCompleted, isInternationalJob } from '@/utils/jobCompletionFilter';
 import { supabase } from '@/integrations/supabase/client';
 
 import profitIcon from '@/assets/profit-icon.png';
@@ -200,54 +200,12 @@ export default function ShippingPage() {
       ? allJobs
       : allJobs.filter((job: any) => job.vehicle_type === vehicleType);
 
-    // Build POD count and container return maps from checkins (same as CurrentJobsPage)
-    const podCountByTransportId: Record<string, number> = {};
-    const podCountByOrderNumber: Record<string, number> = {};
-    const containerReturnByTransportId = new Set<string>();
-    const containerReturnByOrderNumber = new Set<string>();
+    // Use shared utility for consistent completion checks
+    const maps = buildCheckinMaps(checkins, user.id, 'freelance');
 
-    checkins
-      .filter((c: any) => c.freelance_driver_id === user.id)
-      .forEach((c: any) => {
-        if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')) {
-          if (c.transport_order_id) {
-            const tid = String(c.transport_order_id);
-            podCountByTransportId[tid] = (podCountByTransportId[tid] || 0) + 1;
-          }
-          const orderNum = c.transport_orders?.order_number || c.order_number || '';
-          if (orderNum) {
-            podCountByOrderNumber[orderNum] = (podCountByOrderNumber[orderNum] || 0) + 1;
-          }
-        }
-        if (c.checkin_type === 'container_return_confirmed') {
-          if (c.transport_order_id) containerReturnByTransportId.add(String(c.transport_order_id));
-          const orderNum = c.transport_orders?.order_number || c.order_number || '';
-          if (orderNum) containerReturnByOrderNumber.add(orderNum);
-        }
-      });
-
-    const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
-
-    const isJobFullyCompleted = (job: any): boolean => {
-      const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0
-        ? job.destinations.length
-        : 1;
-      const podCount = Math.max(
-        podCountByTransportId[String(job.id)] || 0,
-        podCountByOrderNumber[job.order_number] || 0
-      );
-      const allPodsCompleted = podCount >= destinationCount;
-      if (isInternationalJob(job)) {
-        const hasContainerReturn = containerReturnByTransportId.has(String(job.id)) ||
-          containerReturnByOrderNumber.has(job.order_number);
-        return allPodsCompleted && hasContainerReturn;
-      }
-      return allPodsCompleted;
-    };
-
-    // Split into completed and active (same logic as CurrentJobsPage)
-    const completedJobsList = filteredJobs.filter(j => isJobFullyCompleted(j));
-    const currentJobs = filteredJobs.filter(j => !isJobFullyCompleted(j));
+    // Split into completed and active
+    const completedJobsList = filteredJobs.filter(j => isJobFullyCompleted(j, maps));
+    const currentJobs = filteredJobs.filter(j => !isJobFullyCompleted(j, maps));
 
     // Apply date filter only to completed jobs
     const dateFilteredCompleted = filterByDate(completedJobsList);
