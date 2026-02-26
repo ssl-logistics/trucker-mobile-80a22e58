@@ -12,8 +12,7 @@ import {
   getDriverCheckins,
   listTickets,
 } from '@/lib/externalApi';
-import { buildCheckinMaps, isJobFullyCompleted, isInternationalJob } from '@/utils/jobCompletionFilter';
-import { supabase } from '@/integrations/supabase/client';
+import { buildCheckinMaps, isJobFullyCompleted } from '@/utils/jobCompletionFilter';
 
 import profitIcon from '@/assets/profit-icon.png';
 import successIcon from '@/assets/success-icon.png';
@@ -29,9 +28,9 @@ export default function ShippingPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
 
-  // Raw data
-  const [allJobs, setAllJobs] = useState<any[]>([]);
-  const [checkins, setCheckins] = useState<any[]>([]);
+  // Separated data sources for stats
+  const [completedJobsFromHistory, setCompletedJobsFromHistory] = useState<any[]>([]);
+  const [currentJobsFromCurrentPage, setCurrentJobsFromCurrentPage] = useState<any[]>([]);
 
   const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
   const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -39,7 +38,9 @@ export default function ShippingPage() {
   const chineseMonths = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
   const months = language === 'th' ? thaiMonths : language === 'ko' ? koreanMonths : language === 'zh' ? chineseMonths : englishMonths;
 
-  // Fetch all jobs + checkins + bid jobs once
+  // Fetch and split data by source logic:
+  // - completed: history page logic
+  // - in delivery: current jobs page logic
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) return;
@@ -47,84 +48,124 @@ export default function ShippingPage() {
       setIsLoading(true);
       try {
         const [companyJobsRes, factoryJobsRes, checkinsRes, bidJobsRes] = await Promise.all([
-          getFreelanceAcceptedJobs(user.id),
-          getFactoryAssignedJobs(user.id),
+          getFreelanceAcceptedJobs(user.id, 1000),
+          getFactoryAssignedJobs(user.id, 1000),
           getDriverCheckins(user.id, 'freelance', 'all'),
           listTickets({ freelanceDriverId: user.id, bidsStatus: 'accepted' }).catch(() => ({ data: null, error: 'Failed' })),
         ]);
 
-        const companyJobs = Array.isArray(companyJobsRes.data)
-          ? companyJobsRes.data
-          : ((companyJobsRes.data as any)?.data || []);
+        const extractItems = (response: any): any[] => {
+          if (Array.isArray(response)) return response;
+          if (Array.isArray(response?.data)) return response.data;
+          if (Array.isArray(response?.items)) return response.items;
+          if (Array.isArray(response?.results)) return response.results;
+          return [];
+        };
 
-        const factoryJobsRaw = (factoryJobsRes.data as any)?.data || [];
-        const acceptedFactoryJobs = factoryJobsRaw
+        const dedupeByOrder = (jobs: any[]) => {
+          const seen = new Set<string>();
+          return jobs.filter((job: any) => {
+            const key = job.order_number || job.id;
+            if (!key || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        };
+
+        const companyJobs = extractItems(companyJobsRes.data);
+        const factoryJobsRaw = extractItems(factoryJobsRes.data);
+        const checkinsRaw = extractItems(checkinsRes.data);
+        const tickets = bidJobsRes.error ? [] : extractItems(bidJobsRes.data);
+
+        const driverCheckins = checkinsRaw.filter((c: any) => c.freelance_driver_id === user.id);
+        const maps = buildCheckinMaps(driverCheckins, user.id, 'freelance');
+
+        const normalizeFactoryJob = (job: any) => ({
+          ...job,
+          sender_name: job.factory_name || job.sender_name,
+          sender_pickup_date: job.sender_pickup_date || job.pickup_date,
+          order_number: job.order_number || job.job_order_number,
+        });
+
+        const mapBidTicketToJob = (ticket: any) => ({
+          id: ticket.id,
+          order_number: ticket.ticket_number || ticket.order_code || ticket.post_code || ticket.ticket_code,
+          status: ticket.status || 'accepted',
+          sender_name: ticket.customer?.company_name || ticket.creator?.company_name || ticket.creator?.full_name || ticket.company_name || ticket.employer_name || '',
+          sender_pickup_date: ticket.pickup_location?.date || ticket.pickup_date || ticket.start_date || ticket.created_at?.split('T')[0],
+          sender_province: ticket.route?.origin_district?.province?.name || ticket.pickup_location?.province || '',
+          destination_province: ticket.route?.destination_district?.province?.name || ticket.dropoff_location?.province || '',
+          vehicle_type: ticket.vehicle_type?.name || ticket.truck_type || ticket.vehicle_type || null,
+          transport_price: ticket.bids?.find((b: any) => b.status === 'accepted' && b.contractor_id === user.id)?.bid_price || ticket.price || 0,
+          isBidJob: true,
+          created_at: ticket.created_at,
+          destinations: ticket.destinations,
+          booking_no: ticket.booking_no || null,
+          bl_no: ticket.bl_no || null,
+          transport_category: ticket.transport_category || null,
+        });
+
+        const acceptedBidTickets = tickets.filter((ticket: any) => {
+          const userAcceptedBid = ticket.bids?.find((b: any) =>
+            b.status === 'accepted' && b.contractor_id === user.id
+          );
+          return !!userAcceptedBid;
+        });
+
+        const bidJobsMapped = acceptedBidTickets.map(mapBidTicketToJob);
+
+        // ===== Completed jobs (History logic) =====
+        const historyFactoryJobs = factoryJobsRaw
           .filter((job: any) => job.freelance_accepted_at)
-          .map((job: any) => ({
-            ...job,
-            sender_name: job.factory_name || job.sender_name,
-            sender_pickup_date: job.sender_pickup_date || job.pickup_date,
-            order_number: job.order_number || job.job_order_number,
-          }));
+          .map(normalizeFactoryJob);
 
-        // Process bid-won jobs
-        let bidJobs: any[] = [];
-        if (!bidJobsRes.error && bidJobsRes.data) {
-          const tickets = (bidJobsRes.data as any)?.data || (bidJobsRes.data as any)?.tickets || (Array.isArray(bidJobsRes.data) ? bidJobsRes.data : []);
-          bidJobs = tickets
-            .filter((ticket: any) => {
-              const status = (ticket.status || '').toLowerCase();
-              if (['cancelled', 'closed'].includes(status)) return false;
-              const userAcceptedBid = ticket.bids?.find((b: any) =>
-                b.status === 'accepted' && b.contractor_id === user.id
-              );
-              return !!userAcceptedBid;
-            })
-            .map((ticket: any) => ({
-              id: ticket.id,
-              order_number: ticket.ticket_number || ticket.order_code || ticket.post_code || ticket.ticket_code,
-              status: ticket.status || 'accepted',
-              sender_name: ticket.customer?.company_name || ticket.creator?.company_name || ticket.creator?.full_name || ticket.company_name || ticket.employer_name || '',
-              sender_pickup_date: ticket.pickup_location?.date || ticket.pickup_date || ticket.start_date || ticket.created_at?.split('T')[0],
-              sender_province: ticket.route?.origin_district?.province?.name || ticket.pickup_location?.province || '',
-              destination_province: ticket.route?.destination_district?.province?.name || ticket.dropoff_location?.province || '',
-              vehicle_type: ticket.vehicle_type?.name || ticket.truck_type || ticket.vehicle_type || null,
-              transport_price: ticket.bids?.find((b: any) => b.status === 'accepted' && b.contractor_id === user.id)?.bid_price || ticket.price || 0,
-              isBidJob: true,
-              created_at: ticket.created_at,
-              destinations: ticket.destinations,
-              booking_no: ticket.booking_no || null,
-              bl_no: ticket.bl_no || null,
-              transport_category: ticket.transport_category || null,
-            }));
-        }
+        const historySourceJobs = dedupeByOrder([
+          ...companyJobs,
+          ...historyFactoryJobs,
+          ...bidJobsMapped,
+        ]);
 
-        const combined = [...companyJobs, ...acceptedFactoryJobs, ...bidJobs];
-        
-        // Filter out closed/cancelled jobs (same as CurrentJobsPage)
-        const excludedStatuses = ['closed', 'cancelled', 'ยกเลิก', 'ปิดงาน'];
-        const activeJobs = combined.filter((job: any) => {
-          const status = (job.status || '').toLowerCase().trim();
-          return !excludedStatuses.some(s => status.includes(s.toLowerCase()));
+        const completedFromHistory = historySourceJobs.filter((job: any) =>
+          isJobFullyCompleted(job, maps)
+        );
+
+        // ===== Current jobs (CurrentJobs logic) =====
+        const currentCompanyJobs = companyJobs.filter((job: any) => !isJobFullyCompleted(job, maps));
+
+        const activeFactoryStatuses = ['in_progress', 'in_transit', 'assigned', 'accepted'];
+        const currentFactoryJobs = factoryJobsRaw
+          .map(normalizeFactoryJob)
+          .filter((job: any) => {
+            if (isJobFullyCompleted(job, maps)) return false;
+
+            const status = (job?.status || '').toLowerCase().trim();
+            if (status === 'awaiting_response') return false;
+
+            return activeFactoryStatuses.includes(status) || Boolean(job.freelance_accepted_at);
+          });
+
+        const currentBidJobs = bidJobsMapped.filter((job: any) => {
+          const status = (job.status || '').toLowerCase();
+          if (['cancelled', 'closed'].includes(status)) return false;
+          return !isJobFullyCompleted(job, maps);
         });
-        
-        // Deduplicate by order_number
-        const seen = new Set<string>();
-        const dedupedJobs = activeJobs.filter((job: any) => {
-          const key = job.order_number || job.id;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-        
-        setAllJobs(dedupedJobs);
 
-        const allCheckinsRaw = checkinsRes.error
-          ? []
-          : ((checkinsRes.data as any)?.data || checkinsRes.data || []);
-        setCheckins(Array.isArray(allCheckinsRaw) ? allCheckinsRaw : []);
+        const bidOrderNumbers = new Set(currentBidJobs.map((j: any) => j.order_number).filter(Boolean));
+        const filteredCurrentCompanyJobs = currentCompanyJobs.filter((j: any) => !bidOrderNumbers.has(j.order_number));
+        const filteredCurrentFactoryJobs = currentFactoryJobs.filter((j: any) => !bidOrderNumbers.has(j.order_number));
+
+        const currentFromCurrentPage = dedupeByOrder([
+          ...filteredCurrentCompanyJobs,
+          ...filteredCurrentFactoryJobs,
+          ...currentBidJobs,
+        ]);
+
+        setCompletedJobsFromHistory(completedFromHistory);
+        setCurrentJobsFromCurrentPage(currentFromCurrentPage);
       } catch (error) {
         console.error('Error fetching shipping data:', error);
+        setCompletedJobsFromHistory([]);
+        setCurrentJobsFromCurrentPage([]);
       } finally {
         setIsLoading(false);
       }
@@ -181,7 +222,7 @@ export default function ShippingPage() {
     });
   };
 
-  // Compute stats - aligned with CurrentJobsPage logic
+  // Compute stats from separated sources
   const { jobStats, regionStats } = useMemo(() => {
     if (!user?.id) {
       return {
@@ -195,28 +236,22 @@ export default function ShippingPage() {
       };
     }
 
-    // Filter by vehicle type
-    let filteredJobs = vehicleType === 'all'
-      ? allJobs
-      : allJobs.filter((job: any) => job.vehicle_type === vehicleType);
+    const filteredCurrentJobs = vehicleType === 'all'
+      ? currentJobsFromCurrentPage
+      : currentJobsFromCurrentPage.filter((job: any) => job.vehicle_type === vehicleType);
 
-    // Use shared utility for consistent completion checks
-    const maps = buildCheckinMaps(checkins, user.id, 'freelance');
+    const filteredCompletedJobs = vehicleType === 'all'
+      ? completedJobsFromHistory
+      : completedJobsFromHistory.filter((job: any) => job.vehicle_type === vehicleType);
 
-    // Split into completed and active
-    const completedJobsList = filteredJobs.filter(j => isJobFullyCompleted(j, maps));
-    const currentJobs = filteredJobs.filter(j => !isJobFullyCompleted(j, maps));
+    const dateFilteredCompleted = filterByDate(filteredCompletedJobs);
 
-    // Apply date filter only to completed jobs
-    const dateFilteredCompleted = filterByDate(completedJobsList);
-
-    const inDeliveryJobs = currentJobs.length;
+    const inDeliveryJobs = filteredCurrentJobs.length;
     const successJobs = dateFilteredCompleted.length;
     const totalJobs = inDeliveryJobs + successJobs;
 
-    // Region stats
     const regionMap: Record<string, number> = {};
-    const allActiveAndCompleted = [...currentJobs, ...dateFilteredCompleted];
+    const allActiveAndCompleted = [...filteredCurrentJobs, ...dateFilteredCompleted];
     allActiveAndCompleted.forEach((job: any) => {
       const province = job.sender_province || job.destination_province || '';
       const region = getRegionFromProvince(province);
@@ -241,7 +276,7 @@ export default function ShippingPage() {
         { region: t('shipping.south'), value: regionMap['south'] || 0 },
       ],
     };
-  }, [allJobs, checkins, user?.id, timePeriod, vehicleType, selectedDate, t]);
+  }, [completedJobsFromHistory, currentJobsFromCurrentPage, user?.id, timePeriod, vehicleType, selectedDate, t]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
