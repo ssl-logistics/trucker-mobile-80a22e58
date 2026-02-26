@@ -11,6 +11,7 @@ import { useMultiProcessingGuard } from '@/hooks/useProcessingGuard';
 import { useBankCheck } from '@/hooks/useBankCheck';
 import { useGpsTracking } from '@/hooks/useGpsTracking';
 import { useNewJobPolling } from '@/hooks/useNewJobPolling';
+import { useProximityAlert } from '@/hooks/useProximityAlert';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { RejectFactoryJobDialog } from '@/components/home/RejectFactoryJobDialog';
@@ -67,6 +68,9 @@ export default function Home() {
   // Global processing guard for all job actions
   const { isProcessingKey, withGuard: withJobGuard } = useMultiProcessingGuard();
   const { requireBankInfo } = useBankCheck();
+  
+  // Proximity alert: notify driver when near pickup/delivery without evidence
+  useProximityAlert();
   
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
