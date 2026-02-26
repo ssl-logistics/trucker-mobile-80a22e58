@@ -276,7 +276,9 @@ export default function JobRouteExpensesPage() {
             console.log('Expenses from API:', expensesResult);
             
             // Map external API response to our Expense interface
-            const mappedExpenses: Expense[] = (expensesResult.data || []).map((exp: any) => ({
+            const rawExpenses = Array.isArray(expensesResult.data) ? expensesResult.data 
+              : Array.isArray(expensesResult) ? expensesResult : [];
+            const mappedExpenses: Expense[] = rawExpenses.map((exp: any) => ({
               id: exp.id,
               expense_type: exp.expense_type,
               amount: exp.amount,
