@@ -29,12 +29,28 @@ interface IncomeJob {
   amount: number;
   status: "paid" | "pending";
   date: string;
+  rawDate: string;
   month: string;
   orderCode: string;
   // Flag for bid jobs
   isBidJob?: boolean;
   ticketNumber?: string;
 }
+
+const monthMap: Record<string, number> = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+};
+
+const filterBySelectedMonth = (jobs: IncomeJob[], selected: string): IncomeJob[] => {
+  if (selected === 'all') return jobs;
+  const monthIndex = monthMap[selected];
+  if (monthIndex === undefined) return jobs;
+  return jobs.filter(job => {
+    const d = new Date(job.rawDate);
+    return !isNaN(d.getTime()) && d.getMonth() === monthIndex;
+  });
+};
 
 export default function IncomePage() {
   const navigate = useNavigate();
@@ -139,6 +155,7 @@ export default function IncomePage() {
             amount: job.transport_price || 0,
             status: "paid",
             date: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
+            rawDate: job.sender_pickup_date,
             month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
               month: "long"
             }),
@@ -296,6 +313,7 @@ export default function IncomePage() {
               amount: bidPrice,
               status: "paid" as const,
               date: new Date(pickupDate).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
+              rawDate: pickupDate,
               month: new Date(pickupDate).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
                 month: "long"
               }),
@@ -319,6 +337,7 @@ export default function IncomePage() {
           amount: job.transport_price,
           status: "paid" as const,
           date: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US'),
+          rawDate: job.sender_pickup_date,
           month: new Date(job.sender_pickup_date).toLocaleDateString(language === 'th' ? 'th-TH' : 'en-US', {
             month: "long"
           }),
@@ -369,10 +388,10 @@ export default function IncomePage() {
     return grouped;
   };
   // Loading state is now handled inline in the content area
-  const allJobs = [...paidJobs, ...unpaidJobs];
+  const allJobs = filterBySelectedMonth([...paidJobs, ...unpaidJobs], selectedMonth);
   const allGrouped = groupJobsByMonth(allJobs);
-  const paidGrouped = groupJobsByMonth(paidJobs);
-  const unpaidGrouped = groupJobsByMonth(unpaidJobs);
+  const paidGrouped = groupJobsByMonth(filterBySelectedMonth(paidJobs, selectedMonth));
+  const unpaidGrouped = groupJobsByMonth(filterBySelectedMonth(unpaidJobs, selectedMonth));
   return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-header text-header-foreground rounded-b-xl shadow-lg page-header-safe">
