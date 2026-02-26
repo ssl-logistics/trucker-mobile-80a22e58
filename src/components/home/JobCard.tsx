@@ -77,6 +77,19 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     }
   }, [autoOpenDetail]);
 
+  // Hide bottom navigation when detail modal is open
+  useEffect(() => {
+    const bottomNav = document.getElementById('bottom-navigation');
+    if (bottomNav) {
+      bottomNav.style.display = detailModalOpen ? 'none' : '';
+    }
+    return () => {
+      if (bottomNav) {
+        bottomNav.style.display = '';
+      }
+    };
+  }, [detailModalOpen]);
+
   const handleModalClose = (open: boolean) => {
     setDetailModalOpen(open);
     if (!open && onDetailClosed) {
