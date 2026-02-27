@@ -59,6 +59,7 @@ interface JobDestination {
   notes: string | null;
   checked_in_at: string | null;
   sop_completed_at: string | null;
+  goods_type: string | null;
 }
 
 interface JobDetail {
@@ -1375,17 +1376,16 @@ export default function DomesticJobDetail({
                           <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
                           <div className="flex flex-wrap gap-1">
-                            {job.origin_goods_type
-                              ? job.origin_goods_type.split(/[,，、\/]/).map((item, i) => {
-                                  const trimmed = item.trim();
-                                  return trimmed ? (
-                                    <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
-                                      {trimmed}
-                                    </span>
-                                  ) : null;
-                                })
-                              : <span>-</span>
-                            }
+                            {(() => {
+                              const goodsStr = dest.goods_type || job.origin_goods_type;
+                              if (!goodsStr) return <span>-</span>;
+                              const items = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
+                              return items.map((item, i) => (
+                                <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
+                                  {item}
+                                </span>
+                              ));
+                            })()}
                           </div>
                         </div>
                         {dest.notes && dest.notes !== '-' &&
