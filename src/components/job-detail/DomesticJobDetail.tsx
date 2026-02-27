@@ -1374,7 +1374,19 @@ export default function DomesticJobDetail({
                         <div className="flex items-start gap-2">
                           <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
-                          <span>{job.origin_goods_type || '-'}</span>
+                          <div className="flex flex-wrap gap-1">
+                            {job.origin_goods_type
+                              ? job.origin_goods_type.split(/[,，、\/]/).map((item, i) => {
+                                  const trimmed = item.trim();
+                                  return trimmed ? (
+                                    <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
+                                      {trimmed}
+                                    </span>
+                                  ) : null;
+                                })
+                              : <span>-</span>
+                            }
+                          </div>
                         </div>
                         {dest.notes && dest.notes !== '-' &&
                       <div className="flex items-start gap-2">
