@@ -175,6 +175,8 @@ export default function Home() {
           return status === 'in_progress';
         }
         // Freelance drivers only see jobs awaiting their response
+        // Also filter out jobs without factory_id - those are company jobs, not factory jobs
+        if (!item.factory_id) return false;
         return status === 'awaiting_response';
       });
       
