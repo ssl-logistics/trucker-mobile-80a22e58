@@ -96,6 +96,16 @@ interface AcceptedJob {
   updated_at: string;
   // Multiple destinations support
   destinations?: Array<{ sequence: number; location: string; company_name?: string }>;
+  // Products array for per-item display
+  products?: Array<{
+    product_name: string;
+    product_code?: string;
+    quantity: number;
+    unit: string;
+    weight: number;
+    weight_unit: string;
+    destination_id?: string;
+  }>;
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
@@ -342,6 +352,7 @@ export default function CurrentJobsPage() {
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
               company_name: d.company_name || ''
             })) : undefined,
+            products: Array.isArray(job.products) ? job.products : undefined,
            }));
 
            console.log(`[CurrentJobsPage] Setting accepted jobs: ${mappedJobs.length} jobs`);
@@ -448,6 +459,7 @@ export default function CurrentJobsPage() {
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
               company_name: d.company_name || ''
             })) : undefined,
+            products: Array.isArray(job.products) ? job.products : undefined,
           }));
       } else {
         console.error('Error loading company accepted jobs:', companyJobsResult.error);
@@ -518,6 +530,7 @@ export default function CurrentJobsPage() {
               ...(job.bl_no ? { bl_no: job.bl_no } : {}),
               ...(job.booking_no ? { booking_no: job.booking_no } : {}),
               ...(mappedDestinations ? { destinations: mappedDestinations } : {}),
+              ...(Array.isArray(job.products) ? { products: job.products } : {}),
             };
           });
           
@@ -623,6 +636,7 @@ export default function CurrentJobsPage() {
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
               company_name: d.company_name || ''
             })) : undefined,
+            products: Array.isArray(ticket.products) ? ticket.products : undefined,
           }));
         
         console.log(`Bid jobs for Current Jobs: ${bidWonJobs.length} (excluded ${tickets.length - bidWonJobs.length} with delivery_confirmed or wrong user)`);
@@ -910,18 +924,46 @@ export default function CurrentJobsPage() {
 
                     {!job.bl_no && !job.booking_no && (
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
-                      <div>
-                        <span className="text-[#375c7b]">{t('job.goods')} : </span>
-                        <span>{job.product_name || '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[#375B7B]">น้ำหนัก : </span>
-                        <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[#375B7B]">จำนวน : </span>
-                        <span>{job.product_quantity || '-'}</span>
-                      </div>
+                      {Array.isArray(job.products) && job.products.length > 0 ? (
+                        job.products.map((product, idx) => {
+                          const weightUnitLabel = product.weight_unit === 'ton' ? 'ตัน' : 'กก.';
+                          const quantityUnitLabel = product.unit === 'box' ? 'กล่อง' 
+                            : product.unit === 'piece' ? 'ชิ้น' 
+                            : product.unit === 'sack' ? 'กระสอบ' 
+                            : product.unit || '';
+                          return (
+                            <div key={product.product_name + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
+                              <div>
+                                <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
+                                <span className="font-medium">{product.product_name}</span>
+                              </div>
+                              <div>
+                                <span className="text-[#375B7B]">น้ำหนัก : </span>
+                                <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
+                              </div>
+                              <div>
+                                <span className="text-[#375B7B]">จำนวน : </span>
+                                <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <>
+                          <div>
+                            <span className="text-[#375c7b]">{t('job.goods')} : </span>
+                            <span>{job.product_name || '-'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[#375B7B]">น้ำหนัก : </span>
+                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[#375B7B]">จำนวน : </span>
+                            <span>{job.product_quantity || '-'}</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                     )}
 
