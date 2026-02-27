@@ -385,11 +385,17 @@ export default function Home() {
           pickup_time: item.pickup_time || item.start_time || '',
           equipment_list: item.truck_type !== '-' ? item.truck_type : null,
           safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
-          goods_type: item.product_name || item.goods_type || item.product_type || null,
-          goods_quantity: item.product_quantity ? String(item.product_quantity) : (item.goods_quantity || item.quantity || null),
-          goods_weight: item.product_weight || null,
-          goods_unit: item.weight_unit || item.product_unit || null,
-          goods_quantity_unit: item.unit || null,
+          goods_type: Array.isArray(item.products) && item.products.length > 0
+            ? item.products.map((p: any) => p.product_name).filter(Boolean).join(', ')
+            : (item.product_name || item.goods_type || item.product_type || null),
+          goods_quantity: Array.isArray(item.products) && item.products.length > 0
+            ? String(item.products.reduce((sum: number, p: any) => sum + (p.quantity || 0), 0))
+            : (item.product_quantity ? String(item.product_quantity) : (item.goods_quantity || item.quantity || null)),
+          goods_weight: Array.isArray(item.products) && item.products.length > 0
+            ? item.products.reduce((sum: number, p: any) => sum + (p.weight || 0), 0)
+            : (item.product_weight || null),
+          goods_unit: item.weight_unit || item.product_unit || (Array.isArray(item.products) && item.products[0]?.weight_unit) || null,
+          goods_quantity_unit: item.unit || (Array.isArray(item.products) && item.products[0]?.unit) || null,
           isAccepted: false,
           // Map coordinates from API
           origin_lat: item.origin_lat || undefined,
