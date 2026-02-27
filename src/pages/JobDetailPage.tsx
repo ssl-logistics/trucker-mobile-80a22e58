@@ -369,24 +369,35 @@ export default function JobDetailPage() {
             container_return_date: foundJob.container_return_date || foundJob.container_return_datetime || foundJob.container_return?.date || foundJob.container_return?.datetime || foundJob.return_date || foundJob.return_full_container_date || foundJob.full_container_return?.date || null,
             // Map destinations array from API
             destinations: Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0
-              ? foundJob.destinations.map((d: any) => ({
-                  id: d.id || `dest-${d.sequence_number}`,
-                  sequence_number: d.sequence_number || 1,
-                  company_name: d.company_name || null,
-                  contact_name: d.contact_name || null,
-                  contact_phone: d.contact_phone || null,
-                   address: d.address || null,
-                   province: d.province || null,
-                   district: d.district || null,
-                   latitude: d.latitude || null,
-                   longitude: d.longitude || null,
-                   delivery_date: d.delivery_date || null,
-                   delivery_time: d.delivery_time || null,
-                   notes: d.notes || null,
-                   checked_in_at: null,
-                   sop_completed_at: null,
-                   goods_type: d.goods_type || d.product_name || null,
-                }))
+              ? foundJob.destinations.map((d: any) => {
+                  const destId = d.id || `dest-${d.sequence_number}`;
+                  // Match products to this destination by destination_id
+                  const matchedProducts = Array.isArray(foundJob.products)
+                    ? foundJob.products
+                        .filter((p: any) => p.destination_id === d.id)
+                        .map((p: any) => p.product_name || p.name)
+                        .filter(Boolean)
+                    : [];
+                  const goodsType = matchedProducts.length > 0
+                    ? matchedProducts.join(',')
+                    : d.goods_type || d.product_name || null;
+                  return {
+                    id: destId,
+                    sequence_number: d.sequence_number || 1,
+                    company_name: d.company_name || null,
+                    contact_name: d.contact_name || null,
+                    contact_phone: d.contact_phone || null,
+                    address: d.address || null,
+                    province: d.province || null,
+                    district: d.district || null,
+                    delivery_date: d.delivery_date || null,
+                    delivery_time: d.delivery_time || null,
+                    notes: d.notes || null,
+                    checked_in_at: null,
+                    sop_completed_at: null,
+                    goods_type: goodsType,
+                  };
+                })
               : undefined,
             // Map origins array from API
             origins: Array.isArray(foundJob.origins) && foundJob.origins.length > 0
