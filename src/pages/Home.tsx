@@ -181,18 +181,6 @@ export default function Home() {
       });
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
-        // Debug: log raw data for specific orders to diagnose destinations mapping
-        const itemOrderCode = item.order_number || item.order_code || item.quote_number || '';
-        if (itemOrderCode.includes('OR202602')) {
-          console.log('[DEBUG Factory Job Raw]', itemOrderCode, {
-            destinations: item.destinations,
-            origins: item.origins,
-            send_mode: item.send_mode,
-            transport_mode: item.transport_mode,
-            destination: item.destination,
-            rawKeys: Object.keys(item),
-          });
-        }
         // Determine if international
         const isIntl = !!(item.booking_no || item.bl_no) || item.transport_category === 'international' || item.job_type === 'international';
         
@@ -347,17 +335,6 @@ export default function Home() {
       const transformedJobs: Job[] = apiJobs
         .filter((item: any) => item.is_express_rent === isExpressRentFilter)
         .map((item: any) => {
-        // Debug: log raw data for specific orders to diagnose destinations mapping
-        const itemOrderCode = item.post_code || item.order_number || item.quote_number || '';
-        if (itemOrderCode.includes('OR202602')) {
-          console.log('[DEBUG Express Rent Raw]', itemOrderCode, {
-            destinations: item.destinations,
-            origins: item.origins,
-            send_mode: item.send_mode,
-            destination: item.destination,
-            rawKeys: Object.keys(item),
-          });
-        }
         // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
         let originLocation = item.origin || item.from_location || '';
         let destinationLocation = item.destination || item.to_location || '';
