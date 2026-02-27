@@ -498,20 +498,28 @@ export default function CurrentJobsPage() {
             
             return isActiveStatus || isAccepted;
           })
-          .map((job: any) => ({
-            ...job,
-            sender_name: job.factory_name || job.sender_name,
-            isFactoryJob: true,
-            job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || null),
-            bl_no: job.bl_no || null,
-            booking_no: job.booking_no || null,
-            // Multiple destinations support
-            destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
-              sequence: d.sequence_number || d.sequence || idx + 1,
-              location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || ''
-            })) : undefined,
-          }));
+          .map((job: any) => {
+            const inferredJobType = (job.booking_no || job.bl_no)
+              ? 'international'
+              : (job.job_type || job.transport_category || undefined);
+            const mappedDestinations = Array.isArray(job.destinations) && job.destinations.length > 0
+              ? job.destinations.map((d: any, idx: number) => ({
+                  sequence: d.sequence_number || d.sequence || idx + 1,
+                  location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
+                  company_name: d.company_name || ''
+                }))
+              : undefined;
+
+            return {
+              ...job,
+              sender_name: job.factory_name || job.sender_name,
+              isFactoryJob: true,
+              ...(inferredJobType ? { job_type: inferredJobType } : {}),
+              ...(job.bl_no ? { bl_no: job.bl_no } : {}),
+              ...(job.booking_no ? { booking_no: job.booking_no } : {}),
+              ...(mappedDestinations ? { destinations: mappedDestinations } : {}),
+            };
+          });
           
         console.log('Factory jobs for Current Jobs:', factoryJobs.length, '(awaiting_response excluded:', pendingFactoryOrderNumbers.size, ')');
       }
@@ -631,7 +639,14 @@ export default function CurrentJobsPage() {
       const uniqueJobs = dedupeJobs(allJobs);
       console.log('Total current jobs:', uniqueJobs.length, '(Company:', filteredCompanyJobs.length, ', Factory:', filteredFactoryJobs.length, ', Bid-Won:', bidWonJobs.length, ', Dedupe removed:', allJobs.length - uniqueJobs.length, ')');
 
-      setAcceptedJobs(uniqueJobs);
+      const normalizedJobs = uniqueJobs.map((job: AcceptedJob) => ({
+        ...job,
+        job_type: (job.booking_no || job.bl_no)
+          ? 'international'
+          : (job.job_type || job.transport_category || 'domestic'),
+      }));
+
+      setAcceptedJobs(normalizedJobs);
 
       // Auto-create tracking rooms for accepted bid jobs that don't have one yet
       for (const bidJob of bidWonJobs) {
