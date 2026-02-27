@@ -435,8 +435,20 @@ export default function CurrentJobsPage() {
         const companyResult = companyJobsResult.data;
         console.log('Loaded company accepted jobs:', companyResult);
         const allCompanyJobs = Array.isArray(companyResult) ? companyResult : ((companyResult as any).data || []);
-        // Filter out jobs that have ALL destinations POD completed
-        companyJobs = allCompanyJobs.filter((job: any) => !isJobFullyCompleted(job));
+        // Filter out jobs that have ALL destinations POD completed, and map job_type/destinations
+        companyJobs = allCompanyJobs
+          .filter((job: any) => !isJobFullyCompleted(job))
+          .map((job: any) => ({
+            ...job,
+            job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
+            bl_no: job.bl_no || null,
+            booking_no: job.booking_no || null,
+            destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
+              sequence: d.sequence_number || d.sequence || idx + 1,
+              location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
+              company_name: d.company_name || ''
+            })) : undefined,
+          }));
       } else {
         console.error('Error loading company accepted jobs:', companyJobsResult.error);
       }
@@ -591,7 +603,7 @@ export default function CurrentJobsPage() {
             factory_name: ticket.factory_name || null,
             isFactoryJob: false,
             isBidJob: true, // Mark as bid job for UI distinction
-            job_type: (ticket.booking_no || ticket.bl_no) ? 'international' : (ticket.job_type || ticket.transport_category || null),
+            job_type: (ticket.booking_no || ticket.bl_no) ? 'international' : (ticket.job_type || ticket.transport_category || 'domestic'),
             bl_no: ticket.bl_no || null,
             booking_no: ticket.booking_no || null,
             remarks: ticket.notes || ticket.remarks || null,
