@@ -217,8 +217,31 @@ export default function DeliveryDetailPage() {
             destination_longitude: destData.longitude || foundJob.destination_longitude || foundJob.cargo_loading?.longitude || foundJob.container_return?.longitude || null,
             destination_contact_person: destData.contact_name || foundJob.destination_contact_name,
             destination_address: destData.address || foundJob.destination_address,
-            destination_goods_type: foundJob.product_name,
-            destination_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
+            destination_goods_type: (() => {
+              // Filter products for this specific destination
+              const productsArray = foundJob.products || [];
+              const destId = targetDestination?.id;
+              if (productsArray.length > 0 && destId) {
+                const destProducts = productsArray.filter((p: any) => p.destination_id === destId);
+                if (destProducts.length > 0) {
+                  return destProducts.map((p: any) => p.product_name).filter(Boolean).join(', ');
+                }
+              }
+              // Fallback to job-level product_name
+              return foundJob.product_name;
+            })(),
+            destination_goods_quantity: (() => {
+              const productsArray = foundJob.products || [];
+              const destId = targetDestination?.id;
+              if (productsArray.length > 0 && destId) {
+                const destProducts = productsArray.filter((p: any) => p.destination_id === destId);
+                if (destProducts.length > 0) {
+                  const totalQty = destProducts.reduce((sum: number, p: any) => sum + (Number(p.product_quantity) || 0), 0);
+                  return totalQty > 0 ? String(totalQty) : null;
+                }
+              }
+              return foundJob.product_quantity ? String(foundJob.product_quantity) : null;
+            })(),
             destination_remarks: destData.notes || foundJob.remarks,
             destination_time: destData.delivery_time || foundJob.destination_delivery_time,
             destination_company_name: destData.company_name || foundJob.destination_company_name || foundJob.destination_name,
