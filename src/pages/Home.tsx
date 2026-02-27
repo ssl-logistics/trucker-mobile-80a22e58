@@ -228,8 +228,8 @@ export default function Home() {
           goods_type: item.product_name || item.goods_type || null,
           goods_quantity: item.product_quantity ? String(item.product_quantity) : (item.goods_quantity || null),
           goods_weight: item.product_weight || null,
-          goods_unit: item.weight_unit || item.product_unit || null,
-          goods_quantity_unit: item.unit || null,
+          goods_unit: item.product_weight_unit || item.weight_unit || null,
+          goods_quantity_unit: item.product_unit || item.unit || null,
           isAccepted: false,
           origin_lat: item.sender_latitude || item.origin_lat || undefined,
           origin_lng: item.sender_longitude || item.origin_lng || undefined,
@@ -394,8 +394,8 @@ export default function Home() {
           goods_weight: Array.isArray(item.products) && item.products.length > 0
             ? item.products.reduce((sum: number, p: any) => sum + (p.weight || 0), 0)
             : (item.product_weight || null),
-          goods_unit: item.weight_unit || item.product_unit || (Array.isArray(item.products) && item.products[0]?.weight_unit) || null,
-          goods_quantity_unit: item.unit || (Array.isArray(item.products) && item.products[0]?.unit) || null,
+          goods_unit: item.product_weight_unit || item.weight_unit || (Array.isArray(item.products) && item.products[0]?.weight_unit) || null,
+          goods_quantity_unit: item.product_unit || item.unit || (Array.isArray(item.products) && item.products[0]?.unit) || null,
           isAccepted: false,
           // Map coordinates from API
           origin_lat: item.origin_lat || undefined,
