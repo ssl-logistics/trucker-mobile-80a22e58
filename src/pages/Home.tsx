@@ -49,6 +49,9 @@ interface Job {
   safety_equipment: string | null;
   goods_type: string | null;
   goods_quantity: string | null;
+  goods_weight?: number | null;
+  goods_unit?: string | null;
+  goods_quantity_unit?: string | null;
   isAccepted?: boolean;
   origin_lat?: number;
   origin_lng?: number;
@@ -225,7 +228,8 @@ export default function Home() {
           goods_type: item.product_name || item.goods_type || null,
           goods_quantity: item.product_quantity ? String(item.product_quantity) : (item.goods_quantity || null),
           goods_weight: item.product_weight || null,
-          goods_unit: item.product_unit || null,
+          goods_unit: item.weight_unit || item.product_unit || null,
+          goods_quantity_unit: item.unit || null,
           isAccepted: false,
           origin_lat: item.sender_latitude || item.origin_lat || undefined,
           origin_lng: item.sender_longitude || item.origin_lng || undefined,
@@ -384,7 +388,8 @@ export default function Home() {
           goods_type: item.product_name || item.goods_type || item.product_type || null,
           goods_quantity: item.product_quantity ? String(item.product_quantity) : (item.goods_quantity || item.quantity || null),
           goods_weight: item.product_weight || null,
-          goods_unit: item.product_unit || null,
+          goods_unit: item.weight_unit || item.product_unit || null,
+          goods_quantity_unit: item.unit || null,
           isAccepted: false,
           // Map coordinates from API
           origin_lat: item.origin_lat || undefined,

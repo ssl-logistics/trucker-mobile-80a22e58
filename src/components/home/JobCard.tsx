@@ -39,6 +39,7 @@ interface Job {
   goods_quantity: string | null;
   goods_weight?: number | null;
   goods_unit?: string | null;
+  goods_quantity_unit?: string | null;
   isAccepted?: boolean;
   destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string }>;
   origins?: Array<{ sequence: number; location?: string; address?: string; company_name?: string }>;
@@ -206,7 +207,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           </div>
           <div>
             <span className="text-muted-foreground">{t('job.quantity')} : </span>
-            <span>{job.goods_quantity || '-'}</span>
+            <span>{job.goods_quantity ? `${job.goods_quantity}${job.goods_quantity_unit ? ` ${translateUnit(job.goods_quantity_unit, language)}` : ''}` : '-'}</span>
           </div>
         </div>
       </div>
@@ -411,12 +412,12 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${translateUnit(job.goods_unit, language)}` : '-'}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">{t('job.quantity')} : </span>
-                <span>{job.goods_quantity || '-'}</span>
-              </div>
+              <span className="text-muted-foreground">{t('job.quantity')} : </span>
+              <span>{job.goods_quantity ? `${job.goods_quantity}${job.goods_quantity_unit ? ` ${translateUnit(job.goods_quantity_unit, language)}` : ''}` : '-'}</span>
             </div>
+          </div>
 
-            {/* Employer */}
+          {/* Employer */}
             <div className="text-center text-sm text-muted-foreground">
               {t('job.employerLabel')}: <span className="font-medium text-foreground">{job.employer_name}</span>
             </div>
