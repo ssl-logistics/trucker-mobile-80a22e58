@@ -27,6 +27,7 @@ interface JobDestination {
   notes: string | null;
   checked_in_at: string | null;
   sop_completed_at: string | null;
+  goods_type: string | null;
 }
 
 interface JobOrigin {
@@ -384,6 +385,7 @@ export default function JobDetailPage() {
                    notes: d.notes || null,
                    checked_in_at: null,
                    sop_completed_at: null,
+                   goods_type: d.goods_type || d.product_name || null,
                 }))
               : undefined,
             // Map origins array from API
