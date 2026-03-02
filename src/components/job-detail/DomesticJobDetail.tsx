@@ -1133,6 +1133,12 @@ export default function DomesticJobDetail({
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
                         </div>
+                        {job.origin_goods_type && job.origin_goods_type !== '-' &&
+                      <div className="flex items-start gap-2">
+                            <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {job.origin_goods_type}</span>
+                          </div>
+                      }
                         {job.origin_remarks && job.origin_remarks !== '-' &&
                       <div className="flex items-start gap-2">
                             <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
