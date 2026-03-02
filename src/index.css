@@ -17,6 +17,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide scrollbar globally but keep scroll functionality */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
