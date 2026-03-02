@@ -1,6 +1,12 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2 } from 'lucide-react';
+import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2, Eye } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -193,6 +199,7 @@ export default function DomesticJobDetail({
   const [verifiedSealNumber, setVerifiedSealNumber] = useState<string | null>(null);
   const [isOcrVerified, setIsOcrVerified] = useState(false);
   const [verifiedLookupData, setVerifiedLookupData] = useState<any>(null);
+  const [showGoodsModal, setShowGoodsModal] = useState(false);
 
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
@@ -1136,7 +1143,15 @@ export default function DomesticJobDetail({
                         {job.origin_goods_type && job.origin_goods_type !== '-' &&
                       <div className="flex items-start gap-2">
                             <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                            <span><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {job.origin_goods_type}</span>
+                            <span className="flex-1"><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {job.origin_goods_type}</span>
+                            <button
+                              type="button"
+                              onClick={() => setShowGoodsModal(true)}
+                              className="shrink-0 p-1 rounded-full hover:bg-muted transition-colors"
+                              aria-label="ดูสินค้าทั้งหมด"
+                            >
+                              <Eye className="w-4 h-4 text-[#225795]" />
+                            </button>
                           </div>
                       }
                         {job.origin_remarks && job.origin_remarks !== '-' &&
@@ -1795,5 +1810,92 @@ export default function DomesticJobDetail({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Goods Detail Modal */}
+      <Dialog open={showGoodsModal} onOpenChange={setShowGoodsModal}>
+        <DialogContent className="max-w-sm mx-auto max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#225795]">
+              <Package className="w-5 h-5" />
+              {t('jobDetail.goodsType') || 'สินค้า'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Origin goods */}
+            {job.origin_goods_type && job.origin_goods_type !== '-' && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-green-600" />
+                  <span className="font-semibold text-sm text-foreground">{t('jobDetail.pickupPoint') || 'จุดรับสินค้า'}</span>
+                </div>
+                <div className="ml-6 space-y-1">
+                  <p className="text-xs text-muted-foreground">{job.origin_company_name || job.origin_location || '-'}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {job.origin_goods_type.split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((item: string, i: number) => (
+                      <Badge key={i} variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                        {item}
+                      </Badge>
+                    ))}
+                  </div>
+                  {job.origin_goods_quantity && job.origin_goods_quantity !== '-' && (
+                    <p className="text-xs text-muted-foreground">{t('jobDetail.quantity') || 'จำนวน'}: {job.origin_goods_quantity}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Destination goods */}
+            {job.destinations && job.destinations.length > 0 && (
+              <div className="space-y-3">
+                {job.destinations.map((dest, idx) => {
+                  const goodsStr = dest.goods_type || job.origin_goods_type;
+                  if (!goodsStr || goodsStr === '-') return null;
+                  const items = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
+                  return (
+                    <div key={dest.id || idx} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-red-500" />
+                        <span className="font-semibold text-sm text-foreground">
+                          {t('jobDetail.deliveryPoint') || 'จุดส่ง'} {job.destinations!.length > 1 ? `#${idx + 1}` : ''}
+                        </span>
+                      </div>
+                      <div className="ml-6 space-y-1">
+                        <p className="text-xs text-muted-foreground">{dest.company_name || dest.address || '-'}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {items.map((item, i) => (
+                            <Badge key={i} variant="secondary" className="bg-blue-50 text-[#225795] border-blue-200 text-xs">
+                              {item}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Single destination fallback */}
+            {(!job.destinations || job.destinations.length === 0) && (job.destination_goods_type || job.origin_goods_type) && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  <span className="font-semibold text-sm text-foreground">{t('jobDetail.deliveryPoint') || 'จุดส่ง'}</span>
+                </div>
+                <div className="ml-6">
+                  <p className="text-xs text-muted-foreground">{job.destination_company_name || job.destination_location || '-'}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {(job.destination_goods_type || job.origin_goods_type || '').split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((item: string, i: number) => (
+                      <Badge key={i} variant="secondary" className="bg-blue-50 text-[#225795] border-blue-200 text-xs">
+                        {item}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>;
 }
