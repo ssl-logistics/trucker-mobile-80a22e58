@@ -1822,68 +1822,111 @@ export default function DomesticJobDetail({
           </DialogHeader>
           <div className="space-y-4">
             {/* Origin goods */}
-            {job.origin_goods_type && job.origin_goods_type !== '-' && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-green-600" />
-                  <span className="font-semibold text-sm text-foreground">{t('jobDetail.pickupPoint') || 'จุดรับสินค้า'}</span>
+            <div className="space-y-2 border rounded-lg p-3 bg-green-50/30">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-green-600" />
+                <span className="font-semibold text-sm text-foreground">{t('jobDetail.pickupPoint') || 'จุดรับสินค้า'}</span>
+              </div>
+              <div className="ml-6 space-y-1.5 text-sm">
+                {job.origin_company_name && (
+                  <p className="font-medium text-foreground">{job.origin_company_name}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{job.origin_location || '-'}</p>
+                {job.origin_contact_person && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <User className="w-3 h-3" />
+                    <span>{job.origin_contact_person}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3" />
+                  <span>{formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
                 </div>
-                <div className="ml-6 space-y-1">
-                  <p className="text-xs text-muted-foreground">{job.origin_company_name || job.origin_location || '-'}</p>
-                  <div className="flex flex-wrap gap-1">
+                {job.origin_goods_type && job.origin_goods_type !== '-' && (
+                  <div className="flex flex-wrap gap-1 mt-1">
                     {job.origin_goods_type.split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((item: string, i: number) => (
                       <Badge key={i} variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs">
                         {item}
                       </Badge>
                     ))}
                   </div>
-                  {job.origin_goods_quantity && job.origin_goods_quantity !== '-' && (
-                    <p className="text-xs text-muted-foreground">{t('jobDetail.quantity') || 'จำนวน'}: {job.origin_goods_quantity}</p>
-                  )}
-                </div>
+                )}
+                {job.origin_goods_quantity && job.origin_goods_quantity !== '-' && (
+                  <p className="text-xs text-muted-foreground">{t('jobDetail.quantity') || 'จำนวน'}: {job.origin_goods_quantity}</p>
+                )}
+                {job.origin_remarks && job.origin_remarks !== '-' && (
+                  <p className="text-xs text-muted-foreground italic">{job.origin_remarks}</p>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Destination goods */}
-            {job.destinations && job.destinations.length > 0 && (
-              <div className="space-y-3">
-                {job.destinations.map((dest, idx) => {
-                  const goodsStr = dest.goods_type || job.origin_goods_type;
-                  if (!goodsStr || goodsStr === '-') return null;
-                  const items = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
-                  return (
-                    <div key={dest.id || idx} className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-red-500" />
-                        <span className="font-semibold text-sm text-foreground">
-                          {t('jobDetail.deliveryPoint') || 'จุดส่ง'} {job.destinations!.length > 1 ? `#${idx + 1}` : ''}
-                        </span>
+            {job.destinations && job.destinations.length > 0 ? (
+              job.destinations.map((dest, idx) => (
+                <div key={dest.id || idx} className="space-y-2 border rounded-lg p-3 bg-blue-50/30">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-red-500" />
+                    <span className="font-semibold text-sm text-foreground">
+                      {t('jobDetail.deliveryPoint') || 'จุดส่ง'} {job.destinations!.length > 1 ? `#${idx + 1}` : ''}
+                    </span>
+                  </div>
+                  <div className="ml-6 space-y-1.5 text-sm">
+                    {dest.company_name && (
+                      <p className="font-medium text-foreground">{dest.company_name}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">{dest.address || '-'}</p>
+                    {dest.contact_name && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <User className="w-3 h-3" />
+                        <span>{dest.contact_name}</span>
                       </div>
-                      <div className="ml-6 space-y-1">
-                        <p className="text-xs text-muted-foreground">{dest.company_name || dest.address || '-'}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {items.map((item, i) => (
-                            <Badge key={i} variant="secondary" className="bg-blue-50 text-[#225795] border-blue-200 text-xs">
-                              {item}
-                            </Badge>
-                          ))}
-                        </div>
+                    )}
+                    {(dest.delivery_date || dest.delivery_time) && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                       </div>
+                    )}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {(() => {
+                        const goodsStr = dest.goods_type || job.origin_goods_type;
+                        if (!goodsStr || goodsStr === '-') return <span className="text-xs text-muted-foreground">-</span>;
+                        return goodsStr.split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((item: string, i: number) => (
+                          <Badge key={i} variant="secondary" className="bg-blue-50 text-[#225795] border-blue-200 text-xs">
+                            {item}
+                          </Badge>
+                        ));
+                      })()}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Single destination fallback */}
-            {(!job.destinations || job.destinations.length === 0) && (job.destination_goods_type || job.origin_goods_type) && (
-              <div className="space-y-2">
+                    {dest.notes && dest.notes !== '-' && (
+                      <p className="text-xs text-muted-foreground italic">{dest.notes}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="space-y-2 border rounded-lg p-3 bg-blue-50/30">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-red-500" />
                   <span className="font-semibold text-sm text-foreground">{t('jobDetail.deliveryPoint') || 'จุดส่ง'}</span>
                 </div>
-                <div className="ml-6">
-                  <p className="text-xs text-muted-foreground">{job.destination_company_name || job.destination_location || '-'}</p>
+                <div className="ml-6 space-y-1.5 text-sm">
+                  {job.destination_company_name && (
+                    <p className="font-medium text-foreground">{job.destination_company_name}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">{job.destination_location || '-'}</p>
+                  {job.destination_contact_person && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <User className="w-3 h-3" />
+                      <span>{job.destination_contact_person}</span>
+                    </div>
+                  )}
+                  {(job.destination_date || job.destination_time) && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      <span>{job.destination_date ? formatDate(job.destination_date, language) : '-'} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-1 mt-1">
                     {(job.destination_goods_type || job.origin_goods_type || '').split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((item: string, i: number) => (
                       <Badge key={i} variant="secondary" className="bg-blue-50 text-[#225795] border-blue-200 text-xs">
@@ -1891,6 +1934,9 @@ export default function DomesticJobDetail({
                       </Badge>
                     ))}
                   </div>
+                  {job.destination_remarks && job.destination_remarks !== '-' && (
+                    <p className="text-xs text-muted-foreground italic">{job.destination_remarks}</p>
+                  )}
                 </div>
               </div>
             )}
