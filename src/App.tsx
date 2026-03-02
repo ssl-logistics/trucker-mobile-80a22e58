@@ -11,6 +11,7 @@ import { SwipeBackProvider } from "@/components/layout/SwipeBackProvider";
 import { DeepLinkListener } from "@/components/DeepLinkListener";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
+import { GlobalProximityAlert } from "@/components/GlobalProximityAlert";
 import { Loader2 } from "lucide-react";
 
 // Preloadable lazy import helper
@@ -143,6 +144,7 @@ const App = () => (
               <DeepLinkListener />
               <div className="min-h-screen">
                 <PushNotificationPrompt />
+                <GlobalProximityAlert />
                 <FloatingChatbot />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
