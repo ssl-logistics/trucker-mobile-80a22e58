@@ -100,6 +100,7 @@ interface JobDetail {
   bl_no?: string | null;
   destinations?: JobDestination[];
   origins?: JobOrigin[];
+  products?: any[];
   // Container return info for international jobs
   container_return_location?: string | null;
   container_return_address?: string | null;
@@ -399,6 +400,8 @@ export default function JobDetailPage() {
                   };
                 })
               : undefined,
+            // Pass raw products array
+            products: Array.isArray(foundJob.products) ? foundJob.products : undefined,
             // Map origins array from API
             origins: Array.isArray(foundJob.origins) && foundJob.origins.length > 0
               ? foundJob.origins.map((o: any) => ({
