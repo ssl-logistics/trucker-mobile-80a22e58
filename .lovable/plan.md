@@ -1,46 +1,39 @@
 
 
-# แก้ไขการ Filter เดือนใน IncomePage
+# ย้าย Proximity Alert ให้ทำงานทุกหน้า
 
-## ปัญหา
-
-ตัวเลือกเดือน (Select) มี value เป็น "jan", "feb", ... แต่ไม่มี logic ที่ใช้ `selectedMonth` ไป filter ข้อมูลจริง ทำให้เลือกเดือนไหนก็แสดงข้อมูลทั้งหมดเหมือนเดิม
+## ปัญหาปัจจุบัน
+`useProximityAlert()` ถูกเรียกใช้เฉพาะใน `Home.tsx` เท่านั้น เมื่อคนขับเปลี่ยนไปหน้าอื่น (เช่น หน้ารายละเอียดงาน, แชท, ตั้งค่า) Hook จะถูก unmount และหยุดตรวจสอบระยะทาง ทั้งที่ระบบ GPS Tracking ยังส่งพิกัดอยู่ตลอด
 
 ## วิธีแก้ไข
-
-แก้ไขไฟล์ `src/pages/IncomePage.tsx`:
-
-1. **เพิ่ม mapping** จาก select value ("jan", "feb", ...) เป็นเลขเดือน (0-11)
-2. **เพิ่มฟังก์ชัน filter** ที่กรองงานตาม `sender_pickup_date` เทียบกับเดือนที่เลือก
-3. **ใช้ filtered data** แทนข้อมูลดิบในการ group และแสดงผล
-
-## รายละเอียดทางเทคนิค
-
-### ไฟล์ที่แก้ไข
-| ไฟล์ | การแก้ไข |
-|------|----------|
-| `src/pages/IncomePage.tsx` | เพิ่ม filter logic ก่อน groupJobsByMonth |
-
-### Logic ที่เพิ่ม
-
-```text
-monthMap = { jan: 0, feb: 1, mar: 2, ... , dec: 11 }
-
-filterByMonth(jobs, selectedMonth):
-  if selectedMonth === "all" -> return jobs
-  else -> return jobs.filter(job => 
-    new Date(job.date ต้นทาง sender_pickup_date).getMonth() === monthMap[selectedMonth]
-  )
-```
-
-### ปัญหาที่ต้องแก้เพิ่ม
-
-ปัจจุบัน `IncomeJob.date` เก็บเป็น string ที่ถูก format แล้ว (เช่น "1/9/2568") ซึ่งไม่สามารถ parse กลับเป็น Date ได้ง่าย ดังนั้นจะ **เพิ่ม field `rawDate`** (ISO string) ใน `IncomeJob` interface เพื่อใช้ในการ filter เดือนอย่างแม่นยำ
+ย้าย `useProximityAlert()` ออกจาก `Home.tsx` ไปไว้ใน component ระดับบนสุดที่ mount ตลอดเวลา
 
 ### ขั้นตอน
-1. เพิ่ม `rawDate: string` ใน `IncomeJob` interface
-2. ตอน map job เป็น IncomeJob ให้เก็บ `rawDate: job.sender_pickup_date` ด้วย
-3. สร้าง `monthMap` object
-4. สร้างฟังก์ชัน `filterBySelectedMonth` ที่ใช้ `rawDate` เทียบกับ `selectedMonth`
-5. Apply filter ก่อน `groupJobsByMonth` ในทั้ง 3 tabs (all, paid, unpaid)
+
+**1. สร้าง Global Hook Component**
+สร้าง component ใหม่ เช่น `GlobalProximityAlert` ที่เรียก `useProximityAlert()` และ render เป็น `null` (ไม่แสดง UI)
+
+**2. เพิ่มใน App.tsx**
+วาง `GlobalProximityAlert` ไว้ภายใน `AuthProvider` และ `Routes` เพื่อให้:
+- มี access ถึง user context
+- ทำงานตลอดไม่ว่าจะอยู่หน้าไหน
+
+**3. ลบ useProximityAlert ออกจาก Home.tsx**
+เอา import และ call ของ `useProximityAlert()` ออกจาก `Home.tsx` เพื่อไม่ให้ทำงานซ้ำซ้อน
+
+## ผลลัพธ์
+- ระบบตรวจสอบระยะทางจะทำงานตลอดเวลาที่แอปเปิดอยู่ ไม่ว่าคนขับจะอยู่หน้าไหน
+- Push Notification จะถูกส่งไปยังมือถือ (Android/iOS) เมื่อใกล้จุดรับ/ส่งแม้คนขับไม่ได้อยู่หน้า Home
+
+## ข้อจำกัดที่ยังมีอยู่
+- หากคนขับปิดแอปทั้งหมด (kill app) ระบบจะหยุดตรวจสอบ เพราะ Capacitor ไม่รองรับ Background Location โดยตรง (ต้องใช้ native plugin เพิ่ม)
+
+---
+
+### รายละเอียดทางเทคนิค
+
+**ไฟล์ที่แก้ไข:**
+
+1. **`src/App.tsx`** - เพิ่ม component ที่เรียก `useProximityAlert()` ไว้ภายใน Router/AuthProvider
+2. **`src/pages/Home.tsx`** - ลบ import และ call ของ `useProximityAlert()`
 
