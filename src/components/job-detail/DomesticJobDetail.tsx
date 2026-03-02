@@ -1826,7 +1826,7 @@ export default function DomesticJobDetail({
 
       {/* Goods Detail Modal */}
       <Dialog open={showGoodsModal} onOpenChange={setShowGoodsModal}>
-        <DialogContent className="max-w-sm mx-auto max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-sm mx-auto max-h-[80vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-[#225795]">
               <Package className="w-5 h-5" />
