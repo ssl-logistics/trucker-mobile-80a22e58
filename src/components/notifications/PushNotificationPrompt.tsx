@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Bell, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -18,6 +19,8 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
 export const PushNotificationPrompt = () => {
+  const location = useLocation();
+  const isDownloadPage = location.pathname === '/download';
   const [showPrompt, setShowPrompt] = useState(false);
   const [showDeniedPrompt, setShowDeniedPrompt] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,7 +89,7 @@ export const PushNotificationPrompt = () => {
 
   useEffect(() => {
     // Skip notification prompt on download page
-    if (window.location.hash.includes('/download')) {
+    if (isDownloadPage) {
       return;
     }
 
@@ -370,7 +373,6 @@ export const PushNotificationPrompt = () => {
   };
 
   // Hide all prompts on download page
-  const isDownloadPage = window.location.hash.includes('/download');
   if (isDownloadPage) return null;
 
   // Denied permission prompt - show option to open settings
