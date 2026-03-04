@@ -12,6 +12,7 @@ import {
 const CHECK_INTERVAL_MS = 30_000; // 30 seconds
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
 const PROXIMITY_THRESHOLD_KM = 1;
+const DEPARTURE_THRESHOLD_KM = 1.5; // trigger departure alert when moving beyond this
 
 // ── Haversine ──────────────────────────────────────────────
 function haversineDistance(
@@ -29,21 +30,21 @@ function haversineDistance(
 }
 
 // ── Cooldown helpers ───────────────────────────────────────
-function getCooldownKey(orderCode: string, type: 'pickup' | 'delivery') {
-  return `proximity_alert_${orderCode}_${type}`;
+function getCooldownKey(orderCode: string, type: 'pickup' | 'delivery', variant: 'approach' | 'departure' = 'approach') {
+  return `proximity_alert_${orderCode}_${type}_${variant}`;
 }
 
-function isInCooldown(orderCode: string, type: 'pickup' | 'delivery'): boolean {
+function isInCooldown(orderCode: string, type: 'pickup' | 'delivery', variant: 'approach' | 'departure' = 'approach'): boolean {
   try {
-    const ts = localStorage.getItem(getCooldownKey(orderCode, type));
+    const ts = localStorage.getItem(getCooldownKey(orderCode, type, variant));
     if (!ts) return false;
     return Date.now() - Number(ts) < COOLDOWN_MS;
   } catch { return false; }
 }
 
-function setCooldown(orderCode: string, type: 'pickup' | 'delivery') {
+function setCooldown(orderCode: string, type: 'pickup' | 'delivery', variant: 'approach' | 'departure' = 'approach') {
   try {
-    localStorage.setItem(getCooldownKey(orderCode, type), String(Date.now()));
+    localStorage.setItem(getCooldownKey(orderCode, type, variant), String(Date.now()));
   } catch { /* noop */ }
 }
 
@@ -60,20 +61,40 @@ async function sendProximityNotification(
   userId: string,
   orderCode: string,
   type: 'pickup' | 'delivery',
+  variant: 'approach' | 'departure' = 'approach',
 ) {
   const isPickup = type === 'pickup';
-  const title_th = isPickup
-    ? `ใกล้จุดรับสินค้า - ${orderCode}`
-    : `ใกล้จุดส่งสินค้า - ${orderCode}`;
-  const title_en = isPickup
-    ? `Near pickup point - ${orderCode}`
-    : `Near delivery point - ${orderCode}`;
-  const description_th = isPickup
-    ? `คุณอยู่ใกล้จุดรับสินค้า งาน ${orderCode} แล้ว กรุณาอัพโหลดหลักฐาน`
-    : `คุณอยู่ใกล้จุดส่งสินค้า งาน ${orderCode} แล้ว กรุณาอัพโหลดหลักฐาน`;
-  const description_en = isPickup
-    ? `You are near the pickup point for job ${orderCode}. Please upload evidence.`
-    : `You are near the delivery point for job ${orderCode}. Please upload evidence.`;
+  const isDeparture = variant === 'departure';
+
+  let title_th: string, title_en: string, description_th: string, description_en: string;
+
+  if (isDeparture) {
+    title_th = isPickup
+      ? `⚠️ ออกจากจุดรับสินค้า - ${orderCode}`
+      : `⚠️ ออกจากจุดส่งสินค้า - ${orderCode}`;
+    title_en = isPickup
+      ? `⚠️ Left pickup point - ${orderCode}`
+      : `⚠️ Left delivery point - ${orderCode}`;
+    description_th = isPickup
+      ? `คุณออกจากจุดรับสินค้า งาน ${orderCode} โดยยังไม่ได้อัพโหลดหลักฐาน กรุณากลับไปอัพโหลด`
+      : `คุณออกจากจุดส่งสินค้า งาน ${orderCode} โดยยังไม่ได้อัพโหลดหลักฐาน กรุณากลับไปอัพโหลด`;
+    description_en = isPickup
+      ? `You left the pickup point for job ${orderCode} without uploading evidence. Please go back and upload.`
+      : `You left the delivery point for job ${orderCode} without uploading evidence. Please go back and upload.`;
+  } else {
+    title_th = isPickup
+      ? `ใกล้จุดรับสินค้า - ${orderCode}`
+      : `ใกล้จุดส่งสินค้า - ${orderCode}`;
+    title_en = isPickup
+      ? `Near pickup point - ${orderCode}`
+      : `Near delivery point - ${orderCode}`;
+    description_th = isPickup
+      ? `คุณอยู่ใกล้จุดรับสินค้า งาน ${orderCode} แล้ว กรุณาอัพโหลดหลักฐาน`
+      : `คุณอยู่ใกล้จุดส่งสินค้า งาน ${orderCode} แล้ว กรุณาอัพโหลดหลักฐาน`;
+    description_en = isPickup
+      ? `You are near the pickup point for job ${orderCode}. Please upload evidence.`
+      : `You are near the delivery point for job ${orderCode}. Please upload evidence.`;
+  }
 
   try {
     await supabase.functions.invoke('get-notifications', {
@@ -87,10 +108,10 @@ async function sendProximityNotification(
         notification_type: 'proximity_alert',
         reference_type: 'job',
         order_code: orderCode,
-        status: `proximity_${type}`,
+        status: isDeparture ? `departure_${type}` : `proximity_${type}`,
       },
     });
-    console.log(`[ProximityAlert] Notification sent: ${type} for ${orderCode}`);
+    console.log(`[ProximityAlert] Notification sent: ${variant} ${type} for ${orderCode}`);
   } catch (err) {
     console.error('[ProximityAlert] Failed to send notification:', err);
   }
@@ -102,6 +123,8 @@ export function useProximityAlert() {
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const runningRef = useRef(false);
+  // Track points the driver was previously near (key: orderCode_type)
+  const wasNearRef = useRef<Set<string>>(new Set());
 
   const getDriverType = useCallback((): 'internal' | 'external' | 'freelance' => {
     if (isInternalDriver) return 'internal';
@@ -176,23 +199,33 @@ export function useProximityAlert() {
 
       if (!points.length) { runningRef.current = false; return; }
 
-      // 4. Filter to nearby points (within threshold)
-      const nearby = points.filter(
-        (p) => haversineDistance(myLat, myLng, p.lat, p.lng) <= PROXIMITY_THRESHOLD_KM,
-      );
-
-      if (!nearby.length) { runningRef.current = false; return; }
-
-      // 5. Deduplicate by orderCode+type
-      const uniqueNearby = nearby.filter(
+      // 4. Deduplicate by orderCode+type
+      const uniquePoints = points.filter(
         (p, i, arr) => arr.findIndex((q) => q.orderCode === p.orderCode && q.type === p.type) === i,
       );
 
-      // 6. For each nearby point, check checkin status and send alert if needed
-      for (const point of uniqueNearby) {
-        if (isInCooldown(point.orderCode, point.type)) continue;
+      // 5. Classify each point as near or far
+      const currentlyNear = new Set<string>();
+      const nearPoints: CheckPoint[] = [];
+      const departedPoints: CheckPoint[] = [];
 
-        // Fetch checkin status for this order
+      for (const p of uniquePoints) {
+        const dist = haversineDistance(myLat, myLng, p.lat, p.lng);
+        const key = `${p.orderCode}_${p.type}`;
+
+        if (dist <= PROXIMITY_THRESHOLD_KM) {
+          currentlyNear.add(key);
+          nearPoints.push(p);
+        } else if (dist > DEPARTURE_THRESHOLD_KM && wasNearRef.current.has(key)) {
+          // Driver was near but now moved away
+          departedPoints.push(p);
+        }
+      }
+
+      // 6. Handle approach alerts (existing logic)
+      for (const point of nearPoints) {
+        if (isInCooldown(point.orderCode, point.type, 'approach')) continue;
+
         const { data: checkinResult } = await getDriverCheckins(user.id, driverType, point.orderCode);
         const checkins: any[] = (checkinResult as any)?.data || checkinResult || [];
 
@@ -206,7 +239,6 @@ export function useProximityAlert() {
           : [];
 
         let hasEvidence = false;
-
         if (point.type === 'pickup') {
           hasEvidence = relevantCheckins.some((c: any) => c.checkin_type === 'pickup');
         } else {
@@ -216,10 +248,45 @@ export function useProximityAlert() {
         }
 
         if (!hasEvidence) {
-          await sendProximityNotification(user.id, point.orderCode, point.type);
-          setCooldown(point.orderCode, point.type);
+          await sendProximityNotification(user.id, point.orderCode, point.type, 'approach');
+          setCooldown(point.orderCode, point.type, 'approach');
         }
       }
+
+      // 7. Handle departure alerts (NEW)
+      for (const point of departedPoints) {
+        if (isInCooldown(point.orderCode, point.type, 'departure')) continue;
+
+        const { data: checkinResult } = await getDriverCheckins(user.id, driverType, point.orderCode);
+        const checkins: any[] = (checkinResult as any)?.data || checkinResult || [];
+
+        const relevantCheckins = Array.isArray(checkins)
+          ? checkins.filter((c: any) => {
+              const matchesOrder =
+                c.order_number === point.orderCode ||
+                c.transport_orders?.order_number === point.orderCode;
+              return matchesOrder;
+            })
+          : [];
+
+        let hasEvidence = false;
+        if (point.type === 'pickup') {
+          hasEvidence = relevantCheckins.some((c: any) => c.checkin_type === 'pickup');
+        } else {
+          hasEvidence = relevantCheckins.some(
+            (c: any) => c.checkin_type === 'delivery' || c.checkin_type === 'delivery_confirmed',
+          );
+        }
+
+        if (!hasEvidence) {
+          await sendProximityNotification(user.id, point.orderCode, point.type, 'departure');
+          setCooldown(point.orderCode, point.type, 'departure');
+        }
+      }
+
+      // 8. Update wasNear tracking
+      wasNearRef.current = currentlyNear;
+
     } catch (err) {
       console.warn('[ProximityAlert] Check failed:', err);
     } finally {
