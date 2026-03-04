@@ -12,7 +12,7 @@ import {
 const CHECK_INTERVAL_MS = 30_000; // 30 seconds
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
 const PROXIMITY_THRESHOLD_KM = 1;
-const DEPARTURE_THRESHOLD_KM = 1.5; // trigger departure alert when moving beyond this
+const DEPARTURE_THRESHOLD_KM = 1; // trigger departure alert when moving beyond this
 
 // ── Haversine ──────────────────────────────────────────────
 function haversineDistance(
