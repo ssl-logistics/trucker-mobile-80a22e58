@@ -8,7 +8,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useCheckinStatus } from '@/hooks/useCheckinStatus';
 import { toast } from '@/hooks/use-toast';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
-import InternationalJobDetail from '@/components/job-detail/InternationalJobDetail';
+
 
 // Interface matching what the detail components expect
 interface JobDestination {
@@ -683,31 +683,12 @@ export default function JobDetailPage() {
     );
   }
 
-  // Determine if domestic or international
-  const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
-  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก') || job.job_type === 'international';
-
   const handleUpdate = () => {
     loadJobDetail();
     refetchCheckinStatus();
   };
 
-  return isDomestic ? (
-    <DomesticJobDetail 
-      job={job} 
-      jobApplication={jobApplication} 
-      userId={user.id}
-      onUpdate={handleUpdate}
-    />
-  ) : isInternational ? (
-    <InternationalJobDetail 
-      job={job} 
-      jobApplication={jobApplication} 
-      userId={user.id}
-      onUpdate={handleUpdate}
-    />
-  ) : (
-    // Default to DomesticJobDetail if transport type is unknown
+  return (
     <DomesticJobDetail 
       job={job} 
       jobApplication={jobApplication} 
