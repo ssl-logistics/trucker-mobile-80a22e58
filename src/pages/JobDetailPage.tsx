@@ -257,16 +257,41 @@ export default function JobDetailPage() {
         } as Response;
         response = mockResponse;
       } else {
-        // Freelance drivers use get-freelance-accepted-jobs API
-        response = await fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-            },
-          }
-        );
+        // Freelance drivers: fetch from both freelance-accepted and factory-assigned APIs
+        const [freelanceResp, factoryResp] = await Promise.all([
+          fetch(
+            `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-freelance-accepted-jobs?freelance_driver_id=${user.id}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+              },
+            }
+          ),
+          fetch(
+            `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-factory-assigned-jobs?freelance_driver_id=${user.id}&limit=50`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+              },
+            }
+          ),
+        ]);
+
+        const freelanceData = freelanceResp.ok ? await freelanceResp.json() : { success: false, data: [] };
+        const factoryData = factoryResp.ok ? await factoryResp.json() : { success: false, data: [] };
+
+        const combinedFreelanceData = [
+          ...(Array.isArray(freelanceData?.data) ? freelanceData.data : []),
+          ...(Array.isArray(factoryData?.data) ? factoryData.data.map((j: any) => ({ ...j, isFactoryJob: true })) : []),
+        ];
+
+        // Create a mock response with combined data
+        response = {
+          ok: true,
+          json: async () => ({ success: true, data: combinedFreelanceData }),
+        } as Response;
       }
 
       if (!response.ok) {
