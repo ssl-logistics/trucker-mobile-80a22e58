@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan, Loader2 } from "lucide-react";
+import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan, Loader2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -47,6 +47,8 @@ interface JobDetail {
   transport_type?: string;
 }
 
+type PhotoSlot = 'container' | 'seal' | 'eir';
+
 const ContainerSOPPage = () => {
   const navigate = useNavigate();
   const { jobId } = useParams();
@@ -57,7 +59,6 @@ const ContainerSOPPage = () => {
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
   const { extractFromImage, extracting } = useOCR();
   
-  // Get verified data and job data from navigation state
   const navState = location.state as { 
     verifiedContainer?: string; 
     verifiedSeal?: string; 
@@ -70,27 +71,37 @@ const ContainerSOPPage = () => {
   
   const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
   
-  // Detect inbound from job data as fallback when navState doesn't have explicit loaded_container
   const isInboundFromJobData = !!jobDetail?.bl_no || jobDetail?.transport_type?.includes('ขาเข้า');
   const isLoadedContainer = checkinTypeFromState === 'loaded_container' || (!isContainerReturn && checkinTypeFromState !== 'empty_container' && isInboundFromJobData);
   const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
   const needsOCR = isEmptyContainer || isLoadedContainer;
-  const needsApiVerify = isLoadedContainer; // Only inbound BL needs API verification
+  const needsApiVerify = isLoadedContainer;
+  
   const [loading, setLoading] = useState(true);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
+  const [activePhotoSlot, setActivePhotoSlot] = useState<PhotoSlot>('container');
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   
+  // 3 photo slots
+  const [containerPhotoFile, setContainerPhotoFile] = useState<File | null>(null);
+  const [containerPhotoPreview, setContainerPhotoPreview] = useState<string>("");
+  const [sealPhotoFile, setSealPhotoFile] = useState<File | null>(null);
+  const [sealPhotoPreview, setSealPhotoPreview] = useState<string>("");
+  const [eirPhotoFile, setEirPhotoFile] = useState<File | null>(null);
+  const [eirPhotoPreview, setEirPhotoPreview] = useState<string>("");
+  
   // OCR state
-  const [isProcessingOcr, setIsProcessingOcr] = useState(false);
+  const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
+  const [isProcessingSealOcr, setIsProcessingSealOcr] = useState(false);
   const [ocrContainerNumber, setOcrContainerNumber] = useState<string | null>(null);
   const [ocrSealNumber, setOcrSealNumber] = useState<string | null>(null);
-  const [isOcrVerified, setIsOcrVerified] = useState(false);
+  const [isContainerOcrDone, setIsContainerOcrDone] = useState(false);
+  const [isSealOcrDone, setIsSealOcrDone] = useState(false);
   
-  const [pendingOcrResult, setPendingOcrResult] = useState<{ container_number: string | null; seal_number: string | null } | null>(null);
+  const [pendingContainerOcr, setPendingContainerOcr] = useState<string | null>(null);
+  const [pendingSealOcr, setPendingSealOcr] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [ocrImageUrl, setOcrImageUrl] = useState<string | undefined>(undefined);
 
@@ -165,263 +176,198 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const processPhotoFile = (file: File) => {
-    setPhotoFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPhotoPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Auto-run OCR after attaching document if needsOCR
-    if (needsOCR) {
-      runOcrOnFile(file);
-    }
-  };
-
-  const runOcrOnFile = async (file: File) => {
-    setIsProcessingOcr(true);
-    try {
-      toast({
-        title: t('ocr.processing'),
-        description: t('common.pleaseWait') || 'รอสักครู่...',
-      });
-
-      const result = await extractFromImage(file, 'container_seal');
-
-      if (result.success && result.data) {
-        const containerNo = result.data.container_number || null;
-        const sealNo = result.data.seal_number || null;
-        
-        if (!needsApiVerify && containerNo) {
-          // Booking (outbound): auto-accept OCR results without API verify
-          console.log('[OCR] Booking job - auto-accepting OCR results:', containerNo, sealNo);
-          setOcrContainerNumber(containerNo);
-          setOcrSealNumber(sealNo);
-          setPhotoFile(file); // Keep the photo file for confirmation
-          setIsOcrVerified(true);
-          toast({
-            title: 'อ่านข้อมูลสำเร็จ',
-            description: `เลขตู้: ${containerNo}`,
-          });
-        } else {
-          setPendingOcrResult({ container_number: containerNo, seal_number: sealNo });
-        }
-      } else if (result.error) {
-        toast({
-          title: t('ocr.failed'),
-          description: result.error,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('OCR error:', error);
-      toast({
-        title: t('ocr.error'),
-        description: t('ocr.errorDesc'),
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessingOcr(false);
-    }
+  const openPhotoDrawer = (slot: PhotoSlot) => {
+    setActivePhotoSlot(slot);
+    setShowPhotoDrawer(true);
   };
 
   const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
     setShowPhotoDrawer(false);
     
+    let file: File | null = null;
+    
     if (isNative) {
-      let file: File | null = null;
       if (source === 'camera') {
         file = await takePhoto();
       } else {
         file = await selectFromGallery();
       }
-      if (file) {
-        await processPhotoFile(file);
-        return;
-      }
     }
     
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    if (source === 'camera') {
-      input.capture = 'environment';
-    }
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        await processPhotoFile(file);
+    if (!file) {
+      // Web fallback
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      if (source === 'camera') {
+        input.capture = 'environment';
       }
-    };
-    input.click();
-  };
-
-  const handleConfirmOcr = async () => {
-    if (!pendingOcrResult?.container_number) {
-      toast({
-        title: 'ไม่พบเลขตู้',
-        description: 'กรุณาถ่ายรูปใหม่',
-        variant: "destructive",
+      
+      await new Promise<void>((resolve) => {
+        input.onchange = async (e) => {
+          file = (e.target as HTMLInputElement).files?.[0] || null;
+          if (file) {
+            await processFileForSlot(file, activePhotoSlot);
+          }
+          resolve();
+        };
+        input.click();
       });
-      setPendingOcrResult(null);
       return;
     }
-
-    setIsVerifying(true);
     
-    try {
-      // Determine driver type
-      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-
-      // Upload photo to S3 via edge function
-      let imageUrl: string | undefined;
-      if (photoFile) {
-        try {
-          const formData = new FormData();
-          formData.append('file', photoFile);
-          formData.append('folder', 'container-photos');
-          formData.append('fileName', `ocr_${jobId}_${Date.now()}.${photoFile.name.split('.').pop() || 'jpg'}`);
-
-          const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
-            body: formData
-          });
-
-          if (!uploadError && uploadData?.url) {
-            imageUrl = uploadData.url;
-            console.log('[OCR] Uploaded image URL:', imageUrl);
-          } else {
-            console.warn('[OCR] S3 upload failed, continuing without image_url:', uploadError || uploadData?.error);
-          }
-        } catch (uploadErr) {
-          console.warn('[OCR] S3 upload exception, continuing without image_url:', uploadErr);
-        }
-      }
-
-      // Step 1: Verify container/seal via ocr-extra (only for inbound BL)
-      if (needsApiVerify) {
-        const { data: verifyResult, error: verifyError } = await verifyOcrContainer({
-          container_no: pendingOcrResult.container_number,
-          seal_no: pendingOcrResult.seal_number || '',
-          order_number: jobId || undefined,
-          driver_id: user?.id || undefined,
-          driver_type: driverType,
-        });
-
-        if (verifyError) {
-          console.error('OCR verify error:', verifyError);
-          const isDuplicate = verifyError.toLowerCase().includes('duplicate') || verifyError.toLowerCase().includes('already scanned');
-          const isNotFound = verifyError.toLowerCase().includes('not found') || verifyError.toLowerCase().includes('does not exist');
-          
-          if (isDuplicate) {
-            toast({
-              title: 'ตู้นี้ดำเนินการไปแล้ว',
-              description: 'ตู้คอนเทนเนอร์นี้ถูกสแกนและบันทึกในระบบแล้ว ไม่จำเป็นต้องดำเนินการซ้ำ',
-              variant: "destructive",
-            });
-            setOcrContainerNumber(pendingOcrResult.container_number);
-            setOcrSealNumber(pendingOcrResult.seal_number);
-            setIsOcrVerified(true);
-            return;
-          }
-          
-          toast({
-            title: isNotFound ? 'ไม่พบข้อมูลตู้คอนเทนเนอร์' : 'ตรวจสอบไม่สำเร็จ',
-            description: isNotFound 
-              ? 'ไม่มีข้อมูลตู้คอนเทนเนอร์นี้อยู่ในระบบ กรุณาตรวจสอบเลขตู้และเลขซีลอีกครั้ง' 
-              : verifyError,
-            variant: "destructive",
-          });
-          return;
-        }
-
-        console.log('[OCR] Verify passed:', verifyResult);
-
-        toast({
-          title: 'ตรวจสอบสำเร็จ',
-          description: 'เลขตู้และเลขซีลถูกต้อง',
-        });
-      } else {
-        // Booking (outbound): skip API verify, just accept OCR results
-        console.log('[OCR] Booking job - skipping API verification, using OCR data directly');
-        toast({
-          title: 'อ่านข้อมูลสำเร็จ',
-          description: `เลขตู้: ${pendingOcrResult.container_number}`,
-        });
-      }
-
-      // Save image URL for later use in handleConfirmSOP
-      if (imageUrl) {
-        setOcrImageUrl(imageUrl);
-      }
-        
-      setOcrContainerNumber(pendingOcrResult.container_number);
-      setOcrSealNumber(pendingOcrResult.seal_number);
-      setIsOcrVerified(true);
-      setPendingOcrResult(null);
-    } catch (verifyErr) {
-      console.error('OCR submit exception:', verifyErr);
-      toast({
-        title: 'บันทึกไม่สำเร็จ',
-        description: 'กรุณาลองใหม่อีกครั้ง',
-        variant: "destructive",
-      });
-    } finally {
-      setIsVerifying(false);
+    if (file) {
+      await processFileForSlot(file, activePhotoSlot);
     }
+  };
+
+  const processFileForSlot = async (file: File, slot: PhotoSlot) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const preview = reader.result as string;
+      if (slot === 'container') {
+        setContainerPhotoFile(file);
+        setContainerPhotoPreview(preview);
+      } else if (slot === 'seal') {
+        setSealPhotoFile(file);
+        setSealPhotoPreview(preview);
+      } else {
+        setEirPhotoFile(file);
+        setEirPhotoPreview(preview);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Run OCR for container and seal slots
+    if (slot === 'container') {
+      await runContainerOcr(file);
+    } else if (slot === 'seal') {
+      await runSealOcr(file);
+    }
+  };
+
+  const runContainerOcr = async (file: File) => {
+    setIsProcessingContainerOcr(true);
+    setPendingContainerOcr(null);
+    setIsContainerOcrDone(false);
+    try {
+      toast({ title: 'กำลังอ่านเลขตู้...', description: 'รอสักครู่...' });
+      const result = await extractFromImage(file, 'container_seal');
+      if (result.success && result.data?.container_number) {
+        setPendingContainerOcr(result.data.container_number);
+        toast({ title: 'อ่านเลขตู้สำเร็จ', description: `เลขตู้: ${result.data.container_number}` });
+      } else {
+        toast({ title: 'ไม่สามารถอ่านเลขตู้ได้', description: 'กรุณาถ่ายรูปใหม่หรือกรอกเอง', variant: "destructive" });
+        setPendingContainerOcr('');
+      }
+    } catch (error) {
+      console.error('Container OCR error:', error);
+      toast({ title: 'OCR Error', description: 'กรุณาลองใหม่', variant: "destructive" });
+      setPendingContainerOcr('');
+    } finally {
+      setIsProcessingContainerOcr(false);
+    }
+  };
+
+  const runSealOcr = async (file: File) => {
+    setIsProcessingSealOcr(true);
+    setPendingSealOcr(null);
+    setIsSealOcrDone(false);
+    try {
+      toast({ title: 'กำลังอ่านเลขซีล...', description: 'รอสักครู่...' });
+      const result = await extractFromImage(file, 'container_seal');
+      if (result.success && result.data?.seal_number) {
+        setPendingSealOcr(result.data.seal_number);
+        toast({ title: 'อ่านเลขซีลสำเร็จ', description: `เลขซีล: ${result.data.seal_number}` });
+      } else {
+        toast({ title: 'ไม่สามารถอ่านเลขซีลได้', description: 'กรุณาถ่ายรูปใหม่หรือกรอกเอง', variant: "destructive" });
+        setPendingSealOcr('');
+      }
+    } catch (error) {
+      console.error('Seal OCR error:', error);
+      toast({ title: 'OCR Error', description: 'กรุณาลองใหม่', variant: "destructive" });
+      setPendingSealOcr('');
+    } finally {
+      setIsProcessingSealOcr(false);
+    }
+  };
+
+  const confirmContainerOcr = () => {
+    setOcrContainerNumber(pendingContainerOcr);
+    setIsContainerOcrDone(true);
+    setPendingContainerOcr(null);
+    toast({ title: 'ยืนยันเลขตู้สำเร็จ' });
+  };
+
+  const confirmSealOcr = () => {
+    setOcrSealNumber(pendingSealOcr);
+    setIsSealOcrDone(true);
+    setPendingSealOcr(null);
+    toast({ title: 'ยืนยันเลขซีลสำเร็จ' });
   };
 
   const handleConfirmClick = () => {
-    if (needsOCR && !isOcrVerified) {
-      toast({
-        title: 'กรุณาสแกน OCR ก่อน',
-        description: 'ต้องสแกนเลขตู้และเลขซีลก่อนยืนยัน',
-        variant: "destructive",
-      });
+    if (needsOCR && !isContainerOcrDone) {
+      toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
       return;
     }
-    if (!photoFile) {
-      toast({
-        title: t('sop.photoRequired'),
-        description: t('containerSop.photoRequiredMessage'),
-        variant: "destructive",
-      });
+    if (needsOCR && !isSealOcrDone) {
+      toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
+      return;
+    }
+    if (!eirPhotoFile) {
+      toast({ title: 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
     setShowConfirmDialog(true);
   };
 
   const handleConfirmSOP = async () => {
-    if (!photoFile || !jobId || !user) return;
+    if (!eirPhotoFile || !jobId || !user) return;
 
     setUploading(true);
     try {
+      // Upload EIR photo (primary document)
       let publicUrl = '';
-      
-      if (photoFile) {
-        const fileExt = photoFile.name.split('.').pop();
-        const fileName = `container_sop_${jobId}_${Date.now()}.${fileExt}`;
+      const fileExt = eirPhotoFile.name.split('.').pop();
+      const fileName = `container_sop_${jobId}_${Date.now()}.${fileExt}`;
 
-        const formData = new FormData();
-        formData.append('file', photoFile);
-        formData.append('folder', 'container-photos');
-        formData.append('fileName', fileName);
+      const formData = new FormData();
+      formData.append('file', eirPhotoFile);
+      formData.append('folder', 'container-photos');
+      formData.append('fileName', fileName);
 
-        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
-          body: formData
-        });
+      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
+        body: formData
+      });
 
-        if (uploadError || !uploadData?.url) {
-          throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
+      if (uploadError || !uploadData?.url) {
+        throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
+      }
+      publicUrl = uploadData.url;
+      console.log('[ContainerSOP] Uploaded EIR to S3:', publicUrl);
+
+      // Upload container photo to S3 if available
+      if (containerPhotoFile) {
+        try {
+          const cFormData = new FormData();
+          cFormData.append('file', containerPhotoFile);
+          cFormData.append('folder', 'container-photos');
+          cFormData.append('fileName', `ocr_container_${jobId}_${Date.now()}.${containerPhotoFile.name.split('.').pop() || 'jpg'}`);
+          const { data: cUpload } = await supabase.functions.invoke('upload-to-s3', { body: cFormData });
+          if (cUpload?.url) {
+            setOcrImageUrl(cUpload.url);
+            console.log('[ContainerSOP] Uploaded container photo:', cUpload.url);
+          }
+        } catch (e) {
+          console.warn('[ContainerSOP] Container photo upload failed:', e);
         }
-        publicUrl = uploadData.url;
-        console.log('[ContainerSOP] Uploaded to S3:', publicUrl);
       }
 
       const finalContainerNumber = ocrContainerNumber || containerNumber || undefined;
       const finalSealNumber = ocrSealNumber || sealNumber || undefined;
 
-      // Send driverCheckin to external API for container return confirmation
+      // Send driverCheckin for container return
       if (isContainerReturn) {
         const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
@@ -435,23 +381,20 @@ const ContainerSOPPage = () => {
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
           };
-          console.log('[ContainerSOP] Sending container_return_confirmed checkin:', checkinPayload);
           const { error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
             console.warn('[ContainerSOP] driverCheckin error (non-blocking):', checkinError);
-          } else {
-            console.log('[ContainerSOP] container_return_confirmed checkin sent successfully');
           }
         } catch (checkinErr) {
-          console.warn('[ContainerSOP] driverCheckin exception (non-blocking):', checkinErr);
+          console.warn('[ContainerSOP] driverCheckin exception:', checkinErr);
         }
       }
 
-      // Save OCR scan data to TMS when confirming container pickup (not return)
-      if (needsOCR && isOcrVerified && finalContainerNumber && !isContainerReturn) {
+      // Save OCR scan data
+      if (needsOCR && isContainerOcrDone && finalContainerNumber && !isContainerReturn) {
         const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
-          const { data: ocrResult, error: ocrError } = await submitOcrScan({
+          const { error: ocrError } = await submitOcrScan({
             container_no: finalContainerNumber,
             seal_no: finalSealNumber || '',
             order_number: jobId || undefined,
@@ -462,23 +405,14 @@ const ContainerSOPPage = () => {
           });
 
           if (ocrError) {
-            console.error('[ContainerSOP] save-ocr-scan error:', ocrError);
-            // Check for duplicate - treat as success
             const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
             if (!isDuplicate) {
-              toast({
-                title: 'บันทึกข้อมูล OCR ไม่สำเร็จ',
-                description: ocrError,
-                variant: "destructive",
-              });
+              toast({ title: 'บันทึกข้อมูล OCR ไม่สำเร็จ', description: ocrError, variant: "destructive" });
               return;
             }
-            console.log('[ContainerSOP] Duplicate scan detected, continuing...');
-          } else {
-            console.log('[ContainerSOP] save-ocr-scan success:', ocrResult);
           }
         } catch (ocrErr) {
-          console.warn('[ContainerSOP] save-ocr-scan exception (non-blocking):', ocrErr);
+          console.warn('[ContainerSOP] save-ocr-scan exception:', ocrErr);
         }
       }
 
@@ -511,7 +445,6 @@ const ContainerSOPPage = () => {
       setShowConfirmDialog(false);
     }
   };
-
 
   if (loading) {
     return (
@@ -546,7 +479,9 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
-  const isConfirmDisabled = uploading || !photoFile || (needsOCR && !isOcrVerified);
+  const allPhotosReady = containerPhotoFile && sealPhotoFile && eirPhotoFile;
+  const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
+  const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
@@ -581,129 +516,168 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
+        {/* === Photo 1: Container Number (OCR) === */}
         <div className="space-y-2">
-          <Label className="text-base">
-            {isContainerReturn ? 'แนบเอกสารคืนตู้' : isLoadedContainer ? 'แนบเอกสารรับตู้หนัก' : isEmptyContainer ? 'แนบเอกสารรับตู้เปล่า' : t('containerSop.uploadPhoto')} <span className="text-red-500">*</span>
+          <Label className="text-base flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
+            ถ่ายรูปเลขตู้ (Container No.) <span className="text-red-500">*</span>
           </Label>
           
           <button
-            onClick={() => setShowPhotoDrawer(true)}
-            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-white"
+            onClick={() => openPhotoDrawer('container')}
+            className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
           >
-            {photoPreview ? (
-              <img 
-                src={photoPreview} 
-                alt="Preview" 
-                className="w-full h-full object-cover rounded-lg"
-              />
+            {containerPhotoPreview ? (
+              <img src={containerPhotoPreview} alt="Container" className="w-full h-full object-cover rounded-lg" />
             ) : (
               <>
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                  <Camera className="w-8 h-8 text-muted-foreground" />
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground text-center px-4" dangerouslySetInnerHTML={{ __html: `${t('sop.clickToTake')}<br />${t('sop.productPhoto')}` }} />
+                <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเลขตู้</p>
               </>
             )}
           </button>
 
-          {/* OCR processing indicator - below photo */}
-          {needsOCR && (isProcessingOcr || extracting) && (
-            <Card className="p-4 bg-blue-50 border-blue-200">
+          {isProcessingContainerOcr && (
+            <Card className="p-3 bg-blue-50 border-blue-200">
               <div className="flex items-center gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                <span className="text-sm text-blue-700">กำลังอ่านเลขตู้/เลขซีลจากรูป...</span>
+                <span className="text-sm text-blue-700">กำลังอ่านเลขตู้จากรูป...</span>
               </div>
             </Card>
           )}
 
-           {/* OCR pending result - inline below photo */}
-           {needsOCR && pendingOcrResult && !isOcrVerified && !isProcessingOcr && !extracting && (
-             <Card className="p-4 bg-blue-50 border-blue-300">
-               <div className="flex items-center gap-2 mb-3">
-                 <Scan className="w-5 h-5 text-blue-600" />
-                 <span className="font-semibold text-blue-700">ผลการสแกน OCR</span>
-               </div>
-               <div className="space-y-2 mb-3">
-                 <div className="bg-white rounded-lg p-3 border border-blue-200">
-                   <label className="text-xs text-muted-foreground mb-2 block">เลขตู้</label>
-                   <input
-                     type="text"
-                     value={pendingOcrResult.container_number || ''}
-                     onChange={(e) => setPendingOcrResult({ ...pendingOcrResult, container_number: e.target.value })}
-                     className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
-                     placeholder="ไม่พบ"
-                   />
-                 </div>
-                 <div className="bg-white rounded-lg p-3 border border-blue-200">
-                   <label className="text-xs text-muted-foreground mb-2 block">เลขซีล</label>
-                   <input
-                     type="text"
-                     value={pendingOcrResult.seal_number || ''}
-                     onChange={(e) => setPendingOcrResult({ ...pendingOcrResult, seal_number: e.target.value })}
-                     className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
-                     placeholder="ไม่พบ"
-                   />
-                 </div>
-               </div>
-                <div className="flex gap-2">
-                  <Button
-                     variant="outline"
-                     size="sm"
-                     className="flex-1"
-                     onClick={() => { setPendingOcrResult(null); setShowPhotoDrawer(true); }}
-                   >
-                     ถ่ายใหม่
-                   </Button>
-                   {needsApiVerify ? (
-                   <Button
-                     size="sm"
-                     className="flex-1 bg-blue-600 hover:bg-blue-700"
-                     onClick={handleConfirmOcr}
-                     disabled={isVerifying || !pendingOcrResult.container_number}
-                   >
-                     {isVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-                     {isVerifying ? 'ตรวจสอบ...' : 'ยืนยันเลขตู้'}
-                   </Button>
-                   ) : (
-                   <Button
-                     size="sm"
-                     className="flex-1 bg-teal-600 hover:bg-teal-700"
-                     onClick={() => {
-                       setOcrContainerNumber(pendingOcrResult.container_number);
-                       setOcrSealNumber(pendingOcrResult.seal_number);
-                       setIsOcrVerified(true);
-                       setPendingOcrResult(null);
-                       toast({ title: 'ยืนยันเลขตู้สำเร็จ' });
-                     }}
-                     disabled={!pendingOcrResult.container_number}
-                   >
-                     ยืนยันเลขตู้
-                   </Button>
-                   )}
-                </div>
-             </Card>
-           )}
-
-          {/* OCR verified results display */}
-          {needsOCR && isOcrVerified && (
-            <Card className="p-4 bg-green-50 border-green-300">
-              <div className="flex items-center gap-2 mb-3">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="font-semibold text-green-700">ตรวจสอบสำเร็จ</span>
+          {pendingContainerOcr !== null && !isProcessingContainerOcr && !isContainerOcrDone && (
+            <Card className="p-3 bg-blue-50 border-blue-300">
+              <div className="flex items-center gap-2 mb-2">
+                <Scan className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-blue-700 text-sm">ผลการสแกน</span>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200">
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold">1</span>
-                  <span className="text-sm text-green-700 font-medium">เลขตู้ :</span>
-                  <span className="text-sm font-bold">{ocrContainerNumber || '-'}</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-green-200 ml-7">
-                  <span className="text-sm text-green-700 font-medium">เลขซีล :</span>
-                  <span className="text-sm font-bold">{ocrSealNumber || '-'}</span>
-                </div>
+              <div className="bg-white rounded-lg p-2 border border-blue-200 mb-2">
+                <label className="text-xs text-muted-foreground block mb-1">เลขตู้</label>
+                <input
+                  type="text"
+                  value={pendingContainerOcr}
+                  onChange={(e) => setPendingContainerOcr(e.target.value)}
+                  className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
+                  placeholder="กรอกเลขตู้"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => { setPendingContainerOcr(null); openPhotoDrawer('container'); }}>
+                  ถ่ายใหม่
+                </Button>
+                <Button size="sm" className="flex-1 bg-teal-600 hover:bg-teal-700" onClick={confirmContainerOcr} disabled={!pendingContainerOcr}>
+                  ยืนยันเลขตู้
+                </Button>
               </div>
             </Card>
           )}
+
+          {isContainerOcrDone && (
+            <Card className="p-3 bg-green-50 border-green-300">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm text-green-700 font-medium">เลขตู้ :</span>
+                <span className="text-sm font-bold">{ocrContainerNumber || '-'}</span>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* === Photo 2: Seal Number (OCR) === */}
+        <div className="space-y-2">
+          <Label className="text-base flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
+            ถ่ายรูปเลขซีล (Seal No.) <span className="text-red-500">*</span>
+          </Label>
+          
+          <button
+            onClick={() => openPhotoDrawer('seal')}
+            className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+          >
+            {sealPhotoPreview ? (
+              <img src={sealPhotoPreview} alt="Seal" className="w-full h-full object-cover rounded-lg" />
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเลขซีล</p>
+              </>
+            )}
+          </button>
+
+          {isProcessingSealOcr && (
+            <Card className="p-3 bg-blue-50 border-blue-200">
+              <div className="flex items-center gap-3">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <span className="text-sm text-blue-700">กำลังอ่านเลขซีลจากรูป...</span>
+              </div>
+            </Card>
+          )}
+
+          {pendingSealOcr !== null && !isProcessingSealOcr && !isSealOcrDone && (
+            <Card className="p-3 bg-blue-50 border-blue-300">
+              <div className="flex items-center gap-2 mb-2">
+                <Scan className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-blue-700 text-sm">ผลการสแกน</span>
+              </div>
+              <div className="bg-white rounded-lg p-2 border border-blue-200 mb-2">
+                <label className="text-xs text-muted-foreground block mb-1">เลขซีล</label>
+                <input
+                  type="text"
+                  value={pendingSealOcr}
+                  onChange={(e) => setPendingSealOcr(e.target.value)}
+                  className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
+                  placeholder="กรอกเลขซีล"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => { setPendingSealOcr(null); openPhotoDrawer('seal'); }}>
+                  ถ่ายใหม่
+                </Button>
+                <Button size="sm" className="flex-1 bg-teal-600 hover:bg-teal-700" onClick={confirmSealOcr} disabled={!pendingSealOcr}>
+                  ยืนยันเลขซีล
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {isSealOcrDone && (
+            <Card className="p-3 bg-green-50 border-green-300">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm text-green-700 font-medium">เลขซีล :</span>
+                <span className="text-sm font-bold">{ocrSealNumber || '-'}</span>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* === Photo 3: EIR Document (no OCR) === */}
+        <div className="space-y-2">
+          <Label className="text-base flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">3</span>
+            ถ่ายรูปเอกสาร EIR <span className="text-red-500">*</span>
+          </Label>
+          
+          <button
+            onClick={() => openPhotoDrawer('eir')}
+            className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+          >
+            {eirPhotoPreview ? (
+              <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR</p>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
