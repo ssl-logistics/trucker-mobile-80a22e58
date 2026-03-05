@@ -449,7 +449,7 @@ export default function ContainerCheckInPage() {
           </div>
 
           {/* Map Section */}
-          <div className="relative">
+          <div className="relative overflow-hidden">
             {(() => {
               const lat = isContainerReturn ? job.container_return_latitude : job.container_checkpoint_latitude;
               const lng = isContainerReturn ? job.container_return_longitude : job.container_checkpoint_longitude;
