@@ -701,14 +701,7 @@ export default function JobDetailPage() {
     refetchCheckinStatus();
   };
 
-  return isDomestic ? (
-    <DomesticJobDetail 
-      job={job} 
-      jobApplication={jobApplication} 
-      userId={user.id}
-      onUpdate={handleUpdate}
-    />
-  ) : isInternational ? (
+  return isInternational ? (
     <InternationalJobDetail 
       job={job} 
       jobApplication={jobApplication} 
@@ -716,7 +709,6 @@ export default function JobDetailPage() {
       onUpdate={handleUpdate}
     />
   ) : (
-    // Default to DomesticJobDetail if transport type is unknown
     <DomesticJobDetail 
       job={job} 
       jobApplication={jobApplication} 
