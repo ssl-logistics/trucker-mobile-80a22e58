@@ -348,6 +348,7 @@ const ContainerSOPPage = () => {
       console.log('[ContainerSOP] Uploaded EIR to S3:', publicUrl);
 
       // Upload container photo to S3 if available
+      let containerImageUrl = '';
       if (containerPhotoFile) {
         try {
           const cFormData = new FormData();
@@ -356,11 +357,30 @@ const ContainerSOPPage = () => {
           cFormData.append('fileName', `ocr_container_${jobId}_${Date.now()}.${containerPhotoFile.name.split('.').pop() || 'jpg'}`);
           const { data: cUpload } = await supabase.functions.invoke('upload-to-s3', { body: cFormData });
           if (cUpload?.url) {
+            containerImageUrl = cUpload.url;
             setOcrImageUrl(cUpload.url);
             console.log('[ContainerSOP] Uploaded container photo:', cUpload.url);
           }
         } catch (e) {
           console.warn('[ContainerSOP] Container photo upload failed:', e);
+        }
+      }
+
+      // Upload seal photo to S3 if available
+      let sealImageUrl = '';
+      if (sealPhotoFile) {
+        try {
+          const sFormData = new FormData();
+          sFormData.append('file', sealPhotoFile);
+          sFormData.append('folder', 'container-photos');
+          sFormData.append('fileName', `ocr_seal_${jobId}_${Date.now()}.${sealPhotoFile.name.split('.').pop() || 'jpg'}`);
+          const { data: sUpload } = await supabase.functions.invoke('upload-to-s3', { body: sFormData });
+          if (sUpload?.url) {
+            sealImageUrl = sUpload.url;
+            console.log('[ContainerSOP] Uploaded seal photo:', sUpload.url);
+          }
+        } catch (e) {
+          console.warn('[ContainerSOP] Seal photo upload failed:', e);
         }
       }
 
@@ -397,6 +417,9 @@ const ContainerSOPPage = () => {
           const { error: ocrError } = await submitOcrScan({
             container_no: finalContainerNumber,
             seal_no: finalSealNumber || '',
+            container_image_url: containerImageUrl || undefined,
+            seal_image_url: sealImageUrl || undefined,
+            eir_image_url: publicUrl || undefined,
             order_number: jobId || undefined,
             driver_id: user.id,
             driver_type: driverType,

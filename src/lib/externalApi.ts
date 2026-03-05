@@ -550,6 +550,9 @@ export async function verifyOcrContainer(body: {
 export async function submitOcrScan(body: {
   container_no: string;
   seal_no: string;
+  container_image_url?: string;
+  seal_image_url?: string;
+  eir_image_url?: string;
   order_number?: string;
   driver_id?: string;
   driver_type?: 'internal' | 'external' | 'freelance';
