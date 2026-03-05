@@ -193,7 +193,7 @@ export default function ContainerCheckInPage() {
             container_checkpoint_latitude: foundJob.container_checkpoint_latitude || foundJob.empty_pickup_latitude || null,
             container_checkpoint_longitude: foundJob.container_checkpoint_longitude || foundJob.empty_pickup_longitude || null,
             container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || foundJob.eta_time || foundJob.vessel_eta || foundJob.vessel_arrival_date || null,
-            empty_container_date: foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
+            empty_container_date: foundJob.first_pickup_date || foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
             container_number: foundJob.container_number || null,
             seal_number: foundJob.seal_number || null,
             container_number_2: foundJob.container_number_2 || null,

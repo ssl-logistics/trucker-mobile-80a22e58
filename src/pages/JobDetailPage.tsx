@@ -364,7 +364,7 @@ export default function JobDetailPage() {
             safety_equipment: null,
             container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || null,
             container_checkpoint_code: foundJob.container_checkpoint_code || null,
-            empty_container_date: foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.first_pickup_date || foundJob.sender_pickup_date || null,
+            empty_container_date: foundJob.first_pickup_date || foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
             empty_pickup_address: foundJob.empty_pickup_address || null,
             empty_pickup_phone: foundJob.empty_pickup_phone || null,
             empty_pickup_date: foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
