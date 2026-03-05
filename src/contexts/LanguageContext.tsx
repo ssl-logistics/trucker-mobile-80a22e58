@@ -639,6 +639,9 @@ const thTranslations: Record<string, string> = {
   'jobDetail.startJobDesc': 'คุณสามารถเริ่มตรวจตู้เปล่าได้แล้ว',
   'jobDetail.waitingStartJob': 'รอเริ่มงาน',
   'jobDetail.startingJob': 'กำลังเริ่มงาน...',
+  'jobDetail.companyName': 'บริษัท',
+  'jobDetail.containerReturn': 'จุดคืนตู้คอนเทนเนอร์',
+  'jobDetail.deliveryDate': 'วันส่ง',
 
   // Chat Page
   'chat.title': 'แชท',
@@ -2159,6 +2162,9 @@ const enTranslations: Record<string, string> = {
   'jobDetail.startJobDesc': 'You can now start container inspection',
   'jobDetail.waitingStartJob': 'Waiting to Start',
   'jobDetail.startingJob': 'Starting Job...',
+  'jobDetail.companyName': 'Company',
+  'jobDetail.containerReturn': 'Container Return Point',
+  'jobDetail.deliveryDate': 'Delivery Date',
   
   // Chat Page
   'chat.title': 'Chat',
@@ -3868,6 +3874,9 @@ const koTranslations: Record<string, string> = {
   'jobDetail.startJobDesc': '작업이 시작되었습니다',
   'jobDetail.waitingStartJob': '시작 대기 중',
   'jobDetail.startingJob': '작업 시작 중...',
+  'jobDetail.companyName': '회사',
+  'jobDetail.containerReturn': '컨테이너 반납 지점',
+  'jobDetail.deliveryDate': '배송 날짜',
   'jobDetail.startDateTime': '시작 날짜/시간',
   'jobDetail.shipArrivalDateTime': '선박 도착 날짜/시간',
   'jobDetail.emptyContainerDate': '빈 컨테이너 날짜',
@@ -5061,6 +5070,9 @@ const zhTranslations: Record<string, string> = {
   'jobDetail.startJobDesc': '您现在可以开始检查空集装箱',
   'jobDetail.waitingStartJob': '等待开始',
   'jobDetail.startingJob': '正在开始工作...',
+  'jobDetail.companyName': '公司',
+  'jobDetail.containerReturn': '集装箱归还点',
+  'jobDetail.deliveryDate': '送货日期',
   
   // Report Problem
   'reportProblem.title': '报告问题',
