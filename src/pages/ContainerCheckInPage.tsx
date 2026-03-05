@@ -504,12 +504,6 @@ export default function ContainerCheckInPage() {
             /* Empty Container Pickup Info */
             <div className="p-4 space-y-3">
               <div>
-                <p className="text-xs text-muted-foreground">วัน/เวลาเรือถึง</p>
-                <p className="text-sm font-semibold text-[#225795]">
-                  {job.container_checkpoint_time ? formatDate(job.container_checkpoint_time, language) : '-'}
-                </p>
-              </div>
-              <div>
                 <p className="text-xs text-muted-foreground">CY / จุดรับตู้เปล่า</p>
                 <p className="text-sm font-semibold text-[#225795]">
                   {job.container_checkpoint_code || '-'}
