@@ -287,6 +287,11 @@ export default function JobDetailPage() {
           ...(Array.isArray(factoryData?.data) ? factoryData.data.map((j: any) => ({ ...j, isFactoryJob: true })) : []),
         ];
 
+        console.log('[JobDetailPage] Freelance jobs:', Array.isArray(freelanceData?.data) ? freelanceData.data.length : 0,
+          'Factory jobs:', Array.isArray(factoryData?.data) ? factoryData.data.length : 0,
+          'Combined:', combinedFreelanceData.length);
+        console.log('[JobDetailPage] All order_numbers:', combinedFreelanceData.map((j: any) => j.order_number || j.order_code).filter(Boolean));
+
         // Create a mock response with combined data
         response = {
           ok: true,
