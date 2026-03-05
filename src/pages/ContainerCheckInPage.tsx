@@ -510,9 +510,9 @@ export default function ContainerCheckInPage() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">วันเริ่มเข้ารับตู้เปล่า</p>
+                <p className="text-xs text-muted-foreground">CY / จุดรับตู้เปล่า</p>
                 <p className="text-sm font-semibold text-[#225795]">
-                  {job.container_checkpoint_code || 'LCB B1'}
+                  {job.container_checkpoint_code || '-'}
                 </p>
               </div>
               <div>
