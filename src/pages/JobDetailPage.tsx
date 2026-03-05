@@ -684,8 +684,17 @@ export default function JobDetailPage() {
   }
 
   // Determine if domestic or international
-  const isDomestic = job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่');
-  const isInternational = job.transport_type?.includes('ขาเข้า') || job.transport_type?.includes('ขาออก') || job.job_type === 'international';
+  const isInternational = 
+    job.job_type === 'international' || 
+    job.transport_type?.includes('ขาเข้า') || 
+    job.transport_type?.includes('ขาออก') || 
+    job.transport_type?.includes('ภายนอกประเทศ') ||
+    job.transport_type?.includes('นอกประเทศ') ||
+    !!job.booking_no || 
+    !!job.bl_no || 
+    !!job.booking_number ||
+    !!job.container_checkpoint;
+  const isDomestic = !isInternational && (job.transport_type?.includes('เที่ยวเดียว') || job.transport_type?.includes('หลายที่'));
 
   const handleUpdate = () => {
     loadJobDetail();
