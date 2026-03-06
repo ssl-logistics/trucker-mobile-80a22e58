@@ -1018,7 +1018,7 @@ export default function DomesticJobDetail({
                       {isOcrVerified ?
                   t('jobDetail.completed') :
                   emptyContainerCheckedIn ?
-                  (job.bl_no ? t('jobDetail.completed') : t('jobDetail.waitingOCR')) :
+                  (job.bl_no ? t('jobDetail.waitingEvidence') : t('jobDetail.waitingOCR')) :
                   t('jobDetail.waitingCheckIn')}
                     </span>
                   </div>
