@@ -299,15 +299,17 @@ export default function NotificationsPage() {
         ) : (
           filteredNotifications.map((notification) => {
             const { date, time } = formatNotificationDateTime(notification.created_at);
+            const orderCode = notification.reference_id || extractOrderCodeFromDescription(notification);
+            const isNonClickable = isLocationNotification(notification) || !orderCode;
             return (
               <button
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
                 className={cn(
                   "w-full px-4 py-4 border-b text-left transition-colors",
-                  isLocationNotification(notification) ? "cursor-default" : "hover:bg-muted/50"
+                  isNonClickable ? "cursor-default" : "hover:bg-muted/50"
                 )}
-                disabled={isLocationNotification(notification)}
+                disabled={isNonClickable}
               >
                 <div className="flex items-start gap-3">
                   <div className={cn(
@@ -325,7 +327,7 @@ export default function NotificationsPage() {
                       {getLocalizedDescription(notification)}
                     </p>
                   </div>
-                  {!isLocationNotification(notification) && (
+                  {!isNonClickable && (
                     <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />
                   )}
                 </div>
