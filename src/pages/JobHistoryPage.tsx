@@ -567,17 +567,17 @@ export default function JobHistoryPage() {
         <span className="text-xs font-medium text-blue-700">{t('jobHistory.statusAccepted')}</span>
       </div>;
   };
-  // Calculate 3-month cutoff date
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-  threeMonthsAgo.setHours(0, 0, 0, 0);
+  // Calculate 1-month cutoff date
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  oneMonthAgo.setHours(0, 0, 0, 0);
 
   const filterApplications = (apps: JobApplication[]) => {
     // First filter out applications with null jobs
     let filtered = apps.filter(app => app.jobs !== null);
 
-    // Filter to last 3 months only
-    filtered = filtered.filter(app => new Date(app.applied_at) >= threeMonthsAgo);
+    // Filter to last 1 month only
+    filtered = filtered.filter(app => new Date(app.applied_at) >= oneMonthAgo);
 
     // Filter by tab
     if (activeTab === "in-progress") {
@@ -600,8 +600,8 @@ export default function JobHistoryPage() {
   const filterCompletedJobs = (jobs: CompletedJob[]) => {
     let filtered = [...jobs];
 
-    // Filter to last 3 months only
-    filtered = filtered.filter(job => new Date(job.sender_pickup_date) >= threeMonthsAgo);
+    // Filter to last 1 month only
+    filtered = filtered.filter(job => new Date(job.sender_pickup_date) >= oneMonthAgo);
 
     // Filter by tab - only show in "all" or "completed" tabs
     if (activeTab === "in-progress") {
