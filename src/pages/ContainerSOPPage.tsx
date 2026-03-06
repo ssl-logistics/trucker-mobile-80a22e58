@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan, Loader2, FileText } from "lucide-react";
+import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan, Loader2, FileText, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,7 @@ interface JobDetail {
 }
 
 type PhotoSlot = 'container' | 'seal' | 'eir';
+type ActiveEirIndex = number | 'new';
 
 const ContainerSOPPage = () => {
   const navigate = useNavigate();
@@ -81,6 +82,7 @@ const ContainerSOPPage = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
   const [activePhotoSlot, setActivePhotoSlot] = useState<PhotoSlot>('container');
+  const [activeEirIndex, setActiveEirIndex] = useState<ActiveEirIndex>(0);
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   
@@ -91,6 +93,9 @@ const ContainerSOPPage = () => {
   const [sealPhotoPreview, setSealPhotoPreview] = useState<string>("");
   const [eirPhotoFile, setEirPhotoFile] = useState<File | null>(null);
   const [eirPhotoPreview, setEirPhotoPreview] = useState<string>("");
+  // Multiple D/O photos support
+  const [doPhotoFiles, setDoPhotoFiles] = useState<File[]>([]);
+  const [doPhotoPreviews, setDoPhotoPreviews] = useState<string[]>([]);
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
@@ -176,8 +181,9 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const openPhotoDrawer = (slot: PhotoSlot) => {
+  const openPhotoDrawer = (slot: PhotoSlot, eirIndex: ActiveEirIndex = 0) => {
     setActivePhotoSlot(slot);
+    setActiveEirIndex(eirIndex);
     setShowPhotoDrawer(true);
   };
 
@@ -231,6 +237,27 @@ const ContainerSOPPage = () => {
       } else if (slot === 'seal') {
         setSealPhotoFile(file);
         setSealPhotoPreview(preview);
+      } else if (slot === 'eir' && isLoadedContainer) {
+        // Multiple D/O photos
+        if (activeEirIndex === 'new') {
+          setDoPhotoFiles(prev => [...prev, file]);
+          setDoPhotoPreviews(prev => [...prev, preview]);
+        } else {
+          const idx = activeEirIndex as number;
+          if (idx === 0 && doPhotoFiles.length === 0) {
+            // First photo
+            setDoPhotoFiles([file]);
+            setDoPhotoPreviews([preview]);
+          } else {
+            setDoPhotoFiles(prev => { const n = [...prev]; n[idx] = file; return n; });
+            setDoPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
+          }
+        }
+        // Also keep eirPhotoFile as the first one for backward compat
+        if (activeEirIndex === 0 || (activeEirIndex === 'new' && doPhotoFiles.length === 0)) {
+          setEirPhotoFile(file);
+          setEirPhotoPreview(preview);
+        }
       } else {
         setEirPhotoFile(file);
         setEirPhotoPreview(preview);
@@ -315,7 +342,8 @@ const ContainerSOPPage = () => {
       toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
       return;
     }
-    if (!eirPhotoFile) {
+    const hasDoOrEir = isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile;
+    if (!hasDoOrEir) {
       toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
@@ -323,17 +351,18 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmSOP = async () => {
-    if (!eirPhotoFile || !jobId || !user) return;
+    const primaryEirFile = isLoadedContainer ? doPhotoFiles[0] : eirPhotoFile;
+    if (!primaryEirFile || !jobId || !user) return;
 
     setUploading(true);
     try {
-      // Upload EIR photo (primary document)
+      // Upload EIR/D/O photo (primary document)
       let publicUrl = '';
-      const fileExt = eirPhotoFile.name.split('.').pop();
+      const fileExt = primaryEirFile.name.split('.').pop();
       const fileName = `container_sop_${jobId}_${Date.now()}.${fileExt}`;
 
       const formData = new FormData();
-      formData.append('file', eirPhotoFile);
+      formData.append('file', primaryEirFile);
       formData.append('folder', 'container-photos');
       formData.append('fileName', fileName);
 
@@ -345,7 +374,27 @@ const ContainerSOPPage = () => {
         throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
       }
       publicUrl = uploadData.url;
-      console.log('[ContainerSOP] Uploaded EIR to S3:', publicUrl);
+      console.log('[ContainerSOP] Uploaded EIR/D/O to S3:', publicUrl);
+
+      // Upload additional D/O photos if any
+      const additionalDoUrls: string[] = [];
+      if (isLoadedContainer && doPhotoFiles.length > 1) {
+        for (let i = 1; i < doPhotoFiles.length; i++) {
+          try {
+            const doFormData = new FormData();
+            doFormData.append('file', doPhotoFiles[i]);
+            doFormData.append('folder', 'container-photos');
+            doFormData.append('fileName', `do_${jobId}_${Date.now()}_${i}.${doPhotoFiles[i].name.split('.').pop() || 'jpg'}`);
+            const { data: doUpload } = await supabase.functions.invoke('upload-to-s3', { body: doFormData });
+            if (doUpload?.url) {
+              additionalDoUrls.push(doUpload.url);
+              console.log(`[ContainerSOP] Uploaded D/O photo ${i + 1}:`, doUpload.url);
+            }
+          } catch (e) {
+            console.warn(`[ContainerSOP] D/O photo ${i + 1} upload failed:`, e);
+          }
+        }
+      }
 
       // Upload container photo to S3 if available
       let containerImageUrl = '';
@@ -679,28 +728,69 @@ const ContainerSOPPage = () => {
           )}
         </div>
 
-        {/* === Photo 3: EIR Document (no OCR) === */}
+        {/* === Photo 3: EIR / D/O Document (no OCR) === */}
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">3</span>
             {isLoadedContainer ? 'ถ่ายรูปใบ D/O' : 'ถ่ายรูปเอกสาร EIR'} <span className="text-red-500">*</span>
           </Label>
           
-          <button
-            onClick={() => openPhotoDrawer('eir')}
-            className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
-          >
-            {eirPhotoPreview ? (
-              <img src={eirPhotoPreview} alt={isLoadedContainer ? "D/O" : "EIR"} className="w-full h-full object-cover rounded-lg" />
-            ) : (
-              <>
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground">{isLoadedContainer ? 'กดเพื่อถ่ายรูปใบ D/O' : 'กดเพื่อถ่ายรูปเอกสาร EIR'}</p>
-              </>
-            )}
-          </button>
+          {isLoadedContainer ? (
+            <>
+              {/* Show existing D/O photos */}
+              <div className="grid grid-cols-2 gap-2">
+                {doPhotoPreviews.map((preview, idx) => (
+                  <div key={idx} className="relative">
+                    <button
+                      onClick={() => openPhotoDrawer('eir', idx)}
+                      className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden hover:border-primary/50 transition-colors bg-white"
+                    >
+                      <img src={preview} alt={`D/O ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDoPhotoFiles(prev => prev.filter((_, i) => i !== idx));
+                        setDoPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                      }}
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                    <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">D/O {idx + 1}</span>
+                  </div>
+                ))}
+                
+                {/* Add new D/O button */}
+                <button
+                  onClick={() => openPhotoDrawer('eir', doPhotoFiles.length === 0 ? 0 : 'new')}
+                  className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+                >
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                    <Plus className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {doPhotoFiles.length === 0 ? 'กดเพื่อถ่ายรูปใบ D/O' : 'เพิ่มใบ D/O'}
+                  </p>
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              onClick={() => openPhotoDrawer('eir')}
+              className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+            >
+              {eirPhotoPreview ? (
+                <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR</p>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
