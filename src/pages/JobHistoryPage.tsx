@@ -167,19 +167,36 @@ export default function JobHistoryPage() {
           'completed:', ((completedResult.data as any)?.data || []).length,
           'closed:', ((closedResult.data as any)?.data || []).length);
         const allCheckins = (checkinsRes.data as any)?.data || [];
+        
+        console.log('[JobHistory] Total checkins:', allCheckins.length);
+        // Debug: show first 3 checkins to understand data structure
+        if (allCheckins.length > 0) {
+          console.log('[JobHistory] Sample checkin fields:', Object.keys(allCheckins[0]));
+          console.log('[JobHistory] Sample checkins (first 3):', allCheckins.slice(0, 3).map((c: any) => ({
+            checkin_type: c.checkin_type,
+            internal_driver_id: c.internal_driver_id,
+            external_driver_id: c.external_driver_id,
+            driver_id: c.driver_id,
+            transport_order_id: c.transport_order_id,
+            order_number: c.order_number || c.transport_orders?.order_number,
+          })));
+        }
 
         // Count PODs per transport_order_id for multi-destination jobs
         const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
         const podCountByTransportId: Record<string, number> = {};
         const containerReturnConfirmedByTransportId: Set<string> = new Set();
         
-        allCheckins
-          .filter(
-            (c: any) =>
-              c[driverIdField] === driverId &&
-              c.transport_order_id
-          )
-          .forEach((c: any) => {
+        // Try matching with driverIdField first, fallback to driver_id
+        const matchingCheckins = allCheckins.filter(
+          (c: any) =>
+            (c[driverIdField] === driverId || c.driver_id === driverId) &&
+            c.transport_order_id
+        );
+        
+        console.log('[JobHistory] Matching checkins count:', matchingCheckins.length, 'driverIdField:', driverIdField, 'driverId:', driverId);
+        
+        matchingCheckins.forEach((c: any) => {
             const transportId = String(c.transport_order_id);
             if (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) {
               podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
