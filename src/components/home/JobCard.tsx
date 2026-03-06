@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, MapPin, CircleDot, Banknote, Truck, Calendar, Eye } from 'lucide-react';
+import { Clock, MapPin, CircleDot, Banknote, Truck, Calendar, Eye, Package } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { th } from 'date-fns/locale';
 import coinsIcon from '@/assets/coins-icon-2.png';
@@ -65,6 +65,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
   const { canViewPrice } = useUserRole();
   const navigate = useNavigate();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [goodsModalOpen, setGoodsModalOpen] = useState(false);
 
   // Helper function to get translated job type
   const getJobTypeLabel = (jobType: string): string => {
@@ -199,20 +200,13 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           )}
         </div>
 
-        <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1 sm:p-4 sm:text-base sm:space-y-2">
-          <div>
-            <span className="text-muted-foreground">{t('job.goods')} : </span>
-            <span>{translateGoodsType(job.goods_type, language)}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">{t('job.weight')} : </span>
-            <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()}${job.goods_unit ? ` ${translateUnit(job.goods_unit, language)}` : ''}` : '-'}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">{t('job.quantity')} : </span>
-            <span>{job.goods_quantity ? `${job.goods_quantity}${job.goods_quantity_unit ? ` ${translateUnit(job.goods_quantity_unit, language)}` : ''}` : '-'}</span>
-          </div>
-        </div>
+        <button
+          onClick={() => setGoodsModalOpen(true)}
+          className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors sm:text-base"
+        >
+          <Package className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span>{t('job.goods')}: {translateGoodsType(job.goods_type, language) || '-'}</span>
+        </button>
 
         {job.remarks && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm sm:p-4 sm:text-base">
@@ -443,6 +437,37 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDetailModalOpen(false)} className="w-full">
+              {t('job.close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Goods Info Modal */}
+      <Dialog open={goodsModalOpen} onOpenChange={setGoodsModalOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center flex items-center justify-center gap-2">
+              <Package className="w-5 h-5" />
+              {t('job.goods')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="bg-muted/50 rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">{t('job.goods')}</p>
+              <p className="font-medium">{translateGoodsType(job.goods_type, language) || '-'}</p>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">{t('job.weight')}</p>
+              <p className="font-medium">{job.goods_weight ? `${job.goods_weight.toLocaleString()}${job.goods_unit ? ` ${translateUnit(job.goods_unit, language)}` : ''}` : '-'}</p>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-3">
+              <p className="text-xs text-muted-foreground">{t('job.quantity')}</p>
+              <p className="font-medium">{job.goods_quantity ? `${job.goods_quantity}${job.goods_quantity_unit ? ` ${translateUnit(job.goods_quantity_unit, language)}` : ''}` : '-'}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGoodsModalOpen(false)} className="w-full">
               {t('job.close')}
             </Button>
           </DialogFooter>
