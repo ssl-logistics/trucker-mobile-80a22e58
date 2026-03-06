@@ -204,29 +204,24 @@ export default function JobHistoryPage() {
         // Helper: check if job is international
         const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
 
-        // Filter jobs that have ALL destinations POD completed OR have 'completed' status from API
-        // For international jobs, also require container return to be completed
+        // Filter jobs that have ALL destinations POD completed
+        // Status must be completed/closed AND POD must be verified
         const completedFromApi: CompletedJob[] = allJobs
           .filter((job: any) => {
             const transportId = String(job.id);
             const podCount = podCountByTransportId[transportId] || 0;
             const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
               ? job.destinations.length 
-              : 1; // Single destination if no array
+              : 1;
             
             const allPodsCompleted = podCount >= destinationCount;
-            
-            // Jobs with 'closed' or 'completed' status from API are always shown in history
-            if (job.status === 'closed' || job.status === 'completed') {
-              return true;
-            }
             
             // For international jobs, also require container return confirmed
             if (isInternationalJob(job)) {
               return allPodsCompleted && containerReturnConfirmedByTransportId.has(transportId);
             }
             
-            // Domestic jobs: just need all PODs
+            // Domestic jobs: need all PODs completed
             return allPodsCompleted;
           })
           .map((job: any) => ({
@@ -412,9 +407,9 @@ export default function JobHistoryPage() {
         return allPodsCompleted;
       };
 
-      // Filter jobs that are completed or closed status, OR have ALL destinations POD completed
+      // Filter jobs that have ALL destinations POD completed (verified by checkins)
       const completedFromApi = allJobs
-        .filter((job: any) => job.status === 'completed' || job.status === 'closed' || isJobFullyCompleted(job))
+        .filter((job: any) => isJobFullyCompleted(job))
         .map((job: any) => ({ 
           ...job, 
           status: "completed",
