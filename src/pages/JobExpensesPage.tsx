@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Camera, Coins, Loader2, Plus, ImagePlus } from 'lucide-react';
+import { ChevronLeft, Camera, Coins, Loader2, Plus, ImagePlus, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -96,16 +96,60 @@ export default function JobExpensesPage() {
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
+  const handleDeletePhoto = async (expenseId: string, photoIndex: number) => {
+    if (!user || !jobId) return;
+
+    const expense = expenses.find(exp => exp.id === expenseId);
+    if (!expense || !expense.slip_urls) return;
+
+    const updatedUrls = expense.slip_urls.filter((_, i) => i !== photoIndex);
+
+    setUploadingExpenseId(expenseId);
+    try {
+      let driverType: 'internal' | 'external' | 'freelance' = 'internal';
+      if (userType === 'freelance_driver') driverType = 'freelance';
+      else if (userType === 'external_driver') driverType = 'external';
+
+      const { error } = await addExpense({
+        order_number: jobId,
+        driver_id: user.id,
+        driver_type: driverType,
+        expense_type: expense.expense_type,
+        amount: expense.amount,
+        receipt_photo_url: updatedUrls[0] || '',
+        receipt_photo_urls: updatedUrls,
+        expense_id: expense.id,
+        notes: 'ลบรูปใบเสร็จ',
+      });
+
+      if (error) throw new Error(error);
+
+      toast({
+        title: t('common.success'),
+        description: 'ลบรูปใบเสร็จสำเร็จ',
+      });
+
+      await loadExpenses();
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      toast({
+        title: t('expenses.error'),
+        description: 'ไม่สามารถลบรูปใบเสร็จได้',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingExpenseId(null);
+    }
+  };
+
   const handleEditPhoto = async (expenseId: string) => {
     if (isNative) {
-      // On native, use camera directly
       setUploadingExpenseId(expenseId);
       try {
         const file = await takePhoto();
         if (file) {
           await uploadReceiptPhoto(expenseId, file);
         } else {
-          // Try gallery if camera cancelled
           const galleryFile = await selectFromGallery();
           if (galleryFile) {
             await uploadReceiptPhoto(expenseId, galleryFile);
@@ -117,7 +161,6 @@ export default function JobExpensesPage() {
         setUploadingExpenseId(null);
       }
     } else {
-      // On web, use file input
       setEditingExpenseId(expenseId);
       fileInputRef.current?.click();
     }
@@ -281,19 +324,36 @@ export default function JobExpensesPage() {
                     {expense.slip_urls.map((imageUrl, imgIndex) => (
                       <div 
                         key={imgIndex}
-                        className="relative rounded-lg overflow-hidden bg-muted cursor-pointer"
-                        onClick={() => setSelectedImage(imageUrl)}
+                        className="relative rounded-lg overflow-hidden bg-muted"
                       >
-                        <img 
-                          src={imageUrl} 
-                          alt={`${t('expenses.receipt')} ${getExpenseTypeLabel(expense)} (${imgIndex + 1})`}
-                          className="w-full h-auto max-h-[300px] object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                          <span className="text-white text-lg font-medium">
-                            {t('expenses.clickToView')}
-                          </span>
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => setSelectedImage(imageUrl)}
+                        >
+                          <img 
+                            src={imageUrl} 
+                            alt={`${t('expenses.receipt')} ${getExpenseTypeLabel(expense)} (${imgIndex + 1})`}
+                            className="w-full h-auto max-h-[300px] object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center pointer-events-none">
+                            <span className="text-white text-lg font-medium">
+                              {t('expenses.clickToView')}
+                            </span>
+                          </div>
                         </div>
+                        {/* Delete button */}
+                        <button
+                          className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive/90 text-white shadow-md z-10 hover:bg-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm('ต้องการลบรูปใบเสร็จนี้?')) {
+                              handleDeletePhoto(expense.id, imgIndex);
+                            }
+                          }}
+                          disabled={uploadingExpenseId === expense.id}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                         {expense.slip_urls && expense.slip_urls.length > 1 && (
                           <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-background/90 shadow-md">
                             <span className="text-xs font-medium text-foreground">
