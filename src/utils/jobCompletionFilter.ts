@@ -84,15 +84,8 @@ export function isJobFullyCompleted(
   // Jobs still in_progress or in_transit are never considered fully completed,
   // even if checkin data suggests otherwise (data inconsistency safeguard)
   const status = (job.status || '').toLowerCase();
-  
-  // Jobs still in_progress or in_transit are never considered fully completed
   if (status === 'in_progress' || status === 'in_transit') {
     return false;
-  }
-
-  // Jobs with 'closed' or 'completed' status from API are considered done
-  if (status === 'closed' || status === 'completed') {
-    return true;
   }
 
   const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0
