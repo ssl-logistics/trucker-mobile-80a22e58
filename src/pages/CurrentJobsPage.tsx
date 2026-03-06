@@ -193,7 +193,17 @@ export default function CurrentJobsPage() {
           
           if (!checkinsResult.error && checkinsResult.data) {
             allCheckins = (checkinsResult.data as any)?.data || [];
+            console.log(`[CurrentJobsPage] Total checkins received: ${allCheckins.length}`);
             const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
+            
+            // Log all container_return_confirmed checkins for debugging
+            const containerReturnCheckins = allCheckins.filter((c: any) => c.checkin_type === 'container_return_confirmed');
+            console.log(`[CurrentJobsPage] container_return_confirmed checkins:`, containerReturnCheckins.map((c: any) => ({
+              transport_order_id: c.transport_order_id,
+              order_number: c.order_number || c.transport_orders?.order_number,
+              driver: c[driverIdField],
+              checkin_type: c.checkin_type
+            })));
             
          allCheckins
                .filter(
@@ -208,6 +218,7 @@ export default function CurrentJobsPage() {
                  }
                  if (c.checkin_type === 'container_return_confirmed') {
                    containerReturnByTransportId.add(transportId);
+                   console.log(`[CurrentJobsPage] ✅ Found container_return_confirmed for transport: ${transportId}`);
                  }
                });
             
@@ -265,9 +276,8 @@ export default function CurrentJobsPage() {
               if (isInternationalJob(job)) {
                 // International jobs: remove when container return is confirmed
                 // Check both by transport_order_id and order_number for robustness
-                const hasContainerReturnConfirmed = 
-                  containerReturnByTransportId.has(transportId) ||
-                  allCheckins.some((c: any) => {
+                const inSet = containerReturnByTransportId.has(transportId);
+                const inCheckins = allCheckins.some((c: any) => {
                     const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
                     const matchesDriver = c[driverIdField] === freelanceDriverId;
                     const matchesJob = String(c.transport_order_id) === transportId || 
@@ -275,12 +285,15 @@ export default function CurrentJobsPage() {
                       (c.transport_orders?.order_number && c.transport_orders.order_number === job.order_number);
                     return matchesDriver && matchesJob && c.checkin_type === 'container_return_confirmed';
                   });
+                const hasContainerReturnConfirmed = inSet || inCheckins;
+                
+                console.log(`[CurrentJobsPage] International job ${job.order_number} (${transportId}): booking_no=${job.booking_no}, bl_no=${job.bl_no}, containerReturnInSet=${inSet}, containerReturnInCheckins=${inCheckins}, hasContainerReturn=${hasContainerReturnConfirmed}`);
                 
                 if (hasContainerReturnConfirmed) {
-                  console.log(`International job ${job.order_number} container return confirmed → moving to history`);
+                  console.log(`[CurrentJobsPage] ➡️ International job ${job.order_number} container return confirmed → moving to history`);
                   return false;
                 }
-                // Still active if not all PODs or no container return
+                // Still active if no container return confirmed
                 return true;
               }
              
