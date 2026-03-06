@@ -213,6 +213,13 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             <span>{job.goods_quantity ? `${job.goods_quantity}${job.goods_quantity_unit ? ` ${translateUnit(job.goods_quantity_unit, language)}` : ''}` : '-'}</span>
           </div>
         </div>
+
+        {job.remarks && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm sm:p-4 sm:text-base">
+            <span className="text-muted-foreground font-medium">{t('job.remarks')} : </span>
+            <span>{job.remarks}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2 sm:gap-3">
