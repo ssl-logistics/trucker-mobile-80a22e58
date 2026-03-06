@@ -289,6 +289,7 @@ export default function SettingsPage() {
         { icon: Globe, label: t('settings.language'), path: '/language' },
         { icon: Info, label: t('settings.terms'), path: '/terms' },
         { icon: Info, label: t('settings.contact'), path: '/contact' },
+        { icon: Bug, label: t('settings.report_app_problem'), path: '/report-app-problem' },
       ]
     }
   ];
