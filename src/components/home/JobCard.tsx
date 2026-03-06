@@ -203,9 +203,10 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
         <button
           onClick={() => setGoodsModalOpen(true)}
           className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors sm:text-base"
+          title={t('job.goods')}
         >
           <Package className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span>{t('job.goods')}: {translateGoodsType(job.goods_type, language) || '-'}</span>
+          <span>{t('job.goods')}</span>
         </button>
 
         {job.remarks && (
