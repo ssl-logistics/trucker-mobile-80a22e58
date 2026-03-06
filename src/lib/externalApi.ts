@@ -479,6 +479,7 @@ export async function addExpense(body: {
   receipt_photo_urls?: string[];
   notes?: string;
   ocr_data?: any;
+  expense_id?: string;
 }) {
   return callExternalApi<{ success: boolean; data?: any }>('transport-expenses', {
     method: 'POST',

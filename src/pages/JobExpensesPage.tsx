@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Camera, Coins, Loader2 } from 'lucide-react';
+import { ChevronLeft, Camera, Coins, Loader2, Plus, ImagePlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { getExpenses, addExpense } from '@/lib/externalApi';
 import { supabase } from '@/integrations/supabase/client';
+import { useNativeCamera } from '@/hooks/useNativeCamera';
 
 interface Expense {
   id: string;
@@ -20,7 +22,7 @@ interface Expense {
 }
 
 export default function JobExpensesPage() {
-  const { jobId } = useParams(); // This is order_number (e.g., OR20260126002)
+  const { jobId } = useParams();
   const navigate = useNavigate();
   const { user, userType } = useAuth();
   const { t } = useLanguage();
@@ -30,6 +32,7 @@ export default function JobExpensesPage() {
   const [uploadingExpenseId, setUploadingExpenseId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
   useEffect(() => {
     loadExpenses();
@@ -93,20 +96,52 @@ export default function JobExpensesPage() {
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
-  const handleEditPhoto = (expenseId: string) => {
-    setEditingExpenseId(expenseId);
-    fileInputRef.current?.click();
+  const handleEditPhoto = async (expenseId: string) => {
+    if (isNative) {
+      // On native, use camera directly
+      setUploadingExpenseId(expenseId);
+      try {
+        const file = await takePhoto();
+        if (file) {
+          await uploadReceiptPhoto(expenseId, file);
+        } else {
+          // Try gallery if camera cancelled
+          const galleryFile = await selectFromGallery();
+          if (galleryFile) {
+            await uploadReceiptPhoto(expenseId, galleryFile);
+          }
+        }
+      } catch (error) {
+        console.error('Native camera error:', error);
+      } finally {
+        setUploadingExpenseId(null);
+      }
+    } else {
+      // On web, use file input
+      setEditingExpenseId(expenseId);
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !editingExpenseId || !user || !jobId) return;
-
+    if (!file || !editingExpenseId) return;
+    
     setUploadingExpenseId(editingExpenseId);
+    await uploadReceiptPhoto(editingExpenseId, file);
+    setUploadingExpenseId(null);
+    setEditingExpenseId(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const uploadReceiptPhoto = async (expenseId: string, file: File) => {
+    if (!user || !jobId) return;
+
     try {
       // Upload to Supabase storage
-      const fileName = `${user.id}/${Date.now()}_${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const fileName = `${user.id}/${jobId}_${expenseId}_${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
         .from('expense-receipts')
         .upload(fileName, file);
 
@@ -119,7 +154,7 @@ export default function JobExpensesPage() {
       const photoUrl = publicUrlData.publicUrl;
 
       // Find the expense to get its details
-      const expense = expenses.find(exp => exp.id === editingExpenseId);
+      const expense = expenses.find(exp => exp.id === expenseId);
       if (!expense) return;
 
       // Determine driver_type
@@ -127,7 +162,11 @@ export default function JobExpensesPage() {
       if (userType === 'freelance_driver') driverType = 'freelance';
       else if (userType === 'external_driver') driverType = 'external';
 
-      // Re-submit expense with new photo
+      // Collect existing photos and add new one
+      const existingUrls = expense.slip_urls || [];
+      const allPhotoUrls = [...existingUrls, photoUrl];
+
+      // Submit expense update with expense_id for backend to handle as update
       const { error } = await addExpense({
         order_number: jobId,
         driver_id: user.id,
@@ -135,6 +174,8 @@ export default function JobExpensesPage() {
         expense_type: expense.expense_type,
         amount: expense.amount,
         receipt_photo_url: photoUrl,
+        receipt_photo_urls: allPhotoUrls,
+        expense_id: expense.id,
         notes: 'อัพเดทรูปใบเสร็จ',
       });
 
@@ -145,7 +186,6 @@ export default function JobExpensesPage() {
         description: 'อัพโหลดรูปใบเสร็จสำเร็จ',
       });
 
-      // Reload expenses
       await loadExpenses();
     } catch (error) {
       console.error('Error uploading receipt:', error);
@@ -154,10 +194,6 @@ export default function JobExpensesPage() {
         description: 'ไม่สามารถอัพโหลดรูปใบเสร็จได้',
         variant: 'destructive',
       });
-    } finally {
-      setUploadingExpenseId(null);
-      setEditingExpenseId(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -239,8 +275,8 @@ export default function JobExpensesPage() {
                   {getExpenseTypeLabel(expense)} : ฿ {Number(expense.amount).toLocaleString()}
                 </div>
                 
-                {/* Receipt Images - แสดงทุกรูปจาก slip_urls */}
-                {expense.slip_urls && expense.slip_urls.length > 0 && (
+                {/* Receipt Images */}
+                {expense.slip_urls && expense.slip_urls.length > 0 ? (
                   <div className="space-y-3">
                     {expense.slip_urls.map((imageUrl, imgIndex) => (
                       <div 
@@ -253,13 +289,11 @@ export default function JobExpensesPage() {
                           alt={`${t('expenses.receipt')} ${getExpenseTypeLabel(expense)} (${imgIndex + 1})`}
                           className="w-full h-auto max-h-[300px] object-cover"
                         />
-                        {/* Overlay with "Click to view" text */}
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                           <span className="text-white text-lg font-medium">
                             {t('expenses.clickToView')}
                           </span>
                         </div>
-                        {/* Image counter badge */}
                         {expense.slip_urls && expense.slip_urls.length > 1 && (
                           <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-background/90 shadow-md">
                             <span className="text-xs font-medium text-foreground">
@@ -267,23 +301,39 @@ export default function JobExpensesPage() {
                             </span>
                           </div>
                         )}
-                        {/* Camera icon button - click to re-upload */}
-                        <button 
-                          className="absolute top-3 right-3 w-10 h-10 rounded-full bg-background/90 flex items-center justify-center shadow-md"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditPhoto(expense.id);
-                          }}
-                        >
-                          {uploadingExpenseId === expense.id ? (
-                            <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
-                          ) : (
-                            <Camera className="w-5 h-5 text-muted-foreground" />
-                          )}
-                        </button>
                       </div>
                     ))}
+                    {/* Add more photos button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      disabled={uploadingExpenseId === expense.id}
+                      onClick={() => handleEditPhoto(expense.id)}
+                    >
+                      {uploadingExpenseId === expense.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Plus className="w-4 h-4" />
+                      )}
+                      เพิ่มรูปใบเสร็จ
+                    </Button>
                   </div>
+                ) : (
+                  /* No photos - show upload button */
+                  <Button
+                    variant="outline"
+                    className="w-full h-24 border-dashed gap-2"
+                    disabled={uploadingExpenseId === expense.id}
+                    onClick={() => handleEditPhoto(expense.id)}
+                  >
+                    {uploadingExpenseId === expense.id ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <ImagePlus className="w-5 h-5 text-muted-foreground" />
+                    )}
+                    <span className="text-muted-foreground">อัพโหลดรูปใบเสร็จ</span>
+                  </Button>
                 )}
               </div>
             ))}
