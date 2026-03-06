@@ -415,7 +415,7 @@ const AddExpensePage = () => {
       <header className="bg-background border-b sticky top-0 z-10">
         <div className="px-4 py-4 flex items-center gap-3">
           <button
-            onClick={() => navigate(returnPath)}
+            onClick={() => navigate(-1)}
             className="p-2 hover:bg-muted rounded-full transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
