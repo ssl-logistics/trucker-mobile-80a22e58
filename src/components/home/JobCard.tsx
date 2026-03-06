@@ -40,6 +40,7 @@ interface Job {
   goods_weight?: number | null;
   goods_unit?: string | null;
   goods_quantity_unit?: string | null;
+  remarks?: string | null;
   isAccepted?: boolean;
   bl_no?: string | null;
   booking_no?: string | null;
@@ -418,6 +419,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               <span>{job.goods_quantity ? `${job.goods_quantity}${job.goods_quantity_unit ? ` ${translateUnit(job.goods_quantity_unit, language)}` : ''}` : '-'}</span>
             </div>
           </div>
+
+          {/* Remarks */}
+          {job.remarks && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
+              <p className="text-xs text-muted-foreground font-medium mb-1">{t('job.remarks')}</p>
+              <p className="text-foreground">{job.remarks}</p>
+            </div>
+          )}
 
           {/* Employer */}
             <div className="text-center text-sm text-muted-foreground">
