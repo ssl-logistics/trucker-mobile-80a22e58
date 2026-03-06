@@ -34,14 +34,14 @@ export default function ReportAppProblemPage() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      const totalFiles = [...photos, ...newFiles].slice(0, 5); // max 5
+      const totalFiles = [...photos, ...newFiles].slice(0, 6); // max 6
       setPhotos(totalFiles);
 
       // Generate previews for new files
       newFiles.forEach((file) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          setPhotoPreviews((prev) => [...prev, reader.result as string].slice(0, 5));
+          setPhotoPreviews((prev) => [...prev, reader.result as string].slice(0, 6));
         };
         reader.readAsDataURL(file);
       });
@@ -182,7 +182,7 @@ export default function ReportAppProblemPage() {
               onChange={handlePhotoChange}
               className="hidden"
               id="app-problem-photo"
-              disabled={isSubmitting || photos.length >= 5}
+              disabled={isSubmitting || photos.length >= 6}
             />
             {photoPreviews.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mb-3">
@@ -201,7 +201,7 @@ export default function ReportAppProblemPage() {
                 ))}
               </div>
             )}
-            {photos.length < 5 && (
+            {photos.length < 6 && (
               <label htmlFor="app-problem-photo" className="cursor-pointer block">
                 <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">{t("appProblem.clickToUpload")}</p>
@@ -209,7 +209,7 @@ export default function ReportAppProblemPage() {
             )}
             {photos.length > 0 && (
               <p className="mt-2 text-xs text-muted-foreground">
-                {photos.length}/5
+                {photos.length}/6
               </p>
             )}
           </div>
