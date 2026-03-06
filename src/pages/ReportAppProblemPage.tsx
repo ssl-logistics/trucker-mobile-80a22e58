@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -129,16 +129,18 @@ export default function ReportAppProblemPage() {
         {/* Problem Type */}
         <div>
           <h3 className="text-base font-medium mb-3">{t("appProblem.selectType")}</h3>
-          <RadioGroup value={selectedType} onValueChange={(v) => setSelectedType(v as AppProblemType)}>
-            {problemTypes.map((type) => (
-              <div key={type.value} className="flex items-center space-x-3 border rounded-lg p-3 mb-2">
-                <RadioGroupItem value={type.value} id={type.value} disabled={isSubmitting} />
-                <Label htmlFor={type.value} className="text-base font-normal cursor-pointer flex-1">
+          <Select value={selectedType} onValueChange={(v) => setSelectedType(v as AppProblemType)} disabled={isSubmitting}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t("appProblem.selectType")} />
+            </SelectTrigger>
+            <SelectContent>
+              {problemTypes.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
                   {type.label}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Description */}
