@@ -213,11 +213,9 @@ export default function PickupSummaryPage() {
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
         {/* Action Buttons - Hidden when viewing from history or SOP completed */}
-        {!fromHistory && !sopData?.sop_completed_at && (
-          <div className="bg-white rounded-xl p-4">
-            <JobActionButtons jobId={jobId} orderNumber={jobId} />
-          </div>
-        )}
+        <div className="bg-white rounded-xl p-4">
+          <JobActionButtons jobId={jobId} orderNumber={jobId} isPodCompleted={fromHistory ? false : !!sopData?.sop_completed_at} />
+        </div>
 
         {/* Check-in Status */}
         {sopData?.checked_in_at && (
