@@ -41,6 +41,8 @@ interface Job {
   goods_unit?: string | null;
   goods_quantity_unit?: string | null;
   isAccepted?: boolean;
+  bl_no?: string | null;
+  booking_no?: string | null;
   destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string }>;
   origins?: Array<{ sequence: number; location?: string; address?: string; company_name?: string }>;
 }
@@ -120,7 +122,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
   return (
     <Card className="p-4 pt-8 space-y-3 bg-card relative overflow-hidden sm:p-5 sm:pt-10 lg:p-6 lg:pt-12">
       <div className="absolute top-0 left-0 px-3 py-1 rounded-br-xl bg-green-50 text-green-700 text-sm font-medium sm:text-base sm:px-4">
-        {t('job.order_code')} {job.order_code}
+        {job.bl_no ? `BL ${job.bl_no}` : job.booking_no ? `Booking ${job.booking_no}` : `${t('job.order_code')} ${job.order_code}`}
       </div>
       <div className="absolute top-0 right-0 px-3 py-1 flex items-center gap-1.5 text-sm text-muted-foreground sm:text-base sm:px-4">
         <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
