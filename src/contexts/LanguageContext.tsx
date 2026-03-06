@@ -217,6 +217,7 @@ const thTranslations: Record<string, string> = {
   'job.requiredTruckType': 'ประเภทรถที่ต้องการ',
   'job.product': 'สินค้า',
   'job.employerLabel': 'ผู้ว่าจ้าง',
+  'job.remarks': 'หมายเหตุ',
   'job.close': 'ปิด',
   
   // Confirm Job Dialog
@@ -1734,6 +1735,7 @@ const enTranslations: Record<string, string> = {
   'job.requiredTruckType': 'Required Truck Type',
   'job.product': 'Product',
   'job.employerLabel': 'Employer',
+  'job.remarks': 'Remarks',
   'job.close': 'Close',
   
   // Confirm Job Dialog
@@ -3250,6 +3252,7 @@ const koTranslations: Record<string, string> = {
   'job.requiredTruckType': '필요한 차량 유형',
   'job.product': '제품',
   'job.employerLabel': '고용주',
+  'job.remarks': '비고',
   'job.close': '닫기',
   
   // Confirm Job Dialog
@@ -4965,6 +4968,7 @@ const zhTranslations: Record<string, string> = {
   'job.requiredTruckType': '所需车辆类型',
   'job.product': '产品',
   'job.employerLabel': '雇主',
+  'job.remarks': '备注',
   'job.close': '关闭',
   
   // Confirm Job Dialog
