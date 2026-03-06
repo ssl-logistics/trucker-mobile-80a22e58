@@ -878,7 +878,7 @@ export default function CurrentJobsPage() {
                   </div>
                   <div className="p-4 space-y-3">
                     <div className="text-sm">
-                      <span className="text-muted-foreground">{t('job.employer')} : </span>
+                      <span className="text-muted-foreground">{(isInternalDriver || isExternalDriver) ? t('job.factory') : t('job.employer')} : </span>
                       <span className="font-medium">{job.sender_name}</span>
                     </div>
                     
