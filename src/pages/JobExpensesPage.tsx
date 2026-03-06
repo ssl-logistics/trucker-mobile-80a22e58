@@ -151,7 +151,7 @@ export default function JobExpensesPage() {
 
       toast({
         title: t('common.success'),
-        description: 'ลบรายการค่าใช้จ่ายสำเร็จ',
+        description: t('expenses.deleteExpenseSuccess'),
       });
 
       await loadExpenses();
@@ -159,7 +159,7 @@ export default function JobExpensesPage() {
       console.error('Error deleting expense:', error);
       toast({
         title: t('expenses.error'),
-        description: 'ไม่สามารถลบรายการค่าใช้จ่ายได้',
+        description: t('expenses.deleteExpenseError'),
         variant: 'destructive',
       });
     } finally {
@@ -197,7 +197,7 @@ export default function JobExpensesPage() {
 
       toast({
         title: t('common.success'),
-        description: 'ลบรูปใบเสร็จสำเร็จ',
+        description: t('expenses.deletePhotoSuccess'),
       });
 
       await loadExpenses();
@@ -205,7 +205,7 @@ export default function JobExpensesPage() {
       console.error('Error deleting photo:', error);
       toast({
         title: t('expenses.error'),
-        description: 'ไม่สามารถลบรูปใบเสร็จได้',
+        description: t('expenses.deletePhotoError'),
         variant: 'destructive',
       });
     } finally {
@@ -297,7 +297,7 @@ export default function JobExpensesPage() {
 
       toast({
         title: t('common.success'),
-        description: 'อัพโหลดรูปใบเสร็จสำเร็จ',
+        description: t('expenses.uploadPhotoSuccess'),
       });
 
       await loadExpenses();
@@ -305,7 +305,7 @@ export default function JobExpensesPage() {
       console.error('Error uploading receipt:', error);
       toast({
         title: t('expenses.error'),
-        description: 'ไม่สามารถอัพโหลดรูปใบเสร็จได้',
+        description: t('expenses.uploadPhotoError'),
         variant: 'destructive',
       });
     }
@@ -401,7 +401,7 @@ export default function JobExpensesPage() {
                   <button
                     className="p-1.5 rounded-full text-destructive hover:bg-destructive/10 disabled:opacity-50"
                     onClick={() => {
-                      if (confirm('ต้องการลบรายการค่าใช้จ่ายนี้?')) {
+                      if (confirm(t('expenses.deleteExpenseConfirm'))) {
                         handleDeleteExpense(expense.id);
                       }
                     }}
@@ -443,7 +443,7 @@ export default function JobExpensesPage() {
                           className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-md z-10 hover:bg-destructive/90"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm('ต้องการลบรูปใบเสร็จนี้?')) {
+                            if (confirm(t('expenses.deletePhotoConfirm'))) {
                               handleDeletePhoto(expense.id, imgIndex);
                             }
                           }}
@@ -473,7 +473,7 @@ export default function JobExpensesPage() {
                       ) : (
                         <Plus className="w-4 h-4" />
                       )}
-                      เพิ่มรูปใบเสร็จ
+                      {t('expenses.addPhoto')}
                     </Button>
                   </div>
                 ) : (
@@ -489,7 +489,7 @@ export default function JobExpensesPage() {
                     ) : (
                       <ImagePlus className="w-5 h-5 text-muted-foreground" />
                     )}
-                    <span className="text-muted-foreground">อัพโหลดรูปใบเสร็จ</span>
+                    <span className="text-muted-foreground">{t('expenses.uploadPhoto')}</span>
                   </Button>
                 )}
               </div>
