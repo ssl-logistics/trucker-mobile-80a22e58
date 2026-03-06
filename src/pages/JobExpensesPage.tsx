@@ -18,6 +18,7 @@ interface Expense {
   amount: number;
   slip_url?: string;
   slip_urls?: string[];
+  notes?: string;
   created_at: string;
 }
 
@@ -72,10 +73,52 @@ export default function JobExpensesPage() {
             expense_name: exp.expense_name,
             amount: exp.amount,
             slip_url: exp.slip_url,
-            slip_urls: exp.slip_urls || (exp.slip_url ? [exp.slip_url] : []), // ใช้ slip_urls ถ้ามี, ไม่งั้น fallback เป็น slip_url
+            slip_urls: exp.slip_urls || (exp.slip_url ? [exp.slip_url] : []),
+            notes: exp.notes,
             created_at: exp.created_at,
           }));
-          setExpenses(mappedExpenses);
+
+          // Some API "update receipt" calls return a new row instead of updating the old one.
+          // Normalize these revision rows so totals don't get duplicated in UI.
+          const mutationNoteRegex = /(อัพเดทรูปใบเสร็จ|ลบรูปใบเสร็จ)/;
+          const groupedBySignature = mappedExpenses.reduce((acc, exp) => {
+            const signature = `${exp.expense_type}|${Number(exp.amount)}|${exp.expense_name || ''}`;
+            if (!acc[signature]) acc[signature] = [];
+            acc[signature].push(exp);
+            return acc;
+          }, {} as Record<string, Expense[]>);
+
+          const normalizedExpenses = Object.values(groupedBySignature).flatMap((group) => {
+            const mutationRows = group.filter((exp) => mutationNoteRegex.test(exp.notes || ''));
+            if (mutationRows.length === 0) return group;
+
+            const latestMutation = [...mutationRows].sort(
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )[0];
+
+            const nonMutationRows = group
+              .filter((exp) => exp.id !== latestMutation.id && !mutationNoteRegex.test(exp.notes || ''))
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+            // If latest mutation has no receipt (delete-all case), remove only the most recent predecessor row.
+            if ((latestMutation.slip_urls?.length || 0) === 0) {
+              return [latestMutation, ...nonMutationRows.slice(1)];
+            }
+
+            const latestUrls = new Set(latestMutation.slip_urls || []);
+            const keepUnrelatedRows = nonMutationRows.filter((exp) => {
+              const urls = exp.slip_urls || [];
+              return !urls.some((url) => latestUrls.has(url));
+            });
+
+            return [latestMutation, ...keepUnrelatedRows];
+          });
+
+          setExpenses(
+            normalizedExpenses.sort(
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )
+          );
         } else {
           setExpenses([]);
         }
@@ -343,7 +386,7 @@ export default function JobExpensesPage() {
                         </div>
                         {/* Delete button */}
                         <button
-                          className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive/90 text-white shadow-md z-10 hover:bg-destructive"
+                          className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-md z-10 hover:bg-destructive/90"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (confirm('ต้องการลบรูปใบเสร็จนี้?')) {
