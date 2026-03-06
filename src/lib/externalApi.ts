@@ -503,6 +503,13 @@ export async function getExpenses(orderNumber: string, driverId: string, driverT
   });
 }
 
+export async function deleteExpense(expenseId: string) {
+  return callExternalApi<{ success: boolean; data?: any }>('transport-expenses', {
+    method: 'DELETE',
+    body: { expense_id: expenseId },
+  });
+}
+
 // ==================== POD APIs ====================
 
 export async function receivePod(body: {
