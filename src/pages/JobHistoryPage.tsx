@@ -144,11 +144,12 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [inProgressResult, inTransitResult, deliveredResult, completedResult, checkinsRes] = await Promise.all([
+        const [inProgressResult, inTransitResult, deliveredResult, completedResult, closedResult, checkinsRes] = await Promise.all([
           getDriverAssignedJobs(driverId, driverType, 1000, 'in_progress'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'in_transit'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'delivered'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'completed'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'closed'),
           getDriverCheckins(driverId, driverType),
         ]);
 
@@ -157,12 +158,14 @@ export default function JobHistoryPage() {
           ...((inTransitResult.data as any)?.data || []),
           ...((deliveredResult.data as any)?.data || []),
           ...((completedResult.data as any)?.data || []),
+          ...((closedResult.data as any)?.data || []),
         ];
         
         console.log('[JobHistory] Fetched jobs count - in_progress:', ((inProgressResult.data as any)?.data || []).length,
           'in_transit:', ((inTransitResult.data as any)?.data || []).length,
           'delivered:', ((deliveredResult.data as any)?.data || []).length,
-          'completed:', ((completedResult.data as any)?.data || []).length);
+          'completed:', ((completedResult.data as any)?.data || []).length,
+          'closed:', ((closedResult.data as any)?.data || []).length);
         const allCheckins = (checkinsRes.data as any)?.data || [];
 
         // Count PODs per transport_order_id for multi-destination jobs
@@ -203,6 +206,11 @@ export default function JobHistoryPage() {
               : 1; // Single destination if no array
             
             const allPodsCompleted = podCount >= destinationCount;
+            
+            // Jobs with 'closed' or 'completed' status from API are always shown in history
+            if (job.status === 'closed' || job.status === 'completed') {
+              return true;
+            }
             
             // For international jobs, also require container return confirmed
             if (isInternationalJob(job)) {
