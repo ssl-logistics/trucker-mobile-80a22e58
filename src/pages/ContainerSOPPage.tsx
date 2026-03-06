@@ -551,7 +551,9 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
-  const allPhotosReady = containerPhotoFile && sealPhotoFile && eirPhotoFile;
+  const allPhotosReady = isContainerReturn 
+    ? !!eirPhotoFile 
+    : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
 
@@ -588,7 +590,8 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* === Photo 1: Container Number (OCR) === */}
+        {/* === Photo 1: Container Number (OCR) - Hide for container return === */}
+        {!isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
@@ -657,8 +660,10 @@ const ContainerSOPPage = () => {
             </Card>
           )}
         </div>
+        )}
 
-        {/* === Photo 2: Seal Number (OCR) === */}
+        {/* === Photo 2: Seal Number (OCR) - Hide for container return === */}
+        {!isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
@@ -727,11 +732,12 @@ const ContainerSOPPage = () => {
             </Card>
           )}
         </div>
+        )}
 
         {/* === Photo 3: EIR / D/O Document (no OCR) === */}
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">3</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : '3'}</span>
             {isLoadedContainer ? 'ถ่ายรูปใบ D/O' : 'ถ่ายรูปเอกสาร EIR'} <span className="text-red-500">*</span>
           </Label>
           
