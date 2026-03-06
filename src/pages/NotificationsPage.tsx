@@ -167,24 +167,43 @@ export default function NotificationsPage() {
     return title.includes('เช็คอิน') || title.includes('📍');
   };
 
+  // Extract order code from description text (e.g. "งาน OR20260305033: ...")
+  const extractOrderCodeFromDescription = (notification: Notification): string | null => {
+    const desc = notification.description_th || notification.description_en || '';
+    const match = desc.match(/OR\d{10,}/);
+    return match ? match[0] : null;
+  };
+
   const handleNotificationClick = async (notification: Notification) => {
     if (isLocationNotification(notification)) return;
 
     if (!notification.is_read) {
-      await supabase.functions.invoke('get-notifications', {
-        body: { action: 'mark_read', user_id: driverId, notification_id: notification.id },
-      });
-      setNotifications(prev =>
-        prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
-      );
+      try {
+        await supabase.functions.invoke('get-notifications', {
+          body: { action: 'mark_read', user_id: driverId, notification_id: notification.id },
+        });
+        setNotifications(prev =>
+          prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
+        );
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+      }
     }
 
-    if (notification.reference_type === 'job' && notification.reference_id) {
-      const orderCode = notification.reference_id;
+    // Try reference_id first, then extract from description
+    const orderCode = notification.reference_id || extractOrderCodeFromDescription(notification);
+
+    if (notification.reference_type === 'job' && orderCode) {
       if (notification.notification_type === 'new_job') {
         navigate('/home', { state: { openJobOrderCode: orderCode } });
         return;
       }
+      navigate(`/job/${orderCode}`);
+      return;
+    }
+
+    // Fallback: if we found an order code anywhere, navigate to job
+    if (orderCode) {
       navigate(`/job/${orderCode}`);
       return;
     }
