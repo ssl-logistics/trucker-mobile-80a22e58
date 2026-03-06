@@ -279,8 +279,8 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           <div className="py-4 space-y-4">
             {/* Order Code */}
             <div className="bg-primary/10 rounded-lg p-3 text-center">
-              <p className="text-xs text-muted-foreground">{t('job.orderCode')}</p>
-              <p className="font-bold text-primary text-lg">{job.order_code}</p>
+              <p className="text-xs text-muted-foreground">{job.bl_no ? 'BL' : job.booking_no ? 'Booking' : t('job.orderCode')}</p>
+              <p className="font-bold text-primary text-lg">{job.bl_no || job.booking_no || job.order_code}</p>
             </div>
 
             {/* Route */}
