@@ -316,7 +316,7 @@ const ContainerSOPPage = () => {
       return;
     }
     if (!eirPhotoFile) {
-      toast({ title: 'กรุณาถ่ายรูป EIR', variant: "destructive" });
+      toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
     setShowConfirmDialog(true);
@@ -683,7 +683,7 @@ const ContainerSOPPage = () => {
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">3</span>
-            ถ่ายรูปเอกสาร EIR <span className="text-red-500">*</span>
+            {isLoadedContainer ? 'ถ่ายรูปใบ D/O' : 'ถ่ายรูปเอกสาร EIR'} <span className="text-red-500">*</span>
           </Label>
           
           <button
@@ -691,13 +691,13 @@ const ContainerSOPPage = () => {
             className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
           >
             {eirPhotoPreview ? (
-              <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
+              <img src={eirPhotoPreview} alt={isLoadedContainer ? "D/O" : "EIR"} className="w-full h-full object-cover rounded-lg" />
             ) : (
               <>
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                   <FileText className="w-6 h-6 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR</p>
+                <p className="text-sm text-muted-foreground">{isLoadedContainer ? 'กดเพื่อถ่ายรูปใบ D/O' : 'กดเพื่อถ่ายรูปเอกสาร EIR'}</p>
               </>
             )}
           </button>
