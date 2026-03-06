@@ -21,17 +21,20 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
 
-  // Hide all buttons when POD is completed (similar to SOP success behavior)
-  if (isPodCompleted) {
-    return null;
-  }
-
+  // Hide non-expense buttons when POD is completed, but still show expense buttons from history
+  const hideNonExpenseButtons = isPodCompleted || isFromHistory;
+  
   // Hide expense buttons for container return in history view
   const hideExpenseButtons = isFromHistory && checkinType === 'container_return';
 
+  // If POD completed and not from history, hide everything
+  if (isPodCompleted && !isFromHistory) {
+    return null;
+  }
+
   return (
     <>
-      <div className={`grid gap-3 ${hideExpenseButtons ? 'hidden' : isFromHistory ? 'grid-cols-2' : 'grid-cols-3'}`}>
+      <div className={`grid gap-3 ${hideExpenseButtons ? 'hidden' : hideNonExpenseButtons ? 'grid-cols-2' : 'grid-cols-3'}`}>
         {!hideExpenseButtons && (
           <>
             <button 
@@ -52,7 +55,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
           </>
         )}
 
-        {!isFromHistory && (
+        {!hideNonExpenseButtons && (
           <button 
             className="flex flex-col items-center gap-1 text-primary"
             onClick={() => setIsReportDrawerOpen(true)}
