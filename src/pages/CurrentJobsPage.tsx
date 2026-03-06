@@ -254,29 +254,35 @@ export default function CurrentJobsPage() {
           const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
           
            const activeJobs = startedJobs.filter((job: any) => {
-             const transportId = String(job.id);
-             const podCount = podCountByTransportId[transportId] || 0;
-             const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
-               ? job.destinations.length 
-               : 1;
-             
-             const allPodsCompleted = podCount >= destinationCount;
-             
-             if (isInternationalJob(job)) {
-               // International jobs stay until container return is CONFIRMED
-               // Only check for container_return_confirmed, not just container_return
-               const hasContainerReturnConfirmed = allCheckins.some((c: any) => {
-                 const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
-                 return c[driverIdField] === freelanceDriverId &&
-                   c.transport_order_id === job.id &&
-                   c.checkin_type === 'container_return_confirmed';
-               });
-               const isStillActive = !allPodsCompleted || !hasContainerReturnConfirmed;
-               if (!isStillActive) {
-                 console.log(`International job ${job.order_number} completed: ${podCount}/${destinationCount} PODs + container return confirmed`);
-               }
-               return isStillActive;
-             }
+              const transportId = String(job.id);
+              const podCount = podCountByTransportId[transportId] || 0;
+              const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
+                ? job.destinations.length 
+                : 1;
+              
+              const allPodsCompleted = podCount >= destinationCount;
+              
+              if (isInternationalJob(job)) {
+                // International jobs: remove when container return is confirmed
+                // Check both by transport_order_id and order_number for robustness
+                const hasContainerReturnConfirmed = 
+                  containerReturnByTransportId.has(transportId) ||
+                  allCheckins.some((c: any) => {
+                    const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
+                    const matchesDriver = c[driverIdField] === freelanceDriverId;
+                    const matchesJob = String(c.transport_order_id) === transportId || 
+                      (c.order_number && c.order_number === job.order_number) ||
+                      (c.transport_orders?.order_number && c.transport_orders.order_number === job.order_number);
+                    return matchesDriver && matchesJob && c.checkin_type === 'container_return_confirmed';
+                  });
+                
+                if (hasContainerReturnConfirmed) {
+                  console.log(`International job ${job.order_number} container return confirmed → moving to history`);
+                  return false;
+                }
+                // Still active if not all PODs or no container return
+                return true;
+              }
              
              // Domestic jobs: just need all PODs
              if (allPodsCompleted) {
@@ -434,6 +440,8 @@ export default function CurrentJobsPage() {
         if (isInternationalJob(job)) {
           const hasContainerReturn = containerReturnByTransportId.has(String(job.id)) ||
             containerReturnByOrderNumber.has(job.order_number);
+          // International: remove from current jobs once container return is confirmed
+          if (hasContainerReturn) return true;
           return allPodsCompleted && hasContainerReturn;
         }
         
@@ -563,6 +571,15 @@ export default function CurrentJobsPage() {
             const destinationCount = Array.isArray(ticket.destinations) && ticket.destinations.length > 0
               ? ticket.destinations.length
               : 1;
+            
+            // For international bid jobs, also check container return
+            if (isInternationalJob(ticket)) {
+              const hasContainerReturn = containerReturnByOrderNumber.has(ticketNumber);
+              if (hasContainerReturn) {
+                console.log(`International bid job ${ticketNumber} excluded - container return confirmed`);
+                return false;
+              }
+            }
             
             if (podCount >= destinationCount) {
               console.log(`Bid job ${ticketNumber} excluded - all PODs completed (${podCount}/${destinationCount})`);
