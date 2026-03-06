@@ -572,9 +572,7 @@ export default function JobHistoryPage() {
     filtered = filtered.filter(app => new Date(app.applied_at) >= oneMonthAgo);
 
     // Filter by tab
-    if (activeTab === "in-progress") {
-      filtered = filtered.filter(app => app.job_started_at && !app.payment_completed_at);
-    } else if (activeTab === "completed") {
+    if (activeTab === "completed") {
       filtered = filtered.filter(app => app.payment_completed_at);
     }
 
@@ -595,10 +593,7 @@ export default function JobHistoryPage() {
     // Filter to last 1 month only
     filtered = filtered.filter(job => new Date(job.sender_pickup_date) >= oneMonthAgo);
 
-    // Filter by tab - only show in "all" or "completed" tabs
-    if (activeTab === "in-progress") {
-      return [];
-    }
+    // Filter by tab - completed tab shows all (since we only fetch completed/closed)
 
     // Filter by month
     if (selectedMonth !== "all") {
@@ -630,9 +625,6 @@ export default function JobHistoryPage() {
         <TabsList className="w-full justify-start rounded-none bg-white h-auto p-0">
           <TabsTrigger value="all" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
             {t('jobHistory.all')}
-          </TabsTrigger>
-          <TabsTrigger value="in-progress" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
-            {t('jobHistory.inProgress')}
           </TabsTrigger>
           <TabsTrigger value="completed" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
             {t('jobHistory.completed')}
