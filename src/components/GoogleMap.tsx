@@ -9,6 +9,18 @@ declare global {
   }
 }
 
+// Cache for Directions API results
+const directionsCache = new Map<string, google.maps.DirectionsResult>();
+
+function getDirectionsCacheKey(origin: { lat: number; lng: number }, destination: { lat: number; lng: number }): string {
+  // Round to 4 decimal places (~11m precision) to allow minor GPS drift
+  const oLat = origin.lat.toFixed(4);
+  const oLng = origin.lng.toFixed(4);
+  const dLat = destination.lat.toFixed(4);
+  const dLng = destination.lng.toFixed(4);
+  return `${oLat},${oLng}->${dLat},${dLng}`;
+}
+
 interface GoogleMapProps {
   latitude: number;
   longitude: number;
@@ -150,26 +162,39 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ latitude, longitude, markerLabel,
             },
           });
 
-          directionsService.route(
-            {
-              origin: origin,
-              destination: destination,
-              travelMode: window.google.maps.TravelMode.DRIVING,
-            },
-            (result, status) => {
-              if (status === window.google.maps.DirectionsStatus.OK && result) {
-                directionsRendererRef.current?.setDirections(result);
-                
-                // Fit bounds to show entire route
-                const bounds = new window.google.maps.LatLngBounds();
-                bounds.extend(origin);
-                bounds.extend(destination);
-                mapRef.current?.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
-              } else {
-                console.error('Directions request failed:', status);
+          const cacheKey = getDirectionsCacheKey(origin, destination);
+          const cachedResult = directionsCache.get(cacheKey);
+
+          if (cachedResult) {
+            console.log('[GoogleMap] Using cached directions for:', cacheKey);
+            directionsRendererRef.current?.setDirections(cachedResult);
+            const bounds = new window.google.maps.LatLngBounds();
+            bounds.extend(origin);
+            bounds.extend(destination);
+            mapRef.current?.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+          } else {
+            directionsService.route(
+              {
+                origin: origin,
+                destination: destination,
+                travelMode: window.google.maps.TravelMode.DRIVING,
+              },
+              (result, status) => {
+                if (status === window.google.maps.DirectionsStatus.OK && result) {
+                  directionsCache.set(cacheKey, result);
+                  console.log('[GoogleMap] Cached new directions for:', cacheKey);
+                  directionsRendererRef.current?.setDirections(result);
+                  
+                  const bounds = new window.google.maps.LatLngBounds();
+                  bounds.extend(origin);
+                  bounds.extend(destination);
+                  mapRef.current?.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+                } else {
+                  console.error('Directions request failed:', status);
+                }
               }
-            }
-          );
+            );
+          }
         },
         (err) => {
           console.error('Error getting user location:', err);
