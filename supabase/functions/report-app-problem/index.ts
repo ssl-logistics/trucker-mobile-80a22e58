@@ -1,5 +1,3 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -12,8 +10,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { user_id, problem_type, description, screenshot_url, device_info } =
-      await req.json();
+    const body = await req.json();
+    const { user_id, problem_type, description, screenshot_urls, device_info } = body;
 
     if (!problem_type || !description) {
       return new Response(
@@ -22,47 +20,41 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const externalUrl = "https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/report-app-problem";
+    const apiKey = Deno.env.get("EXPRESS_RENT_API_KEY");
 
-    // Ensure the table exists
-    const { error: tableError } = await supabase.rpc("execute_sql", {
-      sql: ""
-    }).catch(() => ({ error: null }));
+    if (!apiKey) {
+      throw new Error("EXPRESS_RENT_API_KEY is not configured");
+    }
 
-    // Try inserting into app_problem_reports, create table if it doesn't exist
-    const { error: insertError } = await supabase.from("app_problem_reports").insert({
+    const payload = {
       user_id: user_id || null,
       problem_type,
       description,
-      screenshot_url: screenshot_url || null,
+      screenshot_urls: screenshot_urls || null,
       device_info: device_info || null,
-      status: "pending",
+    };
+
+    console.log("Forwarding report to external API:", JSON.stringify(payload));
+
+    const externalResponse = await fetch(externalUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify(payload),
     });
 
-    if (insertError) {
-      // If table doesn't exist, log the report and still return success
-      console.log("Could not insert into table, logging report instead:", {
-        user_id,
-        problem_type,
-        description,
-        screenshot_url,
-        device_info,
-        timestamp: new Date().toISOString(),
-      });
+    const responseData = await externalResponse.text();
+    console.log("External API response:", externalResponse.status, responseData);
 
-      // Also create a notification for the user
-      if (user_id) {
-        await supabase.from("notifications").insert({
-          user_id,
-          title_th: "รายงานปัญหาถูกส่งแล้ว",
-          title_en: "Problem report submitted",
-          description_th: `ประเภท: ${problem_type} - ${description.substring(0, 100)}`,
-          description_en: `Type: ${problem_type} - ${description.substring(0, 100)}`,
-          notification_type: "system",
-        });
-      }
+    if (!externalResponse.ok) {
+      console.error("External API error:", externalResponse.status, responseData);
+      return new Response(
+        JSON.stringify({ success: false, error: "External API error", status: externalResponse.status }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(
