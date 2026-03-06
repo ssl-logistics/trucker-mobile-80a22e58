@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Camera, Coins, Loader2, Plus, ImagePlus, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -25,6 +25,8 @@ interface Expense {
 export default function JobExpensesPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isNavigatingRef = useRef(false);
   const { user, userType } = useAuth();
   const { t } = useLanguage();
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -327,7 +329,16 @@ export default function JobExpensesPage() {
       <header className="bg-header text-header-foreground px-4 py-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center justify-center relative">
           <button 
-            onClick={() => navigate(-1)} 
+            onClick={() => {
+              if (isNavigatingRef.current) return;
+              isNavigatingRef.current = true;
+              // If there's history, go back; otherwise navigate to a sensible default
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate(`/job/${jobId}`, { replace: true });
+              }
+            }} 
             className="absolute left-0 p-1 hover:bg-white/10 rounded-full"
           >
             <ChevronLeft className="w-6 h-6" />
