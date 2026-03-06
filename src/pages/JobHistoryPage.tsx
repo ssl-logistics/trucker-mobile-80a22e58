@@ -216,9 +216,15 @@ export default function JobHistoryPage() {
             
             const allPodsCompleted = podCount >= destinationCount;
             
-            // For international jobs, also require container return confirmed
+            // For international jobs:
+            // - Booking jobs: completed when container return is confirmed
+            // - BL jobs: require all PODs + container return confirmed
             if (isInternationalJob(job)) {
-              return allPodsCompleted && containerReturnConfirmedByTransportId.has(transportId);
+              const hasContainerReturnConfirmed = containerReturnConfirmedByTransportId.has(transportId);
+              const isBookingJob = !!job.booking_no && !job.bl_no;
+              return isBookingJob
+                ? hasContainerReturnConfirmed
+                : (allPodsCompleted && hasContainerReturnConfirmed);
             }
             
             // Domestic jobs: need all PODs completed
@@ -397,11 +403,16 @@ export default function JobHistoryPage() {
         
         const allPodsCompleted = podCount >= destinationCount;
         
-        // For international jobs, also require container return confirmed
+        // For international jobs:
+        // - Booking jobs: completed when container return is confirmed
+        // - BL jobs: require all PODs + container return confirmed
         if (isInternationalJob(job)) {
           const hasContainerReturnConfirmed = containerReturnConfirmedByTransportId.has(String(job.id)) || 
             containerReturnConfirmedByOrderNumber.has(job.order_number);
-          return allPodsCompleted && hasContainerReturnConfirmed;
+          const isBookingJob = !!job.booking_no && !job.bl_no;
+          return isBookingJob
+            ? hasContainerReturnConfirmed
+            : (allPodsCompleted && hasContainerReturnConfirmed);
         }
         
         return allPodsCompleted;
