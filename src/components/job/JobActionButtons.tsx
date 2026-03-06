@@ -11,9 +11,10 @@ interface JobActionButtonsProps {
   orderNumber?: string;
   isPodCompleted?: boolean;
   checkinType?: 'container_pickup' | 'container_return';
+  completedAt?: string | null;
 }
 
-export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType }: JobActionButtonsProps) {
+export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt }: JobActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -26,6 +27,21 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   
   // Hide expense buttons for container return in history view
   const hideExpenseButtons = isFromHistory && checkinType === 'container_return';
+
+  // Check if more than 3 days have passed since completion
+  const isExpired = (() => {
+    if (!completedAt) return false;
+    const completedDate = new Date(completedAt);
+    const now = new Date();
+    const diffMs = now.getTime() - completedDate.getTime();
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    return diffMs > threeDaysMs;
+  })();
+
+  // If expired (more than 3 days after completion), hide everything
+  if (isExpired) {
+    return null;
+  }
 
   // If POD completed and not from history, hide everything
   if (isPodCompleted && !isFromHistory) {

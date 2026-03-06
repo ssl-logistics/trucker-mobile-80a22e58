@@ -245,7 +245,7 @@ export default function ContainerSummaryPage() {
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
         {/* Action Buttons */}
-        <JobActionButtons jobId={jobId!} orderNumber={jobId!} checkinType={checkinType as any} />
+        <JobActionButtons jobId={jobId!} orderNumber={jobId!} checkinType={checkinType as any} completedAt={sopData?.return_confirmed_at || sopData?.sop_completed_at} />
 
         {/* Container Return Check-in Status */}
         {sopData?.return_checked_in_at && (
