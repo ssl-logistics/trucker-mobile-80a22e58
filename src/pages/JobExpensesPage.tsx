@@ -1,20 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Camera, Coins } from 'lucide-react';
+import { ChevronLeft, Camera, Coins, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
-import { getExpenses } from '@/lib/externalApi';
+import { getExpenses, addExpense } from '@/lib/externalApi';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Expense {
   id: string;
   expense_type: string;
   expense_name?: string;
   amount: number;
-  slip_url?: string;       // รูปแรก (backward compatible)
-  slip_urls?: string[];    // รูปทั้งหมด
+  slip_url?: string;
+  slip_urls?: string[];
   created_at: string;
 }
 
@@ -26,6 +27,9 @@ export default function JobExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [uploadingExpenseId, setUploadingExpenseId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   useEffect(() => {
     loadExpenses();
@@ -88,6 +92,74 @@ export default function JobExpensesPage() {
   };
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+
+  const handleEditPhoto = (expenseId: string) => {
+    setEditingExpenseId(expenseId);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingExpenseId || !user || !jobId) return;
+
+    setUploadingExpenseId(editingExpenseId);
+    try {
+      // Upload to Supabase storage
+      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('expense-receipts')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('expense-receipts')
+        .getPublicUrl(fileName);
+
+      const photoUrl = publicUrlData.publicUrl;
+
+      // Find the expense to get its details
+      const expense = expenses.find(exp => exp.id === editingExpenseId);
+      if (!expense) return;
+
+      // Determine driver_type
+      let driverType: 'internal' | 'external' | 'freelance' = 'internal';
+      if (userType === 'freelance_driver') driverType = 'freelance';
+      else if (userType === 'external_driver') driverType = 'external';
+
+      // Re-submit expense with new photo
+      const { error } = await addExpense({
+        order_number: jobId,
+        driver_id: user.id,
+        driver_type: driverType,
+        expense_type: expense.expense_type,
+        amount: expense.amount,
+        receipt_photo_url: photoUrl,
+        notes: 'อัพเดทรูปใบเสร็จ',
+      });
+
+      if (error) throw new Error(error);
+
+      toast({
+        title: t('common.success'),
+        description: 'อัพโหลดรูปใบเสร็จสำเร็จ',
+      });
+
+      // Reload expenses
+      await loadExpenses();
+    } catch (error) {
+      console.error('Error uploading receipt:', error);
+      toast({
+        title: t('expenses.error'),
+        description: 'ไม่สามารถอัพโหลดรูปใบเสร็จได้',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingExpenseId(null);
+      setEditingExpenseId(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const getExpenseTypeLabel = (expense: Expense) => {
     // Normalize expense_type to lowercase for matching
@@ -195,9 +267,19 @@ export default function JobExpensesPage() {
                             </span>
                           </div>
                         )}
-                        {/* Camera icon button */}
-                        <button className="absolute top-3 right-3 w-10 h-10 rounded-full bg-background/90 flex items-center justify-center shadow-md">
-                          <Camera className="w-5 h-5 text-muted-foreground" />
+                        {/* Camera icon button - click to re-upload */}
+                        <button 
+                          className="absolute top-3 right-3 w-10 h-10 rounded-full bg-background/90 flex items-center justify-center shadow-md"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditPhoto(expense.id);
+                          }}
+                        >
+                          {uploadingExpenseId === expense.id ? (
+                            <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+                          ) : (
+                            <Camera className="w-5 h-5 text-muted-foreground" />
+                          )}
                         </button>
                       </div>
                     ))}
@@ -208,6 +290,16 @@ export default function JobExpensesPage() {
           </div>
         )}
       </div>
+
+      {/* Hidden file input for re-uploading receipt photos */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFileChange}
+      />
 
       {/* Full Image Dialog */}
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
