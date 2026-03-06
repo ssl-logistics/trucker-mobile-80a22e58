@@ -144,26 +144,18 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [inProgressResult, inTransitResult, deliveredResult, completedResult, closedResult, checkinsRes] = await Promise.all([
-          getDriverAssignedJobs(driverId, driverType, 1000, 'in_progress'),
-          getDriverAssignedJobs(driverId, driverType, 1000, 'in_transit'),
-          getDriverAssignedJobs(driverId, driverType, 1000, 'delivered'),
+        const [completedResult, closedResult, checkinsRes] = await Promise.all([
           getDriverAssignedJobs(driverId, driverType, 1000, 'completed'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'closed'),
           getDriverCheckins(driverId, driverType),
         ]);
 
         const allJobs = [
-          ...((inProgressResult.data as any)?.data || []),
-          ...((inTransitResult.data as any)?.data || []),
-          ...((deliveredResult.data as any)?.data || []),
           ...((completedResult.data as any)?.data || []),
           ...((closedResult.data as any)?.data || []),
         ];
         
-        console.log('[JobHistory] Fetched jobs count - in_progress:', ((inProgressResult.data as any)?.data || []).length,
-          'in_transit:', ((inTransitResult.data as any)?.data || []).length,
-          'delivered:', ((deliveredResult.data as any)?.data || []).length,
+        console.log('[JobHistory] Fetched jobs count -',
           'completed:', ((completedResult.data as any)?.data || []).length,
           'closed:', ((closedResult.data as any)?.data || []).length);
         const allCheckins = (checkinsRes.data as any)?.data || [];
@@ -420,9 +412,9 @@ export default function JobHistoryPage() {
         return allPodsCompleted;
       };
 
-      // Filter jobs that have ALL destinations POD completed
+      // Filter jobs that are completed or closed status, OR have ALL destinations POD completed
       const completedFromApi = allJobs
-        .filter((job) => isJobFullyCompleted(job))
+        .filter((job: any) => job.status === 'completed' || job.status === 'closed' || isJobFullyCompleted(job))
         .map((job: any) => ({ 
           ...job, 
           status: "completed",
