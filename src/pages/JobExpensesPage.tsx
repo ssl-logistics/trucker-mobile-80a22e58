@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
-import { getExpenses, addExpense } from '@/lib/externalApi';
+import { getExpenses, addExpense, deleteExpense } from '@/lib/externalApi';
 import { supabase } from '@/integrations/supabase/client';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
 
@@ -140,6 +140,32 @@ export default function JobExpensesPage() {
   };
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+
+  const handleDeleteExpense = async (expenseId: string) => {
+    if (!user || !jobId) return;
+
+    setUploadingExpenseId(expenseId);
+    try {
+      const { error } = await deleteExpense(expenseId);
+      if (error) throw new Error(error);
+
+      toast({
+        title: t('common.success'),
+        description: 'ลบรายการค่าใช้จ่ายสำเร็จ',
+      });
+
+      await loadExpenses();
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      toast({
+        title: t('expenses.error'),
+        description: 'ไม่สามารถลบรายการค่าใช้จ่ายได้',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingExpenseId(null);
+    }
+  };
 
   const handleDeletePhoto = async (expenseId: string, photoIndex: number) => {
     if (!user || !jobId) return;
@@ -367,9 +393,26 @@ export default function JobExpensesPage() {
           <div className="space-y-6">
             {expenses.map((expense) => (
               <div key={expense.id} className="space-y-2">
-                {/* Expense Type Label */}
-                <div className="text-base font-medium text-foreground">
-                  {getExpenseTypeLabel(expense)} : ฿ {Number(expense.amount).toLocaleString()}
+                {/* Expense Type Label with Delete */}
+                <div className="flex items-center justify-between">
+                  <div className="text-base font-medium text-foreground">
+                    {getExpenseTypeLabel(expense)} : ฿ {Number(expense.amount).toLocaleString()}
+                  </div>
+                  <button
+                    className="p-1.5 rounded-full text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                    onClick={() => {
+                      if (confirm('ต้องการลบรายการค่าใช้จ่ายนี้?')) {
+                        handleDeleteExpense(expense.id);
+                      }
+                    }}
+                    disabled={uploadingExpenseId === expense.id}
+                  >
+                    {uploadingExpenseId === expense.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
                 
                 {/* Receipt Images */}
