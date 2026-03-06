@@ -115,17 +115,25 @@ export default function Home() {
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
+    // Filter out international jobs without booking_no or bl_no
+    const filterInternationalWithoutRef = (jobList: Job[]) => 
+      jobList.filter(job => {
+        const isInternational = job.job_type === 'international' || 
+          (!!(job as any).transport_category && (job as any).transport_category !== 'domestic');
+        if (isInternational && !job.booking_no && !job.bl_no) return false;
+        return true;
+      });
+
     // Internal/External drivers ONLY see their assigned factory jobs
-    // Use userType directly for more reliable check
     if (userType === 'internal_driver' || userType === 'external_driver') {
-      return factoryJobs;
+      return filterInternationalWithoutRef(factoryJobs);
     }
     
     if (jobFilter === 'factory') {
-      return factoryJobs;
+      return filterInternationalWithoutRef(factoryJobs);
     }
     // 'all' and 'company' both show company jobs (current API)
-    return jobs;
+    return filterInternationalWithoutRef(jobs);
   };
 
   const displayedJobs = getDisplayedJobs();
