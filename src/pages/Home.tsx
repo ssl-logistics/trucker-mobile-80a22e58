@@ -53,6 +53,8 @@ interface Job {
   goods_unit?: string | null;
   goods_quantity_unit?: string | null;
   isAccepted?: boolean;
+  bl_no?: string | null;
+  booking_no?: string | null;
   origin_lat?: number;
   origin_lng?: number;
   destination_lat?: number;
@@ -229,6 +231,8 @@ export default function Home() {
           goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
           goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || null,
           isAccepted: false,
+          bl_no: item.bl_no || null,
+          booking_no: item.booking_no || null,
           origin_lat: item.sender_latitude || item.origin_lat || undefined,
           origin_lng: item.sender_longitude || item.origin_lng || undefined,
           destination_lat: item.destination_latitude || item.destination_lat || undefined,
@@ -395,6 +399,8 @@ export default function Home() {
           goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
           goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || null,
           isAccepted: false,
+          bl_no: item.bl_no || null,
+          booking_no: item.booking_no || null,
           // Map coordinates from API
           origin_lat: item.origin_lat || undefined,
           origin_lng: item.origin_lng || undefined,
