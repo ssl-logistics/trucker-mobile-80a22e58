@@ -144,20 +144,27 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [completedResult, closedResult, checkinsRes] = await Promise.all([
+        const [inTransitResult, completedResult, closedResult, checkinsRes] = await Promise.all([
+          getDriverAssignedJobs(driverId, driverType, 1000, 'in_transit'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'completed'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'closed'),
           getDriverCheckins(driverId, driverType),
         ]);
 
-        const allJobs = [
+        const allJobsRaw = [
+          ...((inTransitResult.data as any)?.data || []),
           ...((completedResult.data as any)?.data || []),
           ...((closedResult.data as any)?.data || []),
         ];
+        const allJobs = allJobsRaw.filter((job: any, index: number, self: any[]) =>
+          index === self.findIndex((j: any) => j.id === job.id)
+        );
         
         console.log('[JobHistory] Fetched jobs count -',
+          'in_transit:', ((inTransitResult.data as any)?.data || []).length,
           'completed:', ((completedResult.data as any)?.data || []).length,
-          'closed:', ((closedResult.data as any)?.data || []).length);
+          'closed:', ((closedResult.data as any)?.data || []).length,
+          'unique total:', allJobs.length);
         const allCheckins = (checkinsRes.data as any)?.data || [];
         
         console.log('[JobHistory] Total checkins:', allCheckins.length);
@@ -596,8 +603,11 @@ export default function JobHistoryPage() {
   const filterCompletedJobs = (jobs: CompletedJob[]) => {
     let filtered = [...jobs];
 
-    // Filter to last 1 month only
-    filtered = filtered.filter(job => new Date(job.sender_pickup_date) >= oneMonthAgo);
+    // Filter to last 1 month by latest activity date (completion/update)
+    filtered = filtered.filter(job => {
+      const latestActivityDate = new Date(job.updated_at || job.sender_pickup_date || job.created_at);
+      return !Number.isNaN(latestActivityDate.getTime()) && latestActivityDate >= oneMonthAgo;
+    });
 
     // Filter by tab - completed tab shows all (since we only fetch completed/closed)
 
