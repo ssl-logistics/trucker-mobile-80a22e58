@@ -28,9 +28,9 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   // Hide expense buttons for container return in history view
   const hideExpenseButtons = isFromHistory && checkinType === 'container_return';
 
-  // Check if more than 3 days have passed since completion
+  // Check if more than 3 days have passed since completion (only applies in history view)
   const isExpired = (() => {
-    if (!completedAt) return false;
+    if (!isFromHistory || !completedAt) return false;
     const completedDate = new Date(completedAt);
     const now = new Date();
     const diffMs = now.getTime() - completedDate.getTime();
@@ -38,7 +38,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
     return diffMs > threeDaysMs;
   })();
 
-  // If expired (more than 3 days after completion), hide everything
+  // If expired in history view (more than 3 days after completion), hide everything
   if (isExpired) {
     return null;
   }
