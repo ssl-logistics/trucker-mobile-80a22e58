@@ -37,6 +37,7 @@ interface ExpenseLineItem {
 
 interface OCRDetailedResult {
   grand_total?: number | null;
+  total?: number | null;
   subtotal?: number | null;
   vat?: number | null;
   line_items?: ExpenseLineItem[];
@@ -170,19 +171,20 @@ const AddExpensePage = () => {
             if (photo.id === photoId) {
               if (result.success && result.data) {
                 const detailedData = result.data as OCRDetailedResult;
-                const grandTotal = detailedData.grand_total;
+                // Prioritize: grand_total > total > subtotal
+                const bestTotal = detailedData.grand_total ?? detailedData.total ?? detailedData.subtotal ?? null;
                 
-                if (grandTotal) {
+                if (bestTotal) {
                   toast({
                     title: "OCR สำเร็จ",
-                    description: `พบยอด: ${grandTotal.toLocaleString()} บาท`,
+                    description: `พบยอด: ${bestTotal.toLocaleString()} บาท`,
                   });
                 }
                 
                 return { 
                   ...photo, 
                   ocrExtracting: false, 
-                  ocrAmount: grandTotal || null,
+                  ocrAmount: bestTotal,
                   ocrDetailed: detailedData,
                 };
               }
@@ -227,7 +229,13 @@ const AddExpensePage = () => {
 
   const getTotalOCRAmount = (expense: ExpenseItem) => {
     return expense.receiptPhotos.reduce((sum, p) => {
-      // Use updated line items if they exist, otherwise use ocrAmount
+      // Prioritize grand_total > total > line_items sum > ocrAmount
+      if (p.ocrDetailed?.grand_total) {
+        return sum + p.ocrDetailed.grand_total;
+      }
+      if (p.ocrDetailed?.total) {
+        return sum + p.ocrDetailed.total;
+      }
       if (p.ocrDetailed?.line_items && p.ocrDetailed.line_items.length > 0) {
         const lineItemsTotal = p.ocrDetailed.line_items.reduce((itemSum, item) => itemSum + (item.amount || 0), 0);
         return sum + lineItemsTotal;
