@@ -802,7 +802,7 @@ export default function DeliveryDetailPage() {
       </header>
 
       <div className="px-4 py-6 space-y-6">
-        <JobActionButtons jobId={jobId} orderNumber={jobId} isPodCompleted={isSopCompleted} />
+        <JobActionButtons jobId={jobId} orderNumber={jobId} isPodCompleted={isSopCompleted} completedAt={destination?.sop_completed_at || jobApplication?.delivery_sop_completed_at} />
 
         {isCheckedIn && checkedInAt && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
