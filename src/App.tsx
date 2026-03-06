@@ -79,6 +79,7 @@ const LineCallbackPage = lazyWithPreload(() => import("./pages/LineCallbackPage"
 const PushDebugPage = lazyWithPreload(() => import("./pages/PushDebugPage"));
 const BidJobDetailPage = lazyWithPreload(() => import("./pages/BidJobDetailPage"));
 const DownloadAppPage = lazyWithPreload(() => import("./pages/DownloadAppPage"));
+const ReportAppProblemPage = lazyWithPreload(() => import("./pages/ReportAppProblemPage"));
 
 // Export pages for preloading from other components
 export const preloadablePages = {
@@ -194,6 +195,7 @@ const App = () => (
                     <Route path="/edit-vehicle-field" element={<ProtectedRoute><EditVehicleFieldPage /></ProtectedRoute>} />
                     <Route path="/terms" element={<ProtectedRoute><TermsPage /></ProtectedRoute>} />
                     <Route path="/contact" element={<ProtectedRoute><ContactPage /></ProtectedRoute>} />
+                    <Route path="/report-app-problem" element={<ProtectedRoute><ReportAppProblemPage /></ProtectedRoute>} />
                     <Route path="/api-test" element={<ProtectedRoute><ApiTestPage /></ProtectedRoute>} />
                     <Route path="/push-debug" element={<PushDebugPage />} />
                     <Route path="/download" element={<DownloadAppPage />} />
