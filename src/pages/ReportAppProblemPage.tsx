@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, ArrowLeft } from "lucide-react";
+import { Camera, ArrowLeft, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -19,8 +19,8 @@ export default function ReportAppProblemPage() {
   const { user } = useAuth();
   const [selectedType, setSelectedType] = useState<AppProblemType | "">("");
   const [description, setDescription] = useState("");
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const problemTypes: { value: AppProblemType; label: string }[] = [
@@ -32,13 +32,25 @@ export default function ReportAppProblemPage() {
   ];
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setPhoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setPhotoPreview(reader.result as string);
-      reader.readAsDataURL(file);
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      const totalFiles = [...photos, ...newFiles].slice(0, 5); // max 5
+      setPhotos(totalFiles);
+
+      // Generate previews for new files
+      newFiles.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPhotoPreviews((prev) => [...prev, reader.result as string].slice(0, 5));
+        };
+        reader.readAsDataURL(file);
+      });
     }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -54,22 +66,22 @@ export default function ReportAppProblemPage() {
     setIsSubmitting(true);
 
     try {
-      // Upload screenshot if provided
-      let photoUrl: string | null = null;
-      if (photo) {
-        const fileExt = photo.name.split(".").pop();
-        const fileName = `app-problem-${Date.now()}.${fileExt}`;
+      // Upload screenshots if provided
+      const photoUrls: string[] = [];
+      for (const file of photos) {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `app-problem-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
         const filePath = `app-problems/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from("expense-receipts")
-          .upload(filePath, photo);
+          .upload(filePath, file);
 
         if (!uploadError) {
           const { data: { publicUrl } } = supabase.storage
             .from("expense-receipts")
             .getPublicUrl(filePath);
-          photoUrl = publicUrl;
+          photoUrls.push(publicUrl);
         }
       }
 
@@ -88,7 +100,7 @@ export default function ReportAppProblemPage() {
           user_id: user?.id,
           problem_type: selectedType,
           description: description.trim(),
-          screenshot_url: photoUrl,
+          screenshot_urls: photoUrls.length > 0 ? photoUrls : null,
           device_info: deviceInfo,
         },
       });
@@ -166,24 +178,38 @@ export default function ReportAppProblemPage() {
             <input
               type="file"
               accept="image/*"
+              multiple
               onChange={handlePhotoChange}
               className="hidden"
               id="app-problem-photo"
-              disabled={isSubmitting}
+              disabled={isSubmitting || photos.length >= 5}
             />
-            <label htmlFor="app-problem-photo" className="cursor-pointer block">
-              {photoPreview ? (
-                <img src={photoPreview} alt="Screenshot" className="max-h-40 mx-auto rounded-lg object-cover" />
-              ) : (
-                <>
-                  <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">{t("appProblem.clickToUpload")}</p>
-                </>
-              )}
-            </label>
-            {photo && (
-              <p className="mt-2 text-xs text-green-600">
-                {t("appProblem.fileSelected")}: {photo.name}
+            {photoPreviews.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {photoPreviews.map((preview, index) => (
+                  <div key={index} className="relative">
+                    <img src={preview} alt={`Screenshot ${index + 1}`} className="h-24 w-full rounded-lg object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(index)}
+                      className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center"
+                      disabled={isSubmitting}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {photos.length < 5 && (
+              <label htmlFor="app-problem-photo" className="cursor-pointer block">
+                <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{t("appProblem.clickToUpload")}</p>
+              </label>
+            )}
+            {photos.length > 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {photos.length}/5
               </p>
             )}
           </div>
