@@ -393,9 +393,16 @@ const AddExpensePage = () => {
         description: `${t('expense.successDesc')} ${calculateTotal()} ${t('expense.baht')}`,
       });
       
-      setTimeout(() => {
-        navigate(returnPath);
-      }, 100);
+      // Reset form to allow adding more expenses
+      setExpenses([{
+        id: crypto.randomUUID(),
+        type: '',
+        customType: '',
+        amount: '',
+        receiptPhotos: [],
+        showOCRDetails: false,
+      }]);
+      setShowConfirmDialog(false);
       
     } catch (error) {
       console.error('Error sending expenses:', error);
