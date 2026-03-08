@@ -479,9 +479,10 @@ export default function CurrentJobsPage() {
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || ''
+              company_name: d.company_name || '',
+              products: Array.isArray(d.products) ? d.products : undefined,
             })) : undefined,
-            products: Array.isArray(job.products) ? job.products : undefined,
+            products: Array.isArray(job.products) ? job.products : (Array.isArray(job.destinations) ? job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
           }));
       } else {
         console.error('Error loading company accepted jobs:', companyJobsResult.error);
