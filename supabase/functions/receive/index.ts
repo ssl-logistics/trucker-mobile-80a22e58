@@ -304,39 +304,101 @@ serve(async (req) => {
 
         const titleTh = `📦 ${jobLabel}เข้ามาแล้ว!`;
         const titleEn = `📦 New Job: ${upsertedJob.job_type}`;
+        const descTh = `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`;
+        const descEn = descTh;
         
-        const notificationData = {
-          user_id: null, // Broadcast to all users
-          title_th: titleTh,
-          title_en: titleEn,
-          title_ko: `📦 새 작업이 있습니다!`,
-          title_zh: `📦 新工作已到达！`,
-          description_th: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-          description_en: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-          description_ko: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-          description_zh: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
-          notification_type: 'new_job',
-          reference_id: upsertedJob.id,
-          reference_type: 'job',
-          is_read: false,
-        };
-
-        const { error: notifError } = await supabase
-          .from('notifications')
-          .insert(notificationData);
-
-        if (notifError) {
-          console.error('Error creating notification:', notifError);
+        // Determine target user(s) based on driver_id from payload
+        // If driver_id is provided, this is an assigned job → notify only that driver
+        // If no driver_id, this is a broadcast job (freelance) → notify by role
+        const targetDriverId = data.driver_id || null;
+        let targetUserIds: string[] = [];
+        
+        if (targetDriverId) {
+          // Assigned job - find the user by driver_id
+          // driver_id could be a profiles.id or stored in user_roles
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', targetDriverId)
+            .maybeSingle();
+          
+          if (profile) {
+            targetUserIds = [profile.id];
+            console.log(`Assigned job: notifying driver ${targetDriverId}`);
+          } else {
+            console.log(`Driver ${targetDriverId} not found in profiles, broadcasting`);
+          }
+        }
+        
+        if (targetUserIds.length > 0) {
+          // Create notification for specific driver(s)
+          for (const uid of targetUserIds) {
+            const { error: notifError } = await supabase
+              .from('notifications')
+              .insert({
+                user_id: uid,
+                title_th: titleTh,
+                title_en: titleEn,
+                title_ko: `📦 새 작업이 있습니다!`,
+                title_zh: `📦 新工作已到达！`,
+                description_th: descTh,
+                description_en: descEn,
+                description_ko: descTh,
+                description_zh: descTh,
+                notification_type: 'new_job',
+                reference_id: upsertedJob.id,
+                reference_type: 'job',
+                is_read: false,
+              });
+            if (notifError) {
+              console.error(`Error creating notification for user ${uid}:`, notifError);
+            }
+          }
+          console.log(`Notifications created for ${targetUserIds.length} specific driver(s)`);
         } else {
-          console.log(`Notification created successfully for ${jobLabel}`);
+          // Broadcast: get users with matching role
+          const assignedRole = upsertedJob.assigned_role || 'freelance';
+          const { data: roleUsers } = await supabase
+            .from('user_roles')
+            .select('user_id')
+            .eq('role', assignedRole);
+          
+          if (roleUsers && roleUsers.length > 0) {
+            const notifications = roleUsers.map(ru => ({
+              user_id: ru.user_id,
+              title_th: titleTh,
+              title_en: titleEn,
+              title_ko: `📦 새 작업이 있습니다!`,
+              title_zh: `📦 新工作已到达！`,
+              description_th: descTh,
+              description_en: descEn,
+              description_ko: descTh,
+              description_zh: descTh,
+              notification_type: 'new_job',
+              reference_id: upsertedJob.id,
+              reference_type: 'job',
+              is_read: false,
+            }));
+            
+            const { error: notifError } = await supabase
+              .from('notifications')
+              .insert(notifications);
+            
+            if (notifError) {
+              console.error('Error creating broadcast notifications:', notifError);
+            } else {
+              console.log(`Broadcast notifications created for ${roleUsers.length} ${assignedRole} users`);
+            }
+          } else {
+            console.log(`No users found with role ${assignedRole}, skipping notifications`);
+          }
         }
       }
     } catch (notifError) {
       console.error('Error creating notification:', notifError);
     }
 
-    // Send push notifications to all registered devices (broadcast)
-    // Send for all job_types if pickup date is not in the past
+    // Send push notifications - targeted by driver_id or role
     try {
       const todayPush = new Date();
       todayPush.setHours(0, 0, 0, 0);
@@ -355,21 +417,40 @@ serve(async (req) => {
 
         console.log(`Sending push notifications for ${pushJobLabel}...`);
         
-        // Get all push subscriptions directly (no role filtering)
-        const { data: subscriptions, error: subError } = await supabase
-          .from('push_subscriptions')
-          .select('user_id');
+        // Determine which users to push to
+        let pushUserIds: string[] = [];
+        const targetDriverId = data.driver_id || null;
         
-        if (subError) {
-          console.error('Error fetching push subscriptions:', subError);
-        } else if (subscriptions && subscriptions.length > 0) {
-          // Get unique user_ids
-          const userIds = [...new Set(subscriptions.map(s => s.user_id))];
-          console.log(`Found ${userIds.length} users with push subscriptions to notify`);
+        if (targetDriverId) {
+          // Assigned job - push only to the assigned driver
+          pushUserIds = [targetDriverId];
+          console.log(`Push notification targeted to driver: ${targetDriverId}`);
+        } else {
+          // Broadcast - get users with matching role who have push subscriptions
+          const assignedRole = upsertedJob.assigned_role || 'freelance';
+          const { data: roleUsers } = await supabase
+            .from('user_roles')
+            .select('user_id')
+            .eq('role', assignedRole);
           
-          // Call send-push-notification function
+          if (roleUsers && roleUsers.length > 0) {
+            const roleUserIds = roleUsers.map(ru => ru.user_id);
+            const { data: subscriptions, error: subError } = await supabase
+              .from('push_subscriptions')
+              .select('user_id')
+              .in('user_id', roleUserIds);
+            
+            if (!subError && subscriptions && subscriptions.length > 0) {
+              pushUserIds = [...new Set(subscriptions.map(s => s.user_id))];
+            }
+          }
+        }
+        
+        if (pushUserIds.length > 0) {
+          console.log(`Found ${pushUserIds.length} users to push notify`);
+          
           const notificationPayload = {
-            user_ids: userIds,
+            user_ids: pushUserIds,
             title: `📦 ${pushJobLabel}เข้ามาแล้ว!`,
             body: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
             data: {
@@ -397,7 +478,7 @@ serve(async (req) => {
             console.error('Failed to send push notifications:', errorText);
           }
         } else {
-          console.log('No push subscriptions found');
+          console.log('No eligible users found for push notifications');
         }
       }
     } catch (pushError) {
