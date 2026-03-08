@@ -89,6 +89,7 @@ Deno.serve(async (req) => {
           description_en,
           notification_type: notification_type || 'job_status',
           reference_type: reference_type || 'job',
+          reference_id: order_code || null,
           is_read: false,
         })
 
@@ -104,7 +105,7 @@ Deno.serve(async (req) => {
             user_id,
             title: title_th,
             body: description_th,
-            url: '/notifications',
+            url: order_code ? `/job/${order_code}` : '/notifications',
             tag: `job-status-${order_code}-${jobStatus}`,
           },
         })

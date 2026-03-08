@@ -430,11 +430,17 @@ export const setupNativePushListeners = (): void => {
         
         // Navigate to appropriate page based on notification data
         if (data?.url) {
-          console.log('[NativePush] Navigating to:', data.url);
+          const rawUrl = typeof data.url === 'string' ? data.url : '/';
+          // Ensure URL is in hash format for HashRouter
+          let hashUrl = rawUrl;
+          if (!rawUrl.startsWith('#')) {
+            hashUrl = rawUrl.startsWith('/') ? `#${rawUrl}` : `#/${rawUrl}`;
+          }
+          console.log('[NativePush] Navigating to:', hashUrl);
           // Use setTimeout to ensure navigation happens after app is ready
           setTimeout(() => {
             try {
-              window.location.hash = data.url;
+              window.location.hash = hashUrl;
             } catch (navError) {
               console.error('[NativePush] Navigation error:', navError);
             }
