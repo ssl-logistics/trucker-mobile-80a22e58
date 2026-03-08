@@ -3245,6 +3245,7 @@ const koTranslations: Record<string, string> = {
   'job.outbound': '아웃바운드',
   'job.origin': '출발지',
   'job.destination': '목적지',
+  'job.more_destinations': '추가 목적지',
   'job.singleTrip': '단일 운행',
   'job.multipleDestinations': '다중 목적지',
   'job.equipment': '장비',
