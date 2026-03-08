@@ -260,8 +260,14 @@ export default function DeliveryDetailPage() {
             destination_products: (() => {
               const productsArray = foundJob.products || [];
               const destId = targetDestination?.id;
+              console.log('[DeliveryDetailPage] Products filtering:', {
+                totalProducts: productsArray.length,
+                destId,
+                productDestIds: productsArray.map((p: any) => p.destination_id),
+                sampleProduct: productsArray[0],
+              });
               if (productsArray.length > 0 && destId) {
-                const destProducts = productsArray.filter((p: any) => p.destination_id === destId);
+                const destProducts = productsArray.filter((p: any) => String(p.destination_id) === String(destId));
                 if (destProducts.length > 0) {
                   return destProducts.map((p: any) => ({
                     product_name: p.product_name,
@@ -272,8 +278,8 @@ export default function DeliveryDetailPage() {
                   }));
                 }
               }
-              // Fallback: split product_name
-              if (foundJob.product_name) {
+              // Fallback: split product_name — but only if no destinations (single destination job)
+              if (!targetDestination && foundJob.product_name) {
                 return foundJob.product_name.split(/[,，]/).map((name: string) => ({ product_name: name.trim() })).filter((p: DestinationProduct) => p.product_name);
               }
               return [];
