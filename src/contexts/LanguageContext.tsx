@@ -3282,6 +3282,7 @@ const koTranslations: Record<string, string> = {
   'job.employerLabel': '고용주',
   'job.remarks': '비고',
   'job.close': '닫기',
+  'job.invoice': '송장',
   
   // Confirm Job Dialog
   'confirm.title': '작업 수락 확인',
