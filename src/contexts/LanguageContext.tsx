@@ -5011,6 +5011,7 @@ const zhTranslations: Record<string, string> = {
   'job.employerLabel': '雇主',
   'job.remarks': '备注',
   'job.close': '关闭',
+  'job.invoice': '发票',
   
   // Confirm Job Dialog
   'confirm.title': '确认接受工作',

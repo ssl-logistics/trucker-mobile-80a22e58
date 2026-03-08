@@ -335,7 +335,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                       <p className="font-medium">{dest.location || dest.address}</p>
                       {dest.address && dest.address !== dest.location && <p className="text-xs text-muted-foreground">{dest.address}</p>}
                       {dest.contact_name && <p className="text-xs text-muted-foreground">{dest.contact_name}</p>}
-                      {dest.invoice_number && <p className="text-xs text-muted-foreground">Invoice: {dest.invoice_number}</p>}
+                      {dest.invoice_number && <p className="text-xs text-muted-foreground">{t('job.invoice')}: {dest.invoice_number}</p>}
                     </div>
                   </div>
                 ))
