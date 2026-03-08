@@ -217,6 +217,7 @@ const thTranslations: Record<string, string> = {
   'job.transportMode': 'รูปแบบการส่ง',
   'job.requiredTruckType': 'ประเภทรถที่ต้องการ',
   'job.product': 'สินค้า',
+  'job.product_summary': 'สินค้ารวม',
   'job.employerLabel': 'ผู้ว่าจ้าง',
   'job.remarks': 'หมายเหตุ',
   'job.close': 'ปิด',
