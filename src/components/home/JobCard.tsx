@@ -313,7 +313,8 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</p>
-                      <p className="font-medium">{origin.address || origin.location}</p>
+                      {origin.company_name && <p className="font-medium">{origin.company_name}</p>}
+                      <p className={origin.company_name ? "text-xs text-muted-foreground" : "font-medium"}>{origin.address || origin.location}</p>
                     </div>
                   </div>
                 ))
