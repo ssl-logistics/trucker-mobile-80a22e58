@@ -420,7 +420,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             {/* Goods Info */}
             <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
               <div>
-                <span className="text-muted-foreground">{t('job.product_summary') || `${t('job.product')}รวม`} : </span>
+                <span className="text-muted-foreground">{t('job.product_summary')} : </span>
                 <span>{translateGoodsType(job.goods_type, language)}</span>
               </div>
               <div>
