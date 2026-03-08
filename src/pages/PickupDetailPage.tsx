@@ -179,7 +179,7 @@ export default function PickupDetailPage() {
             origin_goods_type: foundJob.product_name,
             origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
             origin_remarks: foundJob.remarks,
-            origin_address: foundJob.sender_address,
+            origin_address: (Array.isArray(foundJob.origins) && foundJob.origins.length > 0 ? foundJob.origins[0].address : null) || foundJob.sender_address,
             origin_company_name: foundJob.factory_name || foundJob.sender_name,
           };
           setJob(mappedJob);
