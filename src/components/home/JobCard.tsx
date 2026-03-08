@@ -186,7 +186,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 {job.destinations.length > 3 && (
                   <div className="flex items-center gap-2 sm:gap-3 pl-6">
                     <span className="text-xs text-muted-foreground bg-muted rounded-full px-3 py-1">
-                      +{job.destinations.length - 3} {t('job.more_destinations') || 'จุดเพิ่มเติม'}
+                      +{job.destinations.length - 3} {t('job.more_destinations')}
                     </span>
                   </div>
                 )}
