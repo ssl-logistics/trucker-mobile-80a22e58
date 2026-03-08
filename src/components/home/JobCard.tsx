@@ -156,7 +156,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
                   <div className="text-sm sm:text-base">
                     <div className="text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</div>
-                    <div className="font-medium">{origin.address || origin.location}</div>
+                    <div className="font-medium">{origin.province || origin.address || origin.location}</div>
                   </div>
                 </div>
               ))
