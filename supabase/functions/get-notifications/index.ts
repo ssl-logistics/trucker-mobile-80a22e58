@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
             user_id,
             title: title_th,
             body: description_th,
-            url: '/notifications',
+            url: order_code ? `/job/${order_code}` : '/notifications',
             tag: `job-status-${order_code}-${jobStatus}`,
           },
         })
