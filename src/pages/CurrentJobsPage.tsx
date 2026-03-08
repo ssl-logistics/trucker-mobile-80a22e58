@@ -945,10 +945,10 @@ export default function CurrentJobsPage() {
                           <CalendarIconLucide className="w-4 h-4 text-gray-500" />
                           <div className="text-left">
                             <div className="text-xs text-[#375B7B]">
-                              วันส่งสินค้า
+                              วันเข้ารับสินค้า
                             </div>
                             <div className="text-xs font-medium">
-                              {formatThaiDate(deliveryDate, language)} | {deliveryTime.substring(0, 5)}
+                              {formatThaiDate(pickupDate, language)} | {pickupTime.substring(0, 5)}
                             </div>
                           </div>
                         </div>
