@@ -49,6 +49,20 @@ interface DriverCheckin {
   checkin_type: string;
   checked_in_at: string;
 }
+interface DestinationProduct {
+  product_name?: string;
+  name?: string;
+  product_weight?: number;
+  weight?: number;
+  weight_unit?: string;
+  product_quantity?: number;
+  quantity?: number;
+  quantity_unit?: string;
+  unit?: string;
+  product_unit?: string;
+  destination_id?: string;
+}
+
 interface JobDestination {
   id: string;
   sequence_number: number;
@@ -66,6 +80,8 @@ interface JobDestination {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   goods_type: string | null;
+  invoice_number?: string | null;
+  products?: DestinationProduct[];
 }
 
 interface JobDetail {
