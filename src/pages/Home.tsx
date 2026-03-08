@@ -107,6 +107,10 @@ export default function Home() {
   // Track processed order codes to prevent duplicates
   const [processedOrderCodes, setProcessedOrderCodes] = useState<Set<string>>(new Set());
   
+  // Pagination
+  const JOBS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  
   // GPS Tracking hook
   const { startTracking } = useGpsTracking();
   
