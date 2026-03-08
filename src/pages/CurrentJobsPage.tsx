@@ -553,7 +553,7 @@ export default function CurrentJobsPage() {
               ...(job.bl_no ? { bl_no: job.bl_no } : {}),
               ...(job.booking_no ? { booking_no: job.booking_no } : {}),
               ...(mappedDestinations ? { destinations: mappedDestinations } : {}),
-              ...(Array.isArray(job.products) ? { products: job.products } : {}),
+              ...(Array.isArray(job.products) ? { products: job.products } : (Array.isArray(job.destinations) ? { products: job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) } : {})),
             };
           });
           
