@@ -420,7 +420,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <p className="font-medium">
                   {isDomestic 
                     ? (isSingleTrip ? t('job.one_way') : isMultipleLocations ? t('job.multiple_destinations') : '-')
-                    : translateTransportType(job.transport_type_label || job.transport_type, language)
+                    : (language === 'th' ? 'ส่งเที่ยวเดียว' : language === 'en' ? 'Single Trip' : language === 'ko' ? '편도' : '单程')
                   }
                 </p>
               </div>
