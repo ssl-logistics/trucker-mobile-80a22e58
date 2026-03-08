@@ -44,7 +44,7 @@ interface Job {
   isAccepted?: boolean;
   bl_no?: string | null;
   booking_no?: string | null;
-  destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string }>;
+  destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string; contact_name?: string }>;
   origins?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string }>;
 }
 
@@ -178,6 +178,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <div className="text-sm sm:text-base">
                     <div className="text-muted-foreground">{t('job.destination')} #{idx + 1}</div>
                     <div className="font-medium">{dest.province || dest.address || dest.location}</div>
+                    {dest.contact_name && <div className="text-muted-foreground text-xs">{dest.contact_name}</div>}
                   </div>
                 </div>
               ))

@@ -250,6 +250,7 @@ export default function Home() {
             sequence: d.sequence_number || d.sequence || idx + 1,
             location: d.province || d.address || d.location || d.destination_location || '',
             company_name: d.company_name || '',
+            contact_name: d.contact_name || d.contact_person || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,
           })) : undefined
@@ -420,6 +421,7 @@ export default function Home() {
             sequence: d.sequence_number || d.sequence || idx + 1,
             location: d.province || d.address || d.location || d.destination_location || '',
             company_name: d.company_name || '',
+            contact_name: d.contact_name || d.contact_person || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,
           })) : undefined
