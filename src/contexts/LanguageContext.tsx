@@ -188,6 +188,7 @@ const thTranslations: Record<string, string> = {
   'job.outbound': 'ขาออก',
   'job.origin': 'ต้นทาง',
   'job.destination': 'ปลายทาง',
+  'job.more_destinations': 'จุดเพิ่มเติม',
   'job.singleTrip': 'ส่งเที่ยวเดียว',
   'job.multipleDestinations': 'ส่งหลายที่',
   'job.equipment': 'อุปกรณ์ติดรถ',
