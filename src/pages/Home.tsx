@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -107,6 +107,10 @@ export default function Home() {
   // Track processed order codes to prevent duplicates
   const [processedOrderCodes, setProcessedOrderCodes] = useState<Set<string>>(new Set());
   
+  // Pagination
+  const JOBS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  
   // GPS Tracking hook
   const { startTracking } = useGpsTracking();
   
@@ -137,6 +141,13 @@ export default function Home() {
   };
 
   const displayedJobs = getDisplayedJobs();
+  const totalPages = Math.ceil(displayedJobs.length / JOBS_PER_PAGE);
+  const paginatedJobs = displayedJobs.slice((currentPage - 1) * JOBS_PER_PAGE, currentPage * JOBS_PER_PAGE);
+  
+  // Reset page when filter or jobs change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [jobFilter, jobs.length, factoryJobs.length]);
 
   // Load factory/driver assigned jobs from API
   // For internal/external drivers from factory company, use get-driver-assigned-jobs
@@ -1036,6 +1047,7 @@ export default function Home() {
             </h2>
             <span className="text-sm text-muted-foreground sm:text-base">
               {displayedJobs.length} {t('home.items')}
+              {totalPages > 1 && ` • ${currentPage}/${totalPages}`}
             </span>
           </div>
 
@@ -1074,7 +1086,7 @@ export default function Home() {
                 </p>
               </div>
             ) : (
-              displayedJobs.map(job => (
+              paginatedJobs.map(job => (
                 <JobCard 
                   key={job.id} 
                   job={job} 
@@ -1094,6 +1106,39 @@ export default function Home() {
               ))
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-4 mb-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <Button
+                  key={page}
+                  variant={page === currentPage ? 'default' : 'outline'}
+                  size="sm"
+                  className="w-8 h-8 p-0"
+                  onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                >
+                  {page}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </PullToRefresh>
 
