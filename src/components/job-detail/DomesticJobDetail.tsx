@@ -1859,56 +1859,118 @@ export default function DomesticJobDetail({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-4 h-4 text-green-600" />
-              <span className="font-semibold text-sm text-foreground">{t('jobDetail.pickupPoint') || 'จุดรับสินค้า'}</span>
-            </div>
-            {job.origin_company_name && (
-              <p className="text-sm font-medium text-foreground ml-6">{job.origin_company_name}</p>
-            )}
+            {/* Check if destinations have per-destination products */}
+            {(() => {
+              const destinations = job.destinations || [];
+              const hasDestProducts = destinations.some(d => Array.isArray(d.products) && d.products.length > 0);
 
-            {/* Products list */}
-            {job.products && job.products.length > 0 ? (
-              <div className="space-y-2 ml-6">
-                {job.products.map((product, idx) => {
-                  const name = product.product_name || product.name || '-';
-                  const weight = product.product_weight || product.weight;
-                  const weightUnit = product.weight_unit || 'กก.';
-                  const qty = product.product_quantity || product.quantity;
-                  const qtyUnit = product.quantity_unit || product.product_unit || 'ชิ้น';
-                  return (
-                    <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
-                        {t('jobDetail.goodsType') || 'สินค้า'} {job.products!.length > 1 ? idx + 1 : ''}: {name}
-                      </p>
-                      <div className="flex gap-4 text-xs text-muted-foreground">
-                        <span>{t('jobDetail.weight') || 'น้ำหนัก'}: {weight ? `${weight} ${weightUnit}` : '-'}</span>
-                        <span>{t('jobDetail.quantity') || 'จำนวน'}: {qty ? `${qty} ${qtyUnit}` : '-'}</span>
-                      </div>
+              if (hasDestProducts) {
+                // Show products grouped by destination
+                return (
+                  <>
+                    {/* Pickup point header */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="w-4 h-4 text-green-600" />
+                      <span className="font-semibold text-sm text-foreground">{t('jobDetail.pickupPoint') || 'จุดรับสินค้า'}</span>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* Fallback: parse from origin_goods_type string */
-              <div className="space-y-2 ml-6">
-                {job.origin_goods_type && job.origin_goods_type !== '-' ? (
-                  job.origin_goods_type.split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((item: string, idx: number) => (
-                    <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
-                        {t('jobDetail.goodsType') || 'สินค้า'} {idx + 1}: {item}
-                      </p>
-                      <div className="flex gap-4 text-xs text-muted-foreground">
-                        <span>{t('jobDetail.weight') || 'น้ำหนัก'}: -</span>
-                        <span>{t('jobDetail.quantity') || 'จำนวน'}: {job.origin_goods_quantity || '-'}</span>
-                      </div>
+                    {job.origin_company_name && (
+                      <p className="text-sm font-medium text-foreground ml-6">{job.origin_company_name}</p>
+                    )}
+
+                    {destinations.map((dest, destIdx) => {
+                      const destProducts = Array.isArray(dest.products) ? dest.products : [];
+                      if (destProducts.length === 0) return null;
+                      return (
+                        <div key={destIdx} className="space-y-2">
+                          <div className="flex items-center gap-2 mt-3">
+                            <MapPin className="w-4 h-4 text-red-500" />
+                            <span className="font-semibold text-sm text-foreground">
+                              {t('job.destination')} #{dest.sequence_number || destIdx + 1}
+                            </span>
+                          </div>
+                          {dest.company_name && (
+                            <p className="text-xs text-muted-foreground ml-6">{dest.company_name}</p>
+                          )}
+                          <div className="space-y-2 ml-6">
+                            {destProducts.map((product: any, idx: number) => {
+                              const name = product.product_name || product.name || '-';
+                              const weight = product.product_weight || product.weight;
+                              const weightUnit = product.weight_unit || 'กก.';
+                              const qty = product.product_quantity || product.quantity;
+                              const qtyUnit = product.quantity_unit || product.product_unit || product.unit || 'ชิ้น';
+                              return (
+                                <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
+                                  <p className="text-sm font-semibold text-foreground">
+                                    {name}
+                                  </p>
+                                  <div className="flex gap-4 text-xs text-muted-foreground">
+                                    <span>{t('jobDetail.weight') || 'น้ำหนัก'}: {weight ? `${weight} ${weightUnit}` : '-'}</span>
+                                    <span>{t('jobDetail.quantity') || 'จำนวน'}: {qty ? `${qty} ${qtyUnit}` : '-'}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                );
+              }
+
+              // Fallback: show top-level products or parsed goods_type
+              return (
+                <>
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="w-4 h-4 text-green-600" />
+                    <span className="font-semibold text-sm text-foreground">{t('jobDetail.pickupPoint') || 'จุดรับสินค้า'}</span>
+                  </div>
+                  {job.origin_company_name && (
+                    <p className="text-sm font-medium text-foreground ml-6">{job.origin_company_name}</p>
+                  )}
+                  {job.products && job.products.length > 0 ? (
+                    <div className="space-y-2 ml-6">
+                      {job.products.map((product, idx) => {
+                        const name = product.product_name || product.name || '-';
+                        const weight = product.product_weight || product.weight;
+                        const weightUnit = product.weight_unit || 'กก.';
+                        const qty = product.product_quantity || product.quantity;
+                        const qtyUnit = product.quantity_unit || product.product_unit || 'ชิ้น';
+                        return (
+                          <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
+                            <p className="text-sm font-semibold text-foreground">
+                              {t('jobDetail.goodsType') || 'สินค้า'} {job.products!.length > 1 ? idx + 1 : ''}: {name}
+                            </p>
+                            <div className="flex gap-4 text-xs text-muted-foreground">
+                              <span>{t('jobDetail.weight') || 'น้ำหนัก'}: {weight ? `${weight} ${weightUnit}` : '-'}</span>
+                              <span>{t('jobDetail.quantity') || 'จำนวน'}: {qty ? `${qty} ${qtyUnit}` : '-'}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">{t('common.noData') || 'ไม่มีข้อมูล'}</p>
-                )}
-              </div>
-            )}
+                  ) : (
+                    <div className="space-y-2 ml-6">
+                      {job.origin_goods_type && job.origin_goods_type !== '-' ? (
+                        job.origin_goods_type.split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((item: string, idx: number) => (
+                          <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
+                            <p className="text-sm font-semibold text-foreground">
+                              {t('jobDetail.goodsType') || 'สินค้า'} {idx + 1}: {item}
+                            </p>
+                            <div className="flex gap-4 text-xs text-muted-foreground">
+                              <span>{t('jobDetail.weight') || 'น้ำหนัก'}: -</span>
+                              <span>{t('jobDetail.quantity') || 'จำนวน'}: {job.origin_goods_quantity || '-'}</span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{t('common.noData') || 'ไม่มีข้อมูล'}</p>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </DialogContent>
       </Dialog>
