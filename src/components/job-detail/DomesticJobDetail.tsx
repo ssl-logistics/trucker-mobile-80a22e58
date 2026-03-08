@@ -625,17 +625,25 @@ export default function DomesticJobDetail({
   }, [job.container_number, job.seal_number, job.order_code, isOcrVerified]);
 
   useEffect(() => {
-    // Calculate card heights for step positioning
-    const newHeights: {emptyContainer: number;card1: number;deliveryCards: Record<string, number>;containerReturn: number;} = {
-      emptyContainer: emptyContainerRef.current?.offsetHeight || 0,
-      card1: card1Ref.current?.offsetHeight || 0,
-      deliveryCards: {},
-      containerReturn: containerReturnRef.current?.offsetHeight || 0
+    // Calculate card heights for step positioning - use requestAnimationFrame to ensure DOM is updated
+    const recalcHeights = () => {
+      const newHeights: {emptyContainer: number;card1: number;deliveryCards: Record<string, number>;containerReturn: number;} = {
+        emptyContainer: emptyContainerRef.current?.offsetHeight || 0,
+        card1: card1Ref.current?.offsetHeight || 0,
+        deliveryCards: {},
+        containerReturn: containerReturnRef.current?.offsetHeight || 0
+      };
+      deliveryCardRefs.current.forEach((el, key) => {
+        newHeights.deliveryCards[key] = el.offsetHeight;
+      });
+      setCardHeights(newHeights);
     };
-    deliveryCardRefs.current.forEach((el, key) => {
-      newHeights.deliveryCards[key] = el.offsetHeight;
+    // Immediate calc + delayed calc to catch post-render layout changes
+    recalcHeights();
+    const raf = requestAnimationFrame(() => {
+      recalcHeights();
     });
-    setCardHeights(newHeights);
+    return () => cancelAnimationFrame(raf);
   }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location, localDestOrder, isReorderMode]);
 
   // Use destinations from job props if available, otherwise empty array
