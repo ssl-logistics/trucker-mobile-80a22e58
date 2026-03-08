@@ -403,7 +403,7 @@ export default function Home() {
           post_id: item.id || item.post_id || '',
           order_code: orderCode,
           job_type: (item.booking_no || item.bl_no) ? 'international' : (item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic'),
-          employer_name: item.company_name || item.factory_name || item.customer_name || '',
+          employer_name: (item.booking_no || item.bl_no) ? (item.shipper || item.sender_name || item.company_name || '') : (item.company_name || item.factory_name || item.customer_name || ''),
           transport_type: item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
