@@ -1047,6 +1047,7 @@ export default function Home() {
             </h2>
             <span className="text-sm text-muted-foreground sm:text-base">
               {displayedJobs.length} {t('home.items')}
+              {totalPages > 1 && ` • ${currentPage}/${totalPages}`}
             </span>
           </div>
 
