@@ -219,12 +219,14 @@ export default function Home() {
             ? extractDistrictProvince(item.container_return_address)
             : [item.destination_district, item.destination_province].filter(Boolean).join(', ') || item.destination_address || '';
         } else {
-          // Domestic: use origins array province if available, fallback to sender fields
-          originLocation = (Array.isArray(item.origins) && item.origins.length > 0
+          // Domestic: use origins array if available, fallback to sender fields
+          const originCompany = (Array.isArray(item.origins) && item.origins.length > 0 ? item.origins[0].company_name : '') || item.sender_name || item.sender_company_name || '';
+          const originDistrict = (Array.isArray(item.origins) && item.origins.length > 0
             ? [item.origins[0].district, item.origins[0].province].filter(Boolean).join(', ')
             : '') || item.origin || 
             [item.sender_district, item.sender_province].filter(Boolean).join(', ') || 
             item.from_location || '';
+          originLocation = [originCompany, originDistrict].filter(Boolean).join('\n');
           destinationLocation = item.destination || 
             [item.destination_district, item.destination_province].filter(Boolean).join(', ') || 
             item.to_location || '';
