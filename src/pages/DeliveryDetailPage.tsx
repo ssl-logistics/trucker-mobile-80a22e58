@@ -258,27 +258,30 @@ export default function DeliveryDetailPage() {
             price: foundJob.transport_price || 0,
             invoice_number: targetDestination?.invoice_number || destData.invoice_number || null,
             destination_products: (() => {
-              const productsArray = foundJob.products || [];
+              const topLevelProducts = foundJob.products || [];
               const destId = targetDestination?.id;
-              console.log('[DeliveryDetailPage] Products filtering:', {
-                totalProducts: productsArray.length,
-                destId,
-                productDestIds: productsArray.map((p: any) => p.destination_id),
-                sampleProduct: productsArray[0],
-              });
-              if (productsArray.length > 0 && destId) {
-                const destProducts = productsArray.filter((p: any) => String(p.destination_id) === String(destId));
-                if (destProducts.length > 0) {
-                  return destProducts.map((p: any) => ({
-                    product_name: p.product_name,
-                    product_quantity: p.product_quantity,
-                    weight: p.weight,
-                    weight_unit: p.weight_unit,
-                    unit: p.unit,
-                  }));
-                }
+              
+              // v9: products nested inside destination object
+              const destNestedProducts = Array.isArray(targetDestination?.products) ? targetDestination.products : [];
+              
+              // Prefer nested products, then filter top-level by destination_id
+              let matchedProducts = destNestedProducts.length > 0
+                ? destNestedProducts
+                : (topLevelProducts.length > 0 && destId
+                    ? topLevelProducts.filter((p: any) => String(p.destination_id) === String(destId))
+                    : []);
+              
+              if (matchedProducts.length > 0) {
+                return matchedProducts.map((p: any) => ({
+                  product_name: p.product_name || p.name,
+                  product_quantity: p.product_quantity,
+                  weight: p.weight,
+                  weight_unit: p.weight_unit,
+                  unit: p.unit,
+                }));
               }
-              // Fallback: split product_name — but only if no destinations (single destination job)
+              
+              // Fallback only for single destination jobs
               if (!targetDestination && foundJob.product_name) {
                 return foundJob.product_name.split(/[,，]/).map((name: string) => ({ product_name: name.trim() })).filter((p: DestinationProduct) => p.product_name);
               }
