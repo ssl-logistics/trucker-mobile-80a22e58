@@ -283,10 +283,10 @@ export default function DeliveryDetailPage() {
               if (matchedProducts.length > 0) {
                 return matchedProducts.map((p: any) => ({
                   product_name: p.product_name || p.name,
-                  product_quantity: p.product_quantity,
-                  weight: p.weight,
-                  weight_unit: p.weight_unit,
-                  unit: p.unit,
+                  product_quantity: p.product_quantity || p.quantity || p.qty || null,
+                  weight: p.weight || p.product_weight || null,
+                  weight_unit: p.weight_unit || p.product_weight_unit || null,
+                  unit: p.unit || p.product_unit || null,
                 }));
               }
               
