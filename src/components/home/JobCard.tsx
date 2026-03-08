@@ -44,8 +44,8 @@ interface Job {
   isAccepted?: boolean;
   bl_no?: string | null;
   booking_no?: string | null;
-  destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string }>;
-  origins?: Array<{ sequence: number; location?: string; address?: string; company_name?: string }>;
+  destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string }>;
+  origins?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string }>;
 }
 
 interface JobCardProps {
