@@ -1752,6 +1752,7 @@ const enTranslations: Record<string, string> = {
   'job.employerLabel': 'Employer',
   'job.remarks': 'Remarks',
   'job.close': 'Close',
+  'job.invoice': 'Invoice',
   
   // Confirm Job Dialog
   'confirm.title': 'Confirm Job Acceptance',
