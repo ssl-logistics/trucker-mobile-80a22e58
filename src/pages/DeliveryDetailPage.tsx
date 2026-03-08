@@ -256,6 +256,28 @@ export default function DeliveryDetailPage() {
             destination_time: destData.delivery_time || foundJob.destination_delivery_time,
             destination_company_name: destData.company_name || foundJob.destination_company_name || foundJob.destination_name,
             price: foundJob.transport_price || 0,
+            invoice_number: targetDestination?.invoice_number || destData.invoice_number || null,
+            destination_products: (() => {
+              const productsArray = foundJob.products || [];
+              const destId = targetDestination?.id;
+              if (productsArray.length > 0 && destId) {
+                const destProducts = productsArray.filter((p: any) => p.destination_id === destId);
+                if (destProducts.length > 0) {
+                  return destProducts.map((p: any) => ({
+                    product_name: p.product_name,
+                    product_quantity: p.product_quantity,
+                    weight: p.weight,
+                    weight_unit: p.weight_unit,
+                    unit: p.unit,
+                  }));
+                }
+              }
+              // Fallback: split product_name
+              if (foundJob.product_name) {
+                return foundJob.product_name.split(/[,，]/).map((name: string) => ({ product_name: name.trim() })).filter((p: DestinationProduct) => p.product_name);
+              }
+              return [];
+            })(),
           };
           setJob(mappedJob);
           
