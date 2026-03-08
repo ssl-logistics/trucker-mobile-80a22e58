@@ -167,7 +167,7 @@ export default function PickupDetailPage() {
             order_code: foundJob.order_number,
             order_number: foundJob.order_number,
             employer_name: foundJob.factory_name || foundJob.sender_name,
-            origin_location: `${foundJob.sender_district || ''}, ${foundJob.sender_province || ''}`.replace(/^, |, $/g, ''),
+            origin_location: (Array.isArray(foundJob.origins) && foundJob.origins.length > 0 ? (foundJob.origins[0].district && foundJob.origins[0].province ? `${foundJob.origins[0].district}, ${foundJob.origins[0].province}` : foundJob.origins[0].province || '') : '') || `${foundJob.sender_district || ''}, ${foundJob.sender_province || ''}`.replace(/^, |, $/g, ''),
             start_date: foundJob.sender_pickup_date,
             start_time: foundJob.sender_pickup_time,
             origin_latitude: foundJob.sender_latitude ?? foundJob.empty_pickup_latitude ?? null,
