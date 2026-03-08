@@ -930,6 +930,13 @@ export default function DeliveryDetailPage() {
           <div className="text-base">{displayContactName}</div>
         </div>
 
+        {job.invoice_number && (
+          <div className="border-b border-gray-200 pb-4">
+            <div className="text-sm text-muted-foreground mb-1">{t('job.invoice')}</div>
+            <div className="text-base">{job.invoice_number}</div>
+          </div>
+        )}
+
         <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.routeNumber')}</div>
           <div className="text-base">{displayLocation}</div>
@@ -960,10 +967,22 @@ export default function DeliveryDetailPage() {
 
         <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.productType')}</div>
-          <div className="text-base">
-            {job.destination_goods_type || '-'}
-            {job.destination_goods_quantity && ` (${job.destination_goods_quantity})`}
-          </div>
+          {job.destination_products && job.destination_products.length > 0 ? (
+            <div className="flex flex-wrap gap-2 mt-1">
+              {job.destination_products.map((product, idx) => (
+                <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {product.product_name}
+                  {product.product_quantity ? ` (${product.product_quantity}${product.unit ? ` ${product.unit}` : ''})` : ''}
+                  {product.weight ? ` ${product.weight}${product.weight_unit || 'กก.'}` : ''}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="text-base">
+              {job.destination_goods_type || '-'}
+              {job.destination_goods_quantity && ` (${job.destination_goods_quantity})`}
+            </div>
+          )}
         </div>
 
         <div className="border-b border-gray-200 pb-4">
