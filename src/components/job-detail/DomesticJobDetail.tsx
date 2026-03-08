@@ -49,6 +49,20 @@ interface DriverCheckin {
   checkin_type: string;
   checked_in_at: string;
 }
+interface DestinationProduct {
+  product_name?: string;
+  name?: string;
+  product_weight?: number;
+  weight?: number;
+  weight_unit?: string;
+  product_quantity?: number;
+  quantity?: number;
+  quantity_unit?: string;
+  unit?: string;
+  product_unit?: string;
+  destination_id?: string;
+}
+
 interface JobDestination {
   id: string;
   sequence_number: number;
@@ -66,6 +80,8 @@ interface JobDestination {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   goods_type: string | null;
+  invoice_number?: string | null;
+  products?: DestinationProduct[];
 }
 
 interface JobDetail {
@@ -1411,6 +1427,15 @@ export default function DomesticJobDetail({
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
                           <div className="flex flex-wrap gap-1">
                             {(() => {
+                              // Prefer products[] array from API v9
+                              if (Array.isArray(dest.products) && dest.products.length > 0) {
+                                return dest.products.map((p, i) => (
+                                  <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
+                                    {p.product_name || p.name || '-'}
+                                  </span>
+                                ));
+                              }
+                              // Fallback to goods_type string
                               const goodsStr = dest.goods_type || job.origin_goods_type;
                               if (!goodsStr) return <span>-</span>;
                               const items = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);

@@ -369,9 +369,10 @@ export default function CurrentJobsPage() {
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || ''
+              company_name: d.company_name || '',
+              products: Array.isArray(d.products) ? d.products : undefined,
             })) : undefined,
-            products: Array.isArray(job.products) ? job.products : undefined,
+            products: Array.isArray(job.products) ? job.products : (Array.isArray(job.destinations) ? job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
            }));
 
            console.log(`[CurrentJobsPage] Setting accepted jobs: ${mappedJobs.length} jobs`);
@@ -478,9 +479,10 @@ export default function CurrentJobsPage() {
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || ''
+              company_name: d.company_name || '',
+              products: Array.isArray(d.products) ? d.products : undefined,
             })) : undefined,
-            products: Array.isArray(job.products) ? job.products : undefined,
+            products: Array.isArray(job.products) ? job.products : (Array.isArray(job.destinations) ? job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
           }));
       } else {
         console.error('Error loading company accepted jobs:', companyJobsResult.error);
@@ -539,7 +541,8 @@ export default function CurrentJobsPage() {
               ? job.destinations.map((d: any, idx: number) => ({
                   sequence: d.sequence_number || d.sequence || idx + 1,
                   location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-                  company_name: d.company_name || ''
+                  company_name: d.company_name || '',
+                  products: Array.isArray(d.products) ? d.products : undefined,
                 }))
               : undefined;
 
@@ -551,7 +554,7 @@ export default function CurrentJobsPage() {
               ...(job.bl_no ? { bl_no: job.bl_no } : {}),
               ...(job.booking_no ? { booking_no: job.booking_no } : {}),
               ...(mappedDestinations ? { destinations: mappedDestinations } : {}),
-              ...(Array.isArray(job.products) ? { products: job.products } : {}),
+              ...(Array.isArray(job.products) ? { products: job.products } : (Array.isArray(job.destinations) ? { products: job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) } : {})),
             };
           });
           
@@ -664,9 +667,10 @@ export default function CurrentJobsPage() {
             destinations: Array.isArray(ticket.destinations) ? ticket.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || ''
+              company_name: d.company_name || '',
+              products: Array.isArray(d.products) ? d.products : undefined,
             })) : undefined,
-            products: Array.isArray(ticket.products) ? ticket.products : undefined,
+            products: Array.isArray(ticket.products) ? ticket.products : (Array.isArray(ticket.destinations) ? ticket.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
           }));
         
         console.log(`Bid jobs for Current Jobs: ${bidWonJobs.length} (excluded ${tickets.length - bidWonJobs.length} with delivery_confirmed or wrong user)`);
