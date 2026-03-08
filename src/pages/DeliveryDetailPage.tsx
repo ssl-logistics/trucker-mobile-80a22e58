@@ -35,6 +35,14 @@ import {
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 
+interface DestinationProduct {
+  product_name: string;
+  product_quantity?: number;
+  weight?: number;
+  weight_unit?: string;
+  unit?: string;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -52,6 +60,8 @@ interface JobDetail {
   destination_time?: string | null;
   destination_company_name?: string | null;
   price?: number;
+  invoice_number?: string | null;
+  destination_products?: DestinationProduct[];
 }
 
 interface JobDestination {
@@ -246,6 +256,28 @@ export default function DeliveryDetailPage() {
             destination_time: destData.delivery_time || foundJob.destination_delivery_time,
             destination_company_name: destData.company_name || foundJob.destination_company_name || foundJob.destination_name,
             price: foundJob.transport_price || 0,
+            invoice_number: targetDestination?.invoice_number || destData.invoice_number || null,
+            destination_products: (() => {
+              const productsArray = foundJob.products || [];
+              const destId = targetDestination?.id;
+              if (productsArray.length > 0 && destId) {
+                const destProducts = productsArray.filter((p: any) => p.destination_id === destId);
+                if (destProducts.length > 0) {
+                  return destProducts.map((p: any) => ({
+                    product_name: p.product_name,
+                    product_quantity: p.product_quantity,
+                    weight: p.weight,
+                    weight_unit: p.weight_unit,
+                    unit: p.unit,
+                  }));
+                }
+              }
+              // Fallback: split product_name
+              if (foundJob.product_name) {
+                return foundJob.product_name.split(/[,，]/).map((name: string) => ({ product_name: name.trim() })).filter((p: DestinationProduct) => p.product_name);
+              }
+              return [];
+            })(),
           };
           setJob(mappedJob);
           
@@ -898,6 +930,13 @@ export default function DeliveryDetailPage() {
           <div className="text-base">{displayContactName}</div>
         </div>
 
+        {job.invoice_number && (
+          <div className="border-b border-gray-200 pb-4">
+            <div className="text-sm text-muted-foreground mb-1">{t('job.invoice')}</div>
+            <div className="text-base">{job.invoice_number}</div>
+          </div>
+        )}
+
         <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.routeNumber')}</div>
           <div className="text-base">{displayLocation}</div>
@@ -928,10 +967,22 @@ export default function DeliveryDetailPage() {
 
         <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.productType')}</div>
-          <div className="text-base">
-            {job.destination_goods_type || '-'}
-            {job.destination_goods_quantity && ` (${job.destination_goods_quantity})`}
-          </div>
+          {job.destination_products && job.destination_products.length > 0 ? (
+            <div className="flex flex-wrap gap-2 mt-1">
+              {job.destination_products.map((product, idx) => (
+                <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {product.product_name}
+                  {product.product_quantity ? ` (${product.product_quantity}${product.unit ? ` ${product.unit}` : ''})` : ''}
+                  {product.weight ? ` ${product.weight}${product.weight_unit || 'กก.'}` : ''}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="text-base">
+              {job.destination_goods_type || '-'}
+              {job.destination_goods_quantity && ` (${job.destination_goods_quantity})`}
+            </div>
+          )}
         </div>
 
         <div className="border-b border-gray-200 pb-4">
