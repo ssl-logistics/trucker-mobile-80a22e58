@@ -1717,6 +1717,7 @@ const enTranslations: Record<string, string> = {
   'job.outbound': 'Outbound',
   'job.origin': 'Origin',
   'job.destination': 'Destination',
+  'job.more_destinations': 'more destinations',
   'job.singleTrip': 'Single Trip',
   'job.multipleDestinations': 'Multiple Destinations',
   'job.equipment': 'Vehicle Equipment',
