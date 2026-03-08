@@ -4955,6 +4955,7 @@ const zhTranslations: Record<string, string> = {
   'job.employer': '雇主',
   'job.origin': '起点',
   'job.destination': '终点',
+  'job.more_destinations': '个更多目的地',
   'job.singleTrip': '单程运输',
   'job.multipleDestinations': '多点送货',
   'job.price': '价格',
