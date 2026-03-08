@@ -541,7 +541,8 @@ export default function CurrentJobsPage() {
               ? job.destinations.map((d: any, idx: number) => ({
                   sequence: d.sequence_number || d.sequence || idx + 1,
                   location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-                  company_name: d.company_name || ''
+                  company_name: d.company_name || '',
+                  products: Array.isArray(d.products) ? d.products : undefined,
                 }))
               : undefined;
 
