@@ -666,9 +666,10 @@ export default function CurrentJobsPage() {
             destinations: Array.isArray(ticket.destinations) ? ticket.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || ''
+              company_name: d.company_name || '',
+              products: Array.isArray(d.products) ? d.products : undefined,
             })) : undefined,
-            products: Array.isArray(ticket.products) ? ticket.products : undefined,
+            products: Array.isArray(ticket.products) ? ticket.products : (Array.isArray(ticket.destinations) ? ticket.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
           }));
         
         console.log(`Bid jobs for Current Jobs: ${bidWonJobs.length} (excluded ${tickets.length - bidWonJobs.length} with delivery_confirmed or wrong user)`);
