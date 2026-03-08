@@ -5004,6 +5004,7 @@ const zhTranslations: Record<string, string> = {
   'job.transportMode': '运输方式',
   'job.requiredTruckType': '所需车辆类型',
   'job.product': '产品',
+  'job.product_summary': '产品汇总',
   'job.employerLabel': '雇主',
   'job.remarks': '备注',
   'job.close': '关闭',
