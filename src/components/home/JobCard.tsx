@@ -325,7 +325,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{t('job.origin')}</p>
-                    <p className="font-medium">{job.origin_location}</p>
+                    {job.origin_location.includes('\n') ? (
+                      <>
+                        <p className="font-medium">{job.origin_location.split('\n')[0]}</p>
+                        <p className="text-xs text-muted-foreground">{job.origin_location.split('\n')[1]}</p>
+                      </>
+                    ) : (
+                      <p className="font-medium">{job.origin_location}</p>
+                    )}
                   </div>
                 </div>
               )}
