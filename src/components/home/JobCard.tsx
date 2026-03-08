@@ -178,6 +178,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <div className="text-sm sm:text-base">
                     <div className="text-muted-foreground">{t('job.destination')} #{idx + 1}</div>
                     <div className="font-medium">{dest.province || dest.address || dest.location}</div>
+                    {dest.contact_name && <div className="text-muted-foreground text-xs">{dest.contact_name}</div>}
                   </div>
                 </div>
               ))
