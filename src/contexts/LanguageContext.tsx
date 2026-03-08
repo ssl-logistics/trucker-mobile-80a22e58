@@ -1747,6 +1747,7 @@ const enTranslations: Record<string, string> = {
   'job.transportMode': 'Transport Mode',
   'job.requiredTruckType': 'Required Truck Type',
   'job.product': 'Product',
+  'job.product_summary': 'Total Products',
   'job.employerLabel': 'Employer',
   'job.remarks': 'Remarks',
   'job.close': 'Close',
