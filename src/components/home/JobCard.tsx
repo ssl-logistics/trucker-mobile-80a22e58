@@ -313,7 +313,8 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</p>
-                      <p className="font-medium">{origin.address || origin.location}</p>
+                      {origin.company_name && <p className="font-medium">{origin.company_name}</p>}
+                      <p className={origin.company_name ? "text-xs text-muted-foreground" : "font-medium"}>{origin.address || origin.location}</p>
                     </div>
                   </div>
                 ))
@@ -345,9 +346,8 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.destination')} #{idx + 1}</p>
-                      <p className="font-medium">{dest.location || dest.address}</p>
-                      {dest.address && dest.address !== dest.location && <p className="text-xs text-muted-foreground">{dest.address}</p>}
-                      {dest.contact_name && <p className="text-xs text-muted-foreground">{dest.contact_name}</p>}
+                      <p className="font-medium">{dest.contact_name || dest.company_name || dest.location}</p>
+                      <p className="text-xs text-muted-foreground">{dest.address || dest.location}</p>
                       {dest.invoice_number && <p className="text-xs text-muted-foreground">{t('job.invoice')}: {dest.invoice_number}</p>}
                     </div>
                   </div>
