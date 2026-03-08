@@ -333,6 +333,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.destination')} #{idx + 1}</p>
                       <p className="font-medium">{dest.location || dest.address}</p>
+                      {dest.contact_name && <p className="text-xs text-muted-foreground">{dest.contact_name}</p>}
                     </div>
                   </div>
                 ))
