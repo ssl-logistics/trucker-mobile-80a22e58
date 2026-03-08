@@ -260,8 +260,10 @@ export default function Home() {
           destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
             sequence: d.sequence_number || d.sequence || idx + 1,
             location: d.province || d.address || d.location || d.destination_location || '',
+            address: d.address || '',
             company_name: d.company_name || '',
             contact_name: d.contact_name || d.contact_person || '',
+            invoice_number: d.invoice_number || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,
           })) : undefined
@@ -431,8 +433,10 @@ export default function Home() {
           destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
             sequence: d.sequence_number || d.sequence || idx + 1,
             location: d.province || d.address || d.location || d.destination_location || '',
+            address: d.address || '',
             company_name: d.company_name || '',
             contact_name: d.contact_name || d.contact_person || '',
+            invoice_number: d.invoice_number || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,
           })) : undefined
