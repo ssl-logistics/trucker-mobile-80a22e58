@@ -170,18 +170,27 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               </div>
             )}
             
-            {/* Destinations - show multiple if available */}
+            {/* Destinations - show max 3, collapse rest */}
             {Array.isArray(job.destinations) && job.destinations.length > 0 ? (
-              job.destinations.map((dest, idx) => (
-                <div key={`dest-${idx}`} className="flex items-start gap-2 sm:gap-3">
-                  <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
-                  <div className="text-sm sm:text-base">
-                    <div className="text-muted-foreground">{t('job.destination')} #{idx + 1}</div>
-                    <div className="font-medium">{dest.province || dest.address || dest.location}</div>
-                    {dest.contact_name && <div className="text-muted-foreground text-xs">{dest.contact_name}</div>}
+              <>
+                {job.destinations.slice(0, 3).map((dest, idx) => (
+                  <div key={`dest-${idx}`} className="flex items-start gap-2 sm:gap-3">
+                    <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
+                    <div className="text-sm sm:text-base">
+                      <div className="text-muted-foreground">{t('job.destination')} #{idx + 1}</div>
+                      <div className="font-medium">{dest.province || dest.address || dest.location}</div>
+                      {dest.contact_name && <div className="text-muted-foreground text-xs">{dest.contact_name}</div>}
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+                {job.destinations.length > 3 && (
+                  <div className="flex items-center gap-2 sm:gap-3 pl-6">
+                    <span className="text-xs text-muted-foreground bg-muted rounded-full px-3 py-1">
+                      +{job.destinations.length - 3} {t('job.more_destinations') || 'จุดเพิ่มเติม'}
+                    </span>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="flex items-start gap-2 sm:gap-3">
                 <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
