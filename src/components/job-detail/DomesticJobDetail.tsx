@@ -639,14 +639,14 @@ export default function DomesticJobDetail({
       setCardHeights(newHeights);
     };
     // Double RAF to ensure DOM has fully rendered after state change
+    let raf2: number | null = null;
     const raf1 = requestAnimationFrame(() => {
       recalcHeights();
-      const raf2 = requestAnimationFrame(recalcHeights);
-      rafRef2.current = raf2;
+      raf2 = requestAnimationFrame(recalcHeights);
     });
     return () => {
       cancelAnimationFrame(raf1);
-      if (rafRef2.current) cancelAnimationFrame(rafRef2.current);
+      if (raf2) cancelAnimationFrame(raf2);
     };
   }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location, localDestOrder, isReorderMode]);
 
