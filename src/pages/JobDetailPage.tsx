@@ -402,15 +402,19 @@ export default function JobDetailPage() {
             destinations: Array.isArray(foundJob.destinations) && foundJob.destinations.length > 0
               ? foundJob.destinations.map((d: any) => {
                   const destId = d.id || `dest-${d.sequence_number}`;
-                  // Match products to this destination by destination_id
-                  const matchedProducts = Array.isArray(foundJob.products)
-                    ? foundJob.products
-                        .filter((p: any) => p.destination_id === d.id)
-                        .map((p: any) => p.product_name || p.name)
-                        .filter(Boolean)
-                    : [];
-                  const goodsType = matchedProducts.length > 0
-                    ? matchedProducts.join(',')
+                  // v9: products[] inside each destination
+                  const destProducts = Array.isArray(d.products) ? d.products : [];
+                  // Fallback: match from top-level products by destination_id
+                  const matchedProducts = destProducts.length > 0
+                    ? destProducts
+                    : (Array.isArray(foundJob.products)
+                        ? foundJob.products.filter((p: any) => p.destination_id === d.id)
+                        : []);
+                  const productNames = matchedProducts
+                    .map((p: any) => p.product_name || p.name)
+                    .filter(Boolean);
+                  const goodsType = productNames.length > 0
+                    ? productNames.join(',')
                     : d.goods_type || d.product_name || null;
                   return {
                     id: destId,
@@ -427,6 +431,8 @@ export default function JobDetailPage() {
                     checked_in_at: null,
                     sop_completed_at: null,
                     goods_type: goodsType,
+                    invoice_number: d.invoice_number || null,
+                    products: matchedProducts,
                   };
                 })
               : undefined,

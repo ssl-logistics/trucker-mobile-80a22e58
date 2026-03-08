@@ -1427,6 +1427,15 @@ export default function DomesticJobDetail({
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
                           <div className="flex flex-wrap gap-1">
                             {(() => {
+                              // Prefer products[] array from API v9
+                              if (Array.isArray(dest.products) && dest.products.length > 0) {
+                                return dest.products.map((p, i) => (
+                                  <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
+                                    {p.product_name || p.name || '-'}
+                                  </span>
+                                ));
+                              }
+                              // Fallback to goods_type string
                               const goodsStr = dest.goods_type || job.origin_goods_type;
                               if (!goodsStr) return <span>-</span>;
                               const items = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
