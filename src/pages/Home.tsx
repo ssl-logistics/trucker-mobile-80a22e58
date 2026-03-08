@@ -219,8 +219,10 @@ export default function Home() {
             ? extractDistrictProvince(item.container_return_address)
             : [item.destination_district, item.destination_province].filter(Boolean).join(', ') || item.destination_address || '';
         } else {
-          // Domestic: use province + district
-          originLocation = item.origin || 
+          // Domestic: use origins array province if available, fallback to sender fields
+          originLocation = (Array.isArray(item.origins) && item.origins.length > 0
+            ? [item.origins[0].district, item.origins[0].province].filter(Boolean).join(', ')
+            : '') || item.origin || 
             [item.sender_district, item.sender_province].filter(Boolean).join(', ') || 
             item.from_location || '';
           destinationLocation = item.destination || 
