@@ -990,8 +990,8 @@ export default function DeliveryDetailPage() {
               {job.destination_products.map((product, idx) => (
                 <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   {product.product_name}
-                  {product.product_quantity ? ` (${product.product_quantity}${product.unit ? ` ${product.unit}` : ''})` : ''}
-                  {product.weight ? ` ${product.weight}${product.weight_unit || 'กก.'}` : ''}
+                  {product.product_quantity ? ` x${product.product_quantity}${product.unit ? ` ${product.unit}` : ''}` : ''}
+                  {product.weight ? ` (${product.weight} ${product.weight_unit || 'กก.'})` : ''}
                 </span>
               ))}
             </div>
