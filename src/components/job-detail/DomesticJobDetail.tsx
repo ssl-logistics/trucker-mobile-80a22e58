@@ -626,17 +626,29 @@ export default function DomesticJobDetail({
 
   useEffect(() => {
     // Calculate card heights for step positioning
-    const newHeights: {emptyContainer: number;card1: number;deliveryCards: Record<string, number>;containerReturn: number;} = {
-      emptyContainer: emptyContainerRef.current?.offsetHeight || 0,
-      card1: card1Ref.current?.offsetHeight || 0,
-      deliveryCards: {},
-      containerReturn: containerReturnRef.current?.offsetHeight || 0
+    const recalcHeights = () => {
+      const newHeights: {emptyContainer: number;card1: number;deliveryCards: Record<string, number>;containerReturn: number;} = {
+        emptyContainer: emptyContainerRef.current?.offsetHeight || 0,
+        card1: card1Ref.current?.offsetHeight || 0,
+        deliveryCards: {},
+        containerReturn: containerReturnRef.current?.offsetHeight || 0
+      };
+      deliveryCardRefs.current.forEach((el, key) => {
+        newHeights.deliveryCards[key] = el.offsetHeight;
+      });
+      setCardHeights(newHeights);
     };
-    deliveryCardRefs.current.forEach((el, key) => {
-      newHeights.deliveryCards[key] = el.offsetHeight;
+    // Double RAF to ensure DOM has fully rendered after state change
+    let raf2: number | null = null;
+    const raf1 = requestAnimationFrame(() => {
+      recalcHeights();
+      raf2 = requestAnimationFrame(recalcHeights);
     });
-    setCardHeights(newHeights);
-  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location]);
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
+  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location, localDestOrder, isReorderMode]);
 
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
