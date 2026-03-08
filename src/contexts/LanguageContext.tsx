@@ -221,6 +221,7 @@ const thTranslations: Record<string, string> = {
   'job.employerLabel': 'ผู้ว่าจ้าง',
   'job.remarks': 'หมายเหตุ',
   'job.close': 'ปิด',
+  'job.invoice': 'ใบแจ้งหนี้',
   
   // Confirm Job Dialog
   'confirm.title': 'ยืนยันการรับงาน',
@@ -1751,6 +1752,7 @@ const enTranslations: Record<string, string> = {
   'job.employerLabel': 'Employer',
   'job.remarks': 'Remarks',
   'job.close': 'Close',
+  'job.invoice': 'Invoice',
   
   // Confirm Job Dialog
   'confirm.title': 'Confirm Job Acceptance',
@@ -3280,6 +3282,7 @@ const koTranslations: Record<string, string> = {
   'job.employerLabel': '고용주',
   'job.remarks': '비고',
   'job.close': '닫기',
+  'job.invoice': '송장',
   
   // Confirm Job Dialog
   'confirm.title': '작업 수락 확인',
@@ -5008,6 +5011,7 @@ const zhTranslations: Record<string, string> = {
   'job.employerLabel': '雇主',
   'job.remarks': '备注',
   'job.close': '关闭',
+  'job.invoice': '发票',
   
   // Confirm Job Dialog
   'confirm.title': '确认接受工作',
