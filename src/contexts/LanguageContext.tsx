@@ -221,6 +221,7 @@ const thTranslations: Record<string, string> = {
   'job.employerLabel': 'ผู้ว่าจ้าง',
   'job.remarks': 'หมายเหตุ',
   'job.close': 'ปิด',
+  'job.invoice': 'ใบแจ้งหนี้',
   
   // Confirm Job Dialog
   'confirm.title': 'ยืนยันการรับงาน',
