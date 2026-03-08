@@ -35,6 +35,14 @@ import {
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 
+interface DestinationProduct {
+  product_name: string;
+  product_quantity?: number;
+  weight?: number;
+  weight_unit?: string;
+  unit?: string;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -52,6 +60,8 @@ interface JobDetail {
   destination_time?: string | null;
   destination_company_name?: string | null;
   price?: number;
+  invoice_number?: string | null;
+  destination_products?: DestinationProduct[];
 }
 
 interface JobDestination {
