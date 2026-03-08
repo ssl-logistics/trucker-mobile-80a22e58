@@ -141,6 +141,13 @@ export default function Home() {
   };
 
   const displayedJobs = getDisplayedJobs();
+  const totalPages = Math.ceil(displayedJobs.length / JOBS_PER_PAGE);
+  const paginatedJobs = displayedJobs.slice((currentPage - 1) * JOBS_PER_PAGE, currentPage * JOBS_PER_PAGE);
+  
+  // Reset page when filter or jobs change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [jobFilter, jobs.length, factoryJobs.length]);
 
   // Load factory/driver assigned jobs from API
   // For internal/external drivers from factory company, use get-driver-assigned-jobs
