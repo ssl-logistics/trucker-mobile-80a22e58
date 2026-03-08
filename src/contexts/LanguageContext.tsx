@@ -3276,6 +3276,7 @@ const koTranslations: Record<string, string> = {
   'job.transportMode': '운송 방식',
   'job.requiredTruckType': '필요한 차량 유형',
   'job.product': '제품',
+  'job.product_summary': '제품 합계',
   'job.employerLabel': '고용주',
   'job.remarks': '비고',
   'job.close': '닫기',
