@@ -228,27 +228,36 @@ export default function DeliveryDetailPage() {
             destination_contact_person: destData.contact_name || foundJob.destination_contact_name,
             destination_address: destData.address || foundJob.destination_address,
             destination_goods_type: (() => {
-              // Filter products for this specific destination
-              const productsArray = foundJob.products || [];
+              // v9: products nested inside destination
+              const destNestedProducts = Array.isArray(targetDestination?.products) ? targetDestination.products : [];
+              const topLevelProducts = foundJob.products || [];
               const destId = targetDestination?.id;
-              if (productsArray.length > 0 && destId) {
-                const destProducts = productsArray.filter((p: any) => p.destination_id === destId);
-                if (destProducts.length > 0) {
-                  return destProducts.map((p: any) => p.product_name).filter(Boolean).join(', ');
-                }
+              
+              const matchedProducts = destNestedProducts.length > 0
+                ? destNestedProducts
+                : (topLevelProducts.length > 0 && destId
+                    ? topLevelProducts.filter((p: any) => String(p.destination_id) === String(destId))
+                    : []);
+              
+              if (matchedProducts.length > 0) {
+                return matchedProducts.map((p: any) => p.product_name || p.name).filter(Boolean).join(', ');
               }
-              // Fallback to job-level product_name
               return foundJob.product_name;
             })(),
             destination_goods_quantity: (() => {
-              const productsArray = foundJob.products || [];
+              const destNestedProducts = Array.isArray(targetDestination?.products) ? targetDestination.products : [];
+              const topLevelProducts = foundJob.products || [];
               const destId = targetDestination?.id;
-              if (productsArray.length > 0 && destId) {
-                const destProducts = productsArray.filter((p: any) => p.destination_id === destId);
-                if (destProducts.length > 0) {
-                  const totalQty = destProducts.reduce((sum: number, p: any) => sum + (Number(p.product_quantity) || 0), 0);
-                  return totalQty > 0 ? String(totalQty) : null;
-                }
+              
+              const matchedProducts = destNestedProducts.length > 0
+                ? destNestedProducts
+                : (topLevelProducts.length > 0 && destId
+                    ? topLevelProducts.filter((p: any) => String(p.destination_id) === String(destId))
+                    : []);
+              
+              if (matchedProducts.length > 0) {
+                const totalQty = matchedProducts.reduce((sum: number, p: any) => sum + (Number(p.product_quantity) || 0), 0);
+                return totalQty > 0 ? String(totalQty) : null;
               }
               return foundJob.product_quantity ? String(foundJob.product_quantity) : null;
             })(),
