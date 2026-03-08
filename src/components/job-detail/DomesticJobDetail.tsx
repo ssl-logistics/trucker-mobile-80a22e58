@@ -1172,7 +1172,28 @@ export default function DomesticJobDetail({
                         {job.origin_goods_type && job.origin_goods_type !== '-' &&
                       <div className="flex items-start gap-2">
                             <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                            <span className="flex-1"><strong className="text-foreground">{t('jobDetail.goodsType')}:</strong> {job.origin_goods_type}</span>
+                            <div className="flex-1 flex flex-wrap items-center gap-1">
+                              <strong className="text-foreground mr-1">{t('jobDetail.goodsType')}:</strong>
+                              {(() => {
+                                const items = job.origin_goods_type!.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
+                                const display = items.slice(0, 3);
+                                const remaining = items.length - 3;
+                                return (
+                                  <>
+                                    {display.map((item, i) => (
+                                      <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[140px]">
+                                        {item}
+                                      </span>
+                                    ))}
+                                    {remaining > 0 && (
+                                      <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                                        +{remaining}
+                                      </span>
+                                    )}
+                                  </>
+                                );
+                              })()}
+                            </div>
                             <button
                               type="button"
                               onClick={() => setShowGoodsModal(true)}
