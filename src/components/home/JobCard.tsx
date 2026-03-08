@@ -165,7 +165,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
                 <div className="text-sm sm:text-base">
                   <div className="text-muted-foreground">{t('job.origin')}</div>
-                  <div className="font-medium">{job.origin_location}</div>
+                  {job.origin_location.includes('\n') ? (
+                    <>
+                      <div className="font-medium">{job.origin_location.split('\n')[0]}</div>
+                      <div className="text-xs text-muted-foreground">{job.origin_location.split('\n')[1]}</div>
+                    </>
+                  ) : (
+                    <div className="font-medium">{job.origin_location}</div>
+                  )}
                 </div>
               </div>
             )}
@@ -318,7 +325,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{t('job.origin')}</p>
-                    <p className="font-medium">{job.origin_location}</p>
+                    {job.origin_location.includes('\n') ? (
+                      <>
+                        <p className="font-medium">{job.origin_location.split('\n')[0]}</p>
+                        <p className="text-xs text-muted-foreground">{job.origin_location.split('\n')[1]}</p>
+                      </>
+                    ) : (
+                      <p className="font-medium">{job.origin_location}</p>
+                    )}
                   </div>
                 </div>
               )}
