@@ -403,7 +403,12 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               <Truck className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">{t('job.jobType')}</p>
-                <p className="font-medium">{job.job_type ? getJobTypeLabel(job.job_type) : '-'}</p>
+                <p className="font-medium">
+                  {job.bl_no || job.booking_no
+                    ? (language === 'th' ? 'งานนอกประเทศ' : language === 'en' ? 'Overseas' : language === 'ko' ? '해외 운송' : '海外运输')
+                    : (job.job_type ? getJobTypeLabel(job.job_type) : '-')
+                  }
+                </p>
               </div>
             </div>
 
