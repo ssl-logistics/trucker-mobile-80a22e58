@@ -52,6 +52,8 @@ interface Job {
   goods_weight?: number | null;
   goods_unit?: string | null;
   goods_quantity_unit?: string | null;
+  remarks?: string | null;
+  invoice_number?: string | null;
   isAccepted?: boolean;
   bl_no?: string | null;
   booking_no?: string | null;
@@ -256,6 +258,7 @@ export default function Home() {
           isAccepted: false,
           bl_no: item.bl_no || null,
           booking_no: item.booking_no || null,
+          invoice_number: item.invoice_number || item.inv_no || item.inv || null,
           remarks: item.remark || item.remarks || item.note || null,
           origin_lat: item.sender_latitude || item.origin_lat || undefined,
           origin_lng: item.sender_longitude || item.origin_lng || undefined,
@@ -267,7 +270,7 @@ export default function Home() {
             address: d.address || '',
             company_name: d.company_name || '',
             contact_name: d.contact_name || d.contact_person || '',
-            invoice_number: d.invoice_number || '',
+            invoice_number: d.invoice_number || d.inv_no || d.inv || '',
             province: d.province || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,
@@ -429,6 +432,7 @@ export default function Home() {
           isAccepted: false,
           bl_no: item.bl_no || null,
           booking_no: item.booking_no || null,
+          invoice_number: item.invoice_number || item.inv_no || item.inv || null,
           remarks: item.remark || item.remarks || item.note || null,
           // Map coordinates from API
           origin_lat: item.origin_lat || undefined,
@@ -441,7 +445,7 @@ export default function Home() {
             address: d.address || '',
             company_name: d.company_name || '',
             contact_name: d.contact_name || d.contact_person || '',
-            invoice_number: d.invoice_number || '',
+            invoice_number: d.invoice_number || d.inv_no || d.inv || '',
             province: d.province || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,

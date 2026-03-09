@@ -41,6 +41,7 @@ interface Job {
   goods_unit?: string | null;
   goods_quantity_unit?: string | null;
   remarks?: string | null;
+  invoice_number?: string | null;
   isAccepted?: boolean;
   bl_no?: string | null;
   booking_no?: string | null;
@@ -361,6 +362,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <div>
                     <p className="text-xs text-muted-foreground">{t('job.destination')}</p>
                     <p className="font-medium">{job.destination_location}</p>
+                    {job.invoice_number && <p className="text-xs text-muted-foreground">{t('job.invoice')}: {job.invoice_number}</p>}
                   </div>
                 </div>
               )}
