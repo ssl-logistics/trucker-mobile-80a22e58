@@ -432,6 +432,7 @@ export default function Home() {
           isAccepted: false,
           bl_no: item.bl_no || null,
           booking_no: item.booking_no || null,
+          invoice_number: item.invoice_number || item.inv_no || item.inv || null,
           remarks: item.remark || item.remarks || item.note || null,
           // Map coordinates from API
           origin_lat: item.origin_lat || undefined,
