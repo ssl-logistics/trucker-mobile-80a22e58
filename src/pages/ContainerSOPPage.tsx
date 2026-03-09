@@ -491,8 +491,10 @@ const ContainerSOPPage = () => {
         }
       }
 
-      const finalContainerNumber = ocrContainerNumber || containerNumber || jobDetail?.container_number || undefined;
-      const finalSealNumber = ocrSealNumber || sealNumber || jobDetail?.seal_number || undefined;
+      const derivedContainerNumber = (ocrContainerNumber || containerNumber || jobDetail?.container_number || '').trim();
+      const derivedSealNumber = (ocrSealNumber || sealNumber || jobDetail?.seal_number || '').trim();
+      const finalContainerNumber = derivedContainerNumber || (isBLJob ? (jobDetail?.order_code || jobId || undefined) : undefined);
+      const finalSealNumber = derivedSealNumber || undefined;
 
       // Send driverCheckin for container return
       if (isContainerReturn) {
@@ -521,7 +523,7 @@ const ContainerSOPPage = () => {
       if (!isContainerReturn && finalContainerNumber && (isBLJob || (needsOCR && isContainerOcrDone))) {
         const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
-          const { error: ocrError } = await submitOcrScan({
+          const scanPayload = {
             container_no: finalContainerNumber,
             seal_no: finalSealNumber || '',
             container_image_url: containerImageUrl || undefined,
@@ -536,7 +538,11 @@ const ContainerSOPPage = () => {
             container_back_url: blAngleUrls[1] || undefined,
             container_left_url: blAngleUrls[2] || undefined,
             container_right_url: blAngleUrls[3] || undefined,
-          });
+          };
+
+          console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
+
+          const { error: ocrError } = await submitOcrScan(scanPayload);
 
           if (ocrError) {
             const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
