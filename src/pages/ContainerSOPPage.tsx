@@ -473,8 +473,8 @@ const ContainerSOPPage = () => {
         }
       }
 
-      const finalContainerNumber = ocrContainerNumber || containerNumber || undefined;
-      const finalSealNumber = ocrSealNumber || sealNumber || undefined;
+      const finalContainerNumber = ocrContainerNumber || containerNumber || jobDetail?.container_number || undefined;
+      const finalSealNumber = ocrSealNumber || sealNumber || jobDetail?.seal_number || undefined;
 
       // Send driverCheckin for container return
       if (isContainerReturn) {
