@@ -47,7 +47,7 @@ interface JobDetail {
   transport_type?: string;
 }
 
-type PhotoSlot = 'container' | 'seal' | 'eir' | 'container_front' | 'container_back' | 'container_left' | 'container_right';
+type PhotoSlot = 'container' | 'seal' | 'eir';
 type ActiveEirIndex = number | 'new';
 
 const ContainerSOPPage = () => {
@@ -97,9 +97,6 @@ const ContainerSOPPage = () => {
   // Multiple D/O photos support
   const [doPhotoFiles, setDoPhotoFiles] = useState<File[]>([]);
   const [doPhotoPreviews, setDoPhotoPreviews] = useState<string[]>([]);
-  // 4-angle container photos for BL jobs
-  const [containerAngleFiles, setContainerAngleFiles] = useState<Record<string, File | null>>({ front: null, back: null, left: null, right: null });
-  const [containerAnglePreviews, setContainerAnglePreviews] = useState<Record<string, string>>({ front: '', back: '', left: '', right: '' });
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
@@ -235,12 +232,7 @@ const ContainerSOPPage = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const preview = reader.result as string;
-      // Handle 4-angle container photos for BL jobs
-      const angleKey = slot.startsWith('container_') ? slot.replace('container_', '') : null;
-      if (angleKey && ['front', 'back', 'left', 'right'].includes(angleKey)) {
-        setContainerAngleFiles(prev => ({ ...prev, [angleKey]: file }));
-        setContainerAnglePreviews(prev => ({ ...prev, [angleKey]: preview }));
-      } else if (slot === 'container') {
+      if (slot === 'container') {
         setContainerPhotoFile(file);
         setContainerPhotoPreview(preview);
       } else if (slot === 'seal') {
@@ -254,6 +246,7 @@ const ContainerSOPPage = () => {
         } else {
           const idx = activeEirIndex as number;
           if (idx === 0 && doPhotoFiles.length === 0) {
+            // First photo
             setDoPhotoFiles([file]);
             setDoPhotoPreviews([preview]);
           } else {
@@ -261,6 +254,7 @@ const ContainerSOPPage = () => {
             setDoPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
           }
         }
+        // Also keep eirPhotoFile as the first one for backward compat
         if (activeEirIndex === 0 || (activeEirIndex === 'new' && doPhotoFiles.length === 0)) {
           setEirPhotoFile(file);
           setEirPhotoPreview(preview);
@@ -343,21 +337,13 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmClick = () => {
-    if (isBLJob) {
-      const allAngles = containerAngleFiles.front && containerAngleFiles.back && containerAngleFiles.left && containerAngleFiles.right;
-      if (!allAngles) {
-        toast({ title: 'กรุณาถ่ายรูปตู้ให้ครบ 4 มุม', variant: "destructive" });
-        return;
-      }
-    } else {
-      if (needsOCR && !isContainerOcrDone) {
-        toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
-        return;
-      }
-      if (needsOCR && !isSealOcrDone) {
-        toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
-        return;
-      }
+    if (needsOCR && !isContainerOcrDone) {
+      toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
+      return;
+    }
+    if (needsOCR && !isSealOcrDone) {
+      toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
+      return;
     }
     const hasDoOrEir = isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile;
     if (!hasDoOrEir) {
@@ -413,32 +399,9 @@ const ContainerSOPPage = () => {
         }
       }
 
-      // Upload 4-angle container photos for BL jobs
-      const containerAngleUrls: Record<string, string> = {};
-      if (isBLJob) {
-        for (const angle of ['front', 'back', 'left', 'right']) {
-          const angleFile = containerAngleFiles[angle];
-          if (angleFile) {
-            try {
-              const aFormData = new FormData();
-              aFormData.append('file', angleFile);
-              aFormData.append('folder', 'container-photos');
-              aFormData.append('fileName', `container_${angle}_${jobId}_${Date.now()}.${angleFile.name.split('.').pop() || 'jpg'}`);
-              const { data: aUpload } = await supabase.functions.invoke('upload-to-s3', { body: aFormData });
-              if (aUpload?.url) {
-                containerAngleUrls[angle] = aUpload.url;
-                console.log(`[ContainerSOP] Uploaded container ${angle} photo:`, aUpload.url);
-              }
-            } catch (e) {
-              console.warn(`[ContainerSOP] Container ${angle} photo upload failed:`, e);
-            }
-          }
-        }
-      }
-
-      // Upload container photo to S3 if available (non-BL)
+      // Upload container photo to S3 if available
       let containerImageUrl = '';
-      if (!isBLJob && containerPhotoFile) {
+      if (containerPhotoFile) {
         try {
           const cFormData = new FormData();
           cFormData.append('file', containerPhotoFile);
@@ -591,13 +554,9 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
-  const blAnglePhotosReady = isBLJob ? !!(containerAngleFiles.front && containerAngleFiles.back && containerAngleFiles.left && containerAngleFiles.right) : true;
-  const hasDoOrEirReady = isContainerReturn ? !!eirPhotoFile : isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile;
-  const allPhotosReady = isBLJob 
-    ? (blAnglePhotosReady && hasDoOrEirReady)
-    : isContainerReturn 
-      ? !!eirPhotoFile 
-      : (containerPhotoFile && sealPhotoFile && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile));
+  const allPhotosReady = isContainerReturn 
+    ? !!eirPhotoFile 
+    : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
 
@@ -634,49 +593,8 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* === BL Job: 4-angle container photos (no OCR) === */}
-        {isBLJob && !isContainerReturn && (
-        <div className="space-y-2">
-          <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
-            ถ่ายรูปตู้ 4 มุม <span className="text-red-500">*</span>
-          </Label>
-          <div className="grid grid-cols-2 gap-2">
-            {([
-              { key: 'front', slot: 'container_front' as PhotoSlot, label: 'ด้านหน้า' },
-              { key: 'back', slot: 'container_back' as PhotoSlot, label: 'ด้านหลัง' },
-              { key: 'left', slot: 'container_left' as PhotoSlot, label: 'ด้านซ้าย' },
-              { key: 'right', slot: 'container_right' as PhotoSlot, label: 'ด้านขวา' },
-            ]).map(({ key, slot, label }) => (
-              <button
-                key={key}
-                onClick={() => openPhotoDrawer(slot)}
-                className="relative w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
-              >
-                {containerAnglePreviews[key] ? (
-                  <>
-                    <img src={containerAnglePreviews[key]} alt={label} className="w-full h-full object-cover rounded-lg" />
-                    <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">{label}</span>
-                    <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                      <CheckCircle className="w-3 h-3 text-white" />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                      <Camera className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                  </>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-        )}
-
-        {/* === Non-BL: Photo 1 - Container Number (OCR) === */}
-        {!isBLJob && !isContainerReturn && (
+        {/* === Photo 1: Container Number (OCR) - Hide for container return === */}
+        {!isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
@@ -747,8 +665,8 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === Non-BL: Photo 2 - Seal Number (OCR) === */}
-        {!isBLJob && !isContainerReturn && (
+        {/* === Photo 2: Seal Number (OCR) - Hide for container return === */}
+        {!isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
@@ -822,7 +740,7 @@ const ContainerSOPPage = () => {
         {/* === Photo 3: EIR / D/O Document (no OCR) === */}
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : isBLJob ? '2' : '3'}</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : '3'}</span>
             {isLoadedContainer ? 'ถ่ายรูปใบ D/O' : 'ถ่ายรูปเอกสาร EIR'} <span className="text-red-500">*</span>
           </Label>
           
