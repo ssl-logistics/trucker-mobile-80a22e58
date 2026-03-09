@@ -135,7 +135,7 @@ export default function EditFieldPage() {
               value={value}
               onChange={(e) => {
                 if (field === 'phone') {
-                  const val = e.target.value.replace(/\D/g, '').slice(0, 15);
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
                   setValue(val);
                 } else {
                   setValue(e.target.value);
