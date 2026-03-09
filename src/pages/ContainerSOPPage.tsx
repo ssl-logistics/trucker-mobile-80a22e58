@@ -678,7 +678,37 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === Non-BL: Photo 1 - Container Number (OCR) === */}
+        {/* === BL Job: Manual container & seal number input === */}
+        {isBLJob && !isContainerReturn && (
+        <div className="space-y-2">
+          <Label className="text-base flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
+            เลขตู้ / เลขซีล
+          </Label>
+          <Card className="p-3 space-y-3 bg-white">
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">เลขตู้ (Container No.)</label>
+              <input
+                type="text"
+                value={blContainerNumber}
+                onChange={(e) => setBlContainerNumber(e.target.value.toUpperCase())}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold text-base focus:outline-none focus:border-primary"
+                placeholder="เช่น MSCU1234567"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">เลขซีล (Seal No.)</label>
+              <input
+                type="text"
+                value={blSealNumber}
+                onChange={(e) => setBlSealNumber(e.target.value.toUpperCase())}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold text-base focus:outline-none focus:border-primary"
+                placeholder="เช่น AB123456"
+              />
+            </div>
+          </Card>
+        </div>
+        )}
         {!isBLJob && !isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
