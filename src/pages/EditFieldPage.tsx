@@ -133,7 +133,15 @@ export default function EditFieldPage() {
           <div className="relative">
             <Input
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => {
+                if (field === 'phone') {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 15);
+                  setValue(val);
+                } else {
+                  setValue(e.target.value);
+                }
+              }}
+              inputMode={field === 'phone' ? 'numeric' : 'text'}
               className="border-0 border-b border-gray-300 rounded-none px-0 pb-2 focus-visible:ring-0 focus-visible:border-blue-600 text-lg shadow-none"
               placeholder={getFieldLabel()}
               autoFocus
