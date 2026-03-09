@@ -75,8 +75,9 @@ const ContainerSOPPage = () => {
   const isInboundFromJobData = !!jobDetail?.bl_no || jobDetail?.transport_type?.includes('ขาเข้า');
   const isLoadedContainer = checkinTypeFromState === 'loaded_container' || (!isContainerReturn && checkinTypeFromState !== 'empty_container' && isInboundFromJobData);
   const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
-  const needsOCR = isEmptyContainer || isLoadedContainer;
-  const needsApiVerify = isLoadedContainer;
+  const isBLJob = !!jobDetail?.bl_no;
+  const needsOCR = !isBLJob && (isEmptyContainer || isLoadedContainer);
+  const needsApiVerify = !isBLJob && isLoadedContainer;
   
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -265,11 +266,13 @@ const ContainerSOPPage = () => {
     };
     reader.readAsDataURL(file);
 
-    // Run OCR for container and seal slots
-    if (slot === 'container') {
-      await runContainerOcr(file);
-    } else if (slot === 'seal') {
-      await runSealOcr(file);
+    // Run OCR for container and seal slots (skip for BL jobs)
+    if (needsOCR) {
+      if (slot === 'container') {
+        await runContainerOcr(file);
+      } else if (slot === 'seal') {
+        await runSealOcr(file);
+      }
     }
   };
 
