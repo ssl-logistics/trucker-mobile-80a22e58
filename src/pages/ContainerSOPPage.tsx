@@ -476,8 +476,8 @@ const ContainerSOPPage = () => {
         }
       }
 
-      const finalContainerNumber = ocrContainerNumber || containerNumber || undefined;
-      const finalSealNumber = ocrSealNumber || sealNumber || undefined;
+      const finalContainerNumber = isBLJob ? (blContainerNumber || undefined) : (ocrContainerNumber || containerNumber || undefined);
+      const finalSealNumber = isBLJob ? (blSealNumber || undefined) : (ocrSealNumber || sealNumber || undefined);
 
       // Send driverCheckin for container return
       if (isContainerReturn) {
