@@ -343,13 +343,21 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmClick = () => {
-    if (needsOCR && !isContainerOcrDone) {
-      toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
-      return;
-    }
-    if (needsOCR && !isSealOcrDone) {
-      toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
-      return;
+    if (isBLJob) {
+      const allAngles = containerAngleFiles.front && containerAngleFiles.back && containerAngleFiles.left && containerAngleFiles.right;
+      if (!allAngles) {
+        toast({ title: 'กรุณาถ่ายรูปตู้ให้ครบ 4 มุม', variant: "destructive" });
+        return;
+      }
+    } else {
+      if (needsOCR && !isContainerOcrDone) {
+        toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
+        return;
+      }
+      if (needsOCR && !isSealOcrDone) {
+        toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
+        return;
+      }
     }
     const hasDoOrEir = isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile;
     if (!hasDoOrEir) {
