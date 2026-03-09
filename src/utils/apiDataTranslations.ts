@@ -126,6 +126,8 @@ const unitTranslations: Record<string, Record<Language, string>> = {
   'ton': { th: 'ตัน', en: 'ton', ko: '톤', zh: '吨' },
   'ชิ้น': { th: 'ชิ้น', en: 'pcs', ko: '개', zh: '件' },
   'pcs': { th: 'ชิ้น', en: 'pcs', ko: '개', zh: '件' },
+  'piece': { th: 'ชิ้น', en: 'pcs', ko: '개', zh: '件' },
+  'pieces': { th: 'ชิ้น', en: 'pcs', ko: '개', zh: '件' },
   'กล่อง': { th: 'กล่อง', en: 'boxes', ko: '박스', zh: '箱' },
   'box': { th: 'กล่อง', en: 'boxes', ko: '박스', zh: '箱' },
   'boxes': { th: 'กล่อง', en: 'boxes', ko: '박스', zh: '箱' },
