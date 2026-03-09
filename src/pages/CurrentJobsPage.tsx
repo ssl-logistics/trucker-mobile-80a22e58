@@ -987,7 +987,7 @@ export default function CurrentJobsPage() {
                           </div>
                           <div>
                             <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit(job.product_weight_unit || 'kg', language)}` : '-'}</span>
+                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit('kg', language)}` : '-'}</span>
                           </div>
                           <div>
                             <span className="text-[#375B7B]">{t('job.quantity')} : </span>
