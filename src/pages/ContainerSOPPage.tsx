@@ -100,9 +100,6 @@ const ContainerSOPPage = () => {
   // 4-angle container photos for BL jobs
   const [containerAngleFiles, setContainerAngleFiles] = useState<Record<string, File | null>>({ front: null, back: null, left: null, right: null });
   const [containerAnglePreviews, setContainerAnglePreviews] = useState<Record<string, string>>({ front: '', back: '', left: '', right: '' });
-  // Manual container/seal input for BL jobs
-  const [blContainerNumber, setBlContainerNumber] = useState('');
-  const [blSealNumber, setBlSealNumber] = useState('');
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
@@ -476,8 +473,8 @@ const ContainerSOPPage = () => {
         }
       }
 
-      const finalContainerNumber = isBLJob ? (blContainerNumber || undefined) : (ocrContainerNumber || containerNumber || undefined);
-      const finalSealNumber = isBLJob ? (blSealNumber || undefined) : (ocrSealNumber || sealNumber || undefined);
+      const finalContainerNumber = ocrContainerNumber || containerNumber || undefined;
+      const finalSealNumber = ocrSealNumber || sealNumber || undefined;
 
       // Send driverCheckin for container return
       if (isContainerReturn) {
@@ -678,37 +675,7 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === BL Job: Manual container & seal number input === */}
-        {isBLJob && !isContainerReturn && (
-        <div className="space-y-2">
-          <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
-            เลขตู้ / เลขซีล
-          </Label>
-          <Card className="p-3 space-y-3 bg-white">
-            <div>
-              <label className="text-xs text-muted-foreground block mb-1">เลขตู้ (Container No.)</label>
-              <input
-                type="text"
-                value={blContainerNumber}
-                onChange={(e) => setBlContainerNumber(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold text-base focus:outline-none focus:border-primary"
-                placeholder="เช่น MSCU1234567"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground block mb-1">เลขซีล (Seal No.)</label>
-              <input
-                type="text"
-                value={blSealNumber}
-                onChange={(e) => setBlSealNumber(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold text-base focus:outline-none focus:border-primary"
-                placeholder="เช่น AB123456"
-              />
-            </div>
-          </Card>
-        </div>
-        )}
+        {/* === Non-BL: Photo 1 - Container Number (OCR) === */}
         {!isBLJob && !isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
@@ -855,7 +822,7 @@ const ContainerSOPPage = () => {
         {/* === Photo 3: EIR / D/O Document (no OCR) === */}
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : '3'}</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : isBLJob ? '2' : '3'}</span>
             {isLoadedContainer ? 'ถ่ายรูปใบ D/O' : 'ถ่ายรูปเอกสาร EIR'} <span className="text-red-500">*</span>
           </Label>
           
