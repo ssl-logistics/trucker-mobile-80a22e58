@@ -424,7 +424,7 @@ export default function Home() {
           goods_weight: Array.isArray(item.products) && item.products.length > 0
             ? item.products.reduce((sum: number, p: any) => sum + (p.weight || 0), 0)
             : (item.product_weight || null),
-          goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || item.product_unit || null,
+          goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
           goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || item.product_unit || null,
           isAccepted: false,
           bl_no: item.bl_no || null,
