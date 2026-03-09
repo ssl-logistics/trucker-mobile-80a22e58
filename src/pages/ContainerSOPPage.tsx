@@ -525,7 +525,7 @@ const ContainerSOPPage = () => {
         try {
           const scanPayload = {
             container_no: finalContainerNumber,
-            seal_no: finalSealNumber || '',
+            seal_no: finalSealNumber || null,
             container_image_url: containerImageUrl || undefined,
             seal_image_url: sealImageUrl || undefined,
             eir_image_url: publicUrl || undefined,
