@@ -47,7 +47,7 @@ interface JobDetail {
   transport_type?: string;
 }
 
-type PhotoSlot = 'container' | 'seal' | 'eir';
+type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle';
 type ActiveEirIndex = number | 'new';
 
 const ContainerSOPPage = () => {
@@ -97,6 +97,11 @@ const ContainerSOPPage = () => {
   // Multiple D/O photos support
   const [doPhotoFiles, setDoPhotoFiles] = useState<File[]>([]);
   const [doPhotoPreviews, setDoPhotoPreviews] = useState<string[]>([]);
+  // BL job: 4-angle container photos
+  const containerAngles = ['ด้านหน้า', 'ด้านหลัง', 'ด้านซ้าย', 'ด้านขวา'];
+  const [blContainerPhotoFiles, setBlContainerPhotoFiles] = useState<(File | null)[]>([null, null, null, null]);
+  const [blContainerPhotoPreviews, setBlContainerPhotoPreviews] = useState<string[]>(['', '', '', '']);
+  const [activeBlAngleIndex, setActiveBlAngleIndex] = useState<number>(0);
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
@@ -232,7 +237,11 @@ const ContainerSOPPage = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const preview = reader.result as string;
-      if (slot === 'container') {
+      if (slot === 'bl_angle') {
+        const idx = activeBlAngleIndex;
+        setBlContainerPhotoFiles(prev => { const n = [...prev]; n[idx] = file; return n; });
+        setBlContainerPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
+      } else if (slot === 'container') {
         setContainerPhotoFile(file);
         setContainerPhotoPreview(preview);
       } else if (slot === 'seal') {
@@ -246,7 +255,6 @@ const ContainerSOPPage = () => {
         } else {
           const idx = activeEirIndex as number;
           if (idx === 0 && doPhotoFiles.length === 0) {
-            // First photo
             setDoPhotoFiles([file]);
             setDoPhotoPreviews([preview]);
           } else {
@@ -254,7 +262,6 @@ const ContainerSOPPage = () => {
             setDoPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
           }
         }
-        // Also keep eirPhotoFile as the first one for backward compat
         if (activeEirIndex === 0 || (activeEirIndex === 'new' && doPhotoFiles.length === 0)) {
           setEirPhotoFile(file);
           setEirPhotoPreview(preview);
@@ -345,6 +352,13 @@ const ContainerSOPPage = () => {
       toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
       return;
     }
+    if (isBLJob && !isContainerReturn) {
+      const allAnglesFilled = blContainerPhotoFiles.every(f => f !== null);
+      if (!allAnglesFilled) {
+        toast({ title: 'กรุณาถ่ายรูปตู้ให้ครบ 4 มุม', variant: "destructive" });
+        return;
+      }
+    }
     const hasDoOrEir = isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile;
     if (!hasDoOrEir) {
       toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
@@ -395,6 +409,29 @@ const ContainerSOPPage = () => {
             }
           } catch (e) {
             console.warn(`[ContainerSOP] D/O photo ${i + 1} upload failed:`, e);
+          }
+        }
+      }
+
+      // Upload BL 4-angle container photos if available
+      const blAngleUrls: string[] = [];
+      if (isBLJob && !isContainerReturn) {
+        for (let i = 0; i < blContainerPhotoFiles.length; i++) {
+          const angleFile = blContainerPhotoFiles[i];
+          if (angleFile) {
+            try {
+              const aFormData = new FormData();
+              aFormData.append('file', angleFile);
+              aFormData.append('folder', 'container-photos');
+              aFormData.append('fileName', `container_angle_${i}_${jobId}_${Date.now()}.${angleFile.name.split('.').pop() || 'jpg'}`);
+              const { data: aUpload } = await supabase.functions.invoke('upload-to-s3', { body: aFormData });
+              if (aUpload?.url) {
+                blAngleUrls.push(aUpload.url);
+                console.log(`[ContainerSOP] Uploaded angle ${containerAngles[i]}:`, aUpload.url);
+              }
+            } catch (e) {
+              console.warn(`[ContainerSOP] Angle ${containerAngles[i]} upload failed:`, e);
+            }
           }
         }
       }
@@ -554,9 +591,12 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
+  const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.every(f => f !== null) : true;
   const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
-    : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
+    : isBLJob
+      ? (blAnglePhotosReady && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile))
+      : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
 
@@ -593,11 +633,50 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* === Photo 1: Container Number (OCR) - Hide for container return === */}
-        {!isContainerReturn && (
+        {/* === BL Job: 4-angle container photos === */}
+        {isBLJob && !isContainerReturn && (
+          <div className="space-y-2">
+            <Label className="text-base flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
+              ถ่ายรูปตู้ 4 มุม <span className="text-red-500">*</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              {containerAngles.map((angle, idx) => (
+                <div key={idx} className="relative">
+                  <button
+                    onClick={() => {
+                      setActiveBlAngleIndex(idx);
+                      setActivePhotoSlot('bl_angle');
+                      setShowPhotoDrawer(true);
+                    }}
+                    className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
+                  >
+                    {blContainerPhotoPreviews[idx] ? (
+                      <img src={blContainerPhotoPreviews[idx]} alt={angle} className="w-full h-full object-cover rounded-lg" />
+                    ) : (
+                      <>
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <Camera className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">{angle}</p>
+                      </>
+                    )}
+                  </button>
+                  {blContainerPhotoPreviews[idx] && (
+                    <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">{angle}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">กรุณาถ่ายรูปตู้คอนเทนเนอร์ครบทั้ง 4 มุม</p>
+          </div>
+        )}
+
+        {/* === Photo 1: Container Number (OCR) - Hide for container return & BL jobs === */}
+        {!isContainerReturn && !isBLJob && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '5' : '1'}</span>
             ถ่ายรูปเลขตู้ (Container No.) <span className="text-red-500">*</span>
           </Label>
           
@@ -665,8 +744,8 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === Photo 2: Seal Number (OCR) - Hide for container return === */}
-        {!isContainerReturn && (
+        {/* === Photo 2: Seal Number (OCR) - Hide for container return & BL jobs === */}
+        {!isContainerReturn && !isBLJob && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
@@ -740,7 +819,7 @@ const ContainerSOPPage = () => {
         {/* === Photo 3: EIR / D/O Document (no OCR) === */}
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : '3'}</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : isBLJob ? '2' : '3'}</span>
             {isLoadedContainer ? 'ถ่ายรูปใบ D/O' : 'ถ่ายรูปเอกสาร EIR'} <span className="text-red-500">*</span>
           </Label>
           
