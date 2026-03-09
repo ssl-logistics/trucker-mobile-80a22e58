@@ -135,7 +135,7 @@ export default function EditFieldPage() {
               value={value}
               onChange={(e) => {
                 if (field === 'phone') {
-                  const val = e.target.value.replace(/\D/g, '').slice(0, 15);
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
                   setValue(val);
                 } else {
                   setValue(e.target.value);
@@ -158,7 +158,7 @@ export default function EditFieldPage() {
         </div>
 
         {field === 'phone' && value.trim().length > 0 && value.trim().length < 10 && (
-          <p className="text-sm text-destructive mt-1">{t('editField.phone_min_length') || 'เบอร์โทรต้องมีอย่างน้อย 10 หลัก'}</p>
+          <p className="text-sm text-destructive mt-1">{t('editField.phone_min_length') || 'เบอร์โทรต้องมี 10 หลัก'}</p>
         )}
 
         <Button
