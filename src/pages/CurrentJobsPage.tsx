@@ -22,7 +22,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { cn } from '@/lib/utils';
 import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
-import { translateJobType } from '@/utils/apiDataTranslations';
+import { translateJobType, translateUnit } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { 
