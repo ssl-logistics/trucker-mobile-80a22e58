@@ -1075,7 +1075,8 @@ export default function DomesticJobDetail({
                       )}
                     </div>
 
-                    {/* Container/Seal info */}
+                    {/* Container/Seal info - hide for BL (inbound) jobs */}
+                    {!job.bl_no && (
                     <div className="space-y-2">
                       {/* Container 1 */}
                       <div className={`rounded-lg p-3 space-y-1.5 text-sm ${isOcrVerified ? 'bg-green-50 border border-green-300' : 'bg-teal-50 border border-teal-200'}`}>
@@ -1105,6 +1106,7 @@ export default function DomesticJobDetail({
                         </div>
                   }
                     </div>
+                    )}
 
                     <div className="mt-3">
                       {isOcrVerified ?
