@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import { translateUnit } from '@/utils/apiDataTranslations';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2, Eye } from 'lucide-react';
 import {
@@ -1930,9 +1931,9 @@ export default function DomesticJobDetail({
                             {destProducts.map((product: any, idx: number) => {
                               const name = product.product_name || product.name || '-';
                               const weight = product.product_weight || product.weight;
-                              const weightUnit = product.weight_unit || 'กก.';
+                              const weightUnit = translateUnit(product.weight_unit || 'kg', language);
                               const qty = product.product_quantity || product.quantity;
-                              const qtyUnit = product.quantity_unit || product.product_unit || product.unit || 'ชิ้น';
+                              const qtyUnit = translateUnit(product.quantity_unit || product.product_unit || product.unit || 'pcs', language);
                               return (
                                 <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
                                   <p className="text-sm font-semibold text-foreground">
@@ -1968,9 +1969,9 @@ export default function DomesticJobDetail({
                       {job.products.map((product, idx) => {
                         const name = product.product_name || product.name || '-';
                         const weight = product.product_weight || product.weight;
-                        const weightUnit = product.weight_unit || 'กก.';
+                        const weightUnit = translateUnit(product.weight_unit || 'kg', language);
                         const qty = product.product_quantity || product.quantity;
-                        const qtyUnit = product.quantity_unit || product.product_unit || 'ชิ้น';
+                        const qtyUnit = translateUnit(product.quantity_unit || product.product_unit || 'pcs', language);
                         return (
                           <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
                             <p className="text-sm font-semibold text-foreground">
