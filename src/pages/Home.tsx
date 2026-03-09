@@ -59,7 +59,7 @@ interface Job {
   origin_lng?: number;
   destination_lat?: number;
   destination_lng?: number;
-  destinations?: Array<{ sequence: number; location: string; company_name?: string; latitude?: number; longitude?: number }>;
+  destinations?: Array<{ sequence: number; location: string; company_name?: string; latitude?: number; longitude?: number; address?: string; contact_name?: string; invoice_number?: string; province?: string }>;
 }
 
 export default function Home() {
