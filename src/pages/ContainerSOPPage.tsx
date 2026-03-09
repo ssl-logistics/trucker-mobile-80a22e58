@@ -237,7 +237,11 @@ const ContainerSOPPage = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const preview = reader.result as string;
-      if (slot === 'container') {
+      if (slot === 'bl_angle') {
+        const idx = activeBlAngleIndex;
+        setBlContainerPhotoFiles(prev => { const n = [...prev]; n[idx] = file; return n; });
+        setBlContainerPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
+      } else if (slot === 'container') {
         setContainerPhotoFile(file);
         setContainerPhotoPreview(preview);
       } else if (slot === 'seal') {
@@ -251,7 +255,6 @@ const ContainerSOPPage = () => {
         } else {
           const idx = activeEirIndex as number;
           if (idx === 0 && doPhotoFiles.length === 0) {
-            // First photo
             setDoPhotoFiles([file]);
             setDoPhotoPreviews([preview]);
           } else {
@@ -259,7 +262,6 @@ const ContainerSOPPage = () => {
             setDoPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
           }
         }
-        // Also keep eirPhotoFile as the first one for backward compat
         if (activeEirIndex === 0 || (activeEirIndex === 'new' && doPhotoFiles.length === 0)) {
           setEirPhotoFile(file);
           setEirPhotoPreview(preview);
