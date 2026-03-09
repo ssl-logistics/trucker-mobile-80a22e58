@@ -348,6 +348,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                       <p className="text-xs text-muted-foreground">{t('job.destination')} #{idx + 1}</p>
                       <p className="font-medium">{dest.contact_name || dest.company_name || dest.location}</p>
                       <p className="text-xs text-muted-foreground">{dest.address || dest.location}</p>
+                      {dest.province && <p className="text-xs text-muted-foreground">{dest.province}</p>}
                       {dest.invoice_number && <p className="text-xs text-muted-foreground">{t('job.invoice')}: {dest.invoice_number}</p>}
                     </div>
                   </div>
