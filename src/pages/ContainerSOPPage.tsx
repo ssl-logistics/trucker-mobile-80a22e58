@@ -611,8 +611,49 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* === Photo 1: Container Number (OCR) - Hide for container return === */}
-        {!isContainerReturn && (
+        {/* === BL Job: 4-angle container photos (no OCR) === */}
+        {isBLJob && !isContainerReturn && (
+        <div className="space-y-2">
+          <Label className="text-base flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
+            ถ่ายรูปตู้ 4 มุม <span className="text-red-500">*</span>
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              { key: 'front', slot: 'container_front' as PhotoSlot, label: 'ด้านหน้า' },
+              { key: 'back', slot: 'container_back' as PhotoSlot, label: 'ด้านหลัง' },
+              { key: 'left', slot: 'container_left' as PhotoSlot, label: 'ด้านซ้าย' },
+              { key: 'right', slot: 'container_right' as PhotoSlot, label: 'ด้านขวา' },
+            ]).map(({ key, slot, label }) => (
+              <button
+                key={key}
+                onClick={() => openPhotoDrawer(slot)}
+                className="relative w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
+              >
+                {containerAnglePreviews[key] ? (
+                  <>
+                    <img src={containerAnglePreviews[key]} alt={label} className="w-full h-full object-cover rounded-lg" />
+                    <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">{label}</span>
+                    <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                      <CheckCircle className="w-3 h-3 text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <Camera className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{label}</p>
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+        )}
+
+        {/* === Non-BL: Photo 1 - Container Number (OCR) === */}
+        {!isBLJob && !isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
@@ -683,8 +724,8 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === Photo 2: Seal Number (OCR) - Hide for container return === */}
-        {!isContainerReturn && (
+        {/* === Non-BL: Photo 2 - Seal Number (OCR) === */}
+        {!isBLJob && !isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
