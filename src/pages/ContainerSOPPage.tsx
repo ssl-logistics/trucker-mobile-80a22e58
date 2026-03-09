@@ -413,6 +413,29 @@ const ContainerSOPPage = () => {
         }
       }
 
+      // Upload BL 4-angle container photos if available
+      const blAngleUrls: string[] = [];
+      if (isBLJob && !isContainerReturn) {
+        for (let i = 0; i < blContainerPhotoFiles.length; i++) {
+          const angleFile = blContainerPhotoFiles[i];
+          if (angleFile) {
+            try {
+              const aFormData = new FormData();
+              aFormData.append('file', angleFile);
+              aFormData.append('folder', 'container-photos');
+              aFormData.append('fileName', `container_angle_${i}_${jobId}_${Date.now()}.${angleFile.name.split('.').pop() || 'jpg'}`);
+              const { data: aUpload } = await supabase.functions.invoke('upload-to-s3', { body: aFormData });
+              if (aUpload?.url) {
+                blAngleUrls.push(aUpload.url);
+                console.log(`[ContainerSOP] Uploaded angle ${containerAngles[i]}:`, aUpload.url);
+              }
+            } catch (e) {
+              console.warn(`[ContainerSOP] Angle ${containerAngles[i]} upload failed:`, e);
+            }
+          }
+        }
+      }
+
       // Upload container photo to S3 if available
       let containerImageUrl = '';
       if (containerPhotoFile) {
