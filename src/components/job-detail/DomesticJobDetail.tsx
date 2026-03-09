@@ -1453,6 +1453,13 @@ export default function DomesticJobDetail({
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
                           <span>{dest.contact_name || '-'}</span>
                         </div>
+                        {dest.invoice_number && (
+                        <div className="flex items-start gap-2">
+                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">INV</span>
+                          <span>{dest.invoice_number}</span>
+                        </div>
+                        )}
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
