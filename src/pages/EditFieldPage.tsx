@@ -133,7 +133,15 @@ export default function EditFieldPage() {
           <div className="relative">
             <Input
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => {
+                if (field === 'phone') {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 15);
+                  setValue(val);
+                } else {
+                  setValue(e.target.value);
+                }
+              }}
+              inputMode={field === 'phone' ? 'numeric' : 'text'}
               className="border-0 border-b border-gray-300 rounded-none px-0 pb-2 focus-visible:ring-0 focus-visible:border-blue-600 text-lg shadow-none"
               placeholder={getFieldLabel()}
               autoFocus
@@ -149,9 +157,13 @@ export default function EditFieldPage() {
           </div>
         </div>
 
+        {field === 'phone' && value.trim().length > 0 && value.trim().length < 10 && (
+          <p className="text-sm text-destructive mt-1">{t('editField.phone_min_length') || 'เบอร์โทรต้องมีอย่างน้อย 10 หลัก'}</p>
+        )}
+
         <Button
           onClick={handleSave}
-          disabled={loading || !value.trim()}
+          disabled={loading || !value.trim() || (field === 'phone' && value.trim().length < 10)}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-base"
         >
           {t('editField.save')}
