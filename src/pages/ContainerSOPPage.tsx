@@ -47,7 +47,7 @@ interface JobDetail {
   transport_type?: string;
 }
 
-type PhotoSlot = 'container' | 'seal' | 'eir';
+type PhotoSlot = 'container' | 'seal' | 'eir' | 'container_front' | 'container_back' | 'container_left' | 'container_right';
 type ActiveEirIndex = number | 'new';
 
 const ContainerSOPPage = () => {
