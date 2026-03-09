@@ -672,8 +672,8 @@ const ContainerSOPPage = () => {
           </div>
         )}
 
-        {/* === Photo 1: Container Number (OCR) - Hide for container return & BL jobs === */}
-        {!isContainerReturn && !isBLJob && (
+        {/* === Photo: Container Number - Hide for container return === */}
+        {!isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '5' : '1'}</span>
