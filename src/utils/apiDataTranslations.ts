@@ -127,7 +127,14 @@ const unitTranslations: Record<string, Record<Language, string>> = {
   'ชิ้น': { th: 'ชิ้น', en: 'pcs', ko: '개', zh: '件' },
   'pcs': { th: 'ชิ้น', en: 'pcs', ko: '개', zh: '件' },
   'กล่อง': { th: 'กล่อง', en: 'boxes', ko: '박스', zh: '箱' },
+  'box': { th: 'กล่อง', en: 'boxes', ko: '박스', zh: '箱' },
+  'boxes': { th: 'กล่อง', en: 'boxes', ko: '박스', zh: '箱' },
   'พาเลท': { th: 'พาเลท', en: 'pallets', ko: '팔레트', zh: '托盘' },
+  'pallet': { th: 'พาเลท', en: 'pallets', ko: '팔레트', zh: '托盘' },
+  'pallets': { th: 'พาเลท', en: 'pallets', ko: '팔레트', zh: '托盘' },
+  'กระสอบ': { th: 'กระสอบ', en: 'bags', ko: '포대', zh: '袋' },
+  'bag': { th: 'กระสอบ', en: 'bags', ko: '포대', zh: '袋' },
+  'bags': { th: 'กระสอบ', en: 'bags', ko: '포대', zh: '袋' },
 };
 
 // Generic translation function
