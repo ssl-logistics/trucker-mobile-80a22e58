@@ -97,6 +97,11 @@ const ContainerSOPPage = () => {
   // Multiple D/O photos support
   const [doPhotoFiles, setDoPhotoFiles] = useState<File[]>([]);
   const [doPhotoPreviews, setDoPhotoPreviews] = useState<string[]>([]);
+  // BL job: 4-angle container photos
+  const containerAngles = ['ด้านหน้า', 'ด้านหลัง', 'ด้านซ้าย', 'ด้านขวา'];
+  const [blContainerPhotoFiles, setBlContainerPhotoFiles] = useState<(File | null)[]>([null, null, null, null]);
+  const [blContainerPhotoPreviews, setBlContainerPhotoPreviews] = useState<string[]>(['', '', '', '']);
+  const [activeBlAngleIndex, setActiveBlAngleIndex] = useState<number>(0);
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
