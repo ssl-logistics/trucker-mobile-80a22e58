@@ -413,9 +413,32 @@ const ContainerSOPPage = () => {
         }
       }
 
-      // Upload container photo to S3 if available
+      // Upload 4-angle container photos for BL jobs
+      const containerAngleUrls: Record<string, string> = {};
+      if (isBLJob) {
+        for (const angle of ['front', 'back', 'left', 'right']) {
+          const angleFile = containerAngleFiles[angle];
+          if (angleFile) {
+            try {
+              const aFormData = new FormData();
+              aFormData.append('file', angleFile);
+              aFormData.append('folder', 'container-photos');
+              aFormData.append('fileName', `container_${angle}_${jobId}_${Date.now()}.${angleFile.name.split('.').pop() || 'jpg'}`);
+              const { data: aUpload } = await supabase.functions.invoke('upload-to-s3', { body: aFormData });
+              if (aUpload?.url) {
+                containerAngleUrls[angle] = aUpload.url;
+                console.log(`[ContainerSOP] Uploaded container ${angle} photo:`, aUpload.url);
+              }
+            } catch (e) {
+              console.warn(`[ContainerSOP] Container ${angle} photo upload failed:`, e);
+            }
+          }
+        }
+      }
+
+      // Upload container photo to S3 if available (non-BL)
       let containerImageUrl = '';
-      if (containerPhotoFile) {
+      if (!isBLJob && containerPhotoFile) {
         try {
           const cFormData = new FormData();
           cFormData.append('file', containerPhotoFile);
