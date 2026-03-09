@@ -610,11 +610,50 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* === Photo 1: Container Number (OCR) - Hide for container return === */}
-        {!isContainerReturn && (
+        {/* === BL Job: 4-angle container photos === */}
+        {isBLJob && !isContainerReturn && (
+          <div className="space-y-2">
+            <Label className="text-base flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
+              ถ่ายรูปตู้ 4 มุม <span className="text-red-500">*</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              {containerAngles.map((angle, idx) => (
+                <div key={idx} className="relative">
+                  <button
+                    onClick={() => {
+                      setActiveBlAngleIndex(idx);
+                      setActivePhotoSlot('bl_angle');
+                      setShowPhotoDrawer(true);
+                    }}
+                    className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
+                  >
+                    {blContainerPhotoPreviews[idx] ? (
+                      <img src={blContainerPhotoPreviews[idx]} alt={angle} className="w-full h-full object-cover rounded-lg" />
+                    ) : (
+                      <>
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <Camera className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">{angle}</p>
+                      </>
+                    )}
+                  </button>
+                  {blContainerPhotoPreviews[idx] && (
+                    <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">{angle}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">กรุณาถ่ายรูปตู้คอนเทนเนอร์ครบทั้ง 4 มุม</p>
+          </div>
+        )}
+
+        {/* === Photo 1: Container Number (OCR) - Hide for container return & BL jobs === */}
+        {!isContainerReturn && !isBLJob && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '5' : '1'}</span>
             ถ่ายรูปเลขตู้ (Container No.) <span className="text-red-500">*</span>
           </Label>
           
@@ -682,8 +721,8 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === Photo 2: Seal Number (OCR) - Hide for container return === */}
-        {!isContainerReturn && (
+        {/* === Photo 2: Seal Number (OCR) - Hide for container return & BL jobs === */}
+        {!isContainerReturn && !isBLJob && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
