@@ -441,7 +441,7 @@ export default function Home() {
             address: d.address || '',
             company_name: d.company_name || '',
             contact_name: d.contact_name || d.contact_person || '',
-            invoice_number: d.invoice_number || '',
+            invoice_number: d.invoice_number || d.inv_no || d.inv || '',
             province: d.province || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,
