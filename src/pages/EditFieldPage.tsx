@@ -157,9 +157,13 @@ export default function EditFieldPage() {
           </div>
         </div>
 
+        {field === 'phone' && value.trim().length > 0 && value.trim().length < 10 && (
+          <p className="text-sm text-destructive mt-1">{t('editField.phone_min_length') || 'เบอร์โทรต้องมีอย่างน้อย 10 หลัก'}</p>
+        )}
+
         <Button
           onClick={handleSave}
-          disabled={loading || !value.trim()}
+          disabled={loading || !value.trim() || (field === 'phone' && value.trim().length < 10)}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-base"
         >
           {t('editField.save')}
