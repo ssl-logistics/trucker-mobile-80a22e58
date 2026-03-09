@@ -97,6 +97,9 @@ const ContainerSOPPage = () => {
   // Multiple D/O photos support
   const [doPhotoFiles, setDoPhotoFiles] = useState<File[]>([]);
   const [doPhotoPreviews, setDoPhotoPreviews] = useState<string[]>([]);
+  // 4-angle container photos for BL jobs
+  const [containerAngleFiles, setContainerAngleFiles] = useState<Record<string, File | null>>({ front: null, back: null, left: null, right: null });
+  const [containerAnglePreviews, setContainerAnglePreviews] = useState<Record<string, string>>({ front: '', back: '', left: '', right: '' });
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
