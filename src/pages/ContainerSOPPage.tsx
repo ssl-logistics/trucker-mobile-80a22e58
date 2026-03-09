@@ -514,6 +514,10 @@ const ContainerSOPPage = () => {
             driver_type: driverType,
             scanned_at: new Date().toISOString(),
             image_url: ocrImageUrl,
+            container_front_url: blAngleUrls[0] || undefined,
+            container_back_url: blAngleUrls[1] || undefined,
+            container_left_url: blAngleUrls[2] || undefined,
+            container_right_url: blAngleUrls[3] || undefined,
           });
 
           if (ocrError) {
