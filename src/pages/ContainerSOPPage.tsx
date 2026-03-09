@@ -500,7 +500,7 @@ const ContainerSOPPage = () => {
       }
 
       // Save OCR scan data
-      if (needsOCR && isContainerOcrDone && finalContainerNumber && !isContainerReturn) {
+      if (!isContainerReturn && finalContainerNumber && (isBLJob || (needsOCR && isContainerOcrDone))) {
         const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
           const { error: ocrError } = await submitOcrScan({
