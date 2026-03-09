@@ -52,6 +52,8 @@ interface Job {
   goods_weight?: number | null;
   goods_unit?: string | null;
   goods_quantity_unit?: string | null;
+  remarks?: string | null;
+  invoice_number?: string | null;
   isAccepted?: boolean;
   bl_no?: string | null;
   booking_no?: string | null;
