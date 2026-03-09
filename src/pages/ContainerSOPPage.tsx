@@ -158,13 +158,31 @@ const ContainerSOPPage = () => {
       }
 
       if (foundJob) {
+        const firstContainerDetail = Array.isArray(foundJob.container_details)
+          ? foundJob.container_details.find((item: any) => item?.containerNo || item?.sealNo)
+          : null;
+
+        const fallbackContainerNumber =
+          foundJob.container_number ||
+          foundJob.container_no_1 ||
+          foundJob.container_no_2 ||
+          firstContainerDetail?.containerNo ||
+          '';
+
+        const fallbackSealNumber =
+          foundJob.seal_number ||
+          foundJob.seal_no_1 ||
+          foundJob.seal_no_2 ||
+          firstContainerDetail?.sealNo ||
+          '';
+
         setJobDetail({
           id: foundJob.id || jobId || '',
           order_code: foundJob.order_code || foundJob.order_number || jobId || '',
           employer_name: foundJob.employer_name || foundJob.factory_name || foundJob.sender_name || '',
           container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || '',
-          container_number: foundJob.container_number || '',
-          seal_number: foundJob.seal_number || '',
+          container_number: fallbackContainerNumber,
+          seal_number: fallbackSealNumber,
           container_number_2: foundJob.container_number_2 || '',
           seal_number_2: foundJob.seal_number_2 || '',
           start_date: foundJob.start_date || foundJob.sender_pickup_date || '',
@@ -473,8 +491,10 @@ const ContainerSOPPage = () => {
         }
       }
 
-      const finalContainerNumber = ocrContainerNumber || containerNumber || jobDetail?.container_number || undefined;
-      const finalSealNumber = ocrSealNumber || sealNumber || jobDetail?.seal_number || undefined;
+      const derivedContainerNumber = (ocrContainerNumber || containerNumber || jobDetail?.container_number || '').trim();
+      const derivedSealNumber = (ocrSealNumber || sealNumber || jobDetail?.seal_number || '').trim();
+      const finalContainerNumber = derivedContainerNumber || (isBLJob ? (jobDetail?.order_code || jobId || undefined) : undefined);
+      const finalSealNumber = derivedSealNumber || undefined;
 
       // Send driverCheckin for container return
       if (isContainerReturn) {
@@ -503,7 +523,7 @@ const ContainerSOPPage = () => {
       if (!isContainerReturn && finalContainerNumber && (isBLJob || (needsOCR && isContainerOcrDone))) {
         const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
-          const { error: ocrError } = await submitOcrScan({
+          const scanPayload = {
             container_no: finalContainerNumber,
             seal_no: finalSealNumber || '',
             container_image_url: containerImageUrl || undefined,
@@ -518,7 +538,11 @@ const ContainerSOPPage = () => {
             container_back_url: blAngleUrls[1] || undefined,
             container_left_url: blAngleUrls[2] || undefined,
             container_right_url: blAngleUrls[3] || undefined,
-          });
+          };
+
+          console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
+
+          const { error: ocrError } = await submitOcrScan(scanPayload);
 
           if (ocrError) {
             const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
