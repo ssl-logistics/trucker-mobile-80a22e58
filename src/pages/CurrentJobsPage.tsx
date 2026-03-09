@@ -22,7 +22,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { cn } from '@/lib/utils';
 import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
-import { translateJobType } from '@/utils/apiDataTranslations';
+import { translateJobType, translateUnit } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { 
@@ -960,11 +960,8 @@ export default function CurrentJobsPage() {
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
                       {Array.isArray(job.products) && job.products.length > 0 ? (
                         job.products.map((product, idx) => {
-                          const weightUnitLabel = product.weight_unit === 'ton' ? 'ตัน' : 'กก.';
-                          const quantityUnitLabel = product.unit === 'box' ? 'กล่อง' 
-                            : product.unit === 'piece' ? 'ชิ้น' 
-                            : product.unit === 'sack' ? 'กระสอบ' 
-                            : product.unit || '';
+                          const weightUnitLabel = translateUnit(product.weight_unit || 'kg', language);
+                          const quantityUnitLabel = translateUnit(product.unit, language);
                           return (
                             <div key={product.product_name + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
                               <div>
@@ -972,11 +969,11 @@ export default function CurrentJobsPage() {
                                 <span className="font-medium">{product.product_name}</span>
                               </div>
                               <div>
-                                <span className="text-[#375B7B]">น้ำหนัก : </span>
+                                <span className="text-[#375B7B]">{t('job.weight')} : </span>
                                 <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
                               </div>
                               <div>
-                                <span className="text-[#375B7B]">จำนวน : </span>
+                                <span className="text-[#375B7B]">{t('job.quantity')} : </span>
                                 <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
                               </div>
                             </div>
@@ -989,12 +986,12 @@ export default function CurrentJobsPage() {
                             <span>{job.product_name || '-'}</span>
                           </div>
                           <div>
-                            <span className="text-[#375B7B]">น้ำหนัก : </span>
-                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
+                            <span className="text-[#375B7B]">{t('job.weight')} : </span>
+                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit('kg', language)}` : '-'}</span>
                           </div>
                           <div>
-                            <span className="text-[#375B7B]">จำนวน : </span>
-                            <span>{job.product_quantity || '-'}</span>
+                            <span className="text-[#375B7B]">{t('job.quantity')} : </span>
+                            <span>{job.product_quantity ? `${job.product_quantity}${job.product_unit ? ` ${translateUnit(job.product_unit, language)}` : ''}` : '-'}</span>
                           </div>
                         </>
                       )}
