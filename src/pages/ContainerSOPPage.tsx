@@ -352,6 +352,13 @@ const ContainerSOPPage = () => {
       toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
       return;
     }
+    if (isBLJob && !isContainerReturn) {
+      const allAnglesFilled = blContainerPhotoFiles.every(f => f !== null);
+      if (!allAnglesFilled) {
+        toast({ title: 'กรุณาถ่ายรูปตู้ให้ครบ 4 มุม', variant: "destructive" });
+        return;
+      }
+    }
     const hasDoOrEir = isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile;
     if (!hasDoOrEir) {
       toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
