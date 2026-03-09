@@ -59,7 +59,7 @@ interface Job {
   origin_lng?: number;
   destination_lat?: number;
   destination_lng?: number;
-  destinations?: Array<{ sequence: number; location: string; company_name?: string; latitude?: number; longitude?: number }>;
+  destinations?: Array<{ sequence: number; location: string; company_name?: string; latitude?: number; longitude?: number; address?: string; contact_name?: string; invoice_number?: string; province?: string }>;
 }
 
 export default function Home() {
@@ -268,6 +268,7 @@ export default function Home() {
             company_name: d.company_name || '',
             contact_name: d.contact_name || d.contact_person || '',
             invoice_number: d.invoice_number || '',
+            province: d.province || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,
           })) : undefined
@@ -441,6 +442,7 @@ export default function Home() {
             company_name: d.company_name || '',
             contact_name: d.contact_name || d.contact_person || '',
             invoice_number: d.invoice_number || '',
+            province: d.province || '',
             latitude: d.latitude || d.destination_latitude || undefined,
             longitude: d.longitude || d.destination_longitude || undefined,
           })) : undefined
