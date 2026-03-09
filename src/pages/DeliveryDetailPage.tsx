@@ -97,7 +97,7 @@ export default function DeliveryDetailPage() {
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
-  const { isInternalDriver, isExternalDriver } = useUserRole();
+  const { isInternalDriver, isExternalDriver, canViewPrice } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [destination, setDestination] = useState<JobDestination | null>(null);
   const [isMultiDestination, setIsMultiDestination] = useState(false);
