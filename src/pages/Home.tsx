@@ -251,8 +251,8 @@ export default function Home() {
           goods_type: item.product_name || item.goods_type || null,
           goods_quantity: item.product_quantity ? String(item.product_quantity) : (item.goods_quantity || null),
           goods_weight: item.product_weight || null,
-          goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
-          goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || null,
+          goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || item.product_unit || null,
+          goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || item.product_unit || null,
           isAccepted: false,
           bl_no: item.bl_no || null,
           booking_no: item.booking_no || null,
@@ -424,8 +424,8 @@ export default function Home() {
           goods_weight: Array.isArray(item.products) && item.products.length > 0
             ? item.products.reduce((sum: number, p: any) => sum + (p.weight || 0), 0)
             : (item.product_weight || null),
-          goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
-          goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || null,
+          goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || item.product_unit || null,
+          goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || item.product_unit || null,
           isAccepted: false,
           bl_no: item.bl_no || null,
           booking_no: item.booking_no || null,
