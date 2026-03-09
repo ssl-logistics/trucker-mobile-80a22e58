@@ -986,12 +986,12 @@ export default function CurrentJobsPage() {
                             <span>{job.product_name || '-'}</span>
                           </div>
                           <div>
-                            <span className="text-[#375B7B]">น้ำหนัก : </span>
-                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${job.product_unit || 'kg'}` : '-'}</span>
+                            <span className="text-[#375B7B]">{t('job.weight')} : </span>
+                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit(job.product_weight_unit || 'kg', language)}` : '-'}</span>
                           </div>
                           <div>
-                            <span className="text-[#375B7B]">จำนวน : </span>
-                            <span>{job.product_quantity || '-'}</span>
+                            <span className="text-[#375B7B]">{t('job.quantity')} : </span>
+                            <span>{job.product_quantity ? `${job.product_quantity}${job.product_unit ? ` ${translateUnit(job.product_unit, language)}` : ''}` : '-'}</span>
                           </div>
                         </>
                       )}
