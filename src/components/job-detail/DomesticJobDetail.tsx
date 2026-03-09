@@ -1969,9 +1969,9 @@ export default function DomesticJobDetail({
                       {job.products.map((product, idx) => {
                         const name = product.product_name || product.name || '-';
                         const weight = product.product_weight || product.weight;
-                        const weightUnit = product.weight_unit || 'กก.';
+                        const weightUnit = translateUnit(product.weight_unit || 'kg', language);
                         const qty = product.product_quantity || product.quantity;
-                        const qtyUnit = product.quantity_unit || product.product_unit || 'ชิ้น';
+                        const qtyUnit = translateUnit(product.quantity_unit || product.product_unit || 'pcs', language);
                         return (
                           <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
                             <p className="text-sm font-semibold text-foreground">
