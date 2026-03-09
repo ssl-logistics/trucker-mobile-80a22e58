@@ -100,6 +100,9 @@ const ContainerSOPPage = () => {
   // 4-angle container photos for BL jobs
   const [containerAngleFiles, setContainerAngleFiles] = useState<Record<string, File | null>>({ front: null, back: null, left: null, right: null });
   const [containerAnglePreviews, setContainerAnglePreviews] = useState<Record<string, string>>({ front: '', back: '', left: '', right: '' });
+  // Manual container/seal input for BL jobs
+  const [blContainerNumber, setBlContainerNumber] = useState('');
+  const [blSealNumber, setBlSealNumber] = useState('');
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
