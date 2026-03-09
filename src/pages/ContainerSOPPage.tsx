@@ -266,11 +266,13 @@ const ContainerSOPPage = () => {
     };
     reader.readAsDataURL(file);
 
-    // Run OCR for container and seal slots
-    if (slot === 'container') {
-      await runContainerOcr(file);
-    } else if (slot === 'seal') {
-      await runSealOcr(file);
+    // Run OCR for container and seal slots (skip for BL jobs)
+    if (needsOCR) {
+      if (slot === 'container') {
+        await runContainerOcr(file);
+      } else if (slot === 'seal') {
+        await runSealOcr(file);
+      }
     }
   };
 
