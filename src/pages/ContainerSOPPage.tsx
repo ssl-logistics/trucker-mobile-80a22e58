@@ -568,9 +568,12 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
+  const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.every(f => f !== null) : true;
   const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
-    : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
+    : isBLJob
+      ? (blAnglePhotosReady && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile))
+      : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
 
