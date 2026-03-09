@@ -446,7 +446,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               </div>
               <div>
                 <span className="text-muted-foreground">{t('job.weight')} : </span>
-                <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()} ${translateUnit(job.goods_unit, language)}` : '-'}</span>
+                <span>{job.goods_weight ? `${job.goods_weight.toLocaleString()}${job.goods_unit ? ` ${translateUnit(job.goods_unit, language)}` : ` ${translateUnit('kg', language)}`}` : '-'}</span>
               </div>
               <div>
               <span className="text-muted-foreground">{t('job.quantity')} : </span>
