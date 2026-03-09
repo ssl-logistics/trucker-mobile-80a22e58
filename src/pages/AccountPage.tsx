@@ -216,7 +216,12 @@ export default function AccountPage() {
               <label className="text-sm text-muted-foreground">{t('account.bank_account_number')}</label>
               <Input
                 value={bankAccountNumber}
-                onChange={(e) => setBankAccountNumber(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 15);
+                  setBankAccountNumber(val);
+                }}
+                inputMode="numeric"
+                maxLength={15}
                 placeholder={t('account.bank_account_number')}
                 className="mt-1"
               />
