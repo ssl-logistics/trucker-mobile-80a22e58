@@ -595,7 +595,7 @@ const ContainerSOPPage = () => {
   const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
     : isBLJob
-      ? (blAnglePhotosReady && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile))
+      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile))
       : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
@@ -672,11 +672,11 @@ const ContainerSOPPage = () => {
           </div>
         )}
 
-        {/* === Photo 1: Container Number (OCR) - Hide for container return & BL jobs === */}
-        {!isContainerReturn && !isBLJob && (
+        {/* === Photo: Container Number - Hide for container return === */}
+        {!isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '5' : '1'}</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '2' : '1'}</span>
             ถ่ายรูปเลขตู้ (Container No.) <span className="text-red-500">*</span>
           </Label>
           
@@ -744,11 +744,11 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === Photo 2: Seal Number (OCR) - Hide for container return & BL jobs === */}
-        {!isContainerReturn && !isBLJob && (
+        {/* === Photo: Seal Number - Hide for container return === */}
+        {!isContainerReturn && (
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '3' : '2'}</span>
             ถ่ายรูปเลขซีล (Seal No.) <span className="text-red-500">*</span>
           </Label>
           
@@ -819,7 +819,7 @@ const ContainerSOPPage = () => {
         {/* === Photo 3: EIR / D/O Document (no OCR) === */}
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : isBLJob ? '2' : '3'}</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : isBLJob ? '4' : '3'}</span>
             {isLoadedContainer ? 'ถ่ายรูปใบ D/O' : 'ถ่ายรูปเอกสาร EIR'} <span className="text-red-500">*</span>
           </Label>
           
