@@ -518,22 +518,12 @@ const ContainerSOPPage = () => {
       if (!isContainerReturn && finalContainerNumber && (isBLJob || (needsOCR && isContainerOcrDone))) {
         const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
-          // Collect all EIR photo URLs
-          const eirPhotoUrls: string[] = [];
-          if (publicUrl) eirPhotoUrls.push(publicUrl);
-          // Upload additional EIR photos (index 1+)
-          for (let i = 1; i < eirPhotoFiles.length; i++) {
-            if (eirUploadedUrls[i]) {
-              eirPhotoUrls.push(eirUploadedUrls[i]);
-            }
-          }
-
           const scanPayload = {
             container_no: finalContainerNumber,
             seal_no: finalSealNumber || null,
             container_image_url: containerImageUrl || undefined,
             seal_image_url: sealImageUrl || undefined,
-            eir_photos: eirPhotoUrls.length > 0 ? eirPhotoUrls : undefined,
+            eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
             container_photos: blAngleUrls.length > 0 ? blAngleUrls : undefined,
             order_number: jobId || undefined,
             driver_id: user.id,
