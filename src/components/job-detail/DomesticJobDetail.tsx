@@ -112,6 +112,7 @@ interface JobDetail {
   origin_goods_quantity: string | null;
   origin_remarks: string | null;
   destination_contact_person: string | null;
+  destination_bill_of_lading: string | null;
   destination_goods_type: string | null;
   destination_goods_quantity: string | null;
   destination_remarks: string | null;
