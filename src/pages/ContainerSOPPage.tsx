@@ -274,25 +274,6 @@ const ContainerSOPPage = () => {
       } else if (slot === 'seal') {
         setSealPhotoFile(file);
         setSealPhotoPreview(preview);
-      } else if (slot === 'eir' && isLoadedContainer) {
-        // Multiple D/O photos
-        if (activeEirIndex === 'new') {
-          setDoPhotoFiles(prev => [...prev, file]);
-          setDoPhotoPreviews(prev => [...prev, preview]);
-        } else {
-          const idx = activeEirIndex as number;
-          if (idx === 0 && doPhotoFiles.length === 0) {
-            setDoPhotoFiles([file]);
-            setDoPhotoPreviews([preview]);
-          } else {
-            setDoPhotoFiles(prev => { const n = [...prev]; n[idx] = file; return n; });
-            setDoPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
-          }
-        }
-        if (activeEirIndex === 0 || (activeEirIndex === 'new' && doPhotoFiles.length === 0)) {
-          setEirPhotoFile(file);
-          setEirPhotoPreview(preview);
-        }
       } else if (slot === 'bl_eir') {
         // BL job: separate EIR document (independent state)
         setBlEirPhotoFile(file);
