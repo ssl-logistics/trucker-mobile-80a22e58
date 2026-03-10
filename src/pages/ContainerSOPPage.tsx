@@ -527,7 +527,7 @@ const ContainerSOPPage = () => {
 
       const derivedContainerNumber = (ocrContainerNumber || containerNumber || jobDetail?.container_number || '').trim();
       const derivedSealNumber = (ocrSealNumber || sealNumber || jobDetail?.seal_number || '').trim();
-      const finalContainerNumber = derivedContainerNumber || (isBLJob ? (jobDetail?.order_code || jobId || undefined) : undefined);
+      const finalContainerNumber = derivedContainerNumber || 'N/A';
       const finalSealNumber = derivedSealNumber || 'N/A';
 
       // Send driverCheckin for container return
