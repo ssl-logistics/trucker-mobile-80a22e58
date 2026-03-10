@@ -659,7 +659,7 @@ const ContainerSOPPage = () => {
    const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
     : isBLJob
-      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile) && blEirReady)
+      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && !!eirPhotoFile && blEirReady)
       : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
