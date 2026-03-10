@@ -280,14 +280,20 @@ const ContainerSOPPage = () => {
         setBlEirPhotoFile(file);
         setBlEirPhotoPreview(preview);
       } else {
-        // EIR: multiple photos support
-        if (activeEirIndex >= eirPhotoFiles.length) {
-          setEirPhotoFiles(prev => [...prev, file]);
-          setEirPhotoPreviews(prev => [...prev, preview]);
-        } else {
-          setEirPhotoFiles(prev => { const n = [...prev]; n[activeEirIndex] = file; return n; });
-          setEirPhotoPreviews(prev => { const n = [...prev]; n[activeEirIndex] = preview; return n; });
-        }
+        // EIR: multiple photos support - use functional update to avoid stale closure
+        const eirIdx = activeEirIndex;
+        setEirPhotoFiles(prev => {
+          if (eirIdx >= prev.length) {
+            return [...prev, file];
+          }
+          const n = [...prev]; n[eirIdx] = file; return n;
+        });
+        setEirPhotoPreviews(prev => {
+          if (eirIdx >= prev.length) {
+            return [...prev, preview];
+          }
+          const n = [...prev]; n[eirIdx] = preview; return n;
+        });
       }
     };
     reader.readAsDataURL(file);
