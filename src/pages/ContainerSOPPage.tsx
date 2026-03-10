@@ -512,9 +512,9 @@ const ContainerSOPPage = () => {
       if (isBLJob && !isContainerReturn && blEirPhotoFile) {
         try {
           const eirFormData = new FormData();
-          eirFormData.append('file', eirPhotoFile);
+          eirFormData.append('file', blEirPhotoFile);
           eirFormData.append('folder', 'container-photos');
-          eirFormData.append('fileName', `eir_${jobId}_${Date.now()}.${eirPhotoFile.name.split('.').pop() || 'jpg'}`);
+          eirFormData.append('fileName', `eir_${jobId}_${Date.now()}.${blEirPhotoFile.name.split('.').pop() || 'jpg'}`);
           const { data: eirUpload } = await supabase.functions.invoke('upload-to-s3', { body: eirFormData });
           if (eirUpload?.url) {
             blEirImageUrl = eirUpload.url;
