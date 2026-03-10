@@ -290,15 +290,21 @@ export default function Home() {
     if (user) {
       console.log('🔄 Loading jobs with userType:', userType, 'isInternalDriver:', isInternalDriver, 'isExternalDriver:', isExternalDriver);
       
-      // Use userType directly for more reliable check
-      // Internal/External drivers ONLY use get-driver-assigned-jobs API
-      // Freelance drivers use BOTH express-rent-posts AND factory jobs (they can receive factory assignments too)
-      if (userType === 'internal_driver' || userType === 'external_driver') {
-        loadFactoryJobs(); // Only load assigned jobs for Internal/External drivers
-      } else if (userType === 'freelance_driver') {
-        loadJobs(); // Load express-rent-posts for Freelance drivers
-        loadFactoryJobs(); // Also load factory-assigned jobs for Freelance drivers
-      }
+      const refreshJobs = () => {
+        if (userType === 'internal_driver' || userType === 'external_driver') {
+          loadFactoryJobs();
+        } else if (userType === 'freelance_driver') {
+          loadJobs();
+          loadFactoryJobs();
+        }
+      };
+
+      // Initial load
+      refreshJobs();
+
+      // Auto-refresh every 30 seconds so deleted/updated jobs reflect without page switch
+      const intervalId = setInterval(refreshJobs, 30_000);
+      return () => clearInterval(intervalId);
     }
   }, [user, userType]);
 
