@@ -1496,7 +1496,7 @@ export default function DomesticJobDetail({
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setGoodsModalDestIndex(destIdx);
+                                      setGoodsModalDestIndex(index);
                                     }}
                                     className="inline-flex items-center gap-1 bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer"
                                   >
