@@ -523,11 +523,12 @@ const ContainerSOPPage = () => {
             seal_no: finalSealNumber || null,
             container_image_url: containerImageUrl || undefined,
             seal_image_url: sealImageUrl || undefined,
-            eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
             container_photos: blAngleUrls.length > 0 ? blAngleUrls : undefined,
+            eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
             order_number: jobId || undefined,
             driver_id: user.id,
             driver_type: driverType,
+            scanned_at: new Date().toISOString(),
           };
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
