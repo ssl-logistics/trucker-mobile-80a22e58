@@ -314,7 +314,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</p>
-                      {origin.company_name && <p className="font-medium">{origin.company_name}</p>}
+                      {origin.company_name && !['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'].includes(origin.company_name.trim()) && <p className="font-medium">{origin.company_name}</p>}
                       <p className={origin.company_name ? "text-xs text-muted-foreground" : "font-medium"}>{origin.address || origin.location}</p>
                     </div>
                   </div>
