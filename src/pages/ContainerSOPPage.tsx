@@ -652,10 +652,11 @@ const ContainerSOPPage = () => {
         : t('containerSop.confirmButton');
 
   const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.length > 0 : true;
-  const allPhotosReady = isContainerReturn 
+   const blEirReady = isBLJob && !isContainerReturn ? !!eirPhotoFile : true;
+   const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
     : isBLJob
-      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile))
+      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile) && blEirReady)
       : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
