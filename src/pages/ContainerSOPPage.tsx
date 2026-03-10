@@ -256,8 +256,15 @@ const ContainerSOPPage = () => {
       const preview = reader.result as string;
       if (slot === 'bl_angle') {
         const idx = activeBlAngleIndex;
-        setBlContainerPhotoFiles(prev => { const n = [...prev]; n[idx] = file; return n; });
-        setBlContainerPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
+        if (idx >= blContainerPhotoFiles.length) {
+          // Adding new photo
+          setBlContainerPhotoFiles(prev => [...prev, file]);
+          setBlContainerPhotoPreviews(prev => [...prev, preview]);
+        } else {
+          // Replacing existing photo
+          setBlContainerPhotoFiles(prev => { const n = [...prev]; n[idx] = file; return n; });
+          setBlContainerPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
+        }
       } else if (slot === 'container') {
         setContainerPhotoFile(file);
         setContainerPhotoPreview(preview);
