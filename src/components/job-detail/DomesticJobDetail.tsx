@@ -1179,7 +1179,7 @@ export default function DomesticJobDetail({
                         </div>
                         <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.origin_contact_person || '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {(() => { const v = job.origin_contact_person; const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; return v && !generic.includes(v.trim()) ? v : '-'; })()}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
