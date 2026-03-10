@@ -290,6 +290,10 @@ const ContainerSOPPage = () => {
           setEirPhotoFile(file);
           setEirPhotoPreview(preview);
         }
+      } else if (slot === 'bl_eir') {
+        // BL job: separate EIR document
+        setEirPhotoFile(file);
+        setEirPhotoPreview(preview);
       } else {
         setEirPhotoFile(file);
         setEirPhotoPreview(preview);
