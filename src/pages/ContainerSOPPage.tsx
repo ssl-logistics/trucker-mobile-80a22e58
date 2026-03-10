@@ -97,10 +97,9 @@ const ContainerSOPPage = () => {
   // Multiple D/O photos support
   const [doPhotoFiles, setDoPhotoFiles] = useState<File[]>([]);
   const [doPhotoPreviews, setDoPhotoPreviews] = useState<string[]>([]);
-  // BL job: 4-angle container photos
-  const containerAngles = ['ด้านหน้า', 'ด้านหลัง', 'ด้านซ้าย', 'ด้านขวา'];
-  const [blContainerPhotoFiles, setBlContainerPhotoFiles] = useState<(File | null)[]>([null, null, null, null]);
-  const [blContainerPhotoPreviews, setBlContainerPhotoPreviews] = useState<string[]>(['', '', '', '']);
+  // BL job: flexible container photos (unlimited)
+  const [blContainerPhotoFiles, setBlContainerPhotoFiles] = useState<File[]>([]);
+  const [blContainerPhotoPreviews, setBlContainerPhotoPreviews] = useState<string[]>([]);
   const [activeBlAngleIndex, setActiveBlAngleIndex] = useState<number>(0);
   
   // OCR state
@@ -257,8 +256,15 @@ const ContainerSOPPage = () => {
       const preview = reader.result as string;
       if (slot === 'bl_angle') {
         const idx = activeBlAngleIndex;
-        setBlContainerPhotoFiles(prev => { const n = [...prev]; n[idx] = file; return n; });
-        setBlContainerPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
+        if (idx >= blContainerPhotoFiles.length) {
+          // Adding new photo
+          setBlContainerPhotoFiles(prev => [...prev, file]);
+          setBlContainerPhotoPreviews(prev => [...prev, preview]);
+        } else {
+          // Replacing existing photo
+          setBlContainerPhotoFiles(prev => { const n = [...prev]; n[idx] = file; return n; });
+          setBlContainerPhotoPreviews(prev => { const n = [...prev]; n[idx] = preview; return n; });
+        }
       } else if (slot === 'container') {
         setContainerPhotoFile(file);
         setContainerPhotoPreview(preview);
@@ -371,9 +377,8 @@ const ContainerSOPPage = () => {
       return;
     }
     if (isBLJob && !isContainerReturn) {
-      const allAnglesFilled = blContainerPhotoFiles.every(f => f !== null);
-      if (!allAnglesFilled) {
-        toast({ title: 'กรุณาถ่ายรูปตู้ให้ครบ 4 มุม', variant: "destructive" });
+      if (blContainerPhotoFiles.length === 0) {
+        toast({ title: 'กรุณาถ่ายรูปตู้อย่างน้อย 1 รูป', variant: "destructive" });
         return;
       }
     }
@@ -431,7 +436,7 @@ const ContainerSOPPage = () => {
         }
       }
 
-      // Upload BL 4-angle container photos if available
+      // Upload BL container photos if available
       const blAngleUrls: string[] = [];
       if (isBLJob && !isContainerReturn) {
         for (let i = 0; i < blContainerPhotoFiles.length; i++) {
@@ -441,14 +446,14 @@ const ContainerSOPPage = () => {
               const aFormData = new FormData();
               aFormData.append('file', angleFile);
               aFormData.append('folder', 'container-photos');
-              aFormData.append('fileName', `container_angle_${i}_${jobId}_${Date.now()}.${angleFile.name.split('.').pop() || 'jpg'}`);
+              aFormData.append('fileName', `container_photo_${i}_${jobId}_${Date.now()}.${angleFile.name.split('.').pop() || 'jpg'}`);
               const { data: aUpload } = await supabase.functions.invoke('upload-to-s3', { body: aFormData });
               if (aUpload?.url) {
                 blAngleUrls.push(aUpload.url);
-                console.log(`[ContainerSOP] Uploaded angle ${containerAngles[i]}:`, aUpload.url);
+                console.log(`[ContainerSOP] Uploaded container photo ${i + 1}:`, aUpload.url);
               }
             } catch (e) {
-              console.warn(`[ContainerSOP] Angle ${containerAngles[i]} upload failed:`, e);
+              console.warn(`[ContainerSOP] Container photo ${i + 1} upload failed:`, e);
             }
           }
         }
@@ -538,6 +543,7 @@ const ContainerSOPPage = () => {
             container_back_url: blAngleUrls[1] || undefined,
             container_left_url: blAngleUrls[2] || undefined,
             container_right_url: blAngleUrls[3] || undefined,
+            container_photos: blAngleUrls.length > 0 ? blAngleUrls : undefined,
           };
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
@@ -619,7 +625,7 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
-  const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.every(f => f !== null) : true;
+  const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.length > 0 : true;
   const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
     : isBLJob
@@ -661,15 +667,15 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* === BL Job: 4-angle container photos === */}
+        {/* === BL Job: Flexible container/truck photos === */}
         {isBLJob && !isContainerReturn && (
           <div className="space-y-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
-              ถ่ายรูปตู้ 4 มุม <span className="text-red-500">*</span>
+              ถ่ายรูปตู้ / รูปรถ <span className="text-red-500">*</span>
             </Label>
-            <div className="grid grid-cols-2 gap-2">
-              {containerAngles.map((angle, idx) => (
+            <div className="grid grid-cols-3 gap-2">
+              {blContainerPhotoPreviews.map((preview, idx) => (
                 <div key={idx} className="relative">
                   <button
                     onClick={() => {
@@ -677,26 +683,40 @@ const ContainerSOPPage = () => {
                       setActivePhotoSlot('bl_angle');
                       setShowPhotoDrawer(true);
                     }}
-                    className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
+                    className="w-full h-28 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
                   >
-                    {blContainerPhotoPreviews[idx] ? (
-                      <img src={blContainerPhotoPreviews[idx]} alt={angle} className="w-full h-full object-cover rounded-lg" />
-                    ) : (
-                      <>
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                          <Camera className="w-5 h-5 text-muted-foreground" />
-                        </div>
-                        <p className="text-xs text-muted-foreground">{angle}</p>
-                      </>
-                    )}
+                    <img src={preview} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
                   </button>
-                  {blContainerPhotoPreviews[idx] && (
-                    <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">{angle}</span>
-                  )}
+                  <button
+                    onClick={() => {
+                      setBlContainerPhotoFiles(prev => prev.filter((_, i) => i !== idx));
+                      setBlContainerPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">{idx + 1}</span>
                 </div>
               ))}
+              {/* Add new photo button */}
+              <button
+                onClick={() => {
+                  setActiveBlAngleIndex(blContainerPhotoFiles.length);
+                  setActivePhotoSlot('bl_angle');
+                  setShowPhotoDrawer(true);
+                }}
+                className="w-full h-28 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white"
+              >
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <p className="text-[10px] text-muted-foreground">เพิ่มรูป</p>
+              </button>
             </div>
-            <p className="text-xs text-muted-foreground">กรุณาถ่ายรูปตู้คอนเทนเนอร์ครบทั้ง 4 มุม</p>
+            <p className="text-xs text-muted-foreground">
+              แนบรูปตู้คอนเทนเนอร์หรือรูปรถ ({blContainerPhotoFiles.length} รูป)
+            </p>
           </div>
         )}
 
