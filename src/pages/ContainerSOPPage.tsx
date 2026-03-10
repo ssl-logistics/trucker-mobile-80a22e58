@@ -543,6 +543,7 @@ const ContainerSOPPage = () => {
             container_back_url: blAngleUrls[1] || undefined,
             container_left_url: blAngleUrls[2] || undefined,
             container_right_url: blAngleUrls[3] || undefined,
+            container_photos: blAngleUrls.length > 0 ? blAngleUrls : undefined,
           };
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
