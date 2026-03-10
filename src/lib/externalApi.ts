@@ -557,19 +557,14 @@ export async function verifyOcrContainer(body: {
 // Submit OCR scan result to external system (saves to DB)
 export async function submitOcrScan(body: {
   container_no: string;
-  seal_no: string;
+  seal_no: string | null;
   container_image_url?: string;
   seal_image_url?: string;
-  eir_image_url?: string;
+  eir_photos?: string[];
+  container_photos?: string[];
   order_number?: string;
   driver_id?: string;
   driver_type?: 'internal' | 'external' | 'freelance';
-  scanned_at?: string;
-  image_url?: string;
-  container_front_url?: string;
-  container_back_url?: string;
-  container_left_url?: string;
-  container_right_url?: string;
 }) {
   return callExternalApi<{ success: boolean; data?: any }>('save-ocr-scan', {
     method: 'POST',
