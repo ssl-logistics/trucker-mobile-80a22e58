@@ -294,9 +294,9 @@ const ContainerSOPPage = () => {
           setEirPhotoPreview(preview);
         }
       } else if (slot === 'bl_eir') {
-        // BL job: separate EIR document
-        setEirPhotoFile(file);
-        setEirPhotoPreview(preview);
+        // BL job: separate EIR document (independent state)
+        setBlEirPhotoFile(file);
+        setBlEirPhotoPreview(preview);
       } else {
         setEirPhotoFile(file);
         setEirPhotoPreview(preview);
