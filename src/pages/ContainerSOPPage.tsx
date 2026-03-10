@@ -391,6 +391,10 @@ const ContainerSOPPage = () => {
       toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
+    if (isBLJob && !isContainerReturn && !eirPhotoFile) {
+      toast({ title: 'กรุณาถ่ายรูปเอกสาร EIR', variant: "destructive" });
+      return;
+    }
     setShowConfirmDialog(true);
   };
 
@@ -648,10 +652,11 @@ const ContainerSOPPage = () => {
         : t('containerSop.confirmButton');
 
   const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.length > 0 : true;
-  const allPhotosReady = isContainerReturn 
+   const blEirReady = isBLJob && !isContainerReturn ? !!eirPhotoFile : true;
+   const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
     : isBLJob
-      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile))
+      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && (isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile) && blEirReady)
       : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
@@ -956,7 +961,7 @@ const ContainerSOPPage = () => {
           <div className="space-y-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isLoadedContainer ? '5' : '5'}</span>
-              ถ่ายรูปเอกสาร EIR
+              ถ่ายรูปเอกสาร EIR <span className="text-red-500">*</span>
             </Label>
             <button
               onClick={() => {
@@ -972,7 +977,7 @@ const ContainerSOPPage = () => {
                   <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                     <FileText className="w-6 h-6 text-muted-foreground" />
                   </div>
-                  <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR (ถ้ามี)</p>
+                  <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR</p>
                 </>
               )}
             </button>
