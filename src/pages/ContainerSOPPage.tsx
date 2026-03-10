@@ -377,9 +377,8 @@ const ContainerSOPPage = () => {
       return;
     }
     if (isBLJob && !isContainerReturn) {
-      const allAnglesFilled = blContainerPhotoFiles.every(f => f !== null);
-      if (!allAnglesFilled) {
-        toast({ title: 'กรุณาถ่ายรูปตู้ให้ครบ 4 มุม', variant: "destructive" });
+      if (blContainerPhotoFiles.length === 0) {
+        toast({ title: 'กรุณาถ่ายรูปตู้อย่างน้อย 1 รูป', variant: "destructive" });
         return;
       }
     }
