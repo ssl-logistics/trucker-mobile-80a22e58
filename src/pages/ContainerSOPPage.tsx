@@ -47,7 +47,7 @@ interface JobDetail {
   transport_type?: string;
 }
 
-type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle';
+type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir';
 type ActiveEirIndex = number | 'new';
 
 const ContainerSOPPage = () => {
@@ -290,6 +290,10 @@ const ContainerSOPPage = () => {
           setEirPhotoFile(file);
           setEirPhotoPreview(preview);
         }
+      } else if (slot === 'bl_eir') {
+        // BL job: separate EIR document
+        setEirPhotoFile(file);
+        setEirPhotoPreview(preview);
       } else {
         setEirPhotoFile(file);
         setEirPhotoPreview(preview);
@@ -496,6 +500,24 @@ const ContainerSOPPage = () => {
         }
       }
 
+      // Upload BL EIR photo if available (separate from D/O)
+      let blEirImageUrl = '';
+      if (isBLJob && !isContainerReturn && eirPhotoFile && isLoadedContainer) {
+        try {
+          const eirFormData = new FormData();
+          eirFormData.append('file', eirPhotoFile);
+          eirFormData.append('folder', 'container-photos');
+          eirFormData.append('fileName', `eir_${jobId}_${Date.now()}.${eirPhotoFile.name.split('.').pop() || 'jpg'}`);
+          const { data: eirUpload } = await supabase.functions.invoke('upload-to-s3', { body: eirFormData });
+          if (eirUpload?.url) {
+            blEirImageUrl = eirUpload.url;
+            console.log('[ContainerSOP] Uploaded BL EIR photo:', eirUpload.url);
+          }
+        } catch (e) {
+          console.warn('[ContainerSOP] BL EIR photo upload failed:', e);
+        }
+      }
+
       const derivedContainerNumber = (ocrContainerNumber || containerNumber || jobDetail?.container_number || '').trim();
       const derivedSealNumber = (ocrSealNumber || sealNumber || jobDetail?.seal_number || '').trim();
       const finalContainerNumber = derivedContainerNumber || (isBLJob ? (jobDetail?.order_code || jobId || undefined) : undefined);
@@ -533,7 +555,7 @@ const ContainerSOPPage = () => {
             seal_no: finalSealNumber || null,
             container_image_url: containerImageUrl || undefined,
             seal_image_url: sealImageUrl || undefined,
-            eir_image_url: publicUrl || undefined,
+            eir_image_url: blEirImageUrl || publicUrl || undefined,
             order_number: jobId || undefined,
             driver_id: user.id,
             driver_type: driverType,
@@ -928,6 +950,34 @@ const ContainerSOPPage = () => {
             </button>
           )}
         </div>
+
+        {/* === Photo: EIR Document for BL jobs (additional step) === */}
+        {isBLJob && !isContainerReturn && (
+          <div className="space-y-2">
+            <Label className="text-base flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isLoadedContainer ? '5' : '5'}</span>
+              ถ่ายรูปเอกสาร EIR
+            </Label>
+            <button
+              onClick={() => {
+                setActivePhotoSlot('bl_eir');
+                setShowPhotoDrawer(true);
+              }}
+              className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+            >
+              {eirPhotoPreview ? (
+                <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR (ถ้ามี)</p>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
