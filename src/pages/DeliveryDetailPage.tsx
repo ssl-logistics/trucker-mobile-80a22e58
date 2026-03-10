@@ -813,7 +813,13 @@ export default function DeliveryDetailPage() {
   
   // Display values - use destination if available, otherwise fallback to job
   const displayCompanyName = destination?.company_name || job?.destination_company_name || '';
-  const displayContactName = destination?.contact_name || job?.destination_contact_person || '-';
+  const displayContactName = (() => {
+    const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'];
+    const company = displayCompanyName && !generic.includes(displayCompanyName.trim()) ? displayCompanyName : null;
+    const contact = (destination?.contact_name || job?.destination_contact_person);
+    const contactClean = contact && !generic.includes(contact.trim()) ? contact : null;
+    return company || contactClean || '-';
+  })();
   const displayAddress = destination?.address || job?.destination_address || job?.destination_location || '-';
   const displayLocation = destination ? `${destination.district || ''}, ${destination.province || ''}` : job?.destination_location || '-';
   const displayLatitude = destination?.latitude || job?.destination_latitude || null;
