@@ -3258,7 +3258,7 @@ const koTranslations: Record<string, string> = {
   'job.goodsType': '제품 유형',
   'job.goods_type': '제품 유형',
   'job.goods_quantity': '수량',
-  'job.goods': '제품',
+  'job.goods': '총 제품',
   'job.weight': '무게',
   'job.quantity': '수량',
   'job.deliveryDate': '배송일',
