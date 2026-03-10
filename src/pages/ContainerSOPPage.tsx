@@ -942,7 +942,7 @@ const ContainerSOPPage = () => {
             </Label>
             <button
               onClick={() => {
-                setActivePhotoSlot('eir');
+                setActivePhotoSlot('bl_eir');
                 setShowPhotoDrawer(true);
               }}
               className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
