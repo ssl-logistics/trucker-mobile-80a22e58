@@ -186,7 +186,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
                     <div className="text-sm sm:text-base">
                       <div className="text-muted-foreground">{t('job.destination')} #{idx + 1}</div>
-                      <div className="font-medium">{dest.contact_name || dest.company_name || dest.province || dest.location}</div>
+                      <div className="font-medium">{dest.company_name || (dest.contact_name && !['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'].includes(dest.contact_name.trim().toLowerCase()) && !['ผู้ส่ง','ลูกค้า','ผู้รับ'].includes(dest.contact_name.trim()) ? dest.contact_name : null) || dest.province || dest.location}</div>
                     </div>
                   </div>
                 ))}
