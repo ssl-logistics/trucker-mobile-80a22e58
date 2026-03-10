@@ -522,7 +522,7 @@ const ContainerSOPPage = () => {
             seal_no: finalSealNumber || null,
             container_image_url: containerImageUrl || undefined,
             seal_image_url: sealImageUrl || undefined,
-            eir_image_url: blEirImageUrl || publicUrl || undefined,
+            eir_image_url: publicUrl || undefined,
             order_number: jobId || undefined,
             driver_id: user.id,
             driver_type: driverType,
