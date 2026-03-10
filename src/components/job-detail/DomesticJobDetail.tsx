@@ -231,6 +231,7 @@ export default function DomesticJobDetail({
   const [isOcrVerified, setIsOcrVerified] = useState(false);
   const [verifiedLookupData, setVerifiedLookupData] = useState<any>(null);
   const [showGoodsModal, setShowGoodsModal] = useState(false);
+  const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
 
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
@@ -1466,31 +1467,47 @@ export default function DomesticJobDetail({
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
                           <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
-                        <div className="flex items-start gap-2">
-                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
-                          <div className="flex flex-wrap gap-1">
-                            {(() => {
-                              // Prefer products[] array from API v9
-                              if (Array.isArray(dest.products) && dest.products.length > 0) {
-                                return dest.products.map((p, i) => (
-                                  <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
-                                    {p.product_name || p.name || '-'}
+                        {(() => {
+                          // Collect all product items for this destination
+                          let allItems: { label: string }[] = [];
+                          if (Array.isArray(dest.products) && dest.products.length > 0) {
+                            allItems = dest.products.map((p) => ({ label: p.product_name || p.name || '-' }));
+                          } else {
+                            const goodsStr = dest.goods_type || job.origin_goods_type;
+                            if (goodsStr) {
+                              allItems = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean).map(s => ({ label: s }));
+                            }
+                          }
+                          const maxShow = 3;
+                          const display = allItems.slice(0, maxShow);
+                          const remaining = allItems.length - maxShow;
+                          return (
+                            <div className="flex items-start gap-2">
+                              <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
+                              <div className="flex flex-wrap gap-1 items-center">
+                                {display.length > 0 ? display.map((item, i) => (
+                                  <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[140px]">
+                                    {item.label}
                                   </span>
-                                ));
-                              }
-                              // Fallback to goods_type string
-                              const goodsStr = dest.goods_type || job.origin_goods_type;
-                              if (!goodsStr) return <span>-</span>;
-                              const items = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
-                              return items.map((item, i) => (
-                                <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
-                                  {item}
-                                </span>
-                              ));
-                            })()}
-                          </div>
-                        </div>
+                                )) : <span>-</span>}
+                                {remaining > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setGoodsModalDestIndex(index);
+                                    }}
+                                    className="inline-flex items-center gap-1 bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                    +{remaining}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                         {dest.notes && dest.notes !== '-' &&
                       <div className="flex items-start gap-2">
                             <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
@@ -2049,6 +2066,52 @@ export default function DomesticJobDetail({
                   )}
                 </>
               );
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Destination Goods Modal */}
+      <Dialog open={goodsModalDestIndex !== null} onOpenChange={(open) => { if (!open) setGoodsModalDestIndex(null); }}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">
+              {t('job.goods') || 'สินค้า'} - {t('job.destination') || 'ปลายทาง'} #{(goodsModalDestIndex ?? 0) + 1}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {(() => {
+              if (goodsModalDestIndex === null) return null;
+              const destinations = Array.isArray(job.destinations) ? job.destinations : [];
+              const dest = destinations[goodsModalDestIndex];
+              if (!dest) return <p className="text-sm text-muted-foreground">{t('common.noData') || 'ไม่มีข้อมูล'}</p>;
+
+              let items: { label: string; qty?: string; weight?: string }[] = [];
+              if (Array.isArray(dest.products) && dest.products.length > 0) {
+                items = dest.products.map((p: any) => ({
+                  label: p.product_name || p.name || '-',
+                  qty: p.quantity || p.qty || null,
+                  weight: p.weight || null,
+                }));
+              } else {
+                const goodsStr = dest.goods_type || job.origin_goods_type;
+                if (goodsStr) {
+                  items = goodsStr.split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((s: string) => ({ label: s }));
+                }
+              }
+
+              if (items.length === 0) return <p className="text-sm text-muted-foreground">{t('common.noData') || 'ไม่มีข้อมูล'}</p>;
+
+              return items.map((item, i) => (
+                <div key={i} className="border rounded-lg p-3 bg-muted/30 space-y-1">
+                  <p className="text-sm font-semibold text-foreground">{i + 1}. {item.label}</p>
+                  {(item.qty || item.weight) && (
+                    <div className="flex gap-4 text-xs text-muted-foreground">
+                      {item.weight && <span>{t('jobDetail.weight') || 'น้ำหนัก'}: {item.weight}</span>}
+                      {item.qty && <span>{t('jobDetail.quantity') || 'จำนวน'}: {item.qty}</span>}
+                    </div>
+                  )}
+                </div>
+              ));
             })()}
           </div>
         </DialogContent>
