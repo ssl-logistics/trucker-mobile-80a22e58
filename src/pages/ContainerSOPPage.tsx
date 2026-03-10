@@ -408,25 +408,6 @@ const ContainerSOPPage = () => {
       publicUrl = uploadData.url;
       console.log('[ContainerSOP] Uploaded EIR/D/O to S3:', publicUrl);
 
-      // Upload additional D/O photos if any
-      const additionalDoUrls: string[] = [];
-      if (isLoadedContainer && doPhotoFiles.length > 1) {
-        for (let i = 1; i < doPhotoFiles.length; i++) {
-          try {
-            const doFormData = new FormData();
-            doFormData.append('file', doPhotoFiles[i]);
-            doFormData.append('folder', 'container-photos');
-            doFormData.append('fileName', `do_${jobId}_${Date.now()}_${i}.${doPhotoFiles[i].name.split('.').pop() || 'jpg'}`);
-            const { data: doUpload } = await supabase.functions.invoke('upload-to-s3', { body: doFormData });
-            if (doUpload?.url) {
-              additionalDoUrls.push(doUpload.url);
-              console.log(`[ContainerSOP] Uploaded D/O photo ${i + 1}:`, doUpload.url);
-            }
-          } catch (e) {
-            console.warn(`[ContainerSOP] D/O photo ${i + 1} upload failed:`, e);
-          }
-        }
-      }
 
       // Upload BL container photos if available
       const blAngleUrls: string[] = [];
