@@ -400,7 +400,7 @@ const ContainerSOPPage = () => {
       // Upload all EIR photos
       let publicUrl = '';
       const eirUrls: string[] = [];
-      const filesToUpload = isLoadedContainer ? doPhotoFiles : eirPhotoFiles;
+      const filesToUpload = eirPhotoFiles;
       
       for (let i = 0; i < filesToUpload.length; i++) {
         const fileExt = filesToUpload[i].name.split('.').pop();
