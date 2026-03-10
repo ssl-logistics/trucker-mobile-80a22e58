@@ -384,6 +384,14 @@ const ContainerSOPPage = () => {
       return;
     }
     if (isBLJob && !isContainerReturn) {
+      if (!isContainerOcrDone) {
+        toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
+        return;
+      }
+      if (!isSealOcrDone) {
+        toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
+        return;
+      }
       if (blContainerPhotoFiles.length === 0) {
         toast({ title: 'กรุณาถ่ายรูปตู้อย่างน้อย 1 รูป', variant: "destructive" });
         return;
