@@ -314,7 +314,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</p>
-                      {origin.company_name && <p className="font-medium">{origin.company_name}</p>}
+                      {origin.company_name && !['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'].includes(origin.company_name.trim()) && <p className="font-medium">{origin.company_name}</p>}
                       <p className={origin.company_name ? "text-xs text-muted-foreground" : "font-medium"}>{origin.address || origin.location}</p>
                     </div>
                   </div>
@@ -347,7 +347,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{t('job.destination')} #{idx + 1}</p>
-                      <p className="font-medium">{dest.contact_name || dest.company_name || dest.location}</p>
+                      <p className="font-medium">{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const name = dest.company_name && !generic.includes(dest.company_name.trim()) ? dest.company_name : (dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null); return name || dest.location || '-'; })()}</p>
                       <p className="text-xs text-muted-foreground">{dest.address || dest.location}</p>
                       {dest.province && <p className="text-xs text-muted-foreground">{dest.province}</p>}
                       {dest.invoice_number && <p className="text-xs text-muted-foreground">{t('job.invoice')}: {dest.invoice_number}</p>}
