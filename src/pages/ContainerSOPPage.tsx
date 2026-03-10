@@ -94,6 +94,9 @@ const ContainerSOPPage = () => {
   const [sealPhotoPreview, setSealPhotoPreview] = useState<string>("");
   const [eirPhotoFile, setEirPhotoFile] = useState<File | null>(null);
   const [eirPhotoPreview, setEirPhotoPreview] = useState<string>("");
+  // Separate BL EIR state (independent from D/O)
+  const [blEirPhotoFile, setBlEirPhotoFile] = useState<File | null>(null);
+  const [blEirPhotoPreview, setBlEirPhotoPreview] = useState<string>("");
   // Multiple D/O photos support
   const [doPhotoFiles, setDoPhotoFiles] = useState<File[]>([]);
   const [doPhotoPreviews, setDoPhotoPreviews] = useState<string[]>([]);
@@ -291,9 +294,9 @@ const ContainerSOPPage = () => {
           setEirPhotoPreview(preview);
         }
       } else if (slot === 'bl_eir') {
-        // BL job: separate EIR document
-        setEirPhotoFile(file);
-        setEirPhotoPreview(preview);
+        // BL job: separate EIR document (independent state)
+        setBlEirPhotoFile(file);
+        setBlEirPhotoPreview(preview);
       } else {
         setEirPhotoFile(file);
         setEirPhotoPreview(preview);
@@ -391,7 +394,7 @@ const ContainerSOPPage = () => {
       toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
-    if (isBLJob && !isContainerReturn && !eirPhotoFile) {
+    if (isBLJob && !isContainerReturn && !blEirPhotoFile) {
       toast({ title: 'กรุณาถ่ายรูปเอกสาร EIR', variant: "destructive" });
       return;
     }
@@ -506,12 +509,12 @@ const ContainerSOPPage = () => {
 
       // Upload BL EIR photo if available (separate from D/O)
       let blEirImageUrl = '';
-      if (isBLJob && !isContainerReturn && eirPhotoFile && isLoadedContainer) {
+      if (isBLJob && !isContainerReturn && blEirPhotoFile) {
         try {
           const eirFormData = new FormData();
-          eirFormData.append('file', eirPhotoFile);
+          eirFormData.append('file', blEirPhotoFile);
           eirFormData.append('folder', 'container-photos');
-          eirFormData.append('fileName', `eir_${jobId}_${Date.now()}.${eirPhotoFile.name.split('.').pop() || 'jpg'}`);
+          eirFormData.append('fileName', `eir_${jobId}_${Date.now()}.${blEirPhotoFile.name.split('.').pop() || 'jpg'}`);
           const { data: eirUpload } = await supabase.functions.invoke('upload-to-s3', { body: eirFormData });
           if (eirUpload?.url) {
             blEirImageUrl = eirUpload.url;
@@ -652,7 +655,7 @@ const ContainerSOPPage = () => {
         : t('containerSop.confirmButton');
 
   const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.length > 0 : true;
-   const blEirReady = isBLJob && !isContainerReturn ? !!eirPhotoFile : true;
+   const blEirReady = isBLJob && !isContainerReturn ? !!blEirPhotoFile : true;
    const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
     : isBLJob
@@ -970,8 +973,8 @@ const ContainerSOPPage = () => {
               }}
               className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
             >
-              {eirPhotoPreview ? (
-                <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
+              {blEirPhotoPreview ? (
+                <img src={blEirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
               ) : (
                 <>
                   <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
