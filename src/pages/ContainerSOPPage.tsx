@@ -928,6 +928,34 @@ const ContainerSOPPage = () => {
             </button>
           )}
         </div>
+
+        {/* === Photo: EIR Document for BL jobs (additional step) === */}
+        {isBLJob && !isContainerReturn && (
+          <div className="space-y-2">
+            <Label className="text-base flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isLoadedContainer ? '5' : '5'}</span>
+              ถ่ายรูปเอกสาร EIR
+            </Label>
+            <button
+              onClick={() => {
+                setActivePhotoSlot('eir');
+                setShowPhotoDrawer(true);
+              }}
+              className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+            >
+              {eirPhotoPreview ? (
+                <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR (ถ้ามี)</p>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
