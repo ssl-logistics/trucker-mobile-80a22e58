@@ -894,69 +894,28 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === Photo 3: EIR / D/O Document (no OCR) === */}
+        {/* === Photo 3: EIR Document (no OCR) === */}
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : isBLJob ? '4' : '3'}</span>
-            {isLoadedContainer ? 'ถ่ายรูปใบ D/O' : 'ถ่ายรูปเอกสาร EIR'} <span className="text-red-500">*</span>
+            ถ่ายรูปเอกสาร EIR <span className="text-red-500">*</span>
           </Label>
           
-          {isLoadedContainer ? (
-            <>
-              {/* Show existing D/O photos */}
-              <div className="grid grid-cols-2 gap-2">
-                {doPhotoPreviews.map((preview, idx) => (
-                  <div key={idx} className="relative">
-                    <button
-                      onClick={() => openPhotoDrawer('eir', idx)}
-                      className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden hover:border-primary/50 transition-colors bg-white"
-                    >
-                      <img src={preview} alt={`D/O ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDoPhotoFiles(prev => prev.filter((_, i) => i !== idx));
-                        setDoPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
-                      }}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                    <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">D/O {idx + 1}</span>
-                  </div>
-                ))}
-                
-                {/* Add new D/O button */}
-                <button
-                  onClick={() => openPhotoDrawer('eir', doPhotoFiles.length === 0 ? 0 : 'new')}
-                  className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
-                >
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {doPhotoFiles.length === 0 ? 'กดเพื่อถ่ายรูปใบ D/O' : 'เพิ่มใบ D/O'}
-                  </p>
-                </button>
-              </div>
-            </>
-          ) : (
-            <button
-              onClick={() => openPhotoDrawer('eir')}
-              className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
-            >
-              {eirPhotoPreview ? (
-                <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
-              ) : (
-                <>
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR</p>
-                </>
-              )}
-            </button>
-          )}
+          <button
+            onClick={() => openPhotoDrawer('eir')}
+            className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+          >
+            {eirPhotoPreview ? (
+              <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR</p>
+              </>
+            )}
+          </button>
         </div>
 
         {/* === Photo: EIR Document for BL jobs (additional step) === */}
