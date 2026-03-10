@@ -391,7 +391,7 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmSOP = async () => {
-    const primaryEirFile = isLoadedContainer ? doPhotoFiles[0] : eirPhotoFiles[0];
+    const primaryEirFile = eirPhotoFiles[0];
     if (!primaryEirFile || !jobId || !user) return;
 
     setUploading(true);
