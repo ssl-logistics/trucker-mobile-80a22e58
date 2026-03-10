@@ -509,7 +509,7 @@ const ContainerSOPPage = () => {
 
       // Upload BL EIR photo if available (separate from D/O)
       let blEirImageUrl = '';
-      if (isBLJob && !isContainerReturn && eirPhotoFile && isLoadedContainer) {
+      if (isBLJob && !isContainerReturn && blEirPhotoFile) {
         try {
           const eirFormData = new FormData();
           eirFormData.append('file', eirPhotoFile);
