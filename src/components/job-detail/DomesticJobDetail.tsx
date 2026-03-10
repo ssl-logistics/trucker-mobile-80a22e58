@@ -1612,7 +1612,7 @@ export default function DomesticJobDetail({
                                   const name = p.product_name || p.name || '-';
                                   const qty = p.product_quantity || p.quantity;
                                   const weight = p.product_weight || p.weight;
-                                  const unit = p.quantity_unit || p.product_unit || p.unit || '';
+                                  const unit = p.quantity_unit || p.product_unit || '';
                                   const weightUnit = p.weight_unit || 'กก.';
                                   let label = name;
                                   if (qty) label += ` x${qty}${unit ? ' ' + translateUnit(unit, language) : ''}`;
