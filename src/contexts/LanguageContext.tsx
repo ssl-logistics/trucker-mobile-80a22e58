@@ -1728,7 +1728,7 @@ const enTranslations: Record<string, string> = {
   'job.goodsType': 'Product Type',
   'job.goods_type': 'Product Type',
   'job.goods_quantity': 'Quantity',
-  'job.goods': 'Product',
+  'job.goods': 'Total Products',
   'job.weight': 'Weight',
   'job.quantity': 'Quantity',
   'job.deliveryDate': 'Delivery Date',
