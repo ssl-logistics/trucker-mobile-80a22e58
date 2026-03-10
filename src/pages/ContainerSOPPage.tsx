@@ -395,9 +395,6 @@ const ContainerSOPPage = () => {
 
     setUploading(true);
     try {
-      // Upload EIR/D/O photo (primary document)
-    const primaryEirFile = isLoadedContainer ? doPhotoFiles[0] : eirPhotoFiles[0];
-      if (!primaryEirFile) return;
 
       // Upload all EIR photos
       let publicUrl = '';
