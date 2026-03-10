@@ -4990,7 +4990,7 @@ const zhTranslations: Record<string, string> = {
   'job.goodsType': '产品类型',
   'job.goods_type': '产品类型',
   'job.goods_quantity': '数量',
-  'job.goods': '产品',
+  'job.goods': '总产品',
   'job.weight': '重量',
   'job.quantity': '数量',
   'job.deliveryDate': '交货日期',
