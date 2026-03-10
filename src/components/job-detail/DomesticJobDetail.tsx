@@ -1969,9 +1969,11 @@ export default function DomesticJobDetail({
                       <MapPin className="w-4 h-4 text-green-600" />
                       <span className="font-semibold text-sm text-foreground">{t('jobDetail.pickupPoint') || 'จุดรับสินค้า'}</span>
                     </div>
-                    {job.origin_company_name && (
-                      <p className="text-sm font-medium text-foreground ml-6">{job.origin_company_name}</p>
-                    )}
+                    {(() => {
+                      const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'];
+                      const name = job.origin_company_name && !generic.includes(job.origin_company_name.trim()) ? job.origin_company_name : (job.origin_location || null);
+                      return name ? <p className="text-sm font-medium text-foreground ml-6">{name}</p> : null;
+                    })()}
 
                     {destinations.map((dest, destIdx) => {
                       const destProducts = Array.isArray(dest.products) ? dest.products : [];
