@@ -396,24 +396,35 @@ const ContainerSOPPage = () => {
     setUploading(true);
     try {
       // Upload EIR/D/O photo (primary document)
+    const primaryEirFile = isLoadedContainer ? doPhotoFiles[0] : eirPhotoFiles[0];
+      if (!primaryEirFile) return;
+
+      // Upload all EIR photos
       let publicUrl = '';
-      const fileExt = primaryEirFile.name.split('.').pop();
-      const fileName = `container_sop_${jobId}_${Date.now()}.${fileExt}`;
+      const eirUrls: string[] = [];
+      const filesToUpload = isLoadedContainer ? doPhotoFiles : eirPhotoFiles;
+      
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const fileExt = filesToUpload[i].name.split('.').pop();
+        const fileName = `eir_${jobId}_${Date.now()}_${i}.${fileExt}`;
+        const formData = new FormData();
+        formData.append('file', filesToUpload[i]);
+        formData.append('folder', 'container-photos');
+        formData.append('fileName', fileName);
 
-      const formData = new FormData();
-      formData.append('file', primaryEirFile);
-      formData.append('folder', 'container-photos');
-      formData.append('fileName', fileName);
+        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
+          body: formData
+        });
 
-      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
-        body: formData
-      });
-
-      if (uploadError || !uploadData?.url) {
-        throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
+        if (uploadError || !uploadData?.url) {
+          if (i === 0) throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
+          console.warn(`[ContainerSOP] EIR photo ${i + 1} upload failed`);
+          continue;
+        }
+        eirUrls.push(uploadData.url);
+        if (i === 0) publicUrl = uploadData.url;
+        console.log(`[ContainerSOP] Uploaded EIR ${i + 1}:`, uploadData.url);
       }
-      publicUrl = uploadData.url;
-      console.log('[ContainerSOP] Uploaded EIR/D/O to S3:', publicUrl);
 
 
       // Upload BL container photos if available
