@@ -197,7 +197,7 @@ const thTranslations: Record<string, string> = {
   'job.goodsType': 'ประเภทสินค้า',
   'job.goods_type': 'ประเภทสินค้า',
   'job.goods_quantity': 'จำนวนสินค้า',
-  'job.goods': 'สินค้า',
+  'job.goods': 'สินค้ารวม',
   'job.weight': 'น้ำหนัก',
   'job.quantity': 'จำนวน',
   'job.deliveryDate': 'วันที่ส่ง',
