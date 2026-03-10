@@ -624,7 +624,7 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
-  const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.every(f => f !== null) : true;
+  const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.length > 0 : true;
   const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
     : isBLJob
