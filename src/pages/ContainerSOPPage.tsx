@@ -383,13 +383,8 @@ const ContainerSOPPage = () => {
         return;
       }
     }
-    const hasDoOrEir = isLoadedContainer ? doPhotoFiles.length > 0 : eirPhotoFiles.length > 0;
-    if (!hasDoOrEir) {
-      toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
-      return;
-    }
-    if (isBLJob && !isContainerReturn && !blEirPhotoFile) {
-      toast({ title: 'กรุณาถ่ายรูปเอกสาร EIR', variant: "destructive" });
+    if (eirPhotoFiles.length === 0) {
+      toast({ title: 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
     setShowConfirmDialog(true);
