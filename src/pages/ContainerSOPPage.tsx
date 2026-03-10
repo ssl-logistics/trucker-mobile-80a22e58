@@ -94,6 +94,9 @@ const ContainerSOPPage = () => {
   const [sealPhotoPreview, setSealPhotoPreview] = useState<string>("");
   const [eirPhotoFile, setEirPhotoFile] = useState<File | null>(null);
   const [eirPhotoPreview, setEirPhotoPreview] = useState<string>("");
+  // Separate BL EIR state (independent from D/O)
+  const [blEirPhotoFile, setBlEirPhotoFile] = useState<File | null>(null);
+  const [blEirPhotoPreview, setBlEirPhotoPreview] = useState<string>("");
   // Multiple D/O photos support
   const [doPhotoFiles, setDoPhotoFiles] = useState<File[]>([]);
   const [doPhotoPreviews, setDoPhotoPreviews] = useState<string[]>([]);
