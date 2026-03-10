@@ -2070,5 +2070,51 @@ export default function DomesticJobDetail({
           </div>
         </DialogContent>
       </Dialog>
+      {/* Destination Goods Modal */}
+      <Dialog open={goodsModalDestIndex !== null} onOpenChange={(open) => { if (!open) setGoodsModalDestIndex(null); }}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">
+              {t('job.goods') || 'สินค้า'} - {t('job.destination') || 'ปลายทาง'} #{(goodsModalDestIndex ?? 0) + 1}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {(() => {
+              if (goodsModalDestIndex === null) return null;
+              const destinations = Array.isArray(job.destinations) ? job.destinations : [];
+              const dest = destinations[goodsModalDestIndex];
+              if (!dest) return <p className="text-sm text-muted-foreground">{t('common.noData') || 'ไม่มีข้อมูล'}</p>;
+
+              let items: { label: string; qty?: string; weight?: string }[] = [];
+              if (Array.isArray(dest.products) && dest.products.length > 0) {
+                items = dest.products.map((p: any) => ({
+                  label: p.product_name || p.name || '-',
+                  qty: p.quantity || p.qty || null,
+                  weight: p.weight || null,
+                }));
+              } else {
+                const goodsStr = dest.goods_type || job.origin_goods_type;
+                if (goodsStr) {
+                  items = goodsStr.split(/[,，、\/]/).map((s: string) => s.trim()).filter(Boolean).map((s: string) => ({ label: s }));
+                }
+              }
+
+              if (items.length === 0) return <p className="text-sm text-muted-foreground">{t('common.noData') || 'ไม่มีข้อมูล'}</p>;
+
+              return items.map((item, i) => (
+                <div key={i} className="border rounded-lg p-3 bg-muted/30 space-y-1">
+                  <p className="text-sm font-semibold text-foreground">{i + 1}. {item.label}</p>
+                  {(item.qty || item.weight) && (
+                    <div className="flex gap-4 text-xs text-muted-foreground">
+                      {item.weight && <span>{t('jobDetail.weight') || 'น้ำหนัก'}: {item.weight}</span>}
+                      {item.qty && <span>{t('jobDetail.quantity') || 'จำนวน'}: {item.qty}</span>}
+                    </div>
+                  )}
+                </div>
+              ));
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>;
 }
