@@ -655,7 +655,7 @@ const ContainerSOPPage = () => {
         : t('containerSop.confirmButton');
 
   const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.length > 0 : true;
-   const blEirReady = isBLJob && !isContainerReturn ? !!eirPhotoFile : true;
+   const blEirReady = isBLJob && !isContainerReturn ? !!blEirPhotoFile : true;
    const allPhotosReady = isContainerReturn 
     ? !!eirPhotoFile 
     : isBLJob
