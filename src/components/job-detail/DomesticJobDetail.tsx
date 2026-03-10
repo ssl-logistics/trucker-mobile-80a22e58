@@ -1453,7 +1453,7 @@ export default function DomesticJobDetail({
                         <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
-                          <span>{(() => { const v = dest.contact_name; const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; return v && !generic.includes(v.trim()) ? v : (dest.company_name || '-'); })()}</span>
+                          <span>{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const company = dest.company_name && !generic.includes(dest.company_name.trim()) ? dest.company_name : null; const contact = dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null; return company || contact || '-'; })()}</span>
                         </div>
                         {dest.invoice_number && (
                         <div className="flex items-start gap-2">
