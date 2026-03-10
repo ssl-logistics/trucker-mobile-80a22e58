@@ -83,7 +83,7 @@ const ContainerSOPPage = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
   const [activePhotoSlot, setActivePhotoSlot] = useState<PhotoSlot>('container');
-  const [activeEirIndex, setActiveEirIndex] = useState<ActiveEirIndex>(0);
+  
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   
