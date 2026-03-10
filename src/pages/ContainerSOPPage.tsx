@@ -666,15 +666,15 @@ const ContainerSOPPage = () => {
           </div>
         </Card>
 
-        {/* === BL Job: 4-angle container photos === */}
+        {/* === BL Job: Flexible container/truck photos === */}
         {isBLJob && !isContainerReturn && (
           <div className="space-y-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
-              ถ่ายรูปตู้ 4 มุม <span className="text-red-500">*</span>
+              ถ่ายรูปตู้ / รูปรถ <span className="text-red-500">*</span>
             </Label>
-            <div className="grid grid-cols-2 gap-2">
-              {containerAngles.map((angle, idx) => (
+            <div className="grid grid-cols-3 gap-2">
+              {blContainerPhotoPreviews.map((preview, idx) => (
                 <div key={idx} className="relative">
                   <button
                     onClick={() => {
@@ -682,26 +682,40 @@ const ContainerSOPPage = () => {
                       setActivePhotoSlot('bl_angle');
                       setShowPhotoDrawer(true);
                     }}
-                    className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
+                    className="w-full h-28 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
                   >
-                    {blContainerPhotoPreviews[idx] ? (
-                      <img src={blContainerPhotoPreviews[idx]} alt={angle} className="w-full h-full object-cover rounded-lg" />
-                    ) : (
-                      <>
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                          <Camera className="w-5 h-5 text-muted-foreground" />
-                        </div>
-                        <p className="text-xs text-muted-foreground">{angle}</p>
-                      </>
-                    )}
+                    <img src={preview} alt={`รูปที่ ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
                   </button>
-                  {blContainerPhotoPreviews[idx] && (
-                    <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">{angle}</span>
-                  )}
+                  <button
+                    onClick={() => {
+                      setBlContainerPhotoFiles(prev => prev.filter((_, i) => i !== idx));
+                      setBlContainerPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">{idx + 1}</span>
                 </div>
               ))}
+              {/* Add new photo button */}
+              <button
+                onClick={() => {
+                  setActiveBlAngleIndex(blContainerPhotoFiles.length);
+                  setActivePhotoSlot('bl_angle');
+                  setShowPhotoDrawer(true);
+                }}
+                className="w-full h-28 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white"
+              >
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <p className="text-[10px] text-muted-foreground">เพิ่มรูป</p>
+              </button>
             </div>
-            <p className="text-xs text-muted-foreground">กรุณาถ่ายรูปตู้คอนเทนเนอร์ครบทั้ง 4 มุม</p>
+            <p className="text-xs text-muted-foreground">
+              แนบรูปตู้คอนเทนเนอร์หรือรูปรถ ({blContainerPhotoFiles.length} รูป)
+            </p>
           </div>
         )}
 
