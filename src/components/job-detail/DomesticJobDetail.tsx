@@ -1114,7 +1114,7 @@ export default function DomesticJobDetail({
                       {isOcrVerified ?
                   <div className="flex items-center justify-center gap-2 p-3 bg-green-100 rounded-lg border border-green-300">
                           <CheckCircle className="w-5 h-5 text-green-600" />
-                          <span className="text-sm font-medium text-green-700">{t('jobDetail.ocrCompleted') || 'สแกน OCR เสร็จสิ้น'}</span>
+                          <span className="text-sm font-medium text-green-700">{job.bl_no ? 'แนบหลักฐานสำเร็จแล้ว' : (t('jobDetail.ocrCompleted') || 'สแกน OCR เสร็จสิ้น')}</span>
                         </div> :
 
                   <Button
