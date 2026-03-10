@@ -973,8 +973,8 @@ const ContainerSOPPage = () => {
               }}
               className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
             >
-              {eirPhotoPreview ? (
-                <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
+              {blEirPhotoPreview ? (
+                <img src={blEirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
               ) : (
                 <>
                   <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
