@@ -231,6 +231,7 @@ export default function DomesticJobDetail({
   const [isOcrVerified, setIsOcrVerified] = useState(false);
   const [verifiedLookupData, setVerifiedLookupData] = useState<any>(null);
   const [showGoodsModal, setShowGoodsModal] = useState(false);
+  const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
 
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
