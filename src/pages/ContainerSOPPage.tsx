@@ -894,8 +894,7 @@ const ContainerSOPPage = () => {
             {/* Add new EIR button */}
             <button
               onClick={() => {
-                setActiveEirIndex(eirPhotoFiles.length);
-                openPhotoDrawer('eir');
+                openPhotoDrawer('eir', eirPhotoFiles.length);
               }}
               className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
             >
