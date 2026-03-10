@@ -1466,31 +1466,47 @@ export default function DomesticJobDetail({
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
                           <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
-                        <div className="flex items-start gap-2">
-                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
-                          <div className="flex flex-wrap gap-1">
-                            {(() => {
-                              // Prefer products[] array from API v9
-                              if (Array.isArray(dest.products) && dest.products.length > 0) {
-                                return dest.products.map((p, i) => (
-                                  <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
-                                    {p.product_name || p.name || '-'}
+                        {(() => {
+                          // Collect all product items for this destination
+                          let allItems: { label: string }[] = [];
+                          if (Array.isArray(dest.products) && dest.products.length > 0) {
+                            allItems = dest.products.map((p) => ({ label: p.product_name || p.name || '-' }));
+                          } else {
+                            const goodsStr = dest.goods_type || job.origin_goods_type;
+                            if (goodsStr) {
+                              allItems = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean).map(s => ({ label: s }));
+                            }
+                          }
+                          const maxShow = 3;
+                          const display = allItems.slice(0, maxShow);
+                          const remaining = allItems.length - maxShow;
+                          return (
+                            <div className="flex items-start gap-2">
+                              <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
+                              <div className="flex flex-wrap gap-1 items-center">
+                                {display.length > 0 ? display.map((item, i) => (
+                                  <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[140px]">
+                                    {item.label}
                                   </span>
-                                ));
-                              }
-                              // Fallback to goods_type string
-                              const goodsStr = dest.goods_type || job.origin_goods_type;
-                              if (!goodsStr) return <span>-</span>;
-                              const items = goodsStr.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
-                              return items.map((item, i) => (
-                                <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100">
-                                  {item}
-                                </span>
-                              ));
-                            })()}
-                          </div>
-                        </div>
+                                )) : <span>-</span>}
+                                {remaining > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setGoodsModalDestIndex(destIdx);
+                                    }}
+                                    className="inline-flex items-center gap-1 bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                    +{remaining}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                         {dest.notes && dest.notes !== '-' &&
                       <div className="flex items-start gap-2">
                             <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
