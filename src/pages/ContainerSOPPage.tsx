@@ -208,7 +208,7 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const openPhotoDrawer = (slot: PhotoSlot, eirIndex: ActiveEirIndex = 0) => {
+  const openPhotoDrawer = (slot: PhotoSlot, eirIndex: number = 0) => {
     setActivePhotoSlot(slot);
     setActiveEirIndex(eirIndex);
     setShowPhotoDrawer(true);
