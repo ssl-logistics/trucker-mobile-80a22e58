@@ -76,7 +76,7 @@ const ContainerSOPPage = () => {
   const isLoadedContainer = checkinTypeFromState === 'loaded_container' || (!isContainerReturn && checkinTypeFromState !== 'empty_container' && isInboundFromJobData);
   const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
   const isBLJob = !!jobDetail?.bl_no;
-  const needsOCR = !isBLJob && (isEmptyContainer || isLoadedContainer);
+  const needsOCR = !isContainerReturn && (isEmptyContainer || isLoadedContainer || isBLJob);
   const needsApiVerify = !isBLJob && isLoadedContainer;
   
   const [loading, setLoading] = useState(true);
@@ -304,7 +304,7 @@ const ContainerSOPPage = () => {
     };
     reader.readAsDataURL(file);
 
-    // Run OCR for container and seal slots (skip for BL jobs)
+    // Run OCR for container and seal slots
     if (needsOCR) {
       if (slot === 'container') {
         await runContainerOcr(file);
@@ -384,6 +384,14 @@ const ContainerSOPPage = () => {
       return;
     }
     if (isBLJob && !isContainerReturn) {
+      if (!isContainerOcrDone) {
+        toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
+        return;
+      }
+      if (!isSealOcrDone) {
+        toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
+        return;
+      }
       if (blContainerPhotoFiles.length === 0) {
         toast({ title: 'กรุณาถ่ายรูปตู้อย่างน้อย 1 รูป', variant: "destructive" });
         return;
