@@ -977,7 +977,7 @@ const ContainerSOPPage = () => {
                   <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                     <FileText className="w-6 h-6 text-muted-foreground" />
                   </div>
-                  <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR (ถ้ามี)</p>
+                  <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR</p>
                 </>
               )}
             </button>
