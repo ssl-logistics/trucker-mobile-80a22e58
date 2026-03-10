@@ -304,7 +304,7 @@ const ContainerSOPPage = () => {
     };
     reader.readAsDataURL(file);
 
-    // Run OCR for container and seal slots (skip for BL jobs)
+    // Run OCR for container and seal slots
     if (needsOCR) {
       if (slot === 'container') {
         await runContainerOcr(file);
