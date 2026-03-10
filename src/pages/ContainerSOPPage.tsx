@@ -391,6 +391,10 @@ const ContainerSOPPage = () => {
       toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
+    if (isBLJob && !isContainerReturn && !eirPhotoFile) {
+      toast({ title: 'กรุณาถ่ายรูปเอกสาร EIR', variant: "destructive" });
+      return;
+    }
     setShowConfirmDialog(true);
   };
 
