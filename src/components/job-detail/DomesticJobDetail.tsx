@@ -1590,16 +1590,51 @@ export default function DomesticJobDetail({
                         <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.destination_contact_person || '-'}</span>
                       </div>
+                      {job.destination_bill_of_lading && job.destination_bill_of_lading !== '-' && (
+                        <div className="flex items-start gap-2">
+                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span><strong className="text-foreground">{t('job.invoice') || 'ใบแจ้งหนี้'}:</strong> {job.destination_bill_of_lading}</span>
+                        </div>
+                      )}
                       <div className="flex items-start gap-2">
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                       </div>
-                      {job.destination_remarks && job.destination_remarks !== '-' &&
-                      <div className="flex items-start gap-2">
-                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span>{job.destination_remarks}</span>
+                      {(job.destination_goods_type || job.origin_goods_type) && (
+                        <div className="flex items-start gap-2">
+                          <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span>
+                            <strong className="text-foreground">{t('jobDetail.goodsType') || 'สินค้า'}:</strong>{' '}
+                            {(() => {
+                              // Show from products array if available
+                              if (job.products && job.products.length > 0) {
+                                return job.products.map((p, i) => {
+                                  const name = p.product_name || p.name || '-';
+                                  const qty = p.product_quantity || p.quantity;
+                                  const weight = p.product_weight || p.weight;
+                                  const unit = p.quantity_unit || p.product_unit || p.unit || '';
+                                  const weightUnit = p.weight_unit || 'กก.';
+                                  let label = name;
+                                  if (qty) label += ` x${qty}${unit ? ' ' + translateUnit(unit, language) : ''}`;
+                                  if (weight) label += ` (${weight} ${translateUnit(weightUnit, language)})`;
+                                  return <span key={i}>{i > 0 ? ', ' : ''}{label}</span>;
+                                });
+                              }
+                              // Fallback to goods_type string
+                              const goodsStr = job.destination_goods_type || job.origin_goods_type;
+                              if (!goodsStr || goodsStr === '-') return '-';
+                              const qtyStr = job.destination_goods_quantity || job.origin_goods_quantity;
+                              return qtyStr ? `${goodsStr} (${qtyStr})` : goodsStr;
+                            })()}
+                          </span>
                         </div>
-                      }
+                      )}
+                      {job.destination_remarks && job.destination_remarks !== '-' && (
+                        <div className="flex items-start gap-2">
+                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span><strong className="text-foreground">{t('jobDetail.remarks') || 'หมายเหตุ'}:</strong> {job.destination_remarks}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
