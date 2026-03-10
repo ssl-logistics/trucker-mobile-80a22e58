@@ -484,23 +484,6 @@ const ContainerSOPPage = () => {
         }
       }
 
-      // Upload BL EIR photo if available (separate from D/O)
-      let blEirImageUrl = '';
-      if (isBLJob && !isContainerReturn && blEirPhotoFile) {
-        try {
-          const eirFormData = new FormData();
-          eirFormData.append('file', blEirPhotoFile);
-          eirFormData.append('folder', 'container-photos');
-          eirFormData.append('fileName', `eir_${jobId}_${Date.now()}.${blEirPhotoFile.name.split('.').pop() || 'jpg'}`);
-          const { data: eirUpload } = await supabase.functions.invoke('upload-to-s3', { body: eirFormData });
-          if (eirUpload?.url) {
-            blEirImageUrl = eirUpload.url;
-            console.log('[ContainerSOP] Uploaded BL EIR photo:', eirUpload.url);
-          }
-        } catch (e) {
-          console.warn('[ContainerSOP] BL EIR photo upload failed:', e);
-        }
-      }
 
       const derivedContainerNumber = (ocrContainerNumber || containerNumber || jobDetail?.container_number || '').trim();
       const derivedSealNumber = (ocrSealNumber || sealNumber || jobDetail?.seal_number || '').trim();
