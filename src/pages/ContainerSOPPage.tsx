@@ -83,7 +83,7 @@ const ContainerSOPPage = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
   const [activePhotoSlot, setActivePhotoSlot] = useState<PhotoSlot>('container');
-  const [activeEirIndex, setActiveEirIndex] = useState<ActiveEirIndex>(0);
+  
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   
@@ -92,8 +92,9 @@ const ContainerSOPPage = () => {
   const [containerPhotoPreview, setContainerPhotoPreview] = useState<string>("");
   const [sealPhotoFile, setSealPhotoFile] = useState<File | null>(null);
   const [sealPhotoPreview, setSealPhotoPreview] = useState<string>("");
-  const [eirPhotoFile, setEirPhotoFile] = useState<File | null>(null);
-  const [eirPhotoPreview, setEirPhotoPreview] = useState<string>("");
+  const [eirPhotoFiles, setEirPhotoFiles] = useState<File[]>([]);
+  const [eirPhotoPreviews, setEirPhotoPreviews] = useState<string[]>([]);
+  const [activeEirIndex, setActiveEirIndex] = useState<number>(0);
   // Separate BL EIR state (independent from D/O)
   const [blEirPhotoFile, setBlEirPhotoFile] = useState<File | null>(null);
   const [blEirPhotoPreview, setBlEirPhotoPreview] = useState<string>("");
@@ -207,7 +208,7 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const openPhotoDrawer = (slot: PhotoSlot, eirIndex: ActiveEirIndex = 0) => {
+  const openPhotoDrawer = (slot: PhotoSlot, eirIndex: number = 0) => {
     setActivePhotoSlot(slot);
     setActiveEirIndex(eirIndex);
     setShowPhotoDrawer(true);
@@ -279,8 +280,14 @@ const ContainerSOPPage = () => {
         setBlEirPhotoFile(file);
         setBlEirPhotoPreview(preview);
       } else {
-        setEirPhotoFile(file);
-        setEirPhotoPreview(preview);
+        // EIR: multiple photos support
+        if (activeEirIndex >= eirPhotoFiles.length) {
+          setEirPhotoFiles(prev => [...prev, file]);
+          setEirPhotoPreviews(prev => [...prev, preview]);
+        } else {
+          setEirPhotoFiles(prev => { const n = [...prev]; n[activeEirIndex] = file; return n; });
+          setEirPhotoPreviews(prev => { const n = [...prev]; n[activeEirIndex] = preview; return n; });
+        }
       }
     };
     reader.readAsDataURL(file);
@@ -370,7 +377,7 @@ const ContainerSOPPage = () => {
         return;
       }
     }
-    const hasDoOrEir = isLoadedContainer ? doPhotoFiles.length > 0 : !!eirPhotoFile;
+    const hasDoOrEir = isLoadedContainer ? doPhotoFiles.length > 0 : eirPhotoFiles.length > 0;
     if (!hasDoOrEir) {
       toast({ title: isLoadedContainer ? 'กรุณาถ่ายรูปใบ D/O' : 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
@@ -383,30 +390,38 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmSOP = async () => {
-    const primaryEirFile = isLoadedContainer ? doPhotoFiles[0] : eirPhotoFile;
+    const primaryEirFile = isLoadedContainer ? doPhotoFiles[0] : eirPhotoFiles[0];
     if (!primaryEirFile || !jobId || !user) return;
 
     setUploading(true);
     try {
-      // Upload EIR/D/O photo (primary document)
+
+      // Upload all EIR photos
       let publicUrl = '';
-      const fileExt = primaryEirFile.name.split('.').pop();
-      const fileName = `container_sop_${jobId}_${Date.now()}.${fileExt}`;
+      const eirUrls: string[] = [];
+      const filesToUpload = isLoadedContainer ? doPhotoFiles : eirPhotoFiles;
+      
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const fileExt = filesToUpload[i].name.split('.').pop();
+        const fileName = `eir_${jobId}_${Date.now()}_${i}.${fileExt}`;
+        const formData = new FormData();
+        formData.append('file', filesToUpload[i]);
+        formData.append('folder', 'container-photos');
+        formData.append('fileName', fileName);
 
-      const formData = new FormData();
-      formData.append('file', primaryEirFile);
-      formData.append('folder', 'container-photos');
-      formData.append('fileName', fileName);
+        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
+          body: formData
+        });
 
-      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
-        body: formData
-      });
-
-      if (uploadError || !uploadData?.url) {
-        throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
+        if (uploadError || !uploadData?.url) {
+          if (i === 0) throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
+          console.warn(`[ContainerSOP] EIR photo ${i + 1} upload failed`);
+          continue;
+        }
+        eirUrls.push(uploadData.url);
+        if (i === 0) publicUrl = uploadData.url;
+        console.log(`[ContainerSOP] Uploaded EIR ${i + 1}:`, uploadData.url);
       }
-      publicUrl = uploadData.url;
-      console.log('[ContainerSOP] Uploaded EIR/D/O to S3:', publicUrl);
 
 
       // Upload BL container photos if available
@@ -469,23 +484,6 @@ const ContainerSOPPage = () => {
         }
       }
 
-      // Upload BL EIR photo if available (separate from D/O)
-      let blEirImageUrl = '';
-      if (isBLJob && !isContainerReturn && blEirPhotoFile) {
-        try {
-          const eirFormData = new FormData();
-          eirFormData.append('file', blEirPhotoFile);
-          eirFormData.append('folder', 'container-photos');
-          eirFormData.append('fileName', `eir_${jobId}_${Date.now()}.${blEirPhotoFile.name.split('.').pop() || 'jpg'}`);
-          const { data: eirUpload } = await supabase.functions.invoke('upload-to-s3', { body: eirFormData });
-          if (eirUpload?.url) {
-            blEirImageUrl = eirUpload.url;
-            console.log('[ContainerSOP] Uploaded BL EIR photo:', eirUpload.url);
-          }
-        } catch (e) {
-          console.warn('[ContainerSOP] BL EIR photo upload failed:', e);
-        }
-      }
 
       const derivedContainerNumber = (ocrContainerNumber || containerNumber || jobDetail?.container_number || '').trim();
       const derivedSealNumber = (ocrSealNumber || sealNumber || jobDetail?.seal_number || '').trim();
@@ -524,7 +522,7 @@ const ContainerSOPPage = () => {
             seal_no: finalSealNumber || null,
             container_image_url: containerImageUrl || undefined,
             seal_image_url: sealImageUrl || undefined,
-            eir_image_url: blEirImageUrl || publicUrl || undefined,
+            eir_image_url: publicUrl || undefined,
             order_number: jobId || undefined,
             driver_id: user.id,
             driver_type: driverType,
@@ -618,10 +616,10 @@ const ContainerSOPPage = () => {
 
   const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.length > 0 : true;
    const allPhotosReady = isContainerReturn 
-    ? !!eirPhotoFile 
+    ? eirPhotoFiles.length > 0 
     : isBLJob
-      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && !!eirPhotoFile)
-      : (containerPhotoFile && sealPhotoFile && eirPhotoFile);
+      ? (blAnglePhotosReady && containerPhotoFile && sealPhotoFile && eirPhotoFiles.length > 0)
+      : (containerPhotoFile && sealPhotoFile && eirPhotoFiles.length > 0);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
 
@@ -855,28 +853,57 @@ const ContainerSOPPage = () => {
         </div>
         )}
 
-        {/* === Photo 3: EIR Document (no OCR) === */}
+        {/* === Photo: EIR Document (no OCR) - Multiple photos === */}
         <div className="space-y-2">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : isBLJob ? '4' : '3'}</span>
             ถ่ายรูปเอกสาร EIR <span className="text-red-500">*</span>
           </Label>
           
-          <button
-            onClick={() => openPhotoDrawer('eir')}
-            className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
-          >
-            {eirPhotoPreview ? (
-              <img src={eirPhotoPreview} alt="EIR" className="w-full h-full object-cover rounded-lg" />
-            ) : (
-              <>
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground">กดเพื่อถ่ายรูปเอกสาร EIR</p>
-              </>
-            )}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            {eirPhotoPreviews.map((preview, idx) => (
+              <div key={idx} className="relative">
+                <button
+                  onClick={() => {
+                    setActiveEirIndex(idx);
+                    openPhotoDrawer('eir');
+                  }}
+                  className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden hover:border-primary/50 transition-colors bg-white"
+                >
+                  <img src={preview} alt={`EIR ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                </button>
+                <button
+                  onClick={() => {
+                    setEirPhotoFiles(prev => prev.filter((_, i) => i !== idx));
+                    setEirPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                  }}
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+                <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded">EIR {idx + 1}</span>
+              </div>
+            ))}
+            
+            {/* Add new EIR button */}
+            <button
+              onClick={() => {
+                setActiveEirIndex(eirPhotoFiles.length);
+                openPhotoDrawer('eir');
+              }}
+              className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+            >
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                {eirPhotoFiles.length === 0 ? <FileText className="w-5 h-5 text-muted-foreground" /> : <Plus className="w-5 h-5 text-muted-foreground" />}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {eirPhotoFiles.length === 0 ? 'กดเพื่อถ่ายรูป EIR' : 'เพิ่มรูป EIR'}
+              </p>
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            แนบรูปเอกสาร EIR ({eirPhotoFiles.length} รูป)
+          </p>
         </div>
 
       </div>
