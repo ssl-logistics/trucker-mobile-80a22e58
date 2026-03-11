@@ -245,6 +245,9 @@ export async function driverSop(body: {
   product_images: string[];
   document_images: string[];
   notes?: string;
+  weight_in?: number;
+  weight_out?: number;
+  net_weight?: number;
 }) {
   // Map driver_id to the correct field based on driver_type
   const { driver_id, driver_type, sop_type, ...restBody } = body;
