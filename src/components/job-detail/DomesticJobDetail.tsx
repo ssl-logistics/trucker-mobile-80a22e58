@@ -1440,9 +1440,9 @@ export default function DomesticJobDetail({
                             {dest.district ? ` (${dest.district})` : ''}
                           </span>
                           {dest.invoice_number && (
-                            <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                              <FileText className="w-3 h-3 shrink-0" />
-                              <span>INV: {dest.invoice_number}</span>
+                            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                              <FileText className="w-3.5 h-3.5 shrink-0" />
+                              <span className="font-medium">INV: {dest.invoice_number}</span>
                             </div>
                           )}
                         </div>
