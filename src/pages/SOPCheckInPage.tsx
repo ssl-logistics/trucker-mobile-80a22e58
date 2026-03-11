@@ -347,8 +347,9 @@ export default function SOPCheckInPage() {
     setDrawerOpen(false);
   };
 
-  const openPhotoDrawer = (type: 'product' | 'document' | 'weightslip') => {
+  const openPhotoDrawer = (type: 'product' | 'document' | 'weightslip', wsIndex?: number) => {
     setActivePhotoType(type);
+    setActiveWeightSlipIndex(wsIndex !== undefined ? wsIndex : -1);
     setDrawerOpen(true);
   };
 
