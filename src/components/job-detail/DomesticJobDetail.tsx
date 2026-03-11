@@ -1433,11 +1433,19 @@ export default function DomesticJobDetail({
                         ) : (
                           <GripVertical className="w-5 h-5 text-gray-400 shrink-0" />
                         )}
-                        <span className="text-sm font-medium text-gray-700 flex-1">
-                          {t('jobDetail.deliveryPoint')} #{index + 1}
-                          {dest.company_name ? ` — ${dest.company_name}` : ''}
-                          {dest.district ? ` (${dest.district})` : ''}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-medium text-gray-700">
+                            {t('jobDetail.deliveryPoint')} #{index + 1}
+                            {dest.company_name ? ` — ${dest.company_name}` : ''}
+                            {dest.district ? ` (${dest.district})` : ''}
+                          </span>
+                          {dest.invoice_number && (
+                            <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                              <FileText className="w-3 h-3 shrink-0" />
+                              <span>INV: {dest.invoice_number}</span>
+                            </div>
+                          )}
+                        </div>
                         {(isCheckedIn || isPodCompleted) && (
                           <span className="text-[10px] text-gray-400">{t('jobDetail.cannotReorder') || 'สลับไม่ได้'}</span>
                         )}
