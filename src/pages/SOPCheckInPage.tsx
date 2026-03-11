@@ -404,20 +404,21 @@ export default function SOPCheckInPage() {
         }
       }
 
-      // Upload weight slip image if provided (optional)
-      let weightSlipImageUrl: string | null = null;
-      if (weightSlipFile) {
+      // Upload weight slip images if provided (optional, multiple)
+      const weightSlipImageUrls: string[] = [];
+      for (let i = 0; i < weightSlips.length; i++) {
+        const ws = weightSlips[i];
         const wsFormData = new FormData();
-        wsFormData.append('file', weightSlipFile);
+        wsFormData.append('file', ws.file);
         wsFormData.append('folder', 'mobile/sop-weightslip');
-        wsFormData.append('filename', `${user.id}-${job.order_code}-weightslip-${Date.now()}`);
+        wsFormData.append('filename', `${user.id}-${job.order_code}-weightslip-${i}-${Date.now()}`);
 
         const { data: wsUploadData, error: wsUploadError } = await supabase.functions.invoke('upload-to-s3', {
           body: wsFormData
         });
 
         if (!wsUploadError && wsUploadData?.url) {
-          weightSlipImageUrl = wsUploadData.url;
+          weightSlipImageUrls.push(wsUploadData.url);
         }
       }
 
@@ -427,7 +428,7 @@ export default function SOPCheckInPage() {
       // Build document images array
       const docImages = [
         ...(documentImageUrl ? [documentImageUrl] : []),
-        ...(weightSlipImageUrl ? [weightSlipImageUrl] : []),
+        ...weightSlipImageUrls,
       ];
 
       // Call driver-sop API directly
@@ -440,11 +441,23 @@ export default function SOPCheckInPage() {
         document_images: docImages,
       };
 
-      // Add weight slip OCR data if available
-      if (weightSlipOcrData) {
-        if (weightSlipOcrData.weight_in != null) sopBody.weight_in = weightSlipOcrData.weight_in;
-        if (weightSlipOcrData.weight_out != null) sopBody.weight_out = weightSlipOcrData.weight_out;
-        if (weightSlipOcrData.net_weight != null) sopBody.net_weight = weightSlipOcrData.net_weight;
+      // Add weight slip OCR data - aggregate from all slips
+      const allWeightData = weightSlips
+        .map(ws => ws.ocrData)
+        .filter((d): d is NonNullable<typeof d> => d != null);
+      
+      if (allWeightData.length > 0) {
+        // Send array of weight data for multiple slips
+        sopBody.weight_slips = allWeightData.map(d => ({
+          weight_in: d.weight_in,
+          weight_out: d.weight_out,
+          net_weight: d.net_weight,
+        }));
+        // Also send first slip data as top-level for backward compatibility
+        const first = allWeightData[0];
+        if (first.weight_in != null) sopBody.weight_in = first.weight_in;
+        if (first.weight_out != null) sopBody.weight_out = first.weight_out;
+        if (first.net_weight != null) sopBody.net_weight = first.net_weight;
       }
 
       const { data: sopResult, error: sopError } = await driverSop(sopBody as any);
