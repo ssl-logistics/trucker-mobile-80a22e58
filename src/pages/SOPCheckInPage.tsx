@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle, Scale, Loader2 } from 'lucide-react';
+import { useOCR } from '@/hooks/useOCR';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -55,12 +56,16 @@ export default function SOPCheckInPage() {
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [docPhotoFile, setDocPhotoFile] = useState<File | null>(null);
   const [docPhotoPreview, setDocPhotoPreview] = useState<string>('');
+  const [weightSlipFile, setWeightSlipFile] = useState<File | null>(null);
+  const [weightSlipPreview, setWeightSlipPreview] = useState<string>('');
+  const [weightSlipOcrData, setWeightSlipOcrData] = useState<{ weight?: string; raw_text?: string } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   const [existingSOP, setExistingSOP] = useState<any>(null);
   const [gpsPermissionGranted, setGpsPermissionGranted] = useState(false);
+  const { extractFromImage, extracting: ocrExtracting } = useOCR();
 
   // Request GPS permission on mount
   useEffect(() => {
@@ -262,7 +267,7 @@ export default function SOPCheckInPage() {
     }
   };
 
-  const [activePhotoType, setActivePhotoType] = useState<'product' | 'document'>('product');
+  const [activePhotoType, setActivePhotoType] = useState<'product' | 'document' | 'weightslip'>('product');
 
   const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
     const input = document.createElement('input');
@@ -282,13 +287,36 @@ export default function SOPCheckInPage() {
             setPhotoPreview(reader.result as string);
           };
           reader.readAsDataURL(file);
-        } else {
+        } else if (activePhotoType === 'document') {
           setDocPhotoFile(file);
           const reader = new FileReader();
           reader.onloadend = () => {
             setDocPhotoPreview(reader.result as string);
           };
           reader.readAsDataURL(file);
+        } else if (activePhotoType === 'weightslip') {
+          setWeightSlipFile(file);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setWeightSlipPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+          // Run OCR automatically
+          try {
+            const result = await extractFromImage(file, 'general');
+            if (result.success && result.data) {
+              setWeightSlipOcrData({
+                weight: result.data.raw_text || undefined,
+                raw_text: result.data.raw_text,
+              });
+              toast({
+                title: 'สแกนสำเร็จ',
+                description: 'อ่านข้อมูลใบชั่งน้ำหนักเรียบร้อย',
+              });
+            }
+          } catch (err) {
+            console.error('Weight slip OCR error:', err);
+          }
         }
       }
     };
@@ -297,7 +325,7 @@ export default function SOPCheckInPage() {
     setDrawerOpen(false);
   };
 
-  const openPhotoDrawer = (type: 'product' | 'document') => {
+  const openPhotoDrawer = (type: 'product' | 'document' | 'weightslip') => {
     setActivePhotoType(type);
     setDrawerOpen(true);
   };
@@ -353,8 +381,31 @@ export default function SOPCheckInPage() {
         }
       }
 
+      // Upload weight slip image if provided (optional)
+      let weightSlipImageUrl: string | null = null;
+      if (weightSlipFile) {
+        const wsFormData = new FormData();
+        wsFormData.append('file', weightSlipFile);
+        wsFormData.append('folder', 'mobile/sop-weightslip');
+        wsFormData.append('filename', `${user.id}-${job.order_code}-weightslip-${Date.now()}`);
+
+        const { data: wsUploadData, error: wsUploadError } = await supabase.functions.invoke('upload-to-s3', {
+          body: wsFormData
+        });
+
+        if (!wsUploadError && wsUploadData?.url) {
+          weightSlipImageUrl = wsUploadData.url;
+        }
+      }
+
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+
+      // Build document images array
+      const docImages = [
+        ...(documentImageUrl ? [documentImageUrl] : []),
+        ...(weightSlipImageUrl ? [weightSlipImageUrl] : []),
+      ];
 
       // Call driver-sop API directly
       const { data: sopResult, error: sopError } = await driverSop({
@@ -363,7 +414,7 @@ export default function SOPCheckInPage() {
         driver_type: driverType,
         sop_type: 'pickup',
         product_images: [productImageUrl],
-        document_images: documentImageUrl ? [documentImageUrl] : [],
+        document_images: docImages,
       });
 
       if (sopError) {
@@ -489,6 +540,57 @@ export default function SOPCheckInPage() {
               </>
             )}
           </button>
+        </div>
+
+        {/* Weight Slip Photo + OCR (Optional) */}
+        <div className="space-y-2">
+          <Label className="text-base">
+            สแกนใบชั่งน้ำหนัก <span className="text-muted-foreground text-sm">(ไม่บังคับ)</span>
+          </Label>
+          
+          <button
+            onClick={() => openPhotoDrawer('weightslip')}
+            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card relative"
+          >
+            {ocrExtracting && activePhotoType === 'weightslip' && (
+              <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg z-10">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">กำลังสแกน OCR...</span>
+                </div>
+              </div>
+            )}
+            {weightSlipPreview ? (
+              <img 
+                src={weightSlipPreview} 
+                alt="Weight Slip Preview" 
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
+                  <Scale className="w-7 h-7 text-amber-600" />
+                </div>
+                <p className="text-sm text-muted-foreground text-center px-4">
+                  กดเพื่อถ่ายหรือเลือก<br />ใบชั่งน้ำหนัก
+                </p>
+              </>
+            )}
+          </button>
+
+          {weightSlipOcrData?.raw_text && (
+            <Card className="p-3 bg-amber-50 border-amber-200">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-amber-900">ข้อมูลที่อ่านได้</p>
+                  <p className="text-xs text-amber-700 mt-1 whitespace-pre-wrap break-words line-clamp-4">
+                    {weightSlipOcrData.raw_text}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 
