@@ -47,7 +47,7 @@ interface PaymentSlipData {
 
 interface OCRResult {
   success: boolean;
-  data?: ContainerSealData & ExpenseData & ExpenseDetailedData & PaymentSlipData & { raw_text?: string };
+  data?: ContainerSealData & ExpenseData & ExpenseDetailedData & PaymentSlipData & WeightSlipData & { raw_text?: string };
   error?: string;
 }
 
