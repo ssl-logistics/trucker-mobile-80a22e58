@@ -381,8 +381,31 @@ export default function SOPCheckInPage() {
         }
       }
 
+      // Upload weight slip image if provided (optional)
+      let weightSlipImageUrl: string | null = null;
+      if (weightSlipFile) {
+        const wsFormData = new FormData();
+        wsFormData.append('file', weightSlipFile);
+        wsFormData.append('folder', 'mobile/sop-weightslip');
+        wsFormData.append('filename', `${user.id}-${job.order_code}-weightslip-${Date.now()}`);
+
+        const { data: wsUploadData, error: wsUploadError } = await supabase.functions.invoke('upload-to-s3', {
+          body: wsFormData
+        });
+
+        if (!wsUploadError && wsUploadData?.url) {
+          weightSlipImageUrl = wsUploadData.url;
+        }
+      }
+
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+
+      // Build document images array
+      const docImages = [
+        ...(documentImageUrl ? [documentImageUrl] : []),
+        ...(weightSlipImageUrl ? [weightSlipImageUrl] : []),
+      ];
 
       // Call driver-sop API directly
       const { data: sopResult, error: sopError } = await driverSop({
@@ -391,7 +414,7 @@ export default function SOPCheckInPage() {
         driver_type: driverType,
         sop_type: 'pickup',
         product_images: [productImageUrl],
-        document_images: documentImageUrl ? [documentImageUrl] : [],
+        document_images: docImages,
       });
 
       if (sopError) {
