@@ -314,6 +314,10 @@ export default function PickupSummaryPage() {
                 ))}
               </div>
             )}
+          </Card>
+        )}
+
+        {/* No data state */}
         {!sopData?.checked_in_at && !sopData?.sop_completed_at && (
           <Card className="p-4 bg-gray-50 border-gray-200">
             <div className="text-center text-muted-foreground py-4">
