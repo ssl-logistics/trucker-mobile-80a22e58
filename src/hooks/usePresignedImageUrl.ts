@@ -45,7 +45,7 @@ export function usePresignedImageUrl(
   const [url, setUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchPresignedUrl = useCallback(async () => {
     if (!originalUrl) {

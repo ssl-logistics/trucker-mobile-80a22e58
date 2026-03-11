@@ -85,7 +85,7 @@ async function sendPositionUpdate(roomCode: string, lat: number, lng: number): P
 
 // Hook to manage GPS tracking
 export function useGpsTracking() {
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const lastPositionRef = useRef<{ lat: number; lng: number } | null>(null);
   // Use ref to store the current room code to avoid stale closure issues
