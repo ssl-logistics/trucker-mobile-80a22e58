@@ -424,10 +424,9 @@ export default function SOPCheckInPage() {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Build document images array
+      // Build document images array (without weight slip images)
       const docImages = [
         ...(documentImageUrl ? [documentImageUrl] : []),
-        ...weightSlipImageUrls,
       ];
 
       // Call driver-sop API directly
@@ -440,23 +439,14 @@ export default function SOPCheckInPage() {
         document_images: docImages,
       };
 
-      // Add weight slip OCR data - aggregate from all slips
-      const allWeightData = weightSlips
-        .map(ws => ws.ocrData)
-        .filter((d): d is NonNullable<typeof d> => d != null);
-      
-      if (allWeightData.length > 0) {
-        // Send array of weight data for multiple slips
-        sopBody.weight_slips = allWeightData.map(d => ({
-          weight_in: d.weight_in,
-          weight_out: d.weight_out,
-          net_weight: d.net_weight,
+      // Build weight_slips array with image_url per slip
+      if (weightSlips.length > 0) {
+        sopBody.weight_slips = weightSlips.map((ws, i) => ({
+          weight_in: ws.ocrData?.weight_in ?? null,
+          weight_out: ws.ocrData?.weight_out ?? null,
+          net_weight: ws.ocrData?.net_weight ?? null,
+          image_url: weightSlipImageUrls[i] || null,
         }));
-        // Also send first slip data as top-level for backward compatibility
-        const first = allWeightData[0];
-        if (first.weight_in != null) sopBody.weight_in = first.weight_in;
-        if (first.weight_out != null) sopBody.weight_out = first.weight_out;
-        if (first.net_weight != null) sopBody.net_weight = first.net_weight;
       }
 
       const { data: sopResult, error: sopError } = await driverSop(sopBody as any);
