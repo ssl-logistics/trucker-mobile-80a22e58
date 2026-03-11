@@ -8,8 +8,9 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import JobActionButtons from "@/components/job/JobActionButtons";
 import { formatDateTime } from "@/lib/dateUtils";
-import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
+import { usePresignedImageUrl, usePresignedImageUrls } from "@/hooks/usePresignedImageUrl";
 import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop } from '@/lib/externalApi';
+import { Scale } from "lucide-react";
 
 interface JobDetail {
   id: string;
@@ -20,11 +21,19 @@ interface JobDetail {
   start_time: string;
 }
 
+interface WeightSlipItem {
+  weight_in?: number | null;
+  weight_out?: number | null;
+  net_weight?: number | null;
+  image_url?: string | null;
+}
+
 interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   sop_photo_url: string | null;
   doc_photo_url: string | null;
+  weight_slips: WeightSlipItem[];
 }
 
 export default function PickupSummaryPage() {
@@ -40,6 +49,8 @@ export default function PickupSummaryPage() {
   const [loading, setLoading] = useState(true);
   const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
   const { url: docPhotoUrl } = usePresignedImageUrl(sopData?.doc_photo_url || null);
+  const weightSlipImageUrls = (sopData?.weight_slips || []).map(ws => ws.image_url || null);
+  const { urls: weightSlipPresignedUrls } = usePresignedImageUrls(weightSlipImageUrls);
 
   useEffect(() => {
     if (user && jobId) {
@@ -137,6 +148,7 @@ export default function PickupSummaryPage() {
               sop_completed_at: pickupSOP.recorded_at || pickupSOP.created_at || null,
               sop_photo_url: photoUrl,
               doc_photo_url: docUrl,
+              weight_slips: pickupSOP.weight_slips || [],
             });
         } else {
           // No SOP yet, but might have check-in
@@ -145,6 +157,7 @@ export default function PickupSummaryPage() {
             sop_completed_at: null,
             sop_photo_url: null,
             doc_photo_url: null,
+            weight_slips: [],
           });
         }
       } else {
@@ -154,6 +167,7 @@ export default function PickupSummaryPage() {
           sop_completed_at: null,
           sop_photo_url: null,
           doc_photo_url: null,
+          weight_slips: [],
         });
       }
 
@@ -264,6 +278,40 @@ export default function PickupSummaryPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+            
+            {/* Weight Slips */}
+            {sopData.weight_slips && sopData.weight_slips.length > 0 && (
+              <div className="mt-4 space-y-4">
+                <p className="text-sm font-medium text-green-800 mb-2 flex items-center gap-1.5">
+                  <Scale className="w-4 h-4" />
+                  ใบชั่งน้ำหนัก ({sopData.weight_slips.length} ใบ)
+                </p>
+                {sopData.weight_slips.map((ws, idx) => (
+                  <div key={idx} className="bg-white/60 rounded-lg p-3 space-y-2">
+                    <p className="text-xs font-semibold text-green-700">ใบชั่งที่ {idx + 1}</p>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-white rounded-md p-2">
+                        <p className="text-[10px] text-muted-foreground">น้ำหนักเข้า</p>
+                        <p className="text-sm font-bold">{ws.weight_in != null ? `${ws.weight_in} กก.` : '-'}</p>
+                      </div>
+                      <div className="bg-white rounded-md p-2">
+                        <p className="text-[10px] text-muted-foreground">น้ำหนักออก</p>
+                        <p className="text-sm font-bold">{ws.weight_out != null ? `${ws.weight_out} กก.` : '-'}</p>
+                      </div>
+                      <div className="bg-white rounded-md p-2">
+                        <p className="text-[10px] text-muted-foreground">น้ำหนักสุทธิ</p>
+                        <p className="text-sm font-bold text-primary">{ws.net_weight != null ? `${ws.net_weight} กก.` : '-'}</p>
+                      </div>
+                    </div>
+                    {weightSlipPresignedUrls[idx] && (
+                      <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+                        <img src={weightSlipPresignedUrls[idx]!} alt={`Weight Slip ${idx + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </Card>
