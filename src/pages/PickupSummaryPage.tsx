@@ -20,11 +20,19 @@ interface JobDetail {
   start_time: string;
 }
 
+interface WeightSlipItem {
+  weight_in?: number | null;
+  weight_out?: number | null;
+  net_weight?: number | null;
+  image_url?: string | null;
+}
+
 interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   sop_photo_url: string | null;
   doc_photo_url: string | null;
+  weight_slips: WeightSlipItem[];
 }
 
 export default function PickupSummaryPage() {
