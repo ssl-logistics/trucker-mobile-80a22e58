@@ -267,7 +267,7 @@ export default function SOPCheckInPage() {
     }
   };
 
-  const [activePhotoType, setActivePhotoType] = useState<'product' | 'document'>('product');
+  const [activePhotoType, setActivePhotoType] = useState<'product' | 'document' | 'weightslip'>('product');
 
   const handlePhotoSelect = async (source: 'camera' | 'gallery') => {
     const input = document.createElement('input');
@@ -287,13 +287,36 @@ export default function SOPCheckInPage() {
             setPhotoPreview(reader.result as string);
           };
           reader.readAsDataURL(file);
-        } else {
+        } else if (activePhotoType === 'document') {
           setDocPhotoFile(file);
           const reader = new FileReader();
           reader.onloadend = () => {
             setDocPhotoPreview(reader.result as string);
           };
           reader.readAsDataURL(file);
+        } else if (activePhotoType === 'weightslip') {
+          setWeightSlipFile(file);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setWeightSlipPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+          // Run OCR automatically
+          try {
+            const result = await extractFromImage(file, 'general');
+            if (result.success && result.data) {
+              setWeightSlipOcrData({
+                weight: result.data.raw_text || undefined,
+                raw_text: result.data.raw_text,
+              });
+              toast({
+                title: 'สแกนสำเร็จ',
+                description: 'อ่านข้อมูลใบชั่งน้ำหนักเรียบร้อย',
+              });
+            }
+          } catch (err) {
+            console.error('Weight slip OCR error:', err);
+          }
         }
       }
     };
@@ -302,7 +325,7 @@ export default function SOPCheckInPage() {
     setDrawerOpen(false);
   };
 
-  const openPhotoDrawer = (type: 'product' | 'document') => {
+  const openPhotoDrawer = (type: 'product' | 'document' | 'weightslip') => {
     setActivePhotoType(type);
     setDrawerOpen(true);
   };
