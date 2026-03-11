@@ -339,7 +339,6 @@ export default function SOPCheckInPage() {
           };
           reader.readAsDataURL(file);
         }
-        }
       }
     };
     
