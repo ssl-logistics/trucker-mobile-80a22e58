@@ -593,19 +593,43 @@ export default function SOPCheckInPage() {
               <div className="flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0 space-y-1">
-                  <p className="text-sm font-medium text-amber-900">ข้อมูลที่อ่านได้</p>
+                  <p className="text-sm font-medium text-amber-900">ข้อมูลที่อ่านได้ <span className="text-xs font-normal text-amber-600">(แก้ไขได้)</span></p>
                   <div className="grid grid-cols-3 gap-2 mt-2">
                     <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
-                      <p className="text-[10px] text-amber-700">น้ำหนักรถเข้า</p>
-                      <p className="text-sm font-bold text-amber-900">{weightSlipOcrData.weight_in != null ? `${weightSlipOcrData.weight_in.toLocaleString()} kg` : '-'}</p>
+                      <p className="text-[10px] text-amber-700 mb-1">น้ำหนักรถเข้า</p>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        className="w-full text-center text-sm font-bold text-amber-900 bg-transparent border-b border-amber-300 focus:border-amber-500 focus:outline-none pb-0.5"
+                        value={weightSlipOcrData.weight_in ?? ''}
+                        onChange={(e) => setWeightSlipOcrData(prev => prev ? { ...prev, weight_in: e.target.value ? Number(e.target.value) : null } : prev)}
+                        placeholder="-"
+                      />
+                      <p className="text-[9px] text-amber-500 mt-0.5">kg</p>
                     </div>
                     <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
-                      <p className="text-[10px] text-amber-700">น้ำหนักรถออก</p>
-                      <p className="text-sm font-bold text-amber-900">{weightSlipOcrData.weight_out != null ? `${weightSlipOcrData.weight_out.toLocaleString()} kg` : '-'}</p>
+                      <p className="text-[10px] text-amber-700 mb-1">น้ำหนักรถออก</p>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        className="w-full text-center text-sm font-bold text-amber-900 bg-transparent border-b border-amber-300 focus:border-amber-500 focus:outline-none pb-0.5"
+                        value={weightSlipOcrData.weight_out ?? ''}
+                        onChange={(e) => setWeightSlipOcrData(prev => prev ? { ...prev, weight_out: e.target.value ? Number(e.target.value) : null } : prev)}
+                        placeholder="-"
+                      />
+                      <p className="text-[9px] text-amber-500 mt-0.5">kg</p>
                     </div>
                     <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
-                      <p className="text-[10px] text-amber-700">น้ำหนักสุทธิ</p>
-                      <p className="text-sm font-bold text-green-700">{weightSlipOcrData.net_weight != null ? `${weightSlipOcrData.net_weight.toLocaleString()} kg` : '-'}</p>
+                      <p className="text-[10px] text-amber-700 mb-1">น้ำหนักสุทธิ</p>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        className="w-full text-center text-sm font-bold text-green-700 bg-transparent border-b border-green-300 focus:border-green-500 focus:outline-none pb-0.5"
+                        value={weightSlipOcrData.net_weight ?? ''}
+                        onChange={(e) => setWeightSlipOcrData(prev => prev ? { ...prev, net_weight: e.target.value ? Number(e.target.value) : null } : prev)}
+                        placeholder="-"
+                      />
+                      <p className="text-[9px] text-green-500 mt-0.5">kg</p>
                     </div>
                   </div>
                 </div>
