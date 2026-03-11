@@ -56,9 +56,12 @@ export default function SOPCheckInPage() {
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [docPhotoFile, setDocPhotoFile] = useState<File | null>(null);
   const [docPhotoPreview, setDocPhotoPreview] = useState<string>('');
-  const [weightSlipFile, setWeightSlipFile] = useState<File | null>(null);
-  const [weightSlipPreview, setWeightSlipPreview] = useState<string>('');
-  const [weightSlipOcrData, setWeightSlipOcrData] = useState<{ weight_in?: number | null; weight_out?: number | null; net_weight?: number | null } | null>(null);
+  const [weightSlips, setWeightSlips] = useState<Array<{
+    file: File;
+    preview: string;
+    ocrData: { weight_in?: number | null; weight_out?: number | null; net_weight?: number | null } | null;
+  }>>([]);
+  const [activeWeightSlipIndex, setActiveWeightSlipIndex] = useState<number>(-1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
