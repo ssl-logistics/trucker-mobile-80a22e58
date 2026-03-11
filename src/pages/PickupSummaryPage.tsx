@@ -165,6 +165,7 @@ export default function PickupSummaryPage() {
           sop_completed_at: null,
           sop_photo_url: null,
           doc_photo_url: null,
+          weight_slips: [],
         });
       }
 
