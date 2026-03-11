@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle, Scale, Loader2 } from 'lucide-react';
+import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle, Scale, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useOCR } from '@/hooks/useOCR';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
