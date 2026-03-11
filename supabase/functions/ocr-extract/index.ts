@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface OCRRequest {
   image_base64: string;
-  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'general';
+  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'weight_slip' | 'general';
   expected_amount?: number;
   expected_account_number?: string;
 }
@@ -120,6 +120,25 @@ IMPORTANT:
 - Extract all individual line items you can find
 - grand_total should be the final payable amount (after VAT)
 - If there's only one total, use it as grand_total`;
+    } else if (extraction_type === 'weight_slip') {
+      prompt = `Analyze this Thai weight slip / weighbridge ticket (ใบชั่งน้ำหนัก) image and extract the following:
+
+1. น้ำหนักรถเข้า (Weight In / Gross Weight) - the weight when the truck enters
+2. น้ำหนักรถออก (Weight Out / Tare Weight) - the weight when the truck exits  
+3. น้ำหนักสุทธิ (Net Weight) - the difference between weight in and weight out
+
+Return ONLY a JSON object in this exact format (no markdown, no explanation):
+{
+  "weight_in": numeric_value_or_null,
+  "weight_out": numeric_value_or_null,
+  "net_weight": numeric_value_or_null
+}
+
+IMPORTANT:
+- All values should be numeric only (no units, no commas)
+- Values are typically in kilograms (kg) or tons
+- If you see only one weight value, try to determine which type it is
+- net_weight = weight_in - weight_out (gross - tare)`;
     } else if (extraction_type === 'payment_slip') {
       prompt = `Analyze this Thai bank transfer payment slip image and extract the following information:
 

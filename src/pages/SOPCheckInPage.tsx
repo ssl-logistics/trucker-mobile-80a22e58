@@ -58,7 +58,7 @@ export default function SOPCheckInPage() {
   const [docPhotoPreview, setDocPhotoPreview] = useState<string>('');
   const [weightSlipFile, setWeightSlipFile] = useState<File | null>(null);
   const [weightSlipPreview, setWeightSlipPreview] = useState<string>('');
-  const [weightSlipOcrData, setWeightSlipOcrData] = useState<{ weight?: string; raw_text?: string } | null>(null);
+  const [weightSlipOcrData, setWeightSlipOcrData] = useState<{ weight_in?: number | null; weight_out?: number | null; net_weight?: number | null } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -301,13 +301,14 @@ export default function SOPCheckInPage() {
             setWeightSlipPreview(reader.result as string);
           };
           reader.readAsDataURL(file);
-          // Run OCR automatically
+          // Run OCR automatically with weight_slip type
           try {
-            const result = await extractFromImage(file, 'general');
+            const result = await extractFromImage(file, 'weight_slip');
             if (result.success && result.data) {
               setWeightSlipOcrData({
-                weight: result.data.raw_text || undefined,
-                raw_text: result.data.raw_text,
+                weight_in: result.data.weight_in,
+                weight_out: result.data.weight_out,
+                net_weight: result.data.net_weight,
               });
               toast({
                 title: 'สแกนสำเร็จ',
@@ -408,14 +409,23 @@ export default function SOPCheckInPage() {
       ];
 
       // Call driver-sop API directly
-      const { data: sopResult, error: sopError } = await driverSop({
+      const sopBody: Record<string, unknown> = {
         order_number: job.order_code,
         driver_id: user.id,
         driver_type: driverType,
         sop_type: 'pickup',
         product_images: [productImageUrl],
         document_images: docImages,
-      });
+      };
+
+      // Add weight slip OCR data if available
+      if (weightSlipOcrData) {
+        if (weightSlipOcrData.weight_in != null) sopBody.weight_in = weightSlipOcrData.weight_in;
+        if (weightSlipOcrData.weight_out != null) sopBody.weight_out = weightSlipOcrData.weight_out;
+        if (weightSlipOcrData.net_weight != null) sopBody.net_weight = weightSlipOcrData.net_weight;
+      }
+
+      const { data: sopResult, error: sopError } = await driverSop(sopBody as any);
 
       if (sopError) {
         throw new Error(sopError || 'Failed to submit SOP');
@@ -578,15 +588,26 @@ export default function SOPCheckInPage() {
             )}
           </button>
 
-          {weightSlipOcrData?.raw_text && (
+          {weightSlipOcrData && (weightSlipOcrData.weight_in != null || weightSlipOcrData.weight_out != null || weightSlipOcrData.net_weight != null) && (
             <Card className="p-3 bg-amber-50 border-amber-200">
               <div className="flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 space-y-1">
                   <p className="text-sm font-medium text-amber-900">ข้อมูลที่อ่านได้</p>
-                  <p className="text-xs text-amber-700 mt-1 whitespace-pre-wrap break-words line-clamp-4">
-                    {weightSlipOcrData.raw_text}
-                  </p>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
+                      <p className="text-[10px] text-amber-700">น้ำหนักรถเข้า</p>
+                      <p className="text-sm font-bold text-amber-900">{weightSlipOcrData.weight_in != null ? `${weightSlipOcrData.weight_in.toLocaleString()} kg` : '-'}</p>
+                    </div>
+                    <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
+                      <p className="text-[10px] text-amber-700">น้ำหนักรถออก</p>
+                      <p className="text-sm font-bold text-amber-900">{weightSlipOcrData.weight_out != null ? `${weightSlipOcrData.weight_out.toLocaleString()} kg` : '-'}</p>
+                    </div>
+                    <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
+                      <p className="text-[10px] text-amber-700">น้ำหนักสุทธิ</p>
+                      <p className="text-sm font-bold text-green-700">{weightSlipOcrData.net_weight != null ? `${weightSlipOcrData.net_weight.toLocaleString()} kg` : '-'}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>

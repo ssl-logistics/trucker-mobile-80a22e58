@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type OCRExtractionType = 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'general';
+export type OCRExtractionType = 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'weight_slip' | 'general';
 
 interface ContainerSealData {
   container_number?: string | null;
@@ -30,6 +30,12 @@ interface ExpenseDetailedData {
   receipt_date?: string | null;
 }
 
+interface WeightSlipData {
+  weight_in?: number | null;
+  weight_out?: number | null;
+  net_weight?: number | null;
+}
+
 interface PaymentSlipData {
   amount?: number | null;
   account_number?: string | null;
@@ -41,7 +47,7 @@ interface PaymentSlipData {
 
 interface OCRResult {
   success: boolean;
-  data?: ContainerSealData & ExpenseData & ExpenseDetailedData & PaymentSlipData & { raw_text?: string };
+  data?: ContainerSealData & ExpenseData & ExpenseDetailedData & PaymentSlipData & WeightSlipData & { raw_text?: string };
   error?: string;
 }
 
