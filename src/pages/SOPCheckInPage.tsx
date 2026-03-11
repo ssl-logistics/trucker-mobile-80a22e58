@@ -56,12 +56,16 @@ export default function SOPCheckInPage() {
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [docPhotoFile, setDocPhotoFile] = useState<File | null>(null);
   const [docPhotoPreview, setDocPhotoPreview] = useState<string>('');
+  const [weightSlipFile, setWeightSlipFile] = useState<File | null>(null);
+  const [weightSlipPreview, setWeightSlipPreview] = useState<string>('');
+  const [weightSlipOcrData, setWeightSlipOcrData] = useState<{ weight?: string; raw_text?: string } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   const [existingSOP, setExistingSOP] = useState<any>(null);
   const [gpsPermissionGranted, setGpsPermissionGranted] = useState(false);
+  const { extractFromImage, extracting: ocrExtracting } = useOCR();
 
   // Request GPS permission on mount
   useEffect(() => {
