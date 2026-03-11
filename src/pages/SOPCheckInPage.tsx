@@ -409,14 +409,23 @@ export default function SOPCheckInPage() {
       ];
 
       // Call driver-sop API directly
-      const { data: sopResult, error: sopError } = await driverSop({
+      const sopBody: Record<string, unknown> = {
         order_number: job.order_code,
         driver_id: user.id,
         driver_type: driverType,
         sop_type: 'pickup',
         product_images: [productImageUrl],
         document_images: docImages,
-      });
+      };
+
+      // Add weight slip OCR data if available
+      if (weightSlipOcrData) {
+        if (weightSlipOcrData.weight_in != null) sopBody.weight_in = weightSlipOcrData.weight_in;
+        if (weightSlipOcrData.weight_out != null) sopBody.weight_out = weightSlipOcrData.weight_out;
+        if (weightSlipOcrData.net_weight != null) sopBody.net_weight = weightSlipOcrData.net_weight;
+      }
+
+      const { data: sopResult, error: sopError } = await driverSop(sopBody as any);
 
       if (sopError) {
         throw new Error(sopError || 'Failed to submit SOP');
