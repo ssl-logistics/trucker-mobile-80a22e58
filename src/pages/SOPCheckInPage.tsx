@@ -301,13 +301,14 @@ export default function SOPCheckInPage() {
             setWeightSlipPreview(reader.result as string);
           };
           reader.readAsDataURL(file);
-          // Run OCR automatically
+          // Run OCR automatically with weight_slip type
           try {
-            const result = await extractFromImage(file, 'general');
+            const result = await extractFromImage(file, 'weight_slip');
             if (result.success && result.data) {
               setWeightSlipOcrData({
-                weight: result.data.raw_text || undefined,
-                raw_text: result.data.raw_text,
+                weight_in: result.data.weight_in,
+                weight_out: result.data.weight_out,
+                net_weight: result.data.net_weight,
               });
               toast({
                 title: 'สแกนสำเร็จ',
