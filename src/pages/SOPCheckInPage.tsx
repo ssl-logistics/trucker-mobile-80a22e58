@@ -518,7 +518,57 @@ export default function SOPCheckInPage() {
             )}
           </button>
         </div>
-      </div>
+
+        {/* Weight Slip Photo + OCR (Optional) */}
+        <div className="space-y-2">
+          <Label className="text-base">
+            สแกนใบชั่งน้ำหนัก <span className="text-muted-foreground text-sm">(ไม่บังคับ)</span>
+          </Label>
+          
+          <button
+            onClick={() => openPhotoDrawer('weightslip')}
+            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card relative"
+          >
+            {ocrExtracting && activePhotoType === 'weightslip' && (
+              <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg z-10">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">กำลังสแกน OCR...</span>
+                </div>
+              </div>
+            )}
+            {weightSlipPreview ? (
+              <img 
+                src={weightSlipPreview} 
+                alt="Weight Slip Preview" 
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
+                  <Scale className="w-7 h-7 text-amber-600" />
+                </div>
+                <p className="text-sm text-muted-foreground text-center px-4">
+                  กดเพื่อถ่ายหรือเลือก<br />ใบชั่งน้ำหนัก
+                </p>
+              </>
+            )}
+          </button>
+
+          {weightSlipOcrData?.raw_text && (
+            <Card className="p-3 bg-amber-50 border-amber-200">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-amber-900">ข้อมูลที่อ่านได้</p>
+                  <p className="text-xs text-amber-700 mt-1 whitespace-pre-wrap break-words line-clamp-4">
+                    {weightSlipOcrData.raw_text}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
