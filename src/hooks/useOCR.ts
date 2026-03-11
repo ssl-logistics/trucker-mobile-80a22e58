@@ -30,6 +30,12 @@ interface ExpenseDetailedData {
   receipt_date?: string | null;
 }
 
+interface WeightSlipData {
+  weight_in?: number | null;
+  weight_out?: number | null;
+  net_weight?: number | null;
+}
+
 interface PaymentSlipData {
   amount?: number | null;
   account_number?: string | null;
