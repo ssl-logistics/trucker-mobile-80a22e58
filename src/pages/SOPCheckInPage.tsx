@@ -587,90 +587,124 @@ export default function SOPCheckInPage() {
           </button>
         </div>
 
-        {/* Weight Slip Photo + OCR (Optional) */}
+        {/* Weight Slip Photos + OCR (Optional, Multiple) */}
         <div className="space-y-2">
           <Label className="text-base">
             สแกนใบชั่งน้ำหนัก <span className="text-muted-foreground text-sm">(ไม่บังคับ)</span>
           </Label>
           
-          <button
-            onClick={() => openPhotoDrawer('weightslip')}
-            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card relative"
-          >
-            {ocrExtracting && activePhotoType === 'weightslip' && (
-              <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg z-10">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">กำลังสแกน OCR...</span>
-                </div>
+          {weightSlips.map((ws, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground">ใบที่ {index + 1}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setWeightSlips(prev => prev.filter((_, i) => i !== index))}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
-            )}
-            {weightSlipPreview ? (
-              <img 
-                src={weightSlipPreview} 
-                alt="Weight Slip Preview" 
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <>
-                <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
-                  <Scale className="w-7 h-7 text-amber-600" />
-                </div>
-                <p className="text-sm text-muted-foreground text-center px-4">
-                  กดเพื่อถ่ายหรือเลือก<br />ใบชั่งน้ำหนัก
-                </p>
-              </>
-            )}
-          </button>
-
-          {weightSlipOcrData && (weightSlipOcrData.weight_in != null || weightSlipOcrData.weight_out != null || weightSlipOcrData.net_weight != null) && (
-            <Card className="p-3 bg-amber-50 border-amber-200">
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0 space-y-1">
-                  <p className="text-sm font-medium text-amber-900">ข้อมูลที่อ่านได้ <span className="text-xs font-normal text-amber-600">(แก้ไขได้)</span></p>
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
-                      <p className="text-[10px] text-amber-700 mb-1">น้ำหนักรถเข้า</p>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        className="w-full text-center text-sm font-bold text-amber-900 bg-transparent border-b border-amber-300 focus:border-amber-500 focus:outline-none pb-0.5"
-                        value={weightSlipOcrData.weight_in ?? ''}
-                        onChange={(e) => setWeightSlipOcrData(prev => prev ? { ...prev, weight_in: e.target.value ? Number(e.target.value) : null } : prev)}
-                        placeholder="-"
-                      />
-                      <p className="text-[9px] text-amber-500 mt-0.5">kg</p>
-                    </div>
-                    <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
-                      <p className="text-[10px] text-amber-700 mb-1">น้ำหนักรถออก</p>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        className="w-full text-center text-sm font-bold text-amber-900 bg-transparent border-b border-amber-300 focus:border-amber-500 focus:outline-none pb-0.5"
-                        value={weightSlipOcrData.weight_out ?? ''}
-                        onChange={(e) => setWeightSlipOcrData(prev => prev ? { ...prev, weight_out: e.target.value ? Number(e.target.value) : null } : prev)}
-                        placeholder="-"
-                      />
-                      <p className="text-[9px] text-amber-500 mt-0.5">kg</p>
-                    </div>
-                    <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
-                      <p className="text-[10px] text-amber-700 mb-1">น้ำหนักสุทธิ</p>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        className="w-full text-center text-sm font-bold text-green-700 bg-transparent border-b border-green-300 focus:border-green-500 focus:outline-none pb-0.5"
-                        value={weightSlipOcrData.net_weight ?? ''}
-                        onChange={(e) => setWeightSlipOcrData(prev => prev ? { ...prev, net_weight: e.target.value ? Number(e.target.value) : null } : prev)}
-                        placeholder="-"
-                      />
-                      <p className="text-[9px] text-green-500 mt-0.5">kg</p>
+              <button
+                onClick={() => openPhotoDrawer('weightslip', index)}
+                className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-card relative"
+              >
+                {ocrExtracting && activeWeightSlipIndex === index && (
+                  <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg z-10">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      <span className="text-sm text-muted-foreground">กำลังสแกน OCR...</span>
                     </div>
                   </div>
-                </div>
-              </div>
-            </Card>
-          )}
+                )}
+                <img 
+                  src={ws.preview} 
+                  alt={`Weight Slip ${index + 1}`} 
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </button>
+
+              {ws.ocrData && (ws.ocrData.weight_in != null || ws.ocrData.weight_out != null || ws.ocrData.net_weight != null) && (
+                <Card className="p-3 bg-amber-50 border-amber-200">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="text-sm font-medium text-amber-900">ข้อมูลที่อ่านได้ <span className="text-xs font-normal text-amber-600">(แก้ไขได้)</span></p>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
+                          <p className="text-[10px] text-amber-700 mb-1">น้ำหนักรถเข้า</p>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            className="w-full text-center text-sm font-bold text-amber-900 bg-transparent border-b border-amber-300 focus:border-amber-500 focus:outline-none pb-0.5"
+                            value={ws.ocrData.weight_in ?? ''}
+                            onChange={(e) => setWeightSlips(prev => {
+                              const updated = [...prev];
+                              updated[index] = { ...updated[index], ocrData: { ...updated[index].ocrData!, weight_in: e.target.value ? Number(e.target.value) : null } };
+                              return updated;
+                            })}
+                            placeholder="-"
+                          />
+                          <p className="text-[9px] text-amber-500 mt-0.5">kg</p>
+                        </div>
+                        <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
+                          <p className="text-[10px] text-amber-700 mb-1">น้ำหนักรถออก</p>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            className="w-full text-center text-sm font-bold text-amber-900 bg-transparent border-b border-amber-300 focus:border-amber-500 focus:outline-none pb-0.5"
+                            value={ws.ocrData.weight_out ?? ''}
+                            onChange={(e) => setWeightSlips(prev => {
+                              const updated = [...prev];
+                              updated[index] = { ...updated[index], ocrData: { ...updated[index].ocrData!, weight_out: e.target.value ? Number(e.target.value) : null } };
+                              return updated;
+                            })}
+                            placeholder="-"
+                          />
+                          <p className="text-[9px] text-amber-500 mt-0.5">kg</p>
+                        </div>
+                        <div className="text-center p-2 bg-white rounded-lg border border-amber-200">
+                          <p className="text-[10px] text-amber-700 mb-1">น้ำหนักสุทธิ</p>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            className="w-full text-center text-sm font-bold text-green-700 bg-transparent border-b border-green-300 focus:border-green-500 focus:outline-none pb-0.5"
+                            value={ws.ocrData.net_weight ?? ''}
+                            onChange={(e) => setWeightSlips(prev => {
+                              const updated = [...prev];
+                              updated[index] = { ...updated[index], ocrData: { ...updated[index].ocrData!, net_weight: e.target.value ? Number(e.target.value) : null } };
+                              return updated;
+                            })}
+                            placeholder="-"
+                          />
+                          <p className="text-[9px] text-green-500 mt-0.5">kg</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+            </div>
+          ))}
+
+          {/* Add new weight slip button */}
+          <button
+            onClick={() => openPhotoDrawer('weightslip')}
+            className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card"
+          >
+            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+              {weightSlips.length === 0 ? (
+                <Scale className="w-6 h-6 text-amber-600" />
+              ) : (
+                <Plus className="w-6 h-6 text-amber-600" />
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground text-center px-4">
+              {weightSlips.length === 0 ? 'กดเพื่อถ่ายหรือเลือกใบชั่งน้ำหนัก' : 'เพิ่มใบชั่งน้ำหนักอีก'}
+            </p>
+          </button>
         </div>
       </div>
 
