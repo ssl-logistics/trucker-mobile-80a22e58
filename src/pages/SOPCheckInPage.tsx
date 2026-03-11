@@ -569,6 +569,7 @@ export default function SOPCheckInPage() {
             </Card>
           )}
         </div>
+      </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
