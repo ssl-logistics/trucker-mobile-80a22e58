@@ -280,10 +280,40 @@ export default function PickupSummaryPage() {
                 )}
               </div>
             )}
-          </Card>
-        )}
-
-        {/* No data state */}
+            
+            {/* Weight Slips */}
+            {sopData.weight_slips && sopData.weight_slips.length > 0 && (
+              <div className="mt-4 space-y-4">
+                <p className="text-sm font-medium text-green-800 mb-2 flex items-center gap-1.5">
+                  <Scale className="w-4 h-4" />
+                  ใบชั่งน้ำหนัก ({sopData.weight_slips.length} ใบ)
+                </p>
+                {sopData.weight_slips.map((ws, idx) => (
+                  <div key={idx} className="bg-white/60 rounded-lg p-3 space-y-2">
+                    <p className="text-xs font-semibold text-green-700">ใบชั่งที่ {idx + 1}</p>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-white rounded-md p-2">
+                        <p className="text-[10px] text-muted-foreground">น้ำหนักเข้า</p>
+                        <p className="text-sm font-bold">{ws.weight_in != null ? `${ws.weight_in} กก.` : '-'}</p>
+                      </div>
+                      <div className="bg-white rounded-md p-2">
+                        <p className="text-[10px] text-muted-foreground">น้ำหนักออก</p>
+                        <p className="text-sm font-bold">{ws.weight_out != null ? `${ws.weight_out} กก.` : '-'}</p>
+                      </div>
+                      <div className="bg-white rounded-md p-2">
+                        <p className="text-[10px] text-muted-foreground">น้ำหนักสุทธิ</p>
+                        <p className="text-sm font-bold text-primary">{ws.net_weight != null ? `${ws.net_weight} กก.` : '-'}</p>
+                      </div>
+                    </div>
+                    {weightSlipPresignedUrls[idx] && (
+                      <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+                        <img src={weightSlipPresignedUrls[idx]!} alt={`Weight Slip ${idx + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
         {!sopData?.checked_in_at && !sopData?.sop_completed_at && (
           <Card className="p-4 bg-gray-50 border-gray-200">
             <div className="text-center text-muted-foreground py-4">
