@@ -146,6 +146,7 @@ export default function PickupSummaryPage() {
               sop_completed_at: pickupSOP.recorded_at || pickupSOP.created_at || null,
               sop_photo_url: photoUrl,
               doc_photo_url: docUrl,
+              weight_slips: pickupSOP.weight_slips || [],
             });
         } else {
           // No SOP yet, but might have check-in
