@@ -4589,6 +4589,7 @@ const koTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': '전화번호 확인됨',
   'forgotPassword.phoneVerifiedDesc': '새 비밀번호를 생성해 주세요',
   'forgotPassword.error': '오류가 발생했습니다. 다시 시도해 주세요.',
+  'forgotPassword.phoneNotFound': '이 전화번호는 시스템에 등록되어 있지 않습니다. 다시 확인해 주세요.',
   
   // Map Component
   'map.yourLocation': '내 위치',
