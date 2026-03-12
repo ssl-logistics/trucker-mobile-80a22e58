@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { updateDriverPassword } from "@/lib/externalApi";
+import { supabase } from "@/integrations/supabase/client";
 import loginBackground from "@/assets/login-background.png";
 
 const CreateNewPassword = () => {
