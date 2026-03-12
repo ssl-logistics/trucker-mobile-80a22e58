@@ -632,6 +632,15 @@ export async function updateFreelanceDriver(body: {
   });
 }
 
+// ==================== Phone Check APIs ====================
+
+export async function checkDriverPhone(phone: string) {
+  return callExternalApi<{ success: boolean; exists: boolean; data?: any; error?: string }>('check-driver-phone', {
+    method: 'POST',
+    body: { phone },
+  });
+}
+
 // ==================== Destination Coordinate APIs ====================
 
 export async function updateDestinationCoordinates(body: {
