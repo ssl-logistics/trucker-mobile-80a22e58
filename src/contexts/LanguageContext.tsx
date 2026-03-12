@@ -4239,6 +4239,7 @@ const koTranslations: Record<string, string> = {
   'editField.errorDesc': '정보를 업데이트할 수 없습니다',
   'editField.updateError': '데이터를 업데이트할 수 없습니다',
   'editField.profile': '프로필',
+  'editField.phone_min_length': '전화번호는 10자리여야 합니다',
   
   // Edit Vehicle Field Page
   'editVehicle.title': '차량 정보 편집',
