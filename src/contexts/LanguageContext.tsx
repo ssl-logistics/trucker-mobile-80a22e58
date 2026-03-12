@@ -785,6 +785,10 @@ const thTranslations: Record<string, string> = {
   'validation.usernameRequired': 'กรุณากรอกชื่อผู้ใช้',
   'validation.emailFormat': 'รูปแบบอีเมลไม่ถูกต้อง',
   'validation.passwordMin': 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
+  'validation.passwordUpperCase': 'ต้องมีตัวอักษรพิมพ์ใหญ่',
+  'validation.passwordLowerCase': 'ต้องมีตัวอักษรพิมพ์เล็ก',
+  'validation.passwordNumber': 'ต้องมีตัวเลข',
+  'validation.passwordMismatch': 'รหัสผ่านไม่ตรงกัน',
   
   // Register Page
   'register.steps.terms': 'เงื่อนไขการใช้บริการและนโยบาย',
