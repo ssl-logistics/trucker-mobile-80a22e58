@@ -81,12 +81,12 @@ const CreateNewPassword = () => {
         },
       });
 
-      const responseData = result.data as any;
+      const responseData = resultData as any;
 
-      if (result.error || !responseData?.success) {
+      if (error || !responseData?.success) {
         toast({
           title: t("createPassword.error"),
-          description: responseData?.error || result.error || t("createPassword.errorDesc"),
+          description: responseData?.error || error?.message || t("createPassword.errorDesc"),
           variant: "destructive"
         });
         return;
