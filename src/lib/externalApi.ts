@@ -650,27 +650,11 @@ export async function updateDriverPassword(body: {
   driver_type: string;
   new_password: string;
 }) {
-  const { driver_id, driver_type, new_password } = body;
-  
-  const requestBody: Record<string, unknown> = {
-    driver_type,
-    new_password,
-  };
-  
-  // Map driver_id field based on driver_type (same pattern as other APIs)
-  if (driver_type === 'internal') {
-    requestBody.internal_driver_id = driver_id;
-  } else if (driver_type === 'external') {
-    requestBody.external_driver_id = driver_id;
-  } else {
-    requestBody.driver_id = driver_id;
-  }
-  
-  console.log('[updateDriverPassword] Sending:', JSON.stringify(requestBody));
+  console.log('[updateDriverPassword] Sending:', JSON.stringify(body));
   
   return callExternalApi<{ success: boolean; message?: string; error?: string }>('update-driver-password', {
     method: 'PUT',
-    body: requestBody,
+    body,
   });
 }
 
