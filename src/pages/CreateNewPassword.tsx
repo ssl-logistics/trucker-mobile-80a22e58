@@ -73,11 +73,15 @@ const CreateNewPassword = () => {
         return;
       }
 
-      const result = await updateDriverPassword({
-        driver_id: driverId,
-        driver_type: driverType,
-        new_password: data.password,
+      const { data: resultData, error } = await supabase.functions.invoke('update-driver-password', {
+        body: {
+          driver_id: driverId,
+          driver_type: driverType,
+          new_password: data.password,
+        },
       });
+
+      const result = { data: resultData, error: error?.message || null };
 
       const responseData = result.data as any;
 
