@@ -79,9 +79,10 @@ const CreateNewPassword = () => {
         new_password: data.password,
       });
 
+      console.log('[CreateNewPassword] API result:', JSON.stringify(result));
       const responseData = result.data as any;
 
-      if (result.error || !responseData?.success) {
+      if (result.error || (responseData && responseData.success === false)) {
         toast({
           title: t("createPassword.error"),
           description: responseData?.error || result.error || t("createPassword.errorDesc"),
