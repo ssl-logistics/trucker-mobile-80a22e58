@@ -1343,6 +1343,7 @@ const thTranslations: Record<string, string> = {
   'editField.updateError': 'ไม่สามารถอัพเดทข้อมูลได้',
   'editField.profile': 'โปรไฟล์',
   'editField.save': 'บันทึก',
+  'editField.phone_min_length': 'เบอร์โทรต้องมี 10 หลัก',
   
   // Place Bid Page
   'placeBid.pleaseEnterPrice': 'กรุณาระบุราคา',
@@ -2681,6 +2682,7 @@ const enTranslations: Record<string, string> = {
   'editField.updateError': 'Unable to update data',
   'editField.profile': 'Profile',
   'editField.save': 'Save',
+  'editField.phone_min_length': 'Phone number must be 10 digits',
   
   // Place Bid Page
   'placeBid.pleaseEnterPrice': 'Please enter price',
@@ -4237,6 +4239,7 @@ const koTranslations: Record<string, string> = {
   'editField.errorDesc': '정보를 업데이트할 수 없습니다',
   'editField.updateError': '데이터를 업데이트할 수 없습니다',
   'editField.profile': '프로필',
+  'editField.phone_min_length': '전화번호는 10자리여야 합니다',
   
   // Edit Vehicle Field Page
   'editVehicle.title': '차량 정보 편집',
@@ -5795,6 +5798,7 @@ const zhTranslations: Record<string, string> = {
   'editField.updateError': '无法更新数据',
   'editField.profile': '个人资料',
   'editField.save': '保存',
+  'editField.phone_min_length': '电话号码必须为10位数字',
   
   // API Test Page
   'apiTest.title': '测试接收 API',
