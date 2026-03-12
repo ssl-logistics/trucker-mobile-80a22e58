@@ -1460,6 +1460,7 @@ const thTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': 'ยืนยันเบอร์โทรศัพท์',
   'forgotPassword.phoneVerifiedDesc': 'กรุณาสร้างรหัสผ่านใหม่',
   'forgotPassword.error': 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+  'forgotPassword.phoneNotFound': 'ไม่พบเบอร์โทรนี้ในระบบ กรุณาตรวจสอบอีกครั้ง',
   
   // Notifications Page
   'notifications.title': 'การแจ้งเตือน',
