@@ -2682,6 +2682,7 @@ const enTranslations: Record<string, string> = {
   'editField.updateError': 'Unable to update data',
   'editField.profile': 'Profile',
   'editField.save': 'Save',
+  'editField.phone_min_length': 'Phone number must be 10 digits',
   
   // Place Bid Page
   'placeBid.pleaseEnterPrice': 'Please enter price',
