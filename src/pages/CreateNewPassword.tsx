@@ -81,8 +81,6 @@ const CreateNewPassword = () => {
         },
       });
 
-      const result = { data: resultData, error: error?.message || null };
-
       const responseData = result.data as any;
 
       if (result.error || !responseData?.success) {
