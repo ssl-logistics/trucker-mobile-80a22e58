@@ -4305,8 +4305,6 @@ const koTranslations: Record<string, string> = {
   'createPassword.submit': '새 비밀번호 생성',
   'createPassword.login': '로그인',
   'createPassword.signInButton': '로그인',
-  'createPassword.homeButton': '홈',
-  'createPassword.getStartedButton': '시작하기',
   'createPassword.error': '오류 발생',
   'createPassword.errorDesc': '비밀번호를 생성할 수 없습니다',
   'createPassword.cannotCreate': '비밀번호를 생성할 수 없습니다',
