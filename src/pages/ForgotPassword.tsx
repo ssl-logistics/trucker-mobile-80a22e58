@@ -129,9 +129,10 @@ const ForgotPassword = () => {
             <div className="space-y-3 pt-4">
               <Button 
                 type="submit" 
+                disabled={isLoading}
                 className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium"
               >
-                {t('forgotPassword.confirmButton')}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('forgotPassword.confirmButton')}
               </Button>
               <Button 
                 type="button" 
