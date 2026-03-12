@@ -2991,6 +2991,7 @@ const enTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': 'Phone Verified',
   'forgotPassword.phoneVerifiedDesc': 'Please create a new password',
   'forgotPassword.error': 'An error occurred. Please try again.',
+  'forgotPassword.phoneNotFound': 'This phone number was not found in the system. Please check and try again.',
   
   // Notifications Page
   'notifications.title': 'Notifications',
