@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
+import { updateDriverPassword } from "@/lib/externalApi";
 import loginBackground from "@/assets/login-background.png";
 
 const CreateNewPassword = () => {
@@ -73,20 +73,18 @@ const CreateNewPassword = () => {
         return;
       }
 
-      const { data: resultData, error } = await supabase.functions.invoke('update-driver-password', {
-        body: {
-          driver_id: driverId,
-          driver_type: driverType,
-          new_password: data.password,
-        },
+      const result = await updateDriverPassword({
+        driver_id: driverId,
+        driver_type: driverType,
+        new_password: data.password,
       });
 
-      const responseData = resultData as any;
+      const responseData = result.data as any;
 
-      if (error || !responseData?.success) {
+      if (result.error || !responseData?.success) {
         toast({
           title: t("createPassword.error"),
-          description: responseData?.error || error?.message || t("createPassword.errorDesc"),
+          description: responseData?.error || result.error || t("createPassword.errorDesc"),
           variant: "destructive"
         });
         return;
