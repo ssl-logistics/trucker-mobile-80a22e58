@@ -121,7 +121,7 @@ const CreateNewPassword = () => {
                 {t("createPassword.newPassword")} <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={errors.password ? "border-destructive pr-10" : "pr-10"} />
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={errors.password ? "border-destructive pr-10" : "pr-10"} onKeyDown={(e) => { if (e.key === ' ') e.preventDefault(); }} onPaste={(e) => { const text = e.clipboardData.getData('text'); if (text.includes(' ')) { e.preventDefault(); const input = e.currentTarget; const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set; nativeInputValueSetter?.call(input, input.value + text.replace(/\s/g, '')); input.dispatchEvent(new Event('input', { bubbles: true })); } }} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
