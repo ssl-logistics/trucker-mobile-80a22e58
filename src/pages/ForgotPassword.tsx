@@ -52,7 +52,7 @@ const ForgotPassword = () => {
 
       const responseData = result.data as any;
       if (!responseData?.found) {
-        setServerError(t('forgotPassword.phoneNotFound') || 'ไม่พบเบอร์โทรนี้ในระบบ');
+        setServerError(t('forgotPassword.phoneNotFound'));
         setIsLoading(false);
         return;
       }
