@@ -642,6 +642,19 @@ export async function checkDriverPhone(phone: string) {
   });
 }
 
+// ==================== Password APIs ====================
+
+export async function updateDriverPassword(body: {
+  driver_id: string;
+  driver_type: 'internal' | 'external' | 'freelance';
+  new_password: string;
+}) {
+  return callExternalApi<{ success: boolean; message?: string; error?: string }>('update-driver-password', {
+    method: 'PUT',
+    body,
+  });
+}
+
 // ==================== Destination Coordinate APIs ====================
 
 export async function updateDestinationCoordinates(body: {

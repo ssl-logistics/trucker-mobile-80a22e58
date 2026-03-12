@@ -57,6 +57,11 @@ const ForgotPassword = () => {
         return;
       }
 
+      // Extract driver info from response
+      const driverData = responseData?.data || responseData;
+      const driverId = driverData?.driver_id || driverData?.id || '';
+      const driverType = driverData?.driver_type || 'freelance';
+
       toast({
         title: t('forgotPassword.phoneVerified'),
         description: t('forgotPassword.phoneVerifiedDesc')
@@ -64,7 +69,9 @@ const ForgotPassword = () => {
       
       navigate("/create-new-password", {
         state: {
-          phone: data.phone
+          phone: data.phone,
+          driverId,
+          driverType,
         }
       });
     } catch (error) {
