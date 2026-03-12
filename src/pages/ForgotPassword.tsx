@@ -57,10 +57,19 @@ const ForgotPassword = () => {
         return;
       }
 
-      // Extract driver info from response
-      const driverData = responseData?.data || responseData;
-      const driverId = driverData?.driver_id || driverData?.id || '';
-      const driverType = driverData?.driver_type || 'freelance';
+      // รองรับ response ได้หลายรูปแบบ โดยเฉพาะรูปแบบใหม่: { results: [{ driver_type, driver: { id } }] }
+      const firstResult = Array.isArray(responseData?.results) ? responseData.results[0] : null;
+      const nestedDriver = firstResult?.driver;
+      const legacyDriver = responseData?.data?.driver || responseData?.data;
+      const driverId = firstResult?.driver_id || nestedDriver?.id || legacyDriver?.driver_id || legacyDriver?.id || '';
+      const driverType = firstResult?.driver_type || nestedDriver?.driver_type || legacyDriver?.driver_type || 'freelance';
+
+      if (!driverId) {
+        console.error('[ForgotPassword] Missing driverId from check-driver-phone response:', responseData);
+        setServerError(t('forgotPassword.error'));
+        setIsLoading(false);
+        return;
+      }
 
       toast({
         title: t('forgotPassword.phoneVerified'),
