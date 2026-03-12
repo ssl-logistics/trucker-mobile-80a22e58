@@ -38,6 +38,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'ocr-extra': 'EXPRESS_RENT_API_KEY',
   'update-destination-coordinates': 'EXPRESS_RENT_API_KEY',
   'check-driver-phone': 'DRIVER_API_KEY',
+  'update-driver-password': 'DRIVER_API_KEY',
 };
 
 // Endpoints that should use the bidding API URL
@@ -639,6 +640,19 @@ export async function checkDriverPhone(phone: string) {
   return callExternalApi<{ success: boolean; exists: boolean; data?: any; error?: string }>('check-driver-phone', {
     method: 'POST',
     body: { phone },
+  });
+}
+
+// ==================== Password APIs ====================
+
+export async function updateDriverPassword(body: {
+  driver_id: string;
+  driver_type: 'internal' | 'external' | 'freelance';
+  new_password: string;
+}) {
+  return callExternalApi<{ success: boolean; message?: string; error?: string }>('update-driver-password', {
+    method: 'PUT',
+    body,
   });
 }
 

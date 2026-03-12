@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { updateDriverPassword } from "@/lib/externalApi";
 import loginBackground from "@/assets/login-background.png";
 
 const CreateNewPassword = () => {
@@ -39,6 +40,8 @@ const CreateNewPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const phone = location.state?.phone || "";
+  const driverId = location.state?.driverId || "";
+  const driverType = location.state?.driverType || "freelance";
   const {
     register,
     handleSubmit,
@@ -61,22 +64,27 @@ const CreateNewPassword = () => {
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const onSubmit = async (data: PasswordFormData) => {
     try {
-      const {
-        supabase
-      } = await import("@/integrations/supabase/client");
-      const {
-        data: resetData,
-        error
-      } = await supabase.functions.invoke("reset-password", {
-        body: {
-          phone,
-          password: data.password
-        }
-      });
-      if (error || !resetData?.success) {
+      if (!driverId) {
         toast({
           title: t("createPassword.error"),
-          description: resetData?.error || t("createPassword.errorDesc"),
+          description: t("createPassword.errorDesc"),
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const result = await updateDriverPassword({
+        driver_id: driverId,
+        driver_type: driverType,
+        new_password: data.password,
+      });
+
+      const responseData = result.data as any;
+
+      if (result.error || !responseData?.success) {
+        toast({
+          title: t("createPassword.error"),
+          description: responseData?.error || result.error || t("createPassword.errorDesc"),
           variant: "destructive"
         });
         return;
