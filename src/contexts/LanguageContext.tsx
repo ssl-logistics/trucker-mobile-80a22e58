@@ -1460,6 +1460,7 @@ const thTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': 'ยืนยันเบอร์โทรศัพท์',
   'forgotPassword.phoneVerifiedDesc': 'กรุณาสร้างรหัสผ่านใหม่',
   'forgotPassword.error': 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+  'forgotPassword.phoneNotFound': 'ไม่พบเบอร์โทรนี้ในระบบ กรุณาตรวจสอบอีกครั้ง',
   
   // Notifications Page
   'notifications.title': 'การแจ้งเตือน',
@@ -2990,6 +2991,7 @@ const enTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': 'Phone Verified',
   'forgotPassword.phoneVerifiedDesc': 'Please create a new password',
   'forgotPassword.error': 'An error occurred. Please try again.',
+  'forgotPassword.phoneNotFound': 'This phone number was not found in the system. Please check and try again.',
   
   // Notifications Page
   'notifications.title': 'Notifications',
@@ -4587,6 +4589,7 @@ const koTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': '전화번호 확인됨',
   'forgotPassword.phoneVerifiedDesc': '새 비밀번호를 생성해 주세요',
   'forgotPassword.error': '오류가 발생했습니다. 다시 시도해 주세요.',
+  'forgotPassword.phoneNotFound': '이 전화번호는 시스템에 등록되어 있지 않습니다. 다시 확인해 주세요.',
   
   // Map Component
   'map.yourLocation': '내 위치',
@@ -6192,6 +6195,7 @@ const zhTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': '电话号码已验证',
   'forgotPassword.phoneVerifiedDesc': '请创建新密码',
   'forgotPassword.error': '发生错误，请重试',
+  'forgotPassword.phoneNotFound': '系统中未找到该电话号码，请检查后重试',
   
   // Toast Messages
   'toast.fileTooLarge': '文件大小超过10MB',
