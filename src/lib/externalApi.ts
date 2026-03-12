@@ -37,6 +37,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'save-ocr-scan': 'EXPRESS_RENT_API_KEY',
   'ocr-extra': 'EXPRESS_RENT_API_KEY',
   'update-destination-coordinates': 'EXPRESS_RENT_API_KEY',
+  'check-driver-phone': 'DRIVER_API_KEY',
 };
 
 // Endpoints that should use the bidding API URL
@@ -629,6 +630,15 @@ export async function updateFreelanceDriver(body: {
   }>('update-freelance-driver', {
     method: 'PUT',
     body: requestBody,
+  });
+}
+
+// ==================== Phone Check APIs ====================
+
+export async function checkDriverPhone(phone: string) {
+  return callExternalApi<{ success: boolean; exists: boolean; data?: any; error?: string }>('check-driver-phone', {
+    method: 'POST',
+    body: { phone },
   });
 }
 

@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { checkDriverPhone } from "@/lib/externalApi";
 import loginBackground from "@/assets/login-background.png";
 
 const ForgotPassword = () => {
@@ -16,6 +17,7 @@ const ForgotPassword = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
   const [serverError, setServerError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
   
   const phoneSchema = z.object({
     phone: z.string().regex(/^[0-9]{10}$/, {
@@ -37,8 +39,24 @@ const ForgotPassword = () => {
   const onSubmit = async (data: PhoneFormData) => {
     try {
       setServerError("");
+      setIsLoading(true);
 
-      // Skip OTP verification temporarily - go directly to password reset
+      // Check if phone exists via external API
+      const result = await checkDriverPhone(data.phone);
+      
+      if (result.error) {
+        setServerError(result.error);
+        setIsLoading(false);
+        return;
+      }
+
+      const responseData = result.data as any;
+      if (!responseData?.success && !responseData?.exists) {
+        setServerError(t('forgotPassword.phoneNotFound') || 'ไม่พบเบอร์โทรนี้ในระบบ');
+        setIsLoading(false);
+        return;
+      }
+
       toast({
         title: t('forgotPassword.phoneVerified'),
         description: t('forgotPassword.phoneVerifiedDesc')
@@ -52,6 +70,8 @@ const ForgotPassword = () => {
     } catch (error) {
       console.error("Error:", error);
       setServerError(t('forgotPassword.error'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -109,9 +129,10 @@ const ForgotPassword = () => {
             <div className="space-y-3 pt-4">
               <Button 
                 type="submit" 
+                disabled={isLoading}
                 className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 rounded-xl text-base font-medium"
               >
-                {t('forgotPassword.confirmButton')}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('forgotPassword.confirmButton')}
               </Button>
               <Button 
                 type="button" 
