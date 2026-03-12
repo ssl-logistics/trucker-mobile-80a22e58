@@ -87,8 +87,18 @@ const ForgotPassword = () => {
               <Input 
                 id="phone" 
                 type="tel" 
+                inputMode="numeric"
+                maxLength={10}
                 placeholder={t('forgotPassword.phonePlaceholder')} 
-                {...register("phone")} 
+                {...register("phone")}
+                onKeyDown={(e) => {
+                  if (e.key === ' ') e.preventDefault();
+                }}
+                onChange={(e) => {
+                  const filtered = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  e.target.value = filtered;
+                  register("phone").onChange(e);
+                }}
                 className={errors.phone || serverError ? "border-destructive" : ""} 
               />
               {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
