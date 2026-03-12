@@ -186,14 +186,8 @@ const CreateNewPassword = () => {
             <DialogTitle className="text-center text-xl">{t("createPassword.successTitle")}</DialogTitle>
             <DialogDescription className="text-center">{t("createPassword.successDesc")}</DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-row gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => {
-            setShowSuccess(false);
-            navigate("/");
-          }} className="flex-1">
-              {t("createPassword.home")}
-            </Button>
-            <Button onClick={handleSuccess} className="flex-1 bg-secondary hover:bg-secondary/90">
+          <DialogFooter>
+            <Button onClick={handleSuccess} className="w-full bg-secondary hover:bg-secondary/90">
               {t("createPassword.getStarted")}
             </Button>
           </DialogFooter>
