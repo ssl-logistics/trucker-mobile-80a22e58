@@ -4588,6 +4588,10 @@ const koTranslations: Record<string, string> = {
   'validation.usernameRequired': '사용자 이름을 입력하세요',
   'validation.emailFormat': '올바른 이메일 형식이 아닙니다',
   'validation.passwordMin': '비밀번호는 최소 8자 이상이어야 합니다',
+  'validation.passwordUpperCase': '대문자를 포함해야 합니다',
+  'validation.passwordLowerCase': '소문자를 포함해야 합니다',
+  'validation.passwordNumber': '숫자를 포함해야 합니다',
+  'validation.passwordMismatch': '비밀번호가 일치하지 않습니다',
   
   // Forgot Password Page
   'forgotPassword.title': '비밀번호 찾기',
