@@ -39,8 +39,24 @@ const ForgotPassword = () => {
   const onSubmit = async (data: PhoneFormData) => {
     try {
       setServerError("");
+      setIsLoading(true);
 
-      // Skip OTP verification temporarily - go directly to password reset
+      // Check if phone exists via external API
+      const result = await checkDriverPhone(data.phone);
+      
+      if (result.error) {
+        setServerError(result.error);
+        setIsLoading(false);
+        return;
+      }
+
+      const responseData = result.data as any;
+      if (!responseData?.success && !responseData?.exists) {
+        setServerError(t('forgotPassword.phoneNotFound') || 'ไม่พบเบอร์โทรนี้ในระบบ');
+        setIsLoading(false);
+        return;
+      }
+
       toast({
         title: t('forgotPassword.phoneVerified'),
         description: t('forgotPassword.phoneVerifiedDesc')
@@ -54,6 +70,8 @@ const ForgotPassword = () => {
     } catch (error) {
       console.error("Error:", error);
       setServerError(t('forgotPassword.error'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
