@@ -5798,6 +5798,7 @@ const zhTranslations: Record<string, string> = {
   'editField.updateError': '无法更新数据',
   'editField.profile': '个人资料',
   'editField.save': '保存',
+  'editField.phone_min_length': '电话号码必须为10位数字',
   
   // API Test Page
   'apiTest.title': '测试接收 API',

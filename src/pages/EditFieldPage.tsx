@@ -158,7 +158,7 @@ export default function EditFieldPage() {
         </div>
 
         {field === 'phone' && value.trim().length > 0 && value.trim().length < 10 && (
-          <p className="text-sm text-destructive mt-1">{t('editField.phone_min_length') || 'เบอร์โทรต้องมี 10 หลัก'}</p>
+          <p className="text-sm text-destructive mt-1">{t('editField.phone_min_length')}</p>
         )}
 
         <Button
