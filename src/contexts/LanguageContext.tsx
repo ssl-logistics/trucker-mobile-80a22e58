@@ -2351,6 +2351,10 @@ const enTranslations: Record<string, string> = {
   'validation.usernameRequired': 'Please enter username',
   'validation.emailFormat': 'Invalid email format',
   'validation.passwordMin': 'Password must be at least 8 characters',
+  'validation.passwordUpperCase': 'Must contain an uppercase letter',
+  'validation.passwordLowerCase': 'Must contain a lowercase letter',
+  'validation.passwordNumber': 'Must contain a number',
+  'validation.passwordMismatch': 'Passwords do not match',
   
   // Register Page
   'register.steps.terms': 'Terms of Service and Policy',
