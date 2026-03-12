@@ -4308,10 +4308,16 @@ const koTranslations: Record<string, string> = {
   'createPassword.homeButton': '홈',
   'createPassword.getStartedButton': '시작하기',
   'createPassword.error': '오류 발생',
+  'createPassword.errorDesc': '비밀번호를 생성할 수 없습니다',
   'createPassword.cannotCreate': '비밀번호를 생성할 수 없습니다',
   'createPassword.tryAgain': '다시 시도해 주세요',
   'createPassword.successTitle': '새 비밀번호 생성 완료!',
+  'createPassword.successDesc': '새 비밀번호가 성공적으로 생성되었습니다!',
   'createPassword.successMessage': '새 비밀번호가 성공적으로 생성되었습니다!',
+  'createPassword.home': '홈',
+  'createPassword.homeButton': '홈',
+  'createPassword.getStarted': '시작하기',
+  'createPassword.getStartedButton': '시작하기',
   
   // API Test Page
   'apiTest.title': 'API 수신 테스트',
