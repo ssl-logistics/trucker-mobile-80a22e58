@@ -17,6 +17,7 @@ const ForgotPassword = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
   const [serverError, setServerError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
   
   const phoneSchema = z.object({
     phone: z.string().regex(/^[0-9]{10}$/, {
