@@ -1343,6 +1343,7 @@ const thTranslations: Record<string, string> = {
   'editField.updateError': 'ไม่สามารถอัพเดทข้อมูลได้',
   'editField.profile': 'โปรไฟล์',
   'editField.save': 'บันทึก',
+  'editField.phone_min_length': 'เบอร์โทรต้องมี 10 หลัก',
   
   // Place Bid Page
   'placeBid.pleaseEnterPrice': 'กรุณาระบุราคา',
