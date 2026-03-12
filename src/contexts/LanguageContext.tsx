@@ -6195,6 +6195,7 @@ const zhTranslations: Record<string, string> = {
   'forgotPassword.phoneVerified': '电话号码已验证',
   'forgotPassword.phoneVerifiedDesc': '请创建新密码',
   'forgotPassword.error': '发生错误，请重试',
+  'forgotPassword.phoneNotFound': '系统中未找到该电话号码，请检查后重试',
   
   // Toast Messages
   'toast.fileTooLarge': '文件大小超过10MB',
