@@ -262,7 +262,7 @@ export default function CurrentJobsPage() {
           // Filter out completed jobs
           // Domestic: all PODs completed -> remove
           // International: all PODs completed AND container returned -> remove
-          const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
+          const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || (job.transport_category && job.transport_category !== 'domestic'));
           
            const activeJobs = startedJobs.filter((job: any) => {
               const transportId = String(job.id);
