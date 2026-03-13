@@ -471,9 +471,6 @@ export default function CurrentJobsPage() {
         const companyResult = companyJobsResult.data;
         console.log('Loaded company accepted jobs:', companyResult);
         const allCompanyJobs = Array.isArray(companyResult) ? companyResult : ((companyResult as any).data || []);
-        // Debug: log raw data for specific order
-        allCompanyJobs.forEach((job: any) => {
-          if (job.order_number === 'OR20260306033') {
         // Filter out jobs that have ALL destinations POD completed, and map job_type/destinations
         companyJobs = allCompanyJobs
           .filter((job: any) => !isJobFullyCompleted(job))
