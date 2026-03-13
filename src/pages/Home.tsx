@@ -206,7 +206,7 @@ export default function Home() {
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
         // Determine if international
-        const isIntl = !!(item.booking_no || item.bl_no) || item.transport_category === 'international' || item.job_type === 'international';
+        const isIntl = !!(item.booking_no || item.booking_number || item.bl_no || item.bl_number || item.bill_of_lading) || item.transport_category === 'international' || item.job_type === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()));
         
         // Build origin/destination - use different sources for international vs domestic
         let originLocation: string;
