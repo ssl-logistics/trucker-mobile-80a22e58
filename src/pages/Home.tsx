@@ -238,7 +238,7 @@ export default function Home() {
            id: item.id || String(Math.random()),
            post_id: item.id || item.post_id || '',
            order_code: item.order_number || item.order_code || item.quote_number || '',
-           job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) ? 'international' : (item.job_type || item.shipment_type || 'domestic'),
+           job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number || item.job_type === 'international' || item.transport_category === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()))) ? 'international' : (item.job_type || item.shipment_type || 'domestic'),
           employer_name: item.factory_name || item.company_name || item.customer_name || item.sender_company_name || item.sender_name || '',
           transport_type: item.transport_mode || item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
