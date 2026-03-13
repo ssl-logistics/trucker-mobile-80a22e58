@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
       registerType: 'prompt',
       workbox: {
         maximumFileSizeToCacheInBytes: 5000000, // 5MB
+        navigateFallbackDenylist: [/^\/~oauth/],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
