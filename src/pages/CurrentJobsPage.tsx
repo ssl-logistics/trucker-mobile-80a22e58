@@ -548,7 +548,7 @@ export default function CurrentJobsPage() {
             return isActiveStatus || isAccepted;
           })
           .map((job: any) => {
-            const inferredJobType = (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading)
+            const inferredJobType = isInternationalJob(job)
               ? 'international'
               : (job.job_type || job.transport_category || undefined);
             const mappedDestinations = Array.isArray(job.destinations) && job.destinations.length > 0
