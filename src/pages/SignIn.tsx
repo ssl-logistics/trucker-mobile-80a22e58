@@ -6,6 +6,8 @@ import * as z from "zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
