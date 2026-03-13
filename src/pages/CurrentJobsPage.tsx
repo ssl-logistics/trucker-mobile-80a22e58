@@ -657,9 +657,9 @@ export default function CurrentJobsPage() {
             factory_name: ticket.factory_name || null,
             isFactoryJob: false,
             isBidJob: true, // Mark as bid job for UI distinction
-            job_type: (ticket.booking_no || ticket.bl_no) ? 'international' : (ticket.job_type || ticket.transport_category || 'domestic'),
-            bl_no: ticket.bl_no || null,
-            booking_no: ticket.booking_no || null,
+            job_type: (ticket.booking_no || ticket.booking_number || ticket.bl_no || ticket.bl_number || ticket.bill_of_lading) ? 'international' : (ticket.job_type || ticket.transport_category || 'domestic'),
+            bl_no: ticket.bl_no || ticket.bl_number || ticket.bill_of_lading || null,
+            booking_no: ticket.booking_no || ticket.booking_number || null,
             remarks: ticket.notes || ticket.remarks || null,
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
