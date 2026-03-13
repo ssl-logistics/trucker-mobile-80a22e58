@@ -482,7 +482,7 @@ export default function CurrentJobsPage() {
           .filter((job: any) => !isJobFullyCompleted(job))
           .map((job: any) => ({
             ...job,
-            job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
+            job_type: isInternationalJob(job) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
             bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
             booking_no: job.booking_no || job.booking_number || null,
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
