@@ -81,6 +81,7 @@ interface AcceptedJob {
   isBidJob?: boolean; // Flag for bid jobs - navigate to /bid-job/:ticketNumber
   job_type?: string | null; // domestic or international
   transport_category?: string | null;
+  transport_mode?: string | null;
   bl_no?: string | null;
   bl_number?: string | null;
   bill_of_lading?: string | null;
