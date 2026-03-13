@@ -689,7 +689,7 @@ export default function CurrentJobsPage() {
 
       const normalizedJobs = uniqueJobs.map((job: AcceptedJob) => ({
         ...job,
-        job_type: (job.booking_no || job.bl_no)
+        job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading)
           ? 'international'
           : (job.job_type || job.transport_category || 'domestic'),
       }));
