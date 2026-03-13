@@ -121,12 +121,13 @@ export default function Home() {
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
-    // Filter out international jobs without booking_no or bl_no
+    // Filter out international jobs without any international reference (booking_no, bl_no, or transport_mode)
     const filterInternationalWithoutRef = (jobList: Job[]) => 
       jobList.filter(job => {
         const isInternational = job.job_type === 'international' || 
           (!!(job as any).transport_category && (job as any).transport_category !== 'domestic');
-        if (isInternational && !job.booking_no && !job.bl_no) return false;
+        // Allow international jobs that have transport_mode (sea/air) even without booking/bl
+        if (isInternational && !job.booking_no && !job.bl_no && !(job as any).transport_mode) return false;
         return true;
       });
 
@@ -206,7 +207,7 @@ export default function Home() {
       
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
         // Determine if international
-        const isIntl = !!(item.booking_no || item.bl_no) || item.transport_category === 'international' || item.job_type === 'international';
+        const isIntl = !!(item.booking_no || item.booking_number || item.bl_no || item.bl_number || item.bill_of_lading) || item.transport_category === 'international' || item.job_type === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()));
         
         // Build origin/destination - use different sources for international vs domestic
         let originLocation: string;
@@ -238,7 +239,7 @@ export default function Home() {
            id: item.id || String(Math.random()),
            post_id: item.id || item.post_id || '',
            order_code: item.order_number || item.order_code || item.quote_number || '',
-           job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) ? 'international' : (item.job_type || item.shipment_type || 'domestic'),
+           job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number || item.job_type === 'international' || item.transport_category === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()))) ? 'international' : (item.job_type || item.shipment_type || 'domestic'),
           employer_name: item.factory_name || item.company_name || item.customer_name || item.sender_company_name || item.sender_name || '',
           transport_type: item.transport_mode || item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
@@ -391,10 +392,6 @@ export default function Home() {
           return true;
         })
         .map((item: any) => {
-        // Debug: log raw express rent post data to identify BL/Booking field names
-        if (item.order_number?.includes('OR20260306033') || item.post_code?.includes('OR20260306033')) {
-          console.log('[DEBUG] Express rent post OR20260306033 raw data:', JSON.stringify(item, null, 2));
-        }
         // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
         let originLocation = item.origin || item.from_location || '';
         let destinationLocation = item.destination || item.to_location || '';
@@ -429,7 +426,7 @@ export default function Home() {
           id: item.id || String(Math.random()),
           post_id: item.id || item.post_id || '',
           order_code: orderCode,
-          job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) ? 'international' : (item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic'),
+          job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number || item.job_type === 'international' || item.transport_category === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()))) ? 'international' : (item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic'),
           employer_name: item.company_name || item.factory_name || item.customer_name || '',
           transport_type: item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
