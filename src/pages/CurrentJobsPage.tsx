@@ -82,7 +82,10 @@ interface AcceptedJob {
   job_type?: string | null; // domestic or international
   transport_category?: string | null;
   bl_no?: string | null;
+  bl_number?: string | null;
+  bill_of_lading?: string | null;
   booking_no?: string | null;
+  booking_number?: string | null;
   // Container info for international jobs
   container_number?: string | null;
   container_number_2?: string | null;
