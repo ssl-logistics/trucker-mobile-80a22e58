@@ -238,7 +238,7 @@ export default function Home() {
            id: item.id || String(Math.random()),
            post_id: item.id || item.post_id || '',
            order_code: item.order_number || item.order_code || item.quote_number || '',
-           job_type: (item.booking_no || item.bl_no) ? 'international' : (item.job_type || item.shipment_type || 'domestic'),
+           job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) ? 'international' : (item.job_type || item.shipment_type || 'domestic'),
           employer_name: item.factory_name || item.company_name || item.customer_name || item.sender_company_name || item.sender_name || '',
           transport_type: item.transport_mode || item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
@@ -256,8 +256,8 @@ export default function Home() {
           goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
           goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || item.product_unit || null,
           isAccepted: false,
-          bl_no: item.bl_no || null,
-          booking_no: item.booking_no || null,
+          bl_no: item.bl_no || item.bill_of_lading || item.bl_number || null,
+          booking_no: item.booking_no || item.booking_number || null,
           invoice_number: item.invoice_number || item.inv_no || item.inv || null,
           remarks: item.remark || item.remarks || item.note || null,
           origin_lat: item.sender_latitude || item.origin_lat || undefined,
@@ -391,6 +391,10 @@ export default function Home() {
           return true;
         })
         .map((item: any) => {
+        // Debug: log raw express rent post data to identify BL/Booking field names
+        if (item.order_number?.includes('OR20260306033') || item.post_code?.includes('OR20260306033')) {
+          console.log('[DEBUG] Express rent post OR20260306033 raw data:', JSON.stringify(item, null, 2));
+        }
         // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
         let originLocation = item.origin || item.from_location || '';
         let destinationLocation = item.destination || item.to_location || '';
@@ -425,7 +429,7 @@ export default function Home() {
           id: item.id || String(Math.random()),
           post_id: item.id || item.post_id || '',
           order_code: orderCode,
-          job_type: (item.booking_no || item.bl_no) ? 'international' : (item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic'),
+          job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) ? 'international' : (item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic'),
           employer_name: item.company_name || item.factory_name || item.customer_name || '',
           transport_type: item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
@@ -449,8 +453,8 @@ export default function Home() {
           goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
           goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || item.product_unit || null,
           isAccepted: false,
-          bl_no: item.bl_no || null,
-          booking_no: item.booking_no || null,
+          bl_no: item.bl_no || item.bill_of_lading || item.bl_number || null,
+          booking_no: item.booking_no || item.booking_number || null,
           invoice_number: item.invoice_number || item.inv_no || item.inv || null,
           remarks: item.remark || item.remarks || item.note || null,
           // Map coordinates from API
