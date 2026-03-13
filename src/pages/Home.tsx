@@ -449,8 +449,8 @@ export default function Home() {
           goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
           goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || item.product_unit || null,
           isAccepted: false,
-          bl_no: item.bl_no || null,
-          booking_no: item.booking_no || null,
+          bl_no: item.bl_no || item.bill_of_lading || item.bl_number || null,
+          booking_no: item.booking_no || item.booking_number || null,
           invoice_number: item.invoice_number || item.inv_no || item.inv || null,
           remarks: item.remark || item.remarks || item.note || null,
           // Map coordinates from API
