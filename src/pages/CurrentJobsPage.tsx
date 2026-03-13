@@ -82,7 +82,10 @@ interface AcceptedJob {
   job_type?: string | null; // domestic or international
   transport_category?: string | null;
   bl_no?: string | null;
+  bl_number?: string | null;
+  bill_of_lading?: string | null;
   booking_no?: string | null;
+  booking_number?: string | null;
   // Container info for international jobs
   container_number?: string | null;
   container_number_2?: string | null;
@@ -262,7 +265,7 @@ export default function CurrentJobsPage() {
           // Filter out completed jobs
           // Domestic: all PODs completed -> remove
           // International: all PODs completed AND container returned -> remove
-          const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
+          const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || (job.transport_category && job.transport_category !== 'domestic'));
           
            const activeJobs = startedJobs.filter((job: any) => {
               const transportId = String(job.id);
@@ -350,10 +353,10 @@ export default function CurrentJobsPage() {
             freelance_bidder_name: null,
             factory_name: job.factory_name,
             isFactoryJob: true,
-            job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || null),
+            job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading) ? 'international' : (job.job_type || job.transport_category || null),
             transport_category: job.transport_category || null,
-            bl_no: job.bl_no || null,
-            booking_no: job.booking_no || null,
+            bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
+            booking_no: job.booking_no || job.booking_number || null,
             // Container info for international jobs
             container_number: job.container_number || null,
             container_number_2: job.container_number_2 || null,
@@ -435,7 +438,7 @@ export default function CurrentJobsPage() {
       }
       
       // Helper: check if job is international
-      const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
+      const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || (job.transport_category && job.transport_category !== 'domestic'));
 
       // Helper function to check if job has all PODs completed (and container returned for international)
       const isJobFullyCompleted = (job: any): boolean => {
@@ -473,9 +476,9 @@ export default function CurrentJobsPage() {
           .filter((job: any) => !isJobFullyCompleted(job))
           .map((job: any) => ({
             ...job,
-            job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
-            bl_no: job.bl_no || null,
-            booking_no: job.booking_no || null,
+            job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
+            bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
+            booking_no: job.booking_no || job.booking_number || null,
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
@@ -534,7 +537,7 @@ export default function CurrentJobsPage() {
             return isActiveStatus || isAccepted;
           })
           .map((job: any) => {
-            const inferredJobType = (job.booking_no || job.bl_no)
+            const inferredJobType = (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading)
               ? 'international'
               : (job.job_type || job.transport_category || undefined);
             const mappedDestinations = Array.isArray(job.destinations) && job.destinations.length > 0
@@ -551,8 +554,8 @@ export default function CurrentJobsPage() {
               sender_name: job.factory_name || job.sender_name,
               isFactoryJob: true,
               ...(inferredJobType ? { job_type: inferredJobType } : {}),
-              ...(job.bl_no ? { bl_no: job.bl_no } : {}),
-              ...(job.booking_no ? { booking_no: job.booking_no } : {}),
+              ...(job.bl_no || job.bl_number || job.bill_of_lading ? { bl_no: job.bl_no || job.bl_number || job.bill_of_lading } : {}),
+              ...(job.booking_no || job.booking_number ? { booking_no: job.booking_no || job.booking_number } : {}),
               ...(mappedDestinations ? { destinations: mappedDestinations } : {}),
               ...(Array.isArray(job.products) ? { products: job.products } : (Array.isArray(job.destinations) ? { products: job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) } : {})),
             };
@@ -657,9 +660,9 @@ export default function CurrentJobsPage() {
             factory_name: ticket.factory_name || null,
             isFactoryJob: false,
             isBidJob: true, // Mark as bid job for UI distinction
-            job_type: (ticket.booking_no || ticket.bl_no) ? 'international' : (ticket.job_type || ticket.transport_category || 'domestic'),
-            bl_no: ticket.bl_no || null,
-            booking_no: ticket.booking_no || null,
+            job_type: (ticket.booking_no || ticket.booking_number || ticket.bl_no || ticket.bl_number || ticket.bill_of_lading) ? 'international' : (ticket.job_type || ticket.transport_category || 'domestic'),
+            bl_no: ticket.bl_no || ticket.bl_number || ticket.bill_of_lading || null,
+            booking_no: ticket.booking_no || ticket.booking_number || null,
             remarks: ticket.notes || ticket.remarks || null,
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
@@ -689,7 +692,7 @@ export default function CurrentJobsPage() {
 
       const normalizedJobs = uniqueJobs.map((job: AcceptedJob) => ({
         ...job,
-        job_type: (job.booking_no || job.bl_no)
+        job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading)
           ? 'international'
           : (job.job_type || job.transport_category || 'domestic'),
       }));
