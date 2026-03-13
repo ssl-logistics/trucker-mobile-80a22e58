@@ -1,48 +1,39 @@
 
 
-## Problem Analysis
+# ย้าย Proximity Alert ให้ทำงานทุกหน้า
 
-The freelance driver sees express rent (เช่าด่วน) jobs that have already been assigned to a company driver. This happens because the `loadJobs` function in `Home.tsx` doesn't filter by the post's `status` field or `express_rent_expiry`.
+## ปัญหาปัจจุบัน
+`useProximityAlert()` ถูกเรียกใช้เฉพาะใน `Home.tsx` เท่านั้น เมื่อคนขับเปลี่ยนไปหน้าอื่น (เช่น หน้ารายละเอียดงาน, แชท, ตั้งค่า) Hook จะถูก unmount และหยุดตรวจสอบระยะทาง ทั้งที่ระบบ GPS Tracking ยังส่งพิกัดอยู่ตลอด
 
-From the API response, each express rent post has:
-- `status` field (e.g., "open", could become "assigned"/"closed" when a driver is selected)
-- `express_rent_expiry` field (timestamp after which the post should no longer be available)
+## วิธีแก้ไข
+ย้าย `useProximityAlert()` ออกจาก `Home.tsx` ไปไว้ใน component ระดับบนสุดที่ mount ตลอดเวลา
 
-Currently the code only filters by:
-- `is_express_rent === true`
-- Past pickup dates
-- Jobs this specific driver already accepted
-- Truck type compatibility
+### ขั้นตอน
 
-It does NOT filter by `status !== 'open'` or expired `express_rent_expiry`.
+**1. สร้าง Global Hook Component**
+สร้าง component ใหม่ เช่น `GlobalProximityAlert` ที่เรียก `useProximityAlert()` และ render เป็น `null` (ไม่แสดง UI)
 
-## Plan
+**2. เพิ่มใน App.tsx**
+วาง `GlobalProximityAlert` ไว้ภายใน `AuthProvider` และ `Routes` เพื่อให้:
+- มี access ถึง user context
+- ทำงานตลอดไม่ว่าจะอยู่หน้าไหน
 
-**File: `src/pages/Home.tsx`** (~lines 378-379)
+**3. ลบ useProximityAlert ออกจาก Home.tsx**
+เอา import และ call ของ `useProximityAlert()` ออกจาก `Home.tsx` เพื่อไม่ให้ทำงานซ้ำซ้อน
 
-Add two filters when processing express rent posts:
+## ผลลัพธ์
+- ระบบตรวจสอบระยะทางจะทำงานตลอดเวลาที่แอปเปิดอยู่ ไม่ว่าคนขับจะอยู่หน้าไหน
+- Push Notification จะถูกส่งไปยังมือถือ (Android/iOS) เมื่อใกล้จุดรับ/ส่งแม้คนขับไม่ได้อยู่หน้า Home
 
-1. **Filter by status** - Only show posts where `status === 'open'` (exclude "assigned", "closed", etc.)
-2. **Filter by express_rent_expiry** - Exclude posts where `express_rent_expiry` has passed
+## ข้อจำกัดที่ยังมีอยู่
+- หากคนขับปิดแอปทั้งหมด (kill app) ระบบจะหยุดตรวจสอบ เพราะ Capacitor ไม่รองรับ Background Location โดยตรง (ต้องใช้ native plugin เพิ่ม)
 
-```typescript
-const transformedJobs: Job[] = apiJobs
-  .filter((item: any) => item.is_express_rent === isExpressRentFilter)
-  .filter((item: any) => {
-    // Only show posts that are still open (not assigned to another driver)
-    const status = (item.status || '').toLowerCase();
-    if (status && status !== 'open') return false;
-    
-    // Filter out expired express rent posts
-    if (item.express_rent_expiry) {
-      const expiry = new Date(item.express_rent_expiry);
-      if (expiry < new Date()) return false;
-    }
-    
-    return true;
-  })
-  .map((item: any) => { ... });
-```
+---
 
-This ensures that when a company driver is selected (and the external API updates the post status or the expiry passes), the freelance driver will no longer see that job on their home page. The 30-second auto-refresh will pick up the change automatically.
+### รายละเอียดทางเทคนิค
+
+**ไฟล์ที่แก้ไข:**
+
+1. **`src/App.tsx`** - เพิ่ม component ที่เรียก `useProximityAlert()` ไว้ภายใน Router/AuthProvider
+2. **`src/pages/Home.tsx`** - ลบ import และ call ของ `useProximityAlert()`
 
