@@ -392,10 +392,6 @@ export default function Home() {
           return true;
         })
         .map((item: any) => {
-        // Debug: log raw express rent post data to identify BL/Booking field names
-        if (item.order_number?.includes('OR20260306033') || item.post_code?.includes('OR20260306033')) {
-          console.log('[DEBUG] Express rent post OR20260306033 raw data:', JSON.stringify(item, null, 2));
-        }
         // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
         let originLocation = item.origin || item.from_location || '';
         let destinationLocation = item.destination || item.to_location || '';
