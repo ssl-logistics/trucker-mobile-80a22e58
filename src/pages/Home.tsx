@@ -377,6 +377,19 @@ export default function Home() {
       
       const transformedJobs: Job[] = apiJobs
         .filter((item: any) => item.is_express_rent === isExpressRentFilter)
+        .filter((item: any) => {
+          // Only show posts that are still open (not assigned to another driver)
+          const status = (item.status || '').toLowerCase();
+          if (status && status !== 'open') return false;
+          
+          // Filter out expired express rent posts
+          if (item.express_rent_expiry) {
+            const expiry = new Date(item.express_rent_expiry);
+            if (expiry < new Date()) return false;
+          }
+          
+          return true;
+        })
         .map((item: any) => {
         // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
         let originLocation = item.origin || item.from_location || '';
