@@ -353,7 +353,7 @@ export default function CurrentJobsPage() {
             freelance_bidder_name: null,
             factory_name: job.factory_name,
             isFactoryJob: true,
-            job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading) ? 'international' : (job.job_type || job.transport_category || null),
+            job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_mode && ['sea', 'air'].includes((job.transport_mode || '').toLowerCase())) || (job.transport_category && job.transport_category !== 'domestic')) ? 'international' : (job.job_type || job.transport_category || null),
             transport_category: job.transport_category || null,
             bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
             booking_no: job.booking_no || job.booking_number || null,
