@@ -471,6 +471,12 @@ export default function CurrentJobsPage() {
         const companyResult = companyJobsResult.data;
         console.log('Loaded company accepted jobs:', companyResult);
         const allCompanyJobs = Array.isArray(companyResult) ? companyResult : ((companyResult as any).data || []);
+        // Debug: log raw data for specific order
+        allCompanyJobs.forEach((job: any) => {
+          if (job.order_number === 'OR20260306033') {
+            console.log('[DEBUG] OR20260306033 raw company job data:', JSON.stringify({ booking_no: job.booking_no, booking_number: job.booking_number, bl_no: job.bl_no, bl_number: job.bl_number, bill_of_lading: job.bill_of_lading, job_type: job.job_type, transport_category: job.transport_category, allKeys: Object.keys(job) }, null, 2));
+          }
+        });
         // Filter out jobs that have ALL destinations POD completed, and map job_type/destinations
         companyJobs = allCompanyJobs
           .filter((job: any) => !isJobFullyCompleted(job))
@@ -498,6 +504,11 @@ export default function CurrentJobsPage() {
         const factoryResult = factoryJobsResult.data;
         console.log('Loaded factory jobs:', factoryResult);
         const allFactoryJobs = Array.isArray(factoryResult) ? factoryResult : ((factoryResult as any).data || []);
+        allFactoryJobs.forEach((job: any) => {
+          if (job.order_number === 'OR20260306033') {
+            console.log('[DEBUG] OR20260306033 raw factory job data:', JSON.stringify({ booking_no: job.booking_no, booking_number: job.booking_number, bl_no: job.bl_no, bl_number: job.bl_number, bill_of_lading: job.bill_of_lading, job_type: job.job_type, transport_category: job.transport_category, allKeys: Object.keys(job) }, null, 2));
+          }
+        });
 
         // Statuses that indicate job is actively assigned and should show in Current Jobs
         const activeStatuses = ['in_progress', 'in_transit', 'assigned', 'accepted'];
