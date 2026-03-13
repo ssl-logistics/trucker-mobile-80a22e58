@@ -435,7 +435,7 @@ export default function CurrentJobsPage() {
       }
       
       // Helper: check if job is international
-      const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
+      const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || (job.transport_category && job.transport_category !== 'domestic'));
 
       // Helper function to check if job has all PODs completed (and container returned for international)
       const isJobFullyCompleted = (job: any): boolean => {
