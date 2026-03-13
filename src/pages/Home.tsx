@@ -412,6 +412,14 @@ export default function Home() {
             destinationLocation = parts[1] || '';
           }
         }
+
+        // Prepend sender_name to origin if available (same logic as factory jobs)
+        const originCompany = item.sender_name || item.sender_company_name || item.company_name || item.factory_name || '';
+        if (originCompany && originLocation && originLocation !== '-') {
+          originLocation = [originCompany, originLocation].filter(Boolean).join('\n');
+        } else if (originCompany && (!originLocation || originLocation === '-')) {
+          originLocation = originCompany;
+        }
         
         // Extract order code from title (format: "โพสต์หารถด่วน - OR20251203002")
         let orderCode = item.post_code || item.order_number || item.quote_number || '';
@@ -427,7 +435,7 @@ export default function Home() {
           post_id: item.id || item.post_id || '',
           order_code: orderCode,
           job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number || item.job_type === 'international' || item.transport_category === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()))) ? 'international' : (item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic'),
-          employer_name: item.company_name || item.factory_name || item.customer_name || '',
+          employer_name: item.company_name || item.factory_name || item.customer_name || item.sender_company_name || item.sender_name || '',
           transport_type: item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
