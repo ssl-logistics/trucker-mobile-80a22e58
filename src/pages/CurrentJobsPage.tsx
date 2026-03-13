@@ -473,9 +473,9 @@ export default function CurrentJobsPage() {
           .filter((job: any) => !isJobFullyCompleted(job))
           .map((job: any) => ({
             ...job,
-            job_type: (job.booking_no || job.bl_no) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
-            bl_no: job.bl_no || null,
-            booking_no: job.booking_no || null,
+            job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
+            bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
+            booking_no: job.booking_no || job.booking_number || null,
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
