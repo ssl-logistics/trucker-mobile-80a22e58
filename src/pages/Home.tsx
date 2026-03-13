@@ -121,12 +121,13 @@ export default function Home() {
 
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
-    // Filter out international jobs without booking_no or bl_no
+    // Filter out international jobs without any international reference (booking_no, bl_no, or transport_mode)
     const filterInternationalWithoutRef = (jobList: Job[]) => 
       jobList.filter(job => {
         const isInternational = job.job_type === 'international' || 
           (!!(job as any).transport_category && (job as any).transport_category !== 'domestic');
-        if (isInternational && !job.booking_no && !job.bl_no) return false;
+        // Allow international jobs that have transport_mode (sea/air) even without booking/bl
+        if (isInternational && !job.booking_no && !job.bl_no && !(job as any).transport_mode) return false;
         return true;
       });
 
