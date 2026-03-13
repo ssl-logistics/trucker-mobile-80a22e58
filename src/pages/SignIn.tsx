@@ -410,6 +410,7 @@ const SignIn = () => {
 
           {/* Apple Sign In - hide on Android */}
           {Capacitor.getPlatform() !== 'android' && (
+            <div className="flex justify-center">
             <button
               type="button"
               onClick={async () => {
@@ -437,6 +438,7 @@ const SignIn = () => {
               </svg>
               Sign in with Apple
             </button>
+            </div>
           )}
 
           {/* Language Switcher */}
