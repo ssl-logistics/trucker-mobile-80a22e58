@@ -142,8 +142,8 @@ export function useProximityAlert() {
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const runningRef = useRef(false);
-  // Track points the driver was previously near (key: orderCode_type)
-  const wasNearRef = useRef<Set<string>>(new Set());
+  // Track points the driver was previously near — persisted to localStorage
+  const wasNearRef = useRef<Set<string>>(loadWasNear());
 
   const getDriverType = useCallback((): 'internal' | 'external' | 'freelance' => {
     if (isInternalDriver) return 'internal';
@@ -184,7 +184,7 @@ export function useProximityAlert() {
 
       if (!jobs.length) { runningRef.current = false; return; }
 
-      // 3. Build check-points from jobs
+      // 3. Build check-points from jobs (with unique key including coords)
       const points: CheckPoint[] = [];
 
       for (const job of jobs) {
@@ -195,14 +195,14 @@ export function useProximityAlert() {
         const sLat = Number(job.sender_latitude ?? job.origin_latitude);
         const sLng = Number(job.sender_longitude ?? job.origin_longitude);
         if (sLat && sLng) {
-          points.push({ orderCode, type: 'pickup', lat: sLat, lng: sLng });
+          points.push({ orderCode, type: 'pickup', lat: sLat, lng: sLng, key: `${orderCode}_pickup_${sLat.toFixed(4)}_${sLng.toFixed(4)}` });
         }
 
         // Delivery point(s)
         const dLat = Number(job.destination_latitude);
         const dLng = Number(job.destination_longitude);
         if (dLat && dLng) {
-          points.push({ orderCode, type: 'delivery', lat: dLat, lng: dLng });
+          points.push({ orderCode, type: 'delivery', lat: dLat, lng: dLng, key: `${orderCode}_delivery_${dLat.toFixed(4)}_${dLng.toFixed(4)}` });
         }
 
         // Multi-destination
@@ -211,16 +211,16 @@ export function useProximityAlert() {
           const dlat = Number(d.latitude ?? d.destination_latitude);
           const dlng = Number(d.longitude ?? d.destination_longitude);
           if (dlat && dlng) {
-            points.push({ orderCode, type: 'delivery', lat: dlat, lng: dlng });
+            points.push({ orderCode, type: 'delivery', lat: dlat, lng: dlng, key: `${orderCode}_delivery_${dlat.toFixed(4)}_${dlng.toFixed(4)}` });
           }
         }
       }
 
       if (!points.length) { runningRef.current = false; return; }
 
-      // 4. Deduplicate by orderCode+type
+      // 4. Deduplicate by unique key (coords-based, so multi-dest points are kept)
       const uniquePoints = points.filter(
-        (p, i, arr) => arr.findIndex((q) => q.orderCode === p.orderCode && q.type === p.type) === i,
+        (p, i, arr) => arr.findIndex((q) => q.key === p.key) === i,
       );
 
       // 5. Classify each point as near or far
@@ -230,18 +230,17 @@ export function useProximityAlert() {
 
       for (const p of uniquePoints) {
         const dist = haversineDistance(myLat, myLng, p.lat, p.lng);
-        const key = `${p.orderCode}_${p.type}`;
 
         if (dist <= PROXIMITY_THRESHOLD_KM) {
-          currentlyNear.add(key);
+          currentlyNear.add(p.key);
           nearPoints.push(p);
-        } else if (dist > DEPARTURE_THRESHOLD_KM && wasNearRef.current.has(key)) {
+        } else if (dist > DEPARTURE_THRESHOLD_KM && wasNearRef.current.has(p.key)) {
           // Driver was near but now moved away
           departedPoints.push(p);
         }
       }
 
-      // 6. Handle approach alerts (existing logic)
+      // 6. Handle approach alerts
       for (const point of nearPoints) {
         if (isInCooldown(point.orderCode, point.type, 'approach')) continue;
 
@@ -272,7 +271,7 @@ export function useProximityAlert() {
         }
       }
 
-      // 7. Handle departure alerts (NEW)
+      // 7. Handle departure alerts
       for (const point of departedPoints) {
         if (isInCooldown(point.orderCode, point.type, 'departure')) continue;
 
@@ -303,8 +302,9 @@ export function useProximityAlert() {
         }
       }
 
-      // 8. Update wasNear tracking
+      // 8. Update wasNear tracking (persist to localStorage)
       wasNearRef.current = currentlyNear;
+      saveWasNear(currentlyNear);
 
     } catch (err) {
       console.warn('[ProximityAlert] Check failed:', err);
