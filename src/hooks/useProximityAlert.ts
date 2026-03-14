@@ -48,12 +48,31 @@ function setCooldown(orderCode: string, type: 'pickup' | 'delivery', variant: 'a
   } catch { /* noop */ }
 }
 
+// ── wasNear persistence ────────────────────────────────────
+const WAS_NEAR_STORAGE_KEY = 'proximity_was_near';
+
+function loadWasNear(): Set<string> {
+  try {
+    const raw = localStorage.getItem(WAS_NEAR_STORAGE_KEY);
+    if (raw) return new Set(JSON.parse(raw));
+  } catch { /* noop */ }
+  return new Set();
+}
+
+function saveWasNear(set: Set<string>) {
+  try {
+    localStorage.setItem(WAS_NEAR_STORAGE_KEY, JSON.stringify([...set]));
+  } catch { /* noop */ }
+}
+
 // ── Point interface ────────────────────────────────────────
 interface CheckPoint {
   orderCode: string;
   type: 'pickup' | 'delivery';
   lat: number;
   lng: number;
+  /** unique key for dedup & tracking (includes coords for multi-dest) */
+  key: string;
 }
 
 // ── Send notification ──────────────────────────────────────
