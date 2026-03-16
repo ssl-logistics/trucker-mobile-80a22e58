@@ -1002,9 +1002,6 @@ const ContainerSOPPage = () => {
                 
               </SelectContent>
             </Select>
-            {blSelectionError && (
-              <p className="text-sm font-medium text-destructive">กรุณาเลือกตู้-ซีล จากรายการ BL</p>
-            )}
             {selectedContainerSeal !== '' && selectedContainerSeal !== 'manual' && (
               <Card className="p-3 bg-green-50 border-green-300">
                 <div className="space-y-1">
