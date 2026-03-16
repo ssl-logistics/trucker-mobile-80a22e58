@@ -187,8 +187,12 @@ const ContainerSOPPage = () => {
           firstContainerDetail?.sealNo ||
           '';
 
-        const containerDetails: ContainerDetail[] = Array.isArray(foundJob.container_details)
-          ? foundJob.container_details
+        let rawDetails = foundJob.container_details;
+        if (typeof rawDetails === 'string') {
+          try { rawDetails = JSON.parse(rawDetails); } catch { rawDetails = []; }
+        }
+        const containerDetails: ContainerDetail[] = Array.isArray(rawDetails)
+          ? rawDetails
               .filter((item: any) => item?.containerNo || item?.sealNo)
               .map((item: any) => ({ containerNo: item.containerNo || '', sealNo: item.sealNo || '' }))
           : [];
