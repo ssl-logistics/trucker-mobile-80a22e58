@@ -524,13 +524,13 @@ export default function ContainerCheckInPage() {
             /* Empty Container Pickup Info */
             <div className="p-4 space-y-3">
               <div>
-                <p className="text-xs text-muted-foreground">CY / จุดรับตู้เปล่า</p>
+                <p className="text-xs text-muted-foreground">{job.bl_no ? 'CY / จุดรับตู้หนัก' : 'CY / จุดรับตู้เปล่า'}</p>
                 <p className="text-sm font-semibold text-[#225795]">
                   {job.container_checkpoint_code || '-'}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">วันเริ่มรับตู้เปล่า (FIRST DATE PICK UP CTNR)</p>
+                <p className="text-xs text-muted-foreground">{job.bl_no ? 'วันรับตู้หนัก' : 'วันเริ่มรับตู้เปล่า (FIRST DATE PICK UP CTNR)'}</p>
                 <p className="text-sm font-semibold text-[#225795]">
                   {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}
                 </p>
