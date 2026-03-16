@@ -1086,14 +1086,14 @@ export default function DomesticJobDetail({
                     {!job.bl_no && (
                     <div className="space-y-2">
                       {/* Container 1 */}
-                      <div className={`rounded-lg p-3 space-y-1.5 text-sm ${isOcrVerified ? 'bg-green-50 border border-green-300' : 'bg-teal-50 border border-teal-200'}`}>
+                      <div className={`rounded-lg p-3 space-y-1.5 text-sm ${isContainerStepCompleted ? 'bg-green-50 border border-green-300' : 'bg-teal-50 border border-teal-200'}`}>
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${isOcrVerified ? 'bg-green-500' : 'bg-teal-500'} text-white text-[10px] font-bold`}>1</span>
-                          <span className={`font-medium ${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.containerNumber')} : </span>
+                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${isContainerStepCompleted ? 'bg-green-500' : 'bg-teal-500'} text-white text-[10px] font-bold`}>1</span>
+                          <span className={`font-medium ${isContainerStepCompleted ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.containerNumber')} : </span>
                           <span className="font-bold">{verifiedContainerNumber || job.container_number || '-'}</span>
                         </div>
                         <div className="ml-7">
-                          <span className={`${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.sealNumber')} : </span>
+                          <span className={`${isContainerStepCompleted ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.sealNumber')} : </span>
                           <span className="font-bold">{verifiedSealNumber || job.seal_number || '-'}</span>
                         </div>
                       </div>
