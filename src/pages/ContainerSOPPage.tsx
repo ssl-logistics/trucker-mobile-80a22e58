@@ -420,6 +420,11 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmClick = () => {
+    // Require BL container-seal selection
+    if (jobDetail && jobDetail.container_details.length > 0 && selectedContainerSeal === '') {
+      toast({ title: 'กรุณาเลือกตู้-ซีล จากรายการ BL', variant: "destructive" });
+      return;
+    }
     if (needsOCR && !isContainerOcrDone) {
       toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
       return;
