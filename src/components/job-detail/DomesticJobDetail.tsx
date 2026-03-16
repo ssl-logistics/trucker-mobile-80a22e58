@@ -659,9 +659,12 @@ export default function DomesticJobDetail({
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
 
-  // Container step is only "completed" if BOTH OCR is verified AND checkin exists
-  // This prevents showing "completed" when checkin is deleted but OCR scan data remains
-  const isContainerStepCompleted = isOcrVerified && emptyContainerCheckedIn;
+  // Container step is only "completed" if checkin exists AND evidence/OCR is done
+  // For BL jobs: require container_pickup_confirmed checkin (evidence submitted)
+  // For non-BL jobs: require OCR verified
+  const isContainerStepCompleted = emptyContainerCheckedIn && (
+    job.bl_no ? containerPickupConfirmed : isOcrVerified
+  );
 
   // localStorage key for persisting reorder
   const reorderStorageKey = `dest_order_${job.order_code}`;
