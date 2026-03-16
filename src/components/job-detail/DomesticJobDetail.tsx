@@ -387,206 +387,222 @@ export default function DomesticJobDetail({
   };
 
   // Fetch check-in status and SOP status from external APIs
-  useEffect(() => {
-    const fetchStatuses = async () => {
+  const fetchStatuses = useCallback(async (showLoading: boolean = true) => {
+    if (!userId || !job.order_code) return;
+
+    if (showLoading) {
       // Reset all states first when job changes
       setPickupCheckedIn(false);
       setPickupSopCompleted(false);
       setDeliveryCheckedIn(false);
       setDeliverySopCompleted(false);
       setEmptyContainerCheckedIn(false);
+      setContainerReturnCheckedIn(false);
+      setContainerReturnConfirmed(false);
+      setContainerPickupConfirmed(false);
+      setDestinationCheckins({});
       setIsLoadingCheckinStatus(true);
+    }
 
-      try {
-        console.log('Current userId:', userId, 'Order code:', job.order_code);
+    try {
+      console.log('Current userId:', userId, 'Order code:', job.order_code);
 
-        // Fetch check-in status
-        const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+      // Fetch check-in status
+      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-        const { data: checkinResult, error: checkinError } = await getDriverCheckins(
-          userId,
-          driverType,
-          job.order_code
-        );
+      const { data: checkinResult, error: checkinError } = await getDriverCheckins(
+        userId,
+        driverType,
+        job.order_code
+      );
 
-        if (checkinError) {
-          console.error('[DomesticJobDetail] getDriverCheckins error:', checkinError);
-        }
+      if (checkinError) {
+        console.error('[DomesticJobDetail] getDriverCheckins error:', checkinError);
+      }
 
-        console.log('Fetched check-in status:', checkinResult);
+      console.log('Fetched check-in status:', checkinResult);
 
-        const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
-        const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
-        console.log('All checkins from API:', allCheckins.length, 'items');
-        console.log('Current job.id (transport_order_id to match):', job.id);
+      const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
+      const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
+      console.log('All checkins from API:', allCheckins.length, 'items');
+      console.log('Current job.id (transport_order_id to match):', job.id);
 
-        // Filter checkins for this specific order & current driver (support internal/external/freelance)
-        const checkins = Array.isArray(allCheckins) ?
-        allCheckins.filter((c: any) => {
-          const matchesUser = isInternalDriver ?
-          c.internal_driver_id === userId :
-          isExternalDriver ?
-          c.external_driver_id === userId :
-          c.freelance_driver_id === userId;
+      // Filter checkins for this specific order & current driver (support internal/external/freelance)
+      const checkins = Array.isArray(allCheckins)
+        ? allCheckins.filter((c: any) => {
+            const matchesUser = isInternalDriver
+              ? c.internal_driver_id === userId
+              : isExternalDriver
+              ? c.external_driver_id === userId
+              : c.freelance_driver_id === userId;
 
-          const matchesOrder =
-          c.transport_order_id === job.id ||
-          c.order_number === job.order_code ||
-          c.transport_orders?.order_number === job.order_code;
+            const matchesOrder =
+              c.transport_order_id === job.id ||
+              c.order_number === job.order_code ||
+              c.transport_orders?.order_number === job.order_code;
 
-          console.log(
-            'Checkin transport_order_id:',
-            c.transport_order_id,
-            'job.id:',
-            job.id,
-            'matchesOrder:',
-            matchesOrder,
-            'matchesUser:',
-            matchesUser
-          );
+            console.log(
+              'Checkin transport_order_id:',
+              c.transport_order_id,
+              'job.id:',
+              job.id,
+              'matchesOrder:',
+              matchesOrder,
+              'matchesUser:',
+              matchesUser
+            );
 
-          return matchesUser && matchesOrder;
-        }) :
-        [];
-        console.log('Filtered checkins for current order:', checkins.length, 'items');
+            return matchesUser && matchesOrder;
+          })
+        : [];
+      console.log('Filtered checkins for current order:', checkins.length, 'items');
 
-        // Check for different checkin types - only from filtered checkins for this specific order
-        const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
-        const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
-        const hasDeliveryConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
-        // Support both new (container_pickup) and legacy (empty_container, container) types
-        const hasContainerPickupCheckin = checkins.some((c: DriverCheckin) =>
+      // Check for different checkin types - only from filtered checkins for this specific order
+      const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
+      const hasDeliveryCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery');
+      const hasDeliveryConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'delivery_confirmed');
+      // Support both new (container_pickup) and legacy (empty_container, container) types
+      const hasContainerPickupCheckin = checkins.some((c: DriverCheckin) =>
         c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
-        );
-        const hasContainerReturnCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return');
-        const hasContainerReturnConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return_confirmed');
-        const hasContainerPickupConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed');
-        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'ContainerReturnConfirmed:', hasContainerReturnConfirmed, 'ContainerPickupConfirmed:', hasContainerPickupConfirmed);
+      );
+      const hasContainerReturnCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return');
+      const hasContainerReturnConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return_confirmed');
+      const hasContainerPickupConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed');
+      console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'ContainerReturnConfirmed:', hasContainerReturnConfirmed, 'ContainerPickupConfirmed:', hasContainerPickupConfirmed);
 
-        setPickupCheckedIn(hasPickupCheckin);
-        setDeliveryCheckedIn(hasDeliveryCheckin);
-        setEmptyContainerCheckedIn(hasContainerPickupCheckin);
-        setContainerReturnCheckedIn(hasContainerReturnCheckin);
-        setContainerReturnConfirmed(hasContainerReturnConfirmed);
-        setContainerPickupConfirmed(hasContainerPickupConfirmed);
+      setPickupCheckedIn(hasPickupCheckin);
+      setDeliveryCheckedIn(hasDeliveryCheckin);
+      setDeliverySopCompleted(hasDeliveryConfirmed);
+      setEmptyContainerCheckedIn(hasContainerPickupCheckin);
+      setContainerReturnCheckedIn(hasContainerReturnCheckin);
+      setContainerReturnConfirmed(hasContainerReturnConfirmed);
+      setContainerPickupConfirmed(hasContainerPickupConfirmed);
 
-
-        // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
-        // Also support format: delivery with destination_sequence_number
-        // FALLBACK: If checkin_type is plain "delivery" without sequence, assume sequence 1
-        const destCheckins: Record<number, {checked_in_at: string | null;sop_completed_at: string | null;}> = {};
-        checkins.forEach((c: any) => {
-          // Match delivery_N format (e.g., delivery_1, delivery_2)
-          const deliveryMatch = c.checkin_type?.match(/^delivery_(\d+)$/);
-          if (deliveryMatch) {
-            const seqNum = parseInt(deliveryMatch[1], 10);
-            destCheckins[seqNum] = {
-              checked_in_at: c.checked_in_at || c.created_at,
-              sop_completed_at: destCheckins[seqNum]?.sop_completed_at || null
-            };
-          }
-          // Match delivery_confirmed_N format for SOP completion
-          const confirmedMatch = c.checkin_type?.match(/^delivery_confirmed_(\d+)$/);
-          if (confirmedMatch) {
-            const seqNum = parseInt(confirmedMatch[1], 10);
-            destCheckins[seqNum] = {
-              checked_in_at: destCheckins[seqNum]?.checked_in_at || null,
-              sop_completed_at: c.checked_in_at || c.created_at
-            };
-          }
-          // FALLBACK: Plain "delivery" without _N suffix and no destination_sequence_number
-          // For multi-destination jobs, assume it's for sequence 1
-          if (c.checkin_type === 'delivery' && !c.destination_sequence_number && !deliveryMatch) {
-            if (!destCheckins[1]) {
-              destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
-            }
-            destCheckins[1].checked_in_at = c.checked_in_at || c.created_at;
-          }
-          // FALLBACK: Plain "delivery_confirmed" without _N suffix and no destination_sequence_number
-          if (c.checkin_type === 'delivery_confirmed' && !c.destination_sequence_number && !confirmedMatch) {
-            if (!destCheckins[1]) {
-              destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
-            }
-            destCheckins[1].sop_completed_at = c.checked_in_at || c.created_at;
-          }
-          // Also check destination_sequence_number field if present
-          if (c.destination_sequence_number && (c.checkin_type === 'delivery' || c.checkin_type?.startsWith('delivery'))) {
-            const seqNum = c.destination_sequence_number;
-            if (!destCheckins[seqNum]) {
-              destCheckins[seqNum] = { checked_in_at: null, sop_completed_at: null };
-            }
-            if (c.checkin_type === 'delivery' || c.checkin_type?.match(/^delivery_\d+$/)) {
-              destCheckins[seqNum].checked_in_at = c.checked_in_at || c.created_at;
-            }
-            if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.match(/^delivery_confirmed_\d+$/)) {
-              destCheckins[seqNum].sop_completed_at = c.checked_in_at || c.created_at;
-            }
-          }
-        });
-
-        // IMPORTANT: If delivery_confirmed exists but delivery check-in is missing for a sequence,
-        // infer that check-in happened (POD completion implies check-in was done)
-        Object.keys(destCheckins).forEach((seqKey) => {
-          const seqNum = parseInt(seqKey, 10);
-          if (destCheckins[seqNum].sop_completed_at && !destCheckins[seqNum].checked_in_at) {
-            destCheckins[seqNum].checked_in_at = destCheckins[seqNum].sop_completed_at;
-          }
-        });
-
-        console.log('Destination checkins extracted (with inferred):', destCheckins);
-        setDestinationCheckins(destCheckins);
-
-        // If delivery_confirmed exists for THIS order, set deliverySopCompleted to true
-        if (hasDeliveryConfirmed) {
-          setDeliverySopCompleted(true);
+      // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
+      // Also support format: delivery with destination_sequence_number
+      // FALLBACK: If checkin_type is plain "delivery" without sequence, assume sequence 1
+      const destCheckins: Record<number, { checked_in_at: string | null; sop_completed_at: string | null }> = {};
+      checkins.forEach((c: any) => {
+        // Match delivery_N format (e.g., delivery_1, delivery_2)
+        const deliveryMatch = c.checkin_type?.match(/^delivery_(\d+)$/);
+        if (deliveryMatch) {
+          const seqNum = parseInt(deliveryMatch[1], 10);
+          destCheckins[seqNum] = {
+            checked_in_at: c.checked_in_at || c.created_at,
+            sop_completed_at: destCheckins[seqNum]?.sop_completed_at || null,
+          };
         }
-
-        // Fetch SOP status from external API (role-aware driver id param)
-        const sopDriverIdParam = isInternalDriver ?
-        `internal_driver_id=${encodeURIComponent(userId)}` :
-        isExternalDriver ?
-        `external_driver_id=${encodeURIComponent(userId)}` :
-        `freelance_driver_id=${encodeURIComponent(userId)}`;
-
-        const sopResponse = await fetch(
-          `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live'
-            }
+        // Match delivery_confirmed_N format for SOP completion
+        const confirmedMatch = c.checkin_type?.match(/^delivery_confirmed_(\d+)$/);
+        if (confirmedMatch) {
+          const seqNum = parseInt(confirmedMatch[1], 10);
+          destCheckins[seqNum] = {
+            checked_in_at: destCheckins[seqNum]?.checked_in_at || null,
+            sop_completed_at: c.checked_in_at || c.created_at,
+          };
+        }
+        // FALLBACK: Plain "delivery" without _N suffix and no destination_sequence_number
+        // For multi-destination jobs, assume it's for sequence 1
+        if (c.checkin_type === 'delivery' && !c.destination_sequence_number && !deliveryMatch) {
+          if (!destCheckins[1]) {
+            destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
           }
-        );
-
-        if (sopResponse.ok) {
-          const sopResult = await sopResponse.json();
-          console.log('Fetched SOP status:', sopResult);
-
-          if (sopResult.success && sopResult.data) {
-            // Check for pickup SOP - check both sop_type and status fields
-            const pickupSOP = Array.isArray(sopResult.data) ?
-            sopResult.data.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup') :
-            sopResult.data.sop_type === 'pickup' || sopResult.data.status === 'pickup' ? sopResult.data : null;
-
-            setPickupSopCompleted(!!pickupSOP);
-            // Note: deliverySopCompleted is ONLY set from hasDeliveryConfirmed (delivery_confirmed checkin)
-            // Do NOT set it from delivery SOP record existence - that doesn't mean POD is completed
+          destCheckins[1].checked_in_at = c.checked_in_at || c.created_at;
+        }
+        // FALLBACK: Plain "delivery_confirmed" without _N suffix and no destination_sequence_number
+        if (c.checkin_type === 'delivery_confirmed' && !c.destination_sequence_number && !confirmedMatch) {
+          if (!destCheckins[1]) {
+            destCheckins[1] = { checked_in_at: null, sop_completed_at: null };
+          }
+          destCheckins[1].sop_completed_at = c.checked_in_at || c.created_at;
+        }
+        // Also check destination_sequence_number field if present
+        if (c.destination_sequence_number && (c.checkin_type === 'delivery' || c.checkin_type?.startsWith('delivery'))) {
+          const seqNum = c.destination_sequence_number;
+          if (!destCheckins[seqNum]) {
+            destCheckins[seqNum] = { checked_in_at: null, sop_completed_at: null };
+          }
+          if (c.checkin_type === 'delivery' || c.checkin_type?.match(/^delivery_\d+$/)) {
+            destCheckins[seqNum].checked_in_at = c.checked_in_at || c.created_at;
+          }
+          if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.match(/^delivery_confirmed_\d+$/)) {
+            destCheckins[seqNum].sop_completed_at = c.checked_in_at || c.created_at;
           }
         }
-      } catch (error) {
-        console.error('Error fetching statuses:', error);
-        // Don't reset check-in states on error - they may have been set correctly before SOP fetch failed
-        // Only reset SOP completed status since that's what likely failed
-        setPickupSopCompleted(false);
-      } finally {
+      });
+
+      // IMPORTANT: If delivery_confirmed exists but delivery check-in is missing for a sequence,
+      // infer that check-in happened (POD completion implies check-in was done)
+      Object.keys(destCheckins).forEach((seqKey) => {
+        const seqNum = parseInt(seqKey, 10);
+        if (destCheckins[seqNum].sop_completed_at && !destCheckins[seqNum].checked_in_at) {
+          destCheckins[seqNum].checked_in_at = destCheckins[seqNum].sop_completed_at;
+        }
+      });
+
+      console.log('Destination checkins extracted (with inferred):', destCheckins);
+      setDestinationCheckins(destCheckins);
+
+      // Fetch SOP status from external API (role-aware driver id param)
+      const sopDriverIdParam = isInternalDriver
+        ? `internal_driver_id=${encodeURIComponent(userId)}`
+        : isExternalDriver
+        ? `external_driver_id=${encodeURIComponent(userId)}`
+        : `freelance_driver_id=${encodeURIComponent(userId)}`;
+
+      const sopResponse = await fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+          },
+        }
+      );
+
+      if (sopResponse.ok) {
+        const sopResult = await sopResponse.json();
+        console.log('Fetched SOP status:', sopResult);
+
+        if (sopResult.success && sopResult.data) {
+          // Check for pickup SOP - check both sop_type and status fields
+          const pickupSOP = Array.isArray(sopResult.data)
+            ? sopResult.data.find((s: any) => s.sop_type === 'pickup' || s.status === 'pickup')
+            : sopResult.data.sop_type === 'pickup' || sopResult.data.status === 'pickup'
+            ? sopResult.data
+            : null;
+
+          setPickupSopCompleted(!!pickupSOP);
+          // Note: deliverySopCompleted is ONLY set from hasDeliveryConfirmed (delivery_confirmed checkin)
+          // Do NOT set it from delivery SOP record existence - that doesn't mean POD is completed
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching statuses:', error);
+      // Don't reset check-in states on error - they may have been set correctly before SOP fetch failed
+      // Only reset SOP completed status since that's what likely failed
+      setPickupSopCompleted(false);
+    } finally {
+      if (showLoading) {
         setIsLoadingCheckinStatus(false);
       }
-    };
-
-    if (userId && job.order_code) {
-      fetchStatuses();
     }
   }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
+
+  useEffect(() => {
+    void fetchStatuses(true);
+  }, [fetchStatuses]);
+
+  // Keep BL evidence status in sync after external checkin changes (e.g. manual delete)
+  useEffect(() => {
+    if (!job.bl_no) return;
+
+    const interval = setInterval(() => {
+      void fetchStatuses(false);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [job.bl_no, fetchStatuses]);
 
   // Fetch OCR container scan data from external API with polling
   useEffect(() => {
