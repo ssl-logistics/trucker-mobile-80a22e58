@@ -460,13 +460,15 @@ export default function DomesticJobDetail({
         );
         const hasContainerReturnCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return');
         const hasContainerReturnConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return_confirmed');
-        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'ContainerReturnConfirmed:', hasContainerReturnConfirmed);
+        const hasContainerPickupConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed');
+        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'ContainerReturnConfirmed:', hasContainerReturnConfirmed, 'ContainerPickupConfirmed:', hasContainerPickupConfirmed);
 
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
         setEmptyContainerCheckedIn(hasContainerPickupCheckin);
         setContainerReturnCheckedIn(hasContainerReturnCheckin);
         setContainerReturnConfirmed(hasContainerReturnConfirmed);
+        setContainerPickupConfirmed(hasContainerPickupConfirmed);
 
 
         // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
