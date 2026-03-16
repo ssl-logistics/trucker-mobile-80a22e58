@@ -530,6 +530,42 @@ export default function ContainerCheckInPage() {
           )}
         </Card>
 
+        {/* Container Selector from BL API */}
+        {isInbound && job.container_details.length > 0 && (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">เลือกตู้-ซีลจาก BL</Label>
+            <Select
+              value={selectedContainerIndex}
+              onValueChange={(val) => {
+                setSelectedContainerIndex(val);
+                if (val === 'manual') {
+                  setContainer1Number('');
+                  setContainer1Seal('');
+                } else {
+                  const idx = parseInt(val, 10);
+                  const detail = job.container_details[idx];
+                  if (detail) {
+                    setContainer1Number(detail.containerNo || '');
+                    setContainer1Seal(detail.sealNo || '');
+                  }
+                }
+              }}
+            >
+              <SelectTrigger className="h-11 bg-white">
+                <SelectValue placeholder="เลือกตู้-ซีล..." />
+              </SelectTrigger>
+              <SelectContent>
+                {job.container_details.map((detail, idx) => (
+                  <SelectItem key={idx} value={String(idx)}>
+                    {detail.containerNo || '-'} / {detail.sealNo || '-'}
+                  </SelectItem>
+                ))}
+                <SelectItem value="manual">กรอกเอง...</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Container 1 */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
