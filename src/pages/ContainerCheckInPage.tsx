@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ChevronLeft, MapPin, Phone, Loader2 } from 'lucide-react';
+import { ChevronLeft, MapPin, Phone, Loader2, ChevronDown } from 'lucide-react';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { supabase } from '@/integrations/supabase/client';
