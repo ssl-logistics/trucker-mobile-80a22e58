@@ -193,8 +193,8 @@ const ContainerSOPPage = () => {
         }
         const containerDetails: ContainerDetail[] = Array.isArray(rawDetails)
           ? rawDetails
-              .filter((item: any) => item?.containerNo || item?.sealNo)
-              .map((item: any) => ({ containerNo: item.containerNo || '', sealNo: item.sealNo || '' }))
+              .filter((item: any) => item?.containerNo || item?.container_no || item?.sealNo || item?.seal_no)
+              .map((item: any) => ({ containerNo: item.containerNo || item.container_no || '', sealNo: item.sealNo || item.seal_no || '' }))
           : [];
 
         setJobDetail({
