@@ -958,7 +958,7 @@ export default function DomesticJobDetail({
               height: `${cardHeights.emptyContainer || 200}px`
             }}>
                   <div className="absolute top-0">
-                    {isOcrVerified ?
+                    {isContainerStepCompleted ?
                 <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
                         <CheckCircle className="w-4 h-4 text-white" />
                       </div> :
