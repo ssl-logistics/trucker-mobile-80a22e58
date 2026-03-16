@@ -51,6 +51,7 @@ interface JobDetail {
   container_return_longitude: number | null;
   container_return_phone: string | null;
   container_details: ContainerDetailItem[];
+  bl_no: string | null;
 }
 
 export default function ContainerCheckInPage() {
