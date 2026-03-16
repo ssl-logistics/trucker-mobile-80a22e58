@@ -816,15 +816,6 @@ const ContainerSOPPage = () => {
             </Card>
           )}
 
-          {isContainerOcrDone && (
-            <Card className="p-3 bg-green-50 border-green-300">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-green-700 font-medium">เลขตู้ :</span>
-                <span className="text-sm font-bold">{ocrContainerNumber || '-'}</span>
-              </div>
-            </Card>
-          )}
         </div>
         )}
 
@@ -888,15 +879,6 @@ const ContainerSOPPage = () => {
             </Card>
           )}
 
-          {isSealOcrDone && (
-            <Card className="p-3 bg-green-50 border-green-300">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-green-700 font-medium">เลขซีล :</span>
-                <span className="text-sm font-bold">{ocrSealNumber || '-'}</span>
-              </div>
-            </Card>
-          )}
         </div>
         )}
 
