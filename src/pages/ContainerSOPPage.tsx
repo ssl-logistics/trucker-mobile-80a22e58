@@ -634,14 +634,34 @@ const ContainerSOPPage = () => {
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
 
-          const { error: ocrError } = await submitOcrScan(scanPayload);
+          const { data: ocrData, error: ocrError } = await submitOcrScan(scanPayload);
 
           if (ocrError) {
             const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
-            if (!isDuplicate) {
-              toast({ title: 'บันทึกข้อมูล OCR ไม่สำเร็จ', description: ocrError, variant: "destructive" });
-              return;
+            if (isDuplicate) {
+              // Extract plate number or order info from the response
+              const existingRecord = (ocrData as any)?.existing_record;
+              const plateFromData = (ocrData as any)?.picked_up_plate || existingRecord?.plate_number || existingRecord?.picked_up_plate;
+              const existingOrder = existingRecord?.order_number;
+              const displayPlate = plateFromData || existingOrder || '';
+              const displayMsg = plateFromData 
+                ? `ตู้นี้รถทะเบียน ${plateFromData} ได้รับไปแล้ว`
+                : existingOrder 
+                  ? `ตู้นี้ถูกใช้ในงาน ${existingOrder} ไปแล้ว`
+                  : 'ตู้นี้ถูกรับไปแล้ว';
+              
+              toast({
+                title: 'ตู้ซ้ำ',
+                description: displayMsg,
+                variant: "destructive",
+                duration: 8000,
+              });
+              setUploading(false);
+              setShowConfirmDialog(false);
+              return; // Keep all photos and data intact
             }
+            toast({ title: 'บันทึกข้อมูล OCR ไม่สำเร็จ', description: ocrError, variant: "destructive" });
+            return;
           }
         } catch (ocrErr) {
           console.warn('[ContainerSOP] save-ocr-scan exception:', ocrErr);
