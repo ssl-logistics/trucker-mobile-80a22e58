@@ -215,9 +215,15 @@ export default function ContainerCheckInPage() {
             container_return_latitude: foundJob.container_return_latitude || null,
             container_return_longitude: foundJob.container_return_longitude || null,
             container_return_phone: foundJob.container_return_phone || null,
-            container_details: Array.isArray(foundJob.container_details) 
-              ? foundJob.container_details.filter((item: any) => item?.containerNo || item?.sealNo) 
-              : [],
+            container_details: (() => {
+              let raw = foundJob.container_details;
+              if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch { raw = []; } }
+              return Array.isArray(raw)
+                ? raw
+                    .filter((item: any) => item?.containerNo || item?.container_no || item?.sealNo || item?.seal_no)
+                    .map((item: any) => ({ containerNo: item.containerNo || item.container_no || '', sealNo: item.sealNo || item.seal_no || '' }))
+                : [];
+            })(),
           };
           setJob(mappedJob);
           
