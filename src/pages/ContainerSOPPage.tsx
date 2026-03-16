@@ -586,8 +586,28 @@ const ContainerSOPPage = () => {
             seal_number: finalSealNumber,
           };
           console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
-          const { error: checkinError } = await driverCheckin(checkinPayload);
+          const { data: checkinData, error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
+            // Check if it's a duplicate container error
+            const errLower = checkinError.toLowerCase();
+            const isDuplicate = errLower.includes('duplicate') || errLower.includes('already') || errLower.includes('picked') || errLower.includes('ได้รับไปแล้ว');
+            if (isDuplicate) {
+              // Extract plate number from error message or response data
+              const plateMatch = checkinError.match(/([ก-ฮa-zA-Z0-9]{1,4}[-\s]?[ก-ฮa-zA-Z0-9]{1,6})/);
+              const plateFromData = (checkinData as any)?.picked_up_plate || (checkinData as any)?.data?.picked_up_plate || (checkinData as any)?.plate_number || (checkinData as any)?.data?.plate_number;
+              const plateNumber = plateFromData || (plateMatch ? plateMatch[1] : '');
+              const displayPlate = plateNumber || 'ไม่ทราบ';
+              
+              toast({
+                title: 'ตู้ซ้ำ',
+                description: `ตู้นี้รถทะเบียน ${displayPlate} ได้รับไปแล้ว`,
+                variant: "destructive",
+                duration: 8000,
+              });
+              setUploading(false);
+              setShowConfirmDialog(false);
+              return; // Keep all photos and data intact
+            }
             console.warn('[ContainerSOP] driverCheckin pickup error (non-blocking):', checkinError);
           }
         } catch (checkinErr) {
