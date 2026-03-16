@@ -76,6 +76,7 @@ export default function ContainerCheckInPage() {
   const [container2Number, setContainer2Number] = useState('');
   const [container2Seal, setContainer2Seal] = useState('');
   const [isOcrVerified, setIsOcrVerified] = useState(false);
+  const [selectedContainerIndex, setSelectedContainerIndex] = useState<string>('');
   
   const isInbound = job?.transport_type?.includes('ขาเข้า');
   
