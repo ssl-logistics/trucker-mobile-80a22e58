@@ -208,6 +208,7 @@ export default function DomesticJobDetail({
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
   const [containerReturnCheckedIn, setContainerReturnCheckedIn] = useState(false);
   const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
+  const [containerPickupConfirmed, setContainerPickupConfirmed] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, {checked_in_at: string | null;sop_completed_at: string | null;}>>({});
