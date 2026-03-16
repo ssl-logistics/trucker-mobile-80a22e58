@@ -1008,10 +1008,10 @@ const ContainerSOPPage = () => {
               <span className="text-4xl">⚠️</span>
             </div>
             <DialogTitle className="text-xl text-center">
-              {t('containerSop.confirmTitle')}
+              {isLoadedContainer || isBLJob ? 'ยืนยันการรับตู้หนัก' : t('containerSop.confirmTitle')}
             </DialogTitle>
             <DialogDescription className="text-center text-base">
-              {t('containerSop.confirmMessage')}
+              {isLoadedContainer || isBLJob ? 'คุณต้องการยืนยันการรับตู้หนักใช่หรือไม่?' : t('containerSop.confirmMessage')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
