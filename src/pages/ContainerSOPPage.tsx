@@ -580,7 +580,7 @@ const ContainerSOPPage = () => {
               const plateFromData = (ocrData as any)?.picked_up_plate || existingRecord?.plate_number || existingRecord?.picked_up_plate || existingRecord?.license_plate;
               const existingOrder = existingRecord?.order_number;
               const displayPlate = plateFromData || 'ไม่ทราบ';
-              const displayMsg = `ตู้นี้รถทะเบียน ${displayPlate} ได้รับไปแล้ว${existingOrder ? ` (งาน ${existingOrder})` : ''}`;
+              const displayMsg = `ตู้นี้รถทะเบียน ${displayPlate} ได้รับไปแล้ว`;
               
               toast({
                 title: 'ตู้ซ้ำ',
