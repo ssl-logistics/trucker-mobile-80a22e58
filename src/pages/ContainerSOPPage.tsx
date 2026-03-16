@@ -424,6 +424,7 @@ const ContainerSOPPage = () => {
   const handleConfirmClick = () => {
     // Require BL container-seal selection
     if (jobDetail && jobDetail.container_details.length > 0 && selectedContainerSeal === '') {
+      setBlSelectionError(true);
       toast({ title: 'กรุณาเลือกตู้-ซีล จากรายการ BL', variant: "destructive" });
       return;
     }
