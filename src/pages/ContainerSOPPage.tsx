@@ -169,9 +169,28 @@ const ContainerSOPPage = () => {
       }
 
       if (foundJob) {
-        const firstContainerDetail = Array.isArray(foundJob.container_details)
-          ? foundJob.container_details.find((item: any) => item?.containerNo || item?.sealNo)
-          : null;
+        let rawDetails = foundJob.container_details ?? foundJob.containers ?? foundJob.containerDetails;
+        if (typeof rawDetails === 'string') {
+          try { rawDetails = JSON.parse(rawDetails); } catch { rawDetails = []; }
+        }
+
+        const containerDetails: ContainerDetail[] = Array.isArray(rawDetails)
+          ? rawDetails
+              .filter((item: any) =>
+                item?.containerNo ||
+                item?.container_no ||
+                item?.container_number ||
+                item?.sealNo ||
+                item?.seal_no ||
+                item?.seal_number
+              )
+              .map((item: any) => ({
+                containerNo: item.containerNo || item.container_no || item.container_number || '',
+                sealNo: item.sealNo || item.seal_no || item.seal_number || ''
+              }))
+          : [];
+
+        const firstContainerDetail = containerDetails.find((item) => item?.containerNo || item?.sealNo) || null;
 
         const fallbackContainerNumber =
           foundJob.container_number ||
@@ -186,16 +205,6 @@ const ContainerSOPPage = () => {
           foundJob.seal_no_2 ||
           firstContainerDetail?.sealNo ||
           '';
-
-        let rawDetails = foundJob.container_details;
-        if (typeof rawDetails === 'string') {
-          try { rawDetails = JSON.parse(rawDetails); } catch { rawDetails = []; }
-        }
-        const containerDetails: ContainerDetail[] = Array.isArray(rawDetails)
-          ? rawDetails
-              .filter((item: any) => item?.containerNo || item?.container_no || item?.sealNo || item?.seal_no)
-              .map((item: any) => ({ containerNo: item.containerNo || item.container_no || '', sealNo: item.sealNo || item.seal_no || '' }))
-          : [];
 
         setJobDetail({
           id: foundJob.id || jobId || '',
@@ -921,7 +930,7 @@ const ContainerSOPPage = () => {
         </div>
 
         {/* === Step 5: Select Container-Seal from BL (for BL/Inbound jobs) === */}
-        {isBLJob && !isContainerReturn && jobDetail.container_details.length > 0 && (
+        {!isContainerReturn && jobDetail.container_details.length > 0 && (isBLJob || isLoadedContainer) && (
           <div className="space-y-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">5</span>
