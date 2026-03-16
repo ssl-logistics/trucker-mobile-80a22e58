@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ChevronLeft, MapPin, Phone, Loader2 } from 'lucide-react';
+import { ChevronLeft, MapPin, Phone, Loader2, ChevronDown } from 'lucide-react';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +9,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,6 +20,11 @@ import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans } from '@/lib/externalApi';
+
+interface ContainerDetailItem {
+  containerNo?: string;
+  sealNo?: string;
+}
 
 interface JobDetail {
   id: string;
@@ -43,6 +50,7 @@ interface JobDetail {
   container_return_latitude: number | null;
   container_return_longitude: number | null;
   container_return_phone: string | null;
+  container_details: ContainerDetailItem[];
 }
 
 export default function ContainerCheckInPage() {
@@ -69,6 +77,7 @@ export default function ContainerCheckInPage() {
   const [container2Number, setContainer2Number] = useState('');
   const [container2Seal, setContainer2Seal] = useState('');
   const [isOcrVerified, setIsOcrVerified] = useState(false);
+  const [selectedContainerIndex, setSelectedContainerIndex] = useState<string>('');
   
   const isInbound = job?.transport_type?.includes('ขาเข้า');
   
@@ -206,6 +215,9 @@ export default function ContainerCheckInPage() {
             container_return_latitude: foundJob.container_return_latitude || null,
             container_return_longitude: foundJob.container_return_longitude || null,
             container_return_phone: foundJob.container_return_phone || null,
+            container_details: Array.isArray(foundJob.container_details) 
+              ? foundJob.container_details.filter((item: any) => item?.containerNo || item?.sealNo) 
+              : [],
           };
           setJob(mappedJob);
           
@@ -518,6 +530,42 @@ export default function ContainerCheckInPage() {
             </div>
           )}
         </Card>
+
+        {/* Container Selector from BL API */}
+        {isInbound && job.container_details.length > 0 && (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">เลือกตู้-ซีลจาก BL</Label>
+            <Select
+              value={selectedContainerIndex}
+              onValueChange={(val) => {
+                setSelectedContainerIndex(val);
+                if (val === 'manual') {
+                  setContainer1Number('');
+                  setContainer1Seal('');
+                } else {
+                  const idx = parseInt(val, 10);
+                  const detail = job.container_details[idx];
+                  if (detail) {
+                    setContainer1Number(detail.containerNo || '');
+                    setContainer1Seal(detail.sealNo || '');
+                  }
+                }
+              }}
+            >
+              <SelectTrigger className="h-11 bg-white">
+                <SelectValue placeholder="เลือกตู้-ซีล..." />
+              </SelectTrigger>
+              <SelectContent>
+                {job.container_details.map((detail, idx) => (
+                  <SelectItem key={idx} value={String(idx)}>
+                    {detail.containerNo || '-'} / {detail.sealNo || '-'}
+                  </SelectItem>
+                ))}
+                <SelectItem value="manual">กรอกเอง...</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Container 1 */}
         <div className="space-y-2">
