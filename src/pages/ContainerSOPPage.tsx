@@ -542,9 +542,10 @@ const ContainerSOPPage = () => {
       const finalContainerNumber = derivedContainerNumber || 'N/A';
       const finalSealNumber = derivedSealNumber || 'N/A';
 
+      const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+
       // Send driverCheckin for container return
       if (isContainerReturn) {
-        const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
           const checkinPayload = {
             order_number: jobDetail!.order_code,
@@ -562,6 +563,27 @@ const ContainerSOPPage = () => {
           }
         } catch (checkinErr) {
           console.warn('[ContainerSOP] driverCheckin exception:', checkinErr);
+        }
+      } else {
+        // Send driverCheckin for loaded container pickup (ยืนยันรับตู้หนัก)
+        try {
+          const checkinPayload = {
+            order_number: jobDetail!.order_code,
+            driver_id: user.id,
+            driver_type: driverType,
+            checkin_type: 'container_pickup_confirmed',
+            photo_url: publicUrl,
+            notes: `ยืนยันรับตู้หนัก: ${finalContainerNumber} / ${finalSealNumber}`,
+            container_number: finalContainerNumber,
+            seal_number: finalSealNumber,
+          };
+          console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
+          const { error: checkinError } = await driverCheckin(checkinPayload);
+          if (checkinError) {
+            console.warn('[ContainerSOP] driverCheckin pickup error (non-blocking):', checkinError);
+          }
+        } catch (checkinErr) {
+          console.warn('[ContainerSOP] driverCheckin pickup exception:', checkinErr);
         }
       }
 
