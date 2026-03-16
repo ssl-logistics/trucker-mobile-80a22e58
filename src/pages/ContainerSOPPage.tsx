@@ -185,6 +185,12 @@ const ContainerSOPPage = () => {
           firstContainerDetail?.sealNo ||
           '';
 
+        const containerDetails: ContainerDetail[] = Array.isArray(foundJob.container_details)
+          ? foundJob.container_details
+              .filter((item: any) => item?.containerNo || item?.sealNo)
+              .map((item: any) => ({ containerNo: item.containerNo || '', sealNo: item.sealNo || '' }))
+          : [];
+
         setJobDetail({
           id: foundJob.id || jobId || '',
           order_code: foundJob.order_code || foundJob.order_number || jobId || '',
@@ -198,6 +204,7 @@ const ContainerSOPPage = () => {
           start_time: foundJob.start_time || foundJob.sender_pickup_time || '',
           bl_no: foundJob.bl_no || '',
           transport_type: foundJob.transport_type || '',
+          container_details: containerDetails,
         });
       } else {
         throw new Error('Job not found');
