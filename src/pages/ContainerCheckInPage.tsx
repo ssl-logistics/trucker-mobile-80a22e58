@@ -214,6 +214,9 @@ export default function ContainerCheckInPage() {
             container_return_latitude: foundJob.container_return_latitude || null,
             container_return_longitude: foundJob.container_return_longitude || null,
             container_return_phone: foundJob.container_return_phone || null,
+            container_details: Array.isArray(foundJob.container_details) 
+              ? foundJob.container_details.filter((item: any) => item?.containerNo || item?.sealNo) 
+              : [],
           };
           setJob(mappedJob);
           
