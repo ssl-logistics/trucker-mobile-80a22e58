@@ -193,11 +193,16 @@ export async function driverCheckin(body: {
   payment_method?: string;
 }) {
   // Map driver_id to the correct field based on driver_type
-  const { driver_id, driver_type, ...restBody } = body;
+  const { driver_id, driver_type, container_number, seal_number, container_number_2, seal_number_2, ...restBody } = body;
   
   const requestBody: Record<string, unknown> = {
     ...restBody,
     driver_type,
+    // Map to correct column names: container_no / seal_no
+    ...(container_number && { container_no: container_number }),
+    ...(seal_number && { seal_no: seal_number }),
+    ...(container_number_2 && { container_no_2: container_number_2 }),
+    ...(seal_number_2 && { seal_no_2: seal_number_2 }),
   };
   
   // Set the appropriate driver ID field based on driver type
