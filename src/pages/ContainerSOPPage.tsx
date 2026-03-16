@@ -128,6 +128,7 @@ const ContainerSOPPage = () => {
 
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
+  const [selectedContainerSeal, setSelectedContainerSeal] = useState<string>("");
 
   useEffect(() => {
     if (jobId && user) {
