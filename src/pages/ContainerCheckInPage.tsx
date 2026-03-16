@@ -575,7 +575,8 @@ export default function ContainerCheckInPage() {
           </div>
         )}
 
-        {/* Container 1 */}
+        {/* Container 1 - Hide for BL jobs (they use dropdown above) */}
+        {!job.bl_no && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="bg-[#225795] text-white rounded-md px-2 py-0.5 text-xs font-bold">
@@ -585,35 +586,18 @@ export default function ContainerCheckInPage() {
           <div className="bg-white rounded-xl border p-4 space-y-3">
             <div>
               <p className="text-xs text-muted-foreground mb-1">{t('ocr.containerNumber')}</p>
-              {isInbound ? (
-                <Input 
-                  value={container1Number} 
-                  onChange={(e) => setContainer1Number(e.target.value)}
-                  placeholder={t('container.enterContainerNo')}
-                  className="h-10 text-sm font-semibold"
-                />
-              ) : (
-                <p className="text-sm font-bold text-[#225795]">{container1Number || '-'}</p>
-              )}
+              <p className="text-sm font-bold text-[#225795]">{container1Number || '-'}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-1">{t('ocr.sealNumber')}</p>
-              {isInbound ? (
-                <Input 
-                  value={container1Seal} 
-                  onChange={(e) => setContainer1Seal(e.target.value)}
-                  placeholder={t('container.enterSealNo')}
-                  className="h-10 text-sm font-semibold"
-                />
-              ) : (
-                <p className="text-sm font-bold text-[#225795]">{container1Seal || '-'}</p>
-              )}
+              <p className="text-sm font-bold text-[#225795]">{container1Seal || '-'}</p>
             </div>
           </div>
         </div>
+        )}
 
-        {/* Container 2 - Only show if data exists */}
-        {(job.container_number_2 || job.seal_number_2 || (isInbound && (container2Number || container2Seal))) && (
+        {/* Container 2 - Only show if data exists and not BL job */}
+        {!job.bl_no && (job.container_number_2 || job.seal_number_2) && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="bg-[#225795] text-white rounded-md px-2 py-0.5 text-xs font-bold">
@@ -623,29 +607,11 @@ export default function ContainerCheckInPage() {
             <div className="bg-white rounded-xl border p-4 space-y-3">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">{t('ocr.containerNumber')}</p>
-                {isInbound ? (
-                  <Input 
-                    value={container2Number} 
-                    onChange={(e) => setContainer2Number(e.target.value)}
-                    placeholder={t('container.enterContainerNo')}
-                    className="h-10 text-sm font-semibold"
-                  />
-                ) : (
-                  <p className="text-sm font-bold text-[#225795]">{job.container_number_2 || '-'}</p>
-                )}
+                <p className="text-sm font-bold text-[#225795]">{job.container_number_2 || '-'}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">{t('ocr.sealNumber')}</p>
-                {isInbound ? (
-                  <Input 
-                    value={container2Seal} 
-                    onChange={(e) => setContainer2Seal(e.target.value)}
-                    placeholder={t('container.enterSealNo')}
-                    className="h-10 text-sm font-semibold"
-                  />
-                ) : (
-                  <p className="text-sm font-bold text-[#225795]">{job.seal_number_2 || '-'}</p>
-                )}
+                <p className="text-sm font-bold text-[#225795]">{job.seal_number_2 || '-'}</p>
               </div>
             </div>
           </div>
