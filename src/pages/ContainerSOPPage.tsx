@@ -975,6 +975,7 @@ const ContainerSOPPage = () => {
               value={selectedContainerSeal}
               onValueChange={(val) => {
                 setSelectedContainerSeal(val);
+                setBlSelectionError(false);
                 if (val === 'manual') {
                   setOcrContainerNumber(null);
                   setOcrSealNumber(null);
