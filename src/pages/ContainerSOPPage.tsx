@@ -577,13 +577,10 @@ const ContainerSOPPage = () => {
             const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
             if (isDuplicate) {
               const existingRecord = (ocrData as any)?.existing_record;
-              const plateFromData = (ocrData as any)?.picked_up_plate || existingRecord?.plate_number || existingRecord?.picked_up_plate;
+              const plateFromData = (ocrData as any)?.picked_up_plate || existingRecord?.plate_number || existingRecord?.picked_up_plate || existingRecord?.license_plate;
               const existingOrder = existingRecord?.order_number;
-              const displayMsg = plateFromData 
-                ? `ตู้นี้รถทะเบียน ${plateFromData} ได้รับไปแล้ว`
-                : existingOrder 
-                  ? `ตู้นี้ถูกใช้ในงาน ${existingOrder} ไปแล้ว`
-                  : 'ตู้นี้ถูกรับไปแล้ว';
+              const displayPlate = plateFromData || 'ไม่ทราบ';
+              const displayMsg = `ตู้นี้รถทะเบียน ${displayPlate} ได้รับไปแล้ว${existingOrder ? ` (งาน ${existingOrder})` : ''}`;
               
               toast({
                 title: 'ตู้ซ้ำ',
