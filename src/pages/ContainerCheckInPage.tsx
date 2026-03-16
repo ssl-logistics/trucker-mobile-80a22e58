@@ -459,7 +459,7 @@ export default function ContainerCheckInPage() {
           {/* Card Header */}
           <div className="bg-[#E8F4F8] px-4 py-3">
             <p className="text-sm font-medium text-[#225795]">
-              {isContainerReturn ? (t('jobDetail.containerReturn') || 'จุดคืนตู้') : t('jobDetail.emptyContainerPickup')}
+              {isContainerReturn ? (t('jobDetail.containerReturn') || 'จุดคืนตู้') : job.bl_no ? (t('jobDetail.loadedContainerPickup') || 'จุดรับตู้หนัก') : t('jobDetail.emptyContainerPickup')}
             </p>
             <p className="text-base font-semibold text-[#225795]">
               {isContainerReturn 
