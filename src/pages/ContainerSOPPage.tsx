@@ -552,6 +552,57 @@ const ContainerSOPPage = () => {
 
       const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
+      // Save OCR scan data FIRST (to detect duplicates before sending driverCheckin)
+      if (!isContainerReturn && finalContainerNumber && (isBLJob || (needsOCR && isContainerOcrDone))) {
+        const ocrDriverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        try {
+          const scanPayload = {
+            container_no: finalContainerNumber,
+            seal_no: finalSealNumber || null,
+            container_image_url: containerImageUrl || undefined,
+            seal_image_url: sealImageUrl || undefined,
+            container_photos: blAngleUrls.length > 0 ? blAngleUrls : undefined,
+            eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
+            order_number: jobId || undefined,
+            driver_id: user.id,
+            driver_type: ocrDriverType,
+            scanned_at: new Date().toISOString(),
+          };
+
+          console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
+
+          const { data: ocrData, error: ocrError } = await submitOcrScan(scanPayload);
+
+          if (ocrError) {
+            const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
+            if (isDuplicate) {
+              const existingRecord = (ocrData as any)?.existing_record;
+              const plateFromData = (ocrData as any)?.picked_up_plate || existingRecord?.plate_number || existingRecord?.picked_up_plate;
+              const existingOrder = existingRecord?.order_number;
+              const displayMsg = plateFromData 
+                ? `ตู้นี้รถทะเบียน ${plateFromData} ได้รับไปแล้ว`
+                : existingOrder 
+                  ? `ตู้นี้ถูกใช้ในงาน ${existingOrder} ไปแล้ว`
+                  : 'ตู้นี้ถูกรับไปแล้ว';
+              
+              toast({
+                title: 'ตู้ซ้ำ',
+                description: displayMsg,
+                variant: "destructive",
+                duration: 8000,
+              });
+              setUploading(false);
+              setShowConfirmDialog(false);
+              return; // Keep all photos and data — do NOT send driverCheckin
+            }
+            toast({ title: 'บันทึกข้อมูล OCR ไม่สำเร็จ', description: ocrError, variant: "destructive" });
+            return;
+          }
+        } catch (ocrErr) {
+          console.warn('[ContainerSOP] save-ocr-scan exception:', ocrErr);
+        }
+      }
+
       // Send driverCheckin for container return
       if (isContainerReturn) {
         try {
@@ -573,7 +624,7 @@ const ContainerSOPPage = () => {
           console.warn('[ContainerSOP] driverCheckin exception:', checkinErr);
         }
       } else {
-        // Send driverCheckin for loaded container pickup (ยืนยันรับตู้หนัก)
+        // Send driverCheckin for loaded container pickup — only after OCR duplicate check passed
         try {
           const checkinPayload = {
             order_number: jobDetail!.order_code,
@@ -588,11 +639,9 @@ const ContainerSOPPage = () => {
           console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
           const { data: checkinData, error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
-            // Check if it's a duplicate container error
             const errLower = checkinError.toLowerCase();
             const isDuplicate = errLower.includes('duplicate') || errLower.includes('already') || errLower.includes('picked') || errLower.includes('ได้รับไปแล้ว');
             if (isDuplicate) {
-              // Extract plate number from error message or response data
               const plateMatch = checkinError.match(/([ก-ฮa-zA-Z0-9]{1,4}[-\s]?[ก-ฮa-zA-Z0-9]{1,6})/);
               const plateFromData = (checkinData as any)?.picked_up_plate || (checkinData as any)?.data?.picked_up_plate || (checkinData as any)?.plate_number || (checkinData as any)?.data?.plate_number;
               const plateNumber = plateFromData || (plateMatch ? plateMatch[1] : '');
@@ -606,65 +655,12 @@ const ContainerSOPPage = () => {
               });
               setUploading(false);
               setShowConfirmDialog(false);
-              return; // Keep all photos and data intact
+              return;
             }
             console.warn('[ContainerSOP] driverCheckin pickup error (non-blocking):', checkinError);
           }
         } catch (checkinErr) {
           console.warn('[ContainerSOP] driverCheckin pickup exception:', checkinErr);
-        }
-      }
-
-      // Save OCR scan data
-      if (!isContainerReturn && finalContainerNumber && (isBLJob || (needsOCR && isContainerOcrDone))) {
-        const driverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-        try {
-          const scanPayload = {
-            container_no: finalContainerNumber,
-            seal_no: finalSealNumber || null,
-            container_image_url: containerImageUrl || undefined,
-            seal_image_url: sealImageUrl || undefined,
-            container_photos: blAngleUrls.length > 0 ? blAngleUrls : undefined,
-            eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
-            order_number: jobId || undefined,
-            driver_id: user.id,
-            driver_type: driverType,
-            scanned_at: new Date().toISOString(),
-          };
-
-          console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
-
-          const { data: ocrData, error: ocrError } = await submitOcrScan(scanPayload);
-
-          if (ocrError) {
-            const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
-            if (isDuplicate) {
-              // Extract plate number or order info from the response
-              const existingRecord = (ocrData as any)?.existing_record;
-              const plateFromData = (ocrData as any)?.picked_up_plate || existingRecord?.plate_number || existingRecord?.picked_up_plate;
-              const existingOrder = existingRecord?.order_number;
-              const displayPlate = plateFromData || existingOrder || '';
-              const displayMsg = plateFromData 
-                ? `ตู้นี้รถทะเบียน ${plateFromData} ได้รับไปแล้ว`
-                : existingOrder 
-                  ? `ตู้นี้ถูกใช้ในงาน ${existingOrder} ไปแล้ว`
-                  : 'ตู้นี้ถูกรับไปแล้ว';
-              
-              toast({
-                title: 'ตู้ซ้ำ',
-                description: displayMsg,
-                variant: "destructive",
-                duration: 8000,
-              });
-              setUploading(false);
-              setShowConfirmDialog(false);
-              return; // Keep all photos and data intact
-            }
-            toast({ title: 'บันทึกข้อมูล OCR ไม่สำเร็จ', description: ocrError, variant: "destructive" });
-            return;
-          }
-        } catch (ocrErr) {
-          console.warn('[ContainerSOP] save-ocr-scan exception:', ocrErr);
         }
       }
 
