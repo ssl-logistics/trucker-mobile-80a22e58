@@ -129,6 +129,7 @@ const ContainerSOPPage = () => {
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
   const [selectedContainerSeal, setSelectedContainerSeal] = useState<string>("");
+  const [blSelectionError, setBlSelectionError] = useState(false);
 
   useEffect(() => {
     if (jobId && user) {
