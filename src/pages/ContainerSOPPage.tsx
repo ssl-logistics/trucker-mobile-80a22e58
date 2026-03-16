@@ -989,7 +989,7 @@ const ContainerSOPPage = () => {
                     {detail.containerNo || '-'} / {detail.sealNo || '-'}
                   </SelectItem>
                 ))}
-                <SelectItem value="manual">กรอกเอง</SelectItem>
+                
               </SelectContent>
             </Select>
             {selectedContainerSeal !== '' && selectedContainerSeal !== 'manual' && (
