@@ -1045,12 +1045,12 @@ export default function DomesticJobDetail({
             <div className="flex-1 space-y-3">
               {/* Empty Container Pickup Card - Only for international jobs */}
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') &&
-            <Card ref={emptyContainerRef} className={`overflow-hidden border-2 rounded-2xl ${isOcrVerified ? 'border-green-500' : emptyContainerCheckedIn ? 'border-purple-500' : 'border-teal-500'}`}>
-                  <div className={`px-4 py-2.5 flex items-center justify-between ${isOcrVerified ? 'bg-green-500' : emptyContainerCheckedIn ? 'bg-purple-500' : 'bg-teal-600'}`}>
+            <Card ref={emptyContainerRef} className={`overflow-hidden border-2 rounded-2xl ${isContainerStepCompleted ? 'border-green-500' : emptyContainerCheckedIn ? 'border-purple-500' : 'border-teal-500'}`}>
+                  <div className={`px-4 py-2.5 flex items-center justify-between ${isContainerStepCompleted ? 'bg-green-500' : emptyContainerCheckedIn ? 'bg-purple-500' : 'bg-teal-600'}`}>
                     <h3 className="font-semibold text-sm text-white">{job.bl_no ? t('jobDetail.loadedContainerPickup') : t('jobDetail.emptyContainerPickup')}</h3>
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20 inline-flex items-center gap-1">
-                      {isOcrVerified && <CheckCircle className="w-3 h-3" />}
-                      {isOcrVerified ?
+                      {isContainerStepCompleted && <CheckCircle className="w-3 h-3" />}
+                      {isContainerStepCompleted ?
                   t('jobDetail.completed') :
                   emptyContainerCheckedIn ?
                   (job.bl_no ? t('jobDetail.waitingEvidence') : t('jobDetail.waitingOCR')) :
