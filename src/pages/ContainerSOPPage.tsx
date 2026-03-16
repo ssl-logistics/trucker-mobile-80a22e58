@@ -577,7 +577,7 @@ const ContainerSOPPage = () => {
             const isDuplicate = ocrError.toLowerCase().includes('duplicate') || ocrError.toLowerCase().includes('already scanned');
             if (isDuplicate) {
               const existingRecord = (ocrData as any)?.existing_record;
-              const plateFromData = (ocrData as any)?.picked_up_plate || existingRecord?.plate_number || existingRecord?.picked_up_plate || existingRecord?.license_plate;
+              const plateFromData = (ocrData as any)?.license_plate || existingRecord?.license_plate || existingRecord?.picked_up_plate || existingRecord?.plate_number;
               const existingOrder = existingRecord?.order_number;
               const displayPlate = plateFromData || 'ไม่ทราบ';
               const displayMsg = `ตู้นี้รถทะเบียน ${displayPlate} ได้รับไปแล้ว`;
