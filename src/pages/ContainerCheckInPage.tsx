@@ -225,6 +225,7 @@ export default function ContainerCheckInPage() {
                     .map((item: any) => ({ containerNo: item.containerNo || item.container_no || '', sealNo: item.sealNo || item.seal_no || '' }))
                 : [];
             })(),
+            bl_no: foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || null,
           };
           setJob(mappedJob);
           
