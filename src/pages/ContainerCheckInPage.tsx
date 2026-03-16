@@ -439,7 +439,7 @@ export default function ContainerCheckInPage() {
           </button>
           <div className="text-center">
             <h1 className="text-base font-semibold">
-              {isContainerReturn ? (t('containerCheckin.returnTitle') || 'เช็คอินจุดคืนตู้') : t('containerCheckin.title')}
+              {isContainerReturn ? (t('containerCheckin.returnTitle') || 'เช็คอินจุดคืนตู้') : job.bl_no ? (t('jobDetail.loadedContainerPickup') || 'จุดรับตู้หนัก') : t('containerCheckin.title')}
             </h1>
             <p className="text-xs opacity-80">
               {isContainerReturn 
