@@ -138,14 +138,36 @@ const ContainerSOPPage = () => {
 
   const loadJobDetail = async () => {
     try {
-      let foundJob: any = null;
+      const extractRawContainerDetails = (job: any) =>
+        job?.containers ??
+        job?.container_details ??
+        job?.containerDetails ??
+        job?.route_calculation?.containers ??
+        job?.job_data?.containers;
 
+      const parseContainerArray = (job: any) => {
+        let rawDetails = extractRawContainerDetails(job);
+        if (typeof rawDetails === 'string') {
+          try {
+            rawDetails = JSON.parse(rawDetails);
+          } catch {
+            rawDetails = [];
+          }
+        }
+        return Array.isArray(rawDetails) ? rawDetails : [];
+      };
+
+      let foundJob: any = null;
       const stateJob = navState?.jobData;
       if (stateJob) {
         foundJob = stateJob;
       }
 
-      if (!foundJob) {
+      const shouldFetchFromApi = !foundJob || parseContainerArray(foundJob).length === 0;
+
+      if (shouldFetchFromApi) {
+        let apiJob: any = null;
+
         if (isInternalDriver || isExternalDriver) {
           const driverType = isInternalDriver ? 'internal' : 'external';
           const [inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
@@ -154,25 +176,26 @@ const ContainerSOPPage = () => {
             getDriverAssignedJobs(user!.id, driverType, 50, 'delivered'),
             getDriverAssignedJobs(user!.id, driverType, 50, 'completed'),
           ]);
-          foundJob = [
+          apiJob = [
             ...((inProgressRes.data as any)?.data || []),
             ...((inTransitRes.data as any)?.data || []),
             ...((deliveredRes.data as any)?.data || []),
             ...((completedRes.data as any)?.data || []),
-          ].find((j: any) => j.order_number === jobId);
+          ].find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId);
         } else {
           const { data: result } = await getFreelanceAcceptedJobs(user!.id);
           if (result?.data) {
-            foundJob = result.data.find((j: any) => j.order_number === jobId);
+            apiJob = result.data.find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId);
           }
+        }
+
+        if (apiJob) {
+          foundJob = foundJob ? { ...foundJob, ...apiJob } : apiJob;
         }
       }
 
       if (foundJob) {
-        let rawDetails = foundJob.container_details ?? foundJob.containers ?? foundJob.containerDetails;
-        if (typeof rawDetails === 'string') {
-          try { rawDetails = JSON.parse(rawDetails); } catch { rawDetails = []; }
-        }
+        const rawDetails = parseContainerArray(foundJob);
 
         const containerDetails: ContainerDetail[] = Array.isArray(rawDetails)
           ? rawDetails
