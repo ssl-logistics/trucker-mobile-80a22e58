@@ -573,7 +573,7 @@ const ContainerSOPPage = () => {
             driver_type: driverType,
             checkin_type: 'container_pickup_confirmed',
             photo_url: publicUrl,
-            notes: `ยืนยันรับตู้หนัก: ${finalContainerNumber} / ${finalSealNumber}`,
+            notes: 'ยืนยันรับตู้หนัก',
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
           };
