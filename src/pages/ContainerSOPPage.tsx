@@ -930,7 +930,7 @@ const ContainerSOPPage = () => {
         </div>
 
         {/* === Step 5: Select Container-Seal from BL (for BL/Inbound jobs) === */}
-        {isBLJob && !isContainerReturn && jobDetail.container_details.length > 0 && (
+        {!isContainerReturn && jobDetail.container_details.length > 0 && (isBLJob || isLoadedContainer) && (
           <div className="space-y-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">5</span>
