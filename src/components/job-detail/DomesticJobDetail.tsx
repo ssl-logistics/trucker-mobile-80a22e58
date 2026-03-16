@@ -656,6 +656,10 @@ export default function DomesticJobDetail({
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
 
+  // Container step is only "completed" if BOTH OCR is verified AND checkin exists
+  // This prevents showing "completed" when checkin is deleted but OCR scan data remains
+  const isContainerStepCompleted = isOcrVerified && emptyContainerCheckedIn;
+
   // localStorage key for persisting reorder
   const reorderStorageKey = `dest_order_${job.order_code}`;
 
@@ -954,7 +958,7 @@ export default function DomesticJobDetail({
               height: `${cardHeights.emptyContainer || 200}px`
             }}>
                   <div className="absolute top-0">
-                    {isOcrVerified ?
+                    {isContainerStepCompleted ?
                 <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-md">
                         <CheckCircle className="w-4 h-4 text-white" />
                       </div> :
@@ -1041,12 +1045,12 @@ export default function DomesticJobDetail({
             <div className="flex-1 space-y-3">
               {/* Empty Container Pickup Card - Only for international jobs */}
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') &&
-            <Card ref={emptyContainerRef} className={`overflow-hidden border-2 rounded-2xl ${isOcrVerified ? 'border-green-500' : emptyContainerCheckedIn ? 'border-purple-500' : 'border-teal-500'}`}>
-                  <div className={`px-4 py-2.5 flex items-center justify-between ${isOcrVerified ? 'bg-green-500' : emptyContainerCheckedIn ? 'bg-purple-500' : 'bg-teal-600'}`}>
+            <Card ref={emptyContainerRef} className={`overflow-hidden border-2 rounded-2xl ${isContainerStepCompleted ? 'border-green-500' : emptyContainerCheckedIn ? 'border-purple-500' : 'border-teal-500'}`}>
+                  <div className={`px-4 py-2.5 flex items-center justify-between ${isContainerStepCompleted ? 'bg-green-500' : emptyContainerCheckedIn ? 'bg-purple-500' : 'bg-teal-600'}`}>
                     <h3 className="font-semibold text-sm text-white">{job.bl_no ? t('jobDetail.loadedContainerPickup') : t('jobDetail.emptyContainerPickup')}</h3>
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20 inline-flex items-center gap-1">
-                      {isOcrVerified && <CheckCircle className="w-3 h-3" />}
-                      {isOcrVerified ?
+                      {isContainerStepCompleted && <CheckCircle className="w-3 h-3" />}
+                      {isContainerStepCompleted ?
                   t('jobDetail.completed') :
                   emptyContainerCheckedIn ?
                   (job.bl_no ? t('jobDetail.waitingEvidence') : t('jobDetail.waitingOCR')) :
@@ -1082,14 +1086,14 @@ export default function DomesticJobDetail({
                     {!job.bl_no && (
                     <div className="space-y-2">
                       {/* Container 1 */}
-                      <div className={`rounded-lg p-3 space-y-1.5 text-sm ${isOcrVerified ? 'bg-green-50 border border-green-300' : 'bg-teal-50 border border-teal-200'}`}>
+                      <div className={`rounded-lg p-3 space-y-1.5 text-sm ${isContainerStepCompleted ? 'bg-green-50 border border-green-300' : 'bg-teal-50 border border-teal-200'}`}>
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${isOcrVerified ? 'bg-green-500' : 'bg-teal-500'} text-white text-[10px] font-bold`}>1</span>
-                          <span className={`font-medium ${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.containerNumber')} : </span>
+                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${isContainerStepCompleted ? 'bg-green-500' : 'bg-teal-500'} text-white text-[10px] font-bold`}>1</span>
+                          <span className={`font-medium ${isContainerStepCompleted ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.containerNumber')} : </span>
                           <span className="font-bold">{verifiedContainerNumber || job.container_number || '-'}</span>
                         </div>
                         <div className="ml-7">
-                          <span className={`${isOcrVerified ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.sealNumber')} : </span>
+                          <span className={`${isContainerStepCompleted ? 'text-green-700' : 'text-teal-700'}`}>{t('jobDetail.sealNumber')} : </span>
                           <span className="font-bold">{verifiedSealNumber || job.seal_number || '-'}</span>
                         </div>
                       </div>
@@ -1112,7 +1116,7 @@ export default function DomesticJobDetail({
                     )}
 
                     <div className="mt-3">
-                      {isOcrVerified ?
+                      {isContainerStepCompleted ?
                   <div className="flex items-center justify-center gap-2 p-3 bg-green-100 rounded-lg border border-green-300">
                           <CheckCircle className="w-5 h-5 text-green-600" />
                           <span className="text-sm font-medium text-green-700">{job.bl_no ? 'แนบหลักฐานสำเร็จแล้ว' : (t('jobDetail.ocrCompleted') || 'สแกน OCR เสร็จสิ้น')}</span>
@@ -1147,7 +1151,7 @@ export default function DomesticJobDetail({
               {!job.bl_no && (() => {
               const isInternationalJob = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
               // Lock pickup if: international job AND (not checked in OR checked in but OCR not verified)
-              const isPickupLocked = isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isOcrVerified);
+              const isPickupLocked = isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isContainerStepCompleted);
 
               return (
                 <Card ref={card1Ref} className={`overflow-hidden border-2 rounded-2xl ${pickupSopCompleted || jobApplication?.sop_completed_at ? 'border-green-500' : pickupCheckedIn ? 'border-teal-500' : isPickupLocked ? 'border-gray-300' : 'border-teal-500'}`}>
