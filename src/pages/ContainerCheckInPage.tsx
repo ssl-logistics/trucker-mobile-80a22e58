@@ -20,6 +20,11 @@ import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans } from '@/lib/externalApi';
 
+interface ContainerDetailItem {
+  containerNo?: string;
+  sealNo?: string;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -44,6 +49,7 @@ interface JobDetail {
   container_return_latitude: number | null;
   container_return_longitude: number | null;
   container_return_phone: string | null;
+  container_details: ContainerDetailItem[];
 }
 
 export default function ContainerCheckInPage() {
