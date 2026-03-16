@@ -32,6 +32,11 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
+interface ContainerDetail {
+  containerNo?: string;
+  sealNo?: string;
+}
+
 interface JobDetail {
   id: string;
   order_code: string;
@@ -45,6 +50,7 @@ interface JobDetail {
   start_time: string;
   bl_no?: string;
   transport_type?: string;
+  container_details: ContainerDetail[];
 }
 
 type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir';
