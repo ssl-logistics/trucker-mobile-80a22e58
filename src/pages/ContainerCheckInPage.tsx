@@ -439,7 +439,7 @@ export default function ContainerCheckInPage() {
           </button>
           <div className="text-center">
             <h1 className="text-base font-semibold">
-              {isContainerReturn ? (t('containerCheckin.returnTitle') || 'เช็คอินจุดคืนตู้') : t('containerCheckin.title')}
+              {isContainerReturn ? (t('containerCheckin.returnTitle') || 'เช็คอินจุดคืนตู้') : job.bl_no ? (t('jobDetail.loadedContainerPickup') || 'จุดรับตู้หนัก') : t('containerCheckin.title')}
             </h1>
             <p className="text-xs opacity-80">
               {isContainerReturn 
@@ -459,7 +459,7 @@ export default function ContainerCheckInPage() {
           {/* Card Header */}
           <div className="bg-[#E8F4F8] px-4 py-3">
             <p className="text-sm font-medium text-[#225795]">
-              {isContainerReturn ? (t('jobDetail.containerReturn') || 'จุดคืนตู้') : t('jobDetail.emptyContainerPickup')}
+              {isContainerReturn ? (t('jobDetail.containerReturn') || 'จุดคืนตู้') : job.bl_no ? (t('jobDetail.loadedContainerPickup') || 'จุดรับตู้หนัก') : t('jobDetail.emptyContainerPickup')}
             </p>
             <p className="text-base font-semibold text-[#225795]">
               {isContainerReturn 
@@ -524,13 +524,13 @@ export default function ContainerCheckInPage() {
             /* Empty Container Pickup Info */
             <div className="p-4 space-y-3">
               <div>
-                <p className="text-xs text-muted-foreground">CY / จุดรับตู้เปล่า</p>
+                <p className="text-xs text-muted-foreground">{job.bl_no ? 'CY / จุดรับตู้หนัก' : 'CY / จุดรับตู้เปล่า'}</p>
                 <p className="text-sm font-semibold text-[#225795]">
                   {job.container_checkpoint_code || '-'}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">วันเริ่มรับตู้เปล่า (FIRST DATE PICK UP CTNR)</p>
+                <p className="text-xs text-muted-foreground">{job.bl_no ? 'วันรับตู้หนัก' : 'วันเริ่มรับตู้เปล่า (FIRST DATE PICK UP CTNR)'}</p>
                 <p className="text-sm font-semibold text-[#225795]">
                   {job.empty_container_date ? formatDate(job.empty_container_date, language) : '-'}
                 </p>
