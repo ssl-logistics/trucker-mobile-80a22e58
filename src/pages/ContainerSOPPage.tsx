@@ -129,6 +129,7 @@ const ContainerSOPPage = () => {
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
   const [selectedContainerSeal, setSelectedContainerSeal] = useState<string>("");
+  const [blSelectionError, setBlSelectionError] = useState(false);
   
 
   useEffect(() => {
@@ -423,6 +424,7 @@ const ContainerSOPPage = () => {
   const handleConfirmClick = () => {
     // Require BL container-seal selection
     if (jobDetail && jobDetail.container_details.length > 0 && selectedContainerSeal === '') {
+      setBlSelectionError(true);
       toast({ title: 'กรุณาเลือกตู้-ซีล จากรายการ BL', variant: "destructive" });
       return;
     }
@@ -967,12 +969,13 @@ const ContainerSOPPage = () => {
           <div className="space-y-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">5</span>
-              เลือกตู้-ซีล จาก BL
+              เลือกตู้-ซีล จาก BL <span className="text-destructive">*</span>
             </Label>
             <Select
               value={selectedContainerSeal}
               onValueChange={(val) => {
                 setSelectedContainerSeal(val);
+                setBlSelectionError(false);
                 if (val === 'manual') {
                   setOcrContainerNumber(null);
                   setOcrSealNumber(null);
@@ -990,7 +993,7 @@ const ContainerSOPPage = () => {
                 }
               }}
             >
-              <SelectTrigger className="w-full h-12 bg-white">
+              <SelectTrigger className={`w-full h-12 bg-white ${blSelectionError ? 'border-destructive ring-1 ring-destructive' : ''}`}>
                 <SelectValue placeholder="เลือกตู้-ซีล จากรายการ BL" />
               </SelectTrigger>
               <SelectContent>
@@ -1002,6 +1005,9 @@ const ContainerSOPPage = () => {
                 
               </SelectContent>
             </Select>
+            {blSelectionError && (
+              <p className="text-sm font-medium text-destructive">กรุณาเลือกตู้-ซีล จากรายการ BL</p>
+            )}
             {selectedContainerSeal !== '' && selectedContainerSeal !== 'manual' && (
               <Card className="p-3 bg-green-50 border-green-300">
                 <div className="space-y-1">
