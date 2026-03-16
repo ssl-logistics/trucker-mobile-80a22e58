@@ -990,7 +990,7 @@ const ContainerSOPPage = () => {
                 }
               }}
             >
-              <SelectTrigger className={`w-full h-12 bg-white ${blSelectionError ? 'border-destructive ring-1 ring-destructive' : ''}`}>
+              <SelectTrigger className="w-full h-12 bg-white">
                 <SelectValue placeholder="เลือกตู้-ซีล จากรายการ BL" />
               </SelectTrigger>
               <SelectContent>
