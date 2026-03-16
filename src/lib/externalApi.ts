@@ -123,7 +123,10 @@ export async function callExternalApi<T>(
           } catch {}
           // Don't retry on 4xx client errors
           if (response.status >= 400 && response.status < 500) {
-            return { data: null, error: errorMessage };
+            // Return parsed error body as data so callers can inspect details
+            let errorData: any = null;
+            try { errorData = JSON.parse(errorText); } catch {}
+            return { data: errorData as T, error: errorMessage };
           }
           lastError = errorMessage;
           continue;
