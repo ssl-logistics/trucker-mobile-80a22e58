@@ -129,7 +129,7 @@ const ContainerSOPPage = () => {
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
   const [selectedContainerSeal, setSelectedContainerSeal] = useState<string>("");
-  const [blSelectionError, setBlSelectionError] = useState(false);
+  
 
   useEffect(() => {
     if (jobId && user) {
@@ -423,7 +423,6 @@ const ContainerSOPPage = () => {
   const handleConfirmClick = () => {
     // Require BL container-seal selection
     if (jobDetail && jobDetail.container_details.length > 0 && selectedContainerSeal === '') {
-      setBlSelectionError(true);
       toast({ title: 'กรุณาเลือกตู้-ซีล จากรายการ BL', variant: "destructive" });
       return;
     }
@@ -974,7 +973,6 @@ const ContainerSOPPage = () => {
               value={selectedContainerSeal}
               onValueChange={(val) => {
                 setSelectedContainerSeal(val);
-                setBlSelectionError(false);
                 if (val === 'manual') {
                   setOcrContainerNumber(null);
                   setOcrSealNumber(null);
@@ -992,7 +990,7 @@ const ContainerSOPPage = () => {
                 }
               }}
             >
-              <SelectTrigger className={`w-full h-12 bg-white ${blSelectionError ? 'border-destructive ring-1 ring-destructive' : ''}`}>
+              <SelectTrigger className="w-full h-12 bg-white">
                 <SelectValue placeholder="เลือกตู้-ซีล จากรายการ BL" />
               </SelectTrigger>
               <SelectContent>
@@ -1004,9 +1002,6 @@ const ContainerSOPPage = () => {
                 
               </SelectContent>
             </Select>
-            {blSelectionError && (
-              <p className="text-sm font-medium text-destructive">กรุณาเลือกตู้-ซีล จากรายการ BL</p>
-            )}
             {selectedContainerSeal !== '' && selectedContainerSeal !== 'manual' && (
               <Card className="p-3 bg-green-50 border-green-300">
                 <div className="space-y-1">
