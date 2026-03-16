@@ -169,9 +169,28 @@ const ContainerSOPPage = () => {
       }
 
       if (foundJob) {
-        const firstContainerDetail = Array.isArray(foundJob.container_details)
-          ? foundJob.container_details.find((item: any) => item?.containerNo || item?.sealNo)
-          : null;
+        let rawDetails = foundJob.container_details ?? foundJob.containers ?? foundJob.containerDetails;
+        if (typeof rawDetails === 'string') {
+          try { rawDetails = JSON.parse(rawDetails); } catch { rawDetails = []; }
+        }
+
+        const containerDetails: ContainerDetail[] = Array.isArray(rawDetails)
+          ? rawDetails
+              .filter((item: any) =>
+                item?.containerNo ||
+                item?.container_no ||
+                item?.container_number ||
+                item?.sealNo ||
+                item?.seal_no ||
+                item?.seal_number
+              )
+              .map((item: any) => ({
+                containerNo: item.containerNo || item.container_no || item.container_number || '',
+                sealNo: item.sealNo || item.seal_no || item.seal_number || ''
+              }))
+          : [];
+
+        const firstContainerDetail = containerDetails.find((item) => item?.containerNo || item?.sealNo) || null;
 
         const fallbackContainerNumber =
           foundJob.container_number ||
@@ -186,16 +205,6 @@ const ContainerSOPPage = () => {
           foundJob.seal_no_2 ||
           firstContainerDetail?.sealNo ||
           '';
-
-        let rawDetails = foundJob.container_details;
-        if (typeof rawDetails === 'string') {
-          try { rawDetails = JSON.parse(rawDetails); } catch { rawDetails = []; }
-        }
-        const containerDetails: ContainerDetail[] = Array.isArray(rawDetails)
-          ? rawDetails
-              .filter((item: any) => item?.containerNo || item?.container_no || item?.sealNo || item?.seal_no)
-              .map((item: any) => ({ containerNo: item.containerNo || item.container_no || '', sealNo: item.sealNo || item.seal_no || '' }))
-          : [];
 
         setJobDetail({
           id: foundJob.id || jobId || '',
