@@ -208,6 +208,7 @@ export default function DomesticJobDetail({
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
   const [containerReturnCheckedIn, setContainerReturnCheckedIn] = useState(false);
   const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
+  const [containerPickupConfirmed, setContainerPickupConfirmed] = useState(false);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, {checked_in_at: string | null;sop_completed_at: string | null;}>>({});
@@ -459,13 +460,15 @@ export default function DomesticJobDetail({
         );
         const hasContainerReturnCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return');
         const hasContainerReturnConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_return_confirmed');
-        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'ContainerReturnConfirmed:', hasContainerReturnConfirmed);
+        const hasContainerPickupConfirmed = checkins.some((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed');
+        console.log('Status - Pickup:', hasPickupCheckin, 'Delivery:', hasDeliveryCheckin, 'Confirmed:', hasDeliveryConfirmed, 'ContainerPickup:', hasContainerPickupCheckin, 'ContainerReturn:', hasContainerReturnCheckin, 'ContainerReturnConfirmed:', hasContainerReturnConfirmed, 'ContainerPickupConfirmed:', hasContainerPickupConfirmed);
 
         setPickupCheckedIn(hasPickupCheckin);
         setDeliveryCheckedIn(hasDeliveryCheckin);
         setEmptyContainerCheckedIn(hasContainerPickupCheckin);
         setContainerReturnCheckedIn(hasContainerReturnCheckin);
         setContainerReturnConfirmed(hasContainerReturnConfirmed);
+        setContainerPickupConfirmed(hasContainerPickupConfirmed);
 
 
         // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
@@ -656,9 +659,12 @@ export default function DomesticJobDetail({
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
 
-  // Container step is only "completed" if BOTH OCR is verified AND checkin exists
-  // This prevents showing "completed" when checkin is deleted but OCR scan data remains
-  const isContainerStepCompleted = isOcrVerified && emptyContainerCheckedIn;
+  // Container step is only "completed" if checkin exists AND evidence/OCR is done
+  // For BL jobs: require container_pickup_confirmed checkin (evidence submitted)
+  // For non-BL jobs: require OCR verified
+  const isContainerStepCompleted = emptyContainerCheckedIn && (
+    job.bl_no ? containerPickupConfirmed : isOcrVerified
+  );
 
   // localStorage key for persisting reorder
   const reorderStorageKey = `dest_order_${job.order_code}`;
