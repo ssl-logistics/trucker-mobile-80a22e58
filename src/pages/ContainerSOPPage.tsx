@@ -977,7 +977,7 @@ const ContainerSOPPage = () => {
 
       </div>
 
-
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
