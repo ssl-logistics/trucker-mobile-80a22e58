@@ -603,16 +603,22 @@ const ContainerSOPPage = () => {
       // Send driverCheckin for container return
       if (isContainerReturn) {
         try {
-          const checkinPayload = {
+          const checkinPayload: Record<string, unknown> = {
             order_number: jobDetail!.order_code,
             driver_id: user.id,
             driver_type: driverType,
             checkin_type: 'container_return_confirmed',
-            photo_url: publicUrl,
             notes: 'ยืนยันคืนตู้สำเร็จ',
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
           };
+          // Send all EIR photos via photo_urls array
+          if (eirUrls.length > 0) {
+            checkinPayload.photo_urls = eirUrls;
+          }
+          if (publicUrl) {
+            checkinPayload.photo_url = publicUrl;
+          }
           const { error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
             console.warn('[ContainerSOP] driverCheckin error (non-blocking):', checkinError);
