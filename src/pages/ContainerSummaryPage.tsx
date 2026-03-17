@@ -34,6 +34,15 @@ interface SOPData {
   return_photo_urls: string[];
 }
 
+interface OcrScanData {
+  container_no: string | null;
+  seal_no: string | null;
+  container_image_url: string | null;
+  seal_image_url: string | null;
+  container_photos: string[];
+  eir_photos: string[];
+}
+
 export default function ContainerSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
