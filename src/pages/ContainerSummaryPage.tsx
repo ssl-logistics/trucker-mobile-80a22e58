@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ChevronLeft, CheckCircle } from 'lucide-react';
+import { ChevronLeft, CheckCircle, Container, Hash } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { formatDateTime } from '@/lib/dateUtils';
 import { usePresignedImageUrls } from '@/hooks/usePresignedImageUrl';
-import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop } from '@/lib/externalApi';
+import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop, getOcrContainerScans } from '@/lib/externalApi';
 
 interface JobDetail {
   id: string;
@@ -34,6 +34,15 @@ interface SOPData {
   return_photo_urls: string[];
 }
 
+interface OcrScanData {
+  container_no: string | null;
+  seal_no: string | null;
+  container_image_url: string | null;
+  seal_image_url: string | null;
+  container_photos: string[];
+  eir_photos: string[];
+}
+
 export default function ContainerSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,13 +52,26 @@ export default function ContainerSummaryPage() {
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
+  const [ocrScanData, setOcrScanData] = useState<OcrScanData | null>(null);
   const [loading, setLoading] = useState(true);
   const rawPickupPhotoUrls = sopData?.pickup_photo_urls || [];
   const rawReturnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
+  const rawContainerPhotos = ocrScanData?.container_photos || [];
+  const rawEirPhotos = ocrScanData?.eir_photos || [];
+  const rawContainerImageUrl = ocrScanData?.container_image_url ? [ocrScanData.container_image_url] : [];
+  const rawSealImageUrl = ocrScanData?.seal_image_url ? [ocrScanData.seal_image_url] : [];
   const { urls: presignedPickupPhotoUrls } = usePresignedImageUrls(rawPickupPhotoUrls);
   const { urls: presignedReturnPhotoUrls } = usePresignedImageUrls(rawReturnPhotoUrls);
+  const { urls: presignedContainerPhotos } = usePresignedImageUrls(rawContainerPhotos);
+  const { urls: presignedEirPhotos } = usePresignedImageUrls(rawEirPhotos);
+  const { urls: presignedContainerImageUrl } = usePresignedImageUrls(rawContainerImageUrl);
+  const { urls: presignedSealImageUrl } = usePresignedImageUrls(rawSealImageUrl);
   const pickupPhotoUrls = presignedPickupPhotoUrls.filter((url): url is string => Boolean(url));
   const returnPhotoUrls = presignedReturnPhotoUrls.filter((url): url is string => Boolean(url));
+  const containerPhotos = presignedContainerPhotos.filter((url): url is string => Boolean(url));
+  const eirPhotos = presignedEirPhotos.filter((url): url is string => Boolean(url));
+  const containerNumberPhoto = presignedContainerImageUrl.filter((url): url is string => Boolean(url))[0] || null;
+  const sealNumberPhoto = presignedSealImageUrl.filter((url): url is string => Boolean(url))[0] || null;
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
@@ -239,6 +261,34 @@ export default function ContainerSummaryPage() {
         return_photo_urls: returnPhotoUrls,
       });
 
+      // Fetch OCR scan data for container/seal photos
+      try {
+        const { data: ocrResult, error: ocrError } = await getOcrContainerScans(undefined, 10, jobId);
+        if (!ocrError && ocrResult) {
+          const ocrArr = (ocrResult as any)?.data || ocrResult || [];
+          const ocrRecord = Array.isArray(ocrArr) ? ocrArr[0] : null;
+          if (ocrRecord) {
+            const parseUrls = (raw: any): string[] => {
+              if (Array.isArray(raw)) return raw.filter(Boolean);
+              if (typeof raw === 'string') {
+                try { const p = JSON.parse(raw); return Array.isArray(p) ? p.filter(Boolean) : []; } catch { return []; }
+              }
+              return [];
+            };
+            setOcrScanData({
+              container_no: ocrRecord.container_no || null,
+              seal_no: ocrRecord.seal_no || null,
+              container_image_url: ocrRecord.container_image_url || null,
+              seal_image_url: ocrRecord.seal_image_url || null,
+              container_photos: parseUrls(ocrRecord.container_photos),
+              eir_photos: parseUrls(ocrRecord.eir_photos),
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('OCR scan data fetch failed:', e);
+      }
+
     } catch (error) {
       console.error('Error loading container summary:', error);
       toast({
@@ -314,21 +364,81 @@ export default function ContainerSummaryPage() {
           </Card>
         )}
 
-        {/* Container Pickup Evidence Photos (EIR for BL jobs) */}
-        {pickupPhotoUrls.length > 0 && (
+        {/* Selected Container & Seal from BL */}
+        {ocrScanData && (ocrScanData.container_no || ocrScanData.seal_no) && (
+          <Card className="p-4 border-border">
+            <div className="text-sm font-semibold text-foreground mb-3">เลือกตู้-ซีล จาก BL</div>
+            <div className="space-y-2">
+              {ocrScanData.container_no && (
+                <div className="flex items-center gap-2">
+                  <Container className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">เลขตู้:</span>
+                  <span className="text-sm font-medium text-foreground">{ocrScanData.container_no}</span>
+                </div>
+              )}
+              {ocrScanData.seal_no && (
+                <div className="flex items-center gap-2">
+                  <Hash className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">เลขซีล:</span>
+                  <span className="text-sm font-medium text-foreground">{ocrScanData.seal_no}</span>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
+        {/* Container Number Photo (OCR) */}
+        {containerNumberPhoto && (
           <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">เอกสารรับตู้ ({pickupPhotoUrls.length} รูป)</div>
+            <div className="text-sm text-muted-foreground">รูปเลขตู้</div>
+            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+              <img src={containerNumberPhoto} alt="Container Number" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        )}
+
+        {/* Seal Number Photo (OCR) */}
+        {sealNumberPhoto && (
+          <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">รูปเลขซีล</div>
+            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+              <img src={sealNumberPhoto} alt="Seal Number" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        )}
+
+        {/* Container Photos (from OCR scan) */}
+        {containerPhotos.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">รูปตู้ ({containerPhotos.length} รูป)</div>
             <div className="grid grid-cols-2 gap-2">
-              {pickupPhotoUrls.map((url, idx) => (
+              {containerPhotos.map((url, idx) => (
                 <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                  <img 
-                    src={url} 
-                    alt={`Container Pickup Document ${idx + 1}`} 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={url} alt={`Container Photo ${idx + 1}`} className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* EIR Document Photos (from OCR scan or checkin) */}
+        {(eirPhotos.length > 0 || pickupPhotoUrls.length > 0) && (
+          <div className="space-y-2">
+            {(() => {
+              const allEirUrls = eirPhotos.length > 0 ? eirPhotos : pickupPhotoUrls;
+              return (
+                <>
+                  <div className="text-sm text-muted-foreground">เอกสาร EIR ({allEirUrls.length} รูป)</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {allEirUrls.map((url, idx) => (
+                      <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                        <img src={url} alt={`EIR Document ${idx + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
 
