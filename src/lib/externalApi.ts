@@ -187,6 +187,7 @@ export async function driverCheckin(body: {
   latitude?: number;
   longitude?: number;
   photo_url?: string;
+  photo_urls?: string[];
   notes?: string;
   container_number?: string;
   seal_number?: string;
