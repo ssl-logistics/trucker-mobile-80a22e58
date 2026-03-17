@@ -117,6 +117,7 @@ export default function ContainerSummaryPage() {
       let returnCheckedInAt: string | null = null;
       let returnConfirmedAt: string | null = null;
       let returnPhotoUrl: string | null = null;
+      let returnPhotoUrls: string[] = [];
 
       if (!checkinError) {
         const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
@@ -156,8 +157,8 @@ export default function ContainerSummaryPage() {
         if (returnConfirmed) {
           returnConfirmedAt = returnConfirmed.checkin_time || returnConfirmed.checked_in_at || returnConfirmed.created_at || null;
           returnPhotoUrl = returnConfirmed.photo_url || null;
+          returnPhotoUrls = returnConfirmed.photo_urls || (returnPhotoUrl ? [returnPhotoUrl] : []);
         }
-        const returnPhotoUrls: string[] = returnConfirmed?.photo_urls || (returnPhotoUrl ? [returnPhotoUrl] : []);
       }
 
       // Fetch SOP data from external API
