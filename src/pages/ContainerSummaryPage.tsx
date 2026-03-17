@@ -51,14 +51,26 @@ export default function ContainerSummaryPage() {
   const { t, language } = useLanguage();
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
-  const [sopData, setSopData] = useState<SOPData | null>(null);
+  const [ocrScanData, setOcrScanData] = useState<OcrScanData | null>(null);
   const [loading, setLoading] = useState(true);
   const rawPickupPhotoUrls = sopData?.pickup_photo_urls || [];
   const rawReturnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
+  const rawContainerPhotos = ocrScanData?.container_photos || [];
+  const rawEirPhotos = ocrScanData?.eir_photos || [];
+  const rawContainerImageUrl = ocrScanData?.container_image_url ? [ocrScanData.container_image_url] : [];
+  const rawSealImageUrl = ocrScanData?.seal_image_url ? [ocrScanData.seal_image_url] : [];
   const { urls: presignedPickupPhotoUrls } = usePresignedImageUrls(rawPickupPhotoUrls);
   const { urls: presignedReturnPhotoUrls } = usePresignedImageUrls(rawReturnPhotoUrls);
+  const { urls: presignedContainerPhotos } = usePresignedImageUrls(rawContainerPhotos);
+  const { urls: presignedEirPhotos } = usePresignedImageUrls(rawEirPhotos);
+  const { urls: presignedContainerImageUrl } = usePresignedImageUrls(rawContainerImageUrl);
+  const { urls: presignedSealImageUrl } = usePresignedImageUrls(rawSealImageUrl);
   const pickupPhotoUrls = presignedPickupPhotoUrls.filter((url): url is string => Boolean(url));
   const returnPhotoUrls = presignedReturnPhotoUrls.filter((url): url is string => Boolean(url));
+  const containerPhotos = presignedContainerPhotos.filter((url): url is string => Boolean(url));
+  const eirPhotos = presignedEirPhotos.filter((url): url is string => Boolean(url));
+  const containerNumberPhoto = presignedContainerImageUrl.filter((url): url is string => Boolean(url))[0] || null;
+  const sealNumberPhoto = presignedSealImageUrl.filter((url): url is string => Boolean(url))[0] || null;
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
