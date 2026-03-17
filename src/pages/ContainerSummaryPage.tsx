@@ -157,6 +157,7 @@ export default function ContainerSummaryPage() {
           returnConfirmedAt = returnConfirmed.checkin_time || returnConfirmed.checked_in_at || returnConfirmed.created_at || null;
           returnPhotoUrl = returnConfirmed.photo_url || null;
         }
+        const returnPhotoUrls: string[] = returnConfirmed?.photo_urls || (returnPhotoUrl ? [returnPhotoUrl] : []);
       }
 
       // Fetch SOP data from external API
