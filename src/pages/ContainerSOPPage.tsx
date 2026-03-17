@@ -286,8 +286,14 @@ const ContainerSOPPage = () => {
       input.type = 'file';
       input.accept = 'image/*';
       if (source === 'camera') {
-        input.capture = 'environment';
+        input.setAttribute('capture', 'environment');
       }
+      
+      // Must append to DOM for iOS Safari to work reliably
+      input.style.position = 'fixed';
+      input.style.top = '-9999px';
+      input.style.left = '-9999px';
+      document.body.appendChild(input);
       
       await new Promise<void>((resolve) => {
         input.onchange = async (e) => {
@@ -295,8 +301,20 @@ const ContainerSOPPage = () => {
           if (file) {
             await processFileForSlot(file, activePhotoSlot);
           }
+          document.body.removeChild(input);
           resolve();
         };
+        // Cleanup if user cancels
+        const handleFocus = () => {
+          setTimeout(() => {
+            if (input.parentNode) {
+              document.body.removeChild(input);
+            }
+            window.removeEventListener('focus', handleFocus);
+            resolve();
+          }, 500);
+        };
+        window.addEventListener('focus', handleFocus);
         input.click();
       });
       return;
