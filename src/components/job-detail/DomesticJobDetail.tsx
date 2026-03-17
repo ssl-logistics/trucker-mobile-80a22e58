@@ -1139,9 +1139,17 @@ export default function DomesticJobDetail({
 
                     <div className="mt-3">
                       {isContainerStepCompleted ?
-                  <div className="flex items-center justify-center gap-2 p-3 bg-green-100 rounded-lg border border-green-300">
+                  <div 
+                    className="flex items-center justify-center gap-2 p-3 bg-green-100 rounded-lg border border-green-300 cursor-pointer hover:bg-green-150 active:bg-green-200 transition-colors"
+                    onClick={() => {
+                      const fromParam = new URLSearchParams(location.search).get('from');
+                      const queryString = fromParam ? `?from=${fromParam}` : '';
+                      navigate(`/job/${job.order_code}/container-summary${queryString}`, { state: { jobData: job, checkinType: job.bl_no ? 'loaded_container' : 'empty_container', isBidJob } });
+                    }}
+                  >
                           <CheckCircle className="w-5 h-5 text-green-600" />
                           <span className="text-sm font-medium text-green-700">{job.bl_no ? 'แนบหลักฐานสำเร็จแล้ว' : (t('jobDetail.ocrCompleted') || 'สแกน OCR เสร็จสิ้น')}</span>
+                          <ChevronRight className="w-4 h-4 text-green-600 ml-auto" />
                         </div> :
 
                   <Button
