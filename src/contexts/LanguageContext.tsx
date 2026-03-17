@@ -863,7 +863,7 @@ const thTranslations: Record<string, string> = {
   'generalInfo.validation.priceMaxRequired': 'กรุณากรอกราคาสูงสุด',
   'generalInfo.validation.priceRange': 'กรุณากรอกช่วงราคา',
   'generalInfo.validation.priceNumericOnly': 'กรุณากรอกเฉพาะตัวเลข',
-  'generalInfo.validation.priceMinExceedsMax': 'ราคาต่ำสุดต้องไม่มากกว่าราคาสูงสุด',
+  'generalInfo.validation.priceMinExceedsMax': 'กรุณากรอกเรทวิ่งงาน ต่ำสุด-สูงสุดให้ถูก',
   
   // Vehicle Info Validation
   'validation.plateNumberRequired': 'กรุณากรอกหมายเลขทะเบียน',
