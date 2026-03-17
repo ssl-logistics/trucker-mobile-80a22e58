@@ -40,7 +40,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     const min = parseInt(data.priceRangeMin, 10);
     const max = parseInt(data.priceRangeMax, 10);
     if (isNaN(min) || isNaN(max)) return true;
-    return min <= max;
+    return min < max;
   }, {
     message: t('generalInfo.validation.priceMinExceedsMax'),
     path: ["priceRangeMin"],
