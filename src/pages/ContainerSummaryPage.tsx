@@ -28,6 +28,7 @@ interface SOPData {
   return_checked_in_at: string | null;
   return_confirmed_at: string | null;
   return_photo_url: string | null;
+  return_photo_urls: string[];
 }
 
 export default function ContainerSummaryPage() {
@@ -41,7 +42,7 @@ export default function ContainerSummaryPage() {
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
   const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
-  const { url: returnPhotoUrl } = usePresignedImageUrl(sopData?.return_photo_url || null);
+  const returnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
@@ -116,6 +117,7 @@ export default function ContainerSummaryPage() {
       let returnCheckedInAt: string | null = null;
       let returnConfirmedAt: string | null = null;
       let returnPhotoUrl: string | null = null;
+      let returnPhotoUrls: string[] = [];
 
       if (!checkinError) {
         const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
@@ -155,6 +157,7 @@ export default function ContainerSummaryPage() {
         if (returnConfirmed) {
           returnConfirmedAt = returnConfirmed.checkin_time || returnConfirmed.checked_in_at || returnConfirmed.created_at || null;
           returnPhotoUrl = returnConfirmed.photo_url || null;
+          returnPhotoUrls = returnConfirmed.photo_urls || (returnPhotoUrl ? [returnPhotoUrl] : []);
         }
       }
 
@@ -187,6 +190,7 @@ export default function ContainerSummaryPage() {
         return_checked_in_at: returnCheckedInAt,
         return_confirmed_at: returnConfirmedAt,
         return_photo_url: returnPhotoUrl,
+        return_photo_urls: returnPhotoUrls,
       });
 
     } catch (error) {
@@ -265,15 +269,19 @@ export default function ContainerSummaryPage() {
         )}
 
         {/* Container Return Document Photo */}
-        {returnPhotoUrl && (
+        {returnPhotoUrls.length > 0 && (
           <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">เอกสารคืนตู้</div>
-            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-              <img 
-                src={returnPhotoUrl} 
-                alt="Container Return Document" 
-                className="w-full h-full object-cover"
-              />
+            <div className="text-sm text-muted-foreground">เอกสารคืนตู้ ({returnPhotoUrls.length} รูป)</div>
+            <div className="grid grid-cols-2 gap-2">
+              {returnPhotoUrls.map((url, idx) => (
+                <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                  <img 
+                    src={url} 
+                    alt={`Container Return Document ${idx + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}
