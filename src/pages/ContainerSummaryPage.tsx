@@ -121,6 +121,8 @@ export default function ContainerSummaryPage() {
       const { data: checkinResult, error: checkinError } = await getDriverCheckins(driverId, driverType, jobId);
 
       let checkedInAt: string | null = null;
+      let pickupConfirmedAt: string | null = null;
+      let pickupPhotoUrls: string[] = [];
       let returnCheckedInAt: string | null = null;
       let returnConfirmedAt: string | null = null;
       let returnPhotoUrl: string | null = null;
