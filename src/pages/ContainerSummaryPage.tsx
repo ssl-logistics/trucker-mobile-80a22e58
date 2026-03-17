@@ -41,8 +41,9 @@ export default function ContainerSummaryPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
-  const returnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
+  const rawReturnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
+  const { urls: presignedReturnPhotoUrls } = usePresignedImageUrls(rawReturnPhotoUrls);
+  const returnPhotoUrls = presignedReturnPhotoUrls.filter((url): url is string => Boolean(url));
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
