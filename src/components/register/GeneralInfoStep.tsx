@@ -415,13 +415,19 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
           <div className="flex items-center gap-2">
             <Input
               placeholder={t('generalInfo.priceMin')}
-              {...register("priceRangeMin")}
+              inputMode="numeric"
+              {...register("priceRangeMin", {
+                onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, ''); }
+              })}
               className={errors.priceRangeMin ? "border-destructive" : ""}
             />
             <span className="text-muted-foreground">—</span>
             <Input
               placeholder={t('generalInfo.priceMax')}
-              {...register("priceRangeMax")}
+              inputMode="numeric"
+              {...register("priceRangeMax", {
+                onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, ''); }
+              })}
               className={errors.priceRangeMax ? "border-destructive" : ""}
             />
           </div>
