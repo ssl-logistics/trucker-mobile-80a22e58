@@ -429,14 +429,10 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               inputMode="numeric"
               {...register("priceRangeMin")}
               onChange={(e) => {
-                const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
-                e.target.value = raw ? Number(raw).toLocaleString() : '';
-                setValue("priceRangeMin", raw);
+                const raw = normalizeNumericString(e.target.value);
+                setValue("priceRangeMin", raw, { shouldValidate: true, shouldDirty: true });
               }}
-              value={(() => {
-                const v = watch("priceRangeMin");
-                return v ? Number(v).toLocaleString() : '';
-              })()}
+              value={formatNumericDisplay(watch("priceRangeMin"))}
               className={cn("text-right", errors.priceRangeMin ? "border-destructive" : "")}
             />
             <span className="text-muted-foreground">—</span>
@@ -445,14 +441,10 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               inputMode="numeric"
               {...register("priceRangeMax")}
               onChange={(e) => {
-                const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
-                e.target.value = raw ? Number(raw).toLocaleString() : '';
-                setValue("priceRangeMax", raw);
+                const raw = normalizeNumericString(e.target.value);
+                setValue("priceRangeMax", raw, { shouldValidate: true, shouldDirty: true });
               }}
-              value={(() => {
-                const v = watch("priceRangeMax");
-                return v ? Number(v).toLocaleString() : '';
-              })()}
+              value={formatNumericDisplay(watch("priceRangeMax"))}
               className={cn("text-right", errors.priceRangeMax ? "border-destructive" : "")}
             />
           </div>
