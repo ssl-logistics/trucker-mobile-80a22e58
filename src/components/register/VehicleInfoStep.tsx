@@ -385,7 +385,20 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.insuranceValue')} <span className="text-destructive">*</span></Label>
-          <Input {...register("insuranceValue")} className={errors.insuranceValue ? "border-destructive" : ""} />
+          <Input
+            inputMode="numeric"
+            {...register("insuranceValue")}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+              e.target.value = raw ? Number(raw).toLocaleString() : '';
+              setValue("insuranceValue", raw);
+            }}
+            value={(() => {
+              const v = watch("insuranceValue");
+              return v ? Number(v).toLocaleString() : '';
+            })()}
+            className={cn("text-right", errors.insuranceValue ? "border-destructive" : "")}
+          />
           {errors.insuranceValue && <p className="text-sm text-destructive">{errors.insuranceValue.message}</p>}
         </div>
 
