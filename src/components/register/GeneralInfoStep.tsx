@@ -416,18 +416,24 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
             <Input
               placeholder={t('generalInfo.priceMin')}
               inputMode="numeric"
-              {...register("priceRangeMin", {
-                onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, ''); }
-              })}
+              {...register("priceRangeMin")}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                e.target.value = value;
+                setValue("priceRangeMin", value);
+              }}
               className={errors.priceRangeMin ? "border-destructive" : ""}
             />
             <span className="text-muted-foreground">—</span>
             <Input
               placeholder={t('generalInfo.priceMax')}
               inputMode="numeric"
-              {...register("priceRangeMax", {
-                onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, ''); }
-              })}
+              {...register("priceRangeMax")}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                e.target.value = value;
+                setValue("priceRangeMax", value);
+              }}
               className={errors.priceRangeMax ? "border-destructive" : ""}
             />
           </div>
