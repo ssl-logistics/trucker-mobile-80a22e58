@@ -51,6 +51,7 @@ export default function ContainerSummaryPage() {
   const { t, language } = useLanguage();
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const [job, setJob] = useState<JobDetail | null>(null);
+  const [sopData, setSopData] = useState<SOPData | null>(null);
   const [ocrScanData, setOcrScanData] = useState<OcrScanData | null>(null);
   const [loading, setLoading] = useState(true);
   const rawPickupPhotoUrls = sopData?.pickup_photo_urls || [];
