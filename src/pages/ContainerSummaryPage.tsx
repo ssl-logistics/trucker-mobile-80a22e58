@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { formatDateTime } from '@/lib/dateUtils';
-import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
+import { usePresignedImageUrls } from '@/hooks/usePresignedImageUrl';
 import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop } from '@/lib/externalApi';
 
 interface JobDetail {
