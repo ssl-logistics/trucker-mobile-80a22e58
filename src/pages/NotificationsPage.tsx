@@ -74,6 +74,19 @@ export default function NotificationsPage() {
 
     fetchNotifications();
 
+    // Mark all notifications as read when page opens
+    const markAllRead = async () => {
+      try {
+        await supabase.functions.invoke('get-notifications', {
+          body: { action: 'mark_all_read', user_id: driverId },
+        });
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      } catch (error) {
+        console.error('Failed to mark all as read:', error);
+      }
+    };
+    markAllRead();
+
     let channel: any;
     if (driverId) {
       channel = supabase

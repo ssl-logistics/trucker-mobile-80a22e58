@@ -74,6 +74,22 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Mark all notifications as read
+    if (action === 'mark_all_read') {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user_id)
+        .eq('is_read', false)
+
+      if (error) throw error
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Create status change notification (called from client when job status changes)
     if (action === 'create_status_notification') {
       const { title_th, title_en, description_th, description_en, notification_type, reference_type, order_code, status: jobStatus } = body
