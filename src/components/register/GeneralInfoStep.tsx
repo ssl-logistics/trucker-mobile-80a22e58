@@ -62,7 +62,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [checkingUsername, setCheckingUsername] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm<GeneralInfoFormData>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<GeneralInfoFormData>({
     resolver: zodResolver(generalInfoSchema),
     defaultValues: {
       firstName: data.firstName,
