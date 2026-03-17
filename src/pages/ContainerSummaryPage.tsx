@@ -151,6 +151,28 @@ export default function ContainerSummaryPage() {
           checkedInAt = containerCheckin.checkin_time || containerCheckin.checked_in_at || containerCheckin.created_at || null;
         }
 
+        // Find container pickup confirmed (BL jobs - EIR photos)
+        const pickupConfirmed = checkins.find((c: any) =>
+          c.checkin_type === 'container_pickup_confirmed'
+        );
+        if (pickupConfirmed) {
+          pickupConfirmedAt = pickupConfirmed.checkin_time || pickupConfirmed.checked_in_at || pickupConfirmed.created_at || null;
+          const pPhotoUrlsRaw = pickupConfirmed.photo_urls;
+          if (Array.isArray(pPhotoUrlsRaw)) {
+            pickupPhotoUrls = pPhotoUrlsRaw.filter(Boolean);
+          } else if (typeof pPhotoUrlsRaw === 'string') {
+            try {
+              const parsed = JSON.parse(pPhotoUrlsRaw);
+              pickupPhotoUrls = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch {
+              pickupPhotoUrls = [];
+            }
+          }
+          if (pickupPhotoUrls.length === 0 && pickupConfirmed.photo_url) {
+            pickupPhotoUrls = [pickupConfirmed.photo_url];
+          }
+        }
+
         // Find container return check-in
         const returnCheckin = checkins.find((c: any) =>
           c.checkin_type === 'container_return'
