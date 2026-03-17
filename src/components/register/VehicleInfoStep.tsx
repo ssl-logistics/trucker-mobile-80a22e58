@@ -329,7 +329,20 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
 
         <div className="space-y-2">
           <Label>{t('vehicleInfoStep.loadCapacity')} <span className="text-destructive">*</span></Label>
-          <Input {...register("loadCapacity")} className={errors.loadCapacity ? "border-destructive" : ""} />
+          <Input
+            inputMode="numeric"
+            {...register("loadCapacity")}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+              e.target.value = raw ? Number(raw).toLocaleString() : '';
+              setValue("loadCapacity", raw);
+            }}
+            value={(() => {
+              const v = watch("loadCapacity");
+              return v ? Number(v).toLocaleString() : '';
+            })()}
+            className={cn("text-right", errors.loadCapacity ? "border-destructive" : "")}
+          />
           {errors.loadCapacity && <p className="text-sm text-destructive">{errors.loadCapacity.message}</p>}
         </div>
 
