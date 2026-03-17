@@ -432,7 +432,9 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
             />
           </div>
           {(errors.priceRangeMin || errors.priceRangeMax) && (
-            <p className="text-sm text-destructive">{t('generalInfo.validation.priceRange')}</p>
+            <p className="text-sm text-destructive">
+              {errors.priceRangeMin?.message || errors.priceRangeMax?.message || t('generalInfo.validation.priceRange')}
+            </p>
           )}
         </div>
       </div>
