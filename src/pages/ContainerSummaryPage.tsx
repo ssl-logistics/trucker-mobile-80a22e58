@@ -24,6 +24,9 @@ interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   sop_photo_url: string | null;
+  // Container pickup confirmed (BL jobs)
+  pickup_confirmed_at: string | null;
+  pickup_photo_urls: string[];
   // Container return specific
   return_checked_in_at: string | null;
   return_confirmed_at: string | null;
@@ -41,8 +44,11 @@ export default function ContainerSummaryPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
+  const rawPickupPhotoUrls = sopData?.pickup_photo_urls || [];
   const rawReturnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
+  const { urls: presignedPickupPhotoUrls } = usePresignedImageUrls(rawPickupPhotoUrls);
   const { urls: presignedReturnPhotoUrls } = usePresignedImageUrls(rawReturnPhotoUrls);
+  const pickupPhotoUrls = presignedPickupPhotoUrls.filter((url): url is string => Boolean(url));
   const returnPhotoUrls = presignedReturnPhotoUrls.filter((url): url is string => Boolean(url));
 
   const fromParam = new URLSearchParams(location.search).get('from');
@@ -115,6 +121,8 @@ export default function ContainerSummaryPage() {
       const { data: checkinResult, error: checkinError } = await getDriverCheckins(driverId, driverType, jobId);
 
       let checkedInAt: string | null = null;
+      let pickupConfirmedAt: string | null = null;
+      let pickupPhotoUrls: string[] = [];
       let returnCheckedInAt: string | null = null;
       let returnConfirmedAt: string | null = null;
       let returnPhotoUrl: string | null = null;
@@ -141,6 +149,28 @@ export default function ContainerSummaryPage() {
         );
         if (containerCheckin) {
           checkedInAt = containerCheckin.checkin_time || containerCheckin.checked_in_at || containerCheckin.created_at || null;
+        }
+
+        // Find container pickup confirmed (BL jobs - EIR photos)
+        const pickupConfirmed = checkins.find((c: any) =>
+          c.checkin_type === 'container_pickup_confirmed'
+        );
+        if (pickupConfirmed) {
+          pickupConfirmedAt = pickupConfirmed.checkin_time || pickupConfirmed.checked_in_at || pickupConfirmed.created_at || null;
+          const pPhotoUrlsRaw = pickupConfirmed.photo_urls;
+          if (Array.isArray(pPhotoUrlsRaw)) {
+            pickupPhotoUrls = pPhotoUrlsRaw.filter(Boolean);
+          } else if (typeof pPhotoUrlsRaw === 'string') {
+            try {
+              const parsed = JSON.parse(pPhotoUrlsRaw);
+              pickupPhotoUrls = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch {
+              pickupPhotoUrls = [];
+            }
+          }
+          if (pickupPhotoUrls.length === 0 && pickupConfirmed.photo_url) {
+            pickupPhotoUrls = [pickupConfirmed.photo_url];
+          }
         }
 
         // Find container return check-in
@@ -201,6 +231,8 @@ export default function ContainerSummaryPage() {
         checked_in_at: checkedInAt,
         sop_completed_at: sopCompletedAt,
         sop_photo_url: sopPhotoUrlVal,
+        pickup_confirmed_at: pickupConfirmedAt,
+        pickup_photo_urls: pickupPhotoUrls,
         return_checked_in_at: returnCheckedInAt,
         return_confirmed_at: returnConfirmedAt,
         return_photo_url: returnPhotoUrl,
@@ -265,6 +297,41 @@ export default function ContainerSummaryPage() {
         {/* Action Buttons */}
         <JobActionButtons jobId={jobId!} orderNumber={jobId!} checkinType={checkinType as any} completedAt={sopData?.return_confirmed_at || sopData?.sop_completed_at} />
 
+        {/* Container Pickup Confirmed Status (BL jobs) */}
+        {sopData?.pickup_confirmed_at && (
+          <Card className="p-4 bg-green-50 border-green-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-green-900">แนบหลักฐานรับตู้สำเร็จ</div>
+                <div className="text-sm text-green-700">
+                  {formatDateTime(sopData.pickup_confirmed_at, language)}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Container Pickup Evidence Photos (EIR for BL jobs) */}
+        {pickupPhotoUrls.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">เอกสารรับตู้ ({pickupPhotoUrls.length} รูป)</div>
+            <div className="grid grid-cols-2 gap-2">
+              {pickupPhotoUrls.map((url, idx) => (
+                <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                  <img 
+                    src={url} 
+                    alt={`Container Pickup Document ${idx + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Container Return Check-in Status */}
         {sopData?.return_checked_in_at && (
           <Card className="p-4 bg-green-50 border-green-200">
@@ -282,7 +349,7 @@ export default function ContainerSummaryPage() {
           </Card>
         )}
 
-        {/* Container Return Document Photo */}
+        {/* Container Return Document Photos */}
         {returnPhotoUrls.length > 0 && (
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">เอกสารคืนตู้ ({returnPhotoUrls.length} รูป)</div>
