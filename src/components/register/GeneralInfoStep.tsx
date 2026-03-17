@@ -31,8 +31,8 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     username: z.string().min(1, t('generalInfo.validation.usernameRequired')),
     password: z.string().min(8, t('generalInfo.validation.passwordMin')),
     confirmPassword: z.string().min(8, t('generalInfo.validation.confirmPasswordMin')),
-    priceRangeMin: z.string().min(1, t('generalInfo.validation.priceMinRequired')),
-    priceRangeMax: z.string().min(1, t('generalInfo.validation.priceMaxRequired')),
+    priceRangeMin: z.string().min(1, t('generalInfo.validation.priceMinRequired')).regex(/^\d+$/, t('generalInfo.validation.priceNumericOnly')),
+    priceRangeMax: z.string().min(1, t('generalInfo.validation.priceMaxRequired')).regex(/^\d+$/, t('generalInfo.validation.priceNumericOnly')),
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('generalInfo.validation.passwordMismatch'),
     path: ["confirmPassword"],
