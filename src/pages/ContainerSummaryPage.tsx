@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { formatDateTime } from '@/lib/dateUtils';
-import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
+import { usePresignedImageUrls } from '@/hooks/usePresignedImageUrl';
 import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop } from '@/lib/externalApi';
 
 interface JobDetail {
@@ -41,8 +41,9 @@ export default function ContainerSummaryPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
-  const returnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
+  const rawReturnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
+  const { urls: presignedReturnPhotoUrls } = usePresignedImageUrls(rawReturnPhotoUrls);
+  const returnPhotoUrls = presignedReturnPhotoUrls.filter((url): url is string => Boolean(url));
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
@@ -157,7 +158,20 @@ export default function ContainerSummaryPage() {
         if (returnConfirmed) {
           returnConfirmedAt = returnConfirmed.checkin_time || returnConfirmed.checked_in_at || returnConfirmed.created_at || null;
           returnPhotoUrl = returnConfirmed.photo_url || null;
-          returnPhotoUrls = returnConfirmed.photo_urls || (returnPhotoUrl ? [returnPhotoUrl] : []);
+          const photoUrlsRaw = returnConfirmed.photo_urls;
+          if (Array.isArray(photoUrlsRaw)) {
+            returnPhotoUrls = photoUrlsRaw.filter(Boolean);
+          } else if (typeof photoUrlsRaw === 'string') {
+            try {
+              const parsed = JSON.parse(photoUrlsRaw);
+              returnPhotoUrls = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch {
+              returnPhotoUrls = [];
+            }
+          }
+          if (returnPhotoUrls.length === 0 && returnPhotoUrl) {
+            returnPhotoUrls = [returnPhotoUrl];
+          }
         }
       }
 
