@@ -6040,6 +6040,8 @@ const zhTranslations: Record<string, string> = {
   'generalInfo.validation.priceMinRequired': '请输入最低价格',
   'generalInfo.validation.priceMaxRequired': '请输入最高价格',
   'generalInfo.validation.priceRange': '请输入有效的价格范围',
+  'generalInfo.validation.priceNumericOnly': '请只输入数字',
+  'generalInfo.validation.priceMinExceedsMax': '最低价格不能大于最高价格',
   
   // Vehicle Photos Step
   'vehiclePhotosStep.frontPhoto': '车辆前照片',
