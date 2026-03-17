@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -61,7 +62,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [checkingUsername, setCheckingUsername] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm<GeneralInfoFormData>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<GeneralInfoFormData>({
     resolver: zodResolver(generalInfoSchema),
     defaultValues: {
       firstName: data.firstName,
@@ -418,11 +419,15 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               inputMode="numeric"
               {...register("priceRangeMin")}
               onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '');
-                e.target.value = value;
-                setValue("priceRangeMin", value);
+                const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                e.target.value = raw ? Number(raw).toLocaleString() : '';
+                setValue("priceRangeMin", raw);
               }}
-              className={errors.priceRangeMin ? "border-destructive" : ""}
+              value={(() => {
+                const v = watch("priceRangeMin");
+                return v ? Number(v).toLocaleString() : '';
+              })()}
+              className={cn("text-right", errors.priceRangeMin ? "border-destructive" : "")}
             />
             <span className="text-muted-foreground">—</span>
             <Input
@@ -430,11 +435,15 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               inputMode="numeric"
               {...register("priceRangeMax")}
               onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '');
-                e.target.value = value;
-                setValue("priceRangeMax", value);
+                const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                e.target.value = raw ? Number(raw).toLocaleString() : '';
+                setValue("priceRangeMax", raw);
               }}
-              className={errors.priceRangeMax ? "border-destructive" : ""}
+              value={(() => {
+                const v = watch("priceRangeMax");
+                return v ? Number(v).toLocaleString() : '';
+              })()}
+              className={cn("text-right", errors.priceRangeMax ? "border-destructive" : "")}
             />
           </div>
           {(errors.priceRangeMin || errors.priceRangeMax) && (
