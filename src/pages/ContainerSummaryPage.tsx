@@ -24,6 +24,9 @@ interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   sop_photo_url: string | null;
+  // Container pickup confirmed (BL jobs)
+  pickup_confirmed_at: string | null;
+  pickup_photo_urls: string[];
   // Container return specific
   return_checked_in_at: string | null;
   return_confirmed_at: string | null;
