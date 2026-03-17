@@ -603,15 +603,16 @@ const ContainerSOPPage = () => {
       // Send driverCheckin for container return
       if (isContainerReturn) {
         try {
-          const checkinPayload = {
+          const checkinPayload: Parameters<typeof driverCheckin>[0] = {
             order_number: jobDetail!.order_code,
             driver_id: user.id,
             driver_type: driverType,
             checkin_type: 'container_return_confirmed',
-            photo_url: publicUrl,
             notes: 'ยืนยันคืนตู้สำเร็จ',
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
+            ...(eirUrls.length > 0 && { photo_urls: eirUrls }),
+            ...(publicUrl && { photo_url: publicUrl }),
           };
           const { error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
