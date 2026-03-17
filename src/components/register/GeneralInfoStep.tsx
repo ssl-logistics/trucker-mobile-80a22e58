@@ -62,6 +62,16 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [checkingUsername, setCheckingUsername] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
+  const normalizeNumericString = (value: string | undefined) => {
+    if (!value) return "";
+    return value.replace(/\D/g, "").replace(/^0+/, "");
+  };
+
+  const formatNumericDisplay = (value: string | undefined) => {
+    const normalized = normalizeNumericString(value);
+    return normalized ? Number(normalized).toLocaleString() : "";
+  };
+
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<GeneralInfoFormData>({
     resolver: zodResolver(generalInfoSchema),
     defaultValues: {
@@ -72,8 +82,8 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
       username: data.username,
       password: data.password,
       confirmPassword: data.confirmPassword,
-      priceRangeMin: data.priceRangeMin,
-      priceRangeMax: data.priceRangeMax,
+      priceRangeMin: normalizeNumericString(data.priceRangeMin),
+      priceRangeMax: normalizeNumericString(data.priceRangeMax),
     }
   });
 
