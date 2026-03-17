@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
+import { cn } from "@/lib/utils";
 
 interface ExpenseLineItem {
   description: string;
