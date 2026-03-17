@@ -231,6 +231,8 @@ export default function ContainerSummaryPage() {
         checked_in_at: checkedInAt,
         sop_completed_at: sopCompletedAt,
         sop_photo_url: sopPhotoUrlVal,
+        pickup_confirmed_at: pickupConfirmedAt,
+        pickup_photo_urls: pickupPhotoUrls,
         return_checked_in_at: returnCheckedInAt,
         return_confirmed_at: returnConfirmedAt,
         return_photo_url: returnPhotoUrl,
