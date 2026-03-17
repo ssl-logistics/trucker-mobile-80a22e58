@@ -28,6 +28,7 @@ interface SOPData {
   return_checked_in_at: string | null;
   return_confirmed_at: string | null;
   return_photo_url: string | null;
+  return_photo_urls: string[];
 }
 
 export default function ContainerSummaryPage() {
