@@ -261,6 +261,34 @@ export default function ContainerSummaryPage() {
         return_photo_urls: returnPhotoUrls,
       });
 
+      // Fetch OCR scan data for container/seal photos
+      try {
+        const { data: ocrResult, error: ocrError } = await getOcrContainerScans(undefined, 10, jobId);
+        if (!ocrError && ocrResult) {
+          const ocrArr = (ocrResult as any)?.data || ocrResult || [];
+          const ocrRecord = Array.isArray(ocrArr) ? ocrArr[0] : null;
+          if (ocrRecord) {
+            const parseUrls = (raw: any): string[] => {
+              if (Array.isArray(raw)) return raw.filter(Boolean);
+              if (typeof raw === 'string') {
+                try { const p = JSON.parse(raw); return Array.isArray(p) ? p.filter(Boolean) : []; } catch { return []; }
+              }
+              return [];
+            };
+            setOcrScanData({
+              container_no: ocrRecord.container_no || null,
+              seal_no: ocrRecord.seal_no || null,
+              container_image_url: ocrRecord.container_image_url || null,
+              seal_image_url: ocrRecord.seal_image_url || null,
+              container_photos: parseUrls(ocrRecord.container_photos),
+              eir_photos: parseUrls(ocrRecord.eir_photos),
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('OCR scan data fetch failed:', e);
+      }
+
     } catch (error) {
       console.error('Error loading container summary:', error);
       toast({
