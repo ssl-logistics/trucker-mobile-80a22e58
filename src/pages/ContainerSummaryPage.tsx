@@ -189,6 +189,7 @@ export default function ContainerSummaryPage() {
         return_checked_in_at: returnCheckedInAt,
         return_confirmed_at: returnConfirmedAt,
         return_photo_url: returnPhotoUrl,
+        return_photo_urls: returnPhotoUrls,
       });
 
     } catch (error) {
