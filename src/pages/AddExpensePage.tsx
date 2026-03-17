@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
+import { cn } from "@/lib/utils";
 
 interface ExpenseLineItem {
   description: string;
@@ -712,11 +713,14 @@ const AddExpensePage = () => {
               </Label>
               <Input
                 id={`amount-${expense.id}`}
-                type="number"
+                inputMode="numeric"
                 placeholder="0"
-                value={expense.amount}
-                onChange={(e) => handleExpenseChange(expense.id, "amount", e.target.value)}
-                className={getTotalOCRAmount(expense) > 0 ? "border-green-300 ring-1 ring-green-200" : ""}
+                value={expense.amount ? Number(expense.amount).toLocaleString() : ''}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                  handleExpenseChange(expense.id, "amount", raw);
+                }}
+                className={cn("text-right", getTotalOCRAmount(expense) > 0 ? "border-green-300 ring-1 ring-green-200" : "")}
               />
             </div>
 
