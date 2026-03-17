@@ -297,6 +297,41 @@ export default function ContainerSummaryPage() {
         {/* Action Buttons */}
         <JobActionButtons jobId={jobId!} orderNumber={jobId!} checkinType={checkinType as any} completedAt={sopData?.return_confirmed_at || sopData?.sop_completed_at} />
 
+        {/* Container Pickup Confirmed Status (BL jobs) */}
+        {sopData?.pickup_confirmed_at && (
+          <Card className="p-4 bg-green-50 border-green-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-green-900">แนบหลักฐานรับตู้สำเร็จ</div>
+                <div className="text-sm text-green-700">
+                  {formatDateTime(sopData.pickup_confirmed_at, language)}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Container Pickup Evidence Photos (EIR for BL jobs) */}
+        {pickupPhotoUrls.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">เอกสารรับตู้ ({pickupPhotoUrls.length} รูป)</div>
+            <div className="grid grid-cols-2 gap-2">
+              {pickupPhotoUrls.map((url, idx) => (
+                <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                  <img 
+                    src={url} 
+                    alt={`Container Pickup Document ${idx + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Container Return Check-in Status */}
         {sopData?.return_checked_in_at && (
           <Card className="p-4 bg-green-50 border-green-200">
@@ -314,7 +349,7 @@ export default function ContainerSummaryPage() {
           </Card>
         )}
 
-        {/* Container Return Document Photo */}
+        {/* Container Return Document Photos */}
         {returnPhotoUrls.length > 0 && (
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">เอกสารคืนตู้ ({returnPhotoUrls.length} รูป)</div>
