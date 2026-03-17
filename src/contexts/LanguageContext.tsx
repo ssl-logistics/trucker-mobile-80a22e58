@@ -2431,6 +2431,8 @@ const enTranslations: Record<string, string> = {
   'generalInfo.validation.priceMinRequired': 'Please enter minimum price',
   'generalInfo.validation.priceMaxRequired': 'Please enter maximum price',
   'generalInfo.validation.priceRange': 'Please enter price range',
+  'generalInfo.validation.priceNumericOnly': 'Please enter numbers only',
+  'generalInfo.validation.priceMinExceedsMax': 'Minimum price cannot exceed maximum price',
   
   // Vehicle Info Validation
   'validation.plateNumberRequired': 'Please enter plate number',
