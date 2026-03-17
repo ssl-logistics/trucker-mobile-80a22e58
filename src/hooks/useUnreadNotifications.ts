@@ -44,6 +44,17 @@ export function useUnreadNotifications() {
 
     fetchUnreadCount();
 
+    // Refetch when user returns to the app/tab (e.g. after reading notifications)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUnreadCount();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Refetch when navigating back (focus event)
+    window.addEventListener('focus', fetchUnreadCount);
+
     // Subscribe to realtime updates using driver ID
     const channel = supabase
       .channel('unread-notifications')
@@ -61,7 +72,13 @@ export function useUnreadNotifications() {
       )
       .subscribe();
 
+    // Poll every 30s as fallback
+    const interval = setInterval(fetchUnreadCount, 30000);
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', fetchUnreadCount);
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [driverId]);
