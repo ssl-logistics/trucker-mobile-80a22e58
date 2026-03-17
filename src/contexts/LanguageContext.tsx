@@ -3745,6 +3745,8 @@ const koTranslations: Record<string, string> = {
   'generalInfo.validation.priceMinRequired': '최소 가격을 입력하세요',
   'generalInfo.validation.priceMaxRequired': '최대 가격을 입력하세요',
   'generalInfo.validation.priceRange': '가격 범위를 입력하세요',
+  'generalInfo.validation.priceNumericOnly': '숫자만 입력하세요',
+  'generalInfo.validation.priceMinExceedsMax': '최소 가격이 최대 가격보다 클 수 없습니다',
   
   // Vehicle Info Validation
   'validation.plateNumberRequired': '차량 번호를 입력하세요',
