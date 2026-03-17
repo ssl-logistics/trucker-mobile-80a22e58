@@ -542,7 +542,7 @@ const AddExpensePage = () => {
                   </div>
                 ))}
                 
-                {/* Add Photo Button */}
+                {/* Camera Button */}
                 <div className="relative">
                   <input
                     type="file"
@@ -550,16 +550,31 @@ const AddExpensePage = () => {
                     capture="environment"
                     onChange={(e) => handlePhotoSelect(expense.id, e)}
                     className="hidden"
-                    id={`photo-${expense.id}`}
+                    id={`photo-camera-${expense.id}`}
                   />
                   <label
-                    htmlFor={`photo-${expense.id}`}
+                    htmlFor={`photo-camera-${expense.id}`}
                     className="block cursor-pointer h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground/50 transition-colors"
                   >
                     <Camera className="w-6 h-6 mb-1" />
-                    <p className="text-xs">
-                      {expense.receiptPhotos.length === 0 ? t('expense.clickToTake') : 'เพิ่มรูป'}
-                    </p>
+                    <p className="text-xs">{t('expense.takePhoto') || 'ถ่ายรูป'}</p>
+                  </label>
+                </div>
+                {/* Gallery Button */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePhotoSelect(expense.id, e)}
+                    className="hidden"
+                    id={`photo-gallery-${expense.id}`}
+                  />
+                  <label
+                    htmlFor={`photo-gallery-${expense.id}`}
+                    className="block cursor-pointer h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground/50 transition-colors"
+                  >
+                    <Plus className="w-6 h-6 mb-1" />
+                    <p className="text-xs">{t('expense.selectPhoto') || 'เลือกรูป'}</p>
                   </label>
                 </div>
               </div>
