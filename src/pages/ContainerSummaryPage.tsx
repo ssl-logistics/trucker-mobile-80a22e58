@@ -269,15 +269,19 @@ export default function ContainerSummaryPage() {
         )}
 
         {/* Container Return Document Photo */}
-        {returnPhotoUrl && (
+        {returnPhotoUrls.length > 0 && (
           <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">เอกสารคืนตู้</div>
-            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-              <img 
-                src={returnPhotoUrl} 
-                alt="Container Return Document" 
-                className="w-full h-full object-cover"
-              />
+            <div className="text-sm text-muted-foreground">เอกสารคืนตู้ ({returnPhotoUrls.length} รูป)</div>
+            <div className="grid grid-cols-2 gap-2">
+              {returnPhotoUrls.map((url, idx) => (
+                <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                  <img 
+                    src={url} 
+                    alt={`Container Return Document ${idx + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}
