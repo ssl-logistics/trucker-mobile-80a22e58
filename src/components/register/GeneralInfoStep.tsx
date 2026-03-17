@@ -31,11 +31,19 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     username: z.string().min(1, t('generalInfo.validation.usernameRequired')),
     password: z.string().min(8, t('generalInfo.validation.passwordMin')),
     confirmPassword: z.string().min(8, t('generalInfo.validation.confirmPasswordMin')),
-    priceRangeMin: z.string().min(1, t('generalInfo.validation.priceMinRequired')),
-    priceRangeMax: z.string().min(1, t('generalInfo.validation.priceMaxRequired')),
+    priceRangeMin: z.string().min(1, t('generalInfo.validation.priceMinRequired')).regex(/^\d+$/, t('generalInfo.validation.priceNumericOnly')),
+    priceRangeMax: z.string().min(1, t('generalInfo.validation.priceMaxRequired')).regex(/^\d+$/, t('generalInfo.validation.priceNumericOnly')),
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('generalInfo.validation.passwordMismatch'),
     path: ["confirmPassword"],
+  }).refine((data) => {
+    const min = parseInt(data.priceRangeMin, 10);
+    const max = parseInt(data.priceRangeMax, 10);
+    if (isNaN(min) || isNaN(max)) return true;
+    return min <= max;
+  }, {
+    message: t('generalInfo.validation.priceMinExceedsMax'),
+    path: ["priceRangeMin"],
   });
 
   type GeneralInfoFormData = z.infer<typeof generalInfoSchema>;
@@ -407,13 +415,19 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
           <div className="flex items-center gap-2">
             <Input
               placeholder={t('generalInfo.priceMin')}
-              {...register("priceRangeMin")}
+              inputMode="numeric"
+              {...register("priceRangeMin", {
+                onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, ''); }
+              })}
               className={errors.priceRangeMin ? "border-destructive" : ""}
             />
             <span className="text-muted-foreground">—</span>
             <Input
               placeholder={t('generalInfo.priceMax')}
-              {...register("priceRangeMax")}
+              inputMode="numeric"
+              {...register("priceRangeMax", {
+                onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, ''); }
+              })}
               className={errors.priceRangeMax ? "border-destructive" : ""}
             />
           </div>

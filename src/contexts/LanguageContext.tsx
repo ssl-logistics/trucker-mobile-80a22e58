@@ -862,6 +862,8 @@ const thTranslations: Record<string, string> = {
   'generalInfo.validation.priceMinRequired': 'กรุณากรอกราคาต่ำสุด',
   'generalInfo.validation.priceMaxRequired': 'กรุณากรอกราคาสูงสุด',
   'generalInfo.validation.priceRange': 'กรุณากรอกช่วงราคา',
+  'generalInfo.validation.priceNumericOnly': 'กรุณากรอกเฉพาะตัวเลข',
+  'generalInfo.validation.priceMinExceedsMax': 'ราคาต่ำสุดต้องไม่มากกว่าราคาสูงสุด',
   
   // Vehicle Info Validation
   'validation.plateNumberRequired': 'กรุณากรอกหมายเลขทะเบียน',
@@ -2429,6 +2431,8 @@ const enTranslations: Record<string, string> = {
   'generalInfo.validation.priceMinRequired': 'Please enter minimum price',
   'generalInfo.validation.priceMaxRequired': 'Please enter maximum price',
   'generalInfo.validation.priceRange': 'Please enter price range',
+  'generalInfo.validation.priceNumericOnly': 'Please enter numbers only',
+  'generalInfo.validation.priceMinExceedsMax': 'Minimum price cannot exceed maximum price',
   
   // Vehicle Info Validation
   'validation.plateNumberRequired': 'Please enter plate number',
@@ -3741,6 +3745,8 @@ const koTranslations: Record<string, string> = {
   'generalInfo.validation.priceMinRequired': '최소 가격을 입력하세요',
   'generalInfo.validation.priceMaxRequired': '최대 가격을 입력하세요',
   'generalInfo.validation.priceRange': '가격 범위를 입력하세요',
+  'generalInfo.validation.priceNumericOnly': '숫자만 입력하세요',
+  'generalInfo.validation.priceMinExceedsMax': '최소 가격이 최대 가격보다 클 수 없습니다',
   
   // Vehicle Info Validation
   'validation.plateNumberRequired': '차량 번호를 입력하세요',
@@ -6034,6 +6040,8 @@ const zhTranslations: Record<string, string> = {
   'generalInfo.validation.priceMinRequired': '请输入最低价格',
   'generalInfo.validation.priceMaxRequired': '请输入最高价格',
   'generalInfo.validation.priceRange': '请输入有效的价格范围',
+  'generalInfo.validation.priceNumericOnly': '请只输入数字',
+  'generalInfo.validation.priceMinExceedsMax': '最低价格不能大于最高价格',
   
   // Vehicle Photos Step
   'vehiclePhotosStep.frontPhoto': '车辆前照片',
