@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { formatDateTime } from '@/lib/dateUtils';
 import { usePresignedImageUrls } from '@/hooks/usePresignedImageUrl';
-import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop } from '@/lib/externalApi';
+import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getDriverSop, getOcrContainerScans } from '@/lib/externalApi';
 
 interface JobDetail {
   id: string;
