@@ -158,7 +158,20 @@ export default function ContainerSummaryPage() {
         if (returnConfirmed) {
           returnConfirmedAt = returnConfirmed.checkin_time || returnConfirmed.checked_in_at || returnConfirmed.created_at || null;
           returnPhotoUrl = returnConfirmed.photo_url || null;
-          returnPhotoUrls = returnConfirmed.photo_urls || (returnPhotoUrl ? [returnPhotoUrl] : []);
+          const photoUrlsRaw = returnConfirmed.photo_urls;
+          if (Array.isArray(photoUrlsRaw)) {
+            returnPhotoUrls = photoUrlsRaw.filter(Boolean);
+          } else if (typeof photoUrlsRaw === 'string') {
+            try {
+              const parsed = JSON.parse(photoUrlsRaw);
+              returnPhotoUrls = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch {
+              returnPhotoUrls = [];
+            }
+          }
+          if (returnPhotoUrls.length === 0 && returnPhotoUrl) {
+            returnPhotoUrls = [returnPhotoUrl];
+          }
         }
       }
 
