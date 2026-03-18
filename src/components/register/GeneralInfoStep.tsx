@@ -72,7 +72,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     return normalized ? Number(normalized).toLocaleString() : "";
   };
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<GeneralInfoFormData>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm<GeneralInfoFormData>({
     resolver: zodResolver(generalInfoSchema),
     defaultValues: {
       firstName: data.firstName,
