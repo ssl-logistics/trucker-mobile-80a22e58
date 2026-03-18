@@ -37,14 +37,6 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('generalInfo.validation.passwordMismatch'),
     path: ["confirmPassword"],
-  }).refine((data) => {
-    const min = parseInt(data.priceRangeMin, 10);
-    const max = parseInt(data.priceRangeMax, 10);
-    if (isNaN(min) || isNaN(max)) return true;
-    return min < max;
-  }, {
-    message: t('generalInfo.validation.priceMinExceedsMax'),
-    path: ["priceRangeMin"],
   });
 
   type GeneralInfoFormData = z.infer<typeof generalInfoSchema>;
