@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Upload, Smartphone, FileDown, Loader2, Trash2, Truck, Store, Monitor } from 'lucide-react';
+import { Download, Upload, Smartphone, FileDown, Loader2, Trash2, Store, Monitor } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import truckerLogo from '@/assets/trucker-logo.png';
+import truckerIcon from '@/assets/trucker-icon.png';
 
 interface ApkFile {
   name: string;
@@ -17,7 +19,7 @@ type AppType = 'trucker' | 'dealer' | 'pos';
 const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; description: string; color: string; gradient: string }> = {
   trucker: {
     name: 'The Trucker',
-    icon: <Truck className="w-8 h-8" />,
+    icon: <img src={truckerIcon} alt="The Trucker" className="w-8 h-8 rounded" />,
     description: 'แอปสำหรับคนขับรถบรรทุก',
     color: 'from-emerald-600 to-emerald-800',
     gradient: 'from-emerald-600 via-emerald-700 to-emerald-900',
