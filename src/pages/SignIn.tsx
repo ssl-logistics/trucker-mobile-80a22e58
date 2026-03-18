@@ -65,6 +65,9 @@ const SignIn = () => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const currentPlatform = Capacitor.getPlatform();
+  const showAppleSignIn = currentPlatform !== 'android';
+  console.log('[Apple Sign In] Platform:', currentPlatform, 'Show:', showAppleSignIn);
 
   // Get app version from native app - immediate fallback for web
   useEffect(() => {
