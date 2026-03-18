@@ -65,6 +65,9 @@ const SignIn = () => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const currentPlatform = Capacitor.getPlatform();
+  const showAppleSignIn = currentPlatform !== 'android';
+  console.log('[Apple Sign In] Platform:', currentPlatform, 'Show:', showAppleSignIn);
 
   // Get app version from native app - immediate fallback for web
   useEffect(() => {
@@ -409,11 +412,7 @@ const SignIn = () => {
           </div>
 
           {/* Apple Sign In - show on iOS and Web only */}
-          {(() => {
-            const platform = Capacitor.getPlatform();
-            console.log('[Apple Sign In] Platform detected:', platform);
-            return platform !== 'android';
-          })() && (
+          {showAppleSignIn && (
             <div className="flex justify-center">
             <button
               type="button"
