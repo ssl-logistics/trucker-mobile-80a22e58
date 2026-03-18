@@ -12,6 +12,7 @@ interface ApkFile {
   size: number;
   created_at: string;
   url: string;
+  folder?: string;
 }
 
 type AppType = 'trucker' | 'dealer' | 'pos';
@@ -117,9 +118,9 @@ const DownloadAppPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (fileName: string) => {
-    if (!confirm(`ต้องการลบ ${fileName} หรือไม่?`)) return;
-    const fullPath = `${selectedApp}/${fileName}`;
+  const handleDelete = async (file: ApkFile) => {
+    if (!confirm(`ต้องการลบ ${file.name} หรือไม่?`)) return;
+    const fullPath = file.folder ? `${file.folder}/${file.name}` : file.name;
     const { error } = await supabase.storage.from('apk-files').remove([fullPath]);
     if (error) {
       toast({ title: 'ลบไม่สำเร็จ', variant: 'destructive' });
@@ -309,7 +310,7 @@ const DownloadAppPage: React.FC = () => {
                   {apkFiles.map(f => (
                     <div key={f.name} className="flex items-center justify-between text-xs p-2 rounded bg-muted/50">
                       <span className="truncate max-w-[180px]">{f.name}</span>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(f.name)}>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(f)}>
                         <Trash2 className="w-3 h-3 text-destructive" />
                       </Button>
                     </div>
