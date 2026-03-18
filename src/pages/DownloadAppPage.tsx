@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Upload, Smartphone, FileDown, Loader2, Trash2, Truck, Store, Monitor } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import truckerLogo from '@/assets/trucker-logo.png';
 
 interface ApkFile {
   name: string;
