@@ -310,7 +310,7 @@ const DownloadAppPage: React.FC = () => {
                   {apkFiles.map(f => (
                     <div key={f.name} className="flex items-center justify-between text-xs p-2 rounded bg-muted/50">
                       <span className="truncate max-w-[180px]">{f.name}</span>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(f.name)}>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(f)}>
                         <Trash2 className="w-3 h-3 text-destructive" />
                       </Button>
                     </div>
