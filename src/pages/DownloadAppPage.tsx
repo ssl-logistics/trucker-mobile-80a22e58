@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Upload, Smartphone, FileDown, Loader2, Trash2 } from 'lucide-react';
+import { Download, Upload, Smartphone, FileDown, Loader2, Trash2, Truck, Store, Monitor } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface ApkFile {
@@ -12,16 +12,48 @@ interface ApkFile {
   url: string;
 }
 
+type AppType = 'trucker' | 'dealer' | 'pos';
+
+const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; description: string; color: string; gradient: string }> = {
+  trucker: {
+    name: 'The Trucker',
+    icon: <Truck className="w-8 h-8" />,
+    description: 'แอปสำหรับคนขับรถบรรทุก',
+    color: 'from-emerald-600 to-emerald-800',
+    gradient: 'from-emerald-600 via-emerald-700 to-emerald-900',
+  },
+  dealer: {
+    name: 'Dealer',
+    icon: <Store className="w-8 h-8" />,
+    description: 'แอปสำหรับตัวแทนจำหน่าย',
+    color: 'from-blue-600 to-blue-800',
+    gradient: 'from-blue-600 via-blue-700 to-blue-900',
+  },
+  pos: {
+    name: 'POS',
+    icon: <Monitor className="w-8 h-8" />,
+    description: 'แอประบบขายหน้าร้าน',
+    color: 'from-violet-600 to-violet-800',
+    gradient: 'from-violet-600 via-violet-700 to-violet-900',
+  },
+};
+
 const DownloadAppPage: React.FC = () => {
+  const [selectedApp, setSelectedApp] = useState<AppType | null>(null);
   const [apkFiles, setApkFiles] = useState<ApkFile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    loadApkFiles();
     checkAdmin();
   }, []);
+
+  useEffect(() => {
+    if (selectedApp) {
+      loadApkFiles(selectedApp);
+    }
+  }, [selectedApp]);
 
   const checkAdmin = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -31,24 +63,23 @@ const DownloadAppPage: React.FC = () => {
         .select('role')
         .eq('user_id', session.user.id)
         .maybeSingle();
-      // Allow company or factory roles to upload
       if (data?.role === 'company' || data?.role === 'factory') {
         setIsAdmin(true);
       }
     }
   };
 
-  const loadApkFiles = async () => {
+  const loadApkFiles = async (appType: AppType) => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('list-apk-files');
-
+      const { data, error } = await supabase.functions.invoke('list-apk-files', {
+        body: { appType },
+      });
       if (error) {
         console.error('Error loading APK files:', error);
         setApkFiles([]);
         return;
       }
-
-      console.log('APK files result:', data);
       setApkFiles(data?.files || []);
     } catch (err) {
       console.error('Error:', err);
@@ -59,7 +90,7 @@ const DownloadAppPage: React.FC = () => {
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !selectedApp) return;
 
     if (!file.name.endsWith('.apk')) {
       toast({ title: 'กรุณาเลือกไฟล์ .apk เท่านั้น', variant: 'destructive' });
@@ -68,16 +99,14 @@ const DownloadAppPage: React.FC = () => {
 
     setUploading(true);
     try {
-      const fileName = `TheTroob-v${Date.now()}.apk`;
+      const fileName = `${selectedApp}/${selectedApp}-v${Date.now()}.apk`;
       const { error } = await supabase.storage.from('apk-files').upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
       });
-
       if (error) throw error;
-
       toast({ title: 'อัปโหลดสำเร็จ!' });
-      loadApkFiles();
+      loadApkFiles(selectedApp);
     } catch (err: any) {
       toast({ title: 'อัปโหลดล้มเหลว', description: err.message, variant: 'destructive' });
     } finally {
@@ -93,7 +122,7 @@ const DownloadAppPage: React.FC = () => {
       toast({ title: 'ลบไม่สำเร็จ', variant: 'destructive' });
     } else {
       toast({ title: 'ลบสำเร็จ' });
-      loadApkFiles();
+      if (selectedApp) loadApkFiles(selectedApp);
     }
   };
 
@@ -104,17 +133,73 @@ const DownloadAppPage: React.FC = () => {
   };
 
   const latestApk = apkFiles[0];
+  const config = selectedApp ? APP_CONFIG[selectedApp] : null;
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80">
-      <div className="max-w-lg mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-primary-foreground/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Smartphone className="w-10 h-10 text-primary-foreground" />
+  // App selection screen
+  if (!selectedApp) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="max-w-lg mx-auto px-4 py-10">
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Smartphone className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">ดาวน์โหลดแอป</h1>
+            <p className="text-white/60 text-sm">เลือกแอปที่ต้องการติดตั้ง</p>
           </div>
-          <h1 className="text-3xl font-bold text-primary-foreground mb-2">The Trucker</h1>
-          <p className="text-primary-foreground/80">ดาวน์โหลดแอปพลิเคชันสำหรับ Android</p>
+
+          <div className="space-y-4">
+            {(Object.keys(APP_CONFIG) as AppType[]).map((appType) => {
+              const app = APP_CONFIG[appType];
+              return (
+                <button
+                  key={appType}
+                  onClick={() => setSelectedApp(appType)}
+                  className="w-full group"
+                >
+                  <Card className="border-0 shadow-xl bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 group-hover:scale-[1.02]">
+                    <CardContent className="flex items-center gap-4 p-5">
+                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white shadow-lg`}>
+                        {app.icon}
+                      </div>
+                      <div className="text-left flex-1">
+                        <h2 className="text-lg font-bold text-white">{app.name}</h2>
+                        <p className="text-white/50 text-sm">{app.description}</p>
+                      </div>
+                      <Download className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" />
+                    </CardContent>
+                  </Card>
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-center text-white/30 text-xs mt-10">
+            © {new Date().getFullYear()} The Troob. All rights reserved.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // App detail / download screen
+  return (
+    <div className={`min-h-screen bg-gradient-to-br ${config!.gradient}`}>
+      <div className="max-w-lg mx-auto px-4 py-8">
+        {/* Back + Header */}
+        <button
+          onClick={() => { setSelectedApp(null); setApkFiles([]); }}
+          className="text-white/70 hover:text-white text-sm mb-6 flex items-center gap-1 transition-colors"
+        >
+          ← กลับ
+        </button>
+
+        <div className="text-center mb-8">
+          <div className={`w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 text-white`}>
+            {config!.icon}
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">{config!.name}</h1>
+          <p className="text-white/70">{config!.description} — Android</p>
         </div>
 
         {/* Download Card */}
@@ -163,7 +248,7 @@ const DownloadAppPage: React.FC = () => {
           <Card className="mb-6 border-0 shadow-xl">
             <CardContent className="py-8 text-center">
               <FileDown className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">ยังไม่มีไฟล์ APK</p>
+              <p className="text-muted-foreground">ยังไม่มีไฟล์ APK สำหรับ {config!.name}</p>
             </CardContent>
           </Card>
         )}
@@ -189,7 +274,7 @@ const DownloadAppPage: React.FC = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Upload className="w-4 h-4" />
-                อัปโหลด APK ใหม่
+                อัปโหลด APK ใหม่ ({config!.name})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -226,8 +311,8 @@ const DownloadAppPage: React.FC = () => {
           </Card>
         )}
 
-        <p className="text-center text-primary-foreground/60 text-xs mt-8">
-          © {new Date().getFullYear()} The Trucker. All rights reserved.
+        <p className="text-center text-white/40 text-xs mt-8">
+          © {new Date().getFullYear()} The Troob. All rights reserved.
         </p>
       </div>
     </div>
