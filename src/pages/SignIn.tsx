@@ -412,11 +412,7 @@ const SignIn = () => {
           </div>
 
           {/* Apple Sign In - show on iOS and Web only */}
-          {(() => {
-            const platform = Capacitor.getPlatform();
-            console.log('[Apple Sign In] Platform detected:', platform);
-            return platform !== 'android';
-          })() && (
+          {showAppleSignIn && (
             <div className="flex justify-center">
             <button
               type="button"
