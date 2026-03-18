@@ -12,6 +12,7 @@ interface ApkFile {
   size: number;
   created_at: string;
   url: string;
+  folder?: string;
 }
 
 type AppType = 'trucker' | 'dealer' | 'pos';
