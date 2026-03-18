@@ -451,12 +451,12 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
                 setTimeout(() => trigger(["priceRangeMax"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMax"))}
-              className={cn("text-right", errors.priceRangeMax ? "border-destructive" : "")}
+              className={cn("text-right", (errors.priceRangeMax || priceRangeError) ? "border-destructive" : "")}
             />
           </div>
-          {(errors.priceRangeMin || errors.priceRangeMax) && (
+          {(errors.priceRangeMin || errors.priceRangeMax || priceRangeError) && (
             <p className="text-sm text-destructive">
-              {errors.priceRangeMin?.message || errors.priceRangeMax?.message || t('generalInfo.validation.priceRange')}
+              {priceRangeError || errors.priceRangeMin?.message || errors.priceRangeMax?.message || t('generalInfo.validation.priceRange')}
             </p>
           )}
         </div>
