@@ -19,7 +19,7 @@ type AppType = 'trucker' | 'dealer' | 'pos';
 const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; description: string; color: string; gradient: string }> = {
   trucker: {
     name: 'The Trucker',
-    icon: <img src={truckerIcon} alt="The Trucker" className="w-10 h-10 object-contain" />,
+    icon: <img src={truckerIcon} alt="The Trucker" className="w-14 h-14 object-cover rounded-xl" />,
     description: 'แอปสำหรับคนขับรถบรรทุก',
     color: 'from-emerald-600 to-emerald-800',
     gradient: 'from-emerald-600 via-emerald-700 to-emerald-900',
@@ -161,9 +161,15 @@ const DownloadAppPage: React.FC = () => {
                 >
                   <Card className="border-0 shadow-xl bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 group-hover:scale-[1.02]">
                     <CardContent className="flex items-center gap-4 p-5">
-                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white shadow-lg`}>
-                        {app.icon}
-                      </div>
+                      {appType === 'trucker' ? (
+                        <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
+                          {app.icon}
+                        </div>
+                      ) : (
+                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white shadow-lg flex-shrink-0`}>
+                          {app.icon}
+                        </div>
+                      )}
                       <div className="text-left flex-1">
                         <h2 className="text-lg font-bold text-white">{app.name}</h2>
                         <p className="text-white/50 text-sm">{app.description}</p>
