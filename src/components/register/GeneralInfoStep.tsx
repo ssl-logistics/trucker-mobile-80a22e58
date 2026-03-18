@@ -430,10 +430,8 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               {...register("priceRangeMin")}
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
-                setValue("priceRangeMin", raw, { shouldValidate: true, shouldDirty: true });
-                // Trigger cross-field validation
-                const maxVal = watch("priceRangeMax");
-                if (maxVal) setValue("priceRangeMax", maxVal, { shouldValidate: true });
+                setValue("priceRangeMin", raw, { shouldDirty: true });
+                setTimeout(() => trigger(["priceRangeMin", "priceRangeMax"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMin"))}
               className={cn("text-right", errors.priceRangeMin ? "border-destructive" : "")}
