@@ -118,9 +118,9 @@ const DownloadAppPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (fileName: string) => {
-    if (!confirm(`ต้องการลบ ${fileName} หรือไม่?`)) return;
-    const fullPath = `${selectedApp}/${fileName}`;
+  const handleDelete = async (file: ApkFile) => {
+    if (!confirm(`ต้องการลบ ${file.name} หรือไม่?`)) return;
+    const fullPath = file.folder ? `${file.folder}/${file.name}` : file.name;
     const { error } = await supabase.storage.from('apk-files').remove([fullPath]);
     if (error) {
       toast({ title: 'ลบไม่สำเร็จ', variant: 'destructive' });
