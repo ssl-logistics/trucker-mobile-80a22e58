@@ -408,20 +408,36 @@ const SignIn = () => {
           </button>
           </div>
 
-          {/* Apple Sign In - hide on Android */}
-          {Capacitor.getPlatform() !== 'android' && (
+          {/* Apple Sign In - show on iOS and Web only */}
+          {(() => {
+            const platform = Capacitor.getPlatform();
+            console.log('[Apple Sign In] Platform detected:', platform);
+            return platform !== 'android';
+          })() && (
             <div className="flex justify-center">
             <button
               type="button"
               onClick={async () => {
                 try {
                   setIsLoggingIn(true);
-                  const { error } = await lovable.auth.signInWithOAuth("apple", {
-                    redirect_uri: window.location.origin,
-                  });
-                  if (error) {
-                    console.error('[Apple Login] Error:', error);
-                    toast({ title: t('signIn.error'), variant: 'destructive' });
+                  console.log('[Apple Login] Starting OAuth flow...');
+                  
+                  if (Capacitor.isNativePlatform()) {
+                    // On native iOS, open OAuth in external browser
+                    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                    const redirectUrl = `${window.location.origin}`;
+                    const appleAuthUrl = `${supabaseUrl}/auth/v1/authorize?provider=apple&redirect_to=${encodeURIComponent(redirectUrl)}`;
+                    console.log('[Apple Login] Opening in browser:', appleAuthUrl);
+                    await Browser.open({ url: appleAuthUrl });
+                  } else {
+                    // On web, use lovable OAuth
+                    const { error } = await lovable.auth.signInWithOAuth("apple", {
+                      redirect_uri: window.location.origin,
+                    });
+                    if (error) {
+                      console.error('[Apple Login] Error:', error);
+                      toast({ title: t('signIn.error'), variant: 'destructive' });
+                    }
                   }
                 } catch (err) {
                   console.error('[Apple Login] Error:', err);
