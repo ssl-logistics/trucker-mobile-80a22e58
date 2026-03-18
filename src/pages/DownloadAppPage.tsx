@@ -19,7 +19,7 @@ type AppType = 'trucker' | 'dealer' | 'pos';
 const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; description: string; color: string; gradient: string }> = {
   trucker: {
     name: 'The Trucker',
-    icon: <img src={truckerIcon} alt="The Trucker" className="w-full h-full object-cover scale-[1.6]" />,
+    icon: <img src={truckerIcon} alt="The Trucker" className="w-full h-full object-cover scale-[1.8]" />,
     description: 'แอปสำหรับคนขับรถบรรทุก',
     color: 'from-emerald-600 to-emerald-800',
     gradient: 'from-emerald-600 via-emerald-700 to-emerald-900',
