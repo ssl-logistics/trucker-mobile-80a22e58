@@ -72,7 +72,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     return normalized ? Number(normalized).toLocaleString() : "";
   };
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<GeneralInfoFormData>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm<GeneralInfoFormData>({
     resolver: zodResolver(generalInfoSchema),
     defaultValues: {
       firstName: data.firstName,
@@ -430,7 +430,8 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               {...register("priceRangeMin")}
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
-                setValue("priceRangeMin", raw, { shouldValidate: true, shouldDirty: true });
+                setValue("priceRangeMin", raw, { shouldDirty: true });
+                setTimeout(() => trigger(["priceRangeMin", "priceRangeMax"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMin"))}
               className={cn("text-right", errors.priceRangeMin ? "border-destructive" : "")}
@@ -442,7 +443,8 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               {...register("priceRangeMax")}
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
-                setValue("priceRangeMax", raw, { shouldValidate: true, shouldDirty: true });
+                setValue("priceRangeMax", raw, { shouldDirty: true });
+                setTimeout(() => trigger(["priceRangeMin", "priceRangeMax"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMax"))}
               className={cn("text-right", errors.priceRangeMax ? "border-destructive" : "")}
