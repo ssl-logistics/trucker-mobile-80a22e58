@@ -37,14 +37,6 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('generalInfo.validation.passwordMismatch'),
     path: ["confirmPassword"],
-  }).refine((data) => {
-    const min = parseInt(data.priceRangeMin, 10);
-    const max = parseInt(data.priceRangeMax, 10);
-    if (isNaN(min) || isNaN(max)) return true;
-    return min < max;
-  }, {
-    message: t('generalInfo.validation.priceMinExceedsMax'),
-    path: ["priceRangeMin"],
   });
 
   type GeneralInfoFormData = z.infer<typeof generalInfoSchema>;
@@ -59,6 +51,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showPhotoError, setShowPhotoError] = useState(false);
   const [usernameError, setUsernameError] = useState<string>("");
+  const [priceRangeError, setPriceRangeError] = useState<string>("");
   const [checkingUsername, setCheckingUsername] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -142,8 +135,17 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const onSubmit = async (formData: GeneralInfoFormData) => {
     setShowPhotoError(true);
     setUsernameError("");
+    setPriceRangeError("");
     
     if (!profilePhotoFile) {
+      return;
+    }
+
+    // Check price range: min must be less than max
+    const min = parseInt(formData.priceRangeMin, 10);
+    const max = parseInt(formData.priceRangeMax, 10);
+    if (!isNaN(min) && !isNaN(max) && min >= max) {
+      setPriceRangeError(t('generalInfo.validation.priceMinExceedsMax'));
       return;
     }
     
@@ -431,10 +433,11 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
                 setValue("priceRangeMin", raw, { shouldDirty: true });
-                setTimeout(() => trigger(["priceRangeMin", "priceRangeMax"]), 0);
+                setPriceRangeError("");
+                setTimeout(() => trigger(["priceRangeMin"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMin"))}
-              className={cn("text-right", errors.priceRangeMin ? "border-destructive" : "")}
+              className={cn("text-right", (errors.priceRangeMin || priceRangeError) ? "border-destructive" : "")}
             />
             <span className="text-muted-foreground">—</span>
             <Input
@@ -444,15 +447,16 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
                 setValue("priceRangeMax", raw, { shouldDirty: true });
-                setTimeout(() => trigger(["priceRangeMin", "priceRangeMax"]), 0);
+                setPriceRangeError("");
+                setTimeout(() => trigger(["priceRangeMax"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMax"))}
-              className={cn("text-right", errors.priceRangeMax ? "border-destructive" : "")}
+              className={cn("text-right", (errors.priceRangeMax || priceRangeError) ? "border-destructive" : "")}
             />
           </div>
-          {(errors.priceRangeMin || errors.priceRangeMax) && (
+          {(errors.priceRangeMin || errors.priceRangeMax || priceRangeError) && (
             <p className="text-sm text-destructive">
-              {errors.priceRangeMin?.message || errors.priceRangeMax?.message || t('generalInfo.validation.priceRange')}
+              {priceRangeError || errors.priceRangeMin?.message || errors.priceRangeMax?.message || t('generalInfo.validation.priceRange')}
             </p>
           )}
         </div>
