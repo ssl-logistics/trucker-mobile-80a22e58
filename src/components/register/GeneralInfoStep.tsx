@@ -433,10 +433,11 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
                 setValue("priceRangeMin", raw, { shouldDirty: true });
-                setTimeout(() => trigger(["priceRangeMin", "priceRangeMax"]), 0);
+                setPriceRangeError("");
+                setTimeout(() => trigger(["priceRangeMin"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMin"))}
-              className={cn("text-right", errors.priceRangeMin ? "border-destructive" : "")}
+              className={cn("text-right", (errors.priceRangeMin || priceRangeError) ? "border-destructive" : "")}
             />
             <span className="text-muted-foreground">—</span>
             <Input
@@ -446,7 +447,8 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
                 setValue("priceRangeMax", raw, { shouldDirty: true });
-                setTimeout(() => trigger(["priceRangeMin", "priceRangeMax"]), 0);
+                setPriceRangeError("");
+                setTimeout(() => trigger(["priceRangeMax"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMax"))}
               className={cn("text-right", errors.priceRangeMax ? "border-destructive" : "")}
