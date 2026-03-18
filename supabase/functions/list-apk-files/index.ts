@@ -12,12 +12,15 @@ serve(async (req) => {
   }
 
   try {
+    const { appType } = await req.json().catch(() => ({}));
+    const folder = appType || 'trucker';
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data, error } = await supabaseAdmin.storage.from('apk-files').list('', {
+    const { data, error } = await supabaseAdmin.storage.from('apk-files').list(folder, {
       sortBy: { column: 'created_at', order: 'desc' },
     });
 
@@ -30,7 +33,7 @@ serve(async (req) => {
         name: f.name,
         size: f.metadata?.size || 0,
         created_at: f.created_at || '',
-        url: `${supabaseUrl}/storage/v1/object/public/apk-files/${encodeURIComponent(f.name)}`,
+        url: `${supabaseUrl}/storage/v1/object/public/apk-files/${folder}/${encodeURIComponent(f.name)}`,
       }));
 
     return new Response(JSON.stringify({ files }), {
