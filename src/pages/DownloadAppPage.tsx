@@ -18,7 +18,7 @@ type AppType = 'trucker' | 'dealer' | 'pos';
 const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; description: string; gradient: string }> = {
   trucker: {
     name: 'The Trucker',
-    icon: <Truck className="w-8 h-8" />,
+    icon: <img src={truckerLogo} alt="The Trucker" className="w-10 h-10 object-contain" />,
     description: 'ดาวน์โหลดแอปพลิเคชันสำหรับ Android',
     gradient: 'from-emerald-600 via-emerald-700 to-emerald-800',
   },
