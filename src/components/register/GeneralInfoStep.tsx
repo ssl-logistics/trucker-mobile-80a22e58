@@ -51,6 +51,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showPhotoError, setShowPhotoError] = useState(false);
   const [usernameError, setUsernameError] = useState<string>("");
+  const [priceRangeError, setPriceRangeError] = useState<string>("");
   const [checkingUsername, setCheckingUsername] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
