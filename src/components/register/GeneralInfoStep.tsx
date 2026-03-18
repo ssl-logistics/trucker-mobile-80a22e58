@@ -135,8 +135,17 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
   const onSubmit = async (formData: GeneralInfoFormData) => {
     setShowPhotoError(true);
     setUsernameError("");
+    setPriceRangeError("");
     
     if (!profilePhotoFile) {
+      return;
+    }
+
+    // Check price range: min must be less than max
+    const min = parseInt(formData.priceRangeMin, 10);
+    const max = parseInt(formData.priceRangeMax, 10);
+    if (!isNaN(min) && !isNaN(max) && min >= max) {
+      setPriceRangeError(t('generalInfo.validation.priceMinExceedsMax'));
       return;
     }
     
