@@ -28,8 +28,8 @@ const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; descrip
     name: 'Dealer',
     icon: <Store className="w-8 h-8" />,
     description: 'แอปสำหรับตัวแทนจำหน่าย',
-    color: 'from-blue-600 to-blue-800',
-    gradient: 'from-blue-600 via-blue-700 to-blue-900',
+    color: 'from-orange-600 to-red-700',
+    gradient: 'from-orange-600 via-red-700 to-red-900',
   },
   pos: {
     name: 'POS',
