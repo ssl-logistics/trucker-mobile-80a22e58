@@ -2,28 +2,45 @@
  * CallProvider
  *
  * Global provider using ZegoCloud for voice calls.
- * Signaling via polling external API /call-signal.
+ * Navigates to /call page when a call is active.
  */
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useZegoCall } from '@/hooks/useZegoCall';
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
-import { VoiceCallOverlay } from './VoiceCallOverlay';
+import type { CallState } from '@/hooks/useZegoCall';
 
 interface CallContextType {
   startCall: (peerId: string, peerName: string, peerAvatar?: string | null, conversationId?: string) => Promise<void>;
   callState: string;
+  callInfo: { peerId: string; peerName: string; peerAvatar?: string | null; conversationId?: string; signalId?: string } | null;
+  isMuted: boolean;
+  callDuration: number;
+  acceptCall: () => Promise<void>;
+  endCall: () => void;
+  rejectCall: () => void;
+  toggleMute: () => void;
 }
 
 const CallContext = createContext<CallContextType>({
   startCall: async () => {},
   callState: 'idle',
+  callInfo: null,
+  isMuted: false,
+  callDuration: 0,
+  acceptCall: async () => {},
+  endCall: () => {},
+  rejectCall: () => {},
+  toggleMute: () => {},
 });
 
 export const useCall = () => useContext(CallContext);
 
 export function CallProvider({ children }: { children: React.ReactNode }) {
   const { user, userType } = useAuth();
+  const navigate = useNavigate();
+  const prevCallStateRef = useRef<CallState>('idle');
 
   const userId = useMemo(() => {
     if (!user) return null;
@@ -52,25 +69,31 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     toggleMute,
   } = useZegoCall(userId, driverType);
 
+  // Navigate to /call page when call becomes active
+  useEffect(() => {
+    const prev = prevCallStateRef.current;
+    prevCallStateRef.current = callState;
+
+    if (prev === 'idle' && callState !== 'idle') {
+      navigate('/call');
+    }
+  }, [callState, navigate]);
+
   const contextValue = useMemo(() => ({
     startCall,
     callState,
-  }), [startCall, callState]);
+    callInfo,
+    isMuted,
+    callDuration,
+    acceptCall,
+    endCall,
+    rejectCall,
+    toggleMute,
+  }), [startCall, callState, callInfo, isMuted, callDuration, acceptCall, endCall, rejectCall, toggleMute]);
 
   return (
     <CallContext.Provider value={contextValue}>
       {children}
-      <VoiceCallOverlay
-        callState={callState as any}
-        peerName={callInfo?.peerName || ''}
-        peerAvatar={callInfo?.peerAvatar}
-        isMuted={isMuted}
-        callDuration={callDuration}
-        onAccept={acceptCall}
-        onReject={rejectCall}
-        onEnd={endCall}
-        onToggleMute={toggleMute}
-      />
     </CallContext.Provider>
   );
 }

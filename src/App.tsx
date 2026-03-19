@@ -81,6 +81,7 @@ const PushDebugPage = lazyWithPreload(() => import("./pages/PushDebugPage"));
 const BidJobDetailPage = lazyWithPreload(() => import("./pages/BidJobDetailPage"));
 const DownloadAppPage = lazyWithPreload(() => import("./pages/DownloadAppPage"));
 const ReportAppProblemPage = lazyWithPreload(() => import("./pages/ReportAppProblemPage"));
+const CallPage = lazyWithPreload(() => import("./pages/CallPage"));
 
 // Export pages for preloading from other components
 export const preloadablePages = {
@@ -201,6 +202,7 @@ const App = () => (
                     <Route path="/api-test" element={<ProtectedRoute><ApiTestPage /></ProtectedRoute>} />
                     <Route path="/push-debug" element={<PushDebugPage />} />
                     <Route path="/download" element={<DownloadAppPage />} />
+                    <Route path="/call" element={<ProtectedRoute><CallPage /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
