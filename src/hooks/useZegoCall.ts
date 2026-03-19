@@ -191,19 +191,28 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     setCallInfo(null);
   }, [currentUserId]);
 
-  // Send signal response via PATCH
+  // Send signal response via GET with action param
   const sendSignalResponse = useCallback(async (signalId: string, responseType: 'accepted' | 'rejected' | 'ended') => {
+    if (!currentUserId) return;
+
     handledSignalIdsRef.current.add(signalId);
     if (handledSignalIdsRef.current.size > 300) {
       handledSignalIdsRef.current.clear();
       handledSignalIdsRef.current.add(signalId);
     }
 
+    const actionMap: Record<string, string> = { accepted: 'accept', rejected: 'reject', ended: 'end' };
+    const action = actionMap[responseType] || responseType;
+
     try {
-      const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal`, {
-        method: 'PATCH',
+      const params = new URLSearchParams({
+        driver_id: currentUserId,
+        driver_type: driverType,
+        action,
+        signal_id: signalId,
+      });
+      const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal?${params}`, {
         headers: CALL_SIGNAL_HEADERS,
-        body: JSON.stringify({ signal_id: signalId, response_type: responseType }),
       });
 
       if (!res.ok) {
@@ -213,7 +222,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     } catch (e) {
       console.error('[Zego] Signal response exception:', e);
     }
-  }, []);
+  }, [currentUserId, driverType]);
 
   // Start outgoing call (still uses signaling for outbound - caller side)
   const startCall = useCallback(async (
