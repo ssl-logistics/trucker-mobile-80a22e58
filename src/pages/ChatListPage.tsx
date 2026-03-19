@@ -262,18 +262,6 @@ export default function ChatListPage() {
       </div>
 
       <PullToRefresh onRefresh={async () => { await loadConversations(); }}>
-        <div className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder={t('chat.search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-300 border-none"
-            />
-          </div>
-        </div>
 
         <div className="divide-y divide-border">
           {filteredConversations.map(renderConversationItem)}
