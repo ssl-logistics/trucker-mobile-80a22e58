@@ -7,6 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import truckerLogo from '@/assets/trucker-logo.png';
 import truckerIcon from '@/assets/trucker-icon.png';
 import dealerIcon from '@/assets/dealer-icon.png';
+import posIcon from '@/assets/pos-icon.png';
 
 interface ApkFile {
   name: string;
@@ -35,7 +36,7 @@ const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; descrip
   },
   pos: {
     name: 'POS',
-    icon: <img src={dealerIcon} alt="POS" className="w-full h-full object-cover rounded-xl" />,
+    icon: <img src={posIcon} alt="POS" className="w-full h-full object-cover rounded-xl" />,
     description: 'แอประบบขายหน้าร้าน',
     color: 'from-violet-600 to-violet-800',
     gradient: 'from-violet-600 via-violet-700 to-violet-900',
