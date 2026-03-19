@@ -8,6 +8,13 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { callExternalApi } from '@/lib/externalApi';
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
 
+const CALL_SIGNAL_BASE_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
+const CALL_SIGNAL_HEADERS = {
+  'Content-Type': 'application/json',
+  'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+  apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5Zmt3ZXd0ZXhueXNrYmtnc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1NjA0OTQsImV4cCI6MjA1NjEzNjQ5NH0.MOkMINVTOGzXENJn9OKU2kXqqDOzGKAl1el1b8RCzoI',
+} as const;
+
 export type CallState = 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
 
 interface CallSignal {
@@ -53,6 +60,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   const currentRoomIdRef = useRef<string | null>(null);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callStateRef = useRef<CallState>('idle');
+  const handledSignalIdsRef = useRef<Set<string>>(new Set());
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -182,13 +190,22 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
   // Send signal response via PATCH
   const sendSignalResponse = useCallback(async (signalId: string, responseType: 'accepted' | 'rejected' | 'ended') => {
+    handledSignalIdsRef.current.add(signalId);
+    if (handledSignalIdsRef.current.size > 300) {
+      handledSignalIdsRef.current.clear();
+      handledSignalIdsRef.current.add(signalId);
+    }
+
     try {
-      const { error } = await callExternalApi('call-signal', {
+      const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal`, {
         method: 'PATCH',
-        body: { signal_id: signalId, response_type: responseType },
+        headers: CALL_SIGNAL_HEADERS,
+        body: JSON.stringify({ signal_id: signalId, response_type: responseType }),
       });
-      if (error) {
-        console.error('[Zego] Signal response error:', error);
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('[Zego] Signal response error:', errText || `HTTP ${res.status}`);
       }
     } catch (e) {
       console.error('[Zego] Signal response exception:', e);
@@ -297,14 +314,9 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
       try {
         // Use silent fetch to avoid spamming console with polling errors
-        const baseUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
         const params = new URLSearchParams({ driver_id: currentUserId, driver_type: driverType });
-        const res = await fetch(`${baseUrl}/call-signal?${params}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5Zmt3ZXd0ZXhueXNrYmtnc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1NjA0OTQsImV4cCI6MjA1NjEzNjQ5NH0.MOkMINVTOGzXENJn9OKU2kXqqDOzGKAl1el1b8RCzoI',
-          },
+        const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal?${params}`, {
+          headers: CALL_SIGNAL_HEADERS,
         });
 
         if (!res.ok) return;
@@ -313,6 +325,10 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
         if (!result?.has_call || !result.signal) return;
 
         const signal = result.signal;
+        const signalId = signal.signal_id || signal.id;
+        if (!signalId) return;
+        if (handledSignalIdsRef.current.has(signalId)) return;
+
         console.log('[Zego] Incoming call signal:', signal);
 
         // Store room_id from server for joining ZegoCloud
@@ -323,7 +339,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
           peerName: signal.caller_name || 'Unknown',
           peerAvatar: signal.caller_avatar,
           conversationId: signal.conversation_id,
-          signalId: signal.signal_id || signal.id,
+          signalId,
         });
         setCallState('ringing');
       } catch {
