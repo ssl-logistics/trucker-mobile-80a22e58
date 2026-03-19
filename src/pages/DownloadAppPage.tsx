@@ -6,6 +6,7 @@ import { Download, Upload, Smartphone, FileDown, Loader2, Trash2, Store, Monitor
 import { toast } from '@/hooks/use-toast';
 import truckerLogo from '@/assets/trucker-logo.png';
 import truckerIcon from '@/assets/trucker-icon.png';
+import dealerIcon from '@/assets/dealer-icon.png';
 
 interface ApkFile {
   name: string;
@@ -19,22 +20,22 @@ type AppType = 'trucker' | 'dealer' | 'pos';
 
 const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; description: string; color: string; gradient: string }> = {
   trucker: {
-    name: 'The Trucker',
-    icon: <img src={truckerIcon} alt="The Trucker" className="w-full h-full object-cover scale-[1.8]" />,
+    name: 'The Trucker Mobile',
+    icon: <img src={truckerIcon} alt="The Trucker Mobile" className="w-full h-full object-cover scale-[1.8]" />,
     description: 'แอปสำหรับคนขับรถบรรทุก',
     color: 'from-emerald-600 to-emerald-800',
     gradient: 'from-emerald-600 via-emerald-700 to-emerald-900',
   },
   dealer: {
     name: 'Dealer',
-    icon: <Store className="w-8 h-8" />,
+    icon: <img src={dealerIcon} alt="Dealer" className="w-full h-full object-cover rounded-xl" />,
     description: 'แอปสำหรับตัวแทนจำหน่าย',
     color: 'from-orange-600 to-red-700',
     gradient: 'from-orange-600 via-red-700 to-red-900',
   },
   pos: {
     name: 'POS',
-    icon: <Monitor className="w-8 h-8" />,
+    icon: <img src={dealerIcon} alt="POS" className="w-full h-full object-cover rounded-xl" />,
     description: 'แอประบบขายหน้าร้าน',
     color: 'from-violet-600 to-violet-800',
     gradient: 'from-violet-600 via-violet-700 to-violet-900',
@@ -163,15 +164,9 @@ const DownloadAppPage: React.FC = () => {
                 >
                   <Card className="border-0 shadow-xl bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 group-hover:scale-[1.02]">
                     <CardContent className="flex items-center gap-4 p-5">
-                      {appType === 'trucker' ? (
-                        <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
-                          {app.icon}
-                        </div>
-                      ) : (
-                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white shadow-lg flex-shrink-0`}>
-                          {app.icon}
-                        </div>
-                      )}
+                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
+                        {app.icon}
+                      </div>
                       <div className="text-left flex-1">
                         <h2 className="text-lg font-bold text-white">{app.name}</h2>
                         <p className="text-white/50 text-sm">{app.description}</p>
