@@ -22,11 +22,18 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 
-    // List files in the app-specific folder
-    const { data: folderData, error: folderError } = await supabaseAdmin.storage.from('apk-files').list(folder, {
+    // Name patterns for matching root-level files to app types
+    const namePatterns: Record<string, string[]> = {
+      trucker: ['trucker'],
+      dealer: ['dealer'],
+      pos: ['pos'],
+    };
+    const patterns = namePatterns[folder] || [folder];
+
+    // List files in the app-specific subfolder
+    const { data: folderData } = await supabaseAdmin.storage.from('apk-files').list(folder, {
       sortBy: { column: 'created_at', order: 'desc' },
     });
-    if (folderError) throw folderError;
 
     const files = (folderData || [])
       .filter(f => f.name && !f.name.startsWith('.') && f.id)
@@ -38,24 +45,26 @@ serve(async (req) => {
         folder,
       }));
 
-    // For trucker, also include legacy root-level APK files
-    if (folder === 'trucker') {
-      const { data: rootData } = await supabaseAdmin.storage.from('apk-files').list('', {
-        sortBy: { column: 'created_at', order: 'desc' },
-      });
-      const rootFiles = (rootData || [])
-        .filter(f => f.name && f.name.endsWith('.apk') && f.id)
-        .map(f => ({
-          name: f.name,
-          size: f.metadata?.size || 0,
-          created_at: f.created_at || '',
-          url: `${supabaseUrl}/storage/v1/object/public/apk-files/${encodeURIComponent(f.name)}`,
-          folder: '',
-        }));
-      files.push(...rootFiles);
-      // Sort all by created_at desc
-      files.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
-    }
+    // Also include root-level files that match this app's name pattern
+    const { data: rootData } = await supabaseAdmin.storage.from('apk-files').list('', {
+      sortBy: { column: 'created_at', order: 'desc' },
+    });
+    const rootFiles = (rootData || [])
+      .filter(f => {
+        if (!f.name || !f.id) return false;
+        const lower = f.name.toLowerCase();
+        if (!lower.endsWith('.apk')) return false;
+        return patterns.some(p => lower.includes(p));
+      })
+      .map(f => ({
+        name: f.name,
+        size: f.metadata?.size || 0,
+        created_at: f.created_at || '',
+        url: `${supabaseUrl}/storage/v1/object/public/apk-files/${encodeURIComponent(f.name)}`,
+        folder: '',
+      }));
+    files.push(...rootFiles);
+    files.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 
     return new Response(JSON.stringify({ files }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
