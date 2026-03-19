@@ -11,9 +11,11 @@ import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
 export type CallState = 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
 
 interface CallSignal {
-  signal_id: string;
+  id?: string;
+  signal_id?: string;
   room_id: string;
-  caller_id: string;
+  caller_id?: string;
+  caller_user_id?: string;
   caller_name: string;
   caller_avatar?: string | null;
   conversation_id?: string;
