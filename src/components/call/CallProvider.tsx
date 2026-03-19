@@ -25,11 +25,17 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
 
   const userId = useMemo(() => {
-    if (!user) return null;
+    if (!user) {
+      console.log('[CallProvider] No user found');
+      return null;
+    }
     try {
       const parsed = typeof user === 'string' ? JSON.parse(user) : user;
-      return parsed?.driver_id || parsed?.id || null;
-    } catch {
+      const id = parsed?.driver_id || parsed?.id || null;
+      console.log('[CallProvider] Resolved userId:', id, 'from user keys:', Object.keys(parsed || {}));
+      return id;
+    } catch (e) {
+      console.error('[CallProvider] Error parsing user:', e);
       return null;
     }
   }, [user]);
