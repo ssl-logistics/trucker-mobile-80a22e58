@@ -306,17 +306,21 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
         if (!res.ok) return;
 
-        const data = await res.json() as CallSignal;
-        if (!data?.signal_id) return;
+        const result = await res.json() as { has_call: boolean; signal: CallSignal | null };
+        if (!result?.has_call || !result.signal) return;
 
-        console.log('[Zego] Incoming call signal:', data);
+        const signal = result.signal;
+        console.log('[Zego] Incoming call signal:', signal);
+
+        // Store room_id from server for joining ZegoCloud
+        currentRoomIdRef.current = signal.room_id;
 
         setCallInfo({
-          peerId: data.caller_id,
-          peerName: data.caller_name || 'Unknown',
-          peerAvatar: data.caller_avatar,
-          conversationId: data.conversation_id,
-          signalId: data.signal_id,
+          peerId: signal.caller_id || signal.caller_user_id,
+          peerName: signal.caller_name || 'Unknown',
+          peerAvatar: signal.caller_avatar,
+          conversationId: signal.conversation_id,
+          signalId: signal.signal_id || signal.id,
         });
         setCallState('ringing');
       } catch {
