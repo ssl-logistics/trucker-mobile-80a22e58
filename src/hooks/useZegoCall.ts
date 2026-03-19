@@ -266,7 +266,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     }
 
     setCallState('connected');
-
+    callStartTimeRef.current = Date.now();
     // Start duration timer
     const start = Date.now();
     durationIntervalRef.current = setInterval(() => {
