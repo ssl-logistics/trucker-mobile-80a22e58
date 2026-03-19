@@ -293,12 +293,20 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       if (callStateRef.current !== 'idle') return;
 
       try {
-        const { data, error } = await callExternalApi<CallSignal>('call-signal', {
-          method: 'GET',
-          params: { driver_id: currentUserId, driver_type: driverType },
+        // Use silent fetch to avoid spamming console with polling errors
+        const baseUrl = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
+        const params = new URLSearchParams({ driver_id: currentUserId, driver_type: driverType });
+        const res = await fetch(`${baseUrl}/call-signal?${params}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+          },
         });
 
-        if (error || !data || !data.signal_id) return;
+        if (!res.ok) return;
+
+        const data = await res.json() as CallSignal;
+        if (!data?.signal_id) return;
 
         console.log('[Zego] Incoming call signal:', data);
 
@@ -310,7 +318,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
           signalId: data.signal_id,
         });
         setCallState('ringing');
-      } catch (e) {
+      } catch {
         // Silently ignore polling errors
       }
     };
