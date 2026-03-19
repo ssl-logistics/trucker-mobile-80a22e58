@@ -363,6 +363,44 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     }
   }, []);
 
+  // Poll for call status when in active call (connected/calling/ringing)
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const activeSignalId = callInfo?.signalId;
+    const state = callState;
+
+    // Only poll status when we have an active call with a signal ID
+    if (!activeSignalId || (state !== 'connected' && state !== 'calling' && state !== 'ringing')) return;
+
+    const pollCallStatus = async () => {
+      try {
+        const params = new URLSearchParams({
+          action: 'check_status',
+          signal_id: activeSignalId,
+          driver_id: currentUserId,
+          driver_type: driverType,
+        });
+        const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal?${params}`, {
+          headers: CALL_SIGNAL_HEADERS,
+        });
+        if (!res.ok) return;
+
+        const result = await res.json() as { signal_id: string; is_ended: boolean; signal_type: string; status: string };
+        if (result?.is_ended) {
+          console.log('[Zego] Remote ended detected via check_status:', result);
+          setCallState('ended');
+          setTimeout(() => cleanup(), 2000);
+        }
+      } catch {
+        // Silently ignore
+      }
+    };
+
+    const interval = setInterval(pollCallStatus, 2500);
+    return () => clearInterval(interval);
+  }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
+
   // Poll for incoming call signals every 2.5 seconds
   useEffect(() => {
     if (!currentUserId) return;
@@ -372,7 +410,6 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       if (callStateRef.current !== 'idle') return;
 
       try {
-        // Use silent fetch to avoid spamming console with polling errors
         const params = new URLSearchParams({ driver_id: currentUserId, driver_type: driverType });
         const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal?${params}`, {
           headers: CALL_SIGNAL_HEADERS,
@@ -390,7 +427,6 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
         console.log('[Zego] Incoming call signal:', signal);
 
-        // Store room_id from server for joining ZegoCloud
         currentRoomIdRef.current = signal.room_id;
 
         setCallInfo({
@@ -407,7 +443,6 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       }
     };
 
-    // Poll immediately then every 2.5 seconds
     pollCallSignal();
     pollingIntervalRef.current = setInterval(pollCallSignal, 2500);
 
