@@ -1656,7 +1656,7 @@ const enTranslations: Record<string, string> = {
   // Bottom Navigation
   'nav.home': 'Home',
   'nav.dashboard': 'Dashboard',
-  'nav.chat': 'Chat',
+  'nav.chat': 'Call',
   'nav.settings': 'Settings',
   
   // Home Page
