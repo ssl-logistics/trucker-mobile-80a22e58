@@ -20,22 +20,22 @@ type AppType = 'trucker' | 'dealer' | 'pos';
 
 const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; description: string; color: string; gradient: string }> = {
   trucker: {
-    name: 'The Trucker',
-    icon: <img src={truckerIcon} alt="The Trucker" className="w-full h-full object-cover scale-[1.8]" />,
+    name: 'The Trucker Mobile',
+    icon: <img src={truckerIcon} alt="The Trucker Mobile" className="w-full h-full object-cover scale-[1.8]" />,
     description: 'แอปสำหรับคนขับรถบรรทุก',
     color: 'from-emerald-600 to-emerald-800',
     gradient: 'from-emerald-600 via-emerald-700 to-emerald-900',
   },
   dealer: {
     name: 'Dealer',
-    icon: <Store className="w-8 h-8" />,
+    icon: <img src={dealerIcon} alt="Dealer" className="w-full h-full object-cover rounded-xl" />,
     description: 'แอปสำหรับตัวแทนจำหน่าย',
     color: 'from-orange-600 to-red-700',
     gradient: 'from-orange-600 via-red-700 to-red-900',
   },
   pos: {
     name: 'POS',
-    icon: <Monitor className="w-8 h-8" />,
+    icon: <img src={dealerIcon} alt="POS" className="w-full h-full object-cover rounded-xl" />,
     description: 'แอประบบขายหน้าร้าน',
     color: 'from-violet-600 to-violet-800',
     gradient: 'from-violet-600 via-violet-700 to-violet-900',
