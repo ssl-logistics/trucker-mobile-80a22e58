@@ -187,8 +187,11 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
     peerAvatar?: string | null,
     conversationId?: string
   ) => {
-    if (!currentUserId) return;
-    console.log('[Zego] Starting call to', peerId);
+    if (!currentUserId) {
+      console.error('[Zego] Cannot start call - currentUserId is null');
+      return;
+    }
+    console.log('[Zego] Starting call to', peerId, 'from', currentUserId);
 
     setCallInfo({ peerId, peerName, peerAvatar, conversationId });
     setCallState('calling');

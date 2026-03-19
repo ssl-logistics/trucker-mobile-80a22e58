@@ -159,8 +159,12 @@ export default function ChatListPage() {
   };
 
   const handleCall = (conv: Conversation) => {
+    console.log('[Call] handleCall triggered, peer_id:', conv.peer_id, 'conv:', conv.name);
     if (conv.peer_id) {
+      console.log('[Call] Starting call to peer:', conv.peer_id);
       startCall(conv.peer_id, conv.name || 'Unknown', conv.avatar_url, conv.id);
+    } else {
+      console.log('[Call] No peer_id found for conversation');
     }
   };
 
