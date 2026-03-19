@@ -97,6 +97,69 @@ export const useDeepLinkHandler = () => {
           }
         }
 
+        // Handle Apple auth callback (from Safari redirect with tokens)
+        // thetroob://apple-auth-callback?access_token=xxx&refresh_token=xxx
+        if (url.host === 'apple-auth-callback') {
+          console.log('[DeepLink] 🍎 Apple auth callback detected');
+          const accessToken = url.searchParams.get('access_token');
+          const refreshToken = url.searchParams.get('refresh_token');
+          
+          if (accessToken && refreshToken) {
+            try {
+              console.log('[DeepLink] 📡 Setting Supabase session...');
+              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+              
+              if (sessionError) {
+                console.error('[DeepLink] ❌ Session error:', sessionError);
+                toast({
+                  variant: 'destructive',
+                  title: 'เกิดข้อผิดพลาด',
+                  description: 'ไม่สามารถเข้าสู่ระบบ Apple ได้',
+                });
+                navigate('/', { replace: true });
+                return;
+              }
+              
+              const user = sessionData?.user;
+              console.log('[DeepLink] ✅ Apple auth success, user:', user?.email);
+              
+              // Store auth data
+              const appleDriver = {
+                id: user?.id || '',
+                full_name: user?.user_metadata?.full_name || user?.email || 'Apple User',
+                avatar_url: null,
+                loginType: 'apple',
+                email: user?.email,
+              };
+              await setAuthItem('auth_driver', JSON.stringify(appleDriver));
+              await setAuthItem('auth_login_type', 'apple');
+              
+              // Dispatch auth event
+              window.dispatchEvent(new Event('auth_driver_updated'));
+              
+              toast({
+                title: 'เข้าสู่ระบบสำเร็จ',
+                description: `ยินดีต้อนรับ ${appleDriver.full_name}`,
+              });
+              
+              navigate('/home', { replace: true });
+              return;
+            } catch (err) {
+              console.error('[DeepLink] ❌ Apple auth error:', err);
+              toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถเข้าสู่ระบบ Apple ได้',
+              });
+              navigate('/', { replace: true });
+              return;
+            }
+          }
+        }
+
         // Handle LINE auth success callback (from Safari redirect with encoded data)
         if (path === 'line-auth-success' || url.host === 'line-auth-success') {
           const encodedData = url.searchParams.get('data');

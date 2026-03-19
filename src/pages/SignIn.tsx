@@ -423,8 +423,10 @@ const SignIn = () => {
                   
                   if (Capacitor.isNativePlatform()) {
                     // On native iOS, open OAuth in external browser
+                    // Use published URL as redirect (capacitor://localhost won't work)
                     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                    const redirectUrl = `${window.location.origin}`;
+                    const publishedUrl = 'https://thetrucker-mobile.lovable.app';
+                    const redirectUrl = `${publishedUrl}/auth/apple/callback`;
                     const appleAuthUrl = `${supabaseUrl}/auth/v1/authorize?provider=apple&redirect_to=${encodeURIComponent(redirectUrl)}`;
                     console.log('[Apple Login] Opening in browser:', appleAuthUrl);
                     await Browser.open({ url: appleAuthUrl });
