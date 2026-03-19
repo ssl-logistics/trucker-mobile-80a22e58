@@ -3194,7 +3194,7 @@ const koTranslations: Record<string, string> = {
   // Bottom Navigation
   'nav.home': '홈',
   'nav.dashboard': '대시보드',
-  'nav.chat': '채팅',
+  'nav.chat': '전화',
   'nav.settings': '설정',
   
   // Home Page
