@@ -7,6 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import truckerLogo from '@/assets/trucker-logo.png';
 import truckerIcon from '@/assets/trucker-icon.png';
 import dealerIcon from '@/assets/dealer-icon.png';
+import posIcon from '@/assets/pos-icon.png';
 
 interface ApkFile {
   name: string;
