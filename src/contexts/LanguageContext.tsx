@@ -671,10 +671,10 @@ const thTranslations: Record<string, string> = {
   'jobDetail.containerReturn': 'จุดคืนตู้คอนเทนเนอร์',
   'jobDetail.deliveryDate': 'วันส่ง',
 
-  // Chat Page
-  'chat.title': 'แชท',
-  'chat.search': 'ค้นหาข้อความ',
-  'chat.company': 'บริษัท',
+  // Chat/Call Page
+  'chat.title': 'โทร',
+  'chat.search': 'ค้นหารายชื่อ',
+  'chat.company': 'แชทบริษัท',
   'chat.friends': 'เพื่อน',
   'chat.groups': 'กลุ่ม',
   'chat.online': 'ออนไลน์',
@@ -2240,10 +2240,10 @@ const enTranslations: Record<string, string> = {
   'jobDetail.containerReturn': 'Container Return Point',
   'jobDetail.deliveryDate': 'Delivery Date',
   
-  // Chat Page
-  'chat.title': 'Chat',
-  'chat.search': 'Search conversations',
-  'chat.company': 'Company',
+  // Chat/Call Page
+  'chat.title': 'Call',
+  'chat.search': 'Search contacts',
+  'chat.company': 'Company Chat',
   'chat.friends': 'Friends',
   'chat.groups': 'Groups',
   'chat.online': 'Online',
@@ -4484,10 +4484,10 @@ const koTranslations: Record<string, string> = {
   'jobDetail.startJobSuccess': '작업 시작 완료',
   'jobDetail.startJobSuccessDesc': '이제 배송 작업을 수행할 수 있습니다',
   
-  // Chat Page
-  'chat.title': '채팅',
-  'chat.search': '메시지 검색',
-  'chat.company': '회사',
+  // Chat/Call Page
+  'chat.title': '전화',
+  'chat.search': '연락처 검색',
+  'chat.company': '회사 채팅',
   'chat.friends': '친구',
   'chat.groups': '그룹',
   'chat.online': '온라인',
@@ -5665,10 +5665,10 @@ const zhTranslations: Record<string, string> = {
   'notifications.november': '十一月',
   'notifications.december': '十二月',
   
-  // Chat Page
-  'chat.title': '聊天',
-  'chat.search': '搜索对话',
-  'chat.company': '公司',
+  // Chat/Call Page
+  'chat.title': '电话',
+  'chat.search': '搜索联系人',
+  'chat.company': '公司聊天',
   'chat.friends': '朋友',
   'chat.groups': '群组',
   'chat.online': '在线',
