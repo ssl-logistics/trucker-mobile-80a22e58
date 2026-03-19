@@ -8,6 +8,13 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { callExternalApi } from '@/lib/externalApi';
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
 
+const CALL_SIGNAL_BASE_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
+const CALL_SIGNAL_HEADERS = {
+  'Content-Type': 'application/json',
+  'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+  apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5Zmt3ZXd0ZXhueXNrYmtnc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1NjA0OTQsImV4cCI6MjA1NjEzNjQ5NH0.MOkMINVTOGzXENJn9OKU2kXqqDOzGKAl1el1b8RCzoI',
+} as const;
+
 export type CallState = 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
 
 interface CallSignal {
