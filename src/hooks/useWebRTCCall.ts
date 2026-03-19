@@ -46,7 +46,7 @@ export function useWebRTCCall(currentUserId: string | null): UseWebRTCCallReturn
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const signalingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const incomingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
 
   // Create or get remote audio element
