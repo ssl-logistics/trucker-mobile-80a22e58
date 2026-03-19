@@ -205,6 +205,7 @@ const App = () => (
                   </Routes>
                 </Suspense>
               </div>
+              </CallProvider>
             </SwipeBackProvider>
           </HashRouter>
         </TooltipProvider>
