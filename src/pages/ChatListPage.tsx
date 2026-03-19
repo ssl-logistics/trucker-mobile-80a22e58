@@ -275,10 +275,8 @@ export default function ChatListPage() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          {renderSection(t('chat.company'), companyChats.length, companyChats, 'company')}
-          {renderSection(t('chat.friends'), friendChats.length, friendChats, 'friends')}
-          {renderSection(t('chat.groups'), groupChats.length, groupChats, 'groups')}
+        <div className="divide-y divide-border">
+          {filteredConversations.map(renderConversationItem)}
         </div>
       </PullToRefresh>
 
