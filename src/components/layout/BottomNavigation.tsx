@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useCall } from "@/components/call/CallProvider";
 import { createPortal } from "react-dom";
 import { useState, useEffect, useRef } from "react";
 import HomeIcon from "@/assets/home-icon.svg";
@@ -18,6 +19,7 @@ export function BottomNavigation() {
   const location = useLocation();
   const { t } = useLanguage();
   const { canAccessDashboard } = useUserRole();
+  const { callState } = useCall();
   const [mounted, setMounted] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
   
@@ -182,6 +184,9 @@ export function BottomNavigation() {
   );
   
   if (!mounted) return null;
+  
+  // Hide nav bar during active calls
+  if (callState !== 'idle') return null;
   
   return createPortal(navContent, document.body);
 }

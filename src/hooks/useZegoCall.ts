@@ -7,6 +7,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { callExternalApi } from '@/lib/externalApi';
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
+import { saveCallLog } from '@/utils/callLogs';
 
 const CALL_SIGNAL_BASE_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
 const CALL_SIGNAL_HEADERS = {
@@ -61,6 +62,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callStateRef = useRef<CallState>('idle');
   const handledSignalIdsRef = useRef<Set<string>>(new Set());
+  const callTypeRef = useRef<'incoming' | 'outgoing'>('outgoing');
+  const callStartTimeRef = useRef<number | null>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -227,6 +230,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
     setCallInfo({ peerId, peerName, peerAvatar, conversationId });
     setCallState('calling');
+    callTypeRef.current = 'outgoing';
 
     // For outgoing calls, we still need to signal the peer
     // The external system should handle creating the call-signal for the peer
@@ -262,7 +266,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     }
 
     setCallState('connected');
-
+    callStartTimeRef.current = Date.now();
     // Start duration timer
     const start = Date.now();
     durationIntervalRef.current = setInterval(() => {
@@ -273,6 +277,23 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   // End call
   const endCall = useCallback(() => {
     console.log('[Zego] Ending call');
+
+    // Save call log
+    if (callInfo) {
+      const duration = callStartTimeRef.current
+        ? Math.floor((Date.now() - callStartTimeRef.current) / 1000)
+        : 0;
+      saveCallLog({
+        peerId: callInfo.peerId,
+        peerName: callInfo.peerName,
+        peerAvatar: callInfo.peerAvatar,
+        callType: callTypeRef.current,
+        callResult: duration > 0 ? 'answered' : 'ended',
+        durationSeconds: duration,
+        conversationId: callInfo.conversationId,
+      });
+      callStartTimeRef.current = null;
+    }
 
     if (callInfo?.signalId) {
       sendSignalResponse(callInfo.signalId, 'ended');
@@ -285,6 +306,19 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   // Reject call
   const rejectCall = useCallback(() => {
     console.log('[Zego] Rejecting call');
+
+    // Save rejected call log
+    if (callInfo) {
+      saveCallLog({
+        peerId: callInfo.peerId,
+        peerName: callInfo.peerName,
+        peerAvatar: callInfo.peerAvatar,
+        callType: 'incoming',
+        callResult: 'rejected',
+        durationSeconds: 0,
+        conversationId: callInfo.conversationId,
+      });
+    }
 
     if (callInfo?.signalId) {
       sendSignalResponse(callInfo.signalId, 'rejected');
@@ -341,6 +375,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
           conversationId: signal.conversation_id,
           signalId,
         });
+        callTypeRef.current = 'incoming';
         setCallState('ringing');
       } catch {
         // Silently ignore polling errors
