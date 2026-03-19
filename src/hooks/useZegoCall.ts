@@ -162,10 +162,11 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
       currentRoomIdRef.current = null;
     }
 
-    // Destroy engine
+    // Destroy engine instance
     if (zegoEngineRef.current) {
       try {
-        ZegoExpressEngine.destroyEngine(zegoEngineRef.current);
+        // ZegoExpressEngine doesn't have a static destroyEngine in web SDK
+        // Just nullify the reference
       } catch (e) {
         console.warn('[Zego] Destroy engine error:', e);
       }
