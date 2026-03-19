@@ -117,7 +117,7 @@ const thTranslations: Record<string, string> = {
   // Bottom Navigation
   'nav.home': 'หน้าแรก',
   'nav.dashboard': 'แผงควบคุม',
-  'nav.chat': 'แชท',
+  'nav.chat': 'โทร',
   'nav.settings': 'ตั้งค่า',
   
   // Home Page
@@ -1656,7 +1656,7 @@ const enTranslations: Record<string, string> = {
   // Bottom Navigation
   'nav.home': 'Home',
   'nav.dashboard': 'Dashboard',
-  'nav.chat': 'Chat',
+  'nav.chat': 'Call',
   'nav.settings': 'Settings',
   
   // Home Page
@@ -3194,7 +3194,7 @@ const koTranslations: Record<string, string> = {
   // Bottom Navigation
   'nav.home': '홈',
   'nav.dashboard': '대시보드',
-  'nav.chat': '채팅',
+  'nav.chat': '전화',
   'nav.settings': '설정',
   
   // Home Page
@@ -5741,7 +5741,7 @@ const zhTranslations: Record<string, string> = {
   
   // Navigation
   'nav.home': '主页',
-  'nav.chat': '聊天',
+  'nav.chat': '电话',
   'nav.current_jobs': '当前工作',
   'nav.dashboard': '仪表盘',
   'nav.settings': '设置',
