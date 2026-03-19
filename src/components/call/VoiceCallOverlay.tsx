@@ -58,6 +58,10 @@ export function VoiceCallOverlay({
         paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 32px)',
         paddingLeft: '24px',
         paddingRight: '24px',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        overflow: 'hidden',
+        touchAction: 'none',
       }}
     >
       {/* Top: Status text */}
