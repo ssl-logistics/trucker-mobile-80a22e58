@@ -4484,10 +4484,10 @@ const koTranslations: Record<string, string> = {
   'jobDetail.startJobSuccess': '작업 시작 완료',
   'jobDetail.startJobSuccessDesc': '이제 배송 작업을 수행할 수 있습니다',
   
-  // Chat Page
-  'chat.title': '채팅',
-  'chat.search': '메시지 검색',
-  'chat.company': '회사',
+  // Chat/Call Page
+  'chat.title': '전화',
+  'chat.search': '연락처 검색',
+  'chat.company': '회사 채팅',
   'chat.friends': '친구',
   'chat.groups': '그룹',
   'chat.online': '온라인',
