@@ -64,7 +64,7 @@ function getApiKeyForEndpoint(endpoint: string): string {
 export async function callExternalApi<T>(
   endpoint: string,
   options: {
-    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
     params?: Record<string, string>;
     body?: unknown;
     headers?: Record<string, string>;
