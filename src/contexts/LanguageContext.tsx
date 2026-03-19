@@ -5665,10 +5665,10 @@ const zhTranslations: Record<string, string> = {
   'notifications.november': '十一月',
   'notifications.december': '十二月',
   
-  // Chat Page
-  'chat.title': '聊天',
-  'chat.search': '搜索对话',
-  'chat.company': '公司',
+  // Chat/Call Page
+  'chat.title': '电话',
+  'chat.search': '搜索联系人',
+  'chat.company': '公司聊天',
   'chat.friends': '朋友',
   'chat.groups': '群组',
   'chat.online': '在线',
