@@ -300,6 +300,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
           headers: {
             'Content-Type': 'application/json',
             'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5Zmt3ZXd0ZXhueXNrYmtnc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1NjA0OTQsImV4cCI6MjA1NjEzNjQ5NH0.MOkMINVTOGzXENJn9OKU2kXqqDOzGKAl1el1b8RCzoI',
           },
         });
 
