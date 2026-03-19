@@ -142,6 +142,7 @@ const App = () => (
           <Sonner />
           <HashRouter>
             <SwipeBackProvider>
+              <CallProvider>
               <DeepLinkListener />
               <div className="min-h-screen">
                 <PushNotificationPrompt />
