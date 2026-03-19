@@ -106,6 +106,14 @@ export const useDeepLinkHandler = () => {
           
           if (accessToken && refreshToken) {
             try {
+              // Close the browser FIRST to return to the app
+              try {
+                await Browser.close();
+                console.log('[DeepLink] 📱 Browser closed after Apple auth');
+              } catch (e) {
+                console.log('[DeepLink] Browser close skipped:', e);
+              }
+              
               console.log('[DeepLink] 📡 Setting Supabase session...');
               const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
                 access_token: accessToken,
@@ -117,7 +125,7 @@ export const useDeepLinkHandler = () => {
                 toast({
                   variant: 'destructive',
                   title: 'เกิดข้อผิดพลาด',
-                  description: 'ไม่สามารถเข้าสู่ระบบ Apple ได้',
+                  description: 'ไม่สามารถเข้าสู่ระบบ Apple ได้: ' + sessionError.message,
                 });
                 navigate('/', { replace: true });
                 return;
@@ -157,6 +165,15 @@ export const useDeepLinkHandler = () => {
               navigate('/', { replace: true });
               return;
             }
+          } else {
+            console.error('[DeepLink] ❌ Missing tokens in Apple callback');
+            toast({
+              variant: 'destructive',
+              title: 'เกิดข้อผิดพลาด',
+              description: 'ไม่ได้รับข้อมูลการยืนยันตัวตน',
+            });
+            navigate('/', { replace: true });
+            return;
           }
         }
 
