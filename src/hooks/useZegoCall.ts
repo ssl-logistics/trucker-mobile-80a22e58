@@ -95,7 +95,7 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
 
       zg.on('roomStateChanged', (roomID, reason, errorCode) => {
         console.log('[Zego] Room state changed:', roomID, reason, errorCode);
-        if (reason === 'LOGOUT' || reason === 'KICK_OUT') {
+        if (reason === 'LOGOUT' || reason === 'KICK_OUT' || reason === 'RECONNECT_FAILED') {
           setCallState('ended');
           setTimeout(() => cleanup(), 2000);
         }
