@@ -549,7 +549,7 @@ export default function ChatRoomPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="p-2">
+            <button className="p-2" onClick={handleStartCall}>
               <Phone className="w-5 h-5" />
             </button>
             
