@@ -12,6 +12,7 @@ import { DeepLinkListener } from "@/components/DeepLinkListener";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { GlobalProximityAlert } from "@/components/GlobalProximityAlert";
+import { CallProvider } from "@/components/call/CallProvider";
 import { Loader2 } from "lucide-react";
 
 // Preloadable lazy import helper
@@ -142,6 +143,7 @@ const App = () => (
           <Sonner />
           <HashRouter>
             <SwipeBackProvider>
+              <CallProvider>
               <DeepLinkListener />
               <div className="min-h-screen">
                 <PushNotificationPrompt />
@@ -204,6 +206,7 @@ const App = () => (
                   </Routes>
                 </Suspense>
               </div>
+              </CallProvider>
             </SwipeBackProvider>
           </HashRouter>
         </TooltipProvider>

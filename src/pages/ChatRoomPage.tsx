@@ -11,6 +11,7 @@ import { ManageGroupSheet } from '@/components/chat/ManageGroupSheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
+import { useCall } from '@/components/call/CallProvider';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 interface Message {
   id: string;
@@ -52,6 +53,7 @@ export default function ChatRoomPage() {
   const {
     toast
   } = useToast();
+  const { startCall } = useCall();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -62,6 +64,25 @@ export default function ChatRoomPage() {
   const [externalChatInfo, setExternalChatInfo] = useState<ExternalChatInfo | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle starting a voice call
+  const handleStartCall = async () => {
+    if (!user || !conversationId || !conversation) return;
+    // Find the other participant in the conversation
+    const { data: participants } = await supabase
+      .from('conversation_participants')
+      .select('user_id')
+      .eq('conversation_id', conversationId)
+      .neq('user_id', user.id);
+    
+    if (!participants || participants.length === 0) {
+      toast({ title: 'ไม่สามารถโทรได้', description: 'ไม่พบผู้ร่วมสนทนา', variant: 'destructive' });
+      return;
+    }
+    const peerId = participants[0].user_id;
+    await startCall(peerId, conversation.name || 'Unknown', conversation.avatar_url, conversationId);
+  };
+
   useEffect(() => {
     if (conversationId && user) {
       loadConversation();
@@ -548,7 +569,7 @@ export default function ChatRoomPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="p-2">
+            <button className="p-2" onClick={handleStartCall}>
               <Phone className="w-5 h-5" />
             </button>
             
