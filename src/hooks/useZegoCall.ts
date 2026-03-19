@@ -230,6 +230,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
     setCallInfo({ peerId, peerName, peerAvatar, conversationId });
     setCallState('calling');
+    callTypeRef.current = 'outgoing';
 
     // For outgoing calls, we still need to signal the peer
     // The external system should handle creating the call-signal for the peer
