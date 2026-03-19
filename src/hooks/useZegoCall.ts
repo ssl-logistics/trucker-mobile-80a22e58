@@ -7,6 +7,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { callExternalApi } from '@/lib/externalApi';
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
+import { saveCallLog } from '@/utils/callLogs';
 
 const CALL_SIGNAL_BASE_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
 const CALL_SIGNAL_HEADERS = {
