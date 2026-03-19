@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useCall } from "@/components/call/CallProvider";
 import { createPortal } from "react-dom";
 import { useState, useEffect, useRef } from "react";
 import HomeIcon from "@/assets/home-icon.svg";
