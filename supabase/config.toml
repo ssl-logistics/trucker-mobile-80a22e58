@@ -93,3 +93,6 @@ verify_jwt = false
 [functions.create-bid]
 verify_jwt = false
 
+[functions.zegocloud-token]
+verify_jwt = false
+
