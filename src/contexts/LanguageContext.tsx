@@ -117,7 +117,7 @@ const thTranslations: Record<string, string> = {
   // Bottom Navigation
   'nav.home': 'หน้าแรก',
   'nav.dashboard': 'แผงควบคุม',
-  'nav.chat': 'แชท',
+  'nav.chat': 'โทร',
   'nav.settings': 'ตั้งค่า',
   
   // Home Page
