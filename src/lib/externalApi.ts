@@ -39,6 +39,8 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'update-destination-coordinates': 'EXPRESS_RENT_API_KEY',
   'check-driver-phone': 'DRIVER_API_KEY',
   'update-driver-password': 'DRIVER_API_KEY',
+  'call-signal': 'DRIVER_API_KEY',
+  'zegocloud-token': 'DRIVER_API_KEY',
 };
 
 // Endpoints that should use the bidding API URL

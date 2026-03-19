@@ -2,11 +2,12 @@
  * CallProvider
  * 
  * Global provider using ZegoCloud for voice calls.
- * Signaling via Supabase Realtime channel zego-call-{userId}.
+ * Signaling via polling external API /call-signal.
  */
-import { createContext, useContext, useCallback, useMemo } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useZegoCall } from '@/hooks/useZegoCall';
+import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { VoiceCallOverlay } from './VoiceCallOverlay';
 
 interface CallContextType {
@@ -22,23 +23,22 @@ const CallContext = createContext<CallContextType>({
 export const useCall = () => useContext(CallContext);
 
 export function CallProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, userType } = useAuth();
 
   const userId = useMemo(() => {
-    if (!user) {
-      console.log('[CallProvider] No user found');
-      return null;
-    }
+    if (!user) return null;
     try {
       const parsed = typeof user === 'string' ? JSON.parse(user) : user;
       const id = parsed?.driver_id || parsed?.id || null;
-      console.log('[CallProvider] Resolved userId:', id, 'from user keys:', Object.keys(parsed || {}));
+      console.log('[CallProvider] Resolved userId:', id);
       return id;
     } catch (e) {
       console.error('[CallProvider] Error parsing user:', e);
       return null;
     }
   }, [user]);
+
+  const driverType = useMemo(() => getDriverTypeFromUserType(userType), [userType]);
 
   const {
     callState,
@@ -50,7 +50,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     endCall,
     rejectCall,
     toggleMute,
-  } = useZegoCall(userId);
+  } = useZegoCall(userId, driverType);
 
   const contextValue = useMemo(() => ({
     startCall,

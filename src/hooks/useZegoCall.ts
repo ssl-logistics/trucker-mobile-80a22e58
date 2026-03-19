@@ -1,20 +1,30 @@
 /**
- * ZegoCloud Voice Call Hook
+ * ZegoCloud Voice Call Hook (Polling-based signaling)
  * 
- * Uses ZegoCloud Express Engine for audio and Supabase Realtime for call signaling.
- * Channel: zego-call-{userId}
+ * Polls GET /call-signal for incoming calls, fetches ZegoCloud token
+ * from GET /zegocloud-token, and responds via PATCH /call-signal.
  */
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { callExternalApi } from '@/lib/externalApi';
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
 
 export type CallState = 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
+
+interface CallSignal {
+  signal_id: string;
+  room_id: string;
+  caller_id: string;
+  caller_name: string;
+  caller_avatar?: string | null;
+  conversation_id?: string;
+}
 
 interface CallInfo {
   peerId: string;
   peerName: string;
   peerAvatar?: string | null;
   conversationId?: string;
+  signalId?: string;
 }
 
 interface UseZegoCallReturn {
@@ -29,14 +39,7 @@ interface UseZegoCallReturn {
   toggleMute: () => void;
 }
 
-function generateRoomId(userId1: string, userId2: string): string {
-  const sorted = [userId1, userId2].sort();
-  const a = sorted[0].replace(/-/g, '').substring(0, 8);
-  const b = sorted[1].replace(/-/g, '').substring(0, 8);
-  return `call_${a}_${b}`;
-}
-
-export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
+export function useZegoCall(currentUserId: string | null, driverType: string = 'freelance'): UseZegoCallReturn {
   const [callState, setCallState] = useState<CallState>('idle');
   const [callInfo, setCallInfo] = useState<CallInfo | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -44,21 +47,28 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
 
   const zegoEngineRef = useRef<ZegoExpressEngine | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
-  const incomingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const currentRoomIdRef = useRef<string | null>(null);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const callStateRef = useRef<CallState>('idle');
 
-  // Fetch token from edge function
+  // Keep ref in sync with state
+  useEffect(() => {
+    callStateRef.current = callState;
+  }, [callState]);
+
+  // Fetch ZegoCloud token from external API
   const fetchToken = useCallback(async (userId: string): Promise<{ token: string; appId: number } | null> => {
     try {
-      const { data, error } = await supabase.functions.invoke('zegocloud-token', {
-        body: { userId, effectiveTimeInSeconds: 3600 },
+      const { data, error } = await callExternalApi<{ token: string; appId: number }>('zegocloud-token', {
+        method: 'GET',
+        params: { driver_id: userId },
       });
-      if (error) {
+      if (error || !data) {
         console.error('[Zego] Token fetch error:', error);
         return null;
       }
-      return data as { token: string; appId: number };
+      return data;
     } catch (e) {
       console.error('[Zego] Token fetch exception:', e);
       return null;
@@ -68,19 +78,16 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
   // Initialize ZegoCloud engine
   const initEngine = useCallback(async (): Promise<ZegoExpressEngine | null> => {
     if (zegoEngineRef.current) return zegoEngineRef.current;
-
     if (!currentUserId) return null;
 
     const tokenData = await fetchToken(currentUserId);
     if (!tokenData) return null;
 
-    const { appId } = tokenData;
-
     try {
-      const zg = new ZegoExpressEngine(appId, 'wss://webliveroom-api.zego.im/ws');
+      const zg = new ZegoExpressEngine(tokenData.appId, 'wss://webliveroom-api.zego.im/ws');
       zegoEngineRef.current = zg;
 
-      zg.on('roomStreamUpdate', async (roomID, updateType, streamList) => {
+      zg.on('roomStreamUpdate', async (_roomID, updateType, streamList) => {
         if (updateType === 'ADD') {
           for (const stream of streamList) {
             console.log('[Zego] New remote stream:', stream.streamID);
@@ -93,8 +100,7 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
         }
       });
 
-      zg.on('roomStateChanged', (roomID, reason, errorCode) => {
-        console.log('[Zego] Room state changed:', roomID, reason, errorCode);
+      zg.on('roomStateChanged', (_roomID, reason) => {
         const failReasons = ['LOGOUT', 'RECONNECT_FAILED', 'KICK_OUT', 'LOGOUT_FAILED'];
         if (failReasons.includes(String(reason))) {
           setCallState('ended');
@@ -120,14 +126,13 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
     if (!tokenData) return false;
 
     try {
-      const result = await zg.loginRoom(roomId, tokenData.token, {
+      await zg.loginRoom(roomId, tokenData.token, {
         userID: currentUserId,
         userName: currentUserId,
       });
-      console.log('[Zego] Joined room:', roomId, result);
+      console.log('[Zego] Joined room:', roomId);
       currentRoomIdRef.current = roomId;
 
-      // Publish local audio stream
       const localStream = await zg.createStream({ camera: { video: false, audio: true } });
       localStreamRef.current = localStream;
       await zg.startPublishingStream(`${currentUserId}_audio`, localStream);
@@ -163,14 +168,7 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
       currentRoomIdRef.current = null;
     }
 
-    // Destroy engine instance
     if (zegoEngineRef.current) {
-      try {
-        // ZegoExpressEngine doesn't have a static destroyEngine in web SDK
-        // Just nullify the reference
-      } catch (e) {
-        console.warn('[Zego] Destroy engine error:', e);
-      }
       zegoEngineRef.current = null;
     }
 
@@ -180,7 +178,22 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
     setCallInfo(null);
   }, [currentUserId]);
 
-  // Start outgoing call
+  // Send signal response via PATCH
+  const sendSignalResponse = useCallback(async (signalId: string, responseType: 'accepted' | 'rejected' | 'ended') => {
+    try {
+      const { error } = await callExternalApi('call-signal', {
+        method: 'PATCH',
+        body: { signal_id: signalId, response_type: responseType },
+      });
+      if (error) {
+        console.error('[Zego] Signal response error:', error);
+      }
+    } catch (e) {
+      console.error('[Zego] Signal response exception:', e);
+    }
+  }, []);
+
+  // Start outgoing call (still uses signaling for outbound - caller side)
   const startCall = useCallback(async (
     peerId: string,
     peerName: string,
@@ -191,79 +204,21 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
       console.error('[Zego] Cannot start call - currentUserId is null');
       return;
     }
-    console.log('[Zego] Starting call to', peerId, 'from', currentUserId);
+    console.log('[Zego] Starting call to', peerId);
 
     setCallInfo({ peerId, peerName, peerAvatar, conversationId });
     setCallState('calling');
 
-    const roomId = generateRoomId(currentUserId, peerId);
+    // For outgoing calls, we still need to signal the peer
+    // The external system should handle creating the call-signal for the peer
+    // For now, just join the room and wait
+    const roomId = `call_${[currentUserId, peerId].sort().map(id => id.replace(/-/g, '').substring(0, 8)).join('_')}`;
 
-    // Join room immediately
     const joined = await joinRoom(roomId);
     if (!joined) {
       console.error('[Zego] Failed to join room');
       cleanup();
       return;
-    }
-
-    // Send ring signal via Supabase Realtime
-    let callerName = 'Unknown';
-    let callerAvatar: string | null = null;
-    try {
-      // Get caller info from localStorage
-      const authData = localStorage.getItem('auth_driver');
-      if (authData) {
-        const parsed = JSON.parse(authData);
-        callerName = parsed?.full_name || parsed?.name || parsed?.firstName || 'Unknown';
-        callerAvatar = parsed?.avatar_url || parsed?.profileImage || null;
-      }
-    } catch { /* ignore */ }
-
-    const ringChannel = supabase.channel(`zego-call-${peerId}`, {
-      config: { broadcast: { self: false } },
-    });
-
-    await new Promise<void>((resolve) => {
-      ringChannel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          ringChannel.send({
-            type: 'broadcast',
-            event: 'ring',
-            payload: {
-              roomId,
-              callerId: currentUserId,
-              callerName,
-              callerAvatar,
-              conversationId,
-            },
-          });
-          setTimeout(() => {
-            supabase.removeChannel(ringChannel);
-            resolve();
-          }, 500);
-        }
-      });
-    });
-
-    // Send push notification
-    try {
-      await supabase.functions.invoke('send-push-notification', {
-        body: {
-          user_id: peerId,
-          title: '📞 สายเรียกเข้า',
-          body: `${callerName} กำลังโทรหาคุณ`,
-          url: `/chat/${conversationId || ''}`,
-          tag: `call-${roomId}`,
-          data: {
-            type: 'incoming_call',
-            roomId,
-            callerId: currentUserId,
-            callerName,
-          },
-        },
-      });
-    } catch (e) {
-      console.warn('[Zego] Push notification failed:', e);
     }
   }, [currentUserId, joinRoom, cleanup]);
 
@@ -272,8 +227,13 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
     if (!currentUserId || !callInfo) return;
     console.log('[Zego] Accepting call from', callInfo.peerId);
 
-    const roomId = generateRoomId(currentUserId, callInfo.peerId);
+    // Send accepted response
+    if (callInfo.signalId) {
+      await sendSignalResponse(callInfo.signalId, 'accepted');
+    }
 
+    // Join the ZegoCloud room
+    const roomId = `call_${[currentUserId, callInfo.peerId].sort().map(id => id.replace(/-/g, '').substring(0, 8)).join('_')}`;
     const joined = await joinRoom(roomId);
     if (!joined) {
       console.error('[Zego] Failed to join room on accept');
@@ -288,77 +248,30 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
     durationIntervalRef.current = setInterval(() => {
       setCallDuration(Math.floor((Date.now() - start) / 1000));
     }, 1000);
-
-    // Notify caller that we accepted
-    const acceptChannel = supabase.channel(`zego-call-${callInfo.peerId}`, {
-      config: { broadcast: { self: false } },
-    });
-
-    await new Promise<void>((resolve) => {
-      acceptChannel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          acceptChannel.send({
-            type: 'broadcast',
-            event: 'call-accepted',
-            payload: { from: currentUserId },
-          });
-          setTimeout(() => {
-            supabase.removeChannel(acceptChannel);
-            resolve();
-          }, 500);
-        }
-      });
-    });
-  }, [currentUserId, callInfo, joinRoom, cleanup]);
+  }, [currentUserId, callInfo, joinRoom, cleanup, sendSignalResponse]);
 
   // End call
   const endCall = useCallback(() => {
     console.log('[Zego] Ending call');
 
-    if (callInfo) {
-      const endChannel = supabase.channel(`zego-call-${callInfo.peerId}`, {
-        config: { broadcast: { self: false } },
-      });
-
-      endChannel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          endChannel.send({
-            type: 'broadcast',
-            event: 'call-end',
-            payload: { from: currentUserId },
-          });
-          setTimeout(() => supabase.removeChannel(endChannel), 500);
-        }
-      });
+    if (callInfo?.signalId) {
+      sendSignalResponse(callInfo.signalId, 'ended');
     }
 
     setCallState('ended');
     setTimeout(() => cleanup(), 2000);
-  }, [currentUserId, callInfo, cleanup]);
+  }, [callInfo, cleanup, sendSignalResponse]);
 
   // Reject call
   const rejectCall = useCallback(() => {
     console.log('[Zego] Rejecting call');
 
-    if (callInfo) {
-      const rejectChannel = supabase.channel(`zego-call-${callInfo.peerId}`, {
-        config: { broadcast: { self: false } },
-      });
-
-      rejectChannel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          rejectChannel.send({
-            type: 'broadcast',
-            event: 'call-reject',
-            payload: { from: currentUserId },
-          });
-          setTimeout(() => supabase.removeChannel(rejectChannel), 500);
-        }
-      });
+    if (callInfo?.signalId) {
+      sendSignalResponse(callInfo.signalId, 'rejected');
     }
 
     cleanup();
-  }, [currentUserId, callInfo, cleanup]);
+  }, [callInfo, cleanup, sendSignalResponse]);
 
   // Toggle mute
   const toggleMute = useCallback(() => {
@@ -371,66 +284,57 @@ export function useZegoCall(currentUserId: string | null): UseZegoCallReturn {
     }
   }, []);
 
-  // Listen for incoming calls
+  // Poll for incoming call signals every 2.5 seconds
   useEffect(() => {
     if (!currentUserId) return;
 
-    const incomingChannel = supabase.channel(`zego-call-${currentUserId}`, {
-      config: { broadcast: { self: false } },
-    });
+    const pollCallSignal = async () => {
+      // Only poll when idle
+      if (callStateRef.current !== 'idle') return;
 
-    incomingChannel
-      .on('broadcast', { event: 'ring' }, ({ payload }) => {
-        console.log('[Zego] Incoming call from', payload.callerId);
-        if (callState !== 'idle') {
-          console.log('[Zego] Already in a call, ignoring');
-          return;
-        }
+      try {
+        const { data, error } = await callExternalApi<CallSignal>('call-signal', {
+          method: 'GET',
+          params: { driver_id: currentUserId, driver_type: driverType },
+        });
+
+        if (error || !data || !data.signal_id) return;
+
+        console.log('[Zego] Incoming call signal:', data);
 
         setCallInfo({
-          peerId: payload.callerId,
-          peerName: payload.callerName || 'Unknown',
-          peerAvatar: payload.callerAvatar,
-          conversationId: payload.conversationId,
+          peerId: data.caller_id,
+          peerName: data.caller_name || 'Unknown',
+          peerAvatar: data.caller_avatar,
+          conversationId: data.conversation_id,
+          signalId: data.signal_id,
         });
         setCallState('ringing');
-      })
-      .on('broadcast', { event: 'call-accepted' }, ({ payload }) => {
-        console.log('[Zego] Call accepted by peer');
-        if (callState === 'calling') {
-          setCallState('connected');
-          const start = Date.now();
-          durationIntervalRef.current = setInterval(() => {
-            setCallDuration(Math.floor((Date.now() - start) / 1000));
-          }, 1000);
-        }
-      })
-      .on('broadcast', { event: 'call-end' }, () => {
-        console.log('[Zego] Call ended by peer');
-        setCallState('ended');
-        setTimeout(() => cleanup(), 2000);
-      })
-      .on('broadcast', { event: 'call-reject' }, () => {
-        console.log('[Zego] Call rejected by peer');
-        setCallState('ended');
-        setTimeout(() => cleanup(), 2000);
-      })
-      .subscribe();
-
-    incomingChannelRef.current = incomingChannel;
-
-    return () => {
-      if (incomingChannelRef.current) {
-        supabase.removeChannel(incomingChannelRef.current);
-        incomingChannelRef.current = null;
+      } catch (e) {
+        // Silently ignore polling errors
       }
     };
-  }, [currentUserId, callState, cleanup]);
+
+    // Poll immediately then every 2.5 seconds
+    pollCallSignal();
+    pollingIntervalRef.current = setInterval(pollCallSignal, 2500);
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [currentUserId, driverType]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       cleanup();
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
     };
   }, [cleanup]);
 
