@@ -190,13 +190,22 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
   // Send signal response via PATCH
   const sendSignalResponse = useCallback(async (signalId: string, responseType: 'accepted' | 'rejected' | 'ended') => {
+    handledSignalIdsRef.current.add(signalId);
+    if (handledSignalIdsRef.current.size > 300) {
+      handledSignalIdsRef.current.clear();
+      handledSignalIdsRef.current.add(signalId);
+    }
+
     try {
-      const { error } = await callExternalApi('call-signal', {
+      const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal`, {
         method: 'PATCH',
-        body: { signal_id: signalId, response_type: responseType },
+        headers: CALL_SIGNAL_HEADERS,
+        body: JSON.stringify({ signal_id: signalId, response_type: responseType }),
       });
-      if (error) {
-        console.error('[Zego] Signal response error:', error);
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('[Zego] Signal response error:', errText || `HTTP ${res.status}`);
       }
     } catch (e) {
       console.error('[Zego] Signal response exception:', e);
