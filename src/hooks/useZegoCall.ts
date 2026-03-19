@@ -11,9 +11,11 @@ import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
 export type CallState = 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
 
 interface CallSignal {
-  signal_id: string;
+  id?: string;
+  signal_id?: string;
   room_id: string;
-  caller_id: string;
+  caller_id?: string;
+  caller_user_id?: string;
   caller_name: string;
   caller_avatar?: string | null;
   conversation_id?: string;
@@ -232,8 +234,9 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       await sendSignalResponse(callInfo.signalId, 'accepted');
     }
 
-    // Join the ZegoCloud room
-    const roomId = `call_${[currentUserId, callInfo.peerId].sort().map(id => id.replace(/-/g, '').substring(0, 8)).join('_')}`;
+    // Use room_id from the signal (stored in currentRoomIdRef during polling)
+    const roomId = currentRoomIdRef.current || `call_${[currentUserId, callInfo.peerId].sort().map(id => id.replace(/-/g, '').substring(0, 8)).join('_')}`;
+    console.log('[Zego] Joining room:', roomId);
     const joined = await joinRoom(roomId);
     if (!joined) {
       console.error('[Zego] Failed to join room on accept');
@@ -306,17 +309,21 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
         if (!res.ok) return;
 
-        const data = await res.json() as CallSignal;
-        if (!data?.signal_id) return;
+        const result = await res.json() as { has_call: boolean; signal: CallSignal | null };
+        if (!result?.has_call || !result.signal) return;
 
-        console.log('[Zego] Incoming call signal:', data);
+        const signal = result.signal;
+        console.log('[Zego] Incoming call signal:', signal);
+
+        // Store room_id from server for joining ZegoCloud
+        currentRoomIdRef.current = signal.room_id;
 
         setCallInfo({
-          peerId: data.caller_id,
-          peerName: data.caller_name || 'Unknown',
-          peerAvatar: data.caller_avatar,
-          conversationId: data.conversation_id,
-          signalId: data.signal_id,
+          peerId: signal.caller_id || signal.caller_user_id,
+          peerName: signal.caller_name || 'Unknown',
+          peerAvatar: signal.caller_avatar,
+          conversationId: signal.conversation_id,
+          signalId: signal.signal_id || signal.id,
         });
         setCallState('ringing');
       } catch {
