@@ -185,5 +185,8 @@ export function BottomNavigation() {
   
   if (!mounted) return null;
   
+  // Hide nav bar during active calls
+  if (callState !== 'idle') return null;
+  
   return createPortal(navContent, document.body);
 }
