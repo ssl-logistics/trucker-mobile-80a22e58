@@ -17,17 +17,24 @@ export interface CallLogEntry {
 
 const CALL_LOGS_KEY = 'call_logs';
 const MAX_LOGS = 100;
+const MAX_AGE_DAYS = 30;
+
+/** Remove logs older than 30 days */
+function pruneOldLogs(logs: CallLogEntry[]): CallLogEntry[] {
+  const cutoff = Date.now() - MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+  return logs.filter(l => new Date(l.timestamp).getTime() >= cutoff);
+}
 
 export function saveCallLog(entry: Omit<CallLogEntry, 'id' | 'timestamp'>): void {
   try {
-    const logs = getCallLogs();
+    let logs = getCallLogs();
     const newEntry: CallLogEntry = {
       ...entry,
       id: `${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       timestamp: new Date().toISOString(),
     };
     logs.unshift(newEntry);
-    // Keep only last MAX_LOGS entries
+    logs = pruneOldLogs(logs);
     if (logs.length > MAX_LOGS) logs.length = MAX_LOGS;
     localStorage.setItem(CALL_LOGS_KEY, JSON.stringify(logs));
   } catch (e) {
@@ -39,7 +46,8 @@ export function getCallLogs(): CallLogEntry[] {
   try {
     const raw = localStorage.getItem(CALL_LOGS_KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as CallLogEntry[];
+    const logs = JSON.parse(raw) as CallLogEntry[];
+    return pruneOldLogs(logs);
   } catch {
     return [];
   }
@@ -68,5 +76,10 @@ export function formatCallTime(isoString: string): string {
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays} วันที่แล้ว`;
   
-  return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+}
+
+export function formatCallDate(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
 }
