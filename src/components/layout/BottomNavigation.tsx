@@ -19,6 +19,7 @@ export function BottomNavigation() {
   const location = useLocation();
   const { t } = useLanguage();
   const { canAccessDashboard } = useUserRole();
+  const { callState } = useCall();
   const [mounted, setMounted] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
   
