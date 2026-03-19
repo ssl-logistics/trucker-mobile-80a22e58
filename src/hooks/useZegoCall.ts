@@ -234,8 +234,9 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       await sendSignalResponse(callInfo.signalId, 'accepted');
     }
 
-    // Join the ZegoCloud room
-    const roomId = `call_${[currentUserId, callInfo.peerId].sort().map(id => id.replace(/-/g, '').substring(0, 8)).join('_')}`;
+    // Use room_id from the signal (stored in currentRoomIdRef during polling)
+    const roomId = currentRoomIdRef.current || `call_${[currentUserId, callInfo.peerId].sort().map(id => id.replace(/-/g, '').substring(0, 8)).join('_')}`;
+    console.log('[Zego] Joining room:', roomId);
     const joined = await joinRoom(roomId);
     if (!joined) {
       console.error('[Zego] Failed to join room on accept');
