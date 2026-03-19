@@ -1,6 +1,6 @@
 /**
  * CallProvider
- * 
+ *
  * Global provider using ZegoCloud for voice calls.
  * Signaling via polling external API /call-signal.
  */
