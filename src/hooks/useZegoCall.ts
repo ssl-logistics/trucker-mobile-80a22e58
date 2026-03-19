@@ -62,6 +62,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callStateRef = useRef<CallState>('idle');
   const handledSignalIdsRef = useRef<Set<string>>(new Set());
+  const callTypeRef = useRef<'incoming' | 'outgoing'>('outgoing');
+  const callStartTimeRef = useRef<number | null>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
