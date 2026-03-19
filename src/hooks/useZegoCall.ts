@@ -375,6 +375,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
           conversationId: signal.conversation_id,
           signalId,
         });
+        callTypeRef.current = 'incoming';
         setCallState('ringing');
       } catch {
         // Silently ignore polling errors
