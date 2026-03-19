@@ -6,6 +6,7 @@ import { Download, Upload, Smartphone, FileDown, Loader2, Trash2, Store, Monitor
 import { toast } from '@/hooks/use-toast';
 import truckerLogo from '@/assets/trucker-logo.png';
 import truckerIcon from '@/assets/trucker-icon.png';
+import dealerIcon from '@/assets/dealer-icon.png';
 
 interface ApkFile {
   name: string;
