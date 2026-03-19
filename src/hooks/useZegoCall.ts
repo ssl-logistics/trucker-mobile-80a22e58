@@ -307,6 +307,19 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   const rejectCall = useCallback(() => {
     console.log('[Zego] Rejecting call');
 
+    // Save rejected call log
+    if (callInfo) {
+      saveCallLog({
+        peerId: callInfo.peerId,
+        peerName: callInfo.peerName,
+        peerAvatar: callInfo.peerAvatar,
+        callType: 'incoming',
+        callResult: 'rejected',
+        durationSeconds: 0,
+        conversationId: callInfo.conversationId,
+      });
+    }
+
     if (callInfo?.signalId) {
       sendSignalResponse(callInfo.signalId, 'rejected');
     }
