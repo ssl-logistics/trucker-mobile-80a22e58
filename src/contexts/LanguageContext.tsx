@@ -671,10 +671,10 @@ const thTranslations: Record<string, string> = {
   'jobDetail.containerReturn': 'จุดคืนตู้คอนเทนเนอร์',
   'jobDetail.deliveryDate': 'วันส่ง',
 
-  // Chat Page
-  'chat.title': 'แชท',
-  'chat.search': 'ค้นหาข้อความ',
-  'chat.company': 'บริษัท',
+  // Chat/Call Page
+  'chat.title': 'โทร',
+  'chat.search': 'ค้นหารายชื่อ',
+  'chat.company': 'แชทบริษัท',
   'chat.friends': 'เพื่อน',
   'chat.groups': 'กลุ่ม',
   'chat.online': 'ออนไลน์',
