@@ -46,7 +46,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     if (!user) return null;
     try {
       const parsed = typeof user === 'string' ? JSON.parse(user) : user;
-      const id = parsed?.driver_id || parsed?.id || null;
+      const id = parsed?.id || parsed?.driver_id || null;
       console.log('[CallProvider] Resolved userId:', id);
       return id;
     } catch (e) {
