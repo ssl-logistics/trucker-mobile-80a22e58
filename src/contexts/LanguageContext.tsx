@@ -2240,10 +2240,10 @@ const enTranslations: Record<string, string> = {
   'jobDetail.containerReturn': 'Container Return Point',
   'jobDetail.deliveryDate': 'Delivery Date',
   
-  // Chat Page
-  'chat.title': 'Chat',
-  'chat.search': 'Search conversations',
-  'chat.company': 'Company',
+  // Chat/Call Page
+  'chat.title': 'Call',
+  'chat.search': 'Search contacts',
+  'chat.company': 'Company Chat',
   'chat.friends': 'Friends',
   'chat.groups': 'Groups',
   'chat.online': 'Online',
