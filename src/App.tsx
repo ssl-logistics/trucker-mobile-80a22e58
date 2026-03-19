@@ -81,6 +81,7 @@ const PushDebugPage = lazyWithPreload(() => import("./pages/PushDebugPage"));
 const BidJobDetailPage = lazyWithPreload(() => import("./pages/BidJobDetailPage"));
 const DownloadAppPage = lazyWithPreload(() => import("./pages/DownloadAppPage"));
 const ReportAppProblemPage = lazyWithPreload(() => import("./pages/ReportAppProblemPage"));
+const CallPage = lazyWithPreload(() => import("./pages/CallPage"));
 
 // Export pages for preloading from other components
 export const preloadablePages = {
