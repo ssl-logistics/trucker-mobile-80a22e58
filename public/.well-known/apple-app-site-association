@@ -6,7 +6,9 @@
         "appID": "TEAM_ID.app.lovable.58dbc0b4f7db4735aa152391efc8b797",
         "paths": [
           "/auth/line/callback",
-          "/auth/line/callback/*"
+          "/auth/line/callback/*",
+          "/auth/apple/callback",
+          "/auth/apple/callback/*"
         ]
       }
     ]
