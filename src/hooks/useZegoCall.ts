@@ -110,6 +110,22 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
             audio.autoplay = true;
             audio.play().catch(console.warn);
           }
+        } else if (updateType === 'DELETE') {
+          console.log('[Zego] Remote stream removed — peer hung up');
+          if (callStateRef.current === 'connected' || callStateRef.current === 'calling') {
+            setCallState('ended');
+            setTimeout(() => cleanup(), 2000);
+          }
+        }
+      });
+
+      zg.on('roomUserUpdate', (_roomID, updateType, userList) => {
+        if (updateType === 'DELETE' && userList.length > 0) {
+          console.log('[Zego] Remote user left room:', userList.map(u => u.userID));
+          if (callStateRef.current === 'connected' || callStateRef.current === 'calling') {
+            setCallState('ended');
+            setTimeout(() => cleanup(), 2000);
+          }
         }
       });
 
