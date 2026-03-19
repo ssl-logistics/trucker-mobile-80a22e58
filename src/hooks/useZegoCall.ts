@@ -278,6 +278,23 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   const endCall = useCallback(() => {
     console.log('[Zego] Ending call');
 
+    // Save call log
+    if (callInfo) {
+      const duration = callStartTimeRef.current
+        ? Math.floor((Date.now() - callStartTimeRef.current) / 1000)
+        : 0;
+      saveCallLog({
+        peerId: callInfo.peerId,
+        peerName: callInfo.peerName,
+        peerAvatar: callInfo.peerAvatar,
+        callType: callTypeRef.current,
+        callResult: duration > 0 ? 'answered' : 'ended',
+        durationSeconds: duration,
+        conversationId: callInfo.conversationId,
+      });
+      callStartTimeRef.current = null;
+    }
+
     if (callInfo?.signalId) {
       sendSignalResponse(callInfo.signalId, 'ended');
     }
