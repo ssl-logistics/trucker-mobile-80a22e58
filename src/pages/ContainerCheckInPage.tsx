@@ -158,6 +158,7 @@ export default function ContainerCheckInPage() {
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),
+          ...((returningContainerRes.data as any)?.data || []),
           ...((completedRes.data as any)?.data || []),
         ];
         result = { success: true, data: combinedData };

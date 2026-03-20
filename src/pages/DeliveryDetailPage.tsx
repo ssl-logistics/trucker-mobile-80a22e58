@@ -167,6 +167,7 @@ export default function DeliveryDetailPage() {
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),
+          ...((returningContainerRes.data as any)?.data || []),
           ...((completedRes.data as any)?.data || []),
         ];
         foundJob = combinedData.find((j: any) => j.order_number === jobId);
