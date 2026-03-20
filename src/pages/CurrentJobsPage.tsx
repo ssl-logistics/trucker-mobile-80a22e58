@@ -170,22 +170,24 @@ export default function CurrentJobsPage() {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
          // Fetch jobs and check-ins in parallel using external API directly
-        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs for accepted + in_transit + delivered + completed`);
-        const [acceptedResult, inTransitResult, deliveredResult, completedResult, checkinsResult] = await Promise.all([
+        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs for accepted + arrived_at_pickup + in_transit + delivered + completed`);
+        const [acceptedResult, arrivedAtPickupResult, inTransitResult, deliveredResult, completedResult, checkinsResult] = await Promise.all([
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'accepted'),
+          getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'arrived_at_pickup'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'delivered'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 100, 'completed'),
           getDriverCheckins(freelanceDriverId, driverType, 'all'),
         ]);
 
-        // Merge accepted, in_transit, delivered, and completed results
+        // Merge all status results
         const acceptedJobs = (!acceptedResult.error && acceptedResult.data) ? ((acceptedResult.data as any)?.data || []) : [];
+        const arrivedAtPickupJobs = (!arrivedAtPickupResult.error && arrivedAtPickupResult.data) ? ((arrivedAtPickupResult.data as any)?.data || []) : [];
         const inTransitJobs = (!inTransitResult.error && inTransitResult.data) ? ((inTransitResult.data as any)?.data || []) : [];
         const deliveredJobs = (!deliveredResult.error && deliveredResult.data) ? ((deliveredResult.data as any)?.data || []) : [];
         const completedJobs = (!completedResult.error && completedResult.data) ? ((completedResult.data as any)?.data || []) : [];
-        const mergedApiJobs = [...acceptedJobs, ...inTransitJobs, ...deliveredJobs, ...completedJobs];
-        console.log(`[CurrentJobsPage] Merged jobs: ${acceptedJobs.length} accepted + ${inTransitJobs.length} in_transit + ${deliveredJobs.length} delivered + ${completedJobs.length} completed = ${mergedApiJobs.length} total`);
+        const mergedApiJobs = [...acceptedJobs, ...arrivedAtPickupJobs, ...inTransitJobs, ...deliveredJobs, ...completedJobs];
+        console.log(`[CurrentJobsPage] Merged jobs: ${acceptedJobs.length} accepted + ${arrivedAtPickupJobs.length} arrived_at_pickup + ${inTransitJobs.length} in_transit + ${deliveredJobs.length} delivered + ${completedJobs.length} completed = ${mergedApiJobs.length} total`);
 
         if (mergedApiJobs.length > 0 || (!inTransitResult.error && !deliveredResult.error && !completedResult.error)) {
           // Get check-ins to determine which jobs are actually started and which are completed
@@ -251,19 +253,19 @@ export default function CurrentJobsPage() {
            const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_category && job.transport_category !== 'domestic') || (job.transport_mode && ['sea', 'air'].includes(job.transport_mode.toLowerCase())));
 
            // Show jobs that have status 'in_transit' OR have check-in records (already started)
-           const startedJobs = apiJobs.filter((job: any) => {
-             const status = (job.status || '').toLowerCase();
-             const hasCheckIn = startedTransportIds.has(String(job.id));
-             const isAccepted = status === 'accepted';
-             const isInTransit = status === 'in_transit';
-             const isDelivered = status === 'delivered';
-             // Include 'accepted' status for BL/Booking (international) jobs
-             const isAcceptedInternational = isAccepted && isInternationalJob(job);
-             const shouldInclude = hasCheckIn || isInTransit || isDelivered || isAcceptedInternational;
-             if (shouldInclude) {
-               console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}, isAcceptedIntl=${isAcceptedInternational}`);
-             }
-             return shouldInclude;
+            const startedJobs = apiJobs.filter((job: any) => {
+              const status = (job.status || '').toLowerCase();
+              const hasCheckIn = startedTransportIds.has(String(job.id));
+              const isInTransit = status === 'in_transit';
+              const isDelivered = status === 'delivered';
+              const isArrivedAtPickup = status === 'arrived_at_pickup';
+              // Include 'accepted' or 'arrived_at_pickup' status for BL/Booking (international) jobs
+              const isAcceptedInternational = status === 'accepted' && isInternationalJob(job);
+              const shouldInclude = hasCheckIn || isInTransit || isDelivered || isArrivedAtPickup || isAcceptedInternational;
+              if (shouldInclude) {
+                console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}, isArrivedAtPickup=${isArrivedAtPickup}, isAcceptedIntl=${isAcceptedInternational}`);
+              }
+              return shouldInclude;
            });
            console.log('Jobs with in_transit status or check-in records:', startedJobs.length, '(excluded not-yet-started:', apiJobs.length - startedJobs.length, ')');
           
