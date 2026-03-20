@@ -73,12 +73,16 @@ export default function PickupSummaryPage() {
 
       // Fetch job detail from external API directly - try multiple statuses
       if (isInternalDriver || isExternalDriver) {
-        const [inProgressRes, inTransitRes, deliveredRes] = await Promise.all([
+        const [acceptedRes, arrivedAtPickupRes, inProgressRes, inTransitRes, deliveredRes] = await Promise.all([
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'accepted'),
+          getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'arrived_at_pickup'),
           getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'in_progress'),
           getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'in_transit'),
           getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'delivered'),
         ]);
         const allJobs = [
+          ...((acceptedRes.data as any)?.data || []),
+          ...((arrivedAtPickupRes.data as any)?.data || []),
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),

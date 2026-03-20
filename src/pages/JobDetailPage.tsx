@@ -232,6 +232,7 @@ export default function JobDetailPage() {
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
           getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
           getDriverAssignedJobs(user.id, driverType, 50, 'accepted'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'arrived_at_pickup'),
         ];
         const results = await Promise.all(fetches);
         
