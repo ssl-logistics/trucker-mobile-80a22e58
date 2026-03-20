@@ -784,7 +784,7 @@ export default function Home() {
           throw new Error(result.error || 'Failed to update status');
         }
         
-        console.log(`[Home] ✅ Status updated to 'in_transit' successfully`);
+        console.log(`[Home] ✅ Status updated to '${orderStatus}' successfully`);
         
         // Mark as processed to prevent future duplicate submissions
         setProcessedOrderCodes(prev => new Set([...prev, orderCode]));
