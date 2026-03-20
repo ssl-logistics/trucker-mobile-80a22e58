@@ -19,7 +19,7 @@ import { sendJobStatus } from '@/lib/jobStatusService';
 import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
-import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans } from '@/lib/externalApi';
+import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans, updateOrderStatus } from '@/lib/externalApi';
 
 interface ContainerDetailItem {
   containerNo?: string;
@@ -52,6 +52,7 @@ interface JobDetail {
   container_return_phone: string | null;
   container_details: ContainerDetailItem[];
   bl_no: string | null;
+  booking_no: string | null;
 }
 
 export default function ContainerCheckInPage() {
@@ -226,6 +227,7 @@ export default function ContainerCheckInPage() {
                 : [];
             })(),
             bl_no: foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || null,
+            booking_no: foundJob.booking_no || foundJob.booking_number || null,
           };
           setJob(mappedJob);
           
@@ -395,6 +397,22 @@ export default function ContainerCheckInPage() {
         containerNumber2: container2Number,
         sealNumber2: container2Seal
       });
+
+      // For BL/Booking jobs, also send arrived_at_pickup to update-order-status
+      const isInternationalJob = !!(job.bl_no || job.booking_no);
+      if (isInternationalJob && !isContainerReturn) {
+        try {
+          await updateOrderStatus({
+            order_number: job.order_code,
+            status: 'arrived_at_pickup',
+            driver_id: user.id,
+            driver_type: driverType as 'internal' | 'external' | 'freelance',
+          });
+          console.log('[ContainerCheckInPage] Sent arrived_at_pickup for international job');
+        } catch (statusError) {
+          console.error('[ContainerCheckInPage] Failed to send arrived_at_pickup (non-blocking):', statusError);
+        }
+      }
 
       toast({
         title: t('container.checkInSuccess'),
