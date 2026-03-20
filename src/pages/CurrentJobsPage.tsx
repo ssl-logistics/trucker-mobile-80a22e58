@@ -254,11 +254,14 @@ export default function CurrentJobsPage() {
            const startedJobs = apiJobs.filter((job: any) => {
              const status = (job.status || '').toLowerCase();
              const hasCheckIn = startedTransportIds.has(String(job.id));
+             const isAccepted = status === 'accepted';
              const isInTransit = status === 'in_transit';
              const isDelivered = status === 'delivered';
-             const shouldInclude = hasCheckIn || isInTransit || isDelivered;
+             // Include 'accepted' status for BL/Booking (international) jobs
+             const isAcceptedInternational = isAccepted && isInternationalJob(job);
+             const shouldInclude = hasCheckIn || isInTransit || isDelivered || isAcceptedInternational;
              if (shouldInclude) {
-               console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}`);
+               console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}, isAcceptedIntl=${isAcceptedInternational}`);
              }
              return shouldInclude;
            });
