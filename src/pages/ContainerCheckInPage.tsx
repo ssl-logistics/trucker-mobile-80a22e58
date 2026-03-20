@@ -398,6 +398,22 @@ export default function ContainerCheckInPage() {
         sealNumber2: container2Seal
       });
 
+      // For BL/Booking jobs, also send arrived_at_pickup to update-order-status
+      const isInternationalJob = !!(job.bl_no || job.booking_no);
+      if (isInternationalJob && !isContainerReturn) {
+        try {
+          await updateOrderStatus({
+            order_number: job.order_code,
+            status: 'arrived_at_pickup',
+            driver_id: user.id,
+            driver_type: driverType as 'internal' | 'external' | 'freelance',
+          });
+          console.log('[ContainerCheckInPage] Sent arrived_at_pickup for international job');
+        } catch (statusError) {
+          console.error('[ContainerCheckInPage] Failed to send arrived_at_pickup (non-blocking):', statusError);
+        }
+      }
+
       toast({
         title: t('container.checkInSuccess'),
         description: t('container.checkInSuccessMessage')
