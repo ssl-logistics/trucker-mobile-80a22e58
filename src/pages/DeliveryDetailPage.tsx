@@ -12,7 +12,7 @@ import JobActionButtons from "@/components/job/JobActionButtons";
 import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
-import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates } from '@/lib/externalApi';
+import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates, updateOrderStatus } from '@/lib/externalApi';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import {
@@ -754,7 +754,24 @@ export default function DeliveryDetailPage() {
       stopTracking();
       console.log('[DeliveryDetailPage] GPS tracking stopped');
 
-      // Save check-in to localStorage
+      // For international jobs (BL/Booking), send 'delivered' status to update-order-status
+      const jobAnyStatus = job as any;
+      if (jobAnyStatus.bl_no || jobAnyStatus.booking_no || jobAnyStatus.transport_category === 'international') {
+        try {
+          const statusDriverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+          await updateOrderStatus({
+            order_number: job.order_code,
+            status: 'delivered',
+            driver_id: user.id,
+            driver_type: statusDriverType,
+            notes: 'เช็คอินจุดส่งสินค้าสำเร็จ',
+          });
+          console.log('[DeliveryDetailPage] updateOrderStatus delivered sent');
+        } catch (statusErr) {
+          console.warn('[DeliveryDetailPage] updateOrderStatus exception:', statusErr);
+        }
+      }
+
       saveCheckin({
         order_number: job.order_code,
         checkin_type: 'delivery',
