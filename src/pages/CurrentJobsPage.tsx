@@ -247,10 +247,10 @@ export default function CurrentJobsPage() {
            console.log(`[CurrentJobsPage] Total API jobs returned: ${apiJobs.length}`);
            apiJobs.forEach(j => console.log(`  - Order: ${j.order_number}, Status: ${j.status}, ID: ${j.id}`));
            
+           // Helper to detect international jobs
+           const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_category && job.transport_category !== 'domestic') || (job.transport_mode && ['sea', 'air'].includes(job.transport_mode.toLowerCase())));
+
            // Show jobs that have status 'in_transit' OR have check-in records (already started)
-           // This allows jobs to appear in Current Jobs when:
-           // 1. Driver clicked "Start Job" and status was updated to 'in_transit'
-           // 2. Driver has done any check-in (pickup, delivery, etc.)
            const startedJobs = apiJobs.filter((job: any) => {
              const status = (job.status || '').toLowerCase();
              const hasCheckIn = startedTransportIds.has(String(job.id));
@@ -267,10 +267,9 @@ export default function CurrentJobsPage() {
            });
            console.log('Jobs with in_transit status or check-in records:', startedJobs.length, '(excluded not-yet-started:', apiJobs.length - startedJobs.length, ')');
           
-          // Filter out completed jobs
-          // Domestic: all PODs completed -> remove
-          // International: all PODs completed AND container returned -> remove
-          const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_category && job.transport_category !== 'domestic') || (job.transport_mode && ['sea', 'air'].includes(job.transport_mode.toLowerCase())));
+           // Filter out completed jobs
+           // Domestic: all PODs completed -> remove
+           // International: all PODs completed AND container returned -> remove
           
            const activeJobs = startedJobs.filter((job: any) => {
               const transportId = String(job.id);
