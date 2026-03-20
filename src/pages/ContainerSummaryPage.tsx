@@ -447,8 +447,8 @@ export default function ContainerSummaryPage() {
           </>
         )}
 
-        {/* Container Return Check-in Status */}
-        {sopData?.return_checked_in_at && (
+        {/* Container Return Check-in Status - only show in return context */}
+        {checkinType === 'container_return' && sopData?.return_checked_in_at && (
           <Card className="p-4 bg-green-50 border-green-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
@@ -464,8 +464,8 @@ export default function ContainerSummaryPage() {
           </Card>
         )}
 
-        {/* Container Return Document Photos */}
-        {returnPhotoUrls.length > 0 && (
+        {/* Container Return Document Photos - only show in return context */}
+        {checkinType === 'container_return' && returnPhotoUrls.length > 0 && (
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">เอกสารคืนตู้ ({returnPhotoUrls.length} รูป)</div>
             <div className="grid grid-cols-2 gap-2">
