@@ -151,6 +151,7 @@ export default function ContainerCheckInPage() {
           getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
         ]);
         const combinedData = [
+          ...((acceptedRes.data as any)?.data || []),
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),
