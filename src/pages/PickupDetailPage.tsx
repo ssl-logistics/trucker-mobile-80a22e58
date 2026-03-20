@@ -121,17 +121,21 @@ export default function PickupDetailPage() {
       let result: any;
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [inProgressRes, inTransitRes, deliveredRes, returningContainerRes] = await Promise.all([
+        const [inProgressRes, inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes, containerReturnedRes] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
           getDriverAssignedJobs(user.id, driverType, 50, 'returning_container'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'at_container_return'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'container_returned'),
         ]);
         const combinedData = [
           ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),
           ...((returningContainerRes.data as any)?.data || []),
+          ...((atContainerReturnRes.data as any)?.data || []),
+          ...((containerReturnedRes.data as any)?.data || []),
         ];
         result = { success: true, data: combinedData };
       } else {

@@ -143,13 +143,15 @@ export default function ContainerCheckInPage() {
       let result: any;
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [acceptedRes, arrivedAtPickupRes, inProgressRes, inTransitRes, deliveredRes, returningContainerRes, completedRes] = await Promise.all([
+        const [acceptedRes, arrivedAtPickupRes, inProgressRes, inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes, containerReturnedRes, completedRes] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'accepted'),
           getDriverAssignedJobs(user.id, driverType, 50, 'arrived_at_pickup'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
           getDriverAssignedJobs(user.id, driverType, 50, 'returning_container'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'at_container_return'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'container_returned'),
           getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
         ]);
         const combinedData = [
@@ -159,6 +161,8 @@ export default function ContainerCheckInPage() {
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),
           ...((returningContainerRes.data as any)?.data || []),
+          ...((atContainerReturnRes.data as any)?.data || []),
+          ...((containerReturnedRes.data as any)?.data || []),
           ...((completedRes.data as any)?.data || []),
         ];
         result = { success: true, data: combinedData };

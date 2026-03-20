@@ -170,13 +170,15 @@ export default function CurrentJobsPage() {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
          // Fetch jobs and check-ins in parallel using external API directly
-        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs for accepted + arrived_at_pickup + in_transit + delivered + returning_container + completed`);
-        const [acceptedResult, arrivedAtPickupResult, inTransitResult, deliveredResult, returningContainerResult, completedResult, checkinsResult] = await Promise.all([
+        console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs for accepted + arrived_at_pickup + in_transit + delivered + returning_container + at_container_return + container_returned + completed`);
+        const [acceptedResult, arrivedAtPickupResult, inTransitResult, deliveredResult, returningContainerResult, atContainerReturnResult, containerReturnedResult, completedResult, checkinsResult] = await Promise.all([
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'accepted'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'arrived_at_pickup'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'delivered'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'returning_container'),
+          getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'at_container_return'),
+          getDriverAssignedJobs(freelanceDriverId, driverType, 50, 'container_returned'),
           getDriverAssignedJobs(freelanceDriverId, driverType, 100, 'completed'),
           getDriverCheckins(freelanceDriverId, driverType, 'all'),
         ]);
@@ -187,9 +189,11 @@ export default function CurrentJobsPage() {
         const inTransitJobs = (!inTransitResult.error && inTransitResult.data) ? ((inTransitResult.data as any)?.data || []) : [];
         const deliveredJobs = (!deliveredResult.error && deliveredResult.data) ? ((deliveredResult.data as any)?.data || []) : [];
         const returningContainerJobs = (!returningContainerResult.error && returningContainerResult.data) ? ((returningContainerResult.data as any)?.data || []) : [];
+        const atContainerReturnJobs = (!atContainerReturnResult.error && atContainerReturnResult.data) ? ((atContainerReturnResult.data as any)?.data || []) : [];
+        const containerReturnedJobs = (!containerReturnedResult.error && containerReturnedResult.data) ? ((containerReturnedResult.data as any)?.data || []) : [];
         const completedJobs = (!completedResult.error && completedResult.data) ? ((completedResult.data as any)?.data || []) : [];
-        const mergedApiJobs = [...acceptedJobs, ...arrivedAtPickupJobs, ...inTransitJobs, ...deliveredJobs, ...returningContainerJobs, ...completedJobs];
-        console.log(`[CurrentJobsPage] Merged jobs: ${acceptedJobs.length} accepted + ${arrivedAtPickupJobs.length} arrived_at_pickup + ${inTransitJobs.length} in_transit + ${deliveredJobs.length} delivered + ${returningContainerJobs.length} returning_container + ${completedJobs.length} completed = ${mergedApiJobs.length} total`);
+        const mergedApiJobs = [...acceptedJobs, ...arrivedAtPickupJobs, ...inTransitJobs, ...deliveredJobs, ...returningContainerJobs, ...atContainerReturnJobs, ...containerReturnedJobs, ...completedJobs];
+        console.log(`[CurrentJobsPage] Merged jobs: ${acceptedJobs.length} accepted + ${arrivedAtPickupJobs.length} arrived_at_pickup + ${inTransitJobs.length} in_transit + ${deliveredJobs.length} delivered + ${returningContainerJobs.length} returning_container + ${atContainerReturnJobs.length} at_container_return + ${containerReturnedJobs.length} container_returned + ${completedJobs.length} completed = ${mergedApiJobs.length} total`);
 
         if (mergedApiJobs.length > 0 || (!inTransitResult.error && !deliveredResult.error && !completedResult.error)) {
           // Get check-ins to determine which jobs are actually started and which are completed
