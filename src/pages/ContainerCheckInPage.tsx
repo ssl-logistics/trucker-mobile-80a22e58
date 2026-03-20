@@ -227,6 +227,7 @@ export default function ContainerCheckInPage() {
                 : [];
             })(),
             bl_no: foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || null,
+            booking_no: foundJob.booking_no || foundJob.booking_number || null,
           };
           setJob(mappedJob);
           
