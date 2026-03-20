@@ -231,6 +231,8 @@ export default function JobDetailPage() {
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
           getDriverAssignedJobs(user.id, driverType, 50, 'returning_container'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'at_container_return'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'container_returned'),
           getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
           getDriverAssignedJobs(user.id, driverType, 50, 'accepted'),
           getDriverAssignedJobs(user.id, driverType, 50, 'arrived_at_pickup'),
