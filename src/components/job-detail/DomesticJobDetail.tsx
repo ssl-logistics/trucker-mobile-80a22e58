@@ -1162,7 +1162,7 @@ export default function DomesticJobDetail({
                         const isInboundJob = !!job.bl_no || job.transport_type?.includes('ขาเข้า');
                         navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: isInboundJob ? 'loaded_container' : 'empty_container', isBidJob } });
                       } else {
-                        navigate(`/job/${job.order_code}/container-checkin${queryString}`, { state: { isBidJob } });
+                        navigate(`/job/${job.order_code}/container-checkin${queryString}`, { state: { jobData: job, isBidJob } });
                       }
                     }}>
 
