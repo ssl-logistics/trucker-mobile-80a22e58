@@ -84,7 +84,7 @@ export function isJobFullyCompleted(
   // Jobs still in_progress or in_transit are never considered fully completed,
   // even if checkin data suggests otherwise (data inconsistency safeguard)
   const status = (job.status || '').toLowerCase();
-  if (status === 'in_progress' || status === 'in_transit') {
+  if (status === 'in_progress' || status === 'in_transit' || status === 'returning_container') {
     return false;
   }
 
