@@ -52,6 +52,7 @@ interface JobDetail {
   container_return_phone: string | null;
   container_details: ContainerDetailItem[];
   bl_no: string | null;
+  booking_no: string | null;
 }
 
 export default function ContainerCheckInPage() {
