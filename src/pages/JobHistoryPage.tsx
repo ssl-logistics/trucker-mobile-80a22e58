@@ -154,6 +154,7 @@ export default function JobHistoryPage() {
 
         const allJobsRaw = [
           ...((inTransitResult.data as any)?.data || []),
+          ...((returningContainerResult.data as any)?.data || []),
           ...((completedResult.data as any)?.data || []),
           ...((closedResult.data as any)?.data || []),
         ];
@@ -163,6 +164,7 @@ export default function JobHistoryPage() {
         
         console.log('[JobHistory] Fetched jobs count -',
           'in_transit:', ((inTransitResult.data as any)?.data || []).length,
+          'returning_container:', ((returningContainerResult.data as any)?.data || []).length,
           'completed:', ((completedResult.data as any)?.data || []).length,
           'closed:', ((closedResult.data as any)?.data || []).length,
           'unique total:', allJobs.length);
