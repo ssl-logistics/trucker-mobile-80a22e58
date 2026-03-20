@@ -420,7 +420,7 @@ export default function ContainerCheckInPage() {
       });
       setShowConfirmDialog(false);
       const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
-      navigate(backRoute);
+      navigate(backRoute, { state: { jobData: job } });
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
