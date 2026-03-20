@@ -144,9 +144,10 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [inTransitResult, returningContainerResult, completedResult, closedResult, checkinsRes] = await Promise.all([
+        const [inTransitResult, returningContainerResult, containerReturnedResult, completedResult, closedResult, checkinsRes] = await Promise.all([
           getDriverAssignedJobs(driverId, driverType, 1000, 'in_transit'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'returning_container'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'container_returned'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'completed'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'closed'),
           getDriverCheckins(driverId, driverType),
@@ -155,6 +156,7 @@ export default function JobHistoryPage() {
         const allJobsRaw = [
           ...((inTransitResult.data as any)?.data || []),
           ...((returningContainerResult.data as any)?.data || []),
+          ...((containerReturnedResult.data as any)?.data || []),
           ...((completedResult.data as any)?.data || []),
           ...((closedResult.data as any)?.data || []),
         ];
@@ -165,6 +167,7 @@ export default function JobHistoryPage() {
         console.log('[JobHistory] Fetched jobs count -',
           'in_transit:', ((inTransitResult.data as any)?.data || []).length,
           'returning_container:', ((returningContainerResult.data as any)?.data || []).length,
+          'container_returned:', ((containerReturnedResult.data as any)?.data || []).length,
           'completed:', ((completedResult.data as any)?.data || []).length,
           'closed:', ((closedResult.data as any)?.data || []).length,
           'unique total:', allJobs.length);
