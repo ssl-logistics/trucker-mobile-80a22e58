@@ -347,99 +347,104 @@ export default function ContainerSummaryPage() {
         {/* Action Buttons */}
         <JobActionButtons jobId={jobId!} orderNumber={jobId!} checkinType={checkinType as any} completedAt={sopData?.return_confirmed_at || sopData?.sop_completed_at} />
 
-        {/* Container Pickup Confirmed Status (BL jobs) */}
-        {sopData?.pickup_confirmed_at && (
-          <Card className="p-4 bg-green-50 border-green-200">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-green-900">แนบหลักฐานรับตู้สำเร็จ</div>
-                <div className="text-sm text-green-700">
-                  {formatDateTime(sopData.pickup_confirmed_at, language)}
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Selected Container & Seal from BL */}
-        {ocrScanData && (ocrScanData.container_no || ocrScanData.seal_no) && (
-          <Card className="p-4 border-border">
-            <div className="text-sm font-semibold text-foreground mb-3">เลือกตู้-ซีล จาก BL</div>
-            <div className="space-y-2">
-              {ocrScanData.container_no && (
-                <div className="flex items-center gap-2">
-                  <Container className="w-4 h-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">เลขตู้:</span>
-                  <span className="text-sm font-medium text-foreground">{ocrScanData.container_no}</span>
-                </div>
-              )}
-              {ocrScanData.seal_no && (
-                <div className="flex items-center gap-2">
-                  <Hash className="w-4 h-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">เลขซีล:</span>
-                  <span className="text-sm font-medium text-foreground">{ocrScanData.seal_no}</span>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
-
-        {/* Container Number Photo (OCR) */}
-        {containerNumberPhoto && (
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">รูปเลขตู้</div>
-            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-              <img src={containerNumberPhoto} alt="Container Number" className="w-full h-full object-cover" />
-            </div>
-          </div>
-        )}
-
-        {/* Seal Number Photo (OCR) */}
-        {sealNumberPhoto && (
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">รูปเลขซีล</div>
-            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-              <img src={sealNumberPhoto} alt="Seal Number" className="w-full h-full object-cover" />
-            </div>
-          </div>
-        )}
-
-        {/* Container Photos (from OCR scan) */}
-        {containerPhotos.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">รูปตู้ ({containerPhotos.length} รูป)</div>
-            <div className="grid grid-cols-2 gap-2">
-              {containerPhotos.map((url, idx) => (
-                <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                  <img src={url} alt={`Container Photo ${idx + 1}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* EIR Document Photos (from OCR scan or checkin) */}
-        {(eirPhotos.length > 0 || pickupPhotoUrls.length > 0) && (
-          <div className="space-y-2">
-            {(() => {
-              const allEirUrls = eirPhotos.length > 0 ? eirPhotos : pickupPhotoUrls;
-              return (
-                <>
-                  <div className="text-sm text-muted-foreground">เอกสาร EIR ({allEirUrls.length} รูป)</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {allEirUrls.map((url, idx) => (
-                      <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                        <img src={url} alt={`EIR Document ${idx + 1}`} className="w-full h-full object-cover" />
-                      </div>
-                    ))}
+        {/* Container Pickup Evidence - only show when viewing pickup context */}
+        {checkinType !== 'container_return' && (
+          <>
+            {/* Container Pickup Confirmed Status (BL jobs) */}
+            {sopData?.pickup_confirmed_at && (
+              <Card className="p-4 bg-green-50 border-green-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-6 h-6 text-white" />
                   </div>
-                </>
-              );
-            })()}
-          </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-green-900">แนบหลักฐานรับตู้สำเร็จ</div>
+                    <div className="text-sm text-green-700">
+                      {formatDateTime(sopData.pickup_confirmed_at, language)}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Selected Container & Seal from BL */}
+            {ocrScanData && (ocrScanData.container_no || ocrScanData.seal_no) && (
+              <Card className="p-4 border-border">
+                <div className="text-sm font-semibold text-foreground mb-3">เลือกตู้-ซีล จาก BL</div>
+                <div className="space-y-2">
+                  {ocrScanData.container_no && (
+                    <div className="flex items-center gap-2">
+                      <Container className="w-4 h-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">เลขตู้:</span>
+                      <span className="text-sm font-medium text-foreground">{ocrScanData.container_no}</span>
+                    </div>
+                  )}
+                  {ocrScanData.seal_no && (
+                    <div className="flex items-center gap-2">
+                      <Hash className="w-4 h-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">เลขซีล:</span>
+                      <span className="text-sm font-medium text-foreground">{ocrScanData.seal_no}</span>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+
+            {/* Container Number Photo (OCR) */}
+            {containerNumberPhoto && (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">รูปเลขตู้</div>
+                <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+                  <img src={containerNumberPhoto} alt="Container Number" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            )}
+
+            {/* Seal Number Photo (OCR) */}
+            {sealNumberPhoto && (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">รูปเลขซีล</div>
+                <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+                  <img src={sealNumberPhoto} alt="Seal Number" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            )}
+
+            {/* Container Photos (from OCR scan) */}
+            {containerPhotos.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">รูปตู้ ({containerPhotos.length} รูป)</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {containerPhotos.map((url, idx) => (
+                    <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                      <img src={url} alt={`Container Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* EIR Document Photos (from OCR scan or checkin) */}
+            {(eirPhotos.length > 0 || pickupPhotoUrls.length > 0) && (
+              <div className="space-y-2">
+                {(() => {
+                  const allEirUrls = eirPhotos.length > 0 ? eirPhotos : pickupPhotoUrls;
+                  return (
+                    <>
+                      <div className="text-sm text-muted-foreground">เอกสาร EIR ({allEirUrls.length} รูป)</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {allEirUrls.map((url, idx) => (
+                          <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                            <img src={url} alt={`EIR Document ${idx + 1}`} className="w-full h-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </>
         )}
 
         {/* Container Return Check-in Status */}
