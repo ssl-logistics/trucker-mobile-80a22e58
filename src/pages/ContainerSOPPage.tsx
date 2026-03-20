@@ -696,22 +696,23 @@ const ContainerSOPPage = () => {
         sealNumber: finalSealNumber,
       });
 
-      // Update order status to in_transit via external API
+      // Update order status via external API
+      const orderStatus = isContainerReturn ? 'container_returned' : 'in_transit';
       try {
         const { error: statusError } = await updateOrderStatus({
           order_number: jobDetail!.order_code,
-          status: 'in_transit',
+          status: orderStatus,
           driver_id: user.id,
           driver_type: driverType,
           notes: isContainerReturn ? 'คืนตู้สำเร็จ' : 'รับตู้หนักสำเร็จ',
         });
         if (statusError) {
-          console.warn('[ContainerSOP] updateOrderStatus error (non-blocking):', statusError);
+          console.warn(`[ContainerSOP] updateOrderStatus ${orderStatus} error (non-blocking):`, statusError);
         } else {
-          console.log('[ContainerSOP] Order status updated to in_transit');
+          console.log(`[ContainerSOP] Order status updated to ${orderStatus}`);
         }
       } catch (statusErr) {
-        console.warn('[ContainerSOP] updateOrderStatus exception:', statusErr);
+        console.warn(`[ContainerSOP] updateOrderStatus ${orderStatus} exception:`, statusErr);
       }
 
       toast({
