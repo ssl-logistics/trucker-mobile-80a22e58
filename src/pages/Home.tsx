@@ -55,6 +55,7 @@ interface Job {
   remarks?: string | null;
   invoice_number?: string | null;
   isAccepted?: boolean;
+  status?: string;
   bl_no?: string | null;
   booking_no?: string | null;
   origin_lat?: number;
@@ -257,6 +258,7 @@ export default function Home() {
           goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
           goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || item.product_unit || null,
           isAccepted: false,
+          status: item.status || null,
           bl_no: item.bl_no || item.bill_of_lading || item.bl_number || null,
           booking_no: item.booking_no || item.booking_number || null,
           invoice_number: item.invoice_number || item.inv_no || item.inv || null,

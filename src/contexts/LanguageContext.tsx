@@ -276,6 +276,9 @@ const thTranslations: Record<string, string> = {
   'jobStatus.inProgress': 'กำลังดำเนินการ',
   'jobStatus.completed': 'เสร็จสิ้น',
   'jobStatus.delivered': 'ส่งแล้ว',
+  'jobStatus.awaitingResponse': 'รอตอบรับ',
+  'jobStatus.assigned': 'ได้รับมอบหมาย',
+  'jobStatus.accepted': 'ตอบรับแล้ว',
 
   // Bid Job Detail Page
   'bidJob.title': 'รายละเอียดงานประมูล',
@@ -1815,6 +1818,9 @@ const enTranslations: Record<string, string> = {
   'jobStatus.inProgress': 'In Progress',
   'jobStatus.completed': 'Completed',
   'jobStatus.delivered': 'Delivered',
+  'jobStatus.awaitingResponse': 'Awaiting Response',
+  'jobStatus.assigned': 'Assigned',
+  'jobStatus.accepted': 'Accepted',
 
   // Bid Job Detail Page
   'bidJob.title': 'Bid Job Details',
@@ -3353,6 +3359,9 @@ const koTranslations: Record<string, string> = {
   'jobStatus.inProgress': '진행 중',
   'jobStatus.completed': '완료',
   'jobStatus.delivered': '배송 완료',
+  'jobStatus.awaitingResponse': '응답 대기',
+  'jobStatus.assigned': '배정됨',
+  'jobStatus.accepted': '수락됨',
 
   // Bid Job Detail Page
   'bidJob.title': '입찰 작업 상세',
@@ -5080,6 +5089,9 @@ const zhTranslations: Record<string, string> = {
   'jobStatus.inProgress': '进行中',
   'jobStatus.completed': '已完成',
   'jobStatus.delivered': '已送达',
+  'jobStatus.awaitingResponse': '等待回复',
+  'jobStatus.assigned': '已分配',
+  'jobStatus.accepted': '已接受',
 
   // Bid Job Detail Page
   'bidJob.title': '投标工作详情',
