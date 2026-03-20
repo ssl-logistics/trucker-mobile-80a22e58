@@ -149,12 +149,6 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           }
         </span>
 
-        {/* Status Badge - awaiting_response */}
-        {job.status && job.status.toLowerCase().trim() === 'awaiting_response' && (
-          <span className="inline-block px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-700">
-            {t('jobStatus.awaitingResponse')}
-          </span>
-        )}
 
         <div className="flex items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 space-y-2 sm:space-y-3">
