@@ -124,18 +124,8 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
               {getTranslatedVehicleType(job.vehicle_type, t)}
             </Badge>
           )}
-          <Badge variant="secondary" className={`border-0 ${
-            job.status === 'awaiting_response' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
-            job.status === 'in_transit' ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' :
-            job.status === 'in_progress' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
-            job.status === 'assigned' ? 'bg-teal-100 text-teal-700 hover:bg-teal-200' :
-            'bg-green-100 text-green-800 hover:bg-green-200'
-          }`}>
-            {job.status === 'awaiting_response' ? t('jobStatus.awaitingResponse') :
-             job.status === 'in_transit' ? t('jobStatus.inTransit') :
-             job.status === 'in_progress' ? t('jobStatus.inProgress') :
-             job.status === 'assigned' ? t('jobStatus.assigned') :
-             job.status === 'completed' ? t('jobStatus.completed') : t('jobStatus.delivered')}
+          <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200 border-0">
+            {job.status === 'completed' ? t('jobStatus.completed') : t('jobStatus.delivered')}
           </Badge>
         </div>
 
