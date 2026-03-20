@@ -172,13 +172,17 @@ const ContainerSOPPage = () => {
 
         if (isInternalDriver || isExternalDriver) {
           const driverType = isInternalDriver ? 'internal' : 'external';
-          const [inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
+          const [acceptedRes, arrivedAtPickupRes, inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
+            getDriverAssignedJobs(user!.id, driverType, 50, 'accepted'),
+            getDriverAssignedJobs(user!.id, driverType, 50, 'arrived_at_pickup'),
             getDriverAssignedJobs(user!.id, driverType, 50, 'in_progress'),
             getDriverAssignedJobs(user!.id, driverType, 50, 'in_transit'),
             getDriverAssignedJobs(user!.id, driverType, 50, 'delivered'),
             getDriverAssignedJobs(user!.id, driverType, 50, 'completed'),
           ]);
           apiJob = [
+            ...((acceptedRes.data as any)?.data || []),
+            ...((arrivedAtPickupRes.data as any)?.data || []),
             ...((inProgressRes.data as any)?.data || []),
             ...((inTransitRes.data as any)?.data || []),
             ...((deliveredRes.data as any)?.data || []),
