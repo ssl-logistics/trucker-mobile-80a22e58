@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer, driverCheckin } from '@/lib/externalApi';
+import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer, driverCheckin, updateOrderStatus } from '@/lib/externalApi';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -693,6 +693,24 @@ const ContainerSOPPage = () => {
         containerNumber: finalContainerNumber,
         sealNumber: finalSealNumber,
       });
+
+      // Update order status to in_transit via external API
+      try {
+        const { error: statusError } = await updateOrderStatus({
+          order_number: jobDetail!.order_code,
+          status: 'in_transit',
+          driver_id: user.id,
+          driver_type: driverType,
+          notes: isContainerReturn ? 'คืนตู้สำเร็จ' : 'รับตู้หนักสำเร็จ',
+        });
+        if (statusError) {
+          console.warn('[ContainerSOP] updateOrderStatus error (non-blocking):', statusError);
+        } else {
+          console.log('[ContainerSOP] Order status updated to in_transit');
+        }
+      } catch (statusErr) {
+        console.warn('[ContainerSOP] updateOrderStatus exception:', statusErr);
+      }
 
       toast({
         title: t('containerSop.success'),
