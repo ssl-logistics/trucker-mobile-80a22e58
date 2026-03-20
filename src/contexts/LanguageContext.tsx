@@ -5089,6 +5089,9 @@ const zhTranslations: Record<string, string> = {
   'jobStatus.inProgress': '进行中',
   'jobStatus.completed': '已完成',
   'jobStatus.delivered': '已送达',
+  'jobStatus.awaitingResponse': '等待回复',
+  'jobStatus.assigned': '已分配',
+  'jobStatus.accepted': '已接受',
 
   // Bid Job Detail Page
   'bidJob.title': '投标工作详情',
