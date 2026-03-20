@@ -648,6 +648,24 @@ export default function DeliveryDetailPage() {
       // Continue even if local update fails
     }
 
+    // Send 'returning_container' status for international (BL/Booking) jobs after POD confirmed
+    const jobAnyPod = job as any;
+    if (jobAnyPod.bl_no || jobAnyPod.booking_no || jobAnyPod.transport_category === 'international') {
+      try {
+        const driverTypePod = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        await updateOrderStatus({
+          order_number: job.order_code,
+          status: 'returning_container',
+          driver_id: user.id,
+          driver_type: driverTypePod,
+          notes: 'ยืนยัน POD สำเร็จ - เตรียมคืนตู้',
+        });
+        console.log('✅ updateOrderStatus returning_container sent');
+      } catch (statusErr) {
+        console.warn('updateOrderStatus returning_container error (non-blocking):', statusErr);
+      }
+    }
+
     // Show success toast
     toast({
       title: t('delivery.podSuccess'),
