@@ -402,7 +402,24 @@ export default function PickupDetailPage() {
         console.warn('⚠️ No room_code found/created for order:', job.order_code);
       }
 
-      // Save check-in to localStorage
+      // For international jobs (BL/Booking), send 'delivered' status to update-order-status
+      const jobAnyStatus = job as any;
+      if (jobAnyStatus.bl_no || jobAnyStatus.booking_no || jobAnyStatus.transport_category === 'international') {
+        try {
+          const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+          await updateOrderStatus({
+            order_number: job.order_code,
+            status: 'delivered',
+            driver_id: user.id,
+            driver_type: driverType,
+            notes: 'เช็คอินจุดรับสินค้าสำเร็จ',
+          });
+          console.log('[PickupDetailPage] updateOrderStatus delivered sent');
+        } catch (statusErr) {
+          console.warn('[PickupDetailPage] updateOrderStatus exception:', statusErr);
+        }
+      }
+
       saveCheckin({
         order_number: job.order_number || job.order_code,
         checkin_type: 'pickup',

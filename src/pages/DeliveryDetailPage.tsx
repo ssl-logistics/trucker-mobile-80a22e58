@@ -12,7 +12,7 @@ import JobActionButtons from "@/components/job/JobActionButtons";
 import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
-import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates } from '@/lib/externalApi';
+import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates, updateOrderStatus } from '@/lib/externalApi';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import {
