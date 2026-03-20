@@ -144,8 +144,9 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [inTransitResult, completedResult, closedResult, checkinsRes] = await Promise.all([
+        const [inTransitResult, returningContainerResult, completedResult, closedResult, checkinsRes] = await Promise.all([
           getDriverAssignedJobs(driverId, driverType, 1000, 'in_transit'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'returning_container'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'completed'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'closed'),
           getDriverCheckins(driverId, driverType),
