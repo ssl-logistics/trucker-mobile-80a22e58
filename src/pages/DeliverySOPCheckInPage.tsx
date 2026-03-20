@@ -109,14 +109,16 @@ export default function DeliverySOPCheckInPage() {
       if (isInternalDriver || isExternalDriver) {
         // For internal/external drivers, use getDriverAssignedJobs
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [inTransitRes, deliveredRes, completedRes] = await Promise.all([
+        const [inTransitRes, deliveredRes, returningContainerRes, completedRes] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
+          getDriverAssignedJobs(user.id, driverType, 50, 'returning_container'),
           getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
         ]) as any[];
         allJobs = [
           ...((inTransitRes as any)?.data || []),
           ...((deliveredRes as any)?.data || []),
+          ...((returningContainerRes as any)?.data || []),
           ...((completedRes as any)?.data || []),
         ];
       } else {

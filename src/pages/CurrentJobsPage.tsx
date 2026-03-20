@@ -261,11 +261,12 @@ export default function CurrentJobsPage() {
               const isInTransit = status === 'in_transit';
               const isDelivered = status === 'delivered';
               const isArrivedAtPickup = status === 'arrived_at_pickup';
+              const isReturningContainer = status === 'returning_container';
               // Include 'accepted' or 'arrived_at_pickup' status for BL/Booking (international) jobs
               const isAcceptedInternational = status === 'accepted' && isInternationalJob(job);
-              const shouldInclude = hasCheckIn || isInTransit || isDelivered || isArrivedAtPickup || isAcceptedInternational;
+              const shouldInclude = hasCheckIn || isInTransit || isDelivered || isArrivedAtPickup || isReturningContainer || isAcceptedInternational;
               if (shouldInclude) {
-                console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}, isArrivedAtPickup=${isArrivedAtPickup}, isAcceptedIntl=${isAcceptedInternational}`);
+                console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}, isArrivedAtPickup=${isArrivedAtPickup}, isReturningContainer=${isReturningContainer}, isAcceptedIntl=${isAcceptedInternational}`);
               }
               return shouldInclude;
            });
