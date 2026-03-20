@@ -19,7 +19,7 @@ import { sendJobStatus } from '@/lib/jobStatusService';
 import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
-import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans } from '@/lib/externalApi';
+import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans, updateOrderStatus } from '@/lib/externalApi';
 
 interface ContainerDetailItem {
   containerNo?: string;
