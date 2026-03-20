@@ -149,25 +149,12 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           }
         </span>
 
-        {/* Status Badge */}
-        {job.status && (() => {
-          const s = job.status.toLowerCase().trim();
-          const statusMap: Record<string, { label: string; className: string }> = {
-            'awaiting_response': { label: t('jobStatus.awaitingResponse'), className: 'bg-amber-100 text-amber-700' },
-            'in_progress': { label: t('jobStatus.inProgress'), className: 'bg-blue-100 text-blue-700' },
-            'in_transit': { label: t('jobStatus.inTransit'), className: 'bg-purple-100 text-purple-700' },
-            'assigned': { label: t('jobStatus.assigned'), className: 'bg-teal-100 text-teal-700' },
-            'accepted': { label: t('jobStatus.accepted'), className: 'bg-green-100 text-green-700' },
-            'completed': { label: t('jobStatus.completed'), className: 'bg-gray-100 text-gray-600' },
-            'delivered': { label: t('jobStatus.delivered'), className: 'bg-green-100 text-green-700' },
-          };
-          const config = statusMap[s];
-          return config ? (
-            <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium ${config.className}`}>
-              {config.label}
-            </span>
-          ) : null;
-        })()}
+        {/* Status Badge - awaiting_response */}
+        {job.status && job.status.toLowerCase().trim() === 'awaiting_response' && (
+          <span className="inline-block px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-700">
+            {t('jobStatus.awaitingResponse')}
+          </span>
+        )}
 
         <div className="flex items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 space-y-2 sm:space-y-3">
