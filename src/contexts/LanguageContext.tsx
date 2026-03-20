@@ -276,6 +276,9 @@ const thTranslations: Record<string, string> = {
   'jobStatus.inProgress': 'กำลังดำเนินการ',
   'jobStatus.completed': 'เสร็จสิ้น',
   'jobStatus.delivered': 'ส่งแล้ว',
+  'jobStatus.awaitingResponse': 'รอตอบรับ',
+  'jobStatus.assigned': 'ได้รับมอบหมาย',
+  'jobStatus.accepted': 'ตอบรับแล้ว',
 
   // Bid Job Detail Page
   'bidJob.title': 'รายละเอียดงานประมูล',
