@@ -55,6 +55,7 @@ interface Job {
   remarks?: string | null;
   invoice_number?: string | null;
   isAccepted?: boolean;
+  status?: string;
   bl_no?: string | null;
   booking_no?: string | null;
   origin_lat?: number;
