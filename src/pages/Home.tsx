@@ -167,14 +167,28 @@ export default function Home() {
       if (isInternalDriver || isExternalDriver) {
         // Internal/External drivers use get-driver-assigned-jobs API
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const { data, error } = await getDriverAssignedJobs(user.id, driverType, 10);
-        
-        if (error) {
-          console.error('Error loading factory/driver jobs:', error);
+        const [inProgressRes, awaitingRes] = await Promise.all([
+          getDriverAssignedJobs(user.id, driverType, 10, 'in_progress'),
+          getDriverAssignedJobs(user.id, driverType, 10, 'awaiting_response'),
+        ]);
+
+        if (inProgressRes.error && awaitingRes.error) {
+          console.error('Error loading factory/driver jobs:', inProgressRes.error, awaitingRes.error);
           setIsLoadingFactoryJobs(false);
           return;
         }
-        result = data;
+
+        const mergedJobs = [
+          ...((inProgressRes.data as any)?.data || []),
+          ...((awaitingRes.data as any)?.data || []),
+        ];
+
+        const uniqueJobs = mergedJobs.filter((item: any, index: number, arr: any[]) => {
+          const itemKey = item?.id || item?.order_number;
+          return arr.findIndex((j: any) => (j?.id || j?.order_number) === itemKey) === index;
+        });
+
+        result = { data: uniqueJobs };
       } else {
         // Freelance drivers use get-factory-assigned-jobs API
         const { data, error } = await getFactoryAssignedJobs(user.id, 10);
