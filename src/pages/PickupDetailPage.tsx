@@ -17,7 +17,7 @@ import { useGpsTracking } from '@/hooks/useGpsTracking';
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
-import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
+import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateOrderStatus } from '@/lib/externalApi';
 interface JobDetail {
   id: string;
   order_code: string;
