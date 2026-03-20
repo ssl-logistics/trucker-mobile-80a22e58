@@ -751,8 +751,12 @@ export default function Home() {
         // Determine driver type for the API call
         const driverType = userType === 'internal_driver' ? 'internal' : 'external';
         
-        // Update the order status to 'in_transit' via the external API
-        console.log(`[Home] Calling update-order-status API with status: 'in_transit'`);
+        // Determine status based on job type: BL/Booking jobs send 'accepted', others send 'in_transit'
+        const isInternationalJob = !!(job.bl_no || job.booking_no);
+        const orderStatus = isInternationalJob ? 'accepted' : 'in_transit';
+        
+        // Update the order status via the external API
+        console.log(`[Home] Calling update-order-status API with status: '${orderStatus}' (isInternational: ${isInternationalJob})`);
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-order-status`,
           {
@@ -764,7 +768,7 @@ export default function Home() {
             body: JSON.stringify({
               order_id: job.id,
               order_number: job.order_code,
-              status: 'in_transit',
+              status: orderStatus,
               driver_id: user.id,
               driver_type: driverType,
             }),
