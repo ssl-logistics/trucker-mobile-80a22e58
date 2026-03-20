@@ -196,9 +196,9 @@ export default function Home() {
       const apiJobs = (result?.data || []).filter((item: any) => {
         const status = (item?.status || '').toLowerCase().trim();
         if (isInternalDriver || isExternalDriver) {
-          // Internal/External drivers see only jobs with 'in_progress' status
+          // Internal/External drivers see jobs with 'in_progress' or 'awaiting_response' status
           // Jobs with 'in_transit' status are shown in Current Jobs page
-          return status === 'in_progress';
+          return status === 'in_progress' || status === 'awaiting_response';
         }
         // Freelance drivers only see jobs awaiting their response
         // Also filter out jobs without factory_id - those are company jobs, not factory jobs
