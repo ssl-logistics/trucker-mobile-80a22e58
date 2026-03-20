@@ -3359,6 +3359,9 @@ const koTranslations: Record<string, string> = {
   'jobStatus.inProgress': '진행 중',
   'jobStatus.completed': '완료',
   'jobStatus.delivered': '배송 완료',
+  'jobStatus.awaitingResponse': '응답 대기',
+  'jobStatus.assigned': '배정됨',
+  'jobStatus.accepted': '수락됨',
 
   // Bid Job Detail Page
   'bidJob.title': '입찰 작업 상세',
