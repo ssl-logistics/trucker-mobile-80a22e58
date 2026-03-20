@@ -1818,6 +1818,9 @@ const enTranslations: Record<string, string> = {
   'jobStatus.inProgress': 'In Progress',
   'jobStatus.completed': 'Completed',
   'jobStatus.delivered': 'Delivered',
+  'jobStatus.awaitingResponse': 'Awaiting Response',
+  'jobStatus.assigned': 'Assigned',
+  'jobStatus.accepted': 'Accepted',
 
   // Bid Job Detail Page
   'bidJob.title': 'Bid Job Details',
