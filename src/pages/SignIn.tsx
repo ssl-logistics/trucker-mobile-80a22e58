@@ -479,9 +479,11 @@ const SignIn = () => {
                       presentationStyle: 'popover',
                     });
                   } else {
-                    // Always use current origin so the user returns to the same tab after OAuth
+                    // Outside editor preview iframe, use published domain redirect for stable OAuth callback
+                    const webRedirectUri = !isInIframe && isPreviewHost ? publishedUrl : window.location.origin;
+
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: window.location.origin,
+                      redirect_uri: webRedirectUri,
                     });
 
                     if (error) {
