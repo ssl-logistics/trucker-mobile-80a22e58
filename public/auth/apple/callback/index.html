@@ -138,54 +138,45 @@
 
         log('URL: ' + window.location.href);
 
-        // Parse hash fragment (Supabase appends tokens here)
+        var searchParams = new URLSearchParams(window.location.search);
         var hash = window.location.hash;
+        var hashParams = new URLSearchParams(hash && hash.length > 1 ? hash.substring(1) : '');
 
-        if (!hash || hash.length < 2) {
-          // Check for error in query params
-          var search = window.location.search;
-          if (search) {
-            var params = new URLSearchParams(search);
-            var error = params.get('error');
-            var errorDesc = params.get('error_description');
-            if (error) {
-              log('ERROR: ' + error + ' - ' + errorDesc);
-              showError('เข้าสู่ระบบไม่สำเร็จ: ' + (errorDesc || error));
-              return;
-            }
+        // Check provider error first
+        var error = searchParams.get('error') || hashParams.get('error');
+        var errorDesc = searchParams.get('error_description') || hashParams.get('error_description');
+        if (error) {
+          log('ERROR: ' + error + ' - ' + (errorDesc || ''));
+          showError('เข้าสู่ระบบไม่สำเร็จ: ' + (errorDesc || error));
+          return;
+        }
+
+        // Support both code flow and token flow
+        var code = searchParams.get('code');
+        var accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+        var refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+        var expiresIn = hashParams.get('expires_in') || searchParams.get('expires_in');
+        var tokenType = hashParams.get('token_type') || searchParams.get('token_type');
+
+        if (code) {
+          log('Auth code: YES (' + code.length + ' chars)');
+          deepLinkUrl = 'thetroob://apple-auth-callback?code=' + encodeURIComponent(code);
+        } else {
+          log('Access token: ' + (accessToken ? 'YES (' + accessToken.length + ' chars)' : 'NONE'));
+          log('Refresh token: ' + (refreshToken ? 'YES' : 'NONE'));
+
+          if (!accessToken) {
+            showError('ไม่พบ code หรือ token กรุณาลองใหม่อีกครั้ง');
+            return;
           }
-          
-          log('No hash fragment, waiting...');
-          // Wait a bit in case of slow redirect
-          setTimeout(function() {
-            if (!window.location.hash || window.location.hash.length < 2) {
-              showError('ไม่ได้รับข้อมูลการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
-            }
-          }, 5000);
-          return;
+
+          // Build deep link URL for token flow
+          deepLinkUrl = 'thetroob://apple-auth-callback'
+            + '?access_token=' + encodeURIComponent(accessToken)
+            + '&refresh_token=' + encodeURIComponent(refreshToken || '')
+            + '&expires_in=' + encodeURIComponent(expiresIn || '3600')
+            + '&token_type=' + encodeURIComponent(tokenType || 'bearer');
         }
-
-        // Parse tokens from hash
-        var hashParams = new URLSearchParams(hash.substring(1));
-        var accessToken = hashParams.get('access_token');
-        var refreshToken = hashParams.get('refresh_token');
-        var expiresIn = hashParams.get('expires_in');
-        var tokenType = hashParams.get('token_type');
-
-        log('Access token: ' + (accessToken ? 'YES (' + accessToken.length + ' chars)' : 'NONE'));
-        log('Refresh token: ' + (refreshToken ? 'YES' : 'NONE'));
-
-        if (!accessToken) {
-          showError('ไม่พบ token กรุณาลองใหม่อีกครั้ง');
-          return;
-        }
-
-        // Build deep link URL
-        deepLinkUrl = 'thetroob://apple-auth-callback'
-          + '?access_token=' + encodeURIComponent(accessToken)
-          + '&refresh_token=' + encodeURIComponent(refreshToken || '')
-          + '&expires_in=' + encodeURIComponent(expiresIn || '3600')
-          + '&token_type=' + encodeURIComponent(tokenType || 'bearer');
 
         log('Attempting auto-redirect...');
 
@@ -213,9 +204,13 @@
             log('Still on page after 10s');
             // Try web app fallback with tokens in hash
             retryBtn.textContent = 'เข้าใช้งานผ่านเว็บ';
-            retryBtn.onclick = function() {
-              window.location.replace(window.location.origin + '/' + hash);
-            };
+              retryBtn.onclick = function() {
+                if (hash && hash.length > 1) {
+                  window.location.replace(window.location.origin + '/' + hash);
+                } else {
+                  window.location.replace(window.location.origin + '/');
+                }
+              };
           }
         }, 10000);
       })();
