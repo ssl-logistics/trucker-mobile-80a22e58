@@ -101,10 +101,73 @@ export const useDeepLinkHandler = () => {
         // thetroob://apple-auth-callback?access_token=xxx&refresh_token=xxx
         if (url.host === 'apple-auth-callback') {
           console.log('[DeepLink] 🍎 Apple auth callback detected');
+          const code = url.searchParams.get('code');
           const accessToken = url.searchParams.get('access_token');
           const refreshToken = url.searchParams.get('refresh_token');
           
-          if (accessToken && refreshToken) {
+          if (code) {
+            try {
+              console.log('[DeepLink] 📡 Exchanging Apple auth code for session...');
+              const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+              if (exchangeError) {
+                console.error('[DeepLink] ❌ Code exchange error:', exchangeError);
+                toast({
+                  variant: 'destructive',
+                  title: 'เกิดข้อผิดพลาด',
+                  description: 'ไม่สามารถยืนยันตัวตน Apple ได้: ' + exchangeError.message,
+                });
+                navigate('/', { replace: true });
+                return;
+              }
+
+              const user = exchangeData?.user;
+              if (!user) {
+                toast({
+                  variant: 'destructive',
+                  title: 'เกิดข้อผิดพลาด',
+                  description: 'ไม่พบข้อมูลผู้ใช้จาก Apple',
+                });
+                navigate('/', { replace: true });
+                return;
+              }
+
+              const appleDriver = {
+                id: user.id,
+                full_name: user.user_metadata?.full_name || user.email || 'Apple User',
+                avatar_url: user.user_metadata?.avatar_url || null,
+                loginType: 'apple',
+                email: user.email,
+              };
+
+              await Promise.all([
+                setAuthItem('auth_driver', JSON.stringify(appleDriver)),
+                setAuthItem('auth_driver_id', user.id),
+                setAuthItem('auth_login_type', 'apple'),
+                setAuthItem('auth_user_type', 'freelance_driver'),
+                setAuthItem('user_role', 'freelance'),
+              ]);
+
+              window.dispatchEvent(new Event('auth_driver_updated'));
+              toast({
+                title: 'เข้าสู่ระบบสำเร็จ',
+                description: `ยินดีต้อนรับ ${appleDriver.full_name}`,
+              });
+              navigate('/home', { replace: true });
+              return;
+            } catch (err) {
+              console.error('[DeepLink] ❌ Apple code flow error:', err);
+              toast({
+                variant: 'destructive',
+                title: 'เกิดข้อผิดพลาด',
+                description: 'ไม่สามารถเข้าสู่ระบบ Apple ได้',
+              });
+              navigate('/', { replace: true });
+              return;
+            }
+          }
+
+          if (accessToken) {
             try {
               // Close the browser FIRST to return to the app
               try {
@@ -114,36 +177,75 @@ export const useDeepLinkHandler = () => {
                 console.log('[DeepLink] Browser close skipped:', e);
               }
               
-              console.log('[DeepLink] 📡 Setting Supabase session...');
-              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-              });
+              let user = null;
+
+              if (refreshToken) {
+                console.log('[DeepLink] 📡 Setting Supabase session...');
+                const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                });
+                
+                if (sessionError) {
+                  console.error('[DeepLink] ❌ Session error:', sessionError);
+                  toast({
+                    variant: 'destructive',
+                    title: 'เกิดข้อผิดพลาด',
+                    description: 'ไม่สามารถเข้าสู่ระบบ Apple ได้: ' + sessionError.message,
+                  });
+                  navigate('/', { replace: true });
+                  return;
+                }
+
+                user = sessionData?.user ?? null;
+              } else {
+                // Some providers/flows may return only access_token without refresh_token.
+                // In that case, fetch profile from access token and proceed with app-level auth.
+                console.log('[DeepLink] ℹ️ Missing refresh token, resolving user from access token');
+                const { data: userData, error: userError } = await supabase.auth.getUser(accessToken);
+
+                if (userError || !userData?.user) {
+                  console.error('[DeepLink] ❌ getUser error:', userError);
+                  toast({
+                    variant: 'destructive',
+                    title: 'เกิดข้อผิดพลาด',
+                    description: 'ไม่สามารถยืนยันตัวตน Apple ได้',
+                  });
+                  navigate('/', { replace: true });
+                  return;
+                }
+
+                user = userData.user;
+              }
               
-              if (sessionError) {
-                console.error('[DeepLink] ❌ Session error:', sessionError);
+              if (!user?.id) {
                 toast({
                   variant: 'destructive',
                   title: 'เกิดข้อผิดพลาด',
-                  description: 'ไม่สามารถเข้าสู่ระบบ Apple ได้: ' + sessionError.message,
+                  description: 'ไม่พบข้อมูลผู้ใช้จาก Apple',
                 });
                 navigate('/', { replace: true });
                 return;
               }
-              
-              const user = sessionData?.user;
+
               console.log('[DeepLink] ✅ Apple auth success, user:', user?.email);
               
               // Store auth data
               const appleDriver = {
-                id: user?.id || '',
-                full_name: user?.user_metadata?.full_name || user?.email || 'Apple User',
-                avatar_url: null,
+                id: user.id,
+                full_name: user.user_metadata?.full_name || user.email || 'Apple User',
+                avatar_url: user.user_metadata?.avatar_url || null,
                 loginType: 'apple',
-                email: user?.email,
+                email: user.email,
               };
-              await setAuthItem('auth_driver', JSON.stringify(appleDriver));
-              await setAuthItem('auth_login_type', 'apple');
+
+              await Promise.all([
+                setAuthItem('auth_driver', JSON.stringify(appleDriver)),
+                setAuthItem('auth_driver_id', user.id),
+                setAuthItem('auth_login_type', 'apple'),
+                setAuthItem('auth_user_type', 'freelance_driver'),
+                setAuthItem('user_role', 'freelance'),
+              ]);
               
               // Dispatch auth event
               window.dispatchEvent(new Event('auth_driver_updated'));
@@ -170,7 +272,7 @@ export const useDeepLinkHandler = () => {
             toast({
               variant: 'destructive',
               title: 'เกิดข้อผิดพลาด',
-              description: 'ไม่ได้รับข้อมูลการยืนยันตัวตน',
+              description: 'ไม่ได้รับ code หรือ token จาก Apple',
             });
             navigate('/', { replace: true });
             return;
