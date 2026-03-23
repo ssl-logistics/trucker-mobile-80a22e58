@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { login as loginExternal } from "@/lib/externalApi";
-import { setAuthItem } from "@/utils/authStorage";
+import { getAuthItem, setAuthItem } from "@/utils/authStorage";
 import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
@@ -119,6 +119,58 @@ const SignIn = () => {
       setValue("remember", true);
     }
   }, [setValue]);
+
+  const hydrateAppleLoginFromSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+
+    if (!user) return false;
+
+    const provider = user.app_metadata?.provider;
+    const providers = user.app_metadata?.providers;
+    const isAppleProvider = provider === 'apple' || (Array.isArray(providers) && providers.includes('apple'));
+
+    if (!isAppleProvider) return false;
+
+    const appleDriver = {
+      id: user.id,
+      full_name: user.user_metadata?.full_name || user.email || 'Apple User',
+      avatar_url: null,
+      loginType: 'apple',
+      email: user.email,
+    };
+
+    await Promise.all([
+      setAuthItem('auth_driver', JSON.stringify(appleDriver)),
+      setAuthItem('auth_driver_id', user.id),
+      setAuthItem('auth_login_type', 'apple'),
+    ]);
+
+    window.dispatchEvent(new Event('auth_driver_updated'));
+    return true;
+  };
+
+  // If user just returned from Apple OAuth on web, restore app auth state
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) return;
+
+    const restoreAppleSession = async () => {
+      try {
+        const existingDriver = await getAuthItem('auth_driver');
+        if (existingDriver) return;
+
+        const restored = await hydrateAppleLoginFromSession();
+        if (restored) {
+          navigate('/home', { replace: true });
+        }
+      } catch (error) {
+        console.log('[Apple Login] Web session restore skipped:', error);
+      }
+    };
+
+    void restoreAppleSession();
+  }, [navigate]);
+
   const onSubmit = async (data: LoginFormData) => {
     if (isLoggingIn) return; // Prevent double-click
     
@@ -421,25 +473,48 @@ const SignIn = () => {
                 try {
                   setIsLoggingIn(true);
                   console.log('[Apple Login] Starting OAuth flow...');
-                  
+
                   const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                  const redirectUrl = Capacitor.isNativePlatform()
-                    ? `${publishedUrl}/auth/apple/callback`
-                    : window.location.origin;
-                  
-                  console.log('[Apple Login] Using redirect:', redirectUrl);
-                  
-                  // Use lovable managed auth for both native and web
-                  const { error } = await lovable.auth.signInWithOAuth("apple", {
-                    redirect_uri: redirectUrl,
+
+                  if (Capacitor.isNativePlatform()) {
+                    const redirectUrl = `${publishedUrl}/auth/apple/callback`;
+                    const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(redirectUrl)}`;
+
+                    console.log('[Apple Login] Native OAuth URL:', oauthUrl);
+
+                    const finishedListener = await Browser.addListener('browserFinished', () => {
+                      console.log('[Apple Login] Browser closed before completion');
+                      setIsLoggingIn(false);
+                      finishedListener.remove();
+                    });
+
+                    await Browser.open({
+                      url: oauthUrl,
+                      presentationStyle: 'fullscreen',
+                    });
+                    return;
+                  }
+
+                  const result = await lovable.auth.signInWithOAuth("apple", {
+                    redirect_uri: window.location.origin,
                   });
-                  
-                  if (error) {
-                    console.error('[Apple Login] Error:', error);
+
+                  if (result.error) {
+                    console.error('[Apple Login] Error:', result.error);
                     toast({ title: t('signIn.error'), variant: 'destructive' });
                     setIsLoggingIn(false);
+                    return;
                   }
-                  // On success, the page will redirect
+
+                  // Preview iframe flow returns without redirect, so hydrate app auth immediately
+                  if (!result.redirected) {
+                    const restored = await hydrateAppleLoginFromSession();
+                    if (restored) {
+                      navigate('/home', { replace: true });
+                      return;
+                    }
+                    setIsLoggingIn(false);
+                  }
                 } catch (err) {
                   console.error('[Apple Login] Error:', err);
                   toast({ title: t('signIn.error'), variant: 'destructive' });
