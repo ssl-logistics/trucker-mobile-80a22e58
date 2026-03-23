@@ -437,48 +437,55 @@ const SignIn = () => {
                 try {
                   setIsLoggingIn(true);
                   console.log('[Apple Login] Starting OAuth flow...');
-                  
+
+                  const publishedUrl = 'https://thetrucker-mobile.lovable.app';
+                  const nativeRedirectUrl = `${publishedUrl}/auth/apple/callback`;
+                  const isPreviewHost = /(^id-preview--)|(\.lovableproject\.com$)/.test(window.location.hostname);
+
+                  let isInIframe = false;
+                  try {
+                    isInIframe = window.self !== window.top;
+                  } catch {
+                    isInIframe = true;
+                  }
+
                   if (Capacitor.isNativePlatform()) {
-                    // On native iOS, use Lovable managed auth with published URL redirect
-                    const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                    const redirectUrl = `${publishedUrl}/auth/apple/callback`;
-                    
-                    // Listen for browser closed event as fallback
+                    // On native iOS, open OAuth in Browser plugin and deep-link back to app
+                    const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
+
                     const finishedListener = await Browser.addListener('browserFinished', async () => {
                       console.log('[Apple Login] Browser finished/closed');
                       finishedListener.remove();
-                      
+
                       setTimeout(async () => {
                         try {
                           const { data: { session } } = await supabase.auth.getSession();
                           if (session) {
                             console.log('[Apple Login] ✅ Session found after browser close:', session.user?.email);
-                             window.dispatchEvent(new Event('auth_driver_updated'));
-                             setIsLoggingIn(false);
+                            window.dispatchEvent(new Event('auth_driver_updated'));
                           } else {
                             console.log('[Apple Login] No session after browser close');
-                            setIsLoggingIn(false);
                           }
                         } catch (e) {
                           console.log('[Apple Login] Session check error:', e);
+                        } finally {
                           setIsLoggingIn(false);
                         }
                       }, 1500);
                     });
-                    
-                    const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: redirectUrl,
+
+                    await Browser.open({
+                      url: oauthUrl,
+                      presentationStyle: 'popover',
                     });
-                    if (error) {
-                      console.error('[Apple Login] Error:', error);
-                      toast({ title: t('signIn.error'), variant: 'destructive' });
-                      setIsLoggingIn(false);
-                    }
                   } else {
-                    // On web, use lovable OAuth
+                    // Outside editor preview iframe, use published domain redirect for stable OAuth callback
+                    const webRedirectUri = !isInIframe && isPreviewHost ? publishedUrl : window.location.origin;
+
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: window.location.origin,
+                      redirect_uri: webRedirectUri,
                     });
+
                     if (error) {
                       console.error('[Apple Login] Error:', error);
                       toast({ title: t('signIn.error'), variant: 'destructive' });
@@ -487,6 +494,7 @@ const SignIn = () => {
                 } catch (err) {
                   console.error('[Apple Login] Error:', err);
                   toast({ title: t('signIn.error'), variant: 'destructive' });
+                  setIsLoggingIn(false);
                 } finally {
                   // Don't reset isLoggingIn here for native - wait for deep link or browserFinished
                   if (!Capacitor.isNativePlatform()) {
