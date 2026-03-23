@@ -1,6 +1,14 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { AuthLoadingOverlay } from '@/components/auth/AuthLoadingOverlay';
-import { AUTH_KEYS, getAuthItem, removeAuthItem, setAuthItem, syncAuthFromLocalStorageToNative, handleFirstRunAfterInstall } from '@/utils/authStorage';
+import {
+  AUTH_KEYS,
+  getAuthItem,
+  removeAuthItem,
+  setAuthItem,
+  syncAuthFromLocalStorageToNative,
+  handleFirstRunAfterInstall,
+} from '@/utils/authStorage';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LineUser {
   lineUserId: string;
@@ -15,8 +23,9 @@ interface DriverData {
   avatar_url: string | null;
   phone_number?: string;
   username?: string;
-  // LINE login fields
-  loginType?: 'normal' | 'line';
+  email?: string;
+  // Login source fields
+  loginType?: 'normal' | 'line' | 'apple' | 'google';
   lineUser?: LineUser;
   [key: string]: any;
 }
@@ -84,11 +93,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       // Handle first run after install - clear stale auth if no marker exists
       await handleFirstRunAfterInstall();
-      
+
       // Keep both stores in sync (useful after upgrades)
       await syncAuthFromLocalStorageToNative();
 
-      const [driverData, userRole, userType, lineUserData, loginType, storedEmployerType] = await Promise.all([
+      const [driverData, userRole, storedUserType, lineUserData, loginType, storedEmployerType] = await Promise.all([
         getAuthItem('auth_driver'),
         getAuthItem('user_role'),
         getAuthItem('auth_user_type'),
@@ -129,6 +138,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           } else {
             driver.loginType = 'normal';
           }
+        } else if (loginType === 'apple' || loginType === 'google') {
+          driver.loginType = loginType;
         } else {
           driver.loginType = 'normal';
         }
@@ -136,18 +147,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(driver);
 
         // Store userType directly for feature access control
-        setUserType(userType || 'freelance_driver');
-        
+        setUserType(storedUserType || 'freelance_driver');
+
         // Store employer type for internal/external drivers
         setEmployerType(storedEmployerType || null);
 
         // Map user_type to role for backward compatibility
         let mappedRole = 'freelance';
-        if (userType === 'freelance_driver' || userType === 'internal_driver' || userType === 'external_driver') {
+        if (storedUserType === 'freelance_driver' || storedUserType === 'internal_driver' || storedUserType === 'external_driver') {
           mappedRole = 'freelance';
-        } else if (userType === 'company') {
+        } else if (storedUserType === 'company') {
           mappedRole = 'company';
-        } else if (userType === 'factory') {
+        } else if (storedUserType === 'factory') {
           mappedRole = 'factory';
         } else if (userRole) {
           mappedRole = userRole;
@@ -155,15 +166,59 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         setRole(mappedRole);
       } else {
+        // Fallback: if OAuth session exists (Apple/Google), hydrate app auth storage
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.warn('Auth session check failed:', sessionError.message);
+        }
+
+        const sessionUser = session?.user;
+        const provider = sessionUser?.app_metadata?.provider;
+        const isSupportedOAuth = provider === 'apple' || provider === 'google';
+
+        if (sessionUser && isSupportedOAuth) {
+          const oauthDriver: DriverData = {
+            id: sessionUser.id,
+            full_name:
+              sessionUser.user_metadata?.full_name ||
+              sessionUser.user_metadata?.name ||
+              sessionUser.email ||
+              'OAuth User',
+            avatar_url:
+              sessionUser.user_metadata?.avatar_url ||
+              sessionUser.user_metadata?.picture ||
+              null,
+            email: sessionUser.email,
+            loginType: provider,
+          };
+
+          await Promise.all([
+            setAuthItem('auth_driver', JSON.stringify(oauthDriver)),
+            setAuthItem('auth_driver_id', sessionUser.id),
+            setAuthItem('auth_login_type', provider),
+            setAuthItem('auth_user_type', 'freelance_driver'),
+            setAuthItem('user_role', 'freelance'),
+          ]);
+
+          setUser(oauthDriver);
+          setRole('freelance');
+          setUserType('freelance_driver');
+          setEmployerType(null);
+          return;
+        }
+
         // Not authenticated (we require a valid stored auth_driver)
         setUser(null);
         setRole('freelance');
+        setUserType('freelance_driver');
         setEmployerType(null);
       }
     } catch (error) {
       console.error('Error loading user from storage:', error);
       setUser(null);
       setRole('freelance');
+      setUserType('freelance_driver');
       setEmployerType(null);
     } finally {
       setLoading(false);
@@ -176,9 +231,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       void removeAuthItem(k);
     });
 
+    // Also clear OAuth session if exists
+    void supabase.auth.signOut();
+
     sessionStorage.removeItem('line_oauth_state');
     setUser(null);
     setRole('freelance');
+    setUserType('freelance_driver');
     setEmployerType(null);
   };
 
@@ -289,8 +348,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   return (
     <AuthContext.Provider value={value}>
       {children}
-      <AuthLoadingOverlay 
-        isVisible={isAuthTransitioning} 
+      <AuthLoadingOverlay
+        isVisible={isAuthTransitioning}
         message={authTransitionMessage || 'กำลังโหลด...'}
       />
     </AuthContext.Provider>
