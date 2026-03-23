@@ -439,16 +439,20 @@ const SignIn = () => {
                   console.log('[Apple Login] Starting OAuth flow...');
 
                   const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                  const publishedHostname = new URL(publishedUrl).hostname;
-                  const shouldUsePublishedRedirect = window.location.hostname !== publishedHostname;
+                  const nativeRedirectUrl = `${publishedUrl}/auth/apple/callback`;
+                  const isPreviewHost = /(^id-preview--)|(\.lovableproject\.com$)/.test(window.location.hostname);
+
+                  let isInIframe = false;
+                  try {
+                    isInIframe = window.self !== window.top;
+                  } catch {
+                    isInIframe = true;
+                  }
 
                   if (Capacitor.isNativePlatform()) {
-                    // Native iOS: redirect back via custom scheme so appUrlOpen handles auth
-                    const nativeRedirectUrl = 'thetroob://apple-auth-callback';
+                    // On native iOS, open OAuth in Browser plugin and deep-link back to app
                     const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
-                    console.log('[Apple Login] Native: opening OAuth URL:', oauthUrl);
 
-                    // If browser closes and no session exists, unlock button state
                     const finishedListener = await Browser.addListener('browserFinished', async () => {
                       console.log('[Apple Login] Browser finished/closed');
                       finishedListener.remove();
@@ -456,27 +460,27 @@ const SignIn = () => {
                       setTimeout(async () => {
                         try {
                           const { data: { session } } = await supabase.auth.getSession();
-                          if (!session) {
+                          if (session) {
+                            console.log('[Apple Login] ✅ Session found after browser close:', session.user?.email);
+                            window.dispatchEvent(new Event('auth_driver_updated'));
+                          } else {
                             console.log('[Apple Login] No session after browser close');
-                            setIsLoggingIn(false);
                           }
                         } catch (e) {
                           console.log('[Apple Login] Session check error:', e);
+                        } finally {
                           setIsLoggingIn(false);
                         }
-                      }, 1200);
+                      }, 1500);
                     });
 
                     await Browser.open({
                       url: oauthUrl,
+                      presentationStyle: 'popover',
                     });
                   } else {
-                    // Web/new tab: force published callback on any non-published host
-                    // to avoid preview-domain auth gate and 404 callback issues.
-                    const webRedirectUri = shouldUsePublishedRedirect
-                      ? `${publishedUrl}/#/auth/apple/callback`
-                      : `${window.location.origin}/#/auth/apple/callback`;
-                    console.log('[Apple Login] Web host:', window.location.hostname, 'redirect_uri =', webRedirectUri);
+                    // Outside editor preview iframe, use published domain redirect for stable OAuth callback
+                    const webRedirectUri = !isInIframe && isPreviewHost ? publishedUrl : window.location.origin;
 
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
                       redirect_uri: webRedirectUri,

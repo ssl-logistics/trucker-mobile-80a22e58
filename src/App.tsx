@@ -77,7 +77,6 @@ const NotFound = lazyWithPreload(() => import("./pages/NotFound"));
 const SearchPage = lazyWithPreload(() => import("./pages/SearchPage"));
 const ApiTestPage = lazyWithPreload(() => import("./pages/ApiTestPage"));
 const LineCallbackPage = lazyWithPreload(() => import("./pages/LineCallbackPage"));
-const AppleCallbackPage = lazyWithPreload(() => import("./pages/AppleCallbackPage"));
 const PushDebugPage = lazyWithPreload(() => import("./pages/PushDebugPage"));
 const BidJobDetailPage = lazyWithPreload(() => import("./pages/BidJobDetailPage"));
 const DownloadAppPage = lazyWithPreload(() => import("./pages/DownloadAppPage"));
@@ -131,7 +130,6 @@ export const preloadablePages = {
   SearchPage,
   ApiTestPage,
   LineCallbackPage,
-  AppleCallbackPage,
   PushDebugPage,
 };
 
@@ -159,7 +157,6 @@ const App = () => (
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/create-new-password" element={<CreateNewPassword />} />
                     <Route path="/auth/line/callback" element={<LineCallbackPage />} />
-                    <Route path="/auth/apple/callback" element={<AppleCallbackPage />} />
                     <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                     <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
                     <Route path="/chat" element={<ProtectedRoute><ChatListPage /></ProtectedRoute>} />
