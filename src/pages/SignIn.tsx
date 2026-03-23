@@ -488,7 +488,7 @@ const SignIn = () => {
                       });
                     }
 
-                    const { error } = await supabase.auth.signInWithOAuth({
+                    const { data, error } = await supabase.auth.signInWithOAuth({
                       provider: 'apple',
                       options: {
                         redirectTo,
@@ -499,18 +499,9 @@ const SignIn = () => {
                     if (error) {
                       console.error('[Apple Login] Supabase OAuth error:', error);
                       toast({ title: t('signIn.error'), variant: 'destructive' });
-                    } else if (Capacitor.isNativePlatform()) {
-                      // For native, we need to get the URL and open it in Browser plugin
-                      const { data } = await supabase.auth.signInWithOAuth({
-                        provider: 'apple',
-                        options: {
-                          redirectTo,
-                          skipBrowserRedirect: true,
-                        },
-                      });
-                      if (data?.url) {
-                        await Browser.open({ url: data.url, presentationStyle: 'popover' });
-                      }
+                    } else if (Capacitor.isNativePlatform() && data?.url) {
+                      // Open the OAuth URL in native browser
+                      await Browser.open({ url: data.url, presentationStyle: 'popover' });
                     }
                   }
                 } catch (err) {
