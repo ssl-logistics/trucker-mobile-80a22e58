@@ -24,11 +24,14 @@ export const useDeepLinkHandler = () => {
       try {
         const url = new URL(event.url);
         const path = url.host + url.pathname;
+        const hashParams = new URLSearchParams(url.hash.startsWith('#') ? url.hash.slice(1) : url.hash);
+        const getParam = (key: string) => url.searchParams.get(key) ?? hashParams.get(key);
         
         console.log('[DeepLink] Path:', path);
         console.log('[DeepLink] Host:', url.host);
         console.log('[DeepLink] Pathname:', url.pathname);
         console.log('[DeepLink] Search params:', url.search);
+        console.log('[DeepLink] Hash params:', url.hash);
 
         // Close the in-app browser if it's open
         try {
@@ -42,8 +45,8 @@ export const useDeepLinkHandler = () => {
         // thetroob://line-callback?code=xxx&state=yyy
         if (url.host === 'line-callback') {
           console.log('[DeepLink] 🔐 LINE callback detected');
-          const code = url.searchParams.get('code');
-          const state = url.searchParams.get('state');
+          const code = getParam('code');
+          const state = getParam('state');
           
           if (code) {
             console.log('[DeepLink] 📡 Exchanging code for token...');
