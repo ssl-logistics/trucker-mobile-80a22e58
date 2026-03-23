@@ -450,28 +450,59 @@ const SignIn = () => {
                   }
 
                   if (Capacitor.isNativePlatform()) {
-                    // On native iOS, open OAuth in Browser plugin and deep-link back to app
+                    // On native iOS, open OAuth via published URL and deep-link back
+                    // The callback page at /auth/apple/callback will redirect via thetroob:// scheme
                     const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
+                    console.log('[Apple Login] Native: opening OAuth URL:', oauthUrl);
 
+                    // Listen for deep link return from callback page
+                    const appUrlListener = await App.addListener('appUrlOpen', async (event) => {
+                      console.log('[Apple Login] Deep link received:', event.url);
+                      appUrlListener.remove();
+                      
+                      try {
+                        const url = new URL(event.url);
+                        const code = url.searchParams.get('code');
+                        const accessToken = url.searchParams.get('access_token');
+                        const refreshToken = url.searchParams.get('refresh_token');
+                        
+                        if (code) {
+                          console.log('[Apple Login] Exchanging code for session...');
+                          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                          if (error) {
+                            console.error('[Apple Login] Code exchange error:', error);
+                            toast({ title: 'Apple login failed', variant: 'destructive' });
+                          } else {
+                            console.log('[Apple Login] ✅ Session from code:', data.session?.user?.email);
+                            window.dispatchEvent(new Event('auth_driver_updated'));
+                          }
+                        } else if (accessToken && refreshToken) {
+                          console.log('[Apple Login] Setting session from tokens...');
+                          const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+                          if (error) {
+                            console.error('[Apple Login] Set session error:', error);
+                            toast({ title: 'Apple login failed', variant: 'destructive' });
+                          } else {
+                            console.log('[Apple Login] ✅ Session set from tokens');
+                            window.dispatchEvent(new Event('auth_driver_updated'));
+                          }
+                        }
+                      } catch (e) {
+                        console.error('[Apple Login] Deep link handling error:', e);
+                      } finally {
+                        setIsLoggingIn(false);
+                        try { await Browser.close(); } catch {}
+                      }
+                    });
+
+                    // Also listen for browser close without deep link
                     const finishedListener = await Browser.addListener('browserFinished', async () => {
                       console.log('[Apple Login] Browser finished/closed');
                       finishedListener.remove();
-
-                      setTimeout(async () => {
-                        try {
-                          const { data: { session } } = await supabase.auth.getSession();
-                          if (session) {
-                            console.log('[Apple Login] ✅ Session found after browser close:', session.user?.email);
-                            window.dispatchEvent(new Event('auth_driver_updated'));
-                          } else {
-                            console.log('[Apple Login] No session after browser close');
-                          }
-                        } catch (e) {
-                          console.log('[Apple Login] Session check error:', e);
-                        } finally {
-                          setIsLoggingIn(false);
-                        }
-                      }, 1500);
+                      // Give deep link a chance to fire first
+                      setTimeout(() => {
+                        setIsLoggingIn(false);
+                      }, 2000);
                     });
 
                     await Browser.open({
@@ -479,11 +510,11 @@ const SignIn = () => {
                       presentationStyle: 'popover',
                     });
                   } else {
-                    // Outside editor preview iframe, use published domain redirect for stable OAuth callback
-                    const webRedirectUri = !isInIframe && isPreviewHost ? publishedUrl : window.location.origin;
+                    // Web: always use current origin as redirect
+                    console.log('[Apple Login] Web: redirect_uri =', window.location.origin);
 
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: webRedirectUri,
+                      redirect_uri: window.location.origin,
                     });
 
                     if (error) {
