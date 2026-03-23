@@ -439,6 +439,7 @@ const SignIn = () => {
                   console.log('[Apple Login] Starting OAuth flow...');
 
                   const publishedUrl = 'https://thetrucker-mobile.lovable.app';
+                  const isPreviewDomain = window.location.hostname.includes('id-preview--');
 
                   if (Capacitor.isNativePlatform()) {
                     // Native iOS: open OAuth via Browser plugin
@@ -498,11 +499,13 @@ const SignIn = () => {
                       url: oauthUrl,
                     });
                   } else {
-                    // Web/new tab: redirect back to current origin
-                    console.log('[Apple Login] Web: redirect_uri =', window.location.origin);
+                    // Web/new tab: preview domain can fail OAuth callback routing,
+                    // so force published domain there.
+                    const webRedirectUri = isPreviewDomain ? publishedUrl : window.location.origin;
+                    console.log('[Apple Login] Web: redirect_uri =', webRedirectUri);
 
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: window.location.origin,
+                      redirect_uri: webRedirectUri,
                     });
 
                     if (error) {
