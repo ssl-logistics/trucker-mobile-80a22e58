@@ -439,19 +439,12 @@ const SignIn = () => {
                   console.log('[Apple Login] Starting OAuth flow...');
 
                   const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                  const nativeRedirectUrl = `${publishedUrl}/auth/apple/callback`;
-                  const isPreviewHost = /(^id-preview--)|(\.lovableproject\.com$)/.test(window.location.hostname);
-
-                  let isInIframe = false;
-                  try {
-                    isInIframe = window.self !== window.top;
-                  } catch {
-                    isInIframe = true;
-                  }
+                  const nativeRedirectUrl = 'thetroob://apple-auth-callback';
 
                   if (Capacitor.isNativePlatform()) {
-                    // On native iOS, open OAuth in Browser plugin and deep-link back to app
+                    // Native iOS: redirect directly to deep link (no intermediate web callback page)
                     const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
+                    console.log('[Apple Login] Native OAuth URL prepared');
 
                     const finishedListener = await Browser.addListener('browserFinished', async () => {
                       console.log('[Apple Login] Browser finished/closed');
@@ -476,10 +469,9 @@ const SignIn = () => {
 
                     await Browser.open({
                       url: oauthUrl,
-                      presentationStyle: 'popover',
                     });
                   } else {
-                    // Always use current origin so the OAuth callback returns to this tab
+                    // Web: callback should return to current tab
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
                       redirect_uri: window.location.origin,
                     });
