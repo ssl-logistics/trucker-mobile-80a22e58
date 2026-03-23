@@ -119,6 +119,58 @@ const SignIn = () => {
       setValue("remember", true);
     }
   }, [setValue]);
+
+  const hydrateAppleLoginFromSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+
+    if (!user) return false;
+
+    const provider = user.app_metadata?.provider;
+    const providers = user.app_metadata?.providers;
+    const isAppleProvider = provider === 'apple' || (Array.isArray(providers) && providers.includes('apple'));
+
+    if (!isAppleProvider) return false;
+
+    const appleDriver = {
+      id: user.id,
+      full_name: user.user_metadata?.full_name || user.email || 'Apple User',
+      avatar_url: null,
+      loginType: 'apple',
+      email: user.email,
+    };
+
+    await Promise.all([
+      setAuthItem('auth_driver', JSON.stringify(appleDriver)),
+      setAuthItem('auth_driver_id', user.id),
+      setAuthItem('auth_login_type', 'apple'),
+    ]);
+
+    window.dispatchEvent(new Event('auth_driver_updated'));
+    return true;
+  };
+
+  // If user just returned from Apple OAuth on web, restore app auth state
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) return;
+
+    const restoreAppleSession = async () => {
+      try {
+        const existingDriver = await getAuthItem('auth_driver');
+        if (existingDriver) return;
+
+        const restored = await hydrateAppleLoginFromSession();
+        if (restored) {
+          navigate('/home', { replace: true });
+        }
+      } catch (error) {
+        console.log('[Apple Login] Web session restore skipped:', error);
+      }
+    };
+
+    void restoreAppleSession();
+  }, [navigate]);
+
   const onSubmit = async (data: LoginFormData) => {
     if (isLoggingIn) return; // Prevent double-click
     
