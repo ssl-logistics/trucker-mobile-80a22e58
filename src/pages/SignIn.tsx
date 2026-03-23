@@ -50,7 +50,10 @@ const SignIn = () => {
   const {
     toast
   } = useToast();
-  const { setAuthTransitioning } = useAuth();
+  const {
+    isAuthenticated,
+    userType
+  } = useAuth();
   const loginSchema = z.object({
     email: z.string().min(1, {
       message: t('validation.usernameRequired')
@@ -119,6 +122,19 @@ const SignIn = () => {
       setValue("remember", true);
     }
   }, [setValue]);
+
+  // Fallback for OAuth on native/web: if session/auth state already exists, leave Sign In page automatically
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    if (userType === 'company' || userType === 'factory') {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    navigate('/home', { replace: true });
+  }, [isAuthenticated, userType, navigate]);
+
   const onSubmit = async (data: LoginFormData) => {
     if (isLoggingIn) return; // Prevent double-click
     
