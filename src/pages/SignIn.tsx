@@ -473,25 +473,48 @@ const SignIn = () => {
                 try {
                   setIsLoggingIn(true);
                   console.log('[Apple Login] Starting OAuth flow...');
-                  
+
                   const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                  const redirectUrl = Capacitor.isNativePlatform()
-                    ? `${publishedUrl}/auth/apple/callback`
-                    : window.location.origin;
-                  
-                  console.log('[Apple Login] Using redirect:', redirectUrl);
-                  
-                  // Use lovable managed auth for both native and web
-                  const { error } = await lovable.auth.signInWithOAuth("apple", {
-                    redirect_uri: redirectUrl,
+
+                  if (Capacitor.isNativePlatform()) {
+                    const redirectUrl = `${publishedUrl}/auth/apple/callback`;
+                    const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(redirectUrl)}`;
+
+                    console.log('[Apple Login] Native OAuth URL:', oauthUrl);
+
+                    const finishedListener = await Browser.addListener('browserFinished', () => {
+                      console.log('[Apple Login] Browser closed before completion');
+                      setIsLoggingIn(false);
+                      finishedListener.remove();
+                    });
+
+                    await Browser.open({
+                      url: oauthUrl,
+                      presentationStyle: 'fullscreen',
+                    });
+                    return;
+                  }
+
+                  const result = await lovable.auth.signInWithOAuth("apple", {
+                    redirect_uri: window.location.origin,
                   });
-                  
-                  if (error) {
-                    console.error('[Apple Login] Error:', error);
+
+                  if (result.error) {
+                    console.error('[Apple Login] Error:', result.error);
                     toast({ title: t('signIn.error'), variant: 'destructive' });
                     setIsLoggingIn(false);
+                    return;
                   }
-                  // On success, the page will redirect
+
+                  // Preview iframe flow returns without redirect, so hydrate app auth immediately
+                  if (!result.redirected) {
+                    const restored = await hydrateAppleLoginFromSession();
+                    if (restored) {
+                      navigate('/home', { replace: true });
+                      return;
+                    }
+                    setIsLoggingIn(false);
+                  }
                 } catch (err) {
                   console.error('[Apple Login] Error:', err);
                   toast({ title: t('signIn.error'), variant: 'destructive' });
