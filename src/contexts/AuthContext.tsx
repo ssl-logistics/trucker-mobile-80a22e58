@@ -174,10 +174,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
 
         const sessionUser = session?.user;
-        const provider = sessionUser?.app_metadata?.provider;
-        const isSupportedOAuth = provider === 'apple' || provider === 'google';
+        const providerFromMetadata = sessionUser?.app_metadata?.provider;
+        const providerFromIdentity = sessionUser?.identities?.find(
+          (identity) => identity?.provider === 'apple' || identity?.provider === 'google'
+        )?.provider;
 
-        if (sessionUser && isSupportedOAuth) {
+        const oauthProvider =
+          providerFromMetadata === 'apple' || providerFromMetadata === 'google'
+            ? providerFromMetadata
+            : providerFromIdentity === 'apple' || providerFromIdentity === 'google'
+              ? providerFromIdentity
+              : null;
+
+        if (sessionUser && oauthProvider) {
           const oauthDriver: DriverData = {
             id: sessionUser.id,
             full_name:
@@ -190,13 +199,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               sessionUser.user_metadata?.picture ||
               null,
             email: sessionUser.email,
-            loginType: provider,
+            loginType: oauthProvider,
           };
 
           await Promise.all([
             setAuthItem('auth_driver', JSON.stringify(oauthDriver)),
             setAuthItem('auth_driver_id', sessionUser.id),
-            setAuthItem('auth_login_type', provider),
+            setAuthItem('auth_login_type', oauthProvider),
             setAuthItem('auth_user_type', 'freelance_driver'),
             setAuthItem('user_role', 'freelance'),
           ]);
@@ -303,6 +312,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     void loadUserFromStorage();
 
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setRole('freelance');
+        setUserType('freelance_driver');
+        setEmployerType(null);
+        return;
+      }
+
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        void loadUserFromStorage();
+      }
+    });
+
     // Listen for storage changes (multi-tab support)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'auth_driver' || e.key === 'user_role' || e.key === 'auth_user_type') {
@@ -321,6 +346,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('auth_driver_updated', handleAuthUpdated);
+      subscription.unsubscribe();
     };
   }, []);
 
