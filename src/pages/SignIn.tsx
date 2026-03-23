@@ -422,61 +422,28 @@ const SignIn = () => {
                   setIsLoggingIn(true);
                   console.log('[Apple Login] Starting OAuth flow...');
                   
-                  if (Capacitor.isNativePlatform()) {
-                    // On native iOS, open OAuth in external browser
-                    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                    const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                    const redirectUrl = `${publishedUrl}/auth/apple/callback`;
-                    const appleAuthUrl = `${supabaseUrl}/auth/v1/authorize?provider=apple&redirect_to=${encodeURIComponent(redirectUrl)}`;
-                    console.log('[Apple Login] Opening in browser:', appleAuthUrl);
-                    
-                    // Listen for browser closed event as fallback
-                    // When deep link brings user back, browser gets closed
-                    const finishedListener = await Browser.addListener('browserFinished', async () => {
-                      console.log('[Apple Login] Browser finished/closed');
-                      finishedListener.remove();
-                      
-                      // Check if we got a session via deep link handler
-                      // Give deep link handler time to process
-                      setTimeout(async () => {
-                        try {
-                          const { data: { session } } = await supabase.auth.getSession();
-                          if (session) {
-                            console.log('[Apple Login] ✅ Session found after browser close:', session.user?.email);
-                            // Session was set by deep link handler, we're good
-                          } else {
-                            console.log('[Apple Login] No session after browser close');
-                            setIsLoggingIn(false);
-                          }
-                        } catch (e) {
-                          console.log('[Apple Login] Session check error:', e);
-                          setIsLoggingIn(false);
-                        }
-                      }, 1500);
-                    });
-                    
-                    await Browser.open({ 
-                      url: appleAuthUrl,
-                      presentationStyle: 'fullscreen',
-                    });
-                  } else {
-                    // On web, use lovable OAuth
-                    const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: window.location.origin,
-                    });
-                    if (error) {
-                      console.error('[Apple Login] Error:', error);
-                      toast({ title: t('signIn.error'), variant: 'destructive' });
-                    }
+                  const publishedUrl = 'https://thetrucker-mobile.lovable.app';
+                  const redirectUrl = Capacitor.isNativePlatform()
+                    ? `${publishedUrl}/auth/apple/callback`
+                    : window.location.origin;
+                  
+                  console.log('[Apple Login] Using redirect:', redirectUrl);
+                  
+                  // Use lovable managed auth for both native and web
+                  const { error } = await lovable.auth.signInWithOAuth("apple", {
+                    redirect_uri: redirectUrl,
+                  });
+                  
+                  if (error) {
+                    console.error('[Apple Login] Error:', error);
+                    toast({ title: t('signIn.error'), variant: 'destructive' });
+                    setIsLoggingIn(false);
                   }
+                  // On success, the page will redirect
                 } catch (err) {
                   console.error('[Apple Login] Error:', err);
                   toast({ title: t('signIn.error'), variant: 'destructive' });
-                } finally {
-                  // Don't reset isLoggingIn here for native - wait for deep link or browserFinished
-                  if (!Capacitor.isNativePlatform()) {
-                    setIsLoggingIn(false);
-                  }
+                  setIsLoggingIn(false);
                 }
               }}
               disabled={isLoggingIn}
