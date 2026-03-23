@@ -439,9 +439,9 @@ const SignIn = () => {
                   console.log('[Apple Login] Starting OAuth flow...');
 
                   const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                  const nativeRedirectUrl = 'thetroob://apple-auth-callback';
-
-                  if (Capacitor.isNativePlatform()) {
+                  // IMPORTANT: use explicit static callback file path for native OAuth
+                  // /auth/apple/callback (without /index.html) can be routed to SPA login page
+                  const nativeRedirectUrl = `${publishedUrl}/auth/apple/callback/index.html`;
                     // Native iOS: use direct deep-link redirect to app (no web callback page)
                     const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
                     console.log('[Apple Login] Native: opening OAuth URL:', oauthUrl);
