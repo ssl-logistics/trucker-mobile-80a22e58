@@ -437,6 +437,8 @@ const SignIn = () => {
                           const { data: { session } } = await supabase.auth.getSession();
                           if (session) {
                             console.log('[Apple Login] ✅ Session found after browser close:', session.user?.email);
+                             window.dispatchEvent(new Event('auth_driver_updated'));
+                             setIsLoggingIn(false);
                           } else {
                             console.log('[Apple Login] No session after browser close');
                             setIsLoggingIn(false);
