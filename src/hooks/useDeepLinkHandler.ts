@@ -104,9 +104,9 @@ export const useDeepLinkHandler = () => {
         // thetroob://apple-auth-callback?access_token=xxx&refresh_token=xxx
         if (url.host === 'apple-auth-callback') {
           console.log('[DeepLink] 🍎 Apple auth callback detected');
-          const code = url.searchParams.get('code');
-          const accessToken = url.searchParams.get('access_token');
-          const refreshToken = url.searchParams.get('refresh_token');
+          const code = getParam('code');
+          const accessToken = getParam('access_token');
+          const refreshToken = getParam('refresh_token');
           
           if (code) {
             try {
