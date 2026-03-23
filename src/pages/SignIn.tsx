@@ -449,46 +449,68 @@ const SignIn = () => {
                     isInIframe = true;
                   }
 
-                  if (Capacitor.isNativePlatform()) {
-                    // On native iOS, open OAuth in Browser plugin and deep-link back to app
-                    const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
-
-                    const finishedListener = await Browser.addListener('browserFinished', async () => {
-                      console.log('[Apple Login] Browser finished/closed');
-                      finishedListener.remove();
-
-                      setTimeout(async () => {
-                        try {
-                          const { data: { session } } = await supabase.auth.getSession();
-                          if (session) {
-                            console.log('[Apple Login] ✅ Session found after browser close:', session.user?.email);
-                            window.dispatchEvent(new Event('auth_driver_updated'));
-                          } else {
-                            console.log('[Apple Login] No session after browser close');
-                          }
-                        } catch (e) {
-                          console.log('[Apple Login] Session check error:', e);
-                        } finally {
-                          setIsLoggingIn(false);
-                        }
-                      }, 1500);
-                    });
-
-                    await Browser.open({
-                      url: oauthUrl,
-                      presentationStyle: 'popover',
-                    });
-                  } else {
-                    // Outside editor preview iframe, use published domain redirect for stable OAuth callback
-                    const webRedirectUri = !isInIframe && isPreviewHost ? publishedUrl : window.location.origin;
-
+                  if (isInIframe) {
+                    // Inside Lovable editor iframe — use managed proxy
+                    console.log('[Apple Login] Using Lovable managed OAuth (iframe)');
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: webRedirectUri,
+                      redirect_uri: window.location.origin,
+                    });
+                    if (error) {
+                      console.error('[Apple Login] Lovable OAuth error:', error);
+                      toast({ title: t('signIn.error'), variant: 'destructive' });
+                    }
+                  } else {
+                    // Standalone browser tab OR native iOS — use direct Supabase OAuth
+                    const redirectTo = Capacitor.isNativePlatform()
+                      ? nativeRedirectUrl
+                      : window.location.origin;
+
+                    console.log('[Apple Login] Using direct Supabase OAuth, redirectTo:', redirectTo);
+
+                    if (Capacitor.isNativePlatform()) {
+                      // Native: listen for browser close and check session
+                      const finishedListener = await Browser.addListener('browserFinished', async () => {
+                        console.log('[Apple Login] Browser finished/closed');
+                        finishedListener.remove();
+                        setTimeout(async () => {
+                          try {
+                            const { data: { session } } = await supabase.auth.getSession();
+                            if (session) {
+                              console.log('[Apple Login] ✅ Session found after browser close');
+                              window.dispatchEvent(new Event('auth_driver_updated'));
+                            }
+                          } catch (e) {
+                            console.log('[Apple Login] Session check error:', e);
+                          } finally {
+                            setIsLoggingIn(false);
+                          }
+                        }, 1500);
+                      });
+                    }
+
+                    const { error } = await supabase.auth.signInWithOAuth({
+                      provider: 'apple',
+                      options: {
+                        redirectTo,
+                        skipBrowserRedirect: Capacitor.isNativePlatform(),
+                      },
                     });
 
                     if (error) {
-                      console.error('[Apple Login] Error:', error);
+                      console.error('[Apple Login] Supabase OAuth error:', error);
                       toast({ title: t('signIn.error'), variant: 'destructive' });
+                    } else if (Capacitor.isNativePlatform()) {
+                      // For native, we need to get the URL and open it in Browser plugin
+                      const { data } = await supabase.auth.signInWithOAuth({
+                        provider: 'apple',
+                        options: {
+                          redirectTo,
+                          skipBrowserRedirect: true,
+                        },
+                      });
+                      if (data?.url) {
+                        await Browser.open({ url: data.url, presentationStyle: 'popover' });
+                      }
                     }
                   }
                 } catch (err) {
