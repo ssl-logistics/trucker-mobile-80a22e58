@@ -438,7 +438,7 @@ const SignIn = () => {
                   setIsLoggingIn(true);
                   console.log('[Apple Login] Starting OAuth flow...');
 
-                  const publishedUrl = 'https://thetrocker-mobile.lovable.app';
+                  const publishedUrl = 'https://thetrucker-mobile.lovable.app';
                   const publishedHostname = new URL(publishedUrl).hostname;
                   const shouldUsePublishedRedirect = window.location.hostname !== publishedHostname;
 
