@@ -443,8 +443,8 @@ const SignIn = () => {
                   const shouldUsePublishedRedirect = window.location.hostname !== publishedHostname;
 
                   if (Capacitor.isNativePlatform()) {
-                    // Native iOS: redirect back via custom scheme so appUrlOpen handles auth
-                    const nativeRedirectUrl = 'thetroob://apple-auth-callback';
+                    // Native iOS: redirect to static callback page which then redirects to custom scheme
+                    const nativeRedirectUrl = `${publishedUrl}/auth/apple/callback`;
                     const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
                     console.log('[Apple Login] Native: opening OAuth URL:', oauthUrl);
 
