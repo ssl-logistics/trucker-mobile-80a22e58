@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { login as loginExternal } from "@/lib/externalApi";
-import { setAuthItem } from "@/utils/authStorage";
+import { getAuthItem, setAuthItem } from "@/utils/authStorage";
 import loginBackground from "@/assets/login-background.png";
 import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
