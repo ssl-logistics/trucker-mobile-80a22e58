@@ -439,10 +439,12 @@ const SignIn = () => {
                   console.log('[Apple Login] Starting OAuth flow...');
 
                   const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                  const nativeRedirectUrl = 'thetroob://apple-auth-callback';
+                  // IMPORTANT: use explicit static callback file path for native OAuth
+                  // /auth/apple/callback (without /index.html) can be routed to SPA login page
+                  const nativeRedirectUrl = `${publishedUrl}/auth/apple/callback/index.html`;
 
                   if (Capacitor.isNativePlatform()) {
-                    // Native iOS: use direct deep-link redirect to app (no web callback page)
+                    // Native iOS: open OAuth with web callback page that deep-links back to app
                     const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
                     console.log('[Apple Login] Native: opening OAuth URL:', oauthUrl);
 
@@ -456,6 +458,8 @@ const SignIn = () => {
                           if (session) {
                             console.log('[Apple Login] ✅ Session found after browser close:', session.user?.email);
                             window.dispatchEvent(new Event('auth_driver_updated'));
+                          } else {
+                            console.log('[Apple Login] No session after browser close');
                           }
                         } catch (e) {
                           console.log('[Apple Login] Session check error:', e);
