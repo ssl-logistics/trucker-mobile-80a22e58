@@ -442,66 +442,38 @@ const SignIn = () => {
                   const isPreviewDomain = window.location.hostname.includes('id-preview--');
 
                   if (Capacitor.isNativePlatform()) {
-                    // Native iOS: open OAuth via Browser plugin
-                    // Redirect back to published URL root — the SPA will detect the session
-                    const nativeRedirectUrl = publishedUrl;
+                    // Native iOS: redirect back via custom scheme so appUrlOpen handles auth
+                    const nativeRedirectUrl = 'thetroob://apple-auth-callback';
                     const oauthUrl = `${publishedUrl}/~oauth/initiate?provider=apple&redirect_uri=${encodeURIComponent(nativeRedirectUrl)}`;
                     console.log('[Apple Login] Native: opening OAuth URL:', oauthUrl);
 
-                    // Listen for browser close — after OAuth the browser lands on published URL
-                    // which auto-logs in via Supabase session, then user closes browser manually
+                    // If browser closes and no session exists, unlock button state
                     const finishedListener = await Browser.addListener('browserFinished', async () => {
                       console.log('[Apple Login] Browser finished/closed');
                       finishedListener.remove();
 
-                      // Check if OAuth created a session we can use
                       setTimeout(async () => {
                         try {
                           const { data: { session } } = await supabase.auth.getSession();
-                          if (session) {
-                            console.log('[Apple Login] ✅ Session found after browser close:', session.user?.email);
-                            
-                            // Create driver record from OAuth user
-                            const oauthUser = session.user;
-                            const appleDriver = {
-                              id: oauthUser.id,
-                              full_name: oauthUser.user_metadata?.full_name || oauthUser.email || 'Apple User',
-                              avatar_url: oauthUser.user_metadata?.avatar_url || null,
-                              loginType: 'apple',
-                              email: oauthUser.email,
-                            };
-
-                            await Promise.all([
-                              setAuthItem('auth_driver', JSON.stringify(appleDriver)),
-                              setAuthItem('auth_driver_id', oauthUser.id),
-                              setAuthItem('auth_login_type', 'apple'),
-                              setAuthItem('auth_user_type', 'freelance_driver'),
-                              setAuthItem('user_role', 'freelance'),
-                            ]);
-
-                            window.dispatchEvent(new Event('auth_driver_updated'));
-                            toast({
-                              title: 'เข้าสู่ระบบสำเร็จ',
-                              description: `ยินดีต้อนรับ ${appleDriver.full_name}`,
-                            });
-                          } else {
+                          if (!session) {
                             console.log('[Apple Login] No session after browser close');
+                            setIsLoggingIn(false);
                           }
                         } catch (e) {
                           console.log('[Apple Login] Session check error:', e);
-                        } finally {
                           setIsLoggingIn(false);
                         }
-                      }, 1500);
+                      }, 1200);
                     });
 
                     await Browser.open({
                       url: oauthUrl,
                     });
                   } else {
-                    // Web/new tab: preview domain can fail OAuth callback routing,
-                    // so force published domain there.
-                    const webRedirectUri = isPreviewDomain ? publishedUrl : window.location.origin;
+                    // Web/new tab: use hash callback route to avoid path 404 on static hosts
+                    const webRedirectUri = isPreviewDomain
+                      ? `${publishedUrl}/#/auth/apple/callback`
+                      : `${window.location.origin}/#/auth/apple/callback`;
                     console.log('[Apple Login] Web: redirect_uri =', webRedirectUri);
 
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
