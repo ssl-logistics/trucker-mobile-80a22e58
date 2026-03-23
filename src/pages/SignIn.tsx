@@ -459,9 +459,12 @@ const SignIn = () => {
                       setIsLoggingIn(false);
                     }
                   } else {
-                    // On web, use lovable OAuth
+                    // On web, use lovable OAuth with published URL for consistent redirect
+                    const publishedUrl = 'https://thetrucker-mobile.lovable.app';
                     const { error } = await lovable.auth.signInWithOAuth("apple", {
-                      redirect_uri: window.location.origin,
+                      redirect_uri: window.location.origin.includes('lovable.app') && !window.location.origin.includes('thetrucker-mobile') 
+                        ? publishedUrl 
+                        : window.location.origin,
                     });
                     if (error) {
                       console.error('[Apple Login] Error:', error);
