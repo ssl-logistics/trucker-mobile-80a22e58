@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Phone, MapPin, Camera, Check, CheckCircle } from "lucide-react";
+import { EditablePhoto } from "@/components/photo/EditablePhoto";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
