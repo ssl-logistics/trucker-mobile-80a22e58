@@ -408,7 +408,7 @@ export default function ContainerSummaryPage() {
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">รูปเลขซีล</div>
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <EditablePhoto src={sealNumberPhoto} alt="Seal Number" folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-seal-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
+                  <EditablePhoto src={sealNumberPhoto} alt="Seal Number" originalUrl={ocrScanData?.seal_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-seal-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                 </div>
               </div>
             )}
