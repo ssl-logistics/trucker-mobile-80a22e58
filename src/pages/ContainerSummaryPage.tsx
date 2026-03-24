@@ -370,7 +370,7 @@ export default function ContainerSummaryPage() {
             {/* Selected Container & Seal from BL */}
             {ocrScanData && (ocrScanData.container_no || ocrScanData.seal_no) && (
               <Card className="p-4 border-border">
-                <div className="text-sm font-semibold text-foreground mb-3">เลือกตู้-ซีล จาก BL</div>
+                <div className="text-sm font-semibold text-foreground mb-3">ข้อมูล OCR</div>
                 <div className="space-y-2">
                   {ocrScanData.container_no && (
                     <div className="flex items-center gap-2">
