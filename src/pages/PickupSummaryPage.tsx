@@ -41,6 +41,7 @@ export default function PickupSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const fromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  const photoEditCompletedAt = sopData?.sop_completed_at || null;
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
