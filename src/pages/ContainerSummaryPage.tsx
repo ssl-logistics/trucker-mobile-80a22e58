@@ -75,7 +75,9 @@ export default function ContainerSummaryPage() {
   const sealNumberPhoto = presignedSealImageUrl.filter((url): url is string => Boolean(url))[0] || null;
 
   const fromParam = new URLSearchParams(location.search).get('from');
+  const isFromHistory = fromParam === 'history';
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
+  const photoEditCompletedAt = sopData?.return_confirmed_at || sopData?.pickup_confirmed_at || sopData?.sop_completed_at || null;
 
   useEffect(() => {
     if (user && jobId) {
