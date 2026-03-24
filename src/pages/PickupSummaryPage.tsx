@@ -52,6 +52,7 @@ export default function PickupSummaryPage() {
   const { url: docPhotoUrl } = usePresignedImageUrl(sopData?.doc_photo_url || null);
   const weightSlipImageUrls = (sopData?.weight_slips || []).map(ws => ws.image_url || null);
   const { urls: weightSlipPresignedUrls } = usePresignedImageUrls(weightSlipImageUrls);
+  const photoEditCompletedAt = sopData?.sop_completed_at || null;
 
   useEffect(() => {
     if (user && jobId) {
