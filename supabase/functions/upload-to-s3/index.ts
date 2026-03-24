@@ -57,6 +57,7 @@ serve(async (req) => {
     const file = formData.get('file') as File;
     const folder = formData.get('folder') as string || 'profile';
     const fileName = formData.get('fileName') as string;
+    const overwriteKey = formData.get('overwriteKey') as string;
 
     if (!file) {
       return new Response(
@@ -65,18 +66,24 @@ serve(async (req) => {
       );
     }
 
-    console.log('📤 Uploading file to S3:', { folder, fileName, fileType: file.type, fileSize: file.size });
-
     // S3 Configuration
     const bucket = 'ssl-thetroob';
     const region = 'ap-southeast-1';
     const service = 's3';
     
-    // Generate unique file name
-    const timestamp = Date.now();
-    const extension = file.name.split('.').pop() || 'jpg';
-    const finalFileName = fileName || `${timestamp}.${extension}`;
-    const s3Key = `mobile/${folder}/${finalFileName}`;
+    // Use overwriteKey if provided (to replace existing file at same URL),
+    // otherwise generate a new unique file name
+    let s3Key: string;
+    if (overwriteKey) {
+      s3Key = overwriteKey;
+      console.log('📤 Overwriting existing S3 file:', { s3Key, fileType: file.type, fileSize: file.size });
+    } else {
+      const timestamp = Date.now();
+      const extension = file.name.split('.').pop() || 'jpg';
+      const finalFileName = fileName || `${timestamp}.${extension}`;
+      s3Key = `mobile/${folder}/${finalFileName}`;
+      console.log('📤 Uploading new file to S3:', { s3Key, fileType: file.type, fileSize: file.size });
+    }
 
     // Convert file to array buffer
     const body = await file.arrayBuffer();
