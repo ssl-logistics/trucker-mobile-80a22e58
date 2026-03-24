@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, CheckCircle } from "lucide-react";
+import { EditablePhoto } from "@/components/photo/EditablePhoto";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -51,6 +52,7 @@ export default function PickupSummaryPage() {
   const { url: docPhotoUrl } = usePresignedImageUrl(sopData?.doc_photo_url || null);
   const weightSlipImageUrls = (sopData?.weight_slips || []).map(ws => ws.image_url || null);
   const { urls: weightSlipPresignedUrls } = usePresignedImageUrls(weightSlipImageUrls);
+  const photoEditCompletedAt = sopData?.sop_completed_at || null;
 
   useEffect(() => {
     if (user && jobId) {
@@ -270,7 +272,14 @@ export default function PickupSummaryPage() {
                   <div>
                     <p className="text-sm font-medium text-green-800 mb-2">รูปสินค้า</p>
                     <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                      <img src={sopPhotoUrl} alt="Product Photo" className="w-full h-full object-cover" />
+                      <EditablePhoto
+                        src={sopPhotoUrl}
+                        alt="Product Photo"
+                        folder="sop-photos"
+                        filenamePrefix={`${user?.id}-${jobId}-product-edit`}
+                        completedAt={photoEditCompletedAt}
+                        fromHistory={fromHistory}
+                      />
                     </div>
                   </div>
                 )}
@@ -278,7 +287,14 @@ export default function PickupSummaryPage() {
                   <div>
                     <p className="text-sm font-medium text-green-800 mb-2">รูปเอกสาร</p>
                     <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                      <img src={docPhotoUrl} alt="Document Photo" className="w-full h-full object-cover" />
+                      <EditablePhoto
+                        src={docPhotoUrl}
+                        alt="Document Photo"
+                        folder="sop-photos"
+                        filenamePrefix={`${user?.id}-${jobId}-doc-edit`}
+                        completedAt={photoEditCompletedAt}
+                        fromHistory={fromHistory}
+                      />
                     </div>
                   </div>
                 )}
@@ -311,7 +327,14 @@ export default function PickupSummaryPage() {
                     </div>
                     {weightSlipPresignedUrls[idx] && (
                       <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                        <img src={weightSlipPresignedUrls[idx]!} alt={`Weight Slip ${idx + 1}`} className="w-full h-full object-cover" />
+                        <EditablePhoto
+                          src={weightSlipPresignedUrls[idx]!}
+                          alt={`Weight Slip ${idx + 1}`}
+                          folder="sop-photos"
+                          filenamePrefix={`${user?.id}-${jobId}-weightslip-${idx}-edit`}
+                          completedAt={photoEditCompletedAt}
+                          fromHistory={fromHistory}
+                        />
                       </div>
                     )}
                   </div>

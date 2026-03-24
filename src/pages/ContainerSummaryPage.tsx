@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, CheckCircle, Container, Hash } from 'lucide-react';
+import { EditablePhoto } from '@/components/photo/EditablePhoto';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -74,7 +75,9 @@ export default function ContainerSummaryPage() {
   const sealNumberPhoto = presignedSealImageUrl.filter((url): url is string => Boolean(url))[0] || null;
 
   const fromParam = new URLSearchParams(location.search).get('from');
+  const isFromHistory = fromParam === 'history';
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
+  const photoEditCompletedAt = sopData?.return_confirmed_at || sopData?.pickup_confirmed_at || sopData?.sop_completed_at || null;
 
   useEffect(() => {
     if (user && jobId) {
@@ -395,7 +398,7 @@ export default function ContainerSummaryPage() {
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">รูปเลขตู้</div>
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <img src={containerNumberPhoto} alt="Container Number" className="w-full h-full object-cover" />
+                  <EditablePhoto src={containerNumberPhoto} alt="Container Number" folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                 </div>
               </div>
             )}
@@ -405,7 +408,7 @@ export default function ContainerSummaryPage() {
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">รูปเลขซีล</div>
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <img src={sealNumberPhoto} alt="Seal Number" className="w-full h-full object-cover" />
+                  <EditablePhoto src={sealNumberPhoto} alt="Seal Number" folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-seal-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                 </div>
               </div>
             )}
@@ -417,7 +420,7 @@ export default function ContainerSummaryPage() {
                 <div className="grid grid-cols-2 gap-2">
                   {containerPhotos.map((url, idx) => (
                     <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                      <img src={url} alt={`Container Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                      <EditablePhoto src={url} alt={`Container Photo ${idx + 1}`} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                     </div>
                   ))}
                 </div>
@@ -435,7 +438,7 @@ export default function ContainerSummaryPage() {
                       <div className="grid grid-cols-2 gap-2">
                         {allEirUrls.map((url, idx) => (
                           <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                            <img src={url} alt={`EIR Document ${idx + 1}`} className="w-full h-full object-cover" />
+                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                           </div>
                         ))}
                       </div>
@@ -471,11 +474,7 @@ export default function ContainerSummaryPage() {
             <div className="grid grid-cols-2 gap-2">
               {returnPhotoUrls.map((url, idx) => (
                 <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                  <img 
-                    src={url} 
-                    alt={`Container Return Document ${idx + 1}`} 
-                    className="w-full h-full object-cover"
-                  />
+                  <EditablePhoto src={url} alt={`Container Return Document ${idx + 1}`} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-return-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                 </div>
               ))}
             </div>
