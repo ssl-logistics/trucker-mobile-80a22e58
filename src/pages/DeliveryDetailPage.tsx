@@ -992,6 +992,7 @@ export default function DeliveryDetailPage() {
                     src={presignedPodPhotoUrl}
                     alt="POD Document"
                     className="w-full h-full object-contain"
+                    originalUrl={jobApplication?.pod_photo_url}
                     folder="sop-photos"
                     filenamePrefix={`${user?.id}-${job?.order_code}-pod-edit`}
                     completedAt={jobApplication?.delivery_sop_completed_at}

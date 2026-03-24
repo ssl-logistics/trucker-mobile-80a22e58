@@ -275,6 +275,7 @@ export default function PickupSummaryPage() {
                       <EditablePhoto
                         src={sopPhotoUrl}
                         alt="Product Photo"
+                        originalUrl={sopData?.sop_photo_url}
                         folder="sop-photos"
                         filenamePrefix={`${user?.id}-${jobId}-product-edit`}
                         completedAt={photoEditCompletedAt}
@@ -290,6 +291,7 @@ export default function PickupSummaryPage() {
                       <EditablePhoto
                         src={docPhotoUrl}
                         alt="Document Photo"
+                        originalUrl={sopData?.doc_photo_url}
                         folder="sop-photos"
                         filenamePrefix={`${user?.id}-${jobId}-doc-edit`}
                         completedAt={photoEditCompletedAt}
@@ -330,6 +332,7 @@ export default function PickupSummaryPage() {
                         <EditablePhoto
                           src={weightSlipPresignedUrls[idx]!}
                           alt={`Weight Slip ${idx + 1}`}
+                          originalUrl={weightSlipImageUrls[idx]}
                           folder="sop-photos"
                           filenamePrefix={`${user?.id}-${jobId}-weightslip-${idx}-edit`}
                           completedAt={photoEditCompletedAt}

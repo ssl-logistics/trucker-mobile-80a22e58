@@ -17,9 +17,11 @@ interface EditablePhotoProps {
   src: string;
   alt: string;
   className?: string;
-  /** S3 folder for upload */
+  /** Original S3 URL (before presigning) — used to extract S3 key for overwrite */
+  originalUrl?: string | null;
+  /** S3 folder for upload (fallback if no originalUrl) */
   folder?: string;
-  /** Filename prefix */
+  /** Filename prefix (fallback if no originalUrl) */
   filenamePrefix?: string;
   /** Completion timestamp - used to check 3-day window */
   completedAt?: string | null;
@@ -36,6 +38,7 @@ export function EditablePhoto({
   src,
   alt,
   className = 'w-full h-full object-cover',
+  originalUrl,
   folder = 'sop-photos',
   filenamePrefix = 'edit',
   completedAt,
@@ -44,8 +47,8 @@ export function EditablePhoto({
 }: EditablePhotoProps) {
   const [showDrawer, setShowDrawer] = useState(false);
   const [uploading, setUploading] = useState(false);
-  // Use module-level cache to persist uploaded URL across re-renders/remounts
-  const cachedUrl = uploadedUrlCache.get(src);
+  const cacheKey = originalUrl || src;
+  const cachedUrl = uploadedUrlCache.get(cacheKey);
   const [displayUrl, setDisplayUrl] = useState(cachedUrl || src);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
@@ -60,14 +63,14 @@ export function EditablePhoto({
     return diffMs <= threeDaysMs;
   })();
 
-  // Extract S3 key from original URL to overwrite the same file
+  // Extract S3 key from a clean S3 URL (not presigned)
   const getS3KeyFromUrl = (url: string): string | null => {
     try {
-      // Match URLs like https://ssl-thetroob.s3.ap-southeast-1.amazonaws.com/mobile/...
-      const match = url.match(/amazonaws\.com\/(.+)$/);
+      // Remove query params first
+      const cleanUrl = url.split('?')[0];
+      const match = cleanUrl.match(/amazonaws\.com\/(.+)$/);
       if (match) return match[1];
-      // Also try without domain prefix
-      const match2 = url.match(/\/mobile\/(.+)$/);
+      const match2 = cleanUrl.match(/\/mobile\/(.+)$/);
       if (match2) return `mobile/${match2[1]}`;
       return null;
     } catch {
@@ -81,10 +84,10 @@ export function EditablePhoto({
       const formData = new FormData();
       formData.append('file', file);
 
-      // Try to extract the original S3 key so we overwrite the same file
-      const originalKey = getS3KeyFromUrl(src);
+      // Use originalUrl (raw S3 URL) to extract key for overwrite
+      const urlForKey = originalUrl || src;
+      const originalKey = getS3KeyFromUrl(urlForKey);
       if (originalKey) {
-        // Send the full S3 key to overwrite
         formData.append('overwriteKey', originalKey);
       } else {
         formData.append('folder', folder);
@@ -96,11 +99,12 @@ export function EditablePhoto({
       });
 
       if (error || !data?.url) {
+        console.error('Upload response:', { error, data });
         throw new Error('Upload failed');
       }
 
       const blobUrl = URL.createObjectURL(file);
-      uploadedUrlCache.set(src, blobUrl);
+      uploadedUrlCache.set(cacheKey, blobUrl);
       setDisplayUrl(blobUrl);
       onPhotoReplaced?.(data.url);
 
