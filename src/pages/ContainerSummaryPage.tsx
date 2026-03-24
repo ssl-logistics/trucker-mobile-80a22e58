@@ -438,7 +438,7 @@ export default function ContainerSummaryPage() {
                       <div className="grid grid-cols-2 gap-2">
                         {allEirUrls.map((url, idx) => (
                           <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
+                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} originalUrl={rawEirPhotos[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                           </div>
                         ))}
                       </div>
