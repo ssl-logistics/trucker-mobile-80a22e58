@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, CheckCircle, Container, Hash } from 'lucide-react';
+import { EditablePhoto } from '@/components/photo/EditablePhoto';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
