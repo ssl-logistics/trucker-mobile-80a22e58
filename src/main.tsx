@@ -9,6 +9,15 @@ import { supabase } from "./integrations/supabase/client";
 //   /#access_token=...&refresh_token=...&token_type=bearer...
 // HashRouter would interpret this as a route path → 404.
 (function handleOAuthTokensInHash() {
+  // If Apple OAuth callback lands on SPA path (without static callback file),
+  // immediately forward to the static callback page that deep-links back to iOS app.
+  const pathname = window.location.pathname;
+  if (pathname === '/auth/apple/callback' || pathname === '/auth/apple/callback/') {
+    const target = `/auth/apple/callback/index.html${window.location.search || ''}${window.location.hash || ''}`;
+    window.location.replace(target);
+    return;
+  }
+
   const hash = window.location.hash;
   if (!hash) return;
 
