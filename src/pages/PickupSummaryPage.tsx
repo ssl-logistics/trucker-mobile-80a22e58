@@ -272,7 +272,14 @@ export default function PickupSummaryPage() {
                   <div>
                     <p className="text-sm font-medium text-green-800 mb-2">รูปสินค้า</p>
                     <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                      <img src={sopPhotoUrl} alt="Product Photo" className="w-full h-full object-cover" />
+                      <EditablePhoto
+                        src={sopPhotoUrl}
+                        alt="Product Photo"
+                        folder="sop-photos"
+                        filenamePrefix={`${user?.id}-${jobId}-product-edit`}
+                        completedAt={photoEditCompletedAt}
+                        fromHistory={fromHistory}
+                      />
                     </div>
                   </div>
                 )}
@@ -280,7 +287,14 @@ export default function PickupSummaryPage() {
                   <div>
                     <p className="text-sm font-medium text-green-800 mb-2">รูปเอกสาร</p>
                     <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                      <img src={docPhotoUrl} alt="Document Photo" className="w-full h-full object-cover" />
+                      <EditablePhoto
+                        src={docPhotoUrl}
+                        alt="Document Photo"
+                        folder="sop-photos"
+                        filenamePrefix={`${user?.id}-${jobId}-doc-edit`}
+                        completedAt={photoEditCompletedAt}
+                        fromHistory={fromHistory}
+                      />
                     </div>
                   </div>
                 )}
