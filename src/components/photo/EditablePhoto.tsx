@@ -60,13 +60,36 @@ export function EditablePhoto({
     return diffMs <= threeDaysMs;
   })();
 
+  // Extract S3 key from original URL to overwrite the same file
+  const getS3KeyFromUrl = (url: string): string | null => {
+    try {
+      // Match URLs like https://ssl-thetroob.s3.ap-southeast-1.amazonaws.com/mobile/...
+      const match = url.match(/amazonaws\.com\/(.+)$/);
+      if (match) return match[1];
+      // Also try without domain prefix
+      const match2 = url.match(/\/mobile\/(.+)$/);
+      if (match2) return `mobile/${match2[1]}`;
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
   const uploadFile = async (file: File) => {
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('folder', folder);
-      formData.append('filename', `${filenamePrefix}-${Date.now()}`);
+
+      // Try to extract the original S3 key so we overwrite the same file
+      const originalKey = getS3KeyFromUrl(src);
+      if (originalKey) {
+        // Send the full S3 key to overwrite
+        formData.append('overwriteKey', originalKey);
+      } else {
+        formData.append('folder', folder);
+        formData.append('filename', `${filenamePrefix}-${Date.now()}`);
+      }
 
       const { data, error } = await supabase.functions.invoke('upload-to-s3', {
         body: formData,
