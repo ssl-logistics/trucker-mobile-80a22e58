@@ -398,7 +398,7 @@ export default function ContainerSummaryPage() {
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">รูปเลขตู้</div>
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <img src={containerNumberPhoto} alt="Container Number" className="w-full h-full object-cover" />
+                  <EditablePhoto src={containerNumberPhoto} alt="Container Number" folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                 </div>
               </div>
             )}
