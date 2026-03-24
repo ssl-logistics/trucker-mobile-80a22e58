@@ -1035,68 +1035,6 @@ const ContainerSOPPage = () => {
           </p>
         </div>
 
-        {/* === Step 5: Select Container-Seal from BL (for loaded container/inbound jobs only) === */}
-        {isLoadedContainer && jobDetail.container_details.length > 0 && (
-          <div className="space-y-2">
-            <Label className="text-base flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">5</span>
-              เลือกตู้-ซีล จาก BL <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              value={selectedContainerSeal}
-              onValueChange={(val) => {
-                setSelectedContainerSeal(val);
-                setBlSelectionError(false);
-                if (val === 'manual') {
-                  setOcrContainerNumber(null);
-                  setOcrSealNumber(null);
-                  setIsContainerOcrDone(false);
-                  setIsSealOcrDone(false);
-                } else {
-                  const idx = parseInt(val, 10);
-                  const detail = jobDetail.container_details[idx];
-                  if (detail) {
-                    setOcrContainerNumber(detail.containerNo || 'N/A');
-                    setOcrSealNumber(detail.sealNo || 'N/A');
-                    setIsContainerOcrDone(true);
-                    setIsSealOcrDone(true);
-                  }
-                }
-              }}
-            >
-              <SelectTrigger className={`w-full h-12 bg-white ${blSelectionError ? 'border-destructive ring-1 ring-destructive' : ''}`}>
-                <SelectValue placeholder="เลือกตู้-ซีล จากรายการ BL" />
-              </SelectTrigger>
-              <SelectContent>
-                {jobDetail.container_details.map((detail, idx) => (
-                  <SelectItem key={idx} value={String(idx)}>
-                    {detail.containerNo || '-'} / {detail.sealNo || '-'}
-                  </SelectItem>
-                ))}
-                
-              </SelectContent>
-            </Select>
-            {blSelectionError && (
-              <p className="text-sm font-medium text-destructive">กรุณาเลือกตู้-ซีล จากรายการ BL</p>
-            )}
-            {selectedContainerSeal !== '' && selectedContainerSeal !== 'manual' && (
-              <Card className="p-3 bg-green-50 border-green-300">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-green-700 font-medium">เลขตู้ :</span>
-                    <span className="text-sm font-bold">{jobDetail.container_details[parseInt(selectedContainerSeal, 10)]?.containerNo || '-'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-green-700 font-medium">เลขซีล :</span>
-                    <span className="text-sm font-bold">{jobDetail.container_details[parseInt(selectedContainerSeal, 10)]?.sealNo || '-'}</span>
-                  </div>
-                </div>
-              </Card>
-            )}
-          </div>
-        )}
 
       </div>
 
