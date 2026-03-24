@@ -439,7 +439,7 @@ const SignIn = () => {
                   console.log('[Apple Login] Starting OAuth flow...');
 
                   const publishedUrl = 'https://thetrucker-mobile.lovable.app';
-                  const nativeRedirectUrl = `${publishedUrl}/auth/apple/callback`;
+                  const nativeRedirectUrl = `${publishedUrl}/auth/apple/callback/index.html`;
                   const isPreviewHost = /(^id-preview--)|(\.lovableproject\.com$)/.test(window.location.hostname);
 
                   let isInIframe = false;
