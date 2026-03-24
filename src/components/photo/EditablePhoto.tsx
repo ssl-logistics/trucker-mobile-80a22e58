@@ -44,7 +44,9 @@ export function EditablePhoto({
 }: EditablePhotoProps) {
   const [showDrawer, setShowDrawer] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [displayUrl, setDisplayUrl] = useState(src);
+  // Use module-level cache to persist uploaded URL across re-renders/remounts
+  const cachedUrl = uploadedUrlCache.get(src);
+  const [displayUrl, setDisplayUrl] = useState(cachedUrl || src);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
