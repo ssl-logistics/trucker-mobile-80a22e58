@@ -332,6 +332,7 @@ export default function PickupSummaryPage() {
                         <EditablePhoto
                           src={weightSlipPresignedUrls[idx]!}
                           alt={`Weight Slip ${idx + 1}`}
+                          originalUrl={weightSlipImageUrls[idx]}
                           folder="sop-photos"
                           filenamePrefix={`${user?.id}-${jobId}-weightslip-${idx}-edit`}
                           completedAt={photoEditCompletedAt}
