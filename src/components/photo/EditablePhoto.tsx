@@ -29,6 +29,9 @@ interface EditablePhotoProps {
   onPhotoReplaced?: (newUrl: string) => void;
 }
 
+// Module-level cache to persist uploaded URLs across re-renders
+const uploadedUrlCache = new Map<string, string>();
+
 export function EditablePhoto({
   src,
   alt,
