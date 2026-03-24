@@ -76,7 +76,9 @@ export function EditablePhoto({
         throw new Error('Upload failed');
       }
 
-      setDisplayUrl(URL.createObjectURL(file));
+      const blobUrl = URL.createObjectURL(file);
+      uploadedUrlCache.set(src, blobUrl);
+      setDisplayUrl(blobUrl);
       onPhotoReplaced?.(data.url);
 
       toast({
