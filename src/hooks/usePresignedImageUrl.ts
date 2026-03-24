@@ -170,8 +170,12 @@ export function usePresignedImageUrls(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Stabilize the array reference to prevent infinite re-renders
+  const urlsKey = JSON.stringify(originalUrls);
+
   const fetchAllUrls = useCallback(async () => {
-    if (!originalUrls || originalUrls.length === 0) {
+    const parsedUrls: (string | null | undefined)[] = JSON.parse(urlsKey);
+    if (!parsedUrls || parsedUrls.length === 0) {
       setUrls([]);
       setIsLoading(false);
       return;
@@ -182,7 +186,7 @@ export function usePresignedImageUrls(
 
     try {
       const results = await Promise.all(
-        originalUrls.map(async (originalUrl) => {
+        parsedUrls.map(async (originalUrl) => {
           if (!originalUrl) return null;
 
           // Check if it's an S3 URL
@@ -228,11 +232,12 @@ export function usePresignedImageUrls(
     } catch (err) {
       console.error('Error fetching presigned URLs:', err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
-      setUrls(originalUrls.map(u => u || null));
+      const parsedFallback: (string | null | undefined)[] = JSON.parse(urlsKey);
+      setUrls(parsedFallback.map(u => u || null));
     } finally {
       setIsLoading(false);
     }
-  }, [originalUrls, expiresIn, refreshBuffer]);
+  }, [urlsKey, expiresIn, refreshBuffer]);
 
   useEffect(() => {
     fetchAllUrls();

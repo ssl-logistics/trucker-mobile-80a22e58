@@ -29,6 +29,9 @@ interface EditablePhotoProps {
   onPhotoReplaced?: (newUrl: string) => void;
 }
 
+// Module-level cache to persist uploaded URLs across re-renders
+const uploadedUrlCache = new Map<string, string>();
+
 export function EditablePhoto({
   src,
   alt,
@@ -41,7 +44,9 @@ export function EditablePhoto({
 }: EditablePhotoProps) {
   const [showDrawer, setShowDrawer] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [displayUrl, setDisplayUrl] = useState(src);
+  // Use module-level cache to persist uploaded URL across re-renders/remounts
+  const cachedUrl = uploadedUrlCache.get(src);
+  const [displayUrl, setDisplayUrl] = useState(cachedUrl || src);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
@@ -71,7 +76,9 @@ export function EditablePhoto({
         throw new Error('Upload failed');
       }
 
-      setDisplayUrl(URL.createObjectURL(file));
+      const blobUrl = URL.createObjectURL(file);
+      uploadedUrlCache.set(src, blobUrl);
+      setDisplayUrl(blobUrl);
       onPhotoReplaced?.(data.url);
 
       toast({
