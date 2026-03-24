@@ -291,6 +291,7 @@ export default function PickupSummaryPage() {
                       <EditablePhoto
                         src={docPhotoUrl}
                         alt="Document Photo"
+                        originalUrl={sopData?.doc_photo_url}
                         folder="sop-photos"
                         filenamePrefix={`${user?.id}-${jobId}-doc-edit`}
                         completedAt={photoEditCompletedAt}
