@@ -53,9 +53,10 @@ export function EditablePhoto({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
-  // Check if editing is allowed: from history + within 3 days
+  // Editing allowed: always on current job pages, within 3 days on history pages
   const canEdit = (() => {
-    if (!fromHistory || !completedAt) return false;
+    if (!fromHistory) return true; // Current job page — always editable
+    if (!completedAt) return false;
     const completedDate = new Date(completedAt);
     const now = new Date();
     const diffMs = now.getTime() - completedDate.getTime();
