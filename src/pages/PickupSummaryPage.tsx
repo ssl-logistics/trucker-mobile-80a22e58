@@ -327,7 +327,14 @@ export default function PickupSummaryPage() {
                     </div>
                     {weightSlipPresignedUrls[idx] && (
                       <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                        <img src={weightSlipPresignedUrls[idx]!} alt={`Weight Slip ${idx + 1}`} className="w-full h-full object-cover" />
+                        <EditablePhoto
+                          src={weightSlipPresignedUrls[idx]!}
+                          alt={`Weight Slip ${idx + 1}`}
+                          folder="sop-photos"
+                          filenamePrefix={`${user?.id}-${jobId}-weightslip-${idx}-edit`}
+                          completedAt={photoEditCompletedAt}
+                          fromHistory={fromHistory}
+                        />
                       </div>
                     )}
                   </div>
