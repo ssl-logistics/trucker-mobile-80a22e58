@@ -53,17 +53,22 @@ export default function AccountPage() {
 
     setIsSavingBank(true);
     try {
-      const driverType = getDriverTypeFromUserType(userType || 'freelance_driver');
-      
-      const { data, error } = await updateFreelanceDriver({
-        driver_id: user.id,
-        driver_type: driverType,
-        bank_name: bankName.trim(),
-        account_number: bankAccountNumber.trim(),
-        account_name: bankAccountName.trim() || user.full_name || '',
-      });
+      const isOAuthUser = user.loginType === 'apple' || user.loginType === 'google';
 
-      if (error) throw new Error(error);
+      // Only call external TMS API for non-OAuth users (they exist in the external system)
+      if (!isOAuthUser) {
+        const driverType = getDriverTypeFromUserType(userType || 'freelance_driver');
+        
+        const { data, error } = await updateFreelanceDriver({
+          driver_id: user.id,
+          driver_type: driverType,
+          bank_name: bankName.trim(),
+          account_number: bankAccountNumber.trim(),
+          account_name: bankAccountName.trim() || user.full_name || '',
+        });
+
+        if (error) throw new Error(error);
+      }
 
       // Update local auth_driver with new bank info
       const storedDriver = await getAuthItem('auth_driver');
