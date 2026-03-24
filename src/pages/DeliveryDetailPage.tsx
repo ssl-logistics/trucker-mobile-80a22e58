@@ -987,11 +987,17 @@ export default function DeliveryDetailPage() {
             {presignedPodPhotoUrl && (
               <div className="mt-4">
                 <div className="text-sm text-gray-500 mb-2">{t('delivery.podPhoto')}</div>
-                <img
-                  src={presignedPodPhotoUrl}
-                  alt="POD Document"
-                  className="w-full h-48 object-contain rounded-lg border bg-gray-50"
-                />
+                <div className="w-full h-48 rounded-lg border bg-gray-50 overflow-hidden">
+                  <EditablePhoto
+                    src={presignedPodPhotoUrl}
+                    alt="POD Document"
+                    className="w-full h-full object-contain"
+                    folder="sop-photos"
+                    filenamePrefix={`${user?.id}-${job?.order_code}-pod-edit`}
+                    completedAt={jobApplication?.delivery_sop_completed_at}
+                    fromHistory={isFromHistory}
+                  />
+                </div>
               </div>
             )}
           </div>
