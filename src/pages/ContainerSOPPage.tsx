@@ -446,27 +446,6 @@ const ContainerSOPPage = () => {
     toast({ title: 'ยืนยันเลขซีลสำเร็จ' });
   };
 
-  const runEirOcr = async (file: File) => {
-    setIsProcessingEirOcr(true);
-    setEirOcrContainerNumber(null);
-    setEirOcrSealNumber(null);
-    try {
-      const result = await extractFromImage(file, 'container_seal');
-      if (result.success && result.data) {
-        const cn = result.data.container_number || null;
-        const sn = result.data.seal_number || null;
-        setEirOcrContainerNumber(cn);
-        setEirOcrSealNumber(sn);
-        if (cn || sn) {
-          toast({ title: 'อ่านข้อมูลจาก EIR สำเร็จ', description: `${cn ? `เลขตู้: ${cn}` : ''}${cn && sn ? ' / ' : ''}${sn ? `เลขซีล: ${sn}` : ''}` });
-        }
-      }
-    } catch (error) {
-      console.error('EIR OCR error:', error);
-    } finally {
-      setIsProcessingEirOcr(false);
-    }
-  };
   const handleConfirmClick = () => {
     if (needsOCR && !isContainerOcrDone) {
       toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
