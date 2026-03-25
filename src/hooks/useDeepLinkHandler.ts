@@ -109,6 +109,13 @@ export const useDeepLinkHandler = () => {
               } else {
                 console.log('[DeepLink] ✅ External TMS registration:', regData);
               }
+
+              // Extract phone/email from registration data
+              const regDriverData = regData?.data || regData;
+              registeredPhone = regDriverData?.phone || '';
+              registeredEmail = regDriverData?.email || '';
+              registeredFirstName = regDriverData?.firstName || '';
+              registeredLastName = regDriverData?.lastName || '';
             } catch (regErr) {
               console.warn('[DeepLink] ⚠️ External registration failed (non-blocking):', regErr);
             }
@@ -117,10 +124,15 @@ export const useDeepLinkHandler = () => {
             await setAuthItem('line_user', JSON.stringify(data.user));
             await setAuthItem('auth_login_type', 'line');
             
-            // Create driver record with resolved userId
-            const lineDriver = {
+            // Create driver record with resolved userId and TMS data
+            const lineDriver: Record<string, any> = {
               id: driverUserId,
               full_name: data.user.displayName,
+              first_name: registeredFirstName || data.user.displayName?.split(' ')[0] || '',
+              last_name: registeredLastName || data.user.displayName?.split(' ').slice(1).join(' ') || '',
+              phone: registeredPhone,
+              phone_number: registeredPhone,
+              email: registeredEmail || '',
               avatar_url: data.user.pictureUrl || null,
               loginType: 'line',
               lineUser: data.user,
