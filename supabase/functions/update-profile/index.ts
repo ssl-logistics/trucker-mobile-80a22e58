@@ -3,8 +3,64 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
   'Access-Control-Allow-Methods': 'PUT, OPTIONS',
+};
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isUuid = (value: string | undefined | null): value is string => {
+  return typeof value === 'string' && UUID_REGEX.test(value);
+};
+
+const resolveLineAuthUserId = async (
+  adminClient: ReturnType<typeof createClient>,
+  lineUserId: string
+): Promise<string | null> => {
+  const normalizedLineUserId = lineUserId.replace(/^line_/i, '');
+  const possibleEmails = new Set([
+    `line_${normalizedLineUserId.toLowerCase()}@line.oauth.local`,
+    `${normalizedLineUserId.toLowerCase()}@line.user`,
+  ]);
+
+  let page = 1;
+  const perPage = 200;
+
+  while (page <= 10) {
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      console.error('Failed to list auth users for LINE lookup:', error);
+      return null;
+    }
+
+    const matchedUser = data.users.find((authUser) => {
+      const metadataLineId =
+        typeof authUser.user_metadata?.lineUserId === 'string'
+          ? authUser.user_metadata.lineUserId
+          : null;
+      const email = authUser.email?.toLowerCase();
+
+      return (
+        metadataLineId === lineUserId ||
+        metadataLineId === normalizedLineUserId ||
+        (!!email && possibleEmails.has(email))
+      );
+    });
+
+    if (matchedUser) {
+      return matchedUser.id;
+    }
+
+    if (data.users.length < perPage) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return null;
 };
 
 serve(async (req) => {
@@ -21,7 +77,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { user_id, full_name, phone_number, avatar_url } = body;
+    const { user_id, full_name, phone_number, avatar_url, auth_provider, auth_user_id, line_user_id } = body;
 
     if (!user_id) {
       return new Response(
@@ -36,8 +92,37 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    let targetUserId = typeof user_id === 'string' ? user_id : '';
+
+    if (isUuid(auth_user_id)) {
+      targetUserId = auth_user_id;
+    }
+
+    if (!isUuid(targetUserId)) {
+      const isLikelyLineFlow = auth_provider === 'line' || !!line_user_id || /^U[a-zA-Z0-9]+$/.test(targetUserId);
+      if (isLikelyLineFlow) {
+        const lineIdToResolve =
+          (typeof line_user_id === 'string' && line_user_id) ||
+          (typeof auth_user_id === 'string' && auth_user_id) ||
+          targetUserId;
+
+        const resolvedAuthId = await resolveLineAuthUserId(adminClient, lineIdToResolve);
+        if (resolvedAuthId) {
+          targetUserId = resolvedAuthId;
+          console.log('Resolved LINE user id to auth UUID:', targetUserId);
+        }
+      }
+    }
+
+    if (!isUuid(targetUserId)) {
+      return new Response(
+        JSON.stringify({ error: 'Unable to resolve profile user id to UUID', original_user_id: user_id }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Build update object with only provided fields
-    const updates: Record<string, string> = {
+    const updates: Record<string, string | null> = {
       updated_at: new Date().toISOString(),
     };
 
@@ -45,12 +130,12 @@ serve(async (req) => {
     if (phone_number !== undefined) updates.phone_number = phone_number;
     if (avatar_url !== undefined) updates.avatar_url = avatar_url;
 
-    console.log('Updating profile for user:', user_id, 'with:', JSON.stringify(updates));
+    console.log('Updating profile for user:', targetUserId, 'with:', JSON.stringify(updates));
 
     const { data, error } = await adminClient
       .from('profiles')
       .update(updates)
-      .eq('id', user_id)
+      .eq('id', targetUserId)
       .select()
       .single();
 
@@ -63,7 +148,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, data }),
+      JSON.stringify({ success: true, data, resolved_user_id: targetUserId }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
