@@ -91,6 +91,10 @@ export const useDeepLinkHandler = () => {
             }
 
             // Register driver in external TMS (minimal body)
+            let registeredPhone = '';
+            let registeredEmail = '';
+            let registeredFirstName = '';
+            let registeredLastName = '';
             try {
               const registerBody: Record<string, string> = {
                 authProvider: 'line',
