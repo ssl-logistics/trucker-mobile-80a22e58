@@ -87,10 +87,20 @@ export default function EditFieldPage() {
         }
 
         // Call edge function with service role to update profiles
-        await supabase.functions.invoke('update-profile', {
-          method: 'PUT',
-          body: profilePayload,
-        });
+        const profileResp = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-profile`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify(profilePayload),
+          }
+        );
+        const profileResult = await profileResp.json();
+        console.log('Profile update result:', profileResult);
         
         // Update local storage immediately with new data
         const storedDriver = await getAuthItem('auth_driver');
