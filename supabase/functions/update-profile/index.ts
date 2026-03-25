@@ -24,6 +24,32 @@ const resolveLineAuthUserId = async (
     `${normalizedLineUserId.toLowerCase()}@line.user`,
   ]);
 
+  const { data: byLineId } = await adminClient
+    .schema('auth')
+    .from('users')
+    .select('id')
+    .eq('raw_user_meta_data->>lineUserId', lineUserId)
+    .limit(1)
+    .maybeSingle();
+
+  if (byLineId?.id) {
+    return byLineId.id;
+  }
+
+  for (const email of possibleEmails) {
+    const { data: byEmail } = await adminClient
+      .schema('auth')
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .limit(1)
+      .maybeSingle();
+
+    if (byEmail?.id) {
+      return byEmail.id;
+    }
+  }
+
   let page = 1;
   const perPage = 500;
 
