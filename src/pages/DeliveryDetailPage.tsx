@@ -151,31 +151,32 @@ export default function DeliveryDetailPage() {
       const stateJob = (location.state as any)?.jobData || (location.state as any)?.job;
       const stateDestId = (location.state as any)?.destId;
       
-      if (isInternalDriver || isExternalDriver) {
+    // Use navigation state first (fast path)
+      if (stateJob && (stateJob.order_number === jobId || stateJob.id === jobId)) {
+        console.log('[DeliveryDetailPage] Using navigation state data (fast path)');
+        foundJob = stateJob;
+      } else if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [acceptedRes, arrivedAtPickupRes, inProgressRes, inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes, containerReturnedRes, completedRes] = await Promise.all([
-          getDriverAssignedJobs(user.id, driverType, 50, 'accepted'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'arrived_at_pickup'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'in_progress'),
+        // Only fetch statuses relevant to delivery flow
+        const [inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes] = await Promise.all([
           getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
           getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
           getDriverAssignedJobs(user.id, driverType, 50, 'returning_container'),
           getDriverAssignedJobs(user.id, driverType, 50, 'at_container_return'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'container_returned'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
         ]);
         const combinedData = [
-          ...((acceptedRes.data as any)?.data || []),
-          ...((arrivedAtPickupRes.data as any)?.data || []),
-          ...((inProgressRes.data as any)?.data || []),
           ...((inTransitRes.data as any)?.data || []),
           ...((deliveredRes.data as any)?.data || []),
           ...((returningContainerRes.data as any)?.data || []),
           ...((atContainerReturnRes.data as any)?.data || []),
-          ...((containerReturnedRes.data as any)?.data || []),
-          ...((completedRes.data as any)?.data || []),
         ];
         foundJob = combinedData.find((j: any) => j.order_number === jobId);
+        
+        // Fallback to navigation state if not found
+        if (!foundJob && stateJob) {
+          console.log('[DeliveryDetailPage] Job not found in API, using navigation state fallback');
+          foundJob = stateJob;
+        }
       } else {
         const { data, error } = await getFreelanceAcceptedJobs(user.id);
         if (error) throw new Error(error);
