@@ -95,10 +95,13 @@ const findExistingLineUser = async (
     }
 
     const user = data.users.find((u) => {
-      const metaLineId =
-        typeof u.user_metadata?.lineUserId === 'string'
-          ? u.user_metadata.lineUserId.toLowerCase()
+      const metaLineIdFromUserMetadata =
+        typeof u.user_metadata?.lineUserId === 'string' ? u.user_metadata.lineUserId.toLowerCase() : null;
+      const metaLineIdFromRawMetadata =
+        typeof (u as { raw_user_meta_data?: Record<string, unknown> }).raw_user_meta_data?.lineUserId === 'string'
+          ? String((u as { raw_user_meta_data?: Record<string, unknown> }).raw_user_meta_data?.lineUserId).toLowerCase()
           : null;
+      const metaLineId = metaLineIdFromUserMetadata || metaLineIdFromRawMetadata;
       const email = u.email?.toLowerCase();
 
       return (
