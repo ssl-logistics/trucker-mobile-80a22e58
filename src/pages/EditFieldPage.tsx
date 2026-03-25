@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -84,33 +83,12 @@ export default function EditFieldPage() {
         const storedDriverId = await getAuthItem('auth_driver_id');
         let resolvedDriverId = storedDriverId?.trim() || user.id;
 
-        if (user.loginType === 'line' && !isUuid(resolvedDriverId)) {
-          const lineUserId = user.lineUser?.lineUserId || user.id;
-          const fallbackPhone = (field === 'phone' ? value : user.phone_number || '0000000000').trim();
-
-          const { data: accountData, error: accountError } = await supabase.functions.invoke('create-account', {
-            body: {
-              authProvider: 'line',
-              lineUserId,
-              firstName: nextFirstName || 'LINE',
-              lastName: nextLastName || 'User',
-              phone: fallbackPhone,
-              email: user.email || '',
-              avatarUrl: user.avatar_url || '',
-            },
-          });
-
-          if (!accountError && accountData?.userId) {
-            resolvedDriverId = accountData.userId;
-            console.log('Resolved LINE profile UUID via create-account:', resolvedDriverId);
-          } else {
-            console.warn('Could not resolve LINE profile UUID via create-account:', accountError?.message || accountData);
-          }
-        }
-
         const profilePayload: Record<string, string> = {
           user_id: resolvedDriverId,
           auth_provider: user.loginType || 'normal',
+          lookup_full_name: existingFullName,
+          lookup_phone_number: user.phone_number || '',
+          lookup_username: user.username || '',
         };
 
         if (user.loginType === 'line') {
