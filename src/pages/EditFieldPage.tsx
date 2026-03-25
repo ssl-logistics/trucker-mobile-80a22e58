@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -11,6 +12,13 @@ import { updateFreelanceDriver } from '@/lib/externalApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isUuid = (value: string | undefined | null): value is string => {
+  return typeof value === 'string' && UUID_REGEX.test(value);
+};
 
 export default function EditFieldPage() {
   const navigate = useNavigate();
@@ -74,7 +82,31 @@ export default function EditFieldPage() {
         const nextLastName = field === 'lastName' ? value : existingLastName;
 
         const storedDriverId = await getAuthItem('auth_driver_id');
-        const resolvedDriverId = storedDriverId?.trim() || user.id;
+        let resolvedDriverId = storedDriverId?.trim() || user.id;
+
+        if (user.loginType === 'line' && !isUuid(resolvedDriverId)) {
+          const lineUserId = user.lineUser?.lineUserId || user.id;
+          const fallbackPhone = (field === 'phone' ? value : user.phone_number || '0000000000').trim();
+
+          const { data: accountData, error: accountError } = await supabase.functions.invoke('create-account', {
+            body: {
+              authProvider: 'line',
+              lineUserId,
+              firstName: nextFirstName || 'LINE',
+              lastName: nextLastName || 'User',
+              phone: fallbackPhone,
+              email: user.email || '',
+              avatarUrl: user.avatar_url || '',
+            },
+          });
+
+          if (!accountError && accountData?.userId) {
+            resolvedDriverId = accountData.userId;
+            console.log('Resolved LINE profile UUID via create-account:', resolvedDriverId);
+          } else {
+            console.warn('Could not resolve LINE profile UUID via create-account:', accountError?.message || accountData);
+          }
+        }
 
         const profilePayload: Record<string, string> = {
           user_id: resolvedDriverId,
