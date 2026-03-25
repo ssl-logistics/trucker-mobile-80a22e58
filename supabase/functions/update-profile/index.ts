@@ -25,9 +25,9 @@ const resolveLineAuthUserId = async (
   ]);
 
   let page = 1;
-  const perPage = 200;
+  const perPage = 500;
 
-  while (page <= 10) {
+  while (page <= 100) {
     const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
 
     if (error) {
