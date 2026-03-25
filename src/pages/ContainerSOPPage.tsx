@@ -1066,26 +1066,58 @@ const ContainerSOPPage = () => {
             </Card>
           )}
 
-          {!isProcessingEirOcr && (eirOcrContainerNumber || eirOcrSealNumber) && (
+          {!isProcessingEirOcr && (eirOcrContainerNumber || eirOcrSealNumber) && !isEirOcrConfirmed && (
             <Card className="p-3 bg-blue-50 border-blue-300">
               <div className="flex items-center gap-2 mb-2">
                 <Scan className="w-4 h-4 text-blue-600" />
                 <span className="font-semibold text-blue-700 text-sm">ผลการสแกนจาก EIR</span>
               </div>
               <div className="space-y-2">
-                {eirOcrContainerNumber && (
-                  <div className="bg-white rounded-lg p-2 border border-blue-200">
-                    <label className="text-xs text-muted-foreground block mb-0.5">เลขตู้</label>
-                    <p className="font-bold text-base">{eirOcrContainerNumber}</p>
-                  </div>
-                )}
-                {eirOcrSealNumber && (
-                  <div className="bg-white rounded-lg p-2 border border-blue-200">
-                    <label className="text-xs text-muted-foreground block mb-0.5">เลขซีล</label>
-                    <p className="font-bold text-base">{eirOcrSealNumber}</p>
-                  </div>
-                )}
+                <div className="bg-white rounded-lg p-2 border border-blue-200">
+                  <label className="text-xs text-muted-foreground block mb-1">เลขตู้</label>
+                  <input
+                    type="text"
+                    value={eirOcrContainerNumber || ''}
+                    onChange={(e) => setEirOcrContainerNumber(e.target.value || null)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
+                    placeholder="กรอกเลขตู้"
+                  />
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-blue-200">
+                  <label className="text-xs text-muted-foreground block mb-1">เลขซีล</label>
+                  <input
+                    type="text"
+                    value={eirOcrSealNumber || ''}
+                    onChange={(e) => setEirOcrSealNumber(e.target.value || null)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
+                    placeholder="กรอกเลขซีล"
+                  />
+                </div>
               </div>
+              <div className="flex gap-2 mt-2">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEirOcrContainerNumber(null); setEirOcrSealNumber(null); }}>
+                  ล้างข้อมูล
+                </Button>
+                <Button size="sm" className="flex-1 bg-teal-600 hover:bg-teal-700" onClick={() => { setIsEirOcrConfirmed(true); toast({ title: 'ยืนยันข้อมูล EIR สำเร็จ' }); }} disabled={!eirOcrContainerNumber && !eirOcrSealNumber}>
+                  ยืนยันข้อมูล
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {isEirOcrConfirmed && (eirOcrContainerNumber || eirOcrSealNumber) && (
+            <Card className="p-3 bg-green-50 border-green-300">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="font-semibold text-green-700 text-sm">ยืนยันข้อมูล EIR แล้ว</span>
+              </div>
+              <div className="space-y-1 text-sm">
+                {eirOcrContainerNumber && <p>เลขตู้: <span className="font-bold">{eirOcrContainerNumber}</span></p>}
+                {eirOcrSealNumber && <p>เลขซีล: <span className="font-bold">{eirOcrSealNumber}</span></p>}
+              </div>
+              <Button variant="outline" size="sm" className="mt-2 w-full" onClick={() => setIsEirOcrConfirmed(false)}>
+                แก้ไข
+              </Button>
             </Card>
           )}
         </div>
