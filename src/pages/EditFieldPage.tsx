@@ -5,8 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
-import { isDriverNotFoundError, isOAuthLoginType } from '@/utils/oauthDriverSync';
-import { setAuthItem, getAuthItem } from '@/utils/authStorage';
+import { isDriverNotFoundError } from '@/utils/oauthDriverSync';
 import { updateFreelanceDriver } from '@/lib/externalApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,7 +51,6 @@ export default function EditFieldPage() {
 
       // Call the external API directly (single request)
       const { data, error } = await updateFreelanceDriver(updatePayload);
-      const isOAuthUser = isOAuthLoginType(user.loginType);
       const shouldFallbackToLocal = isDriverNotFoundError(error, data);
 
       if (error && !shouldFallbackToLocal) {
@@ -64,7 +62,7 @@ export default function EditFieldPage() {
         });
       } else if (data?.success || shouldFallbackToLocal) {
         if (shouldFallbackToLocal) {
-          console.warn('Driver not found in external system, saving locally instead:', user.id, 'isOAuthUser=', isOAuthUser);
+          console.warn('Driver not found in external system, saving via edge function instead:', user.id);
         }
 
         toast({ title: t('editField.success'), description: t('editField.updated') });
@@ -102,31 +100,7 @@ export default function EditFieldPage() {
         const profileResult = await profileResp.json();
         console.log('Profile update result:', profileResult);
         
-        // Update local storage immediately with new data
-        const storedDriver = await getAuthItem('auth_driver');
-        if (storedDriver) {
-          try {
-            const driverData = JSON.parse(storedDriver);
-            const currentFullName = (driverData.full_name || fullName || '').trim();
-            const [currentFirstName, ...currentLastNameParts] = currentFullName.split(' ');
-
-            if (field === 'firstName') {
-              driverData.first_name = value;
-              driverData.full_name = `${value} ${currentLastNameParts.join(' ')}`.trim();
-            } else if (field === 'lastName') {
-              driverData.last_name = value;
-              driverData.full_name = `${currentFirstName || ''} ${value}`.trim();
-            } else if (field === 'phone') {
-              driverData.phone = value;
-              driverData.phone_number = value;
-            }
-            await setAuthItem('auth_driver', JSON.stringify(driverData));
-            // Dispatch event to notify AuthContext to reload
-            window.dispatchEvent(new Event('auth_driver_updated'));
-          } catch (e) {
-            console.error('Error updating local storage:', e);
-          }
-        }
+        
         
         navigate('/profile');
       }
