@@ -53,7 +53,7 @@ export default function EditFieldPage() {
       // Call the external API directly (single request)
       const { data, error } = await updateFreelanceDriver(updatePayload);
       const isOAuthUser = isOAuthLoginType(user.loginType);
-      const shouldFallbackToLocal = isOAuthUser && isDriverNotFoundError(error, data);
+      const shouldFallbackToLocal = isDriverNotFoundError(error, data);
 
       if (error && !shouldFallbackToLocal) {
         console.error('Update error:', error);
@@ -64,7 +64,7 @@ export default function EditFieldPage() {
         });
       } else if (data?.success || shouldFallbackToLocal) {
         if (shouldFallbackToLocal) {
-          console.warn('OAuth user not found in external driver system, saving locally:', user.id);
+          console.warn('Driver not found in external system, saving locally instead:', user.id, 'isOAuthUser=', isOAuthUser);
         }
 
         toast({ title: t('editField.success'), description: t('editField.updated') });

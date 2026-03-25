@@ -69,7 +69,7 @@ export default function AccountPage() {
           account_name: bankAccountName.trim() || user.full_name || '',
         });
 
-        const shouldFallbackToLocal = isOAuthUser && isDriverNotFoundError(error, data);
+        const shouldFallbackToLocal = isDriverNotFoundError(error, data);
         if (error && !shouldFallbackToLocal) {
           throw new Error(error);
         }
