@@ -62,7 +62,7 @@ export default function EditFieldPage() {
         });
       } else if (data?.success || shouldFallbackToLocal) {
         if (shouldFallbackToLocal) {
-          console.warn('Driver not found in external system, saving locally instead:', user.id, 'isOAuthUser=', isOAuthUser);
+          console.warn('Driver not found in external system, saving via edge function instead:', user.id);
         }
 
         toast({ title: t('editField.success'), description: t('editField.updated') });
