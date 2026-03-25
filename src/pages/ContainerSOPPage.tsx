@@ -1020,8 +1020,13 @@ const ContainerSOPPage = () => {
                 </button>
                 <button
                   onClick={() => {
-                    setEirPhotoFiles(prev => prev.filter((_, i) => i !== idx));
+                    const newFiles = eirPhotoFiles.filter((_, i) => i !== idx);
+                    setEirPhotoFiles(newFiles);
                     setEirPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                    if (newFiles.length === 0) {
+                      setEirOcrContainerNumber(null);
+                      setEirOcrSealNumber(null);
+                    }
                   }}
                   className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
                 >
