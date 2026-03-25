@@ -376,56 +376,48 @@ export default function SOPCheckInPage() {
     setUploading(true);
 
     try {
-      // Upload product image to S3
-      const formData = new FormData();
-      formData.append('file', photoFile);
-      formData.append('folder', 'mobile/sop-photos');
-      formData.append('filename', `${user.id}-${job.order_code}-product-${Date.now()}`);
+      // Upload all images in PARALLEL for speed
+      const timestamp = Date.now();
+      
+      // Prepare all upload promises
+      const productFormData = new FormData();
+      productFormData.append('file', photoFile);
+      productFormData.append('folder', 'mobile/sop-photos');
+      productFormData.append('filename', `${user.id}-${job.order_code}-product-${timestamp}`);
+      const productUploadPromise = supabase.functions.invoke('upload-to-s3', { body: productFormData });
 
-      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
-        body: formData
-      });
-
-      if (uploadError || !uploadData?.url) {
-        throw new Error('Failed to upload product image');
-      }
-
-      const productImageUrl = uploadData.url;
-
-      // Upload document image if provided
-      let documentImageUrl: string | null = null;
-      if (docPhotoFile) {
+      const docUploadPromise = docPhotoFile ? (() => {
         const docFormData = new FormData();
         docFormData.append('file', docPhotoFile);
         docFormData.append('folder', 'mobile/sop-docs');
-        docFormData.append('filename', `${user.id}-${job.order_code}-doc-${Date.now()}`);
+        docFormData.append('filename', `${user.id}-${job.order_code}-doc-${timestamp}`);
+        return supabase.functions.invoke('upload-to-s3', { body: docFormData });
+      })() : Promise.resolve({ data: null, error: null });
 
-        const { data: docUploadData, error: docUploadError } = await supabase.functions.invoke('upload-to-s3', {
-          body: docFormData
-        });
-
-        if (!docUploadError && docUploadData?.url) {
-          documentImageUrl = docUploadData.url;
-        }
-      }
-
-      // Upload weight slip images if provided (optional, multiple)
-      const weightSlipImageUrls: string[] = [];
-      for (let i = 0; i < weightSlips.length; i++) {
-        const ws = weightSlips[i];
+      const weightSlipUploadPromises = weightSlips.map((ws, i) => {
         const wsFormData = new FormData();
         wsFormData.append('file', ws.file);
         wsFormData.append('folder', 'mobile/sop-weightslip');
-        wsFormData.append('filename', `${user.id}-${job.order_code}-weightslip-${i}-${Date.now()}`);
+        wsFormData.append('filename', `${user.id}-${job.order_code}-weightslip-${i}-${timestamp}`);
+        return supabase.functions.invoke('upload-to-s3', { body: wsFormData });
+      });
 
-        const { data: wsUploadData, error: wsUploadError } = await supabase.functions.invoke('upload-to-s3', {
-          body: wsFormData
-        });
+      // Execute all uploads in parallel
+      const [productResult, docResult, ...weightSlipResults] = await Promise.all([
+        productUploadPromise,
+        docUploadPromise,
+        ...weightSlipUploadPromises,
+      ]);
 
-        if (!wsUploadError && wsUploadData?.url) {
-          weightSlipImageUrls.push(wsUploadData.url);
-        }
+      if (productResult.error || !productResult.data?.url) {
+        throw new Error('Failed to upload product image');
       }
+
+      const productImageUrl = productResult.data.url;
+      const documentImageUrl = docResult.data?.url || null;
+      const weightSlipImageUrls = weightSlipResults
+        .filter(r => !r.error && r.data?.url)
+        .map(r => r.data.url);
 
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';

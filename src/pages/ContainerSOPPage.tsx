@@ -475,93 +475,75 @@ const ContainerSOPPage = () => {
     setUploading(true);
     try {
 
-      // Upload all EIR photos
-      let publicUrl = '';
-      const eirUrls: string[] = [];
-      const filesToUpload = eirPhotoFiles;
+      // Upload ALL photos in PARALLEL for speed
+      const timestamp = Date.now();
       
-      for (let i = 0; i < filesToUpload.length; i++) {
-        const fileExt = filesToUpload[i].name.split('.').pop();
-        const fileName = `eir_${jobId}_${Date.now()}_${i}.${fileExt}`;
+      // Prepare EIR upload promises
+      const eirUploadPromises = eirPhotoFiles.map((file, i) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `eir_${jobId}_${timestamp}_${i}.${fileExt}`;
         const formData = new FormData();
-        formData.append('file', filesToUpload[i]);
+        formData.append('file', file);
         formData.append('folder', 'container-photos');
         formData.append('fileName', fileName);
+        return supabase.functions.invoke('upload-to-s3', { body: formData });
+      });
 
-        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-to-s3', {
-          body: formData
-        });
+      // Prepare BL container photo promises
+      const blUploadPromises = (isBLJob && !isContainerReturn) 
+        ? blContainerPhotoFiles.filter(Boolean).map((file, i) => {
+            const aFormData = new FormData();
+            aFormData.append('file', file);
+            aFormData.append('folder', 'container-photos');
+            aFormData.append('fileName', `container_photo_${i}_${jobId}_${timestamp}.${file.name.split('.').pop() || 'jpg'}`);
+            return supabase.functions.invoke('upload-to-s3', { body: aFormData });
+          })
+        : [];
 
-        if (uploadError || !uploadData?.url) {
-          if (i === 0) throw new Error(uploadError?.message || uploadData?.error || 'Upload failed');
-          console.warn(`[ContainerSOP] EIR photo ${i + 1} upload failed`);
-          continue;
+      // Prepare container & seal photo promises
+      const containerUploadPromise = containerPhotoFile ? (() => {
+        const cFormData = new FormData();
+        cFormData.append('file', containerPhotoFile);
+        cFormData.append('folder', 'container-photos');
+        cFormData.append('fileName', `ocr_container_${jobId}_${timestamp}.${containerPhotoFile.name.split('.').pop() || 'jpg'}`);
+        return supabase.functions.invoke('upload-to-s3', { body: cFormData });
+      })() : Promise.resolve({ data: null, error: null });
+
+      const sealUploadPromise = sealPhotoFile ? (() => {
+        const sFormData = new FormData();
+        sFormData.append('file', sealPhotoFile);
+        sFormData.append('folder', 'container-photos');
+        sFormData.append('fileName', `ocr_seal_${jobId}_${timestamp}.${sealPhotoFile.name.split('.').pop() || 'jpg'}`);
+        return supabase.functions.invoke('upload-to-s3', { body: sFormData });
+      })() : Promise.resolve({ data: null, error: null });
+
+      // Execute ALL uploads in parallel
+      const [eirResults, blResults, containerResult, sealResult] = await Promise.all([
+        Promise.all(eirUploadPromises),
+        Promise.all(blUploadPromises),
+        containerUploadPromise,
+        sealUploadPromise,
+      ]);
+
+      // Process EIR results
+      const eirUrls: string[] = [];
+      let publicUrl = '';
+      eirResults.forEach((r, i) => {
+        if (!r.error && r.data?.url) {
+          eirUrls.push(r.data.url);
+          if (i === 0) publicUrl = r.data.url;
+        } else if (i === 0) {
+          throw new Error(r.error?.message || r.data?.error || 'EIR upload failed');
         }
-        eirUrls.push(uploadData.url);
-        if (i === 0) publicUrl = uploadData.url;
-        console.log(`[ContainerSOP] Uploaded EIR ${i + 1}:`, uploadData.url);
-      }
+      });
 
+      // Process BL results
+      const blAngleUrls = blResults.filter(r => !r.error && r.data?.url).map(r => r.data.url);
 
-      // Upload BL container photos if available
-      const blAngleUrls: string[] = [];
-      if (isBLJob && !isContainerReturn) {
-        for (let i = 0; i < blContainerPhotoFiles.length; i++) {
-          const angleFile = blContainerPhotoFiles[i];
-          if (angleFile) {
-            try {
-              const aFormData = new FormData();
-              aFormData.append('file', angleFile);
-              aFormData.append('folder', 'container-photos');
-              aFormData.append('fileName', `container_photo_${i}_${jobId}_${Date.now()}.${angleFile.name.split('.').pop() || 'jpg'}`);
-              const { data: aUpload } = await supabase.functions.invoke('upload-to-s3', { body: aFormData });
-              if (aUpload?.url) {
-                blAngleUrls.push(aUpload.url);
-                console.log(`[ContainerSOP] Uploaded container photo ${i + 1}:`, aUpload.url);
-              }
-            } catch (e) {
-              console.warn(`[ContainerSOP] Container photo ${i + 1} upload failed:`, e);
-            }
-          }
-        }
-      }
-
-      // Upload container photo to S3 if available
-      let containerImageUrl = '';
-      if (containerPhotoFile) {
-        try {
-          const cFormData = new FormData();
-          cFormData.append('file', containerPhotoFile);
-          cFormData.append('folder', 'container-photos');
-          cFormData.append('fileName', `ocr_container_${jobId}_${Date.now()}.${containerPhotoFile.name.split('.').pop() || 'jpg'}`);
-          const { data: cUpload } = await supabase.functions.invoke('upload-to-s3', { body: cFormData });
-          if (cUpload?.url) {
-            containerImageUrl = cUpload.url;
-            setOcrImageUrl(cUpload.url);
-            console.log('[ContainerSOP] Uploaded container photo:', cUpload.url);
-          }
-        } catch (e) {
-          console.warn('[ContainerSOP] Container photo upload failed:', e);
-        }
-      }
-
-      // Upload seal photo to S3 if available
-      let sealImageUrl = '';
-      if (sealPhotoFile) {
-        try {
-          const sFormData = new FormData();
-          sFormData.append('file', sealPhotoFile);
-          sFormData.append('folder', 'container-photos');
-          sFormData.append('fileName', `ocr_seal_${jobId}_${Date.now()}.${sealPhotoFile.name.split('.').pop() || 'jpg'}`);
-          const { data: sUpload } = await supabase.functions.invoke('upload-to-s3', { body: sFormData });
-          if (sUpload?.url) {
-            sealImageUrl = sUpload.url;
-            console.log('[ContainerSOP] Uploaded seal photo:', sUpload.url);
-          }
-        } catch (e) {
-          console.warn('[ContainerSOP] Seal photo upload failed:', e);
-        }
-      }
+      // Process container/seal results
+      const containerImageUrl = containerResult.data?.url || '';
+      if (containerImageUrl) setOcrImageUrl(containerImageUrl);
+      const sealImageUrl = sealResult.data?.url || '';
 
 
       const derivedContainerNumber = (ocrContainerNumber || containerNumber || jobDetail?.container_number || '').trim();

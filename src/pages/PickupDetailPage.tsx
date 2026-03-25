@@ -259,30 +259,35 @@ export default function PickupDetailPage() {
     setIsCheckingIn(true);
     
     try {
-      // Get current location
+      // Start GPS fetch in background (non-blocking, reduced timeout)
       let latitude = job.origin_latitude || 0;
       let longitude = job.origin_longitude || 0;
       
-      if (navigator.geolocation) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      const gpsPromise = navigator.geolocation
+        ? new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
               enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
+              timeout: 5000,
+              maximumAge: 30000
             });
-          });
-          latitude = position.coords.latitude;
-          longitude = position.coords.longitude;
-        } catch (geoError) {
-          console.log('Could not get current location, using job location');
-        }
+          }).catch(() => null)
+        : Promise.resolve(null);
+
+      // Try to get GPS quickly, but don't block if slow
+      const gpsResult = await Promise.race([
+        gpsPromise,
+        new Promise<null>(r => setTimeout(() => r(null), 3000))
+      ]);
+      
+      if (gpsResult) {
+        latitude = gpsResult.coords.latitude;
+        longitude = gpsResult.coords.longitude;
       }
 
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Call check-in API directly (no proxy)
+      // Call check-in API (the only blocking call)
       const { data: checkinResult, error: checkinError } = await driverCheckin({
         order_number: job.order_number || job.order_code,
         checkin_type: 'pickup',
@@ -298,134 +303,7 @@ export default function PickupDetailPage() {
         throw new Error('Check-in failed');
       }
 
-      // Get room_code from localStorage (fallback: create tracking room if missing)
-      const roomCodeKey = `room_code_${job.order_code}`;
-      let roomCode = localStorage.getItem(roomCodeKey);
-
-      if (!roomCode) {
-        const truckPlate =
-          user.license_plate ||
-          (user.plate_province && user.plate_number ? `${user.plate_province} ${user.plate_number}` : '') ||
-          user.plate_number ||
-          '';
-
-        try {
-          // Build waypoints from destinations for multi-destination jobs
-          const jobAny = job as any;
-          const waypoints = jobAny.destinations && jobAny.destinations.length > 1
-            ? jobAny.destinations
-                .filter((d: any) => d.latitude && d.longitude)
-                .map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
-            : undefined;
-
-          // Get actual GPS position for current_lat/current_lng
-          let currentLat = job.origin_latitude ?? 0;
-          let currentLng = job.origin_longitude ?? 0;
-          try {
-            const gpsPos = await new Promise<GeolocationPosition>((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-              });
-            });
-            currentLat = gpsPos.coords.latitude;
-            currentLng = gpsPos.coords.longitude;
-            console.log('📍 [PickupDetail] Got GPS position:', currentLat, currentLng);
-          } catch (gpsErr) {
-            console.warn('[PickupDetail] Could not get GPS, using origin as fallback:', gpsErr);
-          }
-
-          const trackingBody: any = {
-            truck_plate: truckPlate,
-            order_code: job.order_code,
-            origin_lat: job.origin_latitude ?? 0,
-            origin_lng: job.origin_longitude ?? 0,
-            destination_lat: job.destination_latitude ?? 0,
-            destination_lng: job.destination_longitude ?? 0,
-            current_lat: currentLat,
-            current_lng: currentLng,
-          };
-          if (waypoints && waypoints.length > 0) {
-            trackingBody.waypoints = waypoints;
-          }
-
-          console.log('📍 create-tracking-room fallback body:', trackingBody);
-
-          const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
-            body: trackingBody,
-          });
-
-          if (!trackingResponse.error && trackingResponse.data?.room?.room_code) {
-            roomCode = trackingResponse.data.room.room_code;
-            localStorage.setItem(roomCodeKey, roomCode);
-          } else {
-            // If 409 conflict, extract existing room_code from error details
-            // Response format: { error: "...", details: { error: "...", details: "...room 'RMXXXXXX'" } }
-            const errorData = trackingResponse.data || {};
-            const detailsStr = errorData?.details?.details || errorData?.details || '';
-            const roomMatch = String(detailsStr).match(/room '(RM[A-Z0-9]+)'/);
-            
-            if (roomMatch && roomMatch[1]) {
-              roomCode = roomMatch[1];
-              localStorage.setItem(roomCodeKey, roomCode);
-              console.log('📍 Extracted existing room_code from conflict:', roomCode);
-            } else {
-              console.warn('Failed to create tracking room (fallback):', trackingResponse.error || errorData);
-            }
-          }
-        } catch (trackingError) {
-          console.warn('Failed to create tracking room (fallback):', trackingError);
-        }
-      }
-
-      if (roomCode) {
-        // Call truck-arrival API to notify arrival at origin
-        try {
-          const arrivalBody = { room_code: roomCode, arrival_type: 'origin' };
-          console.log('📍 truck-arrival body:', arrivalBody);
-
-          const arrivalResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/truck-arrival`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(arrivalBody),
-          });
-
-          if (arrivalResponse.ok) {
-            const arrivalResult = await arrivalResponse.json();
-            console.log('✅ Truck arrival notification sent:', arrivalResult);
-          } else {
-            const errorText = await arrivalResponse.text();
-            console.warn('❌ Failed to send truck arrival notification:', errorText);
-          }
-        } catch (arrivalError) {
-          console.error('Error sending truck arrival notification:', arrivalError);
-          // Don't fail the check-in if arrival notification fails
-        }
-      } else {
-        console.warn('⚠️ No room_code found/created for order:', job.order_code);
-      }
-
-      // For international jobs (BL/Booking), send 'delivered' status to update-order-status
-      const jobAnyStatus = job as any;
-      if (jobAnyStatus.bl_no || jobAnyStatus.booking_no || jobAnyStatus.transport_category === 'international') {
-        try {
-          const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-          await updateOrderStatus({
-            order_number: job.order_code,
-            status: 'delivered',
-            driver_id: user.id,
-            driver_type: driverType,
-            notes: 'เช็คอินจุดรับสินค้าสำเร็จ',
-          });
-          console.log('[PickupDetailPage] updateOrderStatus delivered sent');
-        } catch (statusErr) {
-          console.warn('[PickupDetailPage] updateOrderStatus exception:', statusErr);
-        }
-      }
-
+      // Optimistic update & navigate immediately
       saveCheckin({
         order_number: job.order_number || job.order_code,
         checkin_type: 'pickup',
@@ -441,6 +319,75 @@ export default function PickupDetailPage() {
       });
       setShowConfirmDialog(false);
       navigate(`/job/${job.order_code}/sop`, { state: { jobData: job, isBidJob } });
+
+      // === Background tasks (non-blocking) ===
+      (async () => {
+        try {
+          const roomCodeKey = `room_code_${job.order_code}`;
+          let roomCode = localStorage.getItem(roomCodeKey);
+
+          if (!roomCode) {
+            const truckPlate =
+              user.license_plate ||
+              (user.plate_province && user.plate_number ? `${user.plate_province} ${user.plate_number}` : '') ||
+              user.plate_number || '';
+
+            const jobAny = job as any;
+            const waypoints = jobAny.destinations && jobAny.destinations.length > 1
+              ? jobAny.destinations.filter((d: any) => d.latitude && d.longitude).map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
+              : undefined;
+
+            const trackingBody: any = {
+              truck_plate: truckPlate,
+              order_code: job.order_code,
+              origin_lat: job.origin_latitude ?? 0,
+              origin_lng: job.origin_longitude ?? 0,
+              destination_lat: job.destination_latitude ?? 0,
+              destination_lng: job.destination_longitude ?? 0,
+              current_lat: latitude,
+              current_lng: longitude,
+            };
+            if (waypoints && waypoints.length > 0) trackingBody.waypoints = waypoints;
+
+            const trackingResponse = await supabase.functions.invoke('create-tracking-room', { body: trackingBody });
+
+            if (!trackingResponse.error && trackingResponse.data?.room?.room_code) {
+              roomCode = trackingResponse.data.room.room_code;
+              localStorage.setItem(roomCodeKey, roomCode!);
+            } else {
+              const errorData = trackingResponse.data || {};
+              const detailsStr = errorData?.details?.details || errorData?.details || '';
+              const roomMatch = String(detailsStr).match(/room '(RM[A-Z0-9]+)'/);
+              if (roomMatch && roomMatch[1]) {
+                roomCode = roomMatch[1];
+                localStorage.setItem(roomCodeKey, roomCode!);
+              }
+            }
+          }
+
+          if (roomCode) {
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/truck-arrival`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ room_code: roomCode, arrival_type: 'origin' }),
+            }).catch(err => console.warn('truck-arrival error:', err));
+          }
+
+          // Update order status for international jobs
+          const jobAnyStatus = job as any;
+          if (jobAnyStatus.bl_no || jobAnyStatus.booking_no || jobAnyStatus.transport_category === 'international') {
+            updateOrderStatus({
+              order_number: job.order_code,
+              status: 'delivered',
+              driver_id: user.id,
+              driver_type: driverType,
+              notes: 'เช็คอินจุดรับสินค้าสำเร็จ',
+            }).catch(err => console.warn('updateOrderStatus error:', err));
+          }
+        } catch (bgError) {
+          console.error('[PickupDetail] Background task error:', bgError);
+        }
+      })();
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
