@@ -203,6 +203,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             loginType: oauthProvider,
           };
 
+          // Auto-register in DB + external TMS (non-blocking)
+          autoRegisterOAuthUser({
+            authProvider: oauthProvider as 'apple' | 'google',
+            authUserId: sessionUser.id,
+            firstName: sessionUser.user_metadata?.full_name?.split(' ')[0],
+            lastName: sessionUser.user_metadata?.full_name?.split(' ').slice(1).join(' '),
+          });
+
           await Promise.all([
             setAuthItem('auth_driver', JSON.stringify(oauthDriver)),
             setAuthItem('auth_driver_id', sessionUser.id),

@@ -294,6 +294,14 @@ export const useDeepLinkHandler = () => {
                 email: user.email,
               };
 
+              // Auto-register in DB + external TMS (non-blocking)
+              autoRegisterOAuthUser({
+                authProvider: 'apple',
+                authUserId: user.id,
+                firstName: user.user_metadata?.full_name?.split(' ')[0],
+                lastName: user.user_metadata?.full_name?.split(' ').slice(1).join(' '),
+              });
+
               await Promise.all([
                 setAuthItem('auth_driver', JSON.stringify(appleDriver)),
                 setAuthItem('auth_driver_id', user.id),
