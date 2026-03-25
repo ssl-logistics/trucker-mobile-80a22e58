@@ -69,31 +69,28 @@ export default function EditFieldPage() {
 
         toast({ title: t('editField.success'), description: t('editField.updated') });
 
-        // Persist into profiles table as source of truth for app-side fields
+        // Persist into profiles table via edge function (bypasses RLS for OAuth users)
         const existingFullName = fullName || user.full_name || '';
         const [existingFirstName, ...remainingNameParts] = existingFullName.trim().split(' ');
         const existingLastName = remainingNameParts.join(' ');
         const nextFirstName = field === 'firstName' ? value : existingFirstName;
         const nextLastName = field === 'lastName' ? value : existingLastName;
 
-        const profileUpdates: Record<string, string> = {
-          updated_at: new Date().toISOString(),
-        };
+        const profilePayload: Record<string, string> = { user_id: user.id };
 
         if (field === 'phone') {
-          profileUpdates.phone_number = value;
+          profilePayload.phone_number = value;
         }
 
         if (field === 'firstName' || field === 'lastName') {
-          profileUpdates.full_name = `${nextFirstName || ''} ${nextLastName || ''}`.trim();
+          profilePayload.full_name = `${nextFirstName || ''} ${nextLastName || ''}`.trim();
         }
 
-        if (Object.keys(profileUpdates).length > 1) {
-          await supabase
-            .from('profiles')
-            .update(profileUpdates)
-            .eq('id', user.id);
-        }
+        // Call edge function with service role to update profiles
+        await supabase.functions.invoke('update-profile', {
+          method: 'PUT',
+          body: profilePayload,
+        });
         
         // Update local storage immediately with new data
         const storedDriver = await getAuthItem('auth_driver');
