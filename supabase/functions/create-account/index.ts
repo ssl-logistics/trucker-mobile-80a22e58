@@ -72,6 +72,50 @@ const validateInput = (data: CreateAccountRequest): string | null => {
   return null;
 };
 
+const findExistingLineUser = async (
+  supabaseAdmin: ReturnType<typeof createClient>,
+  lineUserId: string,
+  lineEmail: string
+) => {
+  const normalizedLineUserId = lineUserId.replace(/^line_/i, '').toLowerCase();
+  const candidateEmails = new Set([
+    lineEmail.toLowerCase(),
+    `line_${normalizedLineUserId}@line.oauth.local`,
+    `${normalizedLineUserId}@line.user`,
+  ]);
+
+  let page = 1;
+  const perPage = 500;
+
+  while (page <= 100) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+    if (error) {
+      console.error('Error listing users for LINE lookup:', error.message);
+      return null;
+    }
+
+    const user = data.users.find((u) => {
+      const metaLineId =
+        typeof u.user_metadata?.lineUserId === 'string'
+          ? u.user_metadata.lineUserId.toLowerCase()
+          : null;
+      const email = u.email?.toLowerCase();
+
+      return (
+        metaLineId === normalizedLineUserId ||
+        metaLineId === lineUserId.toLowerCase() ||
+        (!!email && candidateEmails.has(email))
+      );
+    });
+
+    if (user) return user;
+    if (data.users.length < perPage) break;
+    page += 1;
+  }
+
+  return null;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -138,10 +182,10 @@ serve(async (req) => {
         // If user already exists with this email, try to find them
         if (authError.message?.includes('already been registered') || authError.message?.includes('already exists')) {
           console.log('LINE user already exists, looking up by email...');
-          const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-          const existingUser = existingUsers?.users?.find(u => 
-            u.email === lineEmail || 
-            u.user_metadata?.lineUserId === data.lineUserId
+          const existingUser = await findExistingLineUser(
+            supabaseAdmin,
+            data.lineUserId!,
+            lineEmail
           );
           
           if (existingUser) {
