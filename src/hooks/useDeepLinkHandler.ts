@@ -66,22 +66,68 @@ export const useDeepLinkHandler = () => {
             }
             
             console.log('[DeepLink] ✅ LINE user data received:', data.user.displayName);
+
+            // Auto-create account in database
+            let driverUserId = data.user.lineUserId;
+            try {
+              const { data: accountData, error: accountError } = await supabase.functions.invoke('create-account', {
+                body: {
+                  authProvider: 'line',
+                  lineUserId: data.user.lineUserId,
+                  firstName: data.user.displayName?.split(' ')[0] || 'LINE',
+                  lastName: data.user.displayName?.split(' ').slice(1).join(' ') || 'User',
+                  phone: '0000000000',
+                  email: '',
+                  avatarUrl: data.user.pictureUrl || '',
+                },
+              });
+              if (!accountError && accountData?.userId) {
+                driverUserId = accountData.userId;
+                console.log('[DeepLink] ✅ Account created/found:', driverUserId);
+              }
+            } catch (e) {
+              console.warn('[DeepLink] ⚠️ Account creation failed (non-blocking):', e);
+            }
+
+            // Register driver in external TMS (minimal body)
+            try {
+              const registerBody: Record<string, string> = {
+                authProvider: 'line',
+                authUserId: driverUserId,
+              };
+              if (data.user.displayName) {
+                const nameParts = data.user.displayName.split(' ');
+                registerBody.firstName = nameParts[0] || 'LINE';
+                registerBody.lastName = nameParts.slice(1).join(' ') || 'User';
+              }
+              const { data: regData, error: regError } = await supabase.functions.invoke('register-driver', {
+                body: registerBody,
+              });
+              if (regError) {
+                console.warn('[DeepLink] ⚠️ External registration warning:', regError.message);
+              } else {
+                console.log('[DeepLink] ✅ External TMS registration:', regData);
+              }
+            } catch (regErr) {
+              console.warn('[DeepLink] ⚠️ External registration failed (non-blocking):', regErr);
+            }
             
             // Store LINE user data
             await setAuthItem('line_user', JSON.stringify(data.user));
             await setAuthItem('auth_login_type', 'line');
             
-            // Create driver record
+            // Create driver record with resolved userId
             const lineDriver = {
-              id: data.user.lineUserId,
+              id: driverUserId,
               full_name: data.user.displayName,
               avatar_url: data.user.pictureUrl || null,
               loginType: 'line',
               lineUser: data.user,
             };
             await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+            await setAuthItem('auth_driver_id', driverUserId);
             
-            console.log('[DeepLink] ✅ Auth data saved');
+            console.log('[DeepLink] ✅ Auth data saved, driverId:', driverUserId);
             
             // Dispatch auth event
             window.dispatchEvent(new Event('auth_driver_updated'));

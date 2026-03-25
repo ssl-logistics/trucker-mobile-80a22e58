@@ -225,6 +225,33 @@ const LineCallbackPage = () => {
           // Use the Supabase userId if available, otherwise fall back to LINE userId
           const driverUserId = accountData?.userId || data.user.lineUserId;
 
+          // Register driver in external TMS (minimal body for LINE OAuth)
+          console.log('[LINE Callback] 📝 Registering driver in external TMS...');
+          try {
+            const registerBody: Record<string, string> = {
+              authProvider: 'line',
+              authUserId: driverUserId,
+            };
+            // Include LINE profile data if available
+            if (data.user.displayName) {
+              const nameParts = data.user.displayName.split(' ');
+              registerBody.firstName = nameParts[0] || 'LINE';
+              registerBody.lastName = nameParts.slice(1).join(' ') || 'User';
+            }
+
+            const { data: registerData, error: registerError } = await supabase.functions.invoke('register-driver', {
+              body: registerBody,
+            });
+
+            if (registerError) {
+              console.warn('[LINE Callback] ⚠️ External registration warning:', registerError.message);
+            } else {
+              console.log('[LINE Callback] ✅ External TMS registration result:', registerData);
+            }
+          } catch (regErr) {
+            console.warn('[LINE Callback] ⚠️ External registration failed (non-blocking):', regErr);
+          }
+
           // Store LINE user data and login type
           console.log('[LINE Callback] 💾 Saving auth data to storage...');
           
