@@ -681,8 +681,18 @@ export default function DeliveryDetailPage() {
     
     setShowPodConfirmDialog(false);
     setIsSubmittingPod(false);
-    const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
-    navigate(backRoute, { state: { jobData: job } });
+
+    // For international (BL/Booking) jobs, go back to job detail (still need container return)
+    const jobAnyNav = job as any;
+    const isInternationalNav = !!(jobAnyNav.bl_no || jobAnyNav.booking_no || jobAnyNav.transport_category === 'international');
+    
+    if (isInternationalNav) {
+      const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+      navigate(backRoute, { state: { jobData: job } });
+    } else {
+      // Domestic single-trip: job is done, redirect to home
+      navigate('/');
+    }
   };
 
   const [isCheckingIn, setIsCheckingIn] = useState(false);
