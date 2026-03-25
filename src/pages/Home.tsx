@@ -788,82 +788,8 @@ export default function Home() {
         
         // Mark as processed to prevent future duplicate submissions
         setProcessedOrderCodes(prev => new Set([...prev, orderCode]));
-        console.log(`[Home] Job added to processedOrderCodes`);
         
-        // Create tracking room after successful job start for staff drivers
-        try {
-          // Get vehicle info for truck plate
-          const province = (user.plate_province || '').trim();
-          const number = (user.plate_number || '').trim();
-          const licensePlate = [province, number].filter(Boolean).join(' ').trim();
-          
-          // Get current GPS position
-          let currentLat = job.origin_lat || 0;
-          let currentLng = job.origin_lng || 0;
-          
-          try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-              });
-            });
-            currentLat = position.coords.latitude;
-            currentLng = position.coords.longitude;
-            console.log('📍 [Staff] Got GPS position:', currentLat, currentLng);
-          } catch (gpsError) {
-            console.warn('[Staff] Could not get GPS position, using origin as fallback:', gpsError);
-          }
-          
-          // Build waypoints from destinations for multi-destination jobs
-          const waypoints = job.destinations && job.destinations.length > 1
-            ? job.destinations
-                .filter((d: any) => d.latitude && d.longitude)
-                .map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
-            : undefined;
-
-          const trackingBody: any = {
-            truck_plate: licensePlate,
-            order_code: job.order_code,
-            origin_lat: job.origin_lat || 0,
-            origin_lng: job.origin_lng || 0,
-            destination_lat: job.destination_lat || 0,
-            destination_lng: job.destination_lng || 0,
-            current_lat: currentLat,
-            current_lng: currentLng
-          };
-          if (waypoints && waypoints.length > 0) {
-            trackingBody.waypoints = waypoints;
-          }
-          console.log('📍 [Staff] create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
-          
-          const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
-            body: trackingBody
-          });
-
-          if (trackingResponse.error) {
-            console.error('[Staff] Error creating tracking room:', trackingResponse.error);
-          } else {
-            console.log('[Staff] Tracking room created:', trackingResponse.data);
-            // Save room_code and start GPS tracking immediately
-            if (trackingResponse.data?.room?.room_code) {
-              const roomCode = trackingResponse.data.room.room_code;
-              localStorage.setItem(`room_code_${job.order_code}`, roomCode);
-              console.log('[Staff] Room code response:', trackingResponse.data);
-              console.log('[Staff] Extracted room_code:', roomCode);
-              console.log('[Staff] Starting GPS tracking with roomCode:', roomCode, 'orderCode:', job.order_code);
-              
-              // Start GPS tracking to send position updates every 1 second
-              startTracking(roomCode, job.order_code);
-              console.log('[Staff] Called startTracking()');
-            }
-          }
-        } catch (trackingError) {
-          console.error('[Staff] Error creating tracking room:', trackingError);
-        }
-        
-        // Show success toast
+        // Show success toast immediately
         const titleKey = t('home.start_job_success');
         const descKey = t('home.start_job_success_desc');
         toast({
@@ -871,18 +797,71 @@ export default function Home() {
           description: `${descKey !== 'home.start_job_success_desc' ? descKey : 'คุณได้เริ่มงาน'} ${job.order_code}`
         });
         
-        // Remove this job from the local list so it disappears from "Jobs for You"
-        // The job will appear in Current Jobs since status is now 'in_transit'
-        console.log(`[Home] Removing job from Home list (factoryJobs)...`);
-        setFactoryJobs(prev => {
-          const filtered = prev.filter(j => j.id !== job.id);
-          console.log(`[Home] Factory jobs: ${prev.length} → ${filtered.length}`);
-          return filtered;
-        });
-        console.log(`[Home] ===== START JOB WORKFLOW COMPLETED SUCCESSFULLY =====`);
+        // Remove job from Home list instantly
+        setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
         
-        // Redirect to Current Jobs page
+        // Redirect to Current Jobs page immediately
         navigate('/current-jobs');
+        
+        // Create tracking room in background (don't block UI)
+        (async () => {
+          try {
+            const province = (user.plate_province || '').trim();
+            const number = (user.plate_number || '').trim();
+            const licensePlate = [province, number].filter(Boolean).join(' ').trim();
+            
+            let currentLat = job.origin_lat || 0;
+            let currentLng = job.origin_lng || 0;
+            try {
+              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  enableHighAccuracy: true,
+                  timeout: 5000,
+                  maximumAge: 60000
+                });
+              });
+              currentLat = position.coords.latitude;
+              currentLng = position.coords.longitude;
+            } catch (gpsError) {
+              console.warn('[Staff] GPS fallback to origin:', gpsError);
+            }
+            
+            const waypoints = job.destinations && job.destinations.length > 1
+              ? job.destinations
+                  .filter((d: any) => d.latitude && d.longitude)
+                  .map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
+              : undefined;
+
+            const trackingBody: any = {
+              truck_plate: licensePlate,
+              order_code: job.order_code,
+              origin_lat: job.origin_lat || 0,
+              origin_lng: job.origin_lng || 0,
+              destination_lat: job.destination_lat || 0,
+              destination_lng: job.destination_lng || 0,
+              current_lat: currentLat,
+              current_lng: currentLng
+            };
+            if (waypoints && waypoints.length > 0) {
+              trackingBody.waypoints = waypoints;
+            }
+            
+            const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
+              body: trackingBody
+            });
+
+            if (!trackingResponse.error && trackingResponse.data?.room?.room_code) {
+              const roomCode = trackingResponse.data.room.room_code;
+              localStorage.setItem(`room_code_${job.order_code}`, roomCode);
+              startTracking(roomCode, job.order_code);
+              console.log('[Staff] Tracking started in background:', roomCode);
+            }
+          } catch (trackingError) {
+            console.error('[Staff] Background tracking error:', trackingError);
+          }
+        })();
+        
+        console.log(`[Home] ===== START JOB WORKFLOW COMPLETED =====`);
         
       } catch (error) {
         console.error('[Home] Error updating order status:', error);
