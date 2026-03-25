@@ -124,12 +124,6 @@ const ContainerSOPPage = () => {
   const [pendingSealOcr, setPendingSealOcr] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [ocrImageUrl, setOcrImageUrl] = useState<string | undefined>(undefined);
-  
-  // EIR OCR state
-  const [isProcessingEirOcr, setIsProcessingEirOcr] = useState(false);
-  const [eirOcrContainerNumber, setEirOcrContainerNumber] = useState<string | null>(null);
-  const [eirOcrSealNumber, setEirOcrSealNumber] = useState<string | null>(null);
-  const [isEirOcrConfirmed, setIsEirOcrConfirmed] = useState(false);
 
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
