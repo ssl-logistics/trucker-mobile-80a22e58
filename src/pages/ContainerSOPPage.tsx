@@ -129,6 +129,7 @@ const ContainerSOPPage = () => {
   const [isProcessingEirOcr, setIsProcessingEirOcr] = useState(false);
   const [eirOcrContainerNumber, setEirOcrContainerNumber] = useState<string | null>(null);
   const [eirOcrSealNumber, setEirOcrSealNumber] = useState<string | null>(null);
+  const [isEirOcrConfirmed, setIsEirOcrConfirmed] = useState(false);
 
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
