@@ -881,6 +881,9 @@ export default function Home() {
         });
         console.log(`[Home] ===== START JOB WORKFLOW COMPLETED SUCCESSFULLY =====`);
         
+        // Redirect to Current Jobs page
+        navigate('/current-jobs');
+        
       } catch (error) {
         console.error('[Home] Error updating order status:', error);
         console.log(`[Home] ===== START JOB WORKFLOW FAILED =====`);
