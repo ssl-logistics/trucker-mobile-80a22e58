@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { AuthLoadingOverlay } from '@/components/auth/AuthLoadingOverlay';
+import { autoRegisterOAuthUser } from '@/utils/oauthAutoRegister';
 import {
   AUTH_KEYS,
   getAuthItem,
@@ -201,6 +202,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             email: sessionUser.email,
             loginType: oauthProvider,
           };
+
+          // Auto-register in DB + external TMS (non-blocking)
+          autoRegisterOAuthUser({
+            authProvider: oauthProvider as 'apple' | 'google',
+            authUserId: sessionUser.id,
+            firstName: sessionUser.user_metadata?.full_name?.split(' ')[0],
+            lastName: sessionUser.user_metadata?.full_name?.split(' ').slice(1).join(' '),
+          });
 
           await Promise.all([
             setAuthItem('auth_driver', JSON.stringify(oauthDriver)),

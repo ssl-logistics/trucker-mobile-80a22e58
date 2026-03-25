@@ -5,6 +5,7 @@ import { Browser } from '@capacitor/browser';
 import { setAuthItem } from '@/utils/authStorage';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { autoRegisterOAuthUser } from '@/utils/oauthAutoRegister';
 
 interface LineUserData {
   lineUserId: string;
@@ -186,6 +187,14 @@ export const useDeepLinkHandler = () => {
                 email: user.email,
               };
 
+              // Auto-register in DB + external TMS (non-blocking)
+              autoRegisterOAuthUser({
+                authProvider: 'apple',
+                authUserId: user.id,
+                firstName: user.user_metadata?.full_name?.split(' ')[0],
+                lastName: user.user_metadata?.full_name?.split(' ').slice(1).join(' '),
+              });
+
               await Promise.all([
                 setAuthItem('auth_driver', JSON.stringify(appleDriver)),
                 setAuthItem('auth_driver_id', user.id),
@@ -284,6 +293,14 @@ export const useDeepLinkHandler = () => {
                 loginType: 'apple',
                 email: user.email,
               };
+
+              // Auto-register in DB + external TMS (non-blocking)
+              autoRegisterOAuthUser({
+                authProvider: 'apple',
+                authUserId: user.id,
+                firstName: user.user_metadata?.full_name?.split(' ')[0],
+                lastName: user.user_metadata?.full_name?.split(' ').slice(1).join(' '),
+              });
 
               await Promise.all([
                 setAuthItem('auth_driver', JSON.stringify(appleDriver)),
