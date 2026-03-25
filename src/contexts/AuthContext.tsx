@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { AuthLoadingOverlay } from '@/components/auth/AuthLoadingOverlay';
+import { autoRegisterOAuthUser } from '@/utils/oauthAutoRegister';
 import {
   AUTH_KEYS,
   getAuthItem,
