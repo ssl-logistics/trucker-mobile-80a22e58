@@ -377,6 +377,10 @@ const ContainerSOPPage = () => {
           }
           const n = [...prev]; n[eirIdx] = preview; return n;
         });
+        // Run OCR on first EIR photo to extract container/seal numbers
+        if (eirIdx === 0 || (eirIdx >= eirPhotoFiles.length)) {
+          runEirOcr(file);
+        }
       }
     };
     reader.readAsDataURL(file);
