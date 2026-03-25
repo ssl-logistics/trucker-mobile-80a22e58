@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { AUTH_KEYS, removeAuthItem, setAuthItem, getAuthItem } from '@/utils/authStorage';
 import { updateFreelanceDriver } from '@/lib/externalApi';
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
+import { isDriverNotFoundError, isOAuthLoginType } from '@/utils/oauthDriverSync';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,10 +54,11 @@ export default function AccountPage() {
 
     setIsSavingBank(true);
     try {
-      const isOAuthUser = user.loginType === 'apple' || user.loginType === 'google';
+      const isOAuthUser = isOAuthLoginType(user.loginType);
+      const shouldSyncExternal = !isOAuthUser || user.loginType === 'line';
 
-      // Only call external TMS API for non-OAuth users (they exist in the external system)
-      if (!isOAuthUser) {
+      // LINE still attempts external sync, but OAuth users can gracefully fallback to local-only
+      if (shouldSyncExternal) {
         const driverType = getDriverTypeFromUserType(userType || 'freelance_driver');
         
         const { data, error } = await updateFreelanceDriver({
@@ -67,7 +69,10 @@ export default function AccountPage() {
           account_name: bankAccountName.trim() || user.full_name || '',
         });
 
-        if (error) throw new Error(error);
+        const shouldFallbackToLocal = isOAuthUser && isDriverNotFoundError(error, data);
+        if (error && !shouldFallbackToLocal) {
+          throw new Error(error);
+        }
       }
 
       // Update local auth_driver with new bank info
