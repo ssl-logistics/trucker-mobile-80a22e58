@@ -1027,6 +1027,7 @@ const ContainerSOPPage = () => {
                     if (newFiles.length === 0) {
                       setEirOcrContainerNumber(null);
                       setEirOcrSealNumber(null);
+                      setIsEirOcrConfirmed(false);
                     }
                   }}
                   className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
