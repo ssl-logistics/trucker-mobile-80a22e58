@@ -124,6 +124,11 @@ const ContainerSOPPage = () => {
   const [pendingSealOcr, setPendingSealOcr] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [ocrImageUrl, setOcrImageUrl] = useState<string | undefined>(undefined);
+  
+  // EIR OCR state
+  const [isProcessingEirOcr, setIsProcessingEirOcr] = useState(false);
+  const [eirOcrContainerNumber, setEirOcrContainerNumber] = useState<string | null>(null);
+  const [eirOcrSealNumber, setEirOcrSealNumber] = useState<string | null>(null);
 
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
@@ -372,6 +377,10 @@ const ContainerSOPPage = () => {
           }
           const n = [...prev]; n[eirIdx] = preview; return n;
         });
+        // Run OCR on first EIR photo to extract container/seal numbers
+        if (eirIdx === 0 || (eirIdx >= eirPhotoFiles.length)) {
+          runEirOcr(file);
+        }
       }
     };
     reader.readAsDataURL(file);
@@ -446,6 +455,27 @@ const ContainerSOPPage = () => {
     toast({ title: 'ยืนยันเลขซีลสำเร็จ' });
   };
 
+  const runEirOcr = async (file: File) => {
+    setIsProcessingEirOcr(true);
+    setEirOcrContainerNumber(null);
+    setEirOcrSealNumber(null);
+    try {
+      const result = await extractFromImage(file, 'container_seal');
+      if (result.success && result.data) {
+        const cn = result.data.container_number || null;
+        const sn = result.data.seal_number || null;
+        setEirOcrContainerNumber(cn);
+        setEirOcrSealNumber(sn);
+        if (cn || sn) {
+          toast({ title: 'อ่านข้อมูลจาก EIR สำเร็จ', description: `${cn ? `เลขตู้: ${cn}` : ''}${cn && sn ? ' / ' : ''}${sn ? `เลขซีล: ${sn}` : ''}` });
+        }
+      }
+    } catch (error) {
+      console.error('EIR OCR error:', error);
+    } finally {
+      setIsProcessingEirOcr(false);
+    }
+  };
   const handleConfirmClick = () => {
     if (needsOCR && !isContainerOcrDone) {
       toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
@@ -990,8 +1020,13 @@ const ContainerSOPPage = () => {
                 </button>
                 <button
                   onClick={() => {
-                    setEirPhotoFiles(prev => prev.filter((_, i) => i !== idx));
+                    const newFiles = eirPhotoFiles.filter((_, i) => i !== idx);
+                    setEirPhotoFiles(newFiles);
                     setEirPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                    if (newFiles.length === 0) {
+                      setEirOcrContainerNumber(null);
+                      setEirOcrSealNumber(null);
+                    }
                   }}
                   className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
                 >
@@ -1019,6 +1054,39 @@ const ContainerSOPPage = () => {
           <p className="text-xs text-muted-foreground">
             แนบรูปเอกสาร EIR ({eirPhotoFiles.length} รูป)
           </p>
+
+          {/* EIR OCR Results */}
+          {isProcessingEirOcr && (
+            <Card className="p-3 bg-muted/50 border-muted">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">กำลังอ่านเลขตู้/เลขซีลจาก EIR...</span>
+              </div>
+            </Card>
+          )}
+
+          {!isProcessingEirOcr && (eirOcrContainerNumber || eirOcrSealNumber) && (
+            <Card className="p-3 bg-blue-50 border-blue-300">
+              <div className="flex items-center gap-2 mb-2">
+                <Scan className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-blue-700 text-sm">ผลการสแกนจาก EIR</span>
+              </div>
+              <div className="space-y-2">
+                {eirOcrContainerNumber && (
+                  <div className="bg-white rounded-lg p-2 border border-blue-200">
+                    <label className="text-xs text-muted-foreground block mb-0.5">เลขตู้</label>
+                    <p className="font-bold text-base">{eirOcrContainerNumber}</p>
+                  </div>
+                )}
+                {eirOcrSealNumber && (
+                  <div className="bg-white rounded-lg p-2 border border-blue-200">
+                    <label className="text-xs text-muted-foreground block mb-0.5">เลขซีล</label>
+                    <p className="font-bold text-base">{eirOcrSealNumber}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
         </div>
 
 
