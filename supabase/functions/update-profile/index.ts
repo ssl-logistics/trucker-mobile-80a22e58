@@ -50,45 +50,58 @@ const resolveLineAuthUserId = async (
     }
   }
 
-  let page = 1;
-  const perPage = 500;
+  return null;
+};
 
-  while (page <= 100) {
-    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
+const resolveProfileIdFromLookups = async (
+  adminClient: ReturnType<typeof createClient>,
+  lookupUsername?: string,
+  lookupFullName?: string,
+  lookupPhoneNumber?: string
+): Promise<string | null> => {
+  const username = lookupUsername?.trim();
+  const fullName = lookupFullName?.trim();
+  const phoneNumber = lookupPhoneNumber?.trim();
 
-    if (error) {
-      console.error('Failed to list auth users for LINE lookup:', error);
-      return null;
+  if (username) {
+    const { data } = await adminClient
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .limit(1)
+      .maybeSingle();
+
+    if (data?.id) {
+      return data.id;
     }
+  }
 
-    const matchedUser = data.users.find((authUser) => {
-      const metadataLineIdFromUserMetadata =
-        typeof authUser.user_metadata?.lineUserId === 'string'
-          ? authUser.user_metadata.lineUserId
-          : null;
-      const metadataLineIdFromRawMetadata =
-        typeof (authUser as { raw_user_meta_data?: Record<string, unknown> }).raw_user_meta_data?.lineUserId === 'string'
-          ? String((authUser as { raw_user_meta_data?: Record<string, unknown> }).raw_user_meta_data?.lineUserId)
-          : null;
-      const metadataLineId = metadataLineIdFromUserMetadata || metadataLineIdFromRawMetadata;
-      const email = authUser.email?.toLowerCase();
+  if (fullName && phoneNumber) {
+    const { data } = await adminClient
+      .from('profiles')
+      .select('id')
+      .eq('full_name', fullName)
+      .eq('phone_number', phoneNumber)
+      .limit(1)
+      .maybeSingle();
 
-      return (
-        metadataLineId === lineUserId ||
-        metadataLineId === normalizedLineUserId ||
-        (!!email && possibleEmails.has(email))
-      );
-    });
-
-    if (matchedUser) {
-      return matchedUser.id;
+    if (data?.id) {
+      return data.id;
     }
+  }
 
-    if (data.users.length < perPage) {
-      break;
+  if (fullName) {
+    const { data } = await adminClient
+      .from('profiles')
+      .select('id')
+      .eq('full_name', fullName)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data?.id) {
+      return data.id;
     }
-
-    page += 1;
   }
 
   return null;
@@ -108,7 +121,18 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { user_id, full_name, phone_number, avatar_url, auth_provider, auth_user_id, line_user_id } = body;
+    const {
+      user_id,
+      full_name,
+      phone_number,
+      avatar_url,
+      auth_provider,
+      auth_user_id,
+      line_user_id,
+      lookup_username,
+      lookup_full_name,
+      lookup_phone_number,
+    } = body;
 
     if (!user_id) {
       return new Response(
@@ -127,6 +151,20 @@ serve(async (req) => {
 
     if (isUuid(auth_user_id)) {
       targetUserId = auth_user_id;
+    }
+
+    if (!isUuid(targetUserId)) {
+      const resolvedByLookups = await resolveProfileIdFromLookups(
+        adminClient,
+        lookup_username,
+        lookup_full_name,
+        lookup_phone_number
+      );
+
+      if (resolvedByLookups) {
+        targetUserId = resolvedByLookups;
+        console.log('Resolved profile id from lookup fields:', targetUserId);
+      }
     }
 
     if (!isUuid(targetUserId)) {
