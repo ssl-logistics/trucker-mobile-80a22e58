@@ -68,65 +68,65 @@ export default function EditFieldPage() {
           description: error || t('editField.updateError'), 
           variant: 'destructive' 
         });
-      } else if (data?.success || shouldFallbackToLocal) {
+    } else if (data?.success || shouldFallbackToLocal) {
         if (shouldFallbackToLocal) {
           console.warn('Driver not found in external system, saving via edge function instead:', user.id);
-        }
 
-        // Persist into profiles table via edge function (bypasses RLS for OAuth users)
-        const existingFullName = fullName || user.full_name || '';
-        const [existingFirstName, ...remainingNameParts] = existingFullName.trim().split(' ');
-        const existingLastName = remainingNameParts.join(' ');
-        const nextFirstName = field === 'firstName' ? value : existingFirstName;
-        const nextLastName = field === 'lastName' ? value : existingLastName;
+          // Persist into profiles table via edge function (bypasses RLS for OAuth users)
+          const existingFullName = fullName || user.full_name || '';
+          const [existingFirstName, ...remainingNameParts] = existingFullName.trim().split(' ');
+          const existingLastName = remainingNameParts.join(' ');
+          const nextFirstName = field === 'firstName' ? value : existingFirstName;
+          const nextLastName = field === 'lastName' ? value : existingLastName;
 
-        const storedDriverId = await getAuthItem('auth_driver_id');
-        let resolvedDriverId = storedDriverId?.trim() || user.id;
+          const storedDriverId = await getAuthItem('auth_driver_id');
+          let resolvedDriverId = storedDriverId?.trim() || user.id;
 
-        const profilePayload: Record<string, string> = {
-          user_id: resolvedDriverId,
-          auth_provider: user.loginType || 'normal',
-          lookup_full_name: existingFullName,
-          lookup_phone_number: user.phone_number || '',
-          lookup_username: user.username || '',
-        };
+          const profilePayload: Record<string, string> = {
+            user_id: resolvedDriverId,
+            auth_provider: user.loginType || 'normal',
+            lookup_full_name: existingFullName,
+            lookup_phone_number: user.phone_number || '',
+            lookup_username: user.username || '',
+          };
 
-        if (user.loginType === 'line') {
-          const lineUserId = user.lineUser?.lineUserId || user.id;
-          profilePayload.line_user_id = lineUserId;
-          profilePayload.auth_user_id = lineUserId;
-        } else if (user.loginType === 'apple' || user.loginType === 'google') {
-          profilePayload.auth_user_id = user.id;
-        }
-
-        if (field === 'phone') {
-          profilePayload.phone_number = value;
-        }
-
-        if (field === 'firstName' || field === 'lastName') {
-          profilePayload.full_name = `${nextFirstName || ''} ${nextLastName || ''}`.trim();
-        }
-
-        // Call edge function with service role to update profiles
-        const profileResp = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-profile`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify(profilePayload),
+          if (user.loginType === 'line') {
+            const lineUserId = user.lineUser?.lineUserId || user.id;
+            profilePayload.line_user_id = lineUserId;
+            profilePayload.auth_user_id = lineUserId;
+          } else if (user.loginType === 'apple' || user.loginType === 'google') {
+            profilePayload.auth_user_id = user.id;
           }
-        );
-        const profileResult = await profileResp.json().catch(() => ({}));
 
-        if (!profileResp.ok || profileResult?.error) {
-          throw new Error(profileResult?.error || t('editField.updateError'));
+          if (field === 'phone') {
+            profilePayload.phone_number = value;
+          }
+
+          if (field === 'firstName' || field === 'lastName') {
+            profilePayload.full_name = `${nextFirstName || ''} ${nextLastName || ''}`.trim();
+          }
+
+          // Call edge function with service role to update profiles
+          const profileResp = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-profile`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify(profilePayload),
+            }
+          );
+          const profileResult = await profileResp.json().catch(() => ({}));
+
+          if (!profileResp.ok || profileResult?.error) {
+            throw new Error(profileResult?.error || t('editField.updateError'));
+          }
+
+          console.log('Profile update result:', profileResult);
         }
-
-        console.log('Profile update result:', profileResult);
 
         toast({ title: t('editField.success'), description: t('editField.updated') });
         
