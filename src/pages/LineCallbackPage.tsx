@@ -199,37 +199,74 @@ const LineCallbackPage = () => {
         }
 
         // Normal flow (running inside Capacitor or web)
-        // Store LINE user data and login type (persistent across app restarts)
-        console.log('[LINE Callback] 💾 Saving auth data to storage...');
-        
-        const lineUserJson = JSON.stringify(data.user);
-        console.log('[LINE Callback] 💾 line_user JSON:', lineUserJson);
-        
-        await setAuthItem('line_user', lineUserJson);
-        console.log('[LINE Callback] ✅ line_user saved');
-        
-        await setAuthItem('auth_login_type', 'line');
-        console.log('[LINE Callback] ✅ auth_login_type saved');
-        
-        sessionStorage.removeItem('line_oauth_state');
-        localStorage.removeItem('line_oauth_state');
-        console.log('[LINE Callback] ✅ line_oauth_state removed from sessionStorage & localStorage');
+        // Auto-create account in database if not exists
+        console.log('[LINE Callback] 📝 Creating/linking account via create-account...');
+        try {
+          const { data: accountData, error: accountError } = await supabase.functions.invoke('create-account', {
+            body: {
+              authProvider: 'line',
+              lineUserId: data.user.lineUserId,
+              firstName: data.user.displayName?.split(' ')[0] || data.user.displayName || 'LINE',
+              lastName: data.user.displayName?.split(' ').slice(1).join(' ') || 'User',
+              phone: '0000000000', // Placeholder - user can update later
+              email: data.user.email || '',
+              avatarUrl: data.user.pictureUrl || '',
+            },
+          });
 
-        // Create a driver record for LINE user
-        const lineDriver = {
-          id: data.user.lineUserId,
-          full_name: data.user.displayName,
-          avatar_url: data.user.pictureUrl || null,
-          loginType: 'line',
-          lineUser: data.user,
-        };
-        console.log('[LINE Callback] 💾 Driver object created:', JSON.stringify(lineDriver, null, 2));
-        
-        const driverJson = JSON.stringify(lineDriver);
-        console.log('[LINE Callback] 💾 auth_driver JSON:', driverJson);
-        
-        await setAuthItem('auth_driver', driverJson);
-        console.log('[LINE Callback] ✅ auth_driver saved successfully');
+          if (accountError) {
+            console.warn('[LINE Callback] ⚠️ Account creation warning:', accountError.message);
+          } else if (accountData?.status === 'error') {
+            console.warn('[LINE Callback] ⚠️ Account creation API error:', accountData.message, accountData.details);
+          } else {
+            console.log('[LINE Callback] ✅ Account created/found, userId:', accountData?.userId);
+          }
+
+          // Use the Supabase userId if available, otherwise fall back to LINE userId
+          const driverUserId = accountData?.userId || data.user.lineUserId;
+
+          // Store LINE user data and login type
+          console.log('[LINE Callback] 💾 Saving auth data to storage...');
+          
+          const lineUserJson = JSON.stringify(data.user);
+          await setAuthItem('line_user', lineUserJson);
+          await setAuthItem('auth_login_type', 'line');
+          
+          sessionStorage.removeItem('line_oauth_state');
+          localStorage.removeItem('line_oauth_state');
+
+          // Create a driver record with Supabase userId
+          const lineDriver = {
+            id: driverUserId,
+            full_name: data.user.displayName,
+            avatar_url: data.user.pictureUrl || null,
+            loginType: 'line',
+            lineUser: data.user,
+          };
+          
+          await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+          await setAuthItem('auth_driver_id', driverUserId);
+          console.log('[LINE Callback] ✅ Auth data saved, driverId:', driverUserId);
+
+        } catch (accountErr) {
+          console.warn('[LINE Callback] ⚠️ Account creation failed (non-blocking):', accountErr);
+          
+          // Fall back to original flow - save with LINE userId
+          const lineUserJson = JSON.stringify(data.user);
+          await setAuthItem('line_user', lineUserJson);
+          await setAuthItem('auth_login_type', 'line');
+          sessionStorage.removeItem('line_oauth_state');
+          localStorage.removeItem('line_oauth_state');
+          
+          const lineDriver = {
+            id: data.user.lineUserId,
+            full_name: data.user.displayName,
+            avatar_url: data.user.pictureUrl || null,
+            loginType: 'line',
+            lineUser: data.user,
+          };
+          await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+        }
 
         // Store LINE user data for modal display BEFORE dispatching event
         console.log('[LINE Callback] 🎯 Setting modal state...');
