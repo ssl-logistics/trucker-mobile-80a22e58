@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { supabase } from '@/integrations/supabase/client';
+
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { isDriverNotFoundError, isOAuthLoginType } from '@/utils/oauthDriverSync';
 import { setAuthItem, getAuthItem } from '@/utils/authStorage';
