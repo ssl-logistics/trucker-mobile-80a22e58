@@ -36,10 +36,15 @@ const resolveLineAuthUserId = async (
     }
 
     const matchedUser = data.users.find((authUser) => {
-      const metadataLineId =
+      const metadataLineIdFromUserMetadata =
         typeof authUser.user_metadata?.lineUserId === 'string'
           ? authUser.user_metadata.lineUserId
           : null;
+      const metadataLineIdFromRawMetadata =
+        typeof (authUser as { raw_user_meta_data?: Record<string, unknown> }).raw_user_meta_data?.lineUserId === 'string'
+          ? String((authUser as { raw_user_meta_data?: Record<string, unknown> }).raw_user_meta_data?.lineUserId)
+          : null;
+      const metadataLineId = metadataLineIdFromUserMetadata || metadataLineIdFromRawMetadata;
       const email = authUser.email?.toLowerCase();
 
       return (
