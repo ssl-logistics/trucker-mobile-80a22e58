@@ -5,6 +5,7 @@ import { Browser } from '@capacitor/browser';
 import { setAuthItem } from '@/utils/authStorage';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { autoRegisterOAuthUser } from '@/utils/oauthAutoRegister';
 
 interface LineUserData {
   lineUserId: string;
