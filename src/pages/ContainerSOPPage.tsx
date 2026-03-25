@@ -476,7 +476,7 @@ const ContainerSOPPage = () => {
       setIsProcessingEirOcr(false);
     }
   };
-
+  const handleConfirmClick = () => {
     if (needsOCR && !isContainerOcrDone) {
       toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
       return;
