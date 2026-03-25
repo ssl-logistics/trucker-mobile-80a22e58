@@ -51,16 +51,23 @@ const validateInput = (data: CreateAccountRequest): string | null => {
   if (!data.phone || data.phone.replace(/\D/g, '').length < 9) {
     return 'phone must be at least 9 digits';
   }
-  if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    return 'Invalid email format';
+  // Email is optional for LINE OAuth (we generate one)
+  if (!data.authProvider || data.authProvider !== 'line') {
+    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      return 'Invalid email format';
+    }
   }
   // Password required only for non-OAuth registration
   if (!data.authProvider && (!data.password || data.password.length < 6)) {
     return 'password must be at least 6 characters';
   }
-  // OAuth registration requires authUserId
-  if (data.authProvider && !data.authUserId) {
-    return 'authUserId is required for OAuth registration';
+  // Apple/Google OAuth requires authUserId
+  if (data.authProvider && data.authProvider !== 'line' && !data.authUserId) {
+    return 'authUserId is required for Apple/Google OAuth registration';
+  }
+  // LINE OAuth requires lineUserId
+  if (data.authProvider === 'line' && !data.lineUserId) {
+    return 'lineUserId is required for LINE OAuth registration';
   }
   return null;
 };
