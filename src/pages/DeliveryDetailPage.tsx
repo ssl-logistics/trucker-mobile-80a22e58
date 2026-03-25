@@ -557,20 +557,25 @@ export default function DeliveryDetailPage() {
       photoUrl = uploadData.url;
     }
 
-    // Get current location for POD
+    // Get current location for POD (non-blocking, fast timeout)
     let podLatitude = 0;
     let podLongitude = 0;
     if (navigator.geolocation) {
       try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-          });
-        });
-        podLatitude = position.coords.latitude;
-        podLongitude = position.coords.longitude;
+        const gpsResult = await Promise.race([
+          new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 30000
+            });
+          }),
+          new Promise<null>(r => setTimeout(() => r(null), 3000))
+        ]);
+        if (gpsResult) {
+          podLatitude = gpsResult.coords.latitude;
+          podLongitude = gpsResult.coords.longitude;
+        }
       } catch (geoError) {
         console.log('Could not get location for POD:', geoError);
       }
