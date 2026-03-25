@@ -1049,6 +1049,39 @@ const ContainerSOPPage = () => {
           <p className="text-xs text-muted-foreground">
             แนบรูปเอกสาร EIR ({eirPhotoFiles.length} รูป)
           </p>
+
+          {/* EIR OCR Results */}
+          {isProcessingEirOcr && (
+            <Card className="p-3 bg-muted/50 border-muted">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">กำลังอ่านเลขตู้/เลขซีลจาก EIR...</span>
+              </div>
+            </Card>
+          )}
+
+          {!isProcessingEirOcr && (eirOcrContainerNumber || eirOcrSealNumber) && (
+            <Card className="p-3 bg-blue-50 border-blue-300">
+              <div className="flex items-center gap-2 mb-2">
+                <Scan className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-blue-700 text-sm">ผลการสแกนจาก EIR</span>
+              </div>
+              <div className="space-y-2">
+                {eirOcrContainerNumber && (
+                  <div className="bg-white rounded-lg p-2 border border-blue-200">
+                    <label className="text-xs text-muted-foreground block mb-0.5">เลขตู้</label>
+                    <p className="font-bold text-base">{eirOcrContainerNumber}</p>
+                  </div>
+                )}
+                {eirOcrSealNumber && (
+                  <div className="bg-white rounded-lg p-2 border border-blue-200">
+                    <label className="text-xs text-muted-foreground block mb-0.5">เลขซีล</label>
+                    <p className="font-bold text-base">{eirOcrSealNumber}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
         </div>
 
 
