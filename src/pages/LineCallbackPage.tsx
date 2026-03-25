@@ -248,6 +248,13 @@ const LineCallbackPage = () => {
             } else {
               console.log('[LINE Callback] ✅ External TMS registration result:', registerData);
             }
+
+            // Extract phone/email from registration data if available
+            const regDriverData = registerData?.data || registerData;
+            const registeredPhone = regDriverData?.phone || '';
+            const registeredEmail = regDriverData?.email || '';
+            const registeredFirstName = regDriverData?.firstName || '';
+            const registeredLastName = regDriverData?.lastName || '';
           } catch (regErr) {
             console.warn('[LINE Callback] ⚠️ External registration failed (non-blocking):', regErr);
           }
@@ -263,7 +270,7 @@ const LineCallbackPage = () => {
           localStorage.removeItem('line_oauth_state');
 
           // Create a driver record with Supabase userId
-          const lineDriver = {
+          const lineDriver: Record<string, any> = {
             id: driverUserId,
             full_name: data.user.displayName,
             avatar_url: data.user.pictureUrl || null,
