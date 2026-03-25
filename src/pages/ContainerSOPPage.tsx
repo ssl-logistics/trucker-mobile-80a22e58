@@ -124,12 +124,6 @@ const ContainerSOPPage = () => {
   const [pendingSealOcr, setPendingSealOcr] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [ocrImageUrl, setOcrImageUrl] = useState<string | undefined>(undefined);
-  
-  // EIR OCR state
-  const [isProcessingEirOcr, setIsProcessingEirOcr] = useState(false);
-  const [eirOcrContainerNumber, setEirOcrContainerNumber] = useState<string | null>(null);
-  const [eirOcrSealNumber, setEirOcrSealNumber] = useState<string | null>(null);
-  const [isEirOcrConfirmed, setIsEirOcrConfirmed] = useState(false);
 
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
@@ -378,10 +372,6 @@ const ContainerSOPPage = () => {
           }
           const n = [...prev]; n[eirIdx] = preview; return n;
         });
-        // Run OCR on first EIR photo to extract container/seal numbers
-        if (eirIdx === 0 || (eirIdx >= eirPhotoFiles.length)) {
-          runEirOcr(file);
-        }
       }
     };
     reader.readAsDataURL(file);
@@ -456,27 +446,6 @@ const ContainerSOPPage = () => {
     toast({ title: 'ยืนยันเลขซีลสำเร็จ' });
   };
 
-  const runEirOcr = async (file: File) => {
-    setIsProcessingEirOcr(true);
-    setEirOcrContainerNumber(null);
-    setEirOcrSealNumber(null);
-    try {
-      const result = await extractFromImage(file, 'container_seal');
-      if (result.success && result.data) {
-        const cn = result.data.container_number || null;
-        const sn = result.data.seal_number || null;
-        setEirOcrContainerNumber(cn);
-        setEirOcrSealNumber(sn);
-        if (cn || sn) {
-          toast({ title: 'อ่านข้อมูลจาก EIR สำเร็จ', description: `${cn ? `เลขตู้: ${cn}` : ''}${cn && sn ? ' / ' : ''}${sn ? `เลขซีล: ${sn}` : ''}` });
-        }
-      }
-    } catch (error) {
-      console.error('EIR OCR error:', error);
-    } finally {
-      setIsProcessingEirOcr(false);
-    }
-  };
   const handleConfirmClick = () => {
     if (needsOCR && !isContainerOcrDone) {
       toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
@@ -1024,11 +993,6 @@ const ContainerSOPPage = () => {
                     const newFiles = eirPhotoFiles.filter((_, i) => i !== idx);
                     setEirPhotoFiles(newFiles);
                     setEirPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
-                    if (newFiles.length === 0) {
-                      setEirOcrContainerNumber(null);
-                      setEirOcrSealNumber(null);
-                      setIsEirOcrConfirmed(false);
-                    }
                   }}
                   className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
                 >
@@ -1057,70 +1021,6 @@ const ContainerSOPPage = () => {
             แนบรูปเอกสาร EIR ({eirPhotoFiles.length} รูป)
           </p>
 
-          {/* EIR OCR Results */}
-          {isProcessingEirOcr && (
-            <Card className="p-3 bg-muted/50 border-muted">
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                <span className="text-sm text-muted-foreground">กำลังอ่านเลขตู้/เลขซีลจาก EIR...</span>
-              </div>
-            </Card>
-          )}
-
-          {!isProcessingEirOcr && (eirOcrContainerNumber || eirOcrSealNumber) && !isEirOcrConfirmed && (
-            <Card className="p-3 bg-blue-50 border-blue-300">
-              <div className="flex items-center gap-2 mb-2">
-                <Scan className="w-4 h-4 text-blue-600" />
-                <span className="font-semibold text-blue-700 text-sm">ผลการสแกนจาก EIR</span>
-              </div>
-              <div className="space-y-2">
-                <div className="bg-white rounded-lg p-2 border border-blue-200">
-                  <label className="text-xs text-muted-foreground block mb-1">เลขตู้</label>
-                  <input
-                    type="text"
-                    value={eirOcrContainerNumber || ''}
-                    onChange={(e) => setEirOcrContainerNumber(e.target.value || null)}
-                    className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
-                    placeholder="กรอกเลขตู้"
-                  />
-                </div>
-                <div className="bg-white rounded-lg p-2 border border-blue-200">
-                  <label className="text-xs text-muted-foreground block mb-1">เลขซีล</label>
-                  <input
-                    type="text"
-                    value={eirOcrSealNumber || ''}
-                    onChange={(e) => setEirOcrSealNumber(e.target.value || null)}
-                    className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
-                    placeholder="กรอกเลขซีล"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 mt-2">
-                <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEirOcrContainerNumber(null); setEirOcrSealNumber(null); }}>
-                  ล้างข้อมูล
-                </Button>
-                <Button size="sm" className="flex-1 bg-teal-600 hover:bg-teal-700" onClick={() => { setIsEirOcrConfirmed(true); toast({ title: 'ยืนยันข้อมูล EIR สำเร็จ' }); }} disabled={!eirOcrContainerNumber && !eirOcrSealNumber}>
-                  ยืนยันข้อมูล
-                </Button>
-              </div>
-            </Card>
-          )}
-
-          {isEirOcrConfirmed && (eirOcrContainerNumber || eirOcrSealNumber) && (
-            <Card className="p-3 bg-green-50 border-green-300">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="font-semibold text-green-700 text-sm">ยืนยันข้อมูล EIR แล้ว</span>
-              </div>
-              <div className="space-y-1 text-sm">
-                {eirOcrContainerNumber && <p>เลขตู้: <span className="font-bold">{eirOcrContainerNumber}</span></p>}
-                {eirOcrSealNumber && <p>เลขซีล: <span className="font-bold">{eirOcrSealNumber}</span></p>}
-              </div>
-              <Button variant="outline" size="sm" className="mt-2 w-full" onClick={() => setIsEirOcrConfirmed(false)}>
-                แก้ไข
-              </Button>
-            </Card>
-          )}
         </div>
 
 
