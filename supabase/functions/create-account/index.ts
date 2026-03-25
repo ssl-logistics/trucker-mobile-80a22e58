@@ -84,6 +84,32 @@ const findExistingLineUser = async (
     `${normalizedLineUserId}@line.user`,
   ]);
 
+  const { data: byLineId } = await supabaseAdmin
+    .schema('auth')
+    .from('users')
+    .select('id, email, raw_user_meta_data')
+    .eq('raw_user_meta_data->>lineUserId', lineUserId)
+    .limit(1)
+    .maybeSingle();
+
+  if (byLineId?.id) {
+    return byLineId;
+  }
+
+  for (const email of candidateEmails) {
+    const { data: byEmail } = await supabaseAdmin
+      .schema('auth')
+      .from('users')
+      .select('id, email, raw_user_meta_data')
+      .eq('email', email)
+      .limit(1)
+      .maybeSingle();
+
+    if (byEmail?.id) {
+      return byEmail;
+    }
+  }
+
   let page = 1;
   const perPage = 500;
 
