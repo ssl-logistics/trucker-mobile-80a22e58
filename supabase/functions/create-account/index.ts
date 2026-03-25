@@ -8,34 +8,35 @@ const corsHeaders = {
 };
 
 interface CreateAccountRequest {
+  // OAuth fields
+  authProvider?: 'line' | 'apple' | 'google';
+  authUserId?: string;
+  // Traditional fields
+  password?: string;
+  // Common fields
   firstName: string;
   lastName: string;
   phone: string;
   email: string;
-  password: string;
+  username?: string;
+  plateNumber?: string;
   avatarUrl?: string;
   vehicleId?: string;
   bankName?: string;
   bankAccountName?: string;
   bankAccountNumber?: string;
   role?: 'freelance' | 'company' | 'factory';
-  companyType?: 'freelance' | 'company' | 'factory'; // Support both role and companyType
+  companyType?: 'freelance' | 'company' | 'factory';
 }
 
 const normalizePhoneNumber = (phone: string): string => {
-  // Remove all non-digit characters
   let cleaned = phone.replace(/\D/g, '');
-  
-  // If starts with 0, replace with 66 (Thailand)
   if (cleaned.startsWith('0')) {
     cleaned = '66' + cleaned.substring(1);
   }
-  
-  // If doesn't start with country code, assume Thailand (+66)
   if (!cleaned.startsWith('66')) {
     cleaned = '66' + cleaned;
   }
-  
   return '+' + cleaned;
 };
 
@@ -52,285 +53,210 @@ const validateInput = (data: CreateAccountRequest): string | null => {
   if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return 'Invalid email format';
   }
-  if (!data.password || data.password.length < 6) {
+  // Password required only for non-OAuth registration
+  if (!data.authProvider && (!data.password || data.password.length < 6)) {
     return 'password must be at least 6 characters';
+  }
+  // OAuth registration requires authUserId
+  if (data.authProvider && !data.authUserId) {
+    return 'authUserId is required for OAuth registration';
   }
   return null;
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Parse incoming JSON data
     const data: CreateAccountRequest = await req.json();
-    
+
     console.log('=== Received Create Account Request ===');
     console.log('Timestamp:', new Date().toISOString());
-    
-    // Log sanitized data (without password for security)
+    console.log('Auth Provider:', data.authProvider || 'email/password');
+
     const sanitizedData = {
       ...data,
-      password: `[${data.password.length} characters]`,
-      passwordValidation: {
-        length: data.password.length,
-        hasMinLength: data.password.length >= 6,
-        hasUpperCase: /[A-Z]/.test(data.password),
-        hasLowerCase: /[a-z]/.test(data.password),
-        hasNumber: /[0-9]/.test(data.password)
-      }
+      password: data.password ? `[${data.password.length} characters]` : undefined,
+      authUserId: data.authUserId ? `[${data.authUserId.substring(0, 8)}...]` : undefined,
     };
     console.log('Request Data:', JSON.stringify(sanitizedData, null, 2));
-    
-    // Validate input
+
     const validationError = validateInput(data);
     if (validationError) {
       console.error('Validation error:', validationError);
       return new Response(
-        JSON.stringify({
-          status: 'error',
-          message: 'Invalid input',
-          details: validationError
-        }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-        }
+        JSON.stringify({ status: 'error', message: 'Invalid input', details: validationError }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Normalize phone number to E.164 format
     const normalizedPhone = normalizePhoneNumber(data.phone);
     console.log('Normalized phone:', normalizedPhone);
 
-    // Initialize Supabase Admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
+      { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Create user account in Supabase Auth
-    console.log('Creating user with email:', data.email);
-    console.log('Password length:', data.password.length, 'characters');
-    
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: data.email,
-      password: data.password,
-      phone: normalizedPhone,
-      email_confirm: true,
-      phone_confirm: true,
-      user_metadata: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-      }
-    });
+    let userId: string;
 
-    if (authError) {
-      console.error('Auth error:', authError);
-      console.error('Failed to create user with email:', data.email);
-      return new Response(
-        JSON.stringify({
-          status: 'error',
-          message: 'Failed to create user account',
-          details: authError.message
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
+    if (data.authProvider && data.authUserId) {
+      // ===== OAuth Registration: Link existing auth user =====
+      console.log(`OAuth registration: provider=${data.authProvider}, userId=${data.authUserId}`);
+
+      // Verify the user exists in auth.users
+      const { data: existingUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(data.authUserId);
+      if (getUserError || !existingUser?.user) {
+        console.error('OAuth user not found:', getUserError);
+        return new Response(
+          JSON.stringify({ status: 'error', message: 'OAuth user not found', details: getUserError?.message || 'User does not exist' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      userId = data.authUserId;
+      console.log('✅ OAuth user verified, userId:', userId);
+
+      // Update user metadata with registration info
+      await supabaseAdmin.auth.admin.updateUser(userId, {
+        user_metadata: {
+          ...existingUser.user.user_metadata,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          username: data.username,
+        },
+        phone: normalizedPhone,
+        phone_confirm: true,
+      });
+    } else {
+      // ===== Email/Password Registration =====
+      console.log('Email/Password registration for:', data.email);
+
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: data.email,
+        password: data.password!,
+        phone: normalizedPhone,
+        email_confirm: true,
+        phone_confirm: true,
+        user_metadata: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          username: data.username,
         }
-      );
+      });
+
+      if (authError) {
+        console.error('Auth error:', authError);
+        return new Response(
+          JSON.stringify({ status: 'error', message: 'Failed to create user account', details: authError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      userId = authData.user.id;
+      console.log('✅ User created successfully, userId:', userId);
     }
 
-    const userId = authData.user.id;
-    console.log('✅ User created successfully');
-    console.log('User ID:', userId);
-    console.log('Email:', authData.user?.email);
-    console.log('Password set: YES (length:', data.password.length, 'chars)');
-
-    // Check if profile already exists (shouldn't happen, but handle it gracefully)
+    // ===== Create/Update Profile =====
     const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
       .select('id')
       .eq('id', userId)
       .single();
 
-    let profileError = null;
+    const profilePayload = {
+      full_name: `${data.firstName} ${data.lastName}`,
+      phone_number: normalizedPhone,
+      avatar_url: data.avatarUrl || null,
+      username: data.username || null,
+      updated_at: new Date().toISOString(),
+    };
 
+    let profileError = null;
     if (existingProfile) {
-      console.log('Profile already exists, updating instead...');
-      // Update existing profile
-      const { error } = await supabaseAdmin
-        .from('profiles')
-        .update({
-          full_name: `${data.firstName} ${data.lastName}`,
-          phone_number: normalizedPhone,
-          avatar_url: data.avatarUrl || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
+      console.log('Profile exists, updating...');
+      const { error } = await supabaseAdmin.from('profiles').update(profilePayload).eq('id', userId);
       profileError = error;
     } else {
-      // Insert new profile
-      const { error } = await supabaseAdmin
-        .from('profiles')
-        .insert({
-          id: userId,
-          full_name: `${data.firstName} ${data.lastName}`,
-          phone_number: normalizedPhone,
-          avatar_url: data.avatarUrl || null,
-        });
+      console.log('Creating new profile...');
+      const { error } = await supabaseAdmin.from('profiles').insert({ id: userId, ...profilePayload });
       profileError = error;
     }
 
     if (profileError) {
       console.error('Profile error:', profileError);
-      // Rollback: delete the created user
-      await supabaseAdmin.auth.admin.deleteUser(userId);
+      // Rollback only for email/password (we created the user)
+      if (!data.authProvider) {
+        await supabaseAdmin.auth.admin.deleteUser(userId);
+      }
       return new Response(
-        JSON.stringify({
-          status: 'error',
-          message: 'Failed to create user profile',
-          details: profileError.message
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-        }
+        JSON.stringify({ status: 'error', message: 'Failed to create user profile', details: profileError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    console.log('✅ Profile created/updated');
 
-    console.log('Profile created/updated successfully');
-
-    // Assign role - use role field first, then companyType, default to freelance
-    // Each user can only have 1 role, so use upsert
+    // ===== Assign Role =====
     const userRole = data.role || data.companyType || 'freelance';
-    console.log(`Assigning ${userRole} role... (from role: ${data.role}, companyType: ${data.companyType})`);
+    console.log(`Assigning role: ${userRole}`);
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
-      .upsert({
-        user_id: userId,
-        role: userRole
-      }, { onConflict: 'user_id' });
-
+      .upsert({ user_id: userId, role: userRole }, { onConflict: 'user_id' });
     if (roleError) {
       console.error('Role assignment error:', roleError);
-      // Note: We continue even if role assignment fails to avoid blocking account creation
     } else {
-      console.log(`${userRole} role assigned successfully`);
+      console.log('✅ Role assigned');
     }
 
-    // Insert bank info if provided
+    // ===== Bank Account =====
     if (data.bankName && data.bankAccountName && data.bankAccountNumber) {
-      console.log('Adding bank account information...');
-      
-      // Check if bank account already exists
+      console.log('Adding bank account...');
       const { data: existingBank } = await supabaseAdmin
-        .from('bank_accounts')
-        .select('id')
-        .eq('user_id', userId)
-        .single();
+        .from('bank_accounts').select('id').eq('user_id', userId).single();
+
+      const bankPayload = {
+        bank_name: data.bankName,
+        account_name: data.bankAccountName,
+        account_number: data.bankAccountNumber,
+      };
 
       if (existingBank) {
-        // Update existing bank account
-        const { error: bankError } = await supabaseAdmin
-          .from('bank_accounts')
-          .update({
-            bank_name: data.bankName,
-            account_name: data.bankAccountName,
-            account_number: data.bankAccountNumber,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', userId);
-
-        if (bankError) {
-          console.error('Bank account update error:', bankError);
-        } else {
-          console.log('Bank account updated successfully');
-        }
+        const { error } = await supabaseAdmin.from('bank_accounts')
+          .update({ ...bankPayload, updated_at: new Date().toISOString() }).eq('user_id', userId);
+        if (error) console.error('Bank update error:', error);
+        else console.log('✅ Bank account updated');
       } else {
-        // Insert new bank account
-        const { error: bankError } = await supabaseAdmin
-          .from('bank_accounts')
-          .insert({
-            user_id: userId,
-            bank_name: data.bankName,
-            account_name: data.bankAccountName,
-            account_number: data.bankAccountNumber,
-          });
-
-        if (bankError) {
-          console.error('Bank account insert error:', bankError);
-        } else {
-          console.log('Bank account created successfully');
-        }
+        const { error } = await supabaseAdmin.from('bank_accounts')
+          .insert({ user_id: userId, ...bankPayload });
+        if (error) console.error('Bank insert error:', error);
+        else console.log('✅ Bank account created');
       }
     }
 
-    // Assign vehicle if provided
+    // ===== Vehicle Assignment =====
     if (data.vehicleId) {
       console.log('Assigning vehicle:', data.vehicleId);
-      const { error: vehicleError } = await supabaseAdmin
-        .from('vehicles')
-        .update({ driver_id: userId })
-        .eq('id', data.vehicleId);
-
-      if (vehicleError) {
-        console.error('Vehicle assignment error:', vehicleError);
-      } else {
-        console.log('Vehicle assigned successfully');
-      }
+      const { error } = await supabaseAdmin.from('vehicles').update({ driver_id: userId }).eq('id', data.vehicleId);
+      if (error) console.error('Vehicle assignment error:', error);
+      else console.log('✅ Vehicle assigned');
     }
 
     console.log('=== Account Created Successfully ===');
     console.log('User ID:', userId);
+    console.log('Provider:', data.authProvider || 'email/password');
 
-    // Return success response
     return new Response(
-      JSON.stringify({
-        status: 'success',
-        userId: userId
-      }),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
+      JSON.stringify({ status: 'success', userId }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error processing request:', error);
-    
     return new Response(
-      JSON.stringify({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
+      JSON.stringify({ status: 'error', message: error instanceof Error ? error.message : 'Unknown error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
