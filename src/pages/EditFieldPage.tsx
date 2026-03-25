@@ -51,7 +51,6 @@ export default function EditFieldPage() {
 
       // Call the external API directly (single request)
       const { data, error } = await updateFreelanceDriver(updatePayload);
-      const isOAuthUser = isOAuthLoginType(user.loginType);
       const shouldFallbackToLocal = isDriverNotFoundError(error, data);
 
       if (error && !shouldFallbackToLocal) {
