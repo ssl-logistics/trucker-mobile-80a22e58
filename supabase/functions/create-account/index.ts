@@ -10,7 +10,8 @@ const corsHeaders = {
 interface CreateAccountRequest {
   // OAuth fields
   authProvider?: 'line' | 'apple' | 'google';
-  authUserId?: string;
+  authUserId?: string; // Existing Supabase auth user ID (for Apple/Google)
+  lineUserId?: string; // LINE-specific user ID
   // Traditional fields
   password?: string;
   // Common fields
