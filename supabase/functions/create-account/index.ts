@@ -111,11 +111,64 @@ serve(async (req) => {
 
     let userId: string;
 
-    if (data.authProvider && data.authUserId) {
-      // ===== OAuth Registration: Link existing auth user =====
+    if (data.authProvider === 'line') {
+      // ===== LINE OAuth: Create new auth user with generated email =====
+      console.log(`LINE registration: lineUserId=${data.lineUserId}`);
+      
+      const lineEmail = data.email || `line_${data.lineUserId}@line.oauth.local`;
+      const randomPassword = crypto.randomUUID() + crypto.randomUUID(); // Strong random password
+      
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: lineEmail,
+        password: randomPassword,
+        phone: normalizedPhone,
+        email_confirm: true,
+        phone_confirm: true,
+        user_metadata: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          username: data.username,
+          lineUserId: data.lineUserId,
+          authProvider: 'line',
+          avatar_url: data.avatarUrl,
+        }
+      });
+
+      if (authError) {
+        // If user already exists with this email, try to find them
+        if (authError.message?.includes('already been registered') || authError.message?.includes('already exists')) {
+          console.log('LINE user already exists, looking up by email...');
+          const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+          const existingUser = existingUsers?.users?.find(u => 
+            u.email === lineEmail || 
+            u.user_metadata?.lineUserId === data.lineUserId
+          );
+          
+          if (existingUser) {
+            userId = existingUser.id;
+            console.log('✅ Found existing LINE user:', userId);
+          } else {
+            console.error('Could not find existing user');
+            return new Response(
+              JSON.stringify({ status: 'error', message: 'User already exists but could not be found', details: authError.message }),
+              { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        } else {
+          console.error('Auth error:', authError);
+          return new Response(
+            JSON.stringify({ status: 'error', message: 'Failed to create user account', details: authError.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } else {
+        userId = authData.user.id;
+        console.log('✅ LINE user created, userId:', userId);
+      }
+    } else if (data.authProvider && data.authUserId) {
+      // ===== Apple/Google OAuth: Link existing auth user =====
       console.log(`OAuth registration: provider=${data.authProvider}, userId=${data.authUserId}`);
 
-      // Verify the user exists in auth.users
       const { data: existingUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(data.authUserId);
       if (getUserError || !existingUser?.user) {
         console.error('OAuth user not found:', getUserError);
@@ -128,7 +181,6 @@ serve(async (req) => {
       userId = data.authUserId;
       console.log('✅ OAuth user verified, userId:', userId);
 
-      // Update user metadata with registration info
       await supabaseAdmin.auth.admin.updateUser(userId, {
         user_metadata: {
           ...existingUser.user.user_metadata,
