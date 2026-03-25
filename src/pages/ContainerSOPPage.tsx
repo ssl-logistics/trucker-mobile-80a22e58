@@ -715,8 +715,13 @@ const ContainerSOPPage = () => {
         description: t('containerSop.successMessage'),
       });
 
-      const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${jobId}` : `/job/${jobId}`;
-      navigate(backRoute);
+      if (isContainerReturn) {
+        // Container return completed = international job done, redirect to home
+        navigate('/');
+      } else {
+        const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${jobId}` : `/job/${jobId}`;
+        navigate(backRoute);
+      }
     } catch (error) {
       console.error('Error saving SOP:', error);
       toast({
