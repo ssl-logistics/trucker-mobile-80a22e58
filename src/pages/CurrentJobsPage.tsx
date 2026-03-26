@@ -281,7 +281,21 @@ export default function CurrentJobsPage() {
            // International: all PODs completed AND container returned -> remove
           
            const activeJobs = startedJobs.filter((job: any) => {
+              const status = (job.status || '').toLowerCase();
               const transportId = String(job.id);
+              
+              // Jobs with completed/closed/container_returned status are definitively done
+              if (['completed', 'closed', 'container_returned'].includes(status)) {
+                console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} status='${status}' → excluding (done)`);
+                return false;
+              }
+              
+              // Also exclude 'delivered' status for domestic jobs (TMS already marked as delivered)
+              if (status === 'delivered' && !isInternationalJob(job)) {
+                console.log(`[CurrentJobsPage] ➡️ Domestic job ${job.order_number} status='delivered' → excluding`);
+                return false;
+              }
+              
               const podCount = podCountByTransportId[transportId] || 0;
               const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
                 ? job.destinations.length 
@@ -291,7 +305,6 @@ export default function CurrentJobsPage() {
               
               if (isInternationalJob(job)) {
                 // International jobs: remove when container return is confirmed
-                // Check both by transport_order_id and order_number for robustness
                 const inSet = containerReturnByTransportId.has(transportId);
                 const inCheckins = allCheckins.some((c: any) => {
                     const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
@@ -303,13 +316,12 @@ export default function CurrentJobsPage() {
                   });
                 const hasContainerReturnConfirmed = inSet || inCheckins;
                 
-                console.log(`[CurrentJobsPage] International job ${job.order_number} (${transportId}): booking_no=${job.booking_no}, bl_no=${job.bl_no}, containerReturnInSet=${inSet}, containerReturnInCheckins=${inCheckins}, hasContainerReturn=${hasContainerReturnConfirmed}`);
+                console.log(`[CurrentJobsPage] International job ${job.order_number} (${transportId}): containerReturn=${hasContainerReturnConfirmed}`);
                 
                 if (hasContainerReturnConfirmed) {
                   console.log(`[CurrentJobsPage] ➡️ International job ${job.order_number} container return confirmed → moving to history`);
                   return false;
                 }
-                // Still active if no container return confirmed
                 return true;
               }
              
