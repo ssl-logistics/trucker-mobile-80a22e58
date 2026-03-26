@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide } from 'lucide-react';
 import coinsIcon from '@/assets/coins-icon.png';
 import { supabase } from '@/integrations/supabase/client';
