@@ -870,25 +870,10 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
-    // Rank by workflow progress: higher = more advanced in the job flow
-    const statusRank: Record<string, number> = {
-      'accepted': 0,
-      'arrived_at_pickup': 1,
-      'in_transit': 2,
-      'delivered': 3,
-      'returning_container': 4,
-      'at_container_return': 5,
-    };
-    const rankA = statusRank[(a.status || '').toLowerCase()] ?? -1;
-    const rankB = statusRank[(b.status || '').toLowerCase()] ?? -1;
-    
-    // Jobs with higher progress come first
-    if (rankA !== rankB) return rankB - rankA;
-
-    // Same progress: sort by updated_at descending (most recently updated first)
-    const updA = new Date(a.updated_at || 0).getTime();
-    const updB = new Date(b.updated_at || 0).getTime();
-    if (updA !== updB) return updB - updA;
+    // Primary: sort by latest check-in time (most recently acted on first)
+    const checkinA = a.lastCheckinTime || 0;
+    const checkinB = b.lastCheckinTime || 0;
+    if (checkinA !== checkinB) return checkinB - checkinA;
 
     // Fallback: sort by pickup date descending
     const parseDate = (dateStr: string, timeStr?: string): number => {
