@@ -249,6 +249,17 @@ export default function CurrentJobsPage() {
             console.log('POD counts by transport ID:', podCountByTransportId);
             console.log('Container return by transport ID:', [...containerReturnByTransportId]);
             console.log('Jobs with any check-in (actually started):', startedTransportIds.size);
+            
+            // Track latest check-in time per transport_order_id
+            allCheckins
+              .filter((c: any) => c[driverIdField] === freelanceDriverId && c.transport_order_id)
+              .forEach((c: any) => {
+                const transportId = String(c.transport_order_id);
+                const checkinTime = new Date(c.checkin_time || c.checked_in_at || c.created_at || 0).getTime();
+                if (!latestCheckinByTransportId[transportId] || checkinTime > latestCheckinByTransportId[transportId]) {
+                  latestCheckinByTransportId[transportId] = checkinTime;
+                }
+              });
           }
           
            const apiJobs = mergedApiJobs;
