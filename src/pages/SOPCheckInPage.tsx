@@ -249,6 +249,9 @@ export default function SOPCheckInPage() {
           origin_company_name: foundJob.sender_name || foundJob.factory_name,
           start_date: foundJob.sender_pickup_date,
           start_time: foundJob.sender_pickup_time,
+          bl_no: foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || null,
+          booking_no: foundJob.booking_no || foundJob.booking_number || null,
+          transport_category: foundJob.transport_category || null,
         };
         setJob(mappedJob);
       } else {
