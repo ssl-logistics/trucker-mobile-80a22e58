@@ -692,13 +692,10 @@ export default function DeliveryDetailPage() {
     const jobAnyNav = job as any;
     const isInternationalNav = !!(jobAnyNav.bl_no || jobAnyNav.booking_no || jobAnyNav.transport_category === 'international');
     
-    if (isInternationalNav) {
-      const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
-      navigate(backRoute, { state: { jobData: job } });
-    } else {
-      // Domestic single-trip: job is done, redirect to home
-      navigate('/');
-    }
+    // Always navigate back to job detail page after POD
+    // so the driver can see updated status and handle remaining destinations
+    const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+    navigate(backRoute, { state: { jobData: job } });
   };
 
   const [isCheckingIn, setIsCheckingIn] = useState(false);
