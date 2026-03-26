@@ -857,8 +857,20 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
-    const dateA = new Date(a.sender_pickup_date || a.created_at || 0).getTime();
-    const dateB = new Date(b.sender_pickup_date || b.created_at || 0).getTime();
+    const parseDate = (dateStr: string, timeStr?: string): number => {
+      if (!dateStr) return 0;
+      const d = dateStr.trim();
+      const t = (timeStr || '00:00:00').trim();
+      let normalized = d;
+      // Handle DD/MM/YYYY format
+      const ddmmyyyy = d.match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})$/);
+      if (ddmmyyyy) {
+        normalized = `${ddmmyyyy[3]}-${ddmmyyyy[2].padStart(2, '0')}-${ddmmyyyy[1].padStart(2, '0')}`;
+      }
+      return new Date(`${normalized}T${t}`).getTime() || 0;
+    };
+    const dateA = parseDate(a.sender_pickup_date || a.created_at, a.sender_pickup_time);
+    const dateB = parseDate(b.sender_pickup_date || b.created_at, b.sender_pickup_time);
     return dateB - dateA;
   });
   const EmptyState = () => <div className="flex flex-col items-center justify-center py-20 px-4">
