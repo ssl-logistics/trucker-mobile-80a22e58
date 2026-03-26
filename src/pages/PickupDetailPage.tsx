@@ -114,6 +114,9 @@ export default function PickupDetailPage() {
           origin_remarks: stateJobData.origin_remarks ?? null,
           origin_address: stateJobData.origin_address ?? null,
           origin_company_name: stateJobData.origin_company_name ?? null,
+          bl_no: stateJobData.bl_no ?? null,
+          booking_no: stateJobData.booking_no ?? null,
+          transport_category: stateJobData.transport_category ?? null,
         };
         setJob(mappedJob);
         setLoading(false);
