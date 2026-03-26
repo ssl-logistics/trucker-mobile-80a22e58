@@ -674,14 +674,14 @@ const ContainerSOPPage = () => {
       });
 
       // Update order status via external API
-      const orderStatus = isContainerReturn ? 'container_returned' : 'in_transit';
+      const orderStatus = isContainerReturn ? 'container_returned' : 'in_progress';
       try {
         const { error: statusError } = await updateOrderStatus({
           order_number: jobDetail!.order_code,
           status: orderStatus,
           driver_id: user.id,
           driver_type: driverType,
-          notes: isContainerReturn ? 'คืนตู้สำเร็จ' : 'รับตู้หนักสำเร็จ',
+          notes: isContainerReturn ? 'คืนตู้สำเร็จ' : 'รับตู้แล้ว',
         });
         if (statusError) {
           console.warn(`[ContainerSOP] updateOrderStatus ${orderStatus} error (non-blocking):`, statusError);
