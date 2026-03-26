@@ -468,8 +468,8 @@ export default function PickupDetailPage() {
 
         {job.origin_latitude && job.origin_longitude ? <GoogleMap latitude={job.origin_latitude} longitude={job.origin_longitude} markerLabel={job.origin_location} showRoute={true} /> : <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
             <div className="text-center">
-              <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">{t('pickup.map')}</p>
+              <MapPin className="w-12 h-12 text-destructive mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">ไม่มีข้อมูลพิกัด</p>
             </div>
           </div>}
 
