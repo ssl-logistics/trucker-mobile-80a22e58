@@ -385,10 +385,10 @@ export default function PickupDetailPage() {
           if (job.bl_no || job.booking_no || job.transport_category === 'international') {
             updateOrderStatus({
               order_number: job.order_code,
-              status: 'delivered',
+              status: 'in_transit',
               driver_id: user.id,
               driver_type: driverType,
-              notes: 'เช็คอินจุดรับสินค้าสำเร็จ',
+              notes: 'กำลังไปจุดส่ง/จุดรับสินค้า',
             }).catch(err => console.warn('updateOrderStatus error:', err));
           }
 
