@@ -120,12 +120,35 @@ export default function Home() {
   // Poll for new jobs and create notifications
   useNewJobPolling();
 
+  const parseJobDateTime = (job: Job): number => {
+    const dateValue = (job.start_date || '').trim();
+    if (!dateValue) return 0;
+
+    const timeValue = (job.pickup_time || '00:00:00').trim();
+    const normalizedTime = timeValue.length === 5 ? `${timeValue}:00` : timeValue;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      return new Date(`${dateValue}T${normalizedTime}`).getTime();
+    }
+
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateValue)) {
+      const [day, month, year] = dateValue.split('/');
+      return new Date(`${year}-${month}-${day}T${normalizedTime}`).getTime();
+    }
+
+    const parsed = new Date(dateValue).getTime();
+    return Number.isNaN(parsed) ? 0 : parsed;
+  };
+
+  const sortJobsByDateDesc = (jobList: Job[]) =>
+    [...jobList].sort((a, b) => parseJobDateTime(b) - parseJobDateTime(a));
+
   // Get displayed jobs based on filter
   const getDisplayedJobs = () => {
     // Filter out international jobs without any international reference (booking_no, bl_no, or transport_mode)
-    const filterInternationalWithoutRef = (jobList: Job[]) => 
+    const filterInternationalWithoutRef = (jobList: Job[]) =>
       jobList.filter(job => {
-        const isInternational = job.job_type === 'international' || 
+        const isInternational = job.job_type === 'international' ||
           (!!(job as any).transport_category && (job as any).transport_category !== 'domestic');
         // Allow international jobs that have transport_mode (sea/air) even without booking/bl
         if (isInternational && !job.booking_no && !job.bl_no && !(job as any).transport_mode) return false;
@@ -134,14 +157,15 @@ export default function Home() {
 
     // Internal/External drivers ONLY see their assigned factory jobs
     if (userType === 'internal_driver' || userType === 'external_driver') {
-      return filterInternationalWithoutRef(factoryJobs);
+      return sortJobsByDateDesc(filterInternationalWithoutRef(factoryJobs));
     }
-    
+
     if (jobFilter === 'factory') {
-      return filterInternationalWithoutRef(factoryJobs);
+      return sortJobsByDateDesc(filterInternationalWithoutRef(factoryJobs));
     }
+
     // 'all' and 'company' both show company jobs (current API)
-    return filterInternationalWithoutRef(jobs);
+    return sortJobsByDateDesc(filterInternationalWithoutRef(jobs));
   };
 
   const displayedJobs = getDisplayedJobs();
