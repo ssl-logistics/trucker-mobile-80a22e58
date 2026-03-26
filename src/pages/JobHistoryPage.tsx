@@ -643,15 +643,7 @@ export default function JobHistoryPage() {
 
       {/* Tabs */}
       <PullToRefresh onRefresh={async () => { await Promise.all([loadCompletedJobs(), loadJobHistory()]); }}>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start rounded-none bg-white h-auto p-0">
-          <TabsTrigger value="all" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
-            {t('jobHistory.all')}
-          </TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none">
-            {t('jobHistory.completed')}
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value="all" className="w-full">
 
         {/* Month Filter */}
         <div className="p-4 bg-white">
