@@ -251,6 +251,7 @@ const ContainerSOPPage = () => {
           start_date: foundJob.start_date || foundJob.sender_pickup_date || '',
           start_time: foundJob.start_time || foundJob.sender_pickup_time || '',
           bl_no: foundJob.bl_no || '',
+          booking_no: foundJob.booking_no || foundJob.booking_number || '',
           transport_type: foundJob.transport_type || '',
           container_details: containerDetails,
         });
