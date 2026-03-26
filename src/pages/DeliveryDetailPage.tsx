@@ -1048,10 +1048,10 @@ export default function DeliveryDetailPage() {
             showRoute={true}
           />
         ) : (
-          <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+          <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
             <div className="text-center">
-              <MapPin className="w-12 h-12 text-red-500 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">{t('delivery.map')}</p>
+              <MapPin className="w-8 h-8 text-muted-foreground mx-auto mb-1" />
+              <p className="text-sm text-muted-foreground">ไม่มีข้อมูลพิกัด</p>
             </div>
           </div>
         )}
