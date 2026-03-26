@@ -49,6 +49,7 @@ interface JobDetail {
   start_date: string;
   start_time: string;
   bl_no?: string;
+  booking_no?: string;
   transport_type?: string;
   container_details: ContainerDetail[];
 }
