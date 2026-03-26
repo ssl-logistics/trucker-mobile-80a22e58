@@ -167,6 +167,9 @@ export default function SOPCheckInPage() {
           origin_company_name: stateJobData.origin_company_name ?? null,
           start_date: stateJobData.start_date || '',
           start_time: stateJobData.start_time || '00:00',
+          bl_no: stateJobData.bl_no ?? null,
+          booking_no: stateJobData.booking_no ?? null,
+          transport_category: stateJobData.transport_category ?? null,
         });
         setLoading(false);
         return;
