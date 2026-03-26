@@ -382,13 +382,23 @@ export default function PickupDetailPage() {
           }
 
           // Update order status for international jobs (BL or Booking)
-          if (job.bl_no || job.booking_no || job.transport_category === 'international') {
+          if (job.booking_no) {
+            // Booking: เช็คอินจุดรับสินค้า → delivered
+            updateOrderStatus({
+              order_number: job.order_code,
+              status: 'delivered',
+              driver_id: user.id,
+              driver_type: driverType,
+              notes: 'ถึงจุดรับสินค้าแล้ว',
+            }).catch(err => console.warn('updateOrderStatus error:', err));
+          } else if (job.bl_no || job.transport_category === 'international') {
+            // BL: เช็คอินจุดรับสินค้า → in_transit
             updateOrderStatus({
               order_number: job.order_code,
               status: 'in_transit',
               driver_id: user.id,
               driver_type: driverType,
-              notes: 'กำลังไปจุดส่ง/จุดรับสินค้า',
+              notes: 'กำลังไปจุดส่ง',
             }).catch(err => console.warn('updateOrderStatus error:', err));
           }
 
