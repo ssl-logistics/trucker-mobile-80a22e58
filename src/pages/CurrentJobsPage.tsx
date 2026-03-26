@@ -877,8 +877,8 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
-    // Highest priority: just-started job from navigation state
-    const justStartedOrder = location.state?.justStartedOrder;
+    // Highest priority: just-started job from navigation state (stored in ref for persistence)
+    const justStartedOrder = justStartedOrderRef.current || location.state?.justStartedOrder;
     if (justStartedOrder) {
       const aIsJustStarted = a.order_number === justStartedOrder;
       const bIsJustStarted = b.order_number === justStartedOrder;
