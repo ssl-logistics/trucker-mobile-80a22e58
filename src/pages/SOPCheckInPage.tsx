@@ -367,6 +367,22 @@ export default function SOPCheckInPage() {
       });
       return;
     }
+    if (ocrExtracting) {
+      toast({
+        title: 'กำลังอ่านข้อมูล',
+        description: 'กรุณารอให้ระบบอ่านข้อมูลใบชั่งน้ำหนักเสร็จก่อน',
+        variant: 'destructive'
+      });
+      return;
+    }
+    if (weightSlips.length > 0 && weightSlips.some(ws => ws.ocrData === null)) {
+      toast({
+        title: 'รอข้อมูล OCR',
+        description: 'กรุณารอให้ระบบอ่านข้อมูลใบชั่งน้ำหนักเสร็จก่อนยืนยัน',
+        variant: 'destructive'
+      });
+      return;
+    }
     setShowConfirmDialog(true);
   };
 
