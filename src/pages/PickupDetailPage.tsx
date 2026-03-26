@@ -37,6 +37,9 @@ interface JobDetail {
   origin_remarks?: string | null;
   origin_address?: string | null;
   origin_company_name?: string | null;
+  bl_no?: string | null;
+  booking_no?: string | null;
+  transport_category?: string | null;
 }
 export default function PickupDetailPage() {
   const navigate = useNavigate();
