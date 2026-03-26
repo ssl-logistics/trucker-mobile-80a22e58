@@ -408,19 +408,38 @@ export default function ContainerCheckInPage() {
         sealNumber2: container2Seal
       });
 
-      // For BL/Booking jobs, send status to update-order-status
-      const isInternationalJob = !!(job.bl_no || job.booking_no);
-      if (isInternationalJob) {
+      // For BL jobs (container return only), send status to update-order-status
+      const isBLJob = !!job.bl_no;
+      const isBookingJob = !!job.booking_no;
+      
+      if (isBLJob && isContainerReturn) {
+        try {
+          await updateOrderStatus({
+            order_number: job.order_code,
+            status: 'at_container_return',
+            driver_id: user.id,
+            driver_type: driverType as 'internal' | 'external' | 'freelance',
+            notes: 'ถึงจุดคืนตู้แล้ว',
+          });
+          console.log(`[ContainerCheckInPage] Sent at_container_return for BL job`);
+        } catch (statusError) {
+          console.error(`[ContainerCheckInPage] Failed to send at_container_return (non-blocking):`, statusError);
+        }
+      }
+      
+      // For Booking jobs, send arrived_at_pickup (pickup) or at_container_return (return)
+      if (isBookingJob) {
         const orderStatusValue = isContainerReturn ? 'at_container_return' : 'arrived_at_pickup';
+        const notes = isContainerReturn ? 'ถึงจุดคืนตู้แล้ว' : 'ถึงจุดรับตู้เปล่าแล้ว';
         try {
           await updateOrderStatus({
             order_number: job.order_code,
             status: orderStatusValue,
             driver_id: user.id,
             driver_type: driverType as 'internal' | 'external' | 'freelance',
-            notes: isContainerReturn ? 'ถึงจุดคืนตู้แล้ว' : undefined,
+            notes,
           });
-          console.log(`[ContainerCheckInPage] Sent ${orderStatusValue} for international job`);
+          console.log(`[ContainerCheckInPage] Sent ${orderStatusValue} for Booking job`);
         } catch (statusError) {
           console.error(`[ContainerCheckInPage] Failed to send ${orderStatusValue} (non-blocking):`, statusError);
         }
