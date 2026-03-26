@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide } from 'lucide-react';
@@ -132,13 +132,19 @@ export default function CurrentJobsPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Store justStartedOrder in a ref so it persists across async re-renders
+  const justStartedOrderRef = useRef<string | null>(location.state?.justStartedOrder || null);
+  if (location.state?.justStartedOrder && !justStartedOrderRef.current) {
+    justStartedOrderRef.current = location.state.justStartedOrder;
+  }
+
   // Filter states
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedTransportType, setSelectedTransportType] = useState<string>('all');
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   useEffect(() => {
-    console.log(`[CurrentJobsPage] useEffect triggered - user: ${user?.id}, userType: ${userType}`);
+    console.log(`[CurrentJobsPage] useEffect triggered - user: ${user?.id}, userType: ${userType}, justStartedOrder: ${justStartedOrderRef.current}`);
     loadAcceptedJobs();
   }, [user, userType]);
 
@@ -871,8 +877,8 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
-    // Highest priority: just-started job from navigation state
-    const justStartedOrder = location.state?.justStartedOrder;
+    // Highest priority: just-started job from navigation state (stored in ref for persistence)
+    const justStartedOrder = justStartedOrderRef.current || location.state?.justStartedOrder;
     if (justStartedOrder) {
       const aIsJustStarted = a.order_number === justStartedOrder;
       const bIsJustStarted = b.order_number === justStartedOrder;
