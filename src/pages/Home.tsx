@@ -824,8 +824,8 @@ export default function Home() {
         // Remove job from Home list instantly
         setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
         
-        // Redirect to Current Jobs page immediately
-        navigate('/current-jobs');
+        // Redirect to Current Jobs page immediately, marking the just-started job
+        navigate('/current-jobs', { state: { justStartedOrder: job.order_code } });
         
         // Create tracking room in background (don't block UI)
         (async () => {

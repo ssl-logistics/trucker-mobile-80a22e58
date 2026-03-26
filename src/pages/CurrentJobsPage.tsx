@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide } from 'lucide-react';
 import coinsIcon from '@/assets/coins-icon.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -112,6 +112,7 @@ interface AcceptedJob {
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     user,
     userType
@@ -870,6 +871,15 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
+    // Highest priority: just-started job from navigation state
+    const justStartedOrder = location.state?.justStartedOrder;
+    if (justStartedOrder) {
+      const aIsJustStarted = a.order_number === justStartedOrder;
+      const bIsJustStarted = b.order_number === justStartedOrder;
+      if (aIsJustStarted && !bIsJustStarted) return -1;
+      if (!aIsJustStarted && bIsJustStarted) return 1;
+    }
+
     // Primary: sort by latest check-in time (most recently acted on first)
     const checkinA = a.lastCheckinTime || 0;
     const checkinB = b.lastCheckinTime || 0;
