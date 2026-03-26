@@ -167,6 +167,9 @@ export default function SOPCheckInPage() {
           origin_company_name: stateJobData.origin_company_name ?? null,
           start_date: stateJobData.start_date || '',
           start_time: stateJobData.start_time || '00:00',
+          bl_no: stateJobData.bl_no ?? null,
+          booking_no: stateJobData.booking_no ?? null,
+          transport_category: stateJobData.transport_category ?? null,
         });
         setLoading(false);
         return;
@@ -246,6 +249,9 @@ export default function SOPCheckInPage() {
           origin_company_name: foundJob.sender_name || foundJob.factory_name,
           start_date: foundJob.sender_pickup_date,
           start_time: foundJob.sender_pickup_time,
+          bl_no: foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || null,
+          booking_no: foundJob.booking_no || foundJob.booking_number || null,
+          transport_category: foundJob.transport_category || null,
         };
         setJob(mappedJob);
       } else {
@@ -470,6 +476,19 @@ export default function SOPCheckInPage() {
 
       if (sopError) {
         throw new Error(sopError || 'Failed to submit SOP');
+      }
+
+      // Send returning_container status for international jobs (BL/Booking)
+      const isInternationalJob = !!(job.bl_no || job.booking_no || job.transport_category === 'international');
+      if (isInternationalJob) {
+        const driverTypeStatus = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        updateOrderStatus({
+          order_number: job.order_code,
+          status: 'returning_container',
+          driver_id: user.id,
+          driver_type: driverTypeStatus as 'internal' | 'external' | 'freelance',
+          notes: 'SOP รับสินค้าเสร็จ - เตรียมคืนตู้',
+        }).catch(err => console.warn('[SOPCheckIn] updateOrderStatus error (non-blocking):', err));
       }
 
       toast({
