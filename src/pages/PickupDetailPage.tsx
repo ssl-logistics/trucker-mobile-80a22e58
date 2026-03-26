@@ -385,7 +385,7 @@ export default function PickupDetailPage() {
           if (job.bl_no || job.booking_no || job.transport_category === 'international') {
             updateOrderStatus({
               order_number: job.order_code,
-              status: 'arrived_at_pickup',
+              status: 'delivered',
               driver_id: user.id,
               driver_type: driverType,
               notes: 'เช็คอินจุดรับสินค้าสำเร็จ',
