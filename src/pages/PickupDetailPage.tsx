@@ -381,17 +381,24 @@ export default function PickupDetailPage() {
             }).catch(err => console.warn('truck-arrival error:', err));
           }
 
-          // Update order status for international jobs
-          const jobAnyStatus = job as any;
-          if (jobAnyStatus.bl_no || jobAnyStatus.booking_no || jobAnyStatus.transport_category === 'international') {
+          // Update order status for international jobs (BL or Booking)
+          if (job.bl_no || job.booking_no || job.transport_category === 'international') {
             updateOrderStatus({
               order_number: job.order_code,
-              status: 'delivered',
+              status: 'arrived_at_pickup',
               driver_id: user.id,
               driver_type: driverType,
               notes: 'เช็คอินจุดรับสินค้าสำเร็จ',
             }).catch(err => console.warn('updateOrderStatus error:', err));
           }
+
+          // Send job status notification
+          sendJobStatus({
+            jobId: job.id,
+            orderCode: job.order_code,
+            userId: user.id,
+            status: 'pickup_checked_in',
+          }).catch(err => console.warn('sendJobStatus error:', err));
         } catch (bgError) {
           console.error('[PickupDetail] Background task error:', bgError);
         }
