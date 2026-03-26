@@ -40,6 +40,9 @@ interface JobDetail {
   origin_company_name?: string | null;
   start_date: string;
   start_time: string;
+  bl_no?: string | null;
+  booking_no?: string | null;
+  transport_category?: string | null;
 }
 
 export default function SOPCheckInPage() {
