@@ -173,7 +173,6 @@ export default function PickupDetailPage() {
             }
           }
           setIsBidJob(false);
-          // Map API response to JobDetail interface
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
@@ -193,6 +192,9 @@ export default function PickupDetailPage() {
             origin_remarks: foundJob.remarks,
             origin_address: (Array.isArray(foundJob.origins) && foundJob.origins.length > 0 ? foundJob.origins[0].address : null) || foundJob.sender_address,
             origin_company_name: foundJob.factory_name || foundJob.sender_name,
+            bl_no: foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || null,
+            booking_no: foundJob.booking_no || foundJob.booking_number || null,
+            transport_category: foundJob.transport_category || null,
           };
           setJob(mappedJob);
         } else {
