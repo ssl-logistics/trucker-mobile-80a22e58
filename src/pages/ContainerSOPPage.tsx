@@ -675,15 +675,30 @@ const ContainerSOPPage = () => {
         sealNumber: finalSealNumber,
       });
 
-      // Update order status via external API
-      const orderStatus = isContainerReturn ? 'container_returned' : 'in_progress';
+      // Update order status via external API - split BL vs Booking
+      const isBookingJob = !!jobDetail?.booking_no;
+      let orderStatus: string;
+      let orderNotes: string;
+      
+      if (isContainerReturn) {
+        orderStatus = 'container_returned';
+        orderNotes = 'คืนตู้สำเร็จ';
+      } else if (isBookingJob) {
+        orderStatus = 'in_transit';
+        orderNotes = 'รับตู้เปล่าแล้ว กำลังไปจุดรับสินค้า';
+      } else {
+        // BL job
+        orderStatus = 'in_progress';
+        orderNotes = 'รับตู้แล้ว';
+      }
+      
       try {
         const { error: statusError } = await updateOrderStatus({
           order_number: jobDetail!.order_code,
           status: orderStatus,
           driver_id: user.id,
           driver_type: driverType,
-          notes: isContainerReturn ? 'คืนตู้สำเร็จ' : 'รับตู้แล้ว',
+          notes: orderNotes,
         });
         if (statusError) {
           console.warn(`[ContainerSOP] updateOrderStatus ${orderStatus} error (non-blocking):`, statusError);
