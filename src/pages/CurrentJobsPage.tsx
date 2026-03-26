@@ -201,8 +201,9 @@ export default function CurrentJobsPage() {
           // Track POD count per transport_order_id for multi-destination jobs
           const podCountByTransportId: Record<string, number> = {};
           // Track container return checkins for international jobs
-          const containerReturnByTransportId: Set<string> = new Set();
-          let allCheckins: any[] = [];
+           const containerReturnByTransportId: Set<string> = new Set();
+           const latestCheckinByTransportId: Record<string, number> = {};
+           let allCheckins: any[] = [];
           
           if (!checkinsResult.error && checkinsResult.data) {
             allCheckins = (checkinsResult.data as any)?.data || [];
