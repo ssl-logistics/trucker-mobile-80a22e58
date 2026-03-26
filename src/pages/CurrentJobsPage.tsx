@@ -132,6 +132,12 @@ export default function CurrentJobsPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Store justStartedOrder in a ref so it persists across async re-renders
+  const justStartedOrderRef = React.useRef<string | null>(location.state?.justStartedOrder || null);
+  if (location.state?.justStartedOrder && !justStartedOrderRef.current) {
+    justStartedOrderRef.current = location.state.justStartedOrder;
+  }
+
   // Filter states
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedTransportType, setSelectedTransportType] = useState<string>('all');
