@@ -870,6 +870,15 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
+    // Highest priority: just-started job from navigation state
+    const justStartedOrder = location.state?.justStartedOrder;
+    if (justStartedOrder) {
+      const aIsJustStarted = a.order_number === justStartedOrder;
+      const bIsJustStarted = b.order_number === justStartedOrder;
+      if (aIsJustStarted && !bIsJustStarted) return -1;
+      if (!aIsJustStarted && bIsJustStarted) return 1;
+    }
+
     // Primary: sort by latest check-in time (most recently acted on first)
     const checkinA = a.lastCheckinTime || 0;
     const checkinB = b.lastCheckinTime || 0;
