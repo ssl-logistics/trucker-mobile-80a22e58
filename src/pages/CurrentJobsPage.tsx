@@ -886,10 +886,18 @@ export default function CurrentJobsPage() {
       if (!aIsJustStarted && bIsJustStarted) return 1;
     }
 
-    // Primary: sort by latest check-in time (most recently acted on first)
-    const checkinA = a.lastCheckinTime || 0;
-    const checkinB = b.lastCheckinTime || 0;
-    if (checkinA !== checkinB) return checkinB - checkinA;
+    // Primary: sort by latest activity time (most recently acted on first)
+    // Use lastCheckinTime first, then fall back to updated_at
+    const getActivityTime = (job: any): number => {
+      const checkinTime = job.lastCheckinTime || 0;
+      if (checkinTime > 0) return checkinTime;
+      // Fallback: use updated_at as activity indicator
+      const updatedAt = job.updated_at ? new Date(job.updated_at).getTime() : 0;
+      return updatedAt;
+    };
+    const activityA = getActivityTime(a);
+    const activityB = getActivityTime(b);
+    if (activityA !== activityB) return activityB - activityA;
 
     // Fallback: sort by pickup date descending
     const parseDate = (dateStr: string, timeStr?: string): number => {
