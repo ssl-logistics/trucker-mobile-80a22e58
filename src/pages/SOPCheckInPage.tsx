@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
-import { getFreelanceAcceptedJobs, getDriverSop, driverSop, getDriverAssignedJobs } from '@/lib/externalApi';
+import { getFreelanceAcceptedJobs, getDriverSop, driverSop, getDriverAssignedJobs, updateOrderStatus } from '@/lib/externalApi';
 import {
   Dialog,
   DialogContent,
