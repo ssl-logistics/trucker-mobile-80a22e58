@@ -408,22 +408,24 @@ export default function ContainerCheckInPage() {
         sealNumber2: container2Seal
       });
 
-      // For BL jobs (container return only), send status to update-order-status
+      // For BL jobs, send arrived_at_pickup (pickup) or at_container_return (return)
       const isBLJob = !!job.bl_no;
       const isBookingJob = !!job.booking_no;
       
-      if (isBLJob && isContainerReturn) {
+      if (isBLJob) {
+        const orderStatusValue = isContainerReturn ? 'at_container_return' : 'arrived_at_pickup';
+        const notes = isContainerReturn ? 'ถึงจุดคืนตู้แล้ว' : 'ถึงจุดรับตู้หนักแล้ว';
         try {
           await updateOrderStatus({
             order_number: job.order_code,
-            status: 'at_container_return',
+            status: orderStatusValue,
             driver_id: user.id,
             driver_type: driverType as 'internal' | 'external' | 'freelance',
-            notes: 'ถึงจุดคืนตู้แล้ว',
+            notes,
           });
-          console.log(`[ContainerCheckInPage] Sent at_container_return for BL job`);
+          console.log(`[ContainerCheckInPage] Sent ${orderStatusValue} for BL job`);
         } catch (statusError) {
-          console.error(`[ContainerCheckInPage] Failed to send at_container_return (non-blocking):`, statusError);
+          console.error(`[ContainerCheckInPage] Failed to send ${orderStatusValue} (non-blocking):`, statusError);
         }
       }
       
