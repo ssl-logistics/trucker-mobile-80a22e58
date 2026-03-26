@@ -367,6 +367,22 @@ export default function SOPCheckInPage() {
       });
       return;
     }
+    if (ocrExtracting) {
+      toast({
+        title: 'กำลังอ่านข้อมูล',
+        description: 'กรุณารอให้ระบบอ่านข้อมูลใบชั่งน้ำหนักเสร็จก่อน',
+        variant: 'destructive'
+      });
+      return;
+    }
+    if (weightSlips.length > 0 && weightSlips.some(ws => ws.ocrData === null)) {
+      toast({
+        title: 'รอข้อมูล OCR',
+        description: 'กรุณารอให้ระบบอ่านข้อมูลใบชั่งน้ำหนักเสร็จก่อนยืนยัน',
+        variant: 'destructive'
+      });
+      return;
+    }
     setShowConfirmDialog(true);
   };
 
@@ -699,7 +715,7 @@ export default function SOPCheckInPage() {
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={uploading || !photoFile || !docPhotoFile}
+          disabled={uploading || !photoFile || !docPhotoFile || ocrExtracting || (weightSlips.length > 0 && weightSlips.some(ws => ws.ocrData === null))}
         >
           {t('sop.confirmSOP')}
         </Button>
