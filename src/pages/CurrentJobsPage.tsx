@@ -201,8 +201,9 @@ export default function CurrentJobsPage() {
           // Track POD count per transport_order_id for multi-destination jobs
           const podCountByTransportId: Record<string, number> = {};
           // Track container return checkins for international jobs
-          const containerReturnByTransportId: Set<string> = new Set();
-          let allCheckins: any[] = [];
+           const containerReturnByTransportId: Set<string> = new Set();
+           const latestCheckinByTransportId: Record<string, number> = {};
+           let allCheckins: any[] = [];
           
           if (!checkinsResult.error && checkinsResult.data) {
             allCheckins = (checkinsResult.data as any)?.data || [];
@@ -249,6 +250,17 @@ export default function CurrentJobsPage() {
             console.log('POD counts by transport ID:', podCountByTransportId);
             console.log('Container return by transport ID:', [...containerReturnByTransportId]);
             console.log('Jobs with any check-in (actually started):', startedTransportIds.size);
+            
+            // Track latest check-in time per transport_order_id
+            allCheckins
+              .filter((c: any) => c[driverIdField] === freelanceDriverId && c.transport_order_id)
+              .forEach((c: any) => {
+                const transportId = String(c.transport_order_id);
+                const checkinTime = new Date(c.checkin_time || c.checked_in_at || c.created_at || 0).getTime();
+                if (!latestCheckinByTransportId[transportId] || checkinTime > latestCheckinByTransportId[transportId]) {
+                  latestCheckinByTransportId[transportId] = checkinTime;
+                }
+              });
           }
           
            const apiJobs = mergedApiJobs;
@@ -393,6 +405,7 @@ export default function CurrentJobsPage() {
             remarks: job.remarks,
             created_at: job.created_at,
             updated_at: job.updated_at,
+            lastCheckinTime: latestCheckinByTransportId[String(job.id)] || 0,
             // Multiple destinations support
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
@@ -857,25 +870,10 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
-    // Rank by workflow progress: higher = more advanced in the job flow
-    const statusRank: Record<string, number> = {
-      'accepted': 0,
-      'arrived_at_pickup': 1,
-      'in_transit': 2,
-      'delivered': 3,
-      'returning_container': 4,
-      'at_container_return': 5,
-    };
-    const rankA = statusRank[(a.status || '').toLowerCase()] ?? -1;
-    const rankB = statusRank[(b.status || '').toLowerCase()] ?? -1;
-    
-    // Jobs with higher progress come first
-    if (rankA !== rankB) return rankB - rankA;
-
-    // Same progress: sort by updated_at descending (most recently updated first)
-    const updA = new Date(a.updated_at || 0).getTime();
-    const updB = new Date(b.updated_at || 0).getTime();
-    if (updA !== updB) return updB - updA;
+    // Primary: sort by latest check-in time (most recently acted on first)
+    const checkinA = a.lastCheckinTime || 0;
+    const checkinB = b.lastCheckinTime || 0;
+    if (checkinA !== checkinB) return checkinB - checkinA;
 
     // Fallback: sort by pickup date descending
     const parseDate = (dateStr: string, timeStr?: string): number => {
