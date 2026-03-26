@@ -49,6 +49,7 @@ interface JobDetail {
   start_date: string;
   start_time: string;
   bl_no?: string;
+  booking_no?: string;
   transport_type?: string;
   container_details: ContainerDetail[];
 }
@@ -250,6 +251,7 @@ const ContainerSOPPage = () => {
           start_date: foundJob.start_date || foundJob.sender_pickup_date || '',
           start_time: foundJob.start_time || foundJob.sender_pickup_time || '',
           bl_no: foundJob.bl_no || '',
+          booking_no: foundJob.booking_no || foundJob.booking_number || '',
           transport_type: foundJob.transport_type || '',
           container_details: containerDetails,
         });
@@ -673,15 +675,30 @@ const ContainerSOPPage = () => {
         sealNumber: finalSealNumber,
       });
 
-      // Update order status via external API
-      const orderStatus = isContainerReturn ? 'container_returned' : 'in_progress';
+      // Update order status via external API - split BL vs Booking
+      const isBookingJob = !!jobDetail?.booking_no;
+      let orderStatus: string;
+      let orderNotes: string;
+      
+      if (isContainerReturn) {
+        orderStatus = 'container_returned';
+        orderNotes = 'คืนตู้สำเร็จ';
+      } else if (isBookingJob) {
+        orderStatus = 'in_transit';
+        orderNotes = 'รับตู้เปล่าแล้ว กำลังไปจุดรับสินค้า';
+      } else {
+        // BL job
+        orderStatus = 'in_progress';
+        orderNotes = 'รับตู้แล้ว';
+      }
+      
       try {
         const { error: statusError } = await updateOrderStatus({
           order_number: jobDetail!.order_code,
           status: orderStatus,
           driver_id: user.id,
           driver_type: driverType,
-          notes: isContainerReturn ? 'คืนตู้สำเร็จ' : 'รับตู้แล้ว',
+          notes: orderNotes,
         });
         if (statusError) {
           console.warn(`[ContainerSOP] updateOrderStatus ${orderStatus} error (non-blocking):`, statusError);
