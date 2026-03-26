@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
-import { getFreelanceAcceptedJobs, getDriverSop, driverSop, getDriverAssignedJobs } from '@/lib/externalApi';
+import { getFreelanceAcceptedJobs, getDriverSop, driverSop, getDriverAssignedJobs, updateOrderStatus } from '@/lib/externalApi';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +40,9 @@ interface JobDetail {
   origin_company_name?: string | null;
   start_date: string;
   start_time: string;
+  bl_no?: string | null;
+  booking_no?: string | null;
+  transport_category?: string | null;
 }
 
 export default function SOPCheckInPage() {
