@@ -112,6 +112,7 @@ interface AcceptedJob {
 }
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     user,
     userType
