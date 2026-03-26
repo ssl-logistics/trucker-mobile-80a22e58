@@ -431,8 +431,16 @@ export default function ContainerCheckInPage() {
         description: t('container.checkInSuccessMessage')
       });
       setShowConfirmDialog(false);
-      const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
-      navigate(backRoute, { state: { jobData: job } });
+      
+      if (isContainerReturn) {
+        // After container return check-in, go directly to document attachment page
+        navigate(`/job/${job.order_code}/container-sop`, { 
+          state: { jobData: job, checkinType: 'container_return', isBidJob: (location.state as any)?.isBidJob } 
+        });
+      } else {
+        const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+        navigate(backRoute, { state: { jobData: job } });
+      }
     } catch (error) {
       console.error('Check-in error:', error);
       toast({
