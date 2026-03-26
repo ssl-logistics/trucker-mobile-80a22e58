@@ -472,6 +472,19 @@ export default function SOPCheckInPage() {
         throw new Error(sopError || 'Failed to submit SOP');
       }
 
+      // Send returning_container status for international jobs (BL/Booking)
+      const isInternationalJob = !!(job.bl_no || job.booking_no || job.transport_category === 'international');
+      if (isInternationalJob) {
+        const driverTypeStatus = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        updateOrderStatus({
+          order_number: job.order_code,
+          status: 'returning_container',
+          driver_id: user.id,
+          driver_type: driverTypeStatus as 'internal' | 'external' | 'freelance',
+          notes: 'SOP รับสินค้าเสร็จ - เตรียมคืนตู้',
+        }).catch(err => console.warn('[SOPCheckIn] updateOrderStatus error (non-blocking):', err));
+      }
+
       toast({
         title: t('sop.sopSuccess'),
         description: t('sop.sopSuccessMessage'),
