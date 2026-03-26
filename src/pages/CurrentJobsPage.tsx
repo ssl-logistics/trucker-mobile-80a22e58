@@ -144,7 +144,7 @@ export default function CurrentJobsPage() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   useEffect(() => {
-    console.log(`[CurrentJobsPage] useEffect triggered - user: ${user?.id}, userType: ${userType}`);
+    console.log(`[CurrentJobsPage] useEffect triggered - user: ${user?.id}, userType: ${userType}, justStartedOrder: ${justStartedOrderRef.current}`);
     loadAcceptedJobs();
   }, [user, userType]);
 
