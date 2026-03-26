@@ -133,7 +133,7 @@ export default function CurrentJobsPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Store justStartedOrder in a ref so it persists across async re-renders
-  const justStartedOrderRef = React.useRef<string | null>(location.state?.justStartedOrder || null);
+  const justStartedOrderRef = useRef<string | null>(location.state?.justStartedOrder || null);
   if (location.state?.justStartedOrder && !justStartedOrderRef.current) {
     justStartedOrderRef.current = location.state.justStartedOrder;
   }
