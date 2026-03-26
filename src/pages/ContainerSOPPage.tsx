@@ -687,9 +687,9 @@ const ContainerSOPPage = () => {
         orderStatus = 'in_transit';
         orderNotes = 'รับตู้เปล่าแล้ว กำลังไปจุดรับสินค้า';
       } else {
-        // BL job
-        orderStatus = 'in_progress';
-        orderNotes = 'รับตู้แล้ว';
+        // BL job - รับตู้หนักแล้ว กำลังไปจุดส่ง
+        orderStatus = 'in_transit';
+        orderNotes = 'รับตู้หนักแล้ว กำลังไปจุดส่ง';
       }
       
       try {
