@@ -857,16 +857,27 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
-    // Priority: jobs actively being worked on come first
-    const activeStatuses = ['in_transit', 'arrived_at_pickup', 'at_container_return', 'returning_container', 'delivered'];
-    const statusA = (a.status || '').toLowerCase();
-    const statusB = (b.status || '').toLowerCase();
-    const aIsActive = activeStatuses.includes(statusA);
-    const bIsActive = activeStatuses.includes(statusB);
-    if (aIsActive && !bIsActive) return -1;
-    if (!aIsActive && bIsActive) return 1;
+    // Rank by workflow progress: higher = more advanced in the job flow
+    const statusRank: Record<string, number> = {
+      'accepted': 0,
+      'arrived_at_pickup': 1,
+      'in_transit': 2,
+      'delivered': 3,
+      'returning_container': 4,
+      'at_container_return': 5,
+    };
+    const rankA = statusRank[(a.status || '').toLowerCase()] ?? -1;
+    const rankB = statusRank[(b.status || '').toLowerCase()] ?? -1;
+    
+    // Jobs with higher progress come first
+    if (rankA !== rankB) return rankB - rankA;
 
-    // Then sort by date descending
+    // Same progress: sort by updated_at descending (most recently updated first)
+    const updA = new Date(a.updated_at || 0).getTime();
+    const updB = new Date(b.updated_at || 0).getTime();
+    if (updA !== updB) return updB - updA;
+
+    // Fallback: sort by pickup date descending
     const parseDate = (dateStr: string, timeStr?: string): number => {
       if (!dateStr) return 0;
       const d = dateStr.trim();
