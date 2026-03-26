@@ -392,13 +392,13 @@ export default function PickupDetailPage() {
               notes: 'ถึงจุดรับสินค้าแล้ว',
             }).catch(err => console.warn('updateOrderStatus error:', err));
           } else if (job.bl_no || job.transport_category === 'international') {
-            // BL: เช็คอินจุดรับสินค้า → in_transit
+            // BL: เช็คอินจุดส่งสินค้า → delivered
             updateOrderStatus({
               order_number: job.order_code,
-              status: 'in_transit',
+              status: 'delivered',
               driver_id: user.id,
               driver_type: driverType,
-              notes: 'กำลังไปจุดส่ง',
+              notes: 'ถึงโรงงานแล้ว',
             }).catch(err => console.warn('updateOrderStatus error:', err));
           }
 
