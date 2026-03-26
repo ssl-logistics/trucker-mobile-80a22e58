@@ -857,12 +857,21 @@ export default function CurrentJobsPage() {
     }
     return true;
   }).sort((a: any, b: any) => {
+    // Priority: jobs actively being worked on come first
+    const activeStatuses = ['in_transit', 'arrived_at_pickup', 'at_container_return', 'returning_container', 'delivered'];
+    const statusA = (a.status || '').toLowerCase();
+    const statusB = (b.status || '').toLowerCase();
+    const aIsActive = activeStatuses.includes(statusA);
+    const bIsActive = activeStatuses.includes(statusB);
+    if (aIsActive && !bIsActive) return -1;
+    if (!aIsActive && bIsActive) return 1;
+
+    // Then sort by date descending
     const parseDate = (dateStr: string, timeStr?: string): number => {
       if (!dateStr) return 0;
       const d = dateStr.trim();
       const t = (timeStr || '00:00:00').trim();
       let normalized = d;
-      // Handle DD/MM/YYYY format
       const ddmmyyyy = d.match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})$/);
       if (ddmmyyyy) {
         normalized = `${ddmmyyyy[3]}-${ddmmyyyy[2].padStart(2, '0')}-${ddmmyyyy[1].padStart(2, '0')}`;
