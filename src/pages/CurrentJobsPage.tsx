@@ -405,6 +405,7 @@ export default function CurrentJobsPage() {
             remarks: job.remarks,
             created_at: job.created_at,
             updated_at: job.updated_at,
+            lastCheckinTime: latestCheckinByTransportId[String(job.id)] || 0,
             // Multiple destinations support
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
