@@ -37,6 +37,9 @@ interface JobDetail {
   origin_remarks?: string | null;
   origin_address?: string | null;
   origin_company_name?: string | null;
+  bl_no?: string | null;
+  booking_no?: string | null;
+  transport_category?: string | null;
 }
 export default function PickupDetailPage() {
   const navigate = useNavigate();
@@ -111,6 +114,9 @@ export default function PickupDetailPage() {
           origin_remarks: stateJobData.origin_remarks ?? null,
           origin_address: stateJobData.origin_address ?? null,
           origin_company_name: stateJobData.origin_company_name ?? null,
+          bl_no: stateJobData.bl_no ?? null,
+          booking_no: stateJobData.booking_no ?? null,
+          transport_category: stateJobData.transport_category ?? null,
         };
         setJob(mappedJob);
         setLoading(false);
@@ -167,7 +173,6 @@ export default function PickupDetailPage() {
             }
           }
           setIsBidJob(false);
-          // Map API response to JobDetail interface
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
@@ -187,6 +192,9 @@ export default function PickupDetailPage() {
             origin_remarks: foundJob.remarks,
             origin_address: (Array.isArray(foundJob.origins) && foundJob.origins.length > 0 ? foundJob.origins[0].address : null) || foundJob.sender_address,
             origin_company_name: foundJob.factory_name || foundJob.sender_name,
+            bl_no: foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || null,
+            booking_no: foundJob.booking_no || foundJob.booking_number || null,
+            transport_category: foundJob.transport_category || null,
           };
           setJob(mappedJob);
         } else {
@@ -373,17 +381,24 @@ export default function PickupDetailPage() {
             }).catch(err => console.warn('truck-arrival error:', err));
           }
 
-          // Update order status for international jobs
-          const jobAnyStatus = job as any;
-          if (jobAnyStatus.bl_no || jobAnyStatus.booking_no || jobAnyStatus.transport_category === 'international') {
+          // Update order status for international jobs (BL or Booking)
+          if (job.bl_no || job.booking_no || job.transport_category === 'international') {
             updateOrderStatus({
               order_number: job.order_code,
-              status: 'delivered',
+              status: 'arrived_at_pickup',
               driver_id: user.id,
               driver_type: driverType,
               notes: 'เช็คอินจุดรับสินค้าสำเร็จ',
             }).catch(err => console.warn('updateOrderStatus error:', err));
           }
+
+          // Send job status notification
+          sendJobStatus({
+            jobId: job.id,
+            orderCode: job.order_code,
+            userId: user.id,
+            status: 'pickup_checked_in',
+          }).catch(err => console.warn('sendJobStatus error:', err));
         } catch (bgError) {
           console.error('[PickupDetail] Background task error:', bgError);
         }
