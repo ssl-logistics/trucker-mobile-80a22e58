@@ -844,6 +844,10 @@ export default function CurrentJobsPage() {
       }
     }
     return true;
+  }).sort((a: any, b: any) => {
+    const dateA = new Date(a.sender_pickup_date || a.created_at || 0).getTime();
+    const dateB = new Date(b.sender_pickup_date || b.created_at || 0).getTime();
+    return dateB - dateA;
   });
   const EmptyState = () => <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center mb-4">
