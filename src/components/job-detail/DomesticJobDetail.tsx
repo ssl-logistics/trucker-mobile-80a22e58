@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { translateUnit } from '@/utils/apiDataTranslations';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2, Eye, Mic, MicOff } from 'lucide-react';
+import { useVoiceReorder } from '@/hooks/useVoiceReorder';
 import {
   Dialog,
   DialogContent,
@@ -233,6 +234,8 @@ export default function DomesticJobDetail({
   const [verifiedLookupData, setVerifiedLookupData] = useState<any>(null);
   const [showGoodsModal, setShowGoodsModal] = useState(false);
   const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
+  // Voice reorder state
+  const [showVoiceMatch, setShowVoiceMatch] = useState<{ name: string; index: number } | null>(null);
 
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
@@ -743,7 +746,33 @@ export default function DomesticJobDetail({
     setShowSwapConfirm(true);
   };
 
-  const confirmSwap = async () => {
+  // Voice reorder hook
+  const voiceReorder = useVoiceReorder({
+    destinations: displayDestinations,
+    language,
+    onMatch: (result) => {
+      if (result.matchedDestination) {
+        const { matchedDestination } = result;
+        const currentDests = displayDestinations;
+        const firstUnfinishedIdx = currentDests.findIndex((d) => {
+          const checkin = destCheckinById[d.id];
+          return !(checkin?.checked_in_at || d.checked_in_at);
+        });
+
+        if (firstUnfinishedIdx >= 0 && matchedDestination.index !== firstUnfinishedIdx) {
+          handleSwapRequest(matchedDestination.index, firstUnfinishedIdx);
+          setShowVoiceMatch({ name: matchedDestination.name, index: matchedDestination.index });
+          setTimeout(() => setShowVoiceMatch(null), 3000);
+        } else if (matchedDestination.index === firstUnfinishedIdx) {
+          toast({ title: `"${matchedDestination.name}" เป็นจุดถัดไปอยู่แล้ว` });
+        }
+      } else {
+        toast({ title: 'ไม่พบจุดส่งที่ตรงกับเสียง', description: `ได้ยิน: "${result.transcript}"`, variant: 'destructive' });
+      }
+    },
+  });
+
+
     if (!pendingSwap) return;
     const newOrder = [...displayDestinations];
     // Save delivery_date/time from original positions so they stay in place
@@ -934,18 +963,62 @@ export default function DomesticJobDetail({
                 })}
               </div>
               {!isFromHistory && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsReorderMode(!isReorderMode)}
-                  className={`h-7 px-3 text-[11px] font-medium gap-1.5 rounded-lg shadow-sm ${
-                    isReorderMode ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5 hover:text-black'
-                  }`}
-                >
-                  <Repeat2 className="w-3.5 h-3.5" />
-                  {isReorderMode ? t('jobDetail.doneReorder') : t('jobDetail.reorder')}
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  {voiceReorder.isSupported && displayDestinations.length > 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={voiceReorder.isListening ? voiceReorder.stopListening : voiceReorder.startListening}
+                      className={`h-7 w-7 p-0 rounded-lg shadow-sm ${
+                        voiceReorder.isListening 
+                          ? 'bg-red-500 text-white border-red-500 hover:bg-red-600 animate-pulse' 
+                          : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5'
+                      }`}
+                      title="สั่งลำดับด้วยเสียง"
+                    >
+                      {voiceReorder.isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsReorderMode(!isReorderMode)}
+                    className={`h-7 px-3 text-[11px] font-medium gap-1.5 rounded-lg shadow-sm ${
+                      isReorderMode ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5 hover:text-black'
+                    }`}
+                  >
+                    <Repeat2 className="w-3.5 h-3.5" />
+                    {isReorderMode ? t('jobDetail.doneReorder') : t('jobDetail.reorder')}
+                  </Button>
+                </div>
               )}
+            </div>
+          )}
+
+          {/* Voice listening indicator */}
+          {voiceReorder.isListening && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center gap-2 animate-pulse">
+              <Mic className="w-4 h-4 text-red-500" />
+              <div className="flex-1">
+                <p className="text-xs font-medium text-red-700">กำลังฟัง... พูดชื่อจุดส่งที่ต้องการ</p>
+                {voiceReorder.transcript && (
+                  <p className="text-[10px] text-red-500 mt-0.5">ได้ยิน: "{voiceReorder.transcript}"</p>
+                )}
+              </div>
+              <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] text-red-600" onClick={voiceReorder.stopListening}>หยุด</Button>
+            </div>
+          )}
+
+          {voiceReorder.error && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 text-xs text-destructive">
+              {voiceReorder.error}
+            </div>
+          )}
+
+          {showVoiceMatch && (
+            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <p className="text-xs font-medium text-green-700">จะสลับ "{showVoiceMatch.name}" เป็นจุดถัดไป</p>
             </div>
           )}
 
