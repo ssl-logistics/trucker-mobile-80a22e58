@@ -963,17 +963,34 @@ export default function DomesticJobDetail({
                 })}
               </div>
               {!isFromHistory && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsReorderMode(!isReorderMode)}
-                  className={`h-7 px-3 text-[11px] font-medium gap-1.5 rounded-lg shadow-sm ${
-                    isReorderMode ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5 hover:text-black'
-                  }`}
-                >
-                  <Repeat2 className="w-3.5 h-3.5" />
-                  {isReorderMode ? t('jobDetail.doneReorder') : t('jobDetail.reorder')}
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  {voiceReorder.isSupported && displayDestinations.length > 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={voiceReorder.isListening ? voiceReorder.stopListening : voiceReorder.startListening}
+                      className={`h-7 w-7 p-0 rounded-lg shadow-sm ${
+                        voiceReorder.isListening 
+                          ? 'bg-red-500 text-white border-red-500 hover:bg-red-600 animate-pulse' 
+                          : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5'
+                      }`}
+                      title="สั่งลำดับด้วยเสียง"
+                    >
+                      {voiceReorder.isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsReorderMode(!isReorderMode)}
+                    className={`h-7 px-3 text-[11px] font-medium gap-1.5 rounded-lg shadow-sm ${
+                      isReorderMode ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5 hover:text-black'
+                    }`}
+                  >
+                    <Repeat2 className="w-3.5 h-3.5" />
+                    {isReorderMode ? t('jobDetail.doneReorder') : t('jobDetail.reorder')}
+                  </Button>
+                </div>
               )}
             </div>
           )}
