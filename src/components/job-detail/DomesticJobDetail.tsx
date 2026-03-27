@@ -746,7 +746,33 @@ export default function DomesticJobDetail({
     setShowSwapConfirm(true);
   };
 
-  const confirmSwap = async () => {
+  // Voice reorder hook
+  const voiceReorder = useVoiceReorder({
+    destinations: displayDestinations,
+    language,
+    onMatch: (result) => {
+      if (result.matchedDestination) {
+        const { matchedDestination } = result;
+        const currentDests = displayDestinations;
+        const firstUnfinishedIdx = currentDests.findIndex((d) => {
+          const checkin = destCheckinById[d.id];
+          return !(checkin?.checked_in_at || d.checked_in_at);
+        });
+
+        if (firstUnfinishedIdx >= 0 && matchedDestination.index !== firstUnfinishedIdx) {
+          handleSwapRequest(matchedDestination.index, firstUnfinishedIdx);
+          setShowVoiceMatch({ name: matchedDestination.name, index: matchedDestination.index });
+          setTimeout(() => setShowVoiceMatch(null), 3000);
+        } else if (matchedDestination.index === firstUnfinishedIdx) {
+          toast({ title: `"${matchedDestination.name}" เป็นจุดถัดไปอยู่แล้ว` });
+        }
+      } else {
+        toast({ title: 'ไม่พบจุดส่งที่ตรงกับเสียง', description: `ได้ยิน: "${result.transcript}"`, variant: 'destructive' });
+      }
+    },
+  });
+
+
     if (!pendingSwap) return;
     const newOrder = [...displayDestinations];
     // Save delivery_date/time from original positions so they stay in place
