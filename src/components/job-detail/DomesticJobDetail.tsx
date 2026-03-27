@@ -234,10 +234,40 @@ export default function DomesticJobDetail({
   const [verifiedLookupData, setVerifiedLookupData] = useState<any>(null);
   const [showGoodsModal, setShowGoodsModal] = useState(false);
   const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
+  // Voice reorder state
+  const [showVoiceMatch, setShowVoiceMatch] = useState<{ name: string; index: number } | null>(null);
 
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
+
+  // Voice reorder hook
+  const voiceReorder = useVoiceReorder({
+    destinations: displayDestinations.length > 0 ? displayDestinations : destinations,
+    language,
+    onMatch: (result) => {
+      if (result.matchedDestination) {
+        const { matchedDestination } = result;
+        // Find the first non-checked-in destination index to swap with
+        const currentDests = localDestOrder.length > 0 ? localDestOrder : destinations;
+        const firstUnfinishedIdx = currentDests.findIndex((d, i) => {
+          const checkin = destCheckinById[d.id];
+          return !(checkin?.checked_in_at || d.checked_in_at);
+        });
+
+        if (firstUnfinishedIdx >= 0 && matchedDestination.index !== firstUnfinishedIdx) {
+          // Trigger the swap
+          handleSwapRequest(matchedDestination.index, firstUnfinishedIdx);
+          setShowVoiceMatch({ name: matchedDestination.name, index: matchedDestination.index });
+          setTimeout(() => setShowVoiceMatch(null), 3000);
+        } else if (matchedDestination.index === firstUnfinishedIdx) {
+          toast({ title: `"${matchedDestination.name}" เป็นจุดถัดไปอยู่แล้ว` });
+        }
+      } else {
+        toast({ title: 'ไม่พบจุดส่งที่ตรงกับเสียง', description: `ได้ยิน: "${result.transcript}"`, variant: 'destructive' });
+      }
+    },
+  });
 
   // Handle OCR photo selection
   const handleOcrPhotoSelect = async (source: 'camera' | 'gallery') => {
