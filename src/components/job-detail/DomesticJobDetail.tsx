@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { translateUnit } from '@/utils/apiDataTranslations';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2, Eye, Mic, MicOff } from 'lucide-react';
+import { useVoiceReorder } from '@/hooks/useVoiceReorder';
 import {
   Dialog,
   DialogContent,
