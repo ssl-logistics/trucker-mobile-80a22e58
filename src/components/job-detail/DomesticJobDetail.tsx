@@ -995,6 +995,33 @@ export default function DomesticJobDetail({
             </div>
           )}
 
+          {/* Voice listening indicator */}
+          {voiceReorder.isListening && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center gap-2 animate-pulse">
+              <Mic className="w-4 h-4 text-red-500" />
+              <div className="flex-1">
+                <p className="text-xs font-medium text-red-700">กำลังฟัง... พูดชื่อจุดส่งที่ต้องการ</p>
+                {voiceReorder.transcript && (
+                  <p className="text-[10px] text-red-500 mt-0.5">ได้ยิน: "{voiceReorder.transcript}"</p>
+                )}
+              </div>
+              <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] text-red-600" onClick={voiceReorder.stopListening}>หยุด</Button>
+            </div>
+          )}
+
+          {voiceReorder.error && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 text-xs text-destructive">
+              {voiceReorder.error}
+            </div>
+          )}
+
+          {showVoiceMatch && (
+            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <p className="text-xs font-medium text-green-700">จะสลับ "{showVoiceMatch.name}" เป็นจุดถัดไป</p>
+            </div>
+          )}
+
           {/* Step Tracker + Content Wrapper */}
           <div className="relative flex gap-3">
             {/* Left Timeline Column with Continuous Line */}
