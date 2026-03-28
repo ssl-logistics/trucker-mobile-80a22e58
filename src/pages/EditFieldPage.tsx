@@ -128,8 +128,31 @@ export default function EditFieldPage() {
           console.log('Profile update result:', profileResult);
         }
 
+        // Immediately update local session with the new value
+        const storedDriver = await getAuthItem('auth_driver');
+        if (storedDriver) {
+          try {
+            const driverObj = JSON.parse(storedDriver);
+            if (field === 'firstName') {
+              driverObj.first_name = value;
+              const lastName = driverObj.last_name || '';
+              driverObj.full_name = `${value} ${lastName}`.trim();
+            } else if (field === 'lastName') {
+              driverObj.last_name = value;
+              const firstName = driverObj.first_name || '';
+              driverObj.full_name = `${firstName} ${value}`.trim();
+            } else if (field === 'phone') {
+              driverObj.phone_number = value;
+              driverObj.phone = value;
+            }
+            await setAuthItem('auth_driver', JSON.stringify(driverObj));
+            window.dispatchEvent(new Event('auth_driver_updated'));
+          } catch (e) {
+            console.warn('Failed to update local driver data:', e);
+          }
+        }
+
         toast({ title: t('editField.success'), description: t('editField.updated') });
-        await refreshUser();
         navigate('/profile');
       }
     } catch (err) {
