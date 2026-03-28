@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { isDriverNotFoundError } from '@/utils/oauthDriverSync';
-import { getAuthItem } from '@/utils/authStorage';
+import { getAuthItem, setAuthItem } from '@/utils/authStorage';
 import { updateFreelanceDriver } from '@/lib/externalApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
