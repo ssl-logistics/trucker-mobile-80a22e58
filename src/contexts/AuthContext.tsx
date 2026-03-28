@@ -225,6 +225,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             email: tmsDriverData?.email || sessionUser.email,
             username: tmsDriverData?.driverCode || '',
             loginType: oauthProvider,
+            // Spread all TMS data to include vehicle info, bank details, etc.
+            ...(tmsDriverData && typeof tmsDriverData === 'object' ? tmsDriverData : {}),
           };
 
           // Auto-register in DB (non-blocking, register-driver already called above)
