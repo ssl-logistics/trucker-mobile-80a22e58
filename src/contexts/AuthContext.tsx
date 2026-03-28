@@ -313,7 +313,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             console.log('Updated OAuth driver data from TMS:', tmsData);
             
             // Merge TMS data with existing user data (preserve loginType, lineUser etc)
-            const currentDriver = user || {};
+            const currentDriver: any = user || {};
             const tmsFullName = `${tmsData.firstName || ''} ${tmsData.lastName || ''}`.trim();
             
             const updatedDriver: any = {
