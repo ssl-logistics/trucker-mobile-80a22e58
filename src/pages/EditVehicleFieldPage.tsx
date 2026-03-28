@@ -77,6 +77,9 @@ export default function EditVehicleFieldPage() {
   // Check if user is internal or external driver (not freelance)
   // These drivers have vehicle data stored on the user object from external API
   const isExternalOrInternalDriver = userType === 'internal_driver' || userType === 'external_driver';
+  
+  // Check if user should use the external API for vehicle updates (all driver types that have data in TMS)
+  const shouldUseExternalApi = isExternalOrInternalDriver || userType === 'freelance_driver';
 
   useEffect(() => {
     loadCurrentValue();
