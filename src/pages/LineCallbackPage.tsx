@@ -279,6 +279,9 @@ const LineCallbackPage = () => {
             : '';
 
           const lineDriver: Record<string, any> = {
+            // Spread all TMS data first (includes vehicle info, bank details, etc.)
+            ...(tmsData && typeof tmsData === 'object' ? tmsData : {}),
+            // Override with correct app-level fields
             id: tmsData?.id || driverUserId,
             full_name: tmsFullName || data.user.displayName,
             avatar_url: data.user.pictureUrl || tmsData?.avatar_url || null,
@@ -287,10 +290,6 @@ const LineCallbackPage = () => {
             username: tmsData?.driverCode || '',
             loginType: 'line',
             lineUser: data.user,
-            // Preserve additional TMS fields
-            ...(tmsData?.bank_name && { bank_name: tmsData.bank_name }),
-            ...(tmsData?.bank_account_number && { bank_account_number: tmsData.bank_account_number }),
-            ...(tmsData?.bank_account_name && { bank_account_name: tmsData.bank_account_name }),
           };
           
           await setAuthItem('auth_driver', JSON.stringify(lineDriver));

@@ -77,6 +77,9 @@ export default function EditVehicleFieldPage() {
   // Check if user is internal or external driver (not freelance)
   // These drivers have vehicle data stored on the user object from external API
   const isExternalOrInternalDriver = userType === 'internal_driver' || userType === 'external_driver';
+  
+  // Check if user should use the external API for vehicle updates (all driver types that have data in TMS)
+  const shouldUseExternalApi = isExternalOrInternalDriver || userType === 'freelance_driver';
 
   useEffect(() => {
     loadCurrentValue();
@@ -85,8 +88,8 @@ export default function EditVehicleFieldPage() {
   const loadCurrentValue = async () => {
     if (!user || !field) return;
 
-    // Internal/External driver data is stored on the user object (not in vehicles table)
-    if (isExternalOrInternalDriver) {
+    // Driver data stored on the user object (from external API / TMS)
+    if (shouldUseExternalApi && user.plate_number) {
       switch (field) {
         case 'plate_number':
           setValue(user.plate_number || '');
@@ -185,8 +188,8 @@ export default function EditVehicleFieldPage() {
 
     setLoading(true);
     try {
-      // Internal/External driver: update via backend function so VehicleInfoPage + Settings reflect immediately
-      if (isExternalOrInternalDriver) {
+      // Use external API for all driver types
+      if (shouldUseExternalApi) {
         const updatePayload: Record<string, any> = {
           driver_id: user.id,
           driver_type: getDriverTypeFromUserType(userType),
