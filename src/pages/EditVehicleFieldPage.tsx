@@ -188,8 +188,8 @@ export default function EditVehicleFieldPage() {
 
     setLoading(true);
     try {
-      // Internal/External driver: update via backend function so VehicleInfoPage + Settings reflect immediately
-      if (isExternalOrInternalDriver) {
+      // Use external API for all driver types
+      if (shouldUseExternalApi) {
         const updatePayload: Record<string, any> = {
           driver_id: user.id,
           driver_type: getDriverTypeFromUserType(userType),
