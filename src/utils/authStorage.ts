@@ -42,7 +42,7 @@ async function prefRemove(key: string): Promise<void> {
 
 /**
  * Storage strategy (especially for iOS/Android):
- * - Always read from Preferences first, then fallback to localStorage.
+ * - Always read from localStorage first, then fallback to Preferences.
  * - Always write to BOTH stores (best-effort) to keep them in sync.
  * - When we find a value in one store, mirror it to the other store.
  */
@@ -55,9 +55,11 @@ export async function getAuthItem(key: AuthKey): Promise<string | null> {
   const normalizedPref = prefValue ?? null;
   const normalizedLs = lsValue ?? null;
 
+  // localStorage is the source of truth for immediate same-session UI updates.
+  // This avoids stale native Preference values overriding newly edited data.
   const chosen =
-    normalizedPref && normalizedPref !== "" ? normalizedPref :
     normalizedLs && normalizedLs !== "" ? normalizedLs :
+    normalizedPref && normalizedPref !== "" ? normalizedPref :
     null;
 
   if (!chosen) return null;
