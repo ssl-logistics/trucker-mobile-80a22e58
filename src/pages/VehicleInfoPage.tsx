@@ -637,7 +637,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.plateNumber')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.plate_number}</p>
+                <p className="text-base font-medium mt-1">{displayVehicleData.plate_number}</p>
               </div>
               {canEditVehicle && (
                 <Button 
@@ -654,7 +654,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.plateProvince')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.plate_province}</p>
+                <p className="text-base font-medium mt-1">{displayVehicleData.plate_province}</p>
               </div>
               {canEditVehicle && (
                 <Button 
@@ -671,7 +671,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.brand')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.vehicle_brand}</p>
+                <p className="text-base font-medium mt-1">{displayVehicleData.vehicle_brand}</p>
               </div>
               {canEditVehicle && (
                 <Button 
@@ -688,7 +688,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.color')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.vehicle_color}</p>
+                <p className="text-base font-medium mt-1">{displayVehicleData.vehicle_color}</p>
               </div>
               {canEditVehicle && (
                 <Button 
@@ -705,7 +705,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.vin')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.vin}</p>
+                <p className="text-base font-medium mt-1">{displayVehicleData.vin}</p>
               </div>
               {canEditVehicle && (
                 <Button 
@@ -722,7 +722,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.type')}</Label>
-                <p className="text-base font-medium mt-1">{getTranslatedVehicleType(vehicleData.vehicle_type, t)}</p>
+                <p className="text-base font-medium mt-1">{getTranslatedVehicleType(displayVehicleData.vehicle_type, t)}</p>
               </div>
               {canEditVehicle && (
                 <Button 
@@ -739,7 +739,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.fuelType')}</Label>
-                <p className="text-base font-medium mt-1">{getTranslatedFuelType(vehicleData.fuel_type, t)}</p>
+                <p className="text-base font-medium mt-1">{getTranslatedFuelType(displayVehicleData.fuel_type, t)}</p>
               </div>
               {canEditVehicle && (
                 <Button 
@@ -756,7 +756,7 @@ export default function VehicleInfoPage() {
             <div className="flex items-center justify-between py-3 border-b border-border">
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.loadCapacity')}</Label>
-                <p className="text-base font-medium mt-1">{vehicleData.load_capacity}</p>
+                <p className="text-base font-medium mt-1">{displayVehicleData.load_capacity}</p>
               </div>
               {canEditVehicle && (
                 <Button 
@@ -774,8 +774,8 @@ export default function VehicleInfoPage() {
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.dimensions')}</Label>
                 <p className="text-base font-medium mt-1">
-                  {vehicleData.width && vehicleData.length && vehicleData.height
-                    ? `${t('vehicle.width')} ${vehicleData.width} ${t('vehicle.length')} ${vehicleData.length} ${t('vehicle.height')} ${vehicleData.height} ${t('vehicle.meter')}`
+                  {displayVehicleData.width && vehicleData.length && vehicleData.height
+                    ? `${t('vehicle.width')} ${displayVehicleData.width} ${t('vehicle.length')} ${displayVehicleData.length} ${t('vehicle.height')} ${displayVehicleData.height} ${t('vehicle.meter')}`
                     : t('vehicle.notSpecified')}
                 </p>
               </div>
@@ -795,7 +795,7 @@ export default function VehicleInfoPage() {
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.containerTypes')}</Label>
                 <p className="text-base font-medium mt-1">
-                  {vehicleData.container_types && vehicleData.container_types.length > 0
+                  {displayVehicleData.container_types && vehicleData.container_types.length > 0
                     ? vehicleData.container_types
                         .map((type) => containerTypeOptions.find((opt) => opt.value === type)?.label || type)
                         .join(', ')
