@@ -249,12 +249,13 @@ const LineCallbackPage = () => {
               console.log('[LINE Callback] ✅ External TMS registration result:', registerData);
             }
 
-            // Extract phone/email from registration data if available
+            // Extract real driver data from TMS registration response
             const regDriverData = registerData?.data || registerData;
-            const registeredPhone = regDriverData?.phone || '';
-            const registeredEmail = regDriverData?.email || '';
-            const registeredFirstName = regDriverData?.firstName || '';
-            const registeredLastName = regDriverData?.lastName || '';
+            if (regDriverData && regDriverData.id) {
+              console.log('[LINE Callback] ✅ Got real driver data from TMS:', regDriverData);
+              // Store TMS data to use when building auth_driver below
+              (window as any).__lineRegDriverData = regDriverData;
+            }
           } catch (regErr) {
             console.warn('[LINE Callback] ⚠️ External registration failed (non-blocking):', regErr);
           }
