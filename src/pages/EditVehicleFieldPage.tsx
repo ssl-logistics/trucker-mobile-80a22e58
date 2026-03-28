@@ -88,8 +88,8 @@ export default function EditVehicleFieldPage() {
   const loadCurrentValue = async () => {
     if (!user || !field) return;
 
-    // Internal/External driver data is stored on the user object (not in vehicles table)
-    if (isExternalOrInternalDriver) {
+    // Driver data stored on the user object (from external API / TMS)
+    if (shouldUseExternalApi && user.plate_number) {
       switch (field) {
         case 'plate_number':
           setValue(user.plate_number || '');
