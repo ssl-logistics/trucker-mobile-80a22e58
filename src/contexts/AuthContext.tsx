@@ -188,9 +188,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               : null;
 
         if (sessionUser && oauthProvider) {
+          // Try to get real driver data from TMS via register-driver
+          let tmsDriverData: any = null;
+          try {
+            const { data: regData } = await supabase.functions.invoke('register-driver', {
+              body: {
+                authProvider: oauthProvider,
+                authUserId: sessionUser.id,
+                firstName: sessionUser.user_metadata?.full_name?.split(' ')[0],
+                lastName: sessionUser.user_metadata?.full_name?.split(' ').slice(1).join(' '),
+              },
+            });
+            tmsDriverData = regData?.data || regData;
+            console.log('[AuthContext] TMS driver data:', tmsDriverData);
+          } catch (e) {
+            console.warn('[AuthContext] register-driver failed (non-blocking):', e);
+          }
+
+          const tmsFullName = tmsDriverData
+            ? `${tmsDriverData.firstName || ''} ${tmsDriverData.lastName || ''}`.trim()
+            : '';
+
           const oauthDriver: DriverData = {
-            id: sessionUser.id,
+            id: tmsDriverData?.id || sessionUser.id,
             full_name:
+              tmsFullName ||
               sessionUser.user_metadata?.full_name ||
               sessionUser.user_metadata?.name ||
               sessionUser.email ||
@@ -199,11 +221,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               sessionUser.user_metadata?.avatar_url ||
               sessionUser.user_metadata?.picture ||
               null,
-            email: sessionUser.email,
+            phone_number: tmsDriverData?.phone || '',
+            email: tmsDriverData?.email || sessionUser.email,
+            username: tmsDriverData?.driverCode || '',
             loginType: oauthProvider,
           };
 
-          // Auto-register in DB + external TMS (non-blocking)
+          // Auto-register in DB (non-blocking, register-driver already called above)
           autoRegisterOAuthUser({
             authProvider: oauthProvider as 'apple' | 'google',
             authUserId: sessionUser.id,
@@ -213,7 +237,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
           await Promise.all([
             setAuthItem('auth_driver', JSON.stringify(oauthDriver)),
-            setAuthItem('auth_driver_id', sessionUser.id),
+            setAuthItem('auth_driver_id', oauthDriver.id),
             setAuthItem('auth_login_type', oauthProvider),
             setAuthItem('auth_user_type', 'freelance_driver'),
             setAuthItem('user_role', 'freelance'),
