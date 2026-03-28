@@ -129,7 +129,7 @@ export default function EditFieldPage() {
         }
 
         toast({ title: t('editField.success'), description: t('editField.updated') });
-        
+        await refreshUser();
         navigate('/profile');
       }
     } catch (err) {
