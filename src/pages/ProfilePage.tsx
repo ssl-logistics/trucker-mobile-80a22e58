@@ -72,15 +72,29 @@ export default function ProfilePage() {
       // Check if login via LINE
       const isLineLogin = user.loginType === 'line' || !!user.lineUser;
       
-      // Use data directly from AuthContext (external login API)
+      // Derive first/last name - prefer TMS data (full_name, first_name, last_name) over LINE displayName
+      let firstName = user.first_name || '';
+      let lastName = user.last_name || '';
+      
+      // If no explicit first/last name, try to split full_name
+      if (!firstName && user.full_name) {
+        const parts = user.full_name.split(' ');
+        firstName = parts[0] || '';
+        lastName = parts.slice(1).join(' ') || '';
+      }
+      
+      // Only fall back to LINE displayName if no TMS name available
+      if (!firstName && isLineLogin && user.lineUser?.displayName) {
+        const parts = user.lineUser.displayName.split(' ');
+        firstName = parts[0] || user.lineUser.displayName;
+        lastName = parts.slice(1).join(' ') || '';
+      }
+
+      // Use data directly from AuthContext - prefer TMS data over LINE profile data
       const profileData: ProfileData = {
-        first_name: isLineLogin && user.lineUser?.displayName 
-          ? user.lineUser.displayName.split(' ')[0] || user.lineUser.displayName
-          : user.first_name || '',
-        last_name: isLineLogin && user.lineUser?.displayName 
-          ? user.lineUser.displayName.split(' ').slice(1).join(' ') || ''
-          : user.last_name || '',
-        phone_number: user.phone || user.phone_number || '',
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: user.phone_number || user.phone || '',
         avatar_url: isLineLogin && user.lineUser?.pictureUrl 
           ? user.lineUser.pictureUrl 
           : user.profile_photo_url || user.avatar_url || undefined,

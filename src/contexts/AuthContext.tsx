@@ -285,6 +285,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const refreshUser = async () => {
     const storedDriverId = await getAuthItem('auth_driver_id');
+    const loginType = await getAuthItem('auth_login_type');
     const driverId = storedDriverId || user?.id;
 
     if (!driverId) {
@@ -294,6 +295,55 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
 
     try {
+      // For OAuth users (LINE/Apple/Google), use register-driver to get fresh TMS data
+      const isOAuth = loginType === 'line' || loginType === 'apple' || loginType === 'google';
+      
+      if (isOAuth) {
+        console.log('Fetching fresh OAuth user data from register-driver...');
+        const { data: regData, error: regError } = await supabase.functions.invoke('register-driver', {
+          body: {
+            authProvider: loginType,
+            authUserId: driverId,
+          },
+        });
+
+        if (!regError && regData) {
+          const tmsData = regData?.data || regData;
+          if (tmsData && tmsData.id) {
+            console.log('Updated OAuth driver data from TMS:', tmsData);
+            
+            // Merge TMS data with existing user data (preserve loginType, lineUser etc)
+            const currentDriver: any = user || {};
+            const tmsFullName = `${tmsData.firstName || ''} ${tmsData.lastName || ''}`.trim();
+            
+            const updatedDriver: any = {
+              ...currentDriver,
+              id: tmsData.id,
+              full_name: tmsFullName || currentDriver.full_name,
+              phone_number: tmsData.phone || (currentDriver as any).phone_number || '',
+              email: tmsData.email || (currentDriver as any).email || '',
+              username: tmsData.driverCode || (currentDriver as any).username || '',
+              first_name: tmsData.firstName || '',
+              last_name: tmsData.lastName || '',
+              loginType: loginType,
+              ...(tmsData.bank_name && { bank_name: tmsData.bank_name }),
+              ...(tmsData.bank_account_number && { bank_account_number: tmsData.bank_account_number }),
+              ...(tmsData.bank_account_name && { bank_account_name: tmsData.bank_account_name }),
+            };
+
+            await setAuthItem('auth_driver', JSON.stringify(updatedDriver));
+            await setAuthItem('auth_driver_id', tmsData.id);
+            setUser(updatedDriver);
+            window.dispatchEvent(new Event('auth_driver_updated'));
+            return;
+          }
+        }
+        console.warn('OAuth refresh failed, falling back to storage');
+        await loadUserFromStorage();
+        return;
+      }
+
+      // For normal users, use get-freelance-drivers
       console.log('Fetching fresh user data from API...');
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-drivers`,
@@ -325,8 +375,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           console.log('Updated driver data:', updatedDriver);
           await setAuthItem('auth_driver', JSON.stringify(updatedDriver));
           setUser(updatedDriver);
-
-          // Dispatch event to notify other components
           window.dispatchEvent(new Event('auth_driver_updated'));
         } else {
           console.log('Driver not found in API response, using storage');
