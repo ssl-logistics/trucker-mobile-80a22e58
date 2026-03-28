@@ -249,12 +249,13 @@ const LineCallbackPage = () => {
               console.log('[LINE Callback] ✅ External TMS registration result:', registerData);
             }
 
-            // Extract phone/email from registration data if available
+            // Extract real driver data from TMS registration response
             const regDriverData = registerData?.data || registerData;
-            const registeredPhone = regDriverData?.phone || '';
-            const registeredEmail = regDriverData?.email || '';
-            const registeredFirstName = regDriverData?.firstName || '';
-            const registeredLastName = regDriverData?.lastName || '';
+            if (regDriverData && regDriverData.id) {
+              console.log('[LINE Callback] ✅ Got real driver data from TMS:', regDriverData);
+              // Store TMS data to use when building auth_driver below
+              (window as any).__lineRegDriverData = regDriverData;
+            }
           } catch (regErr) {
             console.warn('[LINE Callback] ⚠️ External registration failed (non-blocking):', regErr);
           }
@@ -269,13 +270,27 @@ const LineCallbackPage = () => {
           sessionStorage.removeItem('line_oauth_state');
           localStorage.removeItem('line_oauth_state');
 
-          // Create a driver record with Supabase userId
+          // Create a driver record - prefer real TMS data over LINE profile data
+          const tmsData = (window as any).__lineRegDriverData;
+          delete (window as any).__lineRegDriverData;
+
+          const tmsFullName = tmsData
+            ? `${tmsData.firstName || ''} ${tmsData.lastName || ''}`.trim()
+            : '';
+
           const lineDriver: Record<string, any> = {
-            id: driverUserId,
-            full_name: data.user.displayName,
-            avatar_url: data.user.pictureUrl || null,
+            id: tmsData?.id || driverUserId,
+            full_name: tmsFullName || data.user.displayName,
+            avatar_url: data.user.pictureUrl || tmsData?.avatar_url || null,
+            phone_number: tmsData?.phone || '',
+            email: tmsData?.email || '',
+            username: tmsData?.driverCode || '',
             loginType: 'line',
             lineUser: data.user,
+            // Preserve additional TMS fields
+            ...(tmsData?.bank_name && { bank_name: tmsData.bank_name }),
+            ...(tmsData?.bank_account_number && { bank_account_number: tmsData.bank_account_number }),
+            ...(tmsData?.bank_account_name && { bank_account_name: tmsData.bank_account_name }),
           };
           
           await setAuthItem('auth_driver', JSON.stringify(lineDriver));

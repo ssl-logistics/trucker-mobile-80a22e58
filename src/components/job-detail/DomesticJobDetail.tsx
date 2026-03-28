@@ -772,7 +772,7 @@ export default function DomesticJobDetail({
     },
   });
 
-
+  const confirmSwap = async () => {
     if (!pendingSwap) return;
     const newOrder = [...displayDestinations];
     // Save delivery_date/time from original positions so they stay in place
