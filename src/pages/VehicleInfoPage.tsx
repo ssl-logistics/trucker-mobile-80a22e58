@@ -525,13 +525,25 @@ export default function VehicleInfoPage() {
     );
   }
 
-  if (!vehicleData) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">{t('vehicle.noData')}</div>
-      </div>
-    );
-  }
+  // If no vehicle data, create placeholder with dashes so user can edit
+  const displayVehicleData: VehicleData = vehicleData || {
+    id: user?.id || '',
+    plate_number: '---',
+    plate_province: '---',
+    vehicle_brand: '---',
+    vehicle_color: '---',
+    vin: '---',
+    fuel_type: '---',
+    load_capacity: 0,
+    vehicle_type: '---',
+    width: null,
+    length: null,
+    height: null,
+    has_trailer: false,
+    trailer_plate_number: null,
+    trailer_plate_province: null,
+    container_types: [],
+  };
 
   return (
     <div className="min-h-screen bg-background pb-6 relative">
