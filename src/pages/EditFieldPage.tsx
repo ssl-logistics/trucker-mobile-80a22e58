@@ -22,7 +22,7 @@ const isUuid = (value: string | undefined | null): value is string => {
 export default function EditFieldPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, userType } = useAuth();
+  const { user, userType, refreshUser } = useAuth();
   const { t } = useLanguage();
   const { field, value: initialValue, fullName } = location.state || {};
   

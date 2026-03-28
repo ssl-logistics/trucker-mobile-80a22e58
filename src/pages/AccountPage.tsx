@@ -90,6 +90,7 @@ export default function AccountPage() {
         } catch {}
       }
 
+      await refreshUser();
       toast({
         title: t('account.bank_save_success'),
       });
