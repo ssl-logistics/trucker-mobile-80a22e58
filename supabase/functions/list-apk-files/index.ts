@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { appType } = await req.json().catch(() => ({}));
-    const folder = appType || 'trucker';
+    const body = await req.json().catch(() => ({}));
+    const { appType, listApps } = body;
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -22,13 +22,27 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 
+    // Mode: list all available app folders
+    if (listApps) {
+      const { data: rootData } = await supabaseAdmin.storage.from('apk-files').list('', {
+        sortBy: { column: 'name', order: 'asc' },
+      });
+
+      // Folders are entries without an id (or with metadata === null)
+      const folders = (rootData || [])
+        .filter(f => f.name && !f.name.startsWith('.') && !f.id)
+        .map(f => f.name);
+
+      return new Response(JSON.stringify({ apps: folders }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Mode: list files for a specific app
+    const folder = appType || 'trucker';
+
     // Name patterns for matching root-level files to app types
-    const namePatterns: Record<string, string[]> = {
-      trucker: ['trucker'],
-      dealer: ['dealer'],
-      pos: ['pos'],
-    };
-    const patterns = namePatterns[folder] || [folder];
+    const patterns = [folder];
 
     // List files in the app-specific subfolder
     const { data: folderData } = await supabaseAdmin.storage.from('apk-files').list(folder, {
