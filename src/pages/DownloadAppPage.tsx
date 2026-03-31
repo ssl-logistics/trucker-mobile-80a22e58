@@ -2,12 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Upload, Smartphone, FileDown, Loader2, Trash2, Store, Monitor } from 'lucide-react';
+import { Download, Upload, Smartphone, FileDown, Loader2, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import truckerLogo from '@/assets/trucker-logo.png';
-import truckerIcon from '@/assets/trucker-icon.png';
-import dealerIcon from '@/assets/dealer-icon.png';
-import posIcon from '@/assets/pos-icon.png';
 
 interface ApkFile {
   name: string;
@@ -17,41 +13,47 @@ interface ApkFile {
   folder?: string;
 }
 
-type AppType = 'trucker' | 'dealer' | 'pos';
+// Color palette that cycles for dynamic apps
+const COLOR_PALETTES = [
+  { color: 'from-emerald-600 to-emerald-800', gradient: 'from-emerald-600 via-emerald-700 to-emerald-900' },
+  { color: 'from-orange-600 to-red-700', gradient: 'from-orange-600 via-red-700 to-red-900' },
+  { color: 'from-violet-600 to-violet-800', gradient: 'from-violet-600 via-violet-700 to-violet-900' },
+  { color: 'from-blue-600 to-blue-800', gradient: 'from-blue-600 via-blue-700 to-blue-900' },
+  { color: 'from-rose-600 to-rose-800', gradient: 'from-rose-600 via-rose-700 to-rose-900' },
+  { color: 'from-cyan-600 to-cyan-800', gradient: 'from-cyan-600 via-cyan-700 to-cyan-900' },
+  { color: 'from-amber-600 to-amber-800', gradient: 'from-amber-600 via-amber-700 to-amber-900' },
+  { color: 'from-indigo-600 to-indigo-800', gradient: 'from-indigo-600 via-indigo-700 to-indigo-900' },
+];
 
-const APP_CONFIG: Record<AppType, { name: string; icon: React.ReactNode; description: string; color: string; gradient: string }> = {
-  trucker: {
-    name: 'The Trucker Mobile',
-    icon: <img src={truckerIcon} alt="The Trucker Mobile" className="w-full h-full object-cover scale-[1.8]" />,
-    description: 'แอปสำหรับคนขับรถบรรทุก',
-    color: 'from-emerald-600 to-emerald-800',
-    gradient: 'from-emerald-600 via-emerald-700 to-emerald-900',
-  },
-  dealer: {
-    name: 'Dealer',
-    icon: <img src={dealerIcon} alt="Dealer" className="w-full h-full object-cover rounded-xl" />,
-    description: 'แอปสำหรับตัวแทนจำหน่าย',
-    color: 'from-orange-600 to-red-700',
-    gradient: 'from-orange-600 via-red-700 to-red-900',
-  },
-  pos: {
-    name: 'POS',
-    icon: <img src={posIcon} alt="POS" className="w-full h-full object-cover rounded-xl" />,
-    description: 'แอประบบขายหน้าร้าน',
-    color: 'from-violet-600 to-violet-800',
-    gradient: 'from-violet-600 via-violet-700 to-violet-900',
-  },
+// Generate initials from app name for the icon
+const getInitials = (name: string) => {
+  const words = name.split(/[-_\s]+/);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+// Format folder name to display name
+const formatAppName = (folder: string) => {
+  return folder
+    .split(/[-_]+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
 const DownloadAppPage: React.FC = () => {
-  const [selectedApp, setSelectedApp] = useState<AppType | null>(null);
+  const [availableApps, setAvailableApps] = useState<string[]>([]);
+  const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [apkFiles, setApkFiles] = useState<ApkFile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingApps, setLoadingApps] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     checkAdmin();
+    loadAvailableApps();
   }, []);
 
   useEffect(() => {
@@ -74,7 +76,26 @@ const DownloadAppPage: React.FC = () => {
     }
   };
 
-  const loadApkFiles = async (appType: AppType) => {
+  const loadAvailableApps = async () => {
+    setLoadingApps(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('list-apk-files', {
+        body: { listApps: true },
+      });
+      if (error) {
+        console.error('Error loading apps:', error);
+        setAvailableApps([]);
+        return;
+      }
+      setAvailableApps(data?.apps || []);
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      setLoadingApps(false);
+    }
+  };
+
+  const loadApkFiles = async (appType: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('list-apk-files', {
@@ -138,8 +159,9 @@ const DownloadAppPage: React.FC = () => {
     return `${mb.toFixed(1)} MB`;
   };
 
+  const getColorForIndex = (index: number) => COLOR_PALETTES[index % COLOR_PALETTES.length];
+
   const latestApk = apkFiles[0];
-  const config = selectedApp ? APP_CONFIG[selectedApp] : null;
 
   // App selection screen
   if (!selectedApp) {
@@ -154,31 +176,46 @@ const DownloadAppPage: React.FC = () => {
             <p className="text-white/60 text-sm">เลือกแอปที่ต้องการติดตั้ง</p>
           </div>
 
-          <div className="space-y-4">
-            {(Object.keys(APP_CONFIG) as AppType[]).map((appType) => {
-              const app = APP_CONFIG[appType];
-              return (
-                <button
-                  key={appType}
-                  onClick={() => setSelectedApp(appType)}
-                  className="w-full group"
-                >
-                  <Card className="border-0 shadow-xl bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 group-hover:scale-[1.02]">
-                    <CardContent className="flex items-center gap-4 p-5">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
-                        {app.icon}
-                      </div>
-                      <div className="text-left flex-1">
-                        <h2 className="text-lg font-bold text-white">{app.name}</h2>
-                        <p className="text-white/50 text-sm">{app.description}</p>
-                      </div>
-                      <Download className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" />
-                    </CardContent>
-                  </Card>
-                </button>
-              );
-            })}
-          </div>
+          {loadingApps ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-white" />
+            </div>
+          ) : availableApps.length === 0 ? (
+            <Card className="border-0 shadow-xl bg-white/5 backdrop-blur-sm">
+              <CardContent className="py-12 text-center">
+                <Smartphone className="w-12 h-12 mx-auto mb-3 text-white/30" />
+                <p className="text-white/50">ยังไม่มีแอปให้ดาวน์โหลด</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {availableApps.map((appFolder, index) => {
+                const palette = getColorForIndex(index);
+                const displayName = formatAppName(appFolder);
+                const initials = getInitials(appFolder);
+                return (
+                  <button
+                    key={appFolder}
+                    onClick={() => setSelectedApp(appFolder)}
+                    className="w-full group"
+                  >
+                    <Card className="border-0 shadow-xl bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 group-hover:scale-[1.02]">
+                      <CardContent className="flex items-center gap-4 p-5">
+                        <div className={`w-14 h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0 bg-gradient-to-br ${palette.color} flex items-center justify-center`}>
+                          <span className="text-white font-bold text-lg">{initials}</span>
+                        </div>
+                        <div className="text-left flex-1">
+                          <h2 className="text-lg font-bold text-white">{displayName}</h2>
+                          <p className="text-white/50 text-sm">Android APK</p>
+                        </div>
+                        <Download className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" />
+                      </CardContent>
+                    </Card>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <p className="text-center text-white/30 text-xs mt-10">
             © {new Date().getFullYear()} The Troob. All rights reserved.
@@ -189,8 +226,13 @@ const DownloadAppPage: React.FC = () => {
   }
 
   // App detail / download screen
+  const appIndex = availableApps.indexOf(selectedApp);
+  const palette = getColorForIndex(appIndex >= 0 ? appIndex : 0);
+  const displayName = formatAppName(selectedApp);
+  const initials = getInitials(selectedApp);
+
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${config!.gradient}`}>
+    <div className={`min-h-screen bg-gradient-to-br ${palette.gradient}`}>
       <div className="max-w-lg mx-auto px-4 py-8">
         {/* Back + Header */}
         <button
@@ -201,11 +243,11 @@ const DownloadAppPage: React.FC = () => {
         </button>
 
         <div className="text-center mb-8">
-          <div className={`w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 text-white`}>
-            {config!.icon}
+          <div className={`w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+            <span className="text-white font-bold text-2xl">{initials}</span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">{config!.name}</h1>
-          <p className="text-white/70">{config!.description} — Android</p>
+          <h1 className="text-3xl font-bold text-white mb-2">{displayName}</h1>
+          <p className="text-white/70">Android APK</p>
         </div>
 
         {/* Download Card */}
@@ -254,7 +296,7 @@ const DownloadAppPage: React.FC = () => {
           <Card className="mb-6 border-0 shadow-xl">
             <CardContent className="py-8 text-center">
               <FileDown className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">ยังไม่มีไฟล์ APK สำหรับ {config!.name}</p>
+              <p className="text-muted-foreground">ยังไม่มีไฟล์ APK สำหรับ {displayName}</p>
             </CardContent>
           </Card>
         )}
@@ -280,7 +322,7 @@ const DownloadAppPage: React.FC = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Upload className="w-4 h-4" />
-                อัปโหลด APK ใหม่ ({config!.name})
+                อัปโหลด APK ใหม่ ({displayName})
               </CardTitle>
             </CardHeader>
             <CardContent>
