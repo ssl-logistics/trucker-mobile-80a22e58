@@ -44,6 +44,7 @@ const formatAppName = (folder: string) => {
 
 const DownloadAppPage: React.FC = () => {
   const [availableApps, setAvailableApps] = useState<string[]>([]);
+  const [appIcons, setAppIcons] = useState<Record<string, string | null>>({});
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [apkFiles, setApkFiles] = useState<ApkFile[]>([]);
   const [loading, setLoading] = useState(false);
