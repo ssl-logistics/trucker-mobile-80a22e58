@@ -254,8 +254,12 @@ const DownloadAppPage: React.FC = () => {
         </button>
 
         <div className="text-center mb-8">
-          <div className={`w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-            <span className="text-white font-bold text-2xl">{initials}</span>
+          <div className={`w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden`}>
+            {appIcons[selectedApp] ? (
+              <img src={appIcons[selectedApp]!} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white font-bold text-2xl">{initials}</span>
+            )}
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">{displayName}</h1>
           <p className="text-white/70">Android APK</p>
