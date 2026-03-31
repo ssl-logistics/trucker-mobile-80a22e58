@@ -44,6 +44,7 @@ const formatAppName = (folder: string) => {
 
 const DownloadAppPage: React.FC = () => {
   const [availableApps, setAvailableApps] = useState<string[]>([]);
+  const [appIcons, setAppIcons] = useState<Record<string, string | null>>({});
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [apkFiles, setApkFiles] = useState<ApkFile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,6 +89,12 @@ const DownloadAppPage: React.FC = () => {
         return;
       }
       setAvailableApps(data?.apps || []);
+      // Store icon URLs from appDetails
+      const icons: Record<string, string | null> = {};
+      (data?.appDetails || []).forEach((app: { name: string; iconUrl: string | null }) => {
+        icons[app.name] = app.iconUrl;
+      });
+      setAppIcons(icons);
     } catch (err) {
       console.error('Error:', err);
     } finally {
@@ -202,7 +209,11 @@ const DownloadAppPage: React.FC = () => {
                     <Card className="border-0 shadow-xl bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 group-hover:scale-[1.02]">
                       <CardContent className="flex items-center gap-4 p-5">
                         <div className={`w-14 h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0 bg-gradient-to-br ${palette.color} flex items-center justify-center`}>
-                          <span className="text-white font-bold text-lg">{initials}</span>
+                          {appIcons[appFolder] ? (
+                            <img src={appIcons[appFolder]!} alt={displayName} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white font-bold text-lg">{initials}</span>
+                          )}
                         </div>
                         <div className="text-left flex-1">
                           <h2 className="text-lg font-bold text-white">{displayName}</h2>
@@ -243,8 +254,12 @@ const DownloadAppPage: React.FC = () => {
         </button>
 
         <div className="text-center mb-8">
-          <div className={`w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-            <span className="text-white font-bold text-2xl">{initials}</span>
+          <div className={`w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden`}>
+            {appIcons[selectedApp] ? (
+              <img src={appIcons[selectedApp]!} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white font-bold text-2xl">{initials}</span>
+            )}
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">{displayName}</h1>
           <p className="text-white/70">Android APK</p>
