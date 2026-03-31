@@ -28,12 +28,26 @@ serve(async (req) => {
         sortBy: { column: 'name', order: 'asc' },
       });
 
-      // Folders are entries without an id (or with metadata === null)
+      // Collect folder names (entries without an id)
       const folders = (rootData || [])
         .filter(f => f.name && !f.name.startsWith('.') && !f.id)
         .map(f => f.name);
 
-      return new Response(JSON.stringify({ apps: folders }), {
+      // Also detect "apps" from root-level APK files by using filename (without extension) as app name
+      const rootApkApps = new Set<string>();
+      (rootData || []).forEach(f => {
+        if (f.name && f.id && f.name.toLowerCase().endsWith('.apk')) {
+          // Use filename without .apk extension as app name
+          const appName = f.name.replace(/\.apk$/i, '');
+          rootApkApps.add(appName);
+        }
+      });
+
+      // Merge: folders + root APK app names (deduplicated)
+      const allApps = [...new Set([...folders, ...rootApkApps])];
+      allApps.sort((a, b) => a.localeCompare(b));
+
+      return new Response(JSON.stringify({ apps: allApps }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -59,7 +73,7 @@ serve(async (req) => {
         folder,
       }));
 
-    // Also include root-level files that match this app's name pattern
+    // Also include root-level files that match this app's name exactly
     const { data: rootData } = await supabaseAdmin.storage.from('apk-files').list('', {
       sortBy: { column: 'created_at', order: 'desc' },
     });
@@ -68,7 +82,9 @@ serve(async (req) => {
         if (!f.name || !f.id) return false;
         const lower = f.name.toLowerCase();
         if (!lower.endsWith('.apk')) return false;
-        return patterns.some(p => lower.includes(p));
+        // Match by exact filename (without .apk) equals folder name
+        const fileAppName = f.name.replace(/\.apk$/i, '');
+        return fileAppName === folder || lower.includes(folder.toLowerCase());
       })
       .map(f => ({
         name: f.name,
