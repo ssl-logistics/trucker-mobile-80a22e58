@@ -37,7 +37,6 @@ serve(async (req) => {
       const rootApkApps = new Set<string>();
       (rootData || []).forEach(f => {
         if (f.name && f.id && f.name.toLowerCase().endsWith('.apk')) {
-          // Use filename without .apk extension as app name
           const appName = f.name.replace(/\.apk$/i, '');
           rootApkApps.add(appName);
         }
@@ -47,7 +46,22 @@ serve(async (req) => {
       const allApps = [...new Set([...folders, ...rootApkApps])];
       allApps.sort((a, b) => a.localeCompare(b));
 
-      return new Response(JSON.stringify({ apps: allApps }), {
+      // For each folder-based app, check if icon file exists
+      const appDetails = await Promise.all(allApps.map(async (appName) => {
+        let iconUrl: string | null = null;
+        if (folders.includes(appName)) {
+          const { data: folderFiles } = await supabaseAdmin.storage.from('apk-files').list(appName, {});
+          const iconFile = (folderFiles || []).find(f =>
+            f.name && f.id && /^icon\.(png|jpg|jpeg|svg|webp)$/i.test(f.name)
+          );
+          if (iconFile) {
+            iconUrl = `${supabaseUrl}/storage/v1/object/public/apk-files/${appName}/${iconFile.name}`;
+          }
+        }
+        return { name: appName, iconUrl };
+      }));
+
+      return new Response(JSON.stringify({ apps: appDetails.map(a => a.name), appDetails }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -55,16 +69,13 @@ serve(async (req) => {
     // Mode: list files for a specific app
     const folder = appType || 'trucker';
 
-    // Name patterns for matching root-level files to app types
-    const patterns = [folder];
-
     // List files in the app-specific subfolder
     const { data: folderData } = await supabaseAdmin.storage.from('apk-files').list(folder, {
       sortBy: { column: 'created_at', order: 'desc' },
     });
 
     const files = (folderData || [])
-      .filter(f => f.name && !f.name.startsWith('.') && f.id)
+      .filter(f => f.name && !f.name.startsWith('.') && f.id && f.name.toLowerCase().endsWith('.apk'))
       .map(f => ({
         name: f.name,
         size: f.metadata?.size || 0,
@@ -82,7 +93,6 @@ serve(async (req) => {
         if (!f.name || !f.id) return false;
         const lower = f.name.toLowerCase();
         if (!lower.endsWith('.apk')) return false;
-        // Match by exact filename (without .apk) equals folder name
         const fileAppName = f.name.replace(/\.apk$/i, '');
         return fileAppName === folder || lower.includes(folder.toLowerCase());
       })
