@@ -73,7 +73,7 @@ serve(async (req) => {
         folder,
       }));
 
-    // Also include root-level files that match this app's name pattern
+    // Also include root-level files that match this app's name exactly
     const { data: rootData } = await supabaseAdmin.storage.from('apk-files').list('', {
       sortBy: { column: 'created_at', order: 'desc' },
     });
@@ -82,7 +82,9 @@ serve(async (req) => {
         if (!f.name || !f.id) return false;
         const lower = f.name.toLowerCase();
         if (!lower.endsWith('.apk')) return false;
-        return patterns.some(p => lower.includes(p));
+        // Match by exact filename (without .apk) equals folder name
+        const fileAppName = f.name.replace(/\.apk$/i, '');
+        return fileAppName === folder || lower.includes(folder.toLowerCase());
       })
       .map(f => ({
         name: f.name,
