@@ -89,6 +89,12 @@ const DownloadAppPage: React.FC = () => {
         return;
       }
       setAvailableApps(data?.apps || []);
+      // Store icon URLs from appDetails
+      const icons: Record<string, string | null> = {};
+      (data?.appDetails || []).forEach((app: { name: string; iconUrl: string | null }) => {
+        icons[app.name] = app.iconUrl;
+      });
+      setAppIcons(icons);
     } catch (err) {
       console.error('Error:', err);
     } finally {
