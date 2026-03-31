@@ -209,7 +209,11 @@ const DownloadAppPage: React.FC = () => {
                     <Card className="border-0 shadow-xl bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 group-hover:scale-[1.02]">
                       <CardContent className="flex items-center gap-4 p-5">
                         <div className={`w-14 h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0 bg-gradient-to-br ${palette.color} flex items-center justify-center`}>
-                          <span className="text-white font-bold text-lg">{initials}</span>
+                          {appIcons[appFolder] ? (
+                            <img src={appIcons[appFolder]!} alt={displayName} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white font-bold text-lg">{initials}</span>
+                          )}
                         </div>
                         <div className="text-left flex-1">
                           <h2 className="text-lg font-bold text-white">{displayName}</h2>
