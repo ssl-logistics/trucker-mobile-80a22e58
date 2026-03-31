@@ -28,12 +28,26 @@ serve(async (req) => {
         sortBy: { column: 'name', order: 'asc' },
       });
 
-      // Folders are entries without an id (or with metadata === null)
+      // Collect folder names (entries without an id)
       const folders = (rootData || [])
         .filter(f => f.name && !f.name.startsWith('.') && !f.id)
         .map(f => f.name);
 
-      return new Response(JSON.stringify({ apps: folders }), {
+      // Also detect "apps" from root-level APK files by using filename (without extension) as app name
+      const rootApkApps = new Set<string>();
+      (rootData || []).forEach(f => {
+        if (f.name && f.id && f.name.toLowerCase().endsWith('.apk')) {
+          // Use filename without .apk extension as app name
+          const appName = f.name.replace(/\.apk$/i, '');
+          rootApkApps.add(appName);
+        }
+      });
+
+      // Merge: folders + root APK app names (deduplicated)
+      const allApps = [...new Set([...folders, ...rootApkApps])];
+      allApps.sort((a, b) => a.localeCompare(b));
+
+      return new Response(JSON.stringify({ apps: allApps }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
