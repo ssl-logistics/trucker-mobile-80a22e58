@@ -118,7 +118,7 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
     } finally {
       setLoading(false);
     }
-  }, [orderNumber, driverId, getDriverType, isInternalDriver, isExternalDriver]);
+  }, [orderNumber, driverId, getDriverType]);
 
   // Save a checkin (for optimistic update after successful POST)
   const saveCheckin = useCallback((checkin: CheckinRecord) => {
