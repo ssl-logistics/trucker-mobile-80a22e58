@@ -389,14 +389,9 @@ export default function DeliveryDetailPage() {
                 const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
                 // Filter checkins by transport_order_id matching job.id (foundJob.id) and appropriate driver ID
+                // Filter by order only - supports driver swap scenarios
                 const filteredCheckins = allCheckins.filter((c: any) => {
-                  const matchesOrder = c.transport_order_id === foundJob.id;
-                  const matchesUser = isInternalDriver 
-                    ? c.internal_driver_id === user.id 
-                    : isExternalDriver 
-                      ? c.external_driver_id === user.id 
-                      : c.freelance_driver_id === user.id;
-                  return matchesOrder && matchesUser;
+                  return c.transport_order_id === foundJob.id || c.order_number === jobId || c.transport_orders?.order_number === jobId;
                 });
                 console.log('Filtered delivery checkins for order', foundJob.id, ':', filteredCheckins.length);
 
