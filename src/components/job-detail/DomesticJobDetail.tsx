@@ -430,32 +430,15 @@ export default function DomesticJobDetail({
       console.log('All checkins from API:', allCheckins.length, 'items');
       console.log('Current job.id (transport_order_id to match):', job.id);
 
-      // Filter checkins for this specific order & current driver (support internal/external/freelance)
+      // Filter checkins for this specific order (any driver - supports driver swap scenarios)
       const checkins = Array.isArray(allCheckins)
         ? allCheckins.filter((c: any) => {
-            const matchesUser = isInternalDriver
-              ? c.internal_driver_id === userId
-              : isExternalDriver
-              ? c.external_driver_id === userId
-              : c.freelance_driver_id === userId;
-
             const matchesOrder =
               c.transport_order_id === job.id ||
               c.order_number === job.order_code ||
               c.transport_orders?.order_number === job.order_code;
 
-            console.log(
-              'Checkin transport_order_id:',
-              c.transport_order_id,
-              'job.id:',
-              job.id,
-              'matchesOrder:',
-              matchesOrder,
-              'matchesUser:',
-              matchesUser
-            );
-
-            return matchesUser && matchesOrder;
+            return matchesOrder;
           })
         : [];
       console.log('Filtered checkins for current order:', checkins.length, 'items');

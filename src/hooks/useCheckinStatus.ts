@@ -68,24 +68,13 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
       const checkinsData = result?.data || result || [];
       
       if (Array.isArray(checkinsData)) {
-        // Filter checkins for this specific order and driver
+        // Filter checkins for this specific order (any driver - supports driver swap scenarios)
         const checkins = checkinsData.filter((checkin: any) => {
-          // Match by order_number (support both flat and nested structure from API)
           const matchesOrder = 
             checkin.order_number === orderNumber || 
             checkin.transport_orders?.order_number === orderNumber;
           
-          // Match driver ID based on driver type
-          let matchesDriver = false;
-          if (isInternalDriver) {
-            matchesDriver = checkin.internal_driver_id === driverId;
-          } else if (isExternalDriver) {
-            matchesDriver = checkin.external_driver_id === driverId;
-          } else {
-            matchesDriver = checkin.freelance_driver_id === driverId;
-          }
-          
-          return matchesOrder && matchesDriver;
+          return matchesOrder;
         });
 
         console.log('[useCheckinStatus] Filtered checkins:', checkins);
@@ -129,7 +118,7 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
     } finally {
       setLoading(false);
     }
-  }, [orderNumber, driverId, getDriverType, isInternalDriver, isExternalDriver]);
+  }, [orderNumber, driverId, getDriverType]);
 
   // Save a checkin (for optimistic update after successful POST)
   const saveCheckin = useCallback((checkin: CheckinRecord) => {
