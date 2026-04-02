@@ -268,37 +268,37 @@ const SignIn = () => {
     paddingTop: "env(safe-area-inset-top, 0px)"
   }}>
       {/* Hero Section with Truck Image */}
-      <div className="relative h-[30vh] flex-shrink-0">
+      <div className="relative h-[28vh] min-h-[180px] flex-shrink-0">
         <img alt="The Truckers" className="absolute inset-0 w-full h-full object-cover" src="/lovable-uploads/login-background-2.png" />
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-8 pb-2 bg-white overflow-hidden flex flex-col">
-        <h1 className="text-xl font-bold text-center mb-3 text-foreground">{t('signIn.title')}</h1>
+      <div className="flex-1 rounded-t-[2.5rem] -mt-6 px-5 pt-5 pb-2 bg-white overflow-hidden flex flex-col">
+        <h1 className="text-lg font-bold text-center mb-2 text-foreground">{t('signIn.title')}</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 max-w-md mx-auto flex-1 flex flex-col">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 max-w-md mx-auto w-full flex-1 flex flex-col">
           {/* Email Field */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-foreground">
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-foreground text-sm">
               {t('signIn.username')} <span className="text-destructive">*</span>
             </Label>
-            <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder')} {...register("email")} className={errors.email ? "border-destructive" : ""} />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder')} {...register("email")} className={`h-9 ${errors.email ? "border-destructive" : ""}`} />
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
 
           {/* Password Field */}
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-foreground">
+          <div className="space-y-1">
+            <Label htmlFor="password" className="text-foreground text-sm">
               {t('signIn.password')} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
-              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={`pr-10 ${errors.password || serverError ? "border-destructive" : ""}`} />
+              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={`h-9 pr-10 ${errors.password || serverError ? "border-destructive" : ""}`} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-            {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+            {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+            {serverError && <p className="text-xs text-destructive">{serverError}</p>}
           </div>
 
           {/* Remember Me & Forgot Password */}
@@ -315,11 +315,11 @@ const SignIn = () => {
           </div>
 
           {/* Submit Buttons */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Button 
               type="submit" 
               disabled={isLoggingIn}
-              className="w-full text-white h-10 rounded-xl text-sm font-medium bg-primary hover:bg-[#235A99]"
+              className="w-full text-white h-9 rounded-xl text-sm font-medium bg-primary hover:bg-[#235A99]"
             >
               {isLoggingIn ? (
                 <>
@@ -335,7 +335,7 @@ const SignIn = () => {
               variant="outline" 
               onClick={() => navigate("/register")} 
               disabled={isLoggingIn}
-              className="w-full h-10 rounded-xl text-sm font-medium border-2 hover:bg-[#235A99] hover:text-white"
+              className="w-full h-9 rounded-xl text-sm font-medium border-2 hover:bg-[#235A99] hover:text-white"
             >
               {t('signIn.registerButton')}
             </Button>
@@ -419,7 +419,7 @@ const SignIn = () => {
               }
             }}
             disabled={isLoggingIn}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#00B900] hover:bg-[#00A000] text-white font-medium transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 rounded-full bg-[#00B900] hover:bg-[#00A000] text-white text-sm font-medium transition-colors disabled:opacity-50"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
@@ -503,7 +503,7 @@ const SignIn = () => {
                 }
               }}
               disabled={isLoggingIn}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-black hover:bg-black/90 text-white font-medium transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-6 py-2 rounded-full bg-black hover:bg-black/90 text-white text-sm font-medium transition-colors disabled:opacity-50"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
