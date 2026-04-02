@@ -279,6 +279,7 @@ const SignIn = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 max-w-md mx-auto flex-1 flex flex-col overflow-hidden">
           {/* Email Field */}
           <div className="space-y-1">
+            <Label htmlFor="email" className="text-foreground">
               {t('signIn.username')} <span className="text-destructive">*</span>
             </Label>
             <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder')} {...register("email")} className={errors.email ? "border-destructive" : ""} />
