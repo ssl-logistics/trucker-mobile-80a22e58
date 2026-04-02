@@ -288,6 +288,7 @@ const SignIn = () => {
 
           {/* Password Field */}
           <div className="space-y-1">
+            <Label htmlFor="password" className="text-foreground">
               {t('signIn.password')} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
