@@ -278,27 +278,27 @@ const SignIn = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 max-w-md mx-auto w-full flex-1 flex flex-col">
           {/* Email Field */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-foreground">
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-foreground text-sm">
               {t('signIn.username')} <span className="text-destructive">*</span>
             </Label>
-            <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder')} {...register("email")} className={errors.email ? "border-destructive" : ""} />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder')} {...register("email")} className={`h-9 ${errors.email ? "border-destructive" : ""}`} />
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
 
           {/* Password Field */}
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-foreground">
+          <div className="space-y-1">
+            <Label htmlFor="password" className="text-foreground text-sm">
               {t('signIn.password')} <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
-              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={`pr-10 ${errors.password || serverError ? "border-destructive" : ""}`} />
+              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••••" {...register("password")} className={`h-9 pr-10 ${errors.password || serverError ? "border-destructive" : ""}`} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-            {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+            {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+            {serverError && <p className="text-xs text-destructive">{serverError}</p>}
           </div>
 
           {/* Remember Me & Forgot Password */}
