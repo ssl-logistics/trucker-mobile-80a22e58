@@ -315,11 +315,11 @@ const SignIn = () => {
           </div>
 
           {/* Submit Buttons */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Button 
               type="submit" 
               disabled={isLoggingIn}
-              className="w-full text-white h-10 rounded-xl text-sm font-medium bg-primary hover:bg-[#235A99]"
+              className="w-full text-white h-9 rounded-xl text-sm font-medium bg-primary hover:bg-[#235A99]"
             >
               {isLoggingIn ? (
                 <>
@@ -335,7 +335,7 @@ const SignIn = () => {
               variant="outline" 
               onClick={() => navigate("/register")} 
               disabled={isLoggingIn}
-              className="w-full h-10 rounded-xl text-sm font-medium border-2 hover:bg-[#235A99] hover:text-white"
+              className="w-full h-9 rounded-xl text-sm font-medium border-2 hover:bg-[#235A99] hover:text-white"
             >
               {t('signIn.registerButton')}
             </Button>
