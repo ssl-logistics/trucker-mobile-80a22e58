@@ -313,7 +313,7 @@ const SignIn = () => {
           </div>
 
           {/* Submit Buttons */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Button 
               type="submit" 
               disabled={isLoggingIn}
