@@ -4581,7 +4581,7 @@ const koTranslations: Record<string, string> = {
   'jobActions.reportProblem': '문제 신고',
   
   // Sign In Page
-  'signIn.title': '로그인 또는 회원가입',
+  'signIn.title': '로그인',
   'signIn.username': '사용자 이름',
   'signIn.usernamePlaceholder': '사용자 이름 입력',
   'signIn.password': '비밀번호',
