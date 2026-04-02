@@ -385,7 +385,7 @@ export default function JobDetailPage() {
             origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
             origin_remarks: foundJob.remarks,
             destination_contact_person: foundJob.destination_contact_name,
-            destination_bill_of_lading: foundJob.invoice_number || foundJob.destination_invoice_number || foundJob.inv_no || foundJob.destination_bill_of_lading || null,
+            destination_bill_of_lading: foundJob.invoice_number || foundJob.destination_invoice_number || foundJob.inv_no || foundJob.destination_bill_of_lading || (typeof foundJob.csv_extra_data === 'object' && foundJob.csv_extra_data?.invoice_number) || (typeof foundJob.csv_extra_data === 'string' ? (() => { try { return JSON.parse(foundJob.csv_extra_data)?.invoice_number; } catch { return null; } })() : null) || null,
             destination_goods_type: foundJob.product_name,
             destination_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
             destination_time: foundJob.destination_delivery_time,
