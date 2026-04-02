@@ -273,7 +273,7 @@ const SignIn = () => {
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-4 pb-2 bg-white overflow-hidden flex flex-col">
+      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-8 pb-2 bg-white overflow-hidden flex flex-col">
         <h1 className="text-lg font-bold text-center mb-2 text-foreground">{t('signIn.title')}</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 max-w-md mx-auto flex-1 flex flex-col overflow-hidden">
