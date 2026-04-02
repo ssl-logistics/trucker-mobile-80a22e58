@@ -763,7 +763,7 @@ const thTranslations: Record<string, string> = {
   'jobActions.reportProblem': 'แจ้งปัญหา',
   
   // Sign In Page
-  'signIn.title': 'เข้าสู่ระบบหรือสมัครสมาชิก',
+  'signIn.title': 'เข้าสู่ระบบ',
   'signIn.username': 'ชื่อผู้ใช้',
   'signIn.usernamePlaceholder': 'กรอกชื่อผู้ใช้',
   'signIn.password': 'รหัสผ่าน',
@@ -2335,7 +2335,7 @@ const enTranslations: Record<string, string> = {
   'jobActions.reportProblem': 'Report Problem',
   
   // Sign In Page
-  'signIn.title': 'Sign In or Register',
+  'signIn.title': 'Sign In',
   'signIn.username': 'Username',
   'signIn.usernamePlaceholder': 'Enter username',
   'signIn.password': 'Password',
@@ -4581,7 +4581,7 @@ const koTranslations: Record<string, string> = {
   'jobActions.reportProblem': '문제 신고',
   
   // Sign In Page
-  'signIn.title': '로그인 또는 회원가입',
+  'signIn.title': '로그인',
   'signIn.username': '사용자 이름',
   'signIn.usernamePlaceholder': '사용자 이름 입력',
   'signIn.password': '비밀번호',
@@ -6203,7 +6203,7 @@ const zhTranslations: Record<string, string> = {
   'vehicle.meter': '米',
   
   // Sign In Page
-  'signIn.title': '登录或注册',
+  'signIn.title': '登录',
   'signIn.username': '用户名',
   'signIn.usernamePlaceholder': '输入用户名',
   'signIn.email': '电子邮件',
