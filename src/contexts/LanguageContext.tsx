@@ -6203,7 +6203,7 @@ const zhTranslations: Record<string, string> = {
   'vehicle.meter': '米',
   
   // Sign In Page
-  'signIn.title': '登录或注册',
+  'signIn.title': '登录',
   'signIn.username': '用户名',
   'signIn.usernamePlaceholder': '输入用户名',
   'signIn.email': '电子邮件',
