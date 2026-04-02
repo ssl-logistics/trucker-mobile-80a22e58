@@ -268,12 +268,12 @@ const SignIn = () => {
     paddingTop: "env(safe-area-inset-top, 0px)"
   }}>
       {/* Hero Section with Truck Image */}
-      <div className="relative h-[40vh] flex-shrink-0">
+      <div className="relative h-[30vh] flex-shrink-0">
         <img alt="The Truckers" className="absolute inset-0 w-full h-full object-cover" src="/lovable-uploads/login-background-2.png" />
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-14 pb-2 bg-white overflow-y-auto">
+      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-8 pb-2 bg-white overflow-hidden flex flex-col">
         <h1 className="text-xl font-bold text-center mb-5 text-foreground">{t('signIn.title')}</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
