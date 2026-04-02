@@ -763,7 +763,7 @@ const thTranslations: Record<string, string> = {
   'jobActions.reportProblem': 'แจ้งปัญหา',
   
   // Sign In Page
-  'signIn.title': 'เข้าสู่ระบบหรือสมัครสมาชิก',
+  'signIn.title': 'เข้าสู่ระบบ',
   'signIn.username': 'ชื่อผู้ใช้',
   'signIn.usernamePlaceholder': 'กรอกชื่อผู้ใช้',
   'signIn.password': 'รหัสผ่าน',
