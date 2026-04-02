@@ -2335,7 +2335,7 @@ const enTranslations: Record<string, string> = {
   'jobActions.reportProblem': 'Report Problem',
   
   // Sign In Page
-  'signIn.title': 'Sign In or Register',
+  'signIn.title': 'Sign In',
   'signIn.username': 'Username',
   'signIn.usernamePlaceholder': 'Enter username',
   'signIn.password': 'Password',
