@@ -1910,9 +1910,63 @@ export default function DomesticJobDetail({
                   </span>
                 </div>
                 <div className={`p-4 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                  {job.container_return_location &&
+                  {/* Show yard name - either from OCR or from job data */}
+                  {returnSlipYardName ? (
+                    <div className="flex items-center gap-2 mb-2">
+                      <Scan className="w-4 h-4 text-green-600 shrink-0" />
+                      <p className="font-semibold text-sm text-green-700">{returnSlipYardName}</p>
+                      <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">OCR</span>
+                    </div>
+                  ) : job.container_return_location ? (
                     <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_return_location}</p>
-                    }
+                  ) : null}
+
+                  {/* Show OCR scan button when yard is not specified */}
+                  {(!job.container_return_location || job.container_return_location === 'ดูลานที่หน้างาน' || job.container_return_location === '-') && !returnSlipYardName && !isFromHistory && (
+                    <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                      <p className="text-xs text-amber-700 mb-2 flex items-center gap-1.5">
+                        <Scan className="w-3.5 h-3.5" />
+                        ยังไม่ระบุลานคืนตู้ — สแกนใบคืนตู้เพื่ออ่านชื่อลาน
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full h-9 border-amber-400 text-amber-700 hover:bg-amber-100"
+                        disabled={!allDeliveriesCompleted || isProcessingReturnSlipOcr || extracting}
+                        onClick={() => setShowReturnSlipDrawer(true)}
+                      >
+                        {isProcessingReturnSlipOcr || extracting ? (
+                          <><Loader2 className="w-4 h-4 animate-spin mr-1.5" /> กำลังอ่านข้อมูล...</>
+                        ) : (
+                          <><Scan className="w-4 h-4 mr-1.5" /> สแกนใบคืนตู้</>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Show OCR extracted data */}
+                  {returnSlipOcrData && (returnSlipOcrData.container_number || returnSlipOcrData.return_date) && (
+                    <div className="mb-3 p-2.5 bg-green-50 border border-green-200 rounded-xl space-y-1 text-xs">
+                      {returnSlipOcrData.container_number && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-700 font-medium">เลขตู้:</span>
+                          <span className="text-green-800 font-semibold">{returnSlipOcrData.container_number}</span>
+                        </div>
+                      )}
+                      {returnSlipOcrData.seal_number && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-700 font-medium">เลขซีล:</span>
+                          <span className="text-green-800 font-semibold">{returnSlipOcrData.seal_number}</span>
+                        </div>
+                      )}
+                      {returnSlipOcrData.return_date && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-700 font-medium">วันที่คืน:</span>
+                          <span className="text-green-800">{returnSlipOcrData.return_date}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex items-start gap-2">
