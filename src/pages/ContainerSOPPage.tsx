@@ -265,6 +265,7 @@ const ContainerSOPPage = () => {
           booking_no: foundJob.booking_no || foundJob.booking_number || '',
           transport_type: foundJob.transport_type || '',
           container_details: containerDetails,
+          container_return_location: foundJob.container_return_location || foundJob.return_container_at || '',
         });
       } else {
         throw new Error('Job not found');
