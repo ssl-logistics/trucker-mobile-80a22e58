@@ -732,6 +732,31 @@ const ContainerSOPPage = () => {
         } catch (checkinErr) {
           console.warn('[ContainerSOP] driverCheckin exception:', checkinErr);
         }
+        
+        // Save OCR scan with return_yard for container return
+        if (returnSlipYardName) {
+          try {
+            const returnScanPayload = {
+              container_no: finalContainerNumber,
+              seal_no: finalSealNumber || null,
+              eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
+              order_number: jobId || undefined,
+              driver_id: user.id,
+              driver_type: driverType,
+              scanned_at: new Date().toISOString(),
+              return_yard: returnSlipYardName,
+            };
+            console.log('[ContainerSOP] save-ocr-scan (return_yard) payload:', returnScanPayload);
+            const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
+            if (returnOcrError) {
+              console.warn('[ContainerSOP] save-ocr-scan return_yard error (non-blocking):', returnOcrError);
+            } else {
+              console.log('[ContainerSOP] return_yard saved successfully');
+            }
+          } catch (returnOcrErr) {
+            console.warn('[ContainerSOP] save-ocr-scan return_yard exception:', returnOcrErr);
+          }
+        }
       } else {
         // Send driverCheckin for loaded container pickup — only after OCR duplicate check passed
         try {
