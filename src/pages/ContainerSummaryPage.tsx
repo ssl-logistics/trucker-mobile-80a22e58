@@ -278,12 +278,11 @@ export default function ContainerSummaryPage() {
               }
               return [];
             };
-            const cleanVal = (v: any) => (v && v !== 'N/A' && v !== 'n/a') ? v : null;
             setOcrScanData({
-              container_no: cleanVal(ocrRecord.container_no),
-              seal_no: cleanVal(ocrRecord.seal_no),
-              container_image_url: cleanVal(ocrRecord.container_image_url),
-              seal_image_url: cleanVal(ocrRecord.seal_image_url),
+              container_no: ocrRecord.container_no || null,
+              seal_no: ocrRecord.seal_no || null,
+              container_image_url: ocrRecord.container_image_url || null,
+              seal_image_url: ocrRecord.seal_image_url || null,
               container_photos: parseUrls(ocrRecord.container_photos),
               eir_photos: parseUrls(ocrRecord.eir_photos),
             });
