@@ -130,6 +130,12 @@ const ContainerSOPPage = () => {
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
   
+  // OCR return slip state (for unknown yard)
+  const [returnSlipYardName, setReturnSlipYardName] = useState<string | null>(null);
+  const [isProcessingReturnSlipOcr, setIsProcessingReturnSlipOcr] = useState(false);
+  const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
+  const [pendingReturnSlipYard, setPendingReturnSlipYard] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (jobId && user) {
