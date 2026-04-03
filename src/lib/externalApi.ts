@@ -572,8 +572,8 @@ export async function verifyOcrContainer(body: {
 
 // Submit OCR scan result to external system (saves to DB)
 export async function submitOcrScan(body: {
-  container_no: string;
-  seal_no: string | null;
+  container_no?: string;
+  seal_no?: string | null;
   container_image_url?: string;
   seal_image_url?: string;
   eir_photos?: string[];

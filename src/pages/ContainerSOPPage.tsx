@@ -406,24 +406,36 @@ const ContainerSOPPage = () => {
       document.body.appendChild(input);
       
       await new Promise<void>((resolve) => {
+        let settled = false;
+
+        const cleanup = () => {
+          if (settled) return;
+          settled = true;
+          window.removeEventListener('focus', handleFocus);
+          input.onchange = null;
+          if (input.parentNode) {
+            input.parentNode.removeChild(input);
+          }
+          resolve();
+        };
+
         input.onchange = async (e) => {
           file = (e.target as HTMLInputElement).files?.[0] || null;
           if (file) {
             await processFileForSlot(file, activePhotoSlot);
           }
-          document.body.removeChild(input);
-          resolve();
+          cleanup();
         };
+
         // Cleanup if user cancels
         const handleFocus = () => {
           setTimeout(() => {
-            if (input.parentNode) {
-              document.body.removeChild(input);
+            if (!input.files?.length) {
+              cleanup();
             }
-            window.removeEventListener('focus', handleFocus);
-            resolve();
           }, 500);
         };
+
         window.addEventListener('focus', handleFocus);
         input.click();
       });
@@ -736,17 +748,16 @@ const ContainerSOPPage = () => {
         // Save OCR scan with return_yard for container return
         if (returnSlipYardName) {
           try {
-            const returnScanPayload = {
-              container_no: finalContainerNumber,
-              seal_no: finalSealNumber || null,
-              eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
+            const returnScanPayload: Parameters<typeof submitOcrScan>[0] = {
               order_number: jobId || undefined,
               driver_id: user.id,
               driver_type: driverType,
               scanned_at: new Date().toISOString(),
               return_yard: returnSlipYardName,
+              ...(derivedContainerNumber && { container_no: derivedContainerNumber }),
+              ...(derivedSealNumber && { seal_no: derivedSealNumber }),
             };
-            console.log('[ContainerSOP] save-ocr-scan (return_yard) payload:', returnScanPayload);
+            console.log('[ContainerSOP] save-ocr-scan (return_yard only) payload:', returnScanPayload);
             const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
             if (returnOcrError) {
               console.warn('[ContainerSOP] save-ocr-scan return_yard error (non-blocking):', returnOcrError);
