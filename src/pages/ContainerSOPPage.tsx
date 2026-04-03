@@ -712,14 +712,16 @@ const ContainerSOPPage = () => {
       // Send driverCheckin for container return
       if (isContainerReturn) {
         try {
+          const returnYardNote = returnSlipYardName ? ` | ลานคืนตู้: ${returnSlipYardName}` : '';
           const checkinPayload: Parameters<typeof driverCheckin>[0] = {
             order_number: jobDetail!.order_code,
             driver_id: user.id,
             driver_type: driverType,
             checkin_type: 'container_return_confirmed',
-            notes: 'ยืนยันคืนตู้สำเร็จ',
+            notes: `ยืนยันคืนตู้สำเร็จ${returnYardNote}`,
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
+            ...(returnSlipYardName && { return_yard_name: returnSlipYardName }),
             ...(eirUrls.length > 0 && { photo_urls: eirUrls }),
             ...(publicUrl && { photo_url: publicUrl }),
           };
@@ -788,7 +790,7 @@ const ContainerSOPPage = () => {
       
       if (isContainerReturn) {
         orderStatus = 'container_returned';
-        orderNotes = 'คืนตู้สำเร็จ';
+        orderNotes = returnSlipYardName ? `คืนตู้สำเร็จ | ลานคืนตู้: ${returnSlipYardName}` : 'คืนตู้สำเร็จ';
       } else if (isBookingJob) {
         orderStatus = 'in_transit';
         orderNotes = 'รับตู้เปล่าแล้ว กำลังไปจุดรับสินค้า';
