@@ -166,41 +166,45 @@ const ContainerSOPPage = () => {
       const shouldFetchFromApi = !foundJob || parseContainerArray(foundJob).length === 0;
 
       if (shouldFetchFromApi) {
-        let apiJob: any = null;
+        try {
+          let apiJob: any = null;
 
-        if (isInternalDriver || isExternalDriver) {
-          const driverType = isInternalDriver ? 'internal' : 'external';
-          const [acceptedRes, arrivedAtPickupRes, inProgressRes, inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes, containerReturnedRes, completedRes] = await Promise.all([
-            getDriverAssignedJobs(user!.id, driverType, 50, 'accepted'),
-            getDriverAssignedJobs(user!.id, driverType, 50, 'arrived_at_pickup'),
-            getDriverAssignedJobs(user!.id, driverType, 50, 'in_progress'),
-            getDriverAssignedJobs(user!.id, driverType, 50, 'in_transit'),
-            getDriverAssignedJobs(user!.id, driverType, 50, 'delivered'),
-            getDriverAssignedJobs(user!.id, driverType, 50, 'returning_container'),
-            getDriverAssignedJobs(user!.id, driverType, 50, 'at_container_return'),
-            getDriverAssignedJobs(user!.id, driverType, 50, 'container_returned'),
-            getDriverAssignedJobs(user!.id, driverType, 50, 'completed'),
-          ]);
-          apiJob = [
-            ...((acceptedRes.data as any)?.data || []),
-            ...((arrivedAtPickupRes.data as any)?.data || []),
-            ...((inProgressRes.data as any)?.data || []),
-            ...((inTransitRes.data as any)?.data || []),
-            ...((deliveredRes.data as any)?.data || []),
-            ...((returningContainerRes.data as any)?.data || []),
-            ...((atContainerReturnRes.data as any)?.data || []),
-            ...((containerReturnedRes.data as any)?.data || []),
-            ...((completedRes.data as any)?.data || []),
-          ].find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId);
-        } else {
-          const { data: result } = await getFreelanceAcceptedJobs(user!.id);
-          if (result?.data) {
-            apiJob = result.data.find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId);
+          if (isInternalDriver || isExternalDriver) {
+            const driverType = isInternalDriver ? 'internal' : 'external';
+            const [acceptedRes, arrivedAtPickupRes, inProgressRes, inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes, containerReturnedRes, completedRes] = await Promise.all([
+              getDriverAssignedJobs(user!.id, driverType, 50, 'accepted'),
+              getDriverAssignedJobs(user!.id, driverType, 50, 'arrived_at_pickup'),
+              getDriverAssignedJobs(user!.id, driverType, 50, 'in_progress'),
+              getDriverAssignedJobs(user!.id, driverType, 50, 'in_transit'),
+              getDriverAssignedJobs(user!.id, driverType, 50, 'delivered'),
+              getDriverAssignedJobs(user!.id, driverType, 50, 'returning_container'),
+              getDriverAssignedJobs(user!.id, driverType, 50, 'at_container_return'),
+              getDriverAssignedJobs(user!.id, driverType, 50, 'container_returned'),
+              getDriverAssignedJobs(user!.id, driverType, 50, 'completed'),
+            ]);
+            apiJob = [
+              ...((acceptedRes.data as any)?.data || []),
+              ...((arrivedAtPickupRes.data as any)?.data || []),
+              ...((inProgressRes.data as any)?.data || []),
+              ...((inTransitRes.data as any)?.data || []),
+              ...((deliveredRes.data as any)?.data || []),
+              ...((returningContainerRes.data as any)?.data || []),
+              ...((atContainerReturnRes.data as any)?.data || []),
+              ...((containerReturnedRes.data as any)?.data || []),
+              ...((completedRes.data as any)?.data || []),
+            ].find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId);
+          } else {
+            const { data: result } = await getFreelanceAcceptedJobs(user!.id);
+            if (result?.data) {
+              apiJob = result.data.find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId);
+            }
           }
-        }
 
-        if (apiJob) {
-          foundJob = foundJob ? { ...foundJob, ...apiJob } : apiJob;
+          if (apiJob) {
+            foundJob = foundJob ? { ...foundJob, ...apiJob } : apiJob;
+          }
+        } catch (apiFetchError) {
+          console.warn('[ContainerSOPPage] API fetch failed, using state data as fallback:', apiFetchError);
         }
       }
 
