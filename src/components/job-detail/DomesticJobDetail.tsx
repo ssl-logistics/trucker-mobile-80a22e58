@@ -236,6 +236,11 @@ export default function DomesticJobDetail({
   const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
   // Voice reorder state
   const [showVoiceMatch, setShowVoiceMatch] = useState<{ name: string; index: number } | null>(null);
+  // Container return slip OCR state
+  const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
+  const [isProcessingReturnSlipOcr, setIsProcessingReturnSlipOcr] = useState(false);
+  const [returnSlipYardName, setReturnSlipYardName] = useState<string | null>(null);
+  const [returnSlipOcrData, setReturnSlipOcrData] = useState<{ yard_name?: string | null; container_number?: string | null; seal_number?: string | null; return_date?: string | null } | null>(null);
 
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
@@ -387,6 +392,83 @@ export default function DomesticJobDetail({
   const handleCancelOcr = () => {
     setShowOcrConfirmDialog(false);
     setOcrResult(null);
+  };
+
+  // Handle return slip OCR photo selection
+  const handleReturnSlipOcr = async (source: 'camera' | 'gallery') => {
+    setShowReturnSlipDrawer(false);
+    setIsProcessingReturnSlipOcr(true);
+
+    try {
+      let file: File | null = null;
+
+      if (isNative) {
+        if (source === 'camera') {
+          file = await takePhoto();
+        } else {
+          file = await selectFromGallery();
+        }
+      }
+
+      // Fallback to web input
+      if (!file) {
+        file = await new Promise<File | null>((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          if (source === 'camera') {
+            input.capture = 'environment';
+          }
+          input.onchange = (e) => {
+            const target = e.target as HTMLInputElement;
+            resolve(target.files?.[0] || null);
+          };
+          input.oncancel = () => resolve(null);
+          document.body.appendChild(input);
+          input.click();
+          document.body.removeChild(input);
+        });
+      }
+
+      if (!file) {
+        setIsProcessingReturnSlipOcr(false);
+        return;
+      }
+
+      const result = await extractFromImage(file, 'container_return_slip');
+
+      if (result.success && result.data) {
+        setReturnSlipOcrData(result.data as any);
+        if (result.data.yard_name) {
+          setReturnSlipYardName(result.data.yard_name);
+          toast({
+            title: 'อ่านข้อมูลสำเร็จ',
+            description: `พบชื่อลาน: ${result.data.yard_name}`,
+          });
+        } else {
+          toast({
+            title: 'ไม่พบชื่อลาน',
+            description: 'ไม่สามารถอ่านชื่อลานจากรูปได้ กรุณาลองใหม่',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        toast({
+          title: 'อ่านข้อมูลไม่สำเร็จ',
+          description: result.error || 'กรุณาลองถ่ายรูปใหม่',
+          variant: 'destructive',
+        });
+      }
+    } catch (err) {
+      console.error('Return slip OCR error:', err);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถอ่านใบคืนตู้ได้',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessingReturnSlipOcr(false);
+    }
   };
 
   // Fetch check-in status and SOP status from external APIs
@@ -1828,9 +1910,63 @@ export default function DomesticJobDetail({
                   </span>
                 </div>
                 <div className={`p-4 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                  {job.container_return_location &&
+                  {/* Show yard name - either from OCR or from job data */}
+                  {returnSlipYardName ? (
+                    <div className="flex items-center gap-2 mb-2">
+                      <Scan className="w-4 h-4 text-green-600 shrink-0" />
+                      <p className="font-semibold text-sm text-green-700">{returnSlipYardName}</p>
+                      <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">OCR</span>
+                    </div>
+                  ) : job.container_return_location ? (
                     <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_return_location}</p>
-                    }
+                  ) : null}
+
+                  {/* Show OCR scan button when yard is not specified */}
+                  {(!job.container_return_location || job.container_return_location === 'ดูลานที่หน้างาน' || job.container_return_location === '-') && !returnSlipYardName && !isFromHistory && (
+                    <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                      <p className="text-xs text-amber-700 mb-2 flex items-center gap-1.5">
+                        <Scan className="w-3.5 h-3.5" />
+                        ยังไม่ระบุลานคืนตู้ — สแกนใบคืนตู้เพื่ออ่านชื่อลาน
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full h-9 border-amber-400 text-amber-700 hover:bg-amber-100"
+                        disabled={!allDeliveriesCompleted || isProcessingReturnSlipOcr || extracting}
+                        onClick={() => setShowReturnSlipDrawer(true)}
+                      >
+                        {isProcessingReturnSlipOcr || extracting ? (
+                          <><Loader2 className="w-4 h-4 animate-spin mr-1.5" /> กำลังอ่านข้อมูล...</>
+                        ) : (
+                          <><Scan className="w-4 h-4 mr-1.5" /> สแกนใบคืนตู้</>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Show OCR extracted data */}
+                  {returnSlipOcrData && (returnSlipOcrData.container_number || returnSlipOcrData.return_date) && (
+                    <div className="mb-3 p-2.5 bg-green-50 border border-green-200 rounded-xl space-y-1 text-xs">
+                      {returnSlipOcrData.container_number && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-700 font-medium">เลขตู้:</span>
+                          <span className="text-green-800 font-semibold">{returnSlipOcrData.container_number}</span>
+                        </div>
+                      )}
+                      {returnSlipOcrData.seal_number && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-700 font-medium">เลขซีล:</span>
+                          <span className="text-green-800 font-semibold">{returnSlipOcrData.seal_number}</span>
+                        </div>
+                      )}
+                      {returnSlipOcrData.return_date && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-700 font-medium">วันที่คืน:</span>
+                          <span className="text-green-800">{returnSlipOcrData.return_date}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-1 text-sm mb-3">
                     <div className="flex items-start gap-2">
@@ -2016,6 +2152,41 @@ export default function DomesticJobDetail({
             }
               {isVerifying ? t('containerSealVerification.verifying') || 'กำลังตรวจสอบ...' : t('ocr.confirm') || 'ยืนยัน'}
             </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Return Slip OCR Drawer */}
+      <Drawer open={showReturnSlipDrawer} onOpenChange={setShowReturnSlipDrawer}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">สแกนใบคืนตู้</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-2 text-center text-sm text-muted-foreground">
+            ถ่ายรูปหรือเลือกรูปใบคืนตู้เพื่ออ่านชื่อลาน
+          </div>
+          <DrawerFooter className="flex-row gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 h-12 gap-2"
+              onClick={() => handleReturnSlipOcr('camera')}
+            >
+              <Camera className="w-5 h-5" />
+              ถ่ายรูป
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 h-12 gap-2"
+              onClick={() => handleReturnSlipOcr('gallery')}
+            >
+              <ImageIcon className="w-5 h-5" />
+              เลือกรูป
+            </Button>
+          </DrawerFooter>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="ghost">ยกเลิก</Button>
+            </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>

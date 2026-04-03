@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface OCRRequest {
   image_base64: string;
-  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'weight_slip' | 'general';
+  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'weight_slip' | 'container_return_slip' | 'general';
   expected_amount?: number;
   expected_account_number?: string;
 }
@@ -139,6 +139,26 @@ IMPORTANT:
 - Values are typically in kilograms (kg) or tons
 - If you see only one weight value, try to determine which type it is
 - net_weight = weight_in - weight_out (gross - tare)`;
+    } else if (extraction_type === 'container_return_slip') {
+      prompt = `Analyze this Thai container return slip / ใบคืนตู้ / EIR (Equipment Interchange Receipt) image.
+
+Extract the following information:
+1. ชื่อลาน / Yard name / Depot name - The name of the container yard or depot where the container is being returned
+2. Container number (เลขตู้) - format: 4 letters + 7 digits (e.g., MSCU1234567)
+3. Seal number (เลขซีล) if present
+4. Return date (วันที่คืน) if present
+
+Common yard/depot names include: ท่าเรือแหลมฉบัง, ท่าเรือคลองเตย, ICD ลาดกระบัง, สวนส่งเสริม, TIPS, BKI, SCCT, ESCO, Hutchison, Evergreen, etc.
+
+Return ONLY a JSON object in this exact format (no markdown, no explanation):
+{
+  "yard_name": "extracted yard/depot name or null",
+  "container_number": "extracted container number or null",
+  "seal_number": "extracted seal number or null",
+  "return_date": "date if found or null"
+}
+
+If you cannot find a value, use null. Be precise with the extraction.`;
     } else if (extraction_type === 'payment_slip') {
       prompt = `Analyze this Thai bank transfer payment slip image and extract the following information:
 
