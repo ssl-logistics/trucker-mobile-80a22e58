@@ -52,6 +52,7 @@ interface JobDetail {
   booking_no?: string;
   transport_type?: string;
   container_details: ContainerDetail[];
+  container_return_location?: string;
 }
 
 type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir';
@@ -129,6 +130,12 @@ const ContainerSOPPage = () => {
   const [containerNumber] = useState(navState?.verifiedContainer || "");
   const [sealNumber] = useState(navState?.verifiedSeal || "");
   
+  // OCR return slip state (for unknown yard)
+  const [returnSlipYardName, setReturnSlipYardName] = useState<string | null>(null);
+  const [isProcessingReturnSlipOcr, setIsProcessingReturnSlipOcr] = useState(false);
+  const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
+  const [pendingReturnSlipYard, setPendingReturnSlipYard] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (jobId && user) {
@@ -258,6 +265,7 @@ const ContainerSOPPage = () => {
           booking_no: foundJob.booking_no || foundJob.booking_number || '',
           transport_type: foundJob.transport_type || '',
           container_details: containerDetails,
+          container_return_location: foundJob.container_return_location || foundJob.return_container_at || '',
         });
       } else {
         throw new Error('Job not found');
@@ -271,6 +279,72 @@ const ContainerSOPPage = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Determine if yard is unknown for container return
+  const isYardUnknown = isContainerReturn && (
+    !jobDetail?.container_return_location || 
+    jobDetail.container_return_location === 'ดูลานที่หน้างาน' ||
+    jobDetail.container_return_location.trim() === ''
+  );
+
+  const handleReturnSlipOcr = async (source: 'camera' | 'gallery') => {
+    setShowReturnSlipDrawer(false);
+    setIsProcessingReturnSlipOcr(true);
+    
+    try {
+      let file: File | null = null;
+      if (isNative) {
+        file = source === 'camera' ? await takePhoto() : await selectFromGallery();
+      } else {
+        file = await new Promise<File | null>((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          if (source === 'camera') input.capture = 'environment';
+          input.onchange = (e) => {
+            const f = (e.target as HTMLInputElement).files?.[0] || null;
+            resolve(f);
+          };
+          input.click();
+        });
+      }
+      
+      if (!file) {
+        setIsProcessingReturnSlipOcr(false);
+        return;
+      }
+
+      const result = await extractFromImage(file, 'container_return_slip');
+      if (result.success && result.data?.yard_name) {
+        setPendingReturnSlipYard(result.data.yard_name);
+      } else {
+        setPendingReturnSlipYard('');
+        toast({
+          title: 'ไม่สามารถอ่านชื่อลานได้',
+          description: 'กรุณากรอกชื่อลานด้วยตนเอง',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Return slip OCR error:', error);
+      setPendingReturnSlipYard('');
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถอ่านใบคืนตู้ได้',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessingReturnSlipOcr(false);
+    }
+  };
+
+  const confirmReturnSlipYard = () => {
+    if (pendingReturnSlipYard !== null && pendingReturnSlipYard.trim()) {
+      setReturnSlipYardName(pendingReturnSlipYard.trim());
+      setPendingReturnSlipYard(null);
+      toast({ title: 'บันทึกชื่อลานสำเร็จ', description: `ลาน: ${pendingReturnSlipYard.trim()}` });
     }
   };
 
@@ -1044,6 +1118,76 @@ const ContainerSOPPage = () => {
 
         </div>
 
+        {/* === OCR Return Slip (for unknown yard) === */}
+        {isContainerReturn && isYardUnknown && (
+          <div className="space-y-2">
+            <Label className="text-base flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
+              สแกนใบคืนตู้ (ระบุชื่อลาน)
+            </Label>
+            
+            {returnSlipYardName ? (
+              <Card className="p-3 bg-green-50 border-green-300">
+                <div className="flex items-center gap-2 mb-1">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="font-semibold text-green-700 text-sm">ชื่อลานที่อ่านได้</span>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
+                </div>
+                <p className="text-base font-bold text-green-800">{returnSlipYardName}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2" 
+                  onClick={() => { setReturnSlipYardName(null); setPendingReturnSlipYard(null); }}
+                >
+                  สแกนใหม่
+                </Button>
+              </Card>
+            ) : isProcessingReturnSlipOcr ? (
+              <Card className="p-3 bg-blue-50 border-blue-200">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span className="text-sm text-blue-700">กำลังอ่านใบคืนตู้...</span>
+                </div>
+              </Card>
+            ) : pendingReturnSlipYard !== null ? (
+              <Card className="p-3 bg-blue-50 border-blue-300">
+                <div className="flex items-center gap-2 mb-2">
+                  <Scan className="w-4 h-4 text-blue-600" />
+                  <span className="font-semibold text-blue-700 text-sm">ผลการสแกน</span>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-blue-200 mb-2">
+                  <label className="text-xs text-muted-foreground block mb-1">ชื่อลาน</label>
+                  <input
+                    type="text"
+                    value={pendingReturnSlipYard}
+                    onChange={(e) => setPendingReturnSlipYard(e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
+                    placeholder="กรอกชื่อลาน"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => { setPendingReturnSlipYard(null); setShowReturnSlipDrawer(true); }}>
+                    ถ่ายใหม่
+                  </Button>
+                  <Button size="sm" className="flex-1 bg-teal-600 hover:bg-teal-700" onClick={confirmReturnSlipYard} disabled={!pendingReturnSlipYard?.trim()}>
+                    ยืนยันชื่อลาน
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <button
+                onClick={() => setShowReturnSlipDrawer(true)}
+                className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+              >
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <Scan className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <p className="text-xs text-muted-foreground">กดเพื่อสแกนใบคืนตู้</p>
+              </button>
+            )}
+          </div>
+        )}
 
       </div>
 
@@ -1109,6 +1253,30 @@ const ContainerSOPPage = () => {
           <DrawerFooter>
             <DrawerClose asChild>
               <Button variant="outline" className="w-full h-12">{t('sop.cancel')}</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Return Slip OCR Drawer */}
+      <Drawer open={showReturnSlipDrawer} onOpenChange={setShowReturnSlipDrawer}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">สแกนใบคืนตู้</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
+            <Button variant="outline" className="w-full h-14 text-base justify-start gap-3" onClick={() => handleReturnSlipOcr('camera')}>
+              <Camera className="w-6 h-6" />
+              ถ่ายรูปใบคืนตู้
+            </Button>
+            <Button variant="outline" className="w-full h-14 text-base justify-start gap-3" onClick={() => handleReturnSlipOcr('gallery')}>
+              <ImageIcon className="w-6 h-6" />
+              เลือกจากแกลเลอรี
+            </Button>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full h-12">ยกเลิก</Button>
             </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
