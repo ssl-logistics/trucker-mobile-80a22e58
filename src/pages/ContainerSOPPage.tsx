@@ -760,12 +760,20 @@ const ContainerSOPPage = () => {
       } else {
         // Send driverCheckin for loaded container pickup — only after OCR duplicate check passed
         try {
+          // Collect ALL photo URLs to send to backend
+          const allPhotoUrls: string[] = [];
+          if (containerImageUrl) allPhotoUrls.push(containerImageUrl);
+          if (sealImageUrl) allPhotoUrls.push(sealImageUrl);
+          allPhotoUrls.push(...eirUrls);
+          allPhotoUrls.push(...blAngleUrls);
+
           const checkinPayload = {
             order_number: jobDetail!.order_code,
             driver_id: user.id,
             driver_type: driverType,
             checkin_type: 'container_pickup_confirmed',
             photo_url: publicUrl,
+            ...(allPhotoUrls.length > 0 && { photo_urls: allPhotoUrls }),
             notes: 'ยืนยันรับตู้หนัก',
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
