@@ -427,18 +427,31 @@ export default function ContainerSummaryPage() {
               </div>
             )}
 
-            {/* EIR Document Photos (from OCR scan or checkin) */}
+            {/* EIR Document Photos - merge OCR scan eir_photos + checkin photo_urls, deduplicated */}
             {(eirPhotos.length > 0 || pickupPhotoUrls.length > 0) && (
               <div className="space-y-2">
                 {(() => {
-                  const allEirUrls = eirPhotos.length > 0 ? eirPhotos : pickupPhotoUrls;
+                  // Merge both sources and deduplicate by URL basename
+                  const seen = new Set<string>();
+                  const mergedUrls: string[] = [];
+                  const mergedRawUrls: string[] = [];
+                  const addUrl = (url: string, rawUrl?: string) => {
+                    const key = url.split('/').pop()?.split('?')[0] || url;
+                    if (!seen.has(key)) {
+                      seen.add(key);
+                      mergedUrls.push(url);
+                      mergedRawUrls.push(rawUrl || url);
+                    }
+                  };
+                  eirPhotos.forEach((u, i) => addUrl(u, rawEirPhotos[i]));
+                  pickupPhotoUrls.forEach((u, i) => addUrl(u, rawPickupPhotoUrls[i]));
                   return (
                     <>
-                      <div className="text-sm text-muted-foreground">เอกสาร EIR ({allEirUrls.length} รูป)</div>
+                      <div className="text-sm text-muted-foreground">เอกสาร EIR ({mergedUrls.length} รูป)</div>
                       <div className="grid grid-cols-2 gap-2">
-                        {allEirUrls.map((url, idx) => (
+                        {mergedUrls.map((url, idx) => (
                           <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} originalUrl={rawEirPhotos[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
+                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} originalUrl={mergedRawUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} />
                           </div>
                         ))}
                       </div>
