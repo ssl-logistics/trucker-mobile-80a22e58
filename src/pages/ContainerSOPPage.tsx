@@ -282,6 +282,72 @@ const ContainerSOPPage = () => {
     }
   };
 
+  // Determine if yard is unknown for container return
+  const isYardUnknown = isContainerReturn && (
+    !jobDetail?.container_return_location || 
+    jobDetail.container_return_location === 'ดูลานที่หน้างาน' ||
+    jobDetail.container_return_location.trim() === ''
+  );
+
+  const handleReturnSlipOcr = async (source: 'camera' | 'gallery') => {
+    setShowReturnSlipDrawer(false);
+    setIsProcessingReturnSlipOcr(true);
+    
+    try {
+      let file: File | null = null;
+      if (isNative) {
+        file = source === 'camera' ? await takePhoto() : await selectFromGallery();
+      } else {
+        file = await new Promise<File | null>((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          if (source === 'camera') input.capture = 'environment';
+          input.onchange = (e) => {
+            const f = (e.target as HTMLInputElement).files?.[0] || null;
+            resolve(f);
+          };
+          input.click();
+        });
+      }
+      
+      if (!file) {
+        setIsProcessingReturnSlipOcr(false);
+        return;
+      }
+
+      const result = await extractFromImage(file, 'container_return_slip');
+      if (result.success && result.data?.yard_name) {
+        setPendingReturnSlipYard(result.data.yard_name);
+      } else {
+        setPendingReturnSlipYard('');
+        toast({
+          title: 'ไม่สามารถอ่านชื่อลานได้',
+          description: 'กรุณากรอกชื่อลานด้วยตนเอง',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Return slip OCR error:', error);
+      setPendingReturnSlipYard('');
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถอ่านใบคืนตู้ได้',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessingReturnSlipOcr(false);
+    }
+  };
+
+  const confirmReturnSlipYard = () => {
+    if (pendingReturnSlipYard !== null && pendingReturnSlipYard.trim()) {
+      setReturnSlipYardName(pendingReturnSlipYard.trim());
+      setPendingReturnSlipYard(null);
+      toast({ title: 'บันทึกชื่อลานสำเร็จ', description: `ลาน: ${pendingReturnSlipYard.trim()}` });
+    }
+  };
+
   const openPhotoDrawer = (slot: PhotoSlot, eirIndex: number = 0) => {
     setActivePhotoSlot(slot);
     setActiveEirIndex(eirIndex);
