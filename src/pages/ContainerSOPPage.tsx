@@ -307,6 +307,8 @@ const ContainerSOPPage = () => {
   const isYardUnknown = isContainerReturn && (
     !jobDetail?.container_return_location || 
     jobDetail.container_return_location === 'ดูลานที่หน้างาน' ||
+    jobDetail.container_return_location.includes('ดูลานที่หน้างาน') ||
+    jobDetail.container_return_location.includes('ไม่สามารถระบุลานได้') ||
     jobDetail.container_return_location.trim() === ''
   );
 
