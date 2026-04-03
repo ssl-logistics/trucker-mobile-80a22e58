@@ -44,6 +44,66 @@ interface OcrScanData {
   eir_photos: string[];
 }
 
+const parseUrlArray = (raw: unknown): string[] => {
+  if (Array.isArray(raw)) {
+    return raw.filter((url): url is string => typeof url === 'string' && url.length > 0);
+  }
+
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed)
+        ? parsed.filter((url): url is string => typeof url === 'string' && url.length > 0)
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+};
+
+const hasMeaningfulOcrValue = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim() !== '' && value.trim().toUpperCase() !== 'N/A';
+
+const dedupeUrls = (urls: string[]) => Array.from(new Set(urls.filter(Boolean)));
+
+const getPickupOcrData = (records: any[]): OcrScanData | null => {
+  const pickupRecords = records.filter((record) => {
+    const containerPhotos = parseUrlArray(record?.container_photos);
+
+    return (
+      hasMeaningfulOcrValue(record?.container_no) ||
+      hasMeaningfulOcrValue(record?.seal_no) ||
+      hasMeaningfulOcrValue(record?.container_image_url) ||
+      hasMeaningfulOcrValue(record?.seal_image_url) ||
+      containerPhotos.length > 0
+    );
+  });
+
+  if (pickupRecords.length === 0) {
+    return null;
+  }
+
+  const firstMeaningfulValue = (values: unknown[]): string | null => {
+    for (const value of values) {
+      if (hasMeaningfulOcrValue(value)) {
+        return value;
+      }
+    }
+    return null;
+  };
+
+  return {
+    container_no: firstMeaningfulValue(pickupRecords.map((record) => record?.container_no)),
+    seal_no: firstMeaningfulValue(pickupRecords.map((record) => record?.seal_no)),
+    container_image_url: firstMeaningfulValue(pickupRecords.map((record) => record?.container_image_url)),
+    seal_image_url: firstMeaningfulValue(pickupRecords.map((record) => record?.seal_image_url)),
+    container_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.container_photos))),
+    eir_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.eir_photos))),
+  };
+};
+
 export default function ContainerSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -269,24 +329,7 @@ export default function ContainerSummaryPage() {
         const { data: ocrResult, error: ocrError } = await getOcrContainerScans(undefined, 10, jobId);
         if (!ocrError && ocrResult) {
           const ocrArr = (ocrResult as any)?.data || ocrResult || [];
-          const ocrRecord = Array.isArray(ocrArr) ? ocrArr[0] : null;
-          if (ocrRecord) {
-            const parseUrls = (raw: any): string[] => {
-              if (Array.isArray(raw)) return raw.filter(Boolean);
-              if (typeof raw === 'string') {
-                try { const p = JSON.parse(raw); return Array.isArray(p) ? p.filter(Boolean) : []; } catch { return []; }
-              }
-              return [];
-            };
-            setOcrScanData({
-              container_no: ocrRecord.container_no || null,
-              seal_no: ocrRecord.seal_no || null,
-              container_image_url: ocrRecord.container_image_url || null,
-              seal_image_url: ocrRecord.seal_image_url || null,
-              container_photos: parseUrls(ocrRecord.container_photos),
-              eir_photos: parseUrls(ocrRecord.eir_photos),
-            });
-          }
+          setOcrScanData(Array.isArray(ocrArr) ? getPickupOcrData(ocrArr) : null);
         }
       } catch (e) {
         console.warn('OCR scan data fetch failed:', e);
