@@ -394,6 +394,83 @@ export default function DomesticJobDetail({
     setOcrResult(null);
   };
 
+  // Handle return slip OCR photo selection
+  const handleReturnSlipOcr = async (source: 'camera' | 'gallery') => {
+    setShowReturnSlipDrawer(false);
+    setIsProcessingReturnSlipOcr(true);
+
+    try {
+      let file: File | null = null;
+
+      if (isNative) {
+        if (source === 'camera') {
+          file = await takePhoto();
+        } else {
+          file = await selectFromGallery();
+        }
+      }
+
+      // Fallback to web input
+      if (!file) {
+        file = await new Promise<File | null>((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          if (source === 'camera') {
+            input.capture = 'environment';
+          }
+          input.onchange = (e) => {
+            const target = e.target as HTMLInputElement;
+            resolve(target.files?.[0] || null);
+          };
+          input.oncancel = () => resolve(null);
+          document.body.appendChild(input);
+          input.click();
+          document.body.removeChild(input);
+        });
+      }
+
+      if (!file) {
+        setIsProcessingReturnSlipOcr(false);
+        return;
+      }
+
+      const result = await extractFromImage(file, 'container_return_slip');
+
+      if (result.success && result.data) {
+        setReturnSlipOcrData(result.data as any);
+        if (result.data.yard_name) {
+          setReturnSlipYardName(result.data.yard_name);
+          toast({
+            title: 'อ่านข้อมูลสำเร็จ',
+            description: `พบชื่อลาน: ${result.data.yard_name}`,
+          });
+        } else {
+          toast({
+            title: 'ไม่พบชื่อลาน',
+            description: 'ไม่สามารถอ่านชื่อลานจากรูปได้ กรุณาลองใหม่',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        toast({
+          title: 'อ่านข้อมูลไม่สำเร็จ',
+          description: result.error || 'กรุณาลองถ่ายรูปใหม่',
+          variant: 'destructive',
+        });
+      }
+    } catch (err) {
+      console.error('Return slip OCR error:', err);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถอ่านใบคืนตู้ได้',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessingReturnSlipOcr(false);
+    }
+  };
+
   // Fetch check-in status and SOP status from external APIs
   const fetchStatuses = useCallback(async (showLoading: boolean = true) => {
     if (!userId || !job.order_code) return;
