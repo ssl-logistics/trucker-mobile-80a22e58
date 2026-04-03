@@ -63,10 +63,24 @@ const parseUrlArray = (raw: unknown): string[] => {
   return [];
 };
 
+const getUrlFilename = (url: string) => url.split('?')[0].split('/').pop()?.toLowerCase() || '';
+
 const hasMeaningfulOcrValue = (value: unknown): value is string =>
   typeof value === 'string' && value.trim() !== '' && value.trim().toUpperCase() !== 'N/A';
 
 const dedupeUrls = (urls: string[]) => Array.from(new Set(urls.filter(Boolean)));
+
+const isEirDocumentUrl = (url: string) => {
+  const filename = getUrlFilename(url);
+
+  return (
+    filename.startsWith('eir_') ||
+    filename.startsWith('bl_eir_') ||
+    filename.includes('-eir-') ||
+    filename.includes('_eir_') ||
+    filename.includes('eir-edit')
+  );
+};
 
 const getPickupOcrData = (records: any[]): OcrScanData | null => {
   const pickupRecords = records.filter((record) => {
@@ -116,18 +130,19 @@ export default function ContainerSummaryPage() {
   const [ocrScanData, setOcrScanData] = useState<OcrScanData | null>(null);
   const [loading, setLoading] = useState(true);
   const rawPickupPhotoUrls = sopData?.pickup_photo_urls || [];
+  const rawPickupEirPhotoUrls = rawPickupPhotoUrls.filter(isEirDocumentUrl);
   const rawReturnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
   const rawContainerPhotos = ocrScanData?.container_photos || [];
   const rawEirPhotos = ocrScanData?.eir_photos || [];
   const rawContainerImageUrl = ocrScanData?.container_image_url ? [ocrScanData.container_image_url] : [];
   const rawSealImageUrl = ocrScanData?.seal_image_url ? [ocrScanData.seal_image_url] : [];
-  const { urls: presignedPickupPhotoUrls } = usePresignedImageUrls(rawPickupPhotoUrls);
+  const { urls: presignedPickupEirPhotoUrls } = usePresignedImageUrls(rawPickupEirPhotoUrls);
   const { urls: presignedReturnPhotoUrls } = usePresignedImageUrls(rawReturnPhotoUrls);
   const { urls: presignedContainerPhotos } = usePresignedImageUrls(rawContainerPhotos);
   const { urls: presignedEirPhotos } = usePresignedImageUrls(rawEirPhotos);
   const { urls: presignedContainerImageUrl } = usePresignedImageUrls(rawContainerImageUrl);
   const { urls: presignedSealImageUrl } = usePresignedImageUrls(rawSealImageUrl);
-  const pickupPhotoUrls = presignedPickupPhotoUrls.filter((url): url is string => Boolean(url));
+  const pickupEirPhotoUrls = presignedPickupEirPhotoUrls.filter((url): url is string => Boolean(url));
   const returnPhotoUrls = presignedReturnPhotoUrls.filter((url): url is string => Boolean(url));
   const containerPhotos = presignedContainerPhotos.filter((url): url is string => Boolean(url));
   const eirPhotos = presignedEirPhotos.filter((url): url is string => Boolean(url));
@@ -470,8 +485,8 @@ export default function ContainerSummaryPage() {
               </div>
             )}
 
-            {/* EIR Document Photos - merge OCR scan eir_photos + checkin photo_urls, deduplicated */}
-            {(eirPhotos.length > 0 || pickupPhotoUrls.length > 0) && (
+            {/* EIR Document Photos - merge OCR scan eir_photos + EIR-only checkin photo_urls, deduplicated */}
+            {(eirPhotos.length > 0 || pickupEirPhotoUrls.length > 0) && (
               <div className="space-y-2">
                 {(() => {
                   // Merge both sources and deduplicate by URL basename
@@ -479,7 +494,7 @@ export default function ContainerSummaryPage() {
                   const mergedUrls: string[] = [];
                   const mergedRawUrls: string[] = [];
                   const addUrl = (url: string, rawUrl?: string) => {
-                    const key = url.split('/').pop()?.split('?')[0] || url;
+                    const key = getUrlFilename(url) || url;
                     if (!seen.has(key)) {
                       seen.add(key);
                       mergedUrls.push(url);
@@ -487,7 +502,7 @@ export default function ContainerSummaryPage() {
                     }
                   };
                   eirPhotos.forEach((u, i) => addUrl(u, rawEirPhotos[i]));
-                  pickupPhotoUrls.forEach((u, i) => addUrl(u, rawPickupPhotoUrls[i]));
+                  pickupEirPhotoUrls.forEach((u, i) => addUrl(u, rawPickupEirPhotoUrls[i]));
                   return (
                     <>
                       <div className="text-sm text-muted-foreground">เอกสาร EIR ({mergedUrls.length} รูป)</div>
