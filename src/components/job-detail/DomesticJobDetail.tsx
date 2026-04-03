@@ -236,6 +236,11 @@ export default function DomesticJobDetail({
   const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
   // Voice reorder state
   const [showVoiceMatch, setShowVoiceMatch] = useState<{ name: string; index: number } | null>(null);
+  // Container return slip OCR state
+  const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
+  const [isProcessingReturnSlipOcr, setIsProcessingReturnSlipOcr] = useState(false);
+  const [returnSlipYardName, setReturnSlipYardName] = useState<string | null>(null);
+  const [returnSlipOcrData, setReturnSlipOcrData] = useState<{ yard_name?: string | null; container_number?: string | null; seal_number?: string | null; return_date?: string | null } | null>(null);
 
   // OCR hooks
   const { extractFromImage, extracting } = useOCR();
