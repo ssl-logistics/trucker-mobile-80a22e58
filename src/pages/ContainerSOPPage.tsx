@@ -754,8 +754,8 @@ const ContainerSOPPage = () => {
               driver_type: driverType,
               scanned_at: new Date().toISOString(),
               return_yard: returnSlipYardName,
-              ...(derivedContainerNumber && { container_no: derivedContainerNumber }),
-              ...(derivedSealNumber && { seal_no: derivedSealNumber }),
+              container_no: derivedContainerNumber || finalContainerNumber || 'N/A',
+              seal_no: derivedSealNumber || finalSealNumber || 'N/A',
             };
             console.log('[ContainerSOP] save-ocr-scan (return_yard only) payload:', returnScanPayload);
             const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
