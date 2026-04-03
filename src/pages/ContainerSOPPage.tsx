@@ -1118,6 +1118,76 @@ const ContainerSOPPage = () => {
 
         </div>
 
+        {/* === OCR Return Slip (for unknown yard) === */}
+        {isContainerReturn && isYardUnknown && (
+          <div className="space-y-2">
+            <Label className="text-base flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
+              สแกนใบคืนตู้ (ระบุชื่อลาน)
+            </Label>
+            
+            {returnSlipYardName ? (
+              <Card className="p-3 bg-green-50 border-green-300">
+                <div className="flex items-center gap-2 mb-1">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="font-semibold text-green-700 text-sm">ชื่อลานที่อ่านได้</span>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
+                </div>
+                <p className="text-base font-bold text-green-800">{returnSlipYardName}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2" 
+                  onClick={() => { setReturnSlipYardName(null); setPendingReturnSlipYard(null); }}
+                >
+                  สแกนใหม่
+                </Button>
+              </Card>
+            ) : isProcessingReturnSlipOcr ? (
+              <Card className="p-3 bg-blue-50 border-blue-200">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span className="text-sm text-blue-700">กำลังอ่านใบคืนตู้...</span>
+                </div>
+              </Card>
+            ) : pendingReturnSlipYard !== null ? (
+              <Card className="p-3 bg-blue-50 border-blue-300">
+                <div className="flex items-center gap-2 mb-2">
+                  <Scan className="w-4 h-4 text-blue-600" />
+                  <span className="font-semibold text-blue-700 text-sm">ผลการสแกน</span>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-blue-200 mb-2">
+                  <label className="text-xs text-muted-foreground block mb-1">ชื่อลาน</label>
+                  <input
+                    type="text"
+                    value={pendingReturnSlipYard}
+                    onChange={(e) => setPendingReturnSlipYard(e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
+                    placeholder="กรอกชื่อลาน"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => { setPendingReturnSlipYard(null); setShowReturnSlipDrawer(true); }}>
+                    ถ่ายใหม่
+                  </Button>
+                  <Button size="sm" className="flex-1 bg-teal-600 hover:bg-teal-700" onClick={confirmReturnSlipYard} disabled={!pendingReturnSlipYard?.trim()}>
+                    ยืนยันชื่อลาน
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <button
+                onClick={() => setShowReturnSlipDrawer(true)}
+                className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+              >
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <Scan className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <p className="text-xs text-muted-foreground">กดเพื่อสแกนใบคืนตู้</p>
+              </button>
+            )}
+          </div>
+        )}
 
       </div>
 
