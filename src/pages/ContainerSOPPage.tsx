@@ -905,7 +905,8 @@ const ContainerSOPPage = () => {
     ? eirPhotoFiles.length > 0 
     : (containerPhotoFile && sealPhotoFile && eirPhotoFiles.length > 0 && blAnglePhotosReady);
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
-  const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady;
+  const yardReady = isContainerReturn && isYardUnknown ? !!returnSlipYardName : true;
+  const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady || !yardReady;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
