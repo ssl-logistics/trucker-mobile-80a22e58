@@ -486,8 +486,8 @@ const ContainerSOPPage = () => {
       }
     }
     
-    // Auto OCR for EIR photo during container return with unknown yard
-    if (slot === 'eir' && isContainerReturn && isYardUnknown && !returnSlipYardName) {
+    // Auto OCR for EIR photo during container return
+    if (slot === 'eir' && isContainerReturn) {
       await runReturnSlipOcrFromEir(file);
     }
   };
