@@ -464,6 +464,11 @@ const ContainerSOPPage = () => {
         await runSealOcr(file);
       }
     }
+    
+    // Auto OCR for EIR photo during container return with unknown yard
+    if (slot === 'eir' && isContainerReturn && isYardUnknown && !returnSlipYardName) {
+      await runReturnSlipOcrFromEir(file);
+    }
   };
 
   const runContainerOcr = async (file: File) => {
