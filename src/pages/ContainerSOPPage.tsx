@@ -136,6 +136,27 @@ const ContainerSOPPage = () => {
   const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
   const [pendingReturnSlipYard, setPendingReturnSlipYard] = useState<string | null>(null);
 
+  const runReturnSlipOcrFromEir = async (file: File) => {
+    setIsProcessingReturnSlipOcr(true);
+    try {
+      toast({ title: 'กำลังอ่านชื่อลานจาก EIR...', description: 'รอสักครู่...' });
+      const result = await extractFromImage(file, 'container_return_slip');
+      if (result.success && result.data?.yard_name) {
+        setPendingReturnSlipYard(result.data.yard_name);
+        toast({ title: 'อ่านชื่อลานสำเร็จ', description: `ลาน: ${result.data.yard_name}` });
+      } else {
+        setPendingReturnSlipYard('');
+        toast({ title: 'ไม่สามารถอ่านชื่อลานได้', description: 'กรุณากรอกชื่อลานด้วยตนเอง', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('EIR return slip OCR error:', error);
+      setPendingReturnSlipYard('');
+      toast({ title: 'เกิดข้อผิดพลาด', description: 'ไม่สามารถอ่านใบคืนตู้ได้', variant: 'destructive' });
+    } finally {
+      setIsProcessingReturnSlipOcr(false);
+    }
+  };
+
 
   useEffect(() => {
     if (jobId && user) {
@@ -463,6 +484,11 @@ const ContainerSOPPage = () => {
       } else if (slot === 'seal') {
         await runSealOcr(file);
       }
+    }
+    
+    // Auto OCR for EIR photo during container return with unknown yard
+    if (slot === 'eir' && isContainerReturn && isYardUnknown && !returnSlipYardName) {
+      await runReturnSlipOcrFromEir(file);
     }
   };
 
