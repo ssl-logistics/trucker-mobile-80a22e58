@@ -1257,6 +1257,30 @@ const ContainerSOPPage = () => {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Return Slip OCR Drawer */}
+      <Drawer open={showReturnSlipDrawer} onOpenChange={setShowReturnSlipDrawer}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">สแกนใบคืนตู้</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
+            <Button variant="outline" className="w-full h-14 text-base justify-start gap-3" onClick={() => handleReturnSlipOcr('camera')}>
+              <Camera className="w-6 h-6" />
+              ถ่ายรูปใบคืนตู้
+            </Button>
+            <Button variant="outline" className="w-full h-14 text-base justify-start gap-3" onClick={() => handleReturnSlipOcr('gallery')}>
+              <ImageIcon className="w-6 h-6" />
+              เลือกจากแกลเลอรี
+            </Button>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full h-12">ยกเลิก</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
