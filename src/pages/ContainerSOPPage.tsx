@@ -790,7 +790,7 @@ const ContainerSOPPage = () => {
       
       if (isContainerReturn) {
         orderStatus = 'container_returned';
-        orderNotes = 'คืนตู้สำเร็จ';
+        orderNotes = returnSlipYardName ? `คืนตู้สำเร็จ | ลานคืนตู้: ${returnSlipYardName}` : 'คืนตู้สำเร็จ';
       } else if (isBookingJob) {
         orderStatus = 'in_transit';
         orderNotes = 'รับตู้เปล่าแล้ว กำลังไปจุดรับสินค้า';
