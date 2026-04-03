@@ -582,6 +582,7 @@ export async function submitOcrScan(body: {
   driver_id?: string;
   driver_type?: 'internal' | 'external' | 'freelance';
   scanned_at?: string;
+  return_yard?: string;
 }) {
   return callExternalApi<{ success: boolean; data?: any }>('save-ocr-scan', {
     method: 'POST',
