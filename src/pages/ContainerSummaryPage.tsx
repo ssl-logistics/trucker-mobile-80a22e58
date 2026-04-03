@@ -83,7 +83,10 @@ const isEirDocumentUrl = (url: string) => {
 };
 
 const getPickupOcrData = (records: any[]): OcrScanData | null => {
+  // Exclude return-yard records (container return step) — they carry N/A placeholders
   const pickupRecords = records.filter((record) => {
+    if (record?.return_yard) return false;
+
     const containerPhotos = parseUrlArray(record?.container_photos);
 
     return (
