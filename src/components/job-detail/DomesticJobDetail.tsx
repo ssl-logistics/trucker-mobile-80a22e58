@@ -2156,6 +2156,41 @@ export default function DomesticJobDetail({
         </DrawerContent>
       </Drawer>
 
+      {/* Return Slip OCR Drawer */}
+      <Drawer open={showReturnSlipDrawer} onOpenChange={setShowReturnSlipDrawer}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">สแกนใบคืนตู้</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-2 text-center text-sm text-muted-foreground">
+            ถ่ายรูปหรือเลือกรูปใบคืนตู้เพื่ออ่านชื่อลาน
+          </div>
+          <DrawerFooter className="flex-row gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 h-12 gap-2"
+              onClick={() => handleReturnSlipOcr('camera')}
+            >
+              <Camera className="w-5 h-5" />
+              ถ่ายรูป
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 h-12 gap-2"
+              onClick={() => handleReturnSlipOcr('gallery')}
+            >
+              <ImageIcon className="w-5 h-5" />
+              เลือกรูป
+            </Button>
+          </DrawerFooter>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="ghost">ยกเลิก</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
       {/* Swap Confirmation Dialog */}
       <AlertDialog open={showSwapConfirm} onOpenChange={setShowSwapConfirm}>
         <AlertDialogContent className="w-[calc(100%-2rem)] rounded-2xl">
