@@ -52,6 +52,7 @@ interface JobDetail {
   booking_no?: string;
   transport_type?: string;
   container_details: ContainerDetail[];
+  container_return_location?: string;
 }
 
 type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir';
