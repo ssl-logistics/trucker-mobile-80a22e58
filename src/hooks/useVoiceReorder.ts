@@ -181,40 +181,50 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
     const recognition = new SpeechRecognition();
     
     recognition.lang = language === 'th' ? 'th-TH' : language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US';
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 3;
+
+    // Auto-stop after 8 seconds to save battery
+    const autoStopTimer = setTimeout(() => {
+      try { recognition.stop(); } catch {}
+    }, 8000);
 
     recognition.onstart = () => {
       setIsListening(true);
     };
 
     recognition.onresult = (event: any) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
+      let fullTranscript = '';
+      let hasFinal = false;
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += t;
-        } else {
-          interimTranscript += t;
+      for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript;
+        if (event.results[i].isFinal) hasFinal = true;
+      }
+
+      setTranscript(fullTranscript);
+
+      if (hasFinal) {
+        const result = findBestMatch(fullTranscript);
+        if (result.swapCommand || result.matchedDestination) {
+          // Found a match - stop listening and fire callback
+          clearTimeout(autoStopTimer);
+          try { recognition.stop(); } catch {}
+          onMatchRef.current?.(result);
         }
       }
+    };
 
-      const displayText = finalTranscript || interimTranscript;
-      setTranscript(displayText);
-
-      if (finalTranscript) {
-        const result = findBestMatch(finalTranscript);
-        onMatchRef.current?.(result);
-      }
+    recognition.onend = () => {
+      clearTimeout(autoStopTimer);
+      setIsListening(false);
     };
 
     recognition.onerror = (event: any) => {
       console.error('[VoiceReorder] error:', event.error);
+      clearTimeout(autoStopTimer);
       if (event.error === 'aborted' || event.error === 'network') {
-        // Silently ignore - aborted is normal when user stops, network is preview env issue
         setIsListening(false);
         return;
       }
@@ -225,10 +235,6 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
       } else {
         setError(`เกิดข้อผิดพลาด: ${event.error}`);
       }
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
       setIsListening(false);
     };
 
