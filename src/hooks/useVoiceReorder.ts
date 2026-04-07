@@ -157,6 +157,11 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
 
     recognition.onerror = (event: any) => {
       console.error('[VoiceReorder] error:', event.error);
+      if (event.error === 'aborted' || event.error === 'network') {
+        // Silently ignore - aborted is normal when user stops, network is preview env issue
+        setIsListening(false);
+        return;
+      }
       if (event.error === 'no-speech') {
         setError('ไม่ได้ยินเสียง ลองพูดอีกครั้ง');
       } else if (event.error === 'not-allowed') {
