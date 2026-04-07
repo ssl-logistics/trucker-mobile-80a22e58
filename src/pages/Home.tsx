@@ -244,6 +244,14 @@ export default function Home() {
         return status === 'awaiting_response';
       });
       
+      // Helper: filter out numeric-only or very short code values from name fields
+      const isValidName = (val: any): string => {
+        if (!val) return '';
+        const s = String(val).trim();
+        if (!s || /^\d+$/.test(s) || s.length <= 2) return '';
+        return s;
+      };
+
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
         // Determine if international
         const isIntl = !!(item.booking_no || item.booking_number || item.bl_no || item.bl_number || item.bill_of_lading) || item.transport_category === 'international' || item.job_type === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()));
