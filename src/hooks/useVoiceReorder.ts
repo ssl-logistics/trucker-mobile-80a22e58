@@ -181,33 +181,46 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
     const recognition = new SpeechRecognition();
     
     recognition.lang = language === 'th' ? 'th-TH' : language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US';
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 3;
+
+    // Auto-stop after 8 seconds to save battery
+    const autoStopTimer = setTimeout(() => {
+      try { recognition.stop(); } catch {}
+    }, 8000);
 
     recognition.onstart = () => {
       setIsListening(true);
     };
 
     recognition.onresult = (event: any) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
+      let fullTranscript = '';
+      let hasFinal = false;
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += t;
-        } else {
-          interimTranscript += t;
-        }
+      for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript;
+        if (event.results[i].isFinal) hasFinal = true;
       }
 
-      const displayText = finalTranscript || interimTranscript;
-      setTranscript(displayText);
+      setTranscript(fullTranscript);
 
-      if (finalTranscript) {
-        const result = findBestMatch(finalTranscript);
-        onMatchRef.current?.(result);
+      if (hasFinal) {
+        const result = findBestMatch(fullTranscript);
+        if (result.swapCommand || result.matchedDestination) {
+          // Found a match - stop listening and fire callback
+          clearTimeout(autoStopTimer);
+          try { recognition.stop(); } catch {}
+          onMatchRef.current?.(result);
+        }
+      }
+    };
+
+    recognition.onend = () => {
+      clearTimeout(autoStopTimer);
+      // If we haven't matched anything yet, fire with whatever we have
+      setIsListening(false);
+    };
       }
     };
 
