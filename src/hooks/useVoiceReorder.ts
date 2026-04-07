@@ -218,16 +218,13 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
 
     recognition.onend = () => {
       clearTimeout(autoStopTimer);
-      // If we haven't matched anything yet, fire with whatever we have
       setIsListening(false);
-    };
-      }
     };
 
     recognition.onerror = (event: any) => {
       console.error('[VoiceReorder] error:', event.error);
+      clearTimeout(autoStopTimer);
       if (event.error === 'aborted' || event.error === 'network') {
-        // Silently ignore - aborted is normal when user stops, network is preview env issue
         setIsListening(false);
         return;
       }
@@ -238,10 +235,6 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
       } else {
         setError(`เกิดข้อผิดพลาด: ${event.error}`);
       }
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
       setIsListening(false);
     };
 
