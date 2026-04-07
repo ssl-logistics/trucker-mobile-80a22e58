@@ -363,7 +363,8 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{t('job.destination')}</p>
-                    <p className="font-medium">{job.destination_location}</p>
+                    {job.destination_company_name && !['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'].includes(job.destination_company_name.trim()) && <p className="font-medium">{job.destination_company_name}</p>}
+                    <p className={job.destination_company_name ? "text-xs text-muted-foreground" : "font-medium"}>{job.destination_location}</p>
                     {job.invoice_number && <p className="text-xs text-muted-foreground">{t('job.invoice')}: {job.invoice_number}</p>}
                   </div>
                 </div>
