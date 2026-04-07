@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface VoiceReorderResult {
   matchedDestination: { id: string; name: string; index: number } | null;
+  swapCommand?: { fromIndex: number; toIndex: number } | null;
   transcript: string;
 }
 
