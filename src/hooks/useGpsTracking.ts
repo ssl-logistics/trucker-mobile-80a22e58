@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 
-const TRACKING_INTERVAL_MS = 3000; // 3 seconds
+const TRACKING_INTERVAL_MS = 15000; // 15 seconds
 // Use our edge function which forwards to external API with proper API key
 const UPDATE_POSITION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-truck-position`;
 
