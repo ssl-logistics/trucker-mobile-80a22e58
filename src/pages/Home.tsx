@@ -77,6 +77,13 @@ export default function Home() {
   const { isProcessingKey, withGuard: withJobGuard } = useMultiProcessingGuard();
   const { requireBankInfo } = useBankCheck();
 
+// Helper: filter out numeric-only or very short code values from name fields
+const isValidName = (val: any): string => {
+  if (!val) return '';
+  const s = String(val).trim();
+  if (!s || /^\d+$/.test(s) || s.length <= 2) return '';
+  return s;
+};
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -244,6 +251,7 @@ export default function Home() {
         return status === 'awaiting_response';
       });
       
+
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
         // Determine if international
         const isIntl = !!(item.booking_no || item.booking_number || item.bl_no || item.bl_number || item.bill_of_lading) || item.transport_category === 'international' || item.job_type === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()));
@@ -279,7 +287,7 @@ export default function Home() {
            post_id: item.id || item.post_id || '',
            order_code: item.order_number || item.order_code || item.quote_number || '',
            job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number || item.job_type === 'international' || item.transport_category === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()))) ? 'international' : (item.job_type || item.shipment_type || 'domestic'),
-          employer_name: item.factory_name || item.customer_name || item.sender_company_name || item.sender_name || (item.company_name && !/^\d+$/.test(String(item.company_name).trim()) ? item.company_name : '') || '',
+          employer_name: isValidName(item.factory_name) || isValidName(item.customer_name) || isValidName(item.sender_company_name) || isValidName(item.sender_name) || isValidName(item.company_name) || isValidName(user?.company_name) || '',
           transport_type: item.transport_mode || item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
@@ -475,7 +483,7 @@ export default function Home() {
           post_id: item.id || item.post_id || '',
           order_code: orderCode,
           job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number || item.job_type === 'international' || item.transport_category === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()))) ? 'international' : (item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic'),
-          employer_name: item.factory_name || item.customer_name || item.sender_company_name || item.sender_name || (item.company_name && !/^\d+$/.test(String(item.company_name).trim()) ? item.company_name : '') || '',
+          employer_name: isValidName(item.factory_name) || isValidName(item.customer_name) || isValidName(item.sender_company_name) || isValidName(item.sender_name) || isValidName(item.company_name) || isValidName(user?.company_name) || '',
           transport_type: item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
