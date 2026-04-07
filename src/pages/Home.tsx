@@ -251,13 +251,6 @@ const isValidName = (val: any): string => {
         return status === 'awaiting_response';
       });
       
-      // Helper: filter out numeric-only or very short code values from name fields
-      const isValidName = (val: any): string => {
-        if (!val) return '';
-        const s = String(val).trim();
-        if (!s || /^\d+$/.test(s) || s.length <= 2) return '';
-        return s;
-      };
 
       const transformedJobs: Job[] = apiJobs.map((item: any) => {
         // Determine if international
