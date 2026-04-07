@@ -23,129 +23,95 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
   const isSupported = typeof window !== 'undefined' && 
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
-  // Parse Thai number words into a numeric value (supports 1-99)
-  const parseThaiNumber = useCallback((word: string): number | null => {
-    const units: Record<string, number> = {
+  // Parse swap commands like "สลับจุด 2 กับจุด 3", "สลับจุดยี่สิบเอ็ดกับจุดสามสิบห้า"
+  const parseSwapCommand = useCallback((text: string): { fromIndex: number; toIndex: number } | null => {
+    const normalized = text.toLowerCase().trim();
+
+    // --- Thai number helpers (plain functions, not hooks) ---
+    const unitMap: Record<string, number> = {
       'หนึ่ง': 1, 'เอ็ด': 1, 'สอง': 2, 'สาม': 3, 'สี่': 4, 'ห้า': 5,
       'หก': 6, 'เจ็ด': 7, 'แปด': 8, 'เก้า': 9,
     };
-    const tens: Record<string, number> = {
+    const tenMap: Record<string, number> = {
       'สิบ': 10, 'ยี่สิบ': 20, 'สามสิบ': 30, 'สี่สิบ': 40, 'ห้าสิบ': 50,
       'หกสิบ': 60, 'เจ็ดสิบ': 70, 'แปดสิบ': 80, 'เก้าสิบ': 90,
     };
+    const sortedTens = Object.entries(tenMap).sort((a, b) => b[0].length - a[0].length);
+    const unitWords = ['เอ็ด', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
 
-    const w = word.trim();
-
-    // Direct unit match (1-9)
-    if (units[w] !== undefined) return units[w];
-
-    // Direct tens match (10, 20, 30...)
-    if (tens[w] !== undefined) return tens[w];
-
-    // Compound: tens + unit (e.g. "ยี่สิบเอ็ด" = 21, "สามสิบห้า" = 35)
-    // Sort tens by length descending to match longer prefixes first
-    const sortedTens = Object.entries(tens).sort((a, b) => b[0].length - a[0].length);
-    for (const [tenWord, tenVal] of sortedTens) {
-      if (w.startsWith(tenWord)) {
-        const remainder = w.slice(tenWord.length);
-        if (!remainder) return tenVal;
-        if (units[remainder] !== undefined) return tenVal + units[remainder];
+    const parseThaiNum = (w: string): number | null => {
+      if (unitMap[w] !== undefined) return unitMap[w];
+      if (tenMap[w] !== undefined) return tenMap[w];
+      for (const [tenWord, tenVal] of sortedTens) {
+        if (w.startsWith(tenWord)) {
+          const rest = w.slice(tenWord.length);
+          if (!rest) return tenVal;
+          if (unitMap[rest] !== undefined) return tenVal + unitMap[rest];
+        }
       }
-    }
+      return null;
+    };
 
-    return null;
-  }, []);
-
-  // Extract Thai number words from text, returning array of {value, startIndex, endIndex}
-  const extractThaiNumbers = useCallback((text: string): number[] => {
-    const results: number[] = [];
-    const tens = ['เก้าสิบ', 'แปดสิบ', 'เจ็ดสิบ', 'หกสิบ', 'ห้าสิบ', 'สี่สิบ', 'สามสิบ', 'ยี่สิบ', 'สิบ'];
-    const units = ['เอ็ด', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
-    
-    let remaining = text;
-    
-    while (remaining.length > 0) {
-      let matched = false;
-      
-      // Try to match a compound number (tens + optional unit)
-      for (const ten of tens) {
-        if (remaining.includes(ten)) {
-          const idx = remaining.indexOf(ten);
-          const afterTen = remaining.slice(idx + ten.length);
-          let unitVal = 0;
-          let unitLen = 0;
-          
-          for (const unit of units) {
-            if (afterTen.startsWith(unit)) {
-              const uv = parseThaiNumber(unit);
-              if (uv !== null) {
-                unitVal = uv;
-                unitLen = unit.length;
-                break;
-              }
+    const extractThaiNums = (txt: string): number[] => {
+      const results: number[] = [];
+      let rem = txt;
+      const maxLen = destinations.length;
+      for (let safety = 0; safety < 20 && rem.length > 0; safety++) {
+        let found = false;
+        for (const [tenWord] of sortedTens) {
+          const idx = rem.indexOf(tenWord);
+          if (idx === -1) continue;
+          const afterTen = rem.slice(idx + tenWord.length);
+          let uVal = 0, uLen = 0;
+          for (const uw of unitWords) {
+            if (afterTen.startsWith(uw)) {
+              const v = parseThaiNum(uw);
+              if (v !== null) { uVal = v; uLen = uw.length; }
+              break;
             }
           }
-          
-          const tenVal = parseThaiNumber(ten);
-          if (tenVal !== null) {
-            const total = tenVal + unitVal;
-            if (total >= 1 && total <= destinations.length) {
-              results.push(total);
-            }
-            remaining = remaining.slice(0, idx) + remaining.slice(idx + ten.length + unitLen);
-            matched = true;
+          const tVal = parseThaiNum(tenWord);
+          if (tVal !== null) {
+            const total = tVal + uVal;
+            if (total >= 1 && total <= maxLen) results.push(total);
+            rem = rem.slice(0, idx) + rem.slice(idx + tenWord.length + uLen);
+            found = true;
             break;
           }
         }
-      }
-      
-      if (matched) continue;
-      
-      // Try single units
-      let unitMatched = false;
-      for (const unit of units) {
-        if (remaining.includes(unit)) {
-          const idx = remaining.indexOf(unit);
-          const uv = parseThaiNumber(unit);
-          if (uv !== null && uv >= 1 && uv <= destinations.length) {
-            results.push(uv);
-          }
-          remaining = remaining.slice(0, idx) + remaining.slice(idx + unit.length);
-          unitMatched = true;
+        if (found) continue;
+        let uFound = false;
+        for (const uw of unitWords) {
+          const idx = rem.indexOf(uw);
+          if (idx === -1) continue;
+          const v = parseThaiNum(uw);
+          if (v !== null && v >= 1 && v <= maxLen) results.push(v);
+          rem = rem.slice(0, idx) + rem.slice(idx + uw.length);
+          uFound = true;
           break;
         }
+        if (!uFound) break;
       }
-      
-      if (!unitMatched) break;
-    }
-    
-    return results;
-  }, [parseThaiNumber, destinations.length]);
+      return results;
+    };
 
-  // Parse swap commands like "สลับจุด 2 กับจุด 3", "swap 2 and 3", "สลับจุดยี่สิบเอ็ดกับจุดสามสิบห้า"
-  const parseSwapCommand = useCallback((text: string): { fromIndex: number; toIndex: number } | null => {
-    const normalized = text.toLowerCase().trim();
-    
+    // --- Extract numbers ---
     const numbers: number[] = [];
-    
-    // Match digit numbers first
+
+    // Digit numbers first
     const digitMatches = normalized.match(/\d+/g);
     if (digitMatches) {
       for (const m of digitMatches) {
         const n = parseInt(m, 10);
-        if (n >= 1 && n <= destinations.length) {
-          numbers.push(n);
-        }
+        if (n >= 1 && n <= destinations.length) numbers.push(n);
       }
     }
 
-    // Match Thai number words if not enough digits found
+    // Thai number words if not enough digits
     if (numbers.length < 2) {
-      const thaiNums = extractThaiNumbers(normalized);
+      const thaiNums = extractThaiNums(normalized);
       for (const n of thaiNums) {
-        if (!numbers.includes(n)) {
-          numbers.push(n);
-        }
+        if (!numbers.includes(n)) numbers.push(n);
         if (numbers.length >= 2) break;
       }
     }
@@ -153,9 +119,8 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
     if (numbers.length >= 2) {
       return { fromIndex: numbers[0] - 1, toIndex: numbers[1] - 1 };
     }
-
     return null;
-  }, [destinations.length, extractThaiNumbers]);
+  }, [destinations.length]);
 
   const findBestMatch = useCallback((text: string): VoiceReorderResult => {
     // First, try to parse as a swap command with numbers
