@@ -816,6 +816,20 @@ export default function DomesticJobDetail({
     destinations: displayDestinations,
     language,
     onMatch: (result) => {
+      // Handle numbered swap commands like "สลับจุด 2 กับจุด 3"
+      if (result.swapCommand) {
+        const { fromIndex, toIndex } = result.swapCommand;
+        if (fromIndex >= 0 && fromIndex < displayDestinations.length && 
+            toIndex >= 0 && toIndex < displayDestinations.length && fromIndex !== toIndex) {
+          handleSwapRequest(fromIndex, toIndex);
+          setShowVoiceMatch({ name: `จุด ${fromIndex + 1} ↔ จุด ${toIndex + 1}`, index: toIndex });
+          setTimeout(() => setShowVoiceMatch(null), 3000);
+        } else {
+          toast({ title: 'หมายเลขจุดส่งไม่ถูกต้อง', description: `ได้ยิน: "${result.transcript}"`, variant: 'destructive' });
+        }
+        return;
+      }
+
       if (result.matchedDestination) {
         const { matchedDestination } = result;
         const currentDests = displayDestinations;
