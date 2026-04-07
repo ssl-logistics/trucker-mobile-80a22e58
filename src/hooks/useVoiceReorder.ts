@@ -23,7 +23,56 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
   const isSupported = typeof window !== 'undefined' && 
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
+  // Parse swap commands like "สลับจุด 2 กับจุด 3", "swap 2 and 3", "จุด 2 จุด 3"
+  const parseSwapCommand = useCallback((text: string): { fromIndex: number; toIndex: number } | null => {
+    const normalized = text.toLowerCase().trim();
+    
+    // Thai number words mapping
+    const thaiNumbers: Record<string, number> = {
+      'หนึ่ง': 1, 'สอง': 2, 'สาม': 3, 'สี่': 4, 'ห้า': 5,
+      'หก': 6, 'เจ็ด': 7, 'แปด': 8, 'เก้า': 9, 'สิบ': 10,
+      'สิบเอ็ด': 11, 'สิบสอง': 12, 'สิบสาม': 13, 'สิบสี่': 14, 'สิบห้า': 15,
+      'สิบหก': 16, 'สิบเจ็ด': 17, 'สิบแปด': 18, 'สิบเก้า': 19, 'ยี่สิบ': 20,
+    };
+
+    // Try to extract two numbers from the text
+    const numbers: number[] = [];
+    
+    // Match digit numbers
+    const digitMatches = normalized.match(/\d+/g);
+    if (digitMatches) {
+      for (const m of digitMatches) {
+        const n = parseInt(m, 10);
+        if (n >= 1 && n <= destinations.length) {
+          numbers.push(n);
+        }
+      }
+    }
+
+    // Match Thai number words if not enough digits found
+    if (numbers.length < 2) {
+      for (const [word, num] of Object.entries(thaiNumbers)) {
+        if (normalized.includes(word) && num <= destinations.length && !numbers.includes(num)) {
+          numbers.push(num);
+        }
+      }
+    }
+
+    if (numbers.length >= 2) {
+      // Convert 1-based to 0-based index
+      return { fromIndex: numbers[0] - 1, toIndex: numbers[1] - 1 };
+    }
+
+    return null;
+  }, [destinations.length]);
+
   const findBestMatch = useCallback((text: string): VoiceReorderResult => {
+    // First, try to parse as a swap command with numbers
+    const swapCmd = parseSwapCommand(text);
+    if (swapCmd) {
+      return { matchedDestination: null, swapCommand: swapCmd, transcript: text };
+    }
+
     const normalized = text.toLowerCase().trim();
     let bestMatch: VoiceReorderResult['matchedDestination'] = null;
     let bestScore = 0;
@@ -34,7 +83,6 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
       for (const name of names) {
         const destNorm = name.toLowerCase().trim();
         
-        // Exact match
         if (normalized.includes(destNorm) || destNorm.includes(normalized)) {
           const score = destNorm.length;
           if (score > bestScore) {
@@ -44,7 +92,6 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
           continue;
         }
 
-        // Partial word match - check if any significant words match
         const spokenWords = normalized.split(/\s+/);
         const destWords = destNorm.split(/\s+/);
         let matchedChars = 0;
@@ -62,8 +109,8 @@ export function useVoiceReorder({ destinations, language = 'th', onMatch }: UseV
       }
     });
 
-    return { matchedDestination: bestMatch, transcript: text };
-  }, [destinations]);
+    return { matchedDestination: bestMatch, swapCommand: null, transcript: text };
+  }, [destinations, parseSwapCommand]);
 
   const startListening = useCallback(() => {
     if (!isSupported) {
