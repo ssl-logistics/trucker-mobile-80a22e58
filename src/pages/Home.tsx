@@ -77,6 +77,13 @@ export default function Home() {
   const { isProcessingKey, withGuard: withJobGuard } = useMultiProcessingGuard();
   const { requireBankInfo } = useBankCheck();
 
+// Helper: filter out numeric-only or very short code values from name fields
+const isValidName = (val: any): string => {
+  if (!val) return '';
+  const s = String(val).trim();
+  if (!s || /^\d+$/.test(s) || s.length <= 2) return '';
+  return s;
+};
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
