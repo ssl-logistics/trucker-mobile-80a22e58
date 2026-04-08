@@ -512,6 +512,7 @@ export default function JobDetailPage() {
               description: t('jobDetail.notFound'),
               variant: 'destructive',
             });
+            navigate('/home', { replace: true });
           }
         }
       } else {
@@ -545,6 +546,7 @@ export default function JobDetailPage() {
             description: t('jobDetail.notFound'),
             variant: 'destructive',
           });
+          navigate('/home', { replace: true });
         }
       }
     } catch (error) {
@@ -685,13 +687,9 @@ export default function JobDetailPage() {
   }
 
   if (!job || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center">
-          <p className="text-muted-foreground">{t('jobDetail.notFound')}</p>
-        </div>
-      </div>
-    );
+    // Redirect to home if job data not found (e.g. deleted order)
+    navigate('/home', { replace: true });
+    return null;
   }
 
   const handleUpdate = () => {
