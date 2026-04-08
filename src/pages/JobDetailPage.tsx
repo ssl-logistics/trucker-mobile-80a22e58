@@ -686,9 +686,13 @@ export default function JobDetailPage() {
     return null;
   }
 
+  useEffect(() => {
+    if (!loading && !job) {
+      navigate('/home', { replace: true });
+    }
+  }, [loading, job, navigate]);
+
   if (!job || !user) {
-    // Redirect to home if job data not found (e.g. deleted order)
-    navigate('/home', { replace: true });
     return null;
   }
 
