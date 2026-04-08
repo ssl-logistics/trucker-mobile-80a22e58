@@ -312,34 +312,80 @@ export default function JobExpensesPage() {
   };
 
   const getExpenseTypeLabel = (expense: Expense) => {
-    const normalizedType = expense.expense_type?.toLowerCase().replace(/\s+/g, '_') || '';
+    const raw = expense.expense_type?.trim() || '';
+    const normalizedType = raw.toLowerCase().replace(/\s+/g, '_');
     
-    const typeMap: Record<string, string> = {
-      'fuel': t('expenses.types.fuel'),
-      'fuel_drop': t('expenses.types.fuel'),
-      'toll': t('expenses.types.toll'),
-      'port': t('expenses.types.port'),
-      'port_fee': t('expenses.types.port'),
-      'food': t('expenses.types.food'),
-      'maintenance': t('expenses.types.maintenance'),
-      'parking': t('expenses.types.parking'),
-      'other': t('expenses.types.other'),
-      'drop_empty': t('expenses.types.dropEmptyContainer'),
-      'drop_empty_container': t('expenses.types.dropEmptyContainer'),
-      'drop_loaded': t('expenses.types.dropLoadedContainer'),
-      'drop_loaded_container': t('expenses.types.dropLoadedContainer'),
-      'pickup_container': t('expenses.types.pickupEmptyContainer'),
-      'pickup_empty_container': t('expenses.types.pickupEmptyContainer'),
-      'pickup_loaded_container': t('expenses.types.pickupLoadedContainer'),
-      'wash_container': t('expenses.types.containerWash'),
-      'container_wash': t('expenses.types.containerWash'),
-      'return_container': t('expenses.types.returnContainer'),
-      'repair_container': t('expenses.types.containerRepair'),
-      'container_repair': t('expenses.types.containerRepair'),
-      'overtime': t('expenses.types.overtime'),
+    // Map code keys to translation keys
+    const codeToTransKey: Record<string, string> = {
+      'fuel': 'expense.fuel',
+      'fuel_drop': 'expense.fuelDrop',
+      'toll': 'expense.tollFee',
+      'port': 'expense.portFee',
+      'port_fee': 'expense.portFee',
+      'food': 'expenses.types.food',
+      'maintenance': 'expenses.types.maintenance',
+      'parking': 'expense.parkingFee',
+      'other': 'expense.other',
+      'drop_empty': 'expense.dropEmpty',
+      'drop_empty_container': 'expense.dropEmpty',
+      'drop_loaded': 'expense.dropLoaded',
+      'drop_loaded_container': 'expense.dropLoaded',
+      'pickup_container': 'expense.pickupContainer',
+      'pickup_empty_container': 'expense.pickupContainer',
+      'pickup_loaded_container': 'expenses.types.pickupLoadedContainer',
+      'wash_container': 'expense.washContainer',
+      'container_wash': 'expense.washContainer',
+      'return_container': 'expense.returnContainer',
+      'repair_container': 'expense.repairContainer',
+      'container_repair': 'expense.repairContainer',
+      'overtime': 'expense.overtime',
     };
-    
-    return typeMap[normalizedType] || expense.expense_name || expense.expense_type;
+
+    // Reverse map: all known labels (TH/EN/KO/ZH) → translation key
+    const labelToTransKey: Record<string, string> = {
+      // Thai
+      'ค่าน้ำมัน': 'expense.fuel', 'ค่าน้ำมันดรอป': 'expense.fuelDrop',
+      'ค่าดรอปตู้เปล่า': 'expense.dropEmpty', 'ค่าดรอปตู้หนัก': 'expense.dropLoaded',
+      'ค่ารับตู้': 'expense.pickupContainer', 'ค่าล้างตู้': 'expense.washContainer',
+      'ค่าคืนตู้': 'expense.returnContainer', 'ค่าซ่อมตู้': 'expense.repairContainer',
+      'ค่าผ่านท่า': 'expense.portFee', 'ค่าล่วงเวลา': 'expense.overtime',
+      'ค่าทางด่วน': 'expense.tollFee', 'ค่าที่จอด': 'expense.parkingFee',
+      'อื่นๆ': 'expense.other',
+      // English
+      'fuel': 'expense.fuel', 'fuel (drop)': 'expense.fuelDrop',
+      'drop empty container': 'expense.dropEmpty', 'drop loaded container': 'expense.dropLoaded',
+      'container pickup': 'expense.pickupContainer', 'container wash': 'expense.washContainer',
+      'container return': 'expense.returnContainer', 'container repair': 'expense.repairContainer',
+      'port fee': 'expense.portFee', 'overtime': 'expense.overtime',
+      'toll fee': 'expense.tollFee', 'parking fee': 'expense.parkingFee',
+      'other': 'expense.other',
+      // Korean
+      '연료비': 'expense.fuel', '연료비 (드롭)': 'expense.fuelDrop',
+      '빈 컨테이너 드롭': 'expense.dropEmpty', '적재 컨테이너 드롭': 'expense.dropLoaded',
+      '컨테이너 픽업': 'expense.pickupContainer', '컨테이너 세척': 'expense.washContainer',
+      '컨테이너 반납': 'expense.returnContainer', '컨테이너 수리': 'expense.repairContainer',
+      '항만 통과료': 'expense.portFee', '초과 근무': 'expense.overtime',
+      '통행료': 'expense.tollFee', '주차 요금': 'expense.parkingFee',
+      '기타': 'expense.other',
+      // Chinese
+      '油费': 'expense.fuel', '油费（配送）': 'expense.fuelDrop',
+      '空柜配送': 'expense.dropEmpty', '重柜配送': 'expense.dropLoaded',
+      '提柜费': 'expense.pickupContainer', '洗柜费': 'expense.washContainer',
+      '还柜费': 'expense.returnContainer', '修柜费': 'expense.repairContainer',
+      '港口通行费': 'expense.portFee', '加班费': 'expense.overtime',
+      '过路费': 'expense.tollFee', '停车费': 'expense.parkingFee',
+      '其他': 'expense.other',
+    };
+
+    // Try code-based match first
+    const transKey = codeToTransKey[normalizedType];
+    if (transKey) return t(transKey);
+
+    // Try label-based match (API may return localized text)
+    const labelKey = labelToTransKey[raw] || labelToTransKey[raw.toLowerCase()];
+    if (labelKey) return t(labelKey);
+
+    return expense.expense_name || expense.expense_type;
   };
 
   if (loading) {
