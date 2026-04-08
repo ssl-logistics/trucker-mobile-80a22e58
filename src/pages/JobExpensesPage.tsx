@@ -315,15 +315,16 @@ export default function JobExpensesPage() {
     const raw = expense.expense_type?.trim() || '';
     const normalizedType = raw.toLowerCase().replace(/\s+/g, '_');
     
-    // Map code keys to translation keys
+    // All code keys → translation key
     const codeToTransKey: Record<string, string> = {
       'fuel': 'expense.fuel',
       'fuel_drop': 'expense.fuelDrop',
+      'transport_fee': 'expense.transportFee',
+      'labor': 'expense.labor',
+      'loading': 'expense.loading',
       'toll': 'expense.tollFee',
       'port': 'expense.portFee',
       'port_fee': 'expense.portFee',
-      'food': 'expenses.types.food',
-      'maintenance': 'expenses.types.maintenance',
       'parking': 'expense.parkingFee',
       'other': 'expense.other',
       'drop_empty': 'expense.dropEmpty',
@@ -332,19 +333,23 @@ export default function JobExpensesPage() {
       'drop_loaded_container': 'expense.dropLoaded',
       'pickup_container': 'expense.pickupContainer',
       'pickup_empty_container': 'expense.pickupContainer',
-      'pickup_loaded_container': 'expenses.types.pickupLoadedContainer',
+      'pickup_loaded_container': 'expense.pickupContainer',
       'wash_container': 'expense.washContainer',
       'container_wash': 'expense.washContainer',
       'return_container': 'expense.returnContainer',
       'repair_container': 'expense.repairContainer',
       'container_repair': 'expense.repairContainer',
       'overtime': 'expense.overtime',
+      'food': 'expenses.types.food',
+      'maintenance': 'expenses.types.maintenance',
     };
 
     // Reverse map: all known labels (TH/EN/KO/ZH) → translation key
     const labelToTransKey: Record<string, string> = {
       // Thai
       'ค่าน้ำมัน': 'expense.fuel', 'ค่าน้ำมันดรอป': 'expense.fuelDrop',
+      'ค่าขนส่ง': 'expense.transportFee', 'ค่าแรงงาน': 'expense.labor',
+      'ค่าแรงยกของ': 'expense.loading',
       'ค่าดรอปตู้เปล่า': 'expense.dropEmpty', 'ค่าดรอปตู้หนัก': 'expense.dropLoaded',
       'ค่ารับตู้': 'expense.pickupContainer', 'ค่าล้างตู้': 'expense.washContainer',
       'ค่าคืนตู้': 'expense.returnContainer', 'ค่าซ่อมตู้': 'expense.repairContainer',
@@ -353,6 +358,8 @@ export default function JobExpensesPage() {
       'อื่นๆ': 'expense.other',
       // English
       'fuel': 'expense.fuel', 'fuel (drop)': 'expense.fuelDrop',
+      'transport fee': 'expense.transportFee', 'labor': 'expense.labor',
+      'loading': 'expense.loading',
       'drop empty container': 'expense.dropEmpty', 'drop loaded container': 'expense.dropLoaded',
       'container pickup': 'expense.pickupContainer', 'container wash': 'expense.washContainer',
       'container return': 'expense.returnContainer', 'container repair': 'expense.repairContainer',
@@ -361,6 +368,8 @@ export default function JobExpensesPage() {
       'other': 'expense.other',
       // Korean
       '연료비': 'expense.fuel', '연료비 (드롭)': 'expense.fuelDrop',
+      '운송비': 'expense.transportFee', '인건비': 'expense.labor',
+      '하역비': 'expense.loading',
       '빈 컨테이너 드롭': 'expense.dropEmpty', '적재 컨테이너 드롭': 'expense.dropLoaded',
       '컨테이너 픽업': 'expense.pickupContainer', '컨테이너 세척': 'expense.washContainer',
       '컨테이너 반납': 'expense.returnContainer', '컨테이너 수리': 'expense.repairContainer',
@@ -369,6 +378,8 @@ export default function JobExpensesPage() {
       '기타': 'expense.other',
       // Chinese
       '油费': 'expense.fuel', '油费（配送）': 'expense.fuelDrop',
+      '运输费': 'expense.transportFee', '人工费': 'expense.labor',
+      '装卸费': 'expense.loading',
       '空柜配送': 'expense.dropEmpty', '重柜配送': 'expense.dropLoaded',
       '提柜费': 'expense.pickupContainer', '洗柜费': 'expense.washContainer',
       '还柜费': 'expense.returnContainer', '修柜费': 'expense.repairContainer',
