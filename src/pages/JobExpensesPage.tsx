@@ -312,12 +312,11 @@ export default function JobExpensesPage() {
   };
 
   const getExpenseTypeLabel = (expense: Expense) => {
-    // Normalize expense_type to lowercase for matching
     const normalizedType = expense.expense_type?.toLowerCase().replace(/\s+/g, '_') || '';
     
-    // Map API expense types to translation keys
     const typeMap: Record<string, string> = {
       'fuel': t('expenses.types.fuel'),
+      'fuel_drop': t('expenses.types.fuel'),
       'toll': t('expenses.types.toll'),
       'port': t('expenses.types.port'),
       'port_fee': t('expenses.types.port'),
@@ -325,18 +324,21 @@ export default function JobExpensesPage() {
       'maintenance': t('expenses.types.maintenance'),
       'parking': t('expenses.types.parking'),
       'other': t('expenses.types.other'),
-      // Container handling types
+      'drop_empty': t('expenses.types.dropEmptyContainer'),
       'drop_empty_container': t('expenses.types.dropEmptyContainer'),
+      'drop_loaded': t('expenses.types.dropLoadedContainer'),
       'drop_loaded_container': t('expenses.types.dropLoadedContainer'),
+      'pickup_container': t('expenses.types.pickupEmptyContainer'),
       'pickup_empty_container': t('expenses.types.pickupEmptyContainer'),
       'pickup_loaded_container': t('expenses.types.pickupLoadedContainer'),
+      'wash_container': t('expenses.types.containerWash'),
       'container_wash': t('expenses.types.containerWash'),
       'return_container': t('expenses.types.returnContainer'),
+      'repair_container': t('expenses.types.containerRepair'),
       'container_repair': t('expenses.types.containerRepair'),
       'overtime': t('expenses.types.overtime'),
     };
     
-    // Use translated type if available, otherwise fall back to expense_name or expense_type
     return typeMap[normalizedType] || expense.expense_name || expense.expense_type;
   };
 
