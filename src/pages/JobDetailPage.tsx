@@ -680,17 +680,15 @@ export default function JobDetailPage() {
     }
   };
 
-  if (loading) {
-    // Don't render a full-page loader - the Suspense boundary already handles initial loading
-    // Only show inline skeleton or nothing to prevent duplicate loaders
-    return null;
-  }
-
   useEffect(() => {
     if (!loading && !job) {
       navigate('/home', { replace: true });
     }
   }, [loading, job, navigate]);
+
+  if (loading) {
+    return null;
+  }
 
   if (!job || !user) {
     return null;
