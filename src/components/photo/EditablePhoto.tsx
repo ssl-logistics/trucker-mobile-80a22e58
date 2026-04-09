@@ -126,15 +126,18 @@ export function EditablePhoto({
     }
   };
 
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
   const handleTakePhoto = async () => {
     if (isNative) {
       const file = await takePhoto();
       if (file) await uploadFile(file);
       else setShowDrawer(false);
     } else {
-      if (fileInputRef.current) {
-        fileInputRef.current.setAttribute('capture', 'environment');
-        fileInputRef.current.click();
+      if (cameraInputRef.current) {
+        cameraInputRef.current.value = '';
+        cameraInputRef.current.click();
       }
     }
   };
@@ -145,9 +148,9 @@ export function EditablePhoto({
       if (file) await uploadFile(file);
       else setShowDrawer(false);
     } else {
-      if (fileInputRef.current) {
-        fileInputRef.current.removeAttribute('capture');
-        fileInputRef.current.click();
+      if (galleryInputRef.current) {
+        galleryInputRef.current.value = '';
+        galleryInputRef.current.click();
       }
     }
   };
@@ -155,7 +158,7 @@ export function EditablePhoto({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) await uploadFile(file);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (e.target) e.target.value = '';
   };
 
   return (
