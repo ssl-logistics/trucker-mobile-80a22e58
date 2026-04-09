@@ -50,7 +50,8 @@ export function EditablePhoto({
   const cacheKey = originalUrl || src;
   const cachedUrl = uploadedUrlCache.get(cacheKey);
   const [displayUrl, setDisplayUrl] = useState(cachedUrl || src);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
   // Editing allowed: always on current job pages, within 3 days on history pages
@@ -126,15 +127,16 @@ export function EditablePhoto({
     }
   };
 
+
   const handleTakePhoto = async () => {
     if (isNative) {
       const file = await takePhoto();
       if (file) await uploadFile(file);
       else setShowDrawer(false);
     } else {
-      if (fileInputRef.current) {
-        fileInputRef.current.setAttribute('capture', 'environment');
-        fileInputRef.current.click();
+      if (cameraInputRef.current) {
+        cameraInputRef.current.value = '';
+        cameraInputRef.current.click();
       }
     }
   };
@@ -145,9 +147,9 @@ export function EditablePhoto({
       if (file) await uploadFile(file);
       else setShowDrawer(false);
     } else {
-      if (fileInputRef.current) {
-        fileInputRef.current.removeAttribute('capture');
-        fileInputRef.current.click();
+      if (galleryInputRef.current) {
+        galleryInputRef.current.value = '';
+        galleryInputRef.current.click();
       }
     }
   };
@@ -155,7 +157,7 @@ export function EditablePhoto({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) await uploadFile(file);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (e.target) e.target.value = '';
   };
 
   return (
@@ -180,7 +182,15 @@ export function EditablePhoto({
       )}
 
       <input
-        ref={fileInputRef}
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <input
+        ref={galleryInputRef}
         type="file"
         accept="image/*"
         onChange={handleFileChange}
