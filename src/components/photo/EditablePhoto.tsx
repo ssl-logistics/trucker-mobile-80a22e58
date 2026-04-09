@@ -50,7 +50,8 @@ export function EditablePhoto({
   const cacheKey = originalUrl || src;
   const cachedUrl = uploadedUrlCache.get(cacheKey);
   const [displayUrl, setDisplayUrl] = useState(cachedUrl || src);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
   // Editing allowed: always on current job pages, within 3 days on history pages
@@ -183,7 +184,15 @@ export function EditablePhoto({
       )}
 
       <input
-        ref={fileInputRef}
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <input
+        ref={galleryInputRef}
         type="file"
         accept="image/*"
         onChange={handleFileChange}
