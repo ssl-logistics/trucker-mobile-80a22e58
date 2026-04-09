@@ -127,8 +127,6 @@ export function EditablePhoto({
     }
   };
 
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handleTakePhoto = async () => {
     if (isNative) {
