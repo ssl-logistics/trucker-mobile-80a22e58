@@ -186,6 +186,8 @@ export default function DomesticJobDetail({
   const location = useLocation();
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
+  // Merge is_transferred flag into job for state propagation to sub-pages
+  const jobWithTransferFlag = isTransferred ? { ...job, is_transferred: true } : job;
   const { isInternalDriver, isExternalDriver, canViewPrice } = useUserRole();
   const {
     t,
