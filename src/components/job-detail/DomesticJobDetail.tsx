@@ -186,6 +186,8 @@ export default function DomesticJobDetail({
   const location = useLocation();
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
+  // Merge is_transferred flag into job for state propagation to sub-pages
+  const jobWithTransferFlag = isTransferred ? { ...job, is_transferred: true } : job;
   const { isInternalDriver, isExternalDriver, canViewPrice } = useUserRole();
   const {
     t,
@@ -1303,7 +1305,7 @@ export default function DomesticJobDetail({
                     onClick={() => {
                       const fromParam = new URLSearchParams(location.search).get('from');
                       const queryString = fromParam ? `?from=${fromParam}` : '';
-                      navigate(`/job/${job.order_code}/container-summary${queryString}`, { state: { jobData: job, checkinType: job.bl_no ? 'loaded_container' : 'empty_container', isBidJob } });
+                      navigate(`/job/${job.order_code}/container-summary${queryString}`, { state: { jobData: jobWithTransferFlag, checkinType: job.bl_no ? 'loaded_container' : 'empty_container', isBidJob } });
                     }}
                   >
                           <CheckCircle className="w-5 h-5 text-green-600" />
@@ -1320,9 +1322,9 @@ export default function DomesticJobDetail({
                       const queryString = fromParam ? `?from=${fromParam}` : '';
                       if (emptyContainerCheckedIn) {
                         const isInboundJob = !!job.bl_no || job.transport_type?.includes('ขาเข้า');
-                        navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: job, checkinType: isInboundJob ? 'loaded_container' : 'empty_container', isBidJob } });
+                        navigate(`/job/${job.order_code}/container-sop${queryString}`, { state: { jobData: jobWithTransferFlag, checkinType: isInboundJob ? 'loaded_container' : 'empty_container', isBidJob } });
                       } else {
-                        navigate(`/job/${job.order_code}/container-checkin${queryString}`, { state: { jobData: job, isBidJob } });
+                        navigate(`/job/${job.order_code}/container-checkin${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
                       }
                     }}>
 
@@ -1479,11 +1481,11 @@ export default function DomesticJobDetail({
                         const fromParam = new URLSearchParams(location.search).get('from');
                         const queryString = fromParam ? `?from=${fromParam}` : '';
                         if (pickupSopCompleted || jobApplication?.sop_completed_at) {
-                          navigate(`/job/${job.order_code}/pickup-summary${queryString}`, { state: { jobData: job, isBidJob } });
+                          navigate(`/job/${job.order_code}/pickup-summary${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
                         } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
-                          navigate(`/job/${job.order_code}/sop${queryString}`, { state: { jobData: job, isBidJob } });
+                          navigate(`/job/${job.order_code}/sop${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
                         } else {
-                          navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job, isBidJob } });
+                          navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
                         }
                       }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus || (isTransferred && isFromHistory && !pickupCheckedIn && !pickupSopCompleted && !jobApplication?.checked_in_at && !jobApplication?.sop_completed_at)}>
                           {isLoadingCheckinStatus ?
@@ -1761,7 +1763,7 @@ export default function DomesticJobDetail({
                       }
                         <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
-                        navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob } });
+                        navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob } });
                       }} disabled={isDestinationLocked || (isTransferred && isFromHistory && !isCheckedIn && !isPodCompleted)}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                           <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
@@ -1900,7 +1902,7 @@ export default function DomesticJobDetail({
                       }
                       <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
-                        navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, isBidJob } });
+                        navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
                       }} disabled={!isFallbackUnlocked || (isTransferred && isFromHistory && !deliveryCheckedIn && !isPodCompleted)}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                         <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
@@ -2052,11 +2054,11 @@ export default function DomesticJobDetail({
                       onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
                         if (containerReturnConfirmed) {
-                          navigate(`/job/${job.order_code}/container-summary${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return', isBidJob } });
+                          navigate(`/job/${job.order_code}/container-summary${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob } });
                         } else if (containerReturnCheckedIn) {
-                          navigate(`/job/${job.order_code}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return', isBidJob } });
+                          navigate(`/job/${job.order_code}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob } });
                         } else {
-                          navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, checkinType: 'container_return', isBidJob } });
+                          navigate(`/job/${job.order_code}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob } });
                         }
                       }}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
