@@ -259,7 +259,7 @@ const AddExpensePage = () => {
 
   const validateForm = () => {
     for (const expense of expenses) {
-      if (!expense.type || !expense.amount || expense.receiptPhotos.length === 0) {
+      if (!expense.type || !expense.amount) {
         toast({
           title: t('expense.fillAllFields'),
           description: t('expense.fillAllFieldsDesc'),
@@ -386,7 +386,7 @@ const AddExpensePage = () => {
           driver_type: driverType,
           expense_type: expenseType,
           amount: parseFloat(expense.amount),
-          receipt_photo_url: photoUrls[0], // Primary photo (backward compatibility)
+          receipt_photo_url: photoUrls[0] || '', // Primary photo (backward compatibility)
           receipt_photo_urls: photoUrls, // All photos
           notes: photoUrls.length > 1 ? `มี ${photoUrls.length} ใบเสร็จ` : '',
           ocr_data: ocrData, // OCR extracted data
