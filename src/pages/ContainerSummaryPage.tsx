@@ -347,10 +347,12 @@ export default function ContainerSummaryPage() {
         sop_photo_url: sopPhotoUrlVal,
         pickup_confirmed_at: pickupConfirmedAt,
         pickup_photo_urls: pickupPhotoUrls,
+        pickup_driver_id: pickupDriverId,
         return_checked_in_at: returnCheckedInAt,
         return_confirmed_at: returnConfirmedAt,
         return_photo_url: returnPhotoUrl,
         return_photo_urls: returnPhotoUrls,
+        return_driver_id: returnDriverId,
       });
 
       // Fetch OCR scan data for container/seal photos
