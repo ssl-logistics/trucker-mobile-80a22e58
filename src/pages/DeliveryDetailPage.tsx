@@ -383,6 +383,7 @@ export default function DeliveryDetailPage() {
               let deliveryConfirmedTime: string | null = null;
               let deliveryConfirmedPhotoUrl: string | null = null;
               let deliveryConfirmedPaymentMethod: string | null = null;
+              let deliveryConfirmedDriverId: string | null = null;
 
               if (checkinsError) {
                 console.error('Error fetching checkin status:', checkinsError);
@@ -425,7 +426,7 @@ export default function DeliveryDetailPage() {
                 deliveryConfirmedTime = deliveryConfirmed?.checkin_time || deliveryConfirmed?.checked_in_at || deliveryConfirmed?.created_at || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
                 deliveryConfirmedPaymentMethod = deliveryConfirmed?.payment_method || null;
-                const deliveryConfirmedDriverId = deliveryConfirmed?.internal_driver_id || deliveryConfirmed?.external_driver_id || deliveryConfirmed?.freelance_driver_id || deliveryConfirmed?.driver_id || null;
+                deliveryConfirmedDriverId = deliveryConfirmed?.internal_driver_id || deliveryConfirmed?.external_driver_id || deliveryConfirmed?.freelance_driver_id || deliveryConfirmed?.driver_id || null;
                 console.log('Delivery confirmed for sequence', currentSequenceNumber, ':', deliveryConfirmed ? 'found' : 'not found');
               }
             
