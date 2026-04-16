@@ -446,9 +446,9 @@ export default function DeliveryDetailPage() {
               delivery_checked_in_at: inferredCheckinTime,
               payment_completed_at: localJobApp?.payment_completed_at || null,
               payment_method: deliveryConfirmedPaymentMethod || localJobApp?.payment_method || null,
-              // Prefer external delivery_confirmed photo/time if present, fallback to local
               pod_photo_url: deliveryConfirmedPhotoUrl || localJobApp?.pod_photo_url || null,
               delivery_sop_completed_at: deliveryConfirmedTime || localJobApp?.delivery_sop_completed_at || null,
+              pod_driver_id: deliveryConfirmedDriverId || null,
             });
             
             // Also update the destination state with checkin times for accurate UI state
