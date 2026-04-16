@@ -252,9 +252,10 @@ const thTranslations: Record<string, string> = {
   'jobHistory.december': 'ธันวาคม',
   'jobHistory.loading': 'กำลังโหลด...',
   'jobHistory.noData': 'ไม่พบประวัติงาน',
-  'jobHistory.statusCompleted': 'เสร็จสิ้น',
-  'jobHistory.statusDelivering': 'กำลังจัดส่ง',
-  'jobHistory.statusAccepted': 'รับงานแล้ว',
+   'jobHistory.statusCompleted': 'เสร็จสิ้น',
+   'jobHistory.statusTransferred': 'โอนงานแล้ว',
+   'jobHistory.statusDelivering': 'กำลังจัดส่ง',
+   'jobHistory.statusAccepted': 'รับงานแล้ว',
   
   // Current Jobs Page
   'currentJobs.title': 'งานปัจจุบัน',
@@ -1797,9 +1798,10 @@ const enTranslations: Record<string, string> = {
   'jobHistory.december': 'December',
   'jobHistory.loading': 'Loading...',
   'jobHistory.noData': 'No job history found',
-  'jobHistory.statusCompleted': 'Completed',
-  'jobHistory.statusDelivering': 'In Delivery',
-  'jobHistory.statusAccepted': 'Accepted',
+   'jobHistory.statusCompleted': 'Completed',
+   'jobHistory.statusTransferred': 'Transferred',
+   'jobHistory.statusDelivering': 'In Delivery',
+   'jobHistory.statusAccepted': 'Accepted',
   
   // Current Jobs Page
   'currentJobs.title': 'Current Jobs',
@@ -3341,9 +3343,10 @@ const koTranslations: Record<string, string> = {
   'jobHistory.december': '12월',
   'jobHistory.loading': '로딩 중...',
   'jobHistory.noData': '작업 이력이 없습니다',
-  'jobHistory.statusCompleted': '완료',
-  'jobHistory.statusDelivering': '배송 중',
-  'jobHistory.statusAccepted': '수락됨',
+   'jobHistory.statusCompleted': '완료',
+   'jobHistory.statusTransferred': '이관됨',
+   'jobHistory.statusDelivering': '배송 중',
+   'jobHistory.statusAccepted': '수락됨',
   
   // Current Jobs Page
   'currentJobs.title': '현재 작업',
@@ -5136,9 +5139,10 @@ const zhTranslations: Record<string, string> = {
   'jobHistory.december': '十二月',
   'jobHistory.loading': '加载中...',
   'jobHistory.noData': '未找到工作历史',
-  'jobHistory.statusCompleted': '已完成',
-  'jobHistory.statusDelivering': '运输中',
-  'jobHistory.statusAccepted': '已接受',
+   'jobHistory.statusCompleted': '已完成',
+   'jobHistory.statusTransferred': '已转移',
+   'jobHistory.statusDelivering': '运输中',
+   'jobHistory.statusAccepted': '已接受',
   
   // Validation Messages
   'validation.emailRequired': '请输入邮箱',

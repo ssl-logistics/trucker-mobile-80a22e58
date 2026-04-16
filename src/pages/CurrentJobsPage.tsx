@@ -300,9 +300,15 @@ export default function CurrentJobsPage() {
            // International: all PODs completed AND container returned -> remove
           
            const activeJobs = startedJobs.filter((job: any) => {
+              // Exclude transferred jobs - they go to history
+              if (job.is_transferred) {
+                console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} is_transferred → excluding`);
+                return false;
+              }
+              
               const status = (job.status || '').toLowerCase();
               const transportId = String(job.id);
-              
+
               // Jobs with completed/closed/container_returned status are definitively done
               if (['completed', 'closed', 'container_returned'].includes(status)) {
                 console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} status='${status}' → excluding (done)`);
@@ -518,7 +524,7 @@ export default function CurrentJobsPage() {
         const allCompanyJobs = Array.isArray(companyResult) ? companyResult : ((companyResult as any).data || []);
         // Filter out jobs that have ALL destinations POD completed, and map job_type/destinations
         companyJobs = allCompanyJobs
-          .filter((job: any) => !isJobFullyCompleted(job))
+          .filter((job: any) => !job.is_transferred && !isJobFullyCompleted(job))
           .map((job: any) => ({
             ...job,
             job_type: isInternationalJob(job) ? 'international' : (job.job_type || job.transport_category || 'domestic'),

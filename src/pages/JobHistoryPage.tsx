@@ -78,6 +78,9 @@ interface CompletedJob {
   destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
   // Job type for domestic/international distinction
   job_type?: string;
+  // Transferred job flags
+  is_transferred?: boolean;
+  status_at_transfer?: string;
 }
 
 export default function JobHistoryPage() {
@@ -221,6 +224,9 @@ export default function JobHistoryPage() {
         // Status must be completed/closed AND POD must be verified
         const completedFromApi: CompletedJob[] = allJobs
           .filter((job: any) => {
+            // Always include transferred jobs in history
+            if (job.is_transferred) return true;
+            
             const transportId = String(job.id);
             const podCount = podCountByTransportId[transportId] || 0;
             const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
@@ -248,7 +254,7 @@ export default function JobHistoryPage() {
             order_number: job.order_number,
             transport_type_id: job.transport_type_id,
             transport_mode: job.transport_mode,
-            status: 'completed',
+            status: job.is_transferred ? 'transferred' : 'completed',
             sender_name: job.factory_name || job.sender_name,
             sender_address: job.sender_address || '',
             sender_province: job.sender_province || '',
@@ -278,6 +284,9 @@ export default function JobHistoryPage() {
             booking_no: job.booking_no || null,
             bl_no: job.bl_no || null,
             transport_category: job.transport_category || null,
+            // Transferred job flags
+            is_transferred: !!job.is_transferred,
+            status_at_transfer: job.status_at_transfer || null,
           }));
 
         console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
@@ -431,12 +440,14 @@ export default function JobHistoryPage() {
         return allPodsCompleted;
       };
 
-      // Filter jobs that have ALL destinations POD completed (verified by checkins)
+      // Filter jobs that have ALL destinations POD completed (verified by checkins) OR transferred
       const completedFromApi = allJobs
-        .filter((job: any) => isJobFullyCompleted(job))
+        .filter((job: any) => job.is_transferred || isJobFullyCompleted(job))
         .map((job: any) => ({ 
           ...job, 
-          status: "completed",
+          status: job.is_transferred ? 'transferred' : "completed",
+          is_transferred: !!job.is_transferred,
+          status_at_transfer: job.status_at_transfer || null,
           // Preserve origins/destinations arrays for multi-destination detection
           origins: job.origins,
           destinations: job.destinations,
