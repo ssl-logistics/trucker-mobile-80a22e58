@@ -460,7 +460,7 @@ export default function ContainerSummaryPage() {
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">รูปเลขตู้</div>
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <EditablePhoto src={containerNumberPhoto} alt="Container Number" originalUrl={ocrScanData?.container_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                  <EditablePhoto src={containerNumberPhoto} alt="Container Number" originalUrl={ocrScanData?.container_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory}  />
                 </div>
               </div>
             )}
@@ -470,7 +470,7 @@ export default function ContainerSummaryPage() {
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">รูปเลขซีล</div>
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <EditablePhoto src={sealNumberPhoto} alt="Seal Number" originalUrl={ocrScanData?.seal_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-seal-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                  <EditablePhoto src={sealNumberPhoto} alt="Seal Number" originalUrl={ocrScanData?.seal_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-seal-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory}  />
                 </div>
               </div>
             )}
@@ -482,7 +482,7 @@ export default function ContainerSummaryPage() {
                 <div className="grid grid-cols-2 gap-2">
                   {containerPhotos.map((url, idx) => (
                     <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                      <EditablePhoto src={url} alt={`Container Photo ${idx + 1}`} originalUrl={rawContainerPhotos[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                      <EditablePhoto src={url} alt={`Container Photo ${idx + 1}`} originalUrl={rawContainerPhotos[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory}  />
                     </div>
                   ))}
                 </div>
@@ -513,7 +513,7 @@ export default function ContainerSummaryPage() {
                       <div className="grid grid-cols-2 gap-2">
                         {mergedUrls.map((url, idx) => (
                           <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} originalUrl={mergedRawUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} originalUrl={mergedRawUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory}  />
                           </div>
                         ))}
                       </div>
@@ -549,7 +549,7 @@ export default function ContainerSummaryPage() {
             <div className="grid grid-cols-2 gap-2">
               {returnPhotoUrls.map((url, idx) => (
                 <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                  <EditablePhoto src={url} alt={`Container Return Document ${idx + 1}`} originalUrl={rawReturnPhotoUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-return-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                  <EditablePhoto src={url} alt={`Container Return Document ${idx + 1}`} originalUrl={rawReturnPhotoUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-return-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory}  />
                 </div>
               ))}
             </div>

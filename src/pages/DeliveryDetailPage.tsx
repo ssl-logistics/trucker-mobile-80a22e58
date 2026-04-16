@@ -1005,7 +1005,7 @@ export default function DeliveryDetailPage() {
                     folder="sop-photos"
                     filenamePrefix={`${user?.id}-${job?.order_code}-pod-edit`}
                     completedAt={jobApplication?.delivery_sop_completed_at}
-                    fromHistory={isFromHistory} isTransferred={isTransferred}
+                    fromHistory={isFromHistory} 
                   />
                 </div>
               </div>
