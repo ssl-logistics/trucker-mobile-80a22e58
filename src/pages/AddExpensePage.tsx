@@ -92,6 +92,7 @@ const AddExpensePage = () => {
     overtime: "Overtime",
     toll: "Toll Fee",
     parking: "Parking Fee",
+    misc_no_receipt: "Misc (No Receipt)",
     other: "Other",
   };
 
@@ -111,6 +112,7 @@ const AddExpensePage = () => {
     { value: "repair_container", label: t('expense.repairContainer') },
     { value: "port_fee", label: t('expense.portFee') },
     { value: "overtime", label: t('expense.overtime') },
+    { value: "misc_no_receipt", label: t('expense.miscNoReceipt') },
     { value: "other", label: t('expense.other') },
   ];
   

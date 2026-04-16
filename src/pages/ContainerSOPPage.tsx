@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer, driverCheckin, updateOrderStatus } from '@/lib/externalApi';
+import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer, driverCheckin, updateOrderStatus, getExpenses } from '@/lib/externalApi';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -135,6 +135,9 @@ const ContainerSOPPage = () => {
   const [isProcessingReturnSlipOcr, setIsProcessingReturnSlipOcr] = useState(false);
   const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
   const [pendingReturnSlipYard, setPendingReturnSlipYard] = useState<string | null>(null);
+  const [checkingExpenses, setCheckingExpenses] = useState(false);
+  const [showMissingExpenseDialog, setShowMissingExpenseDialog] = useState(false);
+  const [missingExpenseTypes, setMissingExpenseTypes] = useState<string[]>([]);
 
   const runReturnSlipOcrFromEir = async (file: File) => {
     setIsProcessingReturnSlipOcr(true);
@@ -566,7 +569,7 @@ const ContainerSOPPage = () => {
     toast({ title: 'ยืนยันเลขซีลสำเร็จ' });
   };
 
-  const handleConfirmClick = () => {
+  const handleConfirmClick = async () => {
     if (needsOCR && !isContainerOcrDone) {
       toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
       return;
@@ -585,6 +588,63 @@ const ContainerSOPPage = () => {
       toast({ title: 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
+
+    // BL container return: check mandatory expenses
+    if (isBLJob && isContainerReturn && user) {
+      setCheckingExpenses(true);
+      try {
+        const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        const { data: expensesData } = await getExpenses(jobId || '', user.id, driverType);
+        
+        const expenses = Array.isArray(expensesData) ? expensesData : (expensesData as any)?.expenses || [];
+        
+        // Normalize expense types from API
+        const existingTypes = new Set<string>();
+        for (const exp of expenses) {
+          const raw = (exp.expense_type || '').toLowerCase().replace(/\s+/g, '_');
+          existingTypes.add(raw);
+          // Also match Thai labels
+          const thaiMap: Record<string, string> = {
+            'ค่าคืนตู้': 'return_container',
+            'ค่าผ่านท่า': 'port_fee',
+            'ค่าใช้จ่ายไม่มีใบเสร็จ': 'misc_no_receipt',
+          };
+          if (thaiMap[exp.expense_type?.trim()]) {
+            existingTypes.add(thaiMap[exp.expense_type.trim()]);
+          }
+          // Match English labels
+          const enMap: Record<string, string> = {
+            'container return': 'return_container',
+            'port fee': 'port_fee',
+            'misc (no receipt)': 'misc_no_receipt',
+          };
+          if (enMap[exp.expense_type?.trim()?.toLowerCase()]) {
+            existingTypes.add(enMap[exp.expense_type.trim().toLowerCase()]);
+          }
+        }
+        
+        const requiredTypes = [
+          { key: 'return_container', label: t('expense.returnContainer') },
+          { key: 'port_fee', label: t('expense.portFee') },
+          { key: 'misc_no_receipt', label: t('expense.miscNoReceipt') },
+        ];
+        
+        const missing = requiredTypes.filter(rt => !existingTypes.has(rt.key));
+        
+        if (missing.length > 0) {
+          setMissingExpenseTypes(missing.map(m => m.label));
+          setShowMissingExpenseDialog(true);
+          setCheckingExpenses(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[ContainerSOP] Failed to check expenses:', err);
+        // If we can't check, still allow (non-blocking)
+      } finally {
+        setCheckingExpenses(false);
+      }
+    }
+
     setShowConfirmDialog(true);
   };
 
@@ -1255,9 +1315,9 @@ const ContainerSOPPage = () => {
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={isConfirmDisabled}
+          disabled={isConfirmDisabled || checkingExpenses}
         >
-          {uploading ? t('sop.saving') : confirmButtonText}
+          {checkingExpenses ? t('common.loading') : uploading ? t('sop.saving') : confirmButtonText}
         </Button>
       </div>
 
@@ -1290,6 +1350,47 @@ const ContainerSOPPage = () => {
               disabled={uploading}
             >
               {uploading ? t('sop.saving') : t('sop.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Missing Expenses Dialog */}
+      <Dialog open={showMissingExpenseDialog} onOpenChange={setShowMissingExpenseDialog}>
+        <DialogContent className="max-w-[340px] rounded-2xl">
+          <DialogHeader className="items-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
+              <span className="text-4xl">📋</span>
+            </div>
+            <DialogTitle className="text-xl text-center">
+              {t('expense.requiredExpenseMissing')}
+            </DialogTitle>
+            <DialogDescription className="text-center text-base">
+              {t('expense.missingTypes').replace('{types}', missingExpenseTypes.join(', '))}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-3 sm:gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowMissingExpenseDialog(false)}
+              className="flex-1 h-11"
+            >
+              {t('sop.cancel')}
+            </Button>
+            <Button
+              onClick={() => {
+                setShowMissingExpenseDialog(false);
+                navigate(`/job/${jobId}/add-expense`, { 
+                  state: { 
+                    jobData: navState?.jobData,
+                    returnPath: location.pathname,
+                    checkinType: checkinTypeFromState,
+                  } 
+                });
+              }}
+              className="flex-1 h-11 bg-primary hover:bg-primary/90"
+            >
+              {t('expense.goToAddExpense')}
             </Button>
           </DialogFooter>
         </DialogContent>
