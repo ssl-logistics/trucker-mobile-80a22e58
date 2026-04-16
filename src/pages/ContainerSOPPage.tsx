@@ -595,35 +595,48 @@ const ContainerSOPPage = () => {
       try {
         const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         const { data: expensesData } = await getExpenses(jobId || '', user.id, driverType);
-        
-        const expenses = Array.isArray(expensesData) ? expensesData : (expensesData as any)?.expenses || [];
-        
+
+        const expenseList = Array.isArray(expensesData)
+          ? expensesData
+          : Array.isArray((expensesData as any)?.expenses)
+            ? (expensesData as any).expenses
+            : Array.isArray((expensesData as any)?.data?.expenses)
+              ? (expensesData as any).data.expenses
+              : [];
+
         // Normalize expense types from API
         const existingTypes = new Set<string>();
-        for (const exp of expenses) {
-          const raw = (exp.expense_type || '').trim();
-          const rawLower = raw.toLowerCase().replace(/\s+/g, '_');
-          existingTypes.add(rawLower);
-          
-          // Map all known variations to system keys
+        const normalizeExpenseType = (value: string) =>
+          value
+            .trim()
+            .toLowerCase()
+            .replace(/[()]/g, '')
+            .replace(/[^\wก-๙]+/g, '_')
+            .replace(/^_+|_+$/g, '');
+
+        for (const exp of expenseList) {
+          const raw = String(exp.expense_type || exp.expense_name || '');
+          if (!raw.trim()) continue;
+
+          const normalized = normalizeExpenseType(raw);
+          existingTypes.add(normalized);
+
           const variationMap: Record<string, string> = {
-            // Thai labels
             'ค่าคืนตู้': 'return_container',
             'ค่าผ่านท่า': 'port_fee',
             'ค่าใช้จ่ายไม่มีใบเสร็จ': 'misc_no_receipt',
-            // English labels (as returned by API)
-            'return container': 'return_container',
-            'container return': 'return_container',
-            'port fee': 'port_fee',
-            'misc (no receipt)': 'misc_no_receipt',
+            'container_return': 'return_container',
+            'return_container': 'return_container',
+            'port_fee': 'port_fee',
             'misc_no_receipt': 'misc_no_receipt',
-            'misc no receipt': 'misc_no_receipt',
+            'overtime': 'misc_no_receipt',
+            'ค่าล่วงเวลา': 'misc_no_receipt',
           };
-          const mapped = variationMap[raw] || variationMap[raw.toLowerCase()];
+
+          const mapped = variationMap[raw.trim()] || variationMap[normalized];
           if (mapped) {
             existingTypes.add(mapped);
           }
-          console.log('[ContainerSOP] Expense type raw:', raw, '→ mapped:', mapped || rawLower);
         }
         
         const requiredTypes = [
