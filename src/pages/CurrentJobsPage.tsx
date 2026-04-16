@@ -307,7 +307,8 @@ export default function CurrentJobsPage() {
               }
               
               const status = (job.status || '').toLowerCase();
-              
+              const transportId = String(job.id);
+
               // Jobs with completed/closed/container_returned status are definitively done
               if (['completed', 'closed', 'container_returned'].includes(status)) {
                 console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} status='${status}' → excluding (done)`);
