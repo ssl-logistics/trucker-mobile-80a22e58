@@ -233,10 +233,12 @@ export default function ContainerSummaryPage() {
       let checkedInAt: string | null = null;
       let pickupConfirmedAt: string | null = null;
       let pickupPhotoUrls: string[] = [];
+      let pickupDriverId: string | null = null;
       let returnCheckedInAt: string | null = null;
       let returnConfirmedAt: string | null = null;
       let returnPhotoUrl: string | null = null;
       let returnPhotoUrls: string[] = [];
+      let returnDriverId: string | null = null;
 
       if (!checkinError) {
         const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
