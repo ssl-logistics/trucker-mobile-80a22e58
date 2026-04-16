@@ -135,6 +135,9 @@ const ContainerSOPPage = () => {
   const [isProcessingReturnSlipOcr, setIsProcessingReturnSlipOcr] = useState(false);
   const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
   const [pendingReturnSlipYard, setPendingReturnSlipYard] = useState<string | null>(null);
+  const [checkingExpenses, setCheckingExpenses] = useState(false);
+  const [showMissingExpenseDialog, setShowMissingExpenseDialog] = useState(false);
+  const [missingExpenseTypes, setMissingExpenseTypes] = useState<string[]>([]);
 
   const runReturnSlipOcrFromEir = async (file: File) => {
     setIsProcessingReturnSlipOcr(true);
