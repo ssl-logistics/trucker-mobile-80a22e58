@@ -1,6 +1,6 @@
 ---
 name: Transferred Job Handling
-description: Jobs with is_transferred flag are excluded from current jobs and shown in history with grey styling. When viewed from history, only completed steps are accessible; uncompleted steps are disabled.
+description: Jobs with is_transferred flag are excluded from current jobs, shown in history with grey styling, and photos are read-only for the second driver.
 type: feature
 ---
 Jobs with `is_transferred: true` from the `get-driver-assigned-jobs` API:
@@ -13,3 +13,4 @@ Jobs with `is_transferred: true` from the `get-driver-assigned-jobs` API:
    - Uncompleted steps have their action buttons disabled.
    - The `isTransferred` flag is detected from `location.state.jobData.is_transferred`.
    - Applies to all step types: empty container, pickup, delivery, container return.
+4. **Photo Editing**: `EditablePhoto` is fully read-only (`isTransferred` prop) — the second driver cannot edit photos uploaded by the first driver. Applied in `PickupSummaryPage`, `ContainerSummaryPage`, and `DeliveryDetailPage`.

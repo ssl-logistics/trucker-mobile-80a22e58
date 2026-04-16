@@ -123,6 +123,7 @@ export default function DeliveryDetailPage() {
   
   // Check if viewing from history
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   
   // GPS tracking hook
   const { stopTracking } = useGpsTracking();
@@ -1004,7 +1005,7 @@ export default function DeliveryDetailPage() {
                     folder="sop-photos"
                     filenamePrefix={`${user?.id}-${job?.order_code}-pod-edit`}
                     completedAt={jobApplication?.delivery_sop_completed_at}
-                    fromHistory={isFromHistory}
+                    fromHistory={isFromHistory} isTransferred={isTransferred}
                   />
                 </div>
               </div>
