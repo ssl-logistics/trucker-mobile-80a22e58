@@ -21,6 +21,10 @@ interface JobDetail {
   start_time: string;
 }
 
+/** Extract driver ID from a checkin/SOP record regardless of driver type */
+const getRecordDriverId = (record: any): string | null =>
+  record?.internal_driver_id || record?.external_driver_id || record?.freelance_driver_id || record?.driver_id || null;
+
 interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
@@ -28,11 +32,13 @@ interface SOPData {
   // Container pickup confirmed (BL jobs)
   pickup_confirmed_at: string | null;
   pickup_photo_urls: string[];
+  pickup_driver_id: string | null;
   // Container return specific
   return_checked_in_at: string | null;
   return_confirmed_at: string | null;
   return_photo_url: string | null;
   return_photo_urls: string[];
+  return_driver_id: string | null;
 }
 
 interface OcrScanData {
