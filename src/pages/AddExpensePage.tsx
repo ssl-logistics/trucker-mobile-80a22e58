@@ -259,7 +259,7 @@ const AddExpensePage = () => {
 
   const validateForm = () => {
     for (const expense of expenses) {
-      if (!expense.type || !expense.amount || expense.receiptPhotos.length === 0) {
+      if (!expense.type || !expense.amount) {
         toast({
           title: t('expense.fillAllFields'),
           description: t('expense.fillAllFieldsDesc'),
