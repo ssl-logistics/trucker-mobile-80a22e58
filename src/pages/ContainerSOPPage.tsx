@@ -594,6 +594,8 @@ const ContainerSOPPage = () => {
       setCheckingExpenses(true);
       try {
         const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        const { data: expensesData } = await getExpenses(jobId || '', user.id, driverType);
+
         const expenseList = Array.isArray(expensesData)
           ? expensesData
           : Array.isArray((expensesData as any)?.expenses)
