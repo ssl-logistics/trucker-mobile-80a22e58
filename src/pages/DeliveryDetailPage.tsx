@@ -425,6 +425,7 @@ export default function DeliveryDetailPage() {
                 deliveryConfirmedTime = deliveryConfirmed?.checkin_time || deliveryConfirmed?.checked_in_at || deliveryConfirmed?.created_at || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
                 deliveryConfirmedPaymentMethod = deliveryConfirmed?.payment_method || null;
+                const deliveryConfirmedDriverId = deliveryConfirmed?.internal_driver_id || deliveryConfirmed?.external_driver_id || deliveryConfirmed?.freelance_driver_id || deliveryConfirmed?.driver_id || null;
                 console.log('Delivery confirmed for sequence', currentSequenceNumber, ':', deliveryConfirmed ? 'found' : 'not found');
               }
             
