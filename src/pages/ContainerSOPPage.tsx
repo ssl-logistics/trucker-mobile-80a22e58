@@ -601,26 +601,29 @@ const ContainerSOPPage = () => {
         // Normalize expense types from API
         const existingTypes = new Set<string>();
         for (const exp of expenses) {
-          const raw = (exp.expense_type || '').toLowerCase().replace(/\s+/g, '_');
-          existingTypes.add(raw);
-          // Also match Thai labels
-          const thaiMap: Record<string, string> = {
+          const raw = (exp.expense_type || '').trim();
+          const rawLower = raw.toLowerCase().replace(/\s+/g, '_');
+          existingTypes.add(rawLower);
+          
+          // Map all known variations to system keys
+          const variationMap: Record<string, string> = {
+            // Thai labels
             'ค่าคืนตู้': 'return_container',
             'ค่าผ่านท่า': 'port_fee',
             'ค่าใช้จ่ายไม่มีใบเสร็จ': 'misc_no_receipt',
-          };
-          if (thaiMap[exp.expense_type?.trim()]) {
-            existingTypes.add(thaiMap[exp.expense_type.trim()]);
-          }
-          // Match English labels
-          const enMap: Record<string, string> = {
+            // English labels (as returned by API)
+            'return container': 'return_container',
             'container return': 'return_container',
             'port fee': 'port_fee',
             'misc (no receipt)': 'misc_no_receipt',
+            'misc_no_receipt': 'misc_no_receipt',
+            'misc no receipt': 'misc_no_receipt',
           };
-          if (enMap[exp.expense_type?.trim()?.toLowerCase()]) {
-            existingTypes.add(enMap[exp.expense_type.trim().toLowerCase()]);
+          const mapped = variationMap[raw] || variationMap[raw.toLowerCase()];
+          if (mapped) {
+            existingTypes.add(mapped);
           }
+          console.log('[ContainerSOP] Expense type raw:', raw, '→ mapped:', mapped || rawLower);
         }
         
         const requiredTypes = [
