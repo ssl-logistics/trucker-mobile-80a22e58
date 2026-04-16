@@ -269,6 +269,7 @@ export default function ContainerSummaryPage() {
         );
         if (pickupConfirmed) {
           pickupConfirmedAt = pickupConfirmed.checkin_time || pickupConfirmed.checked_in_at || pickupConfirmed.created_at || null;
+          pickupDriverId = getRecordDriverId(pickupConfirmed);
           const pPhotoUrlsRaw = pickupConfirmed.photo_urls;
           if (Array.isArray(pPhotoUrlsRaw)) {
             pickupPhotoUrls = pPhotoUrlsRaw.filter(Boolean);
@@ -299,6 +300,7 @@ export default function ContainerSummaryPage() {
         );
         if (returnConfirmed) {
           returnConfirmedAt = returnConfirmed.checkin_time || returnConfirmed.checked_in_at || returnConfirmed.created_at || null;
+          returnDriverId = getRecordDriverId(returnConfirmed);
           returnPhotoUrl = returnConfirmed.photo_url || null;
           const photoUrlsRaw = returnConfirmed.photo_urls;
           if (Array.isArray(photoUrlsRaw)) {
