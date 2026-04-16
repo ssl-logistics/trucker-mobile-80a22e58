@@ -156,6 +156,7 @@ export default function PickupSummaryPage() {
               sop_photo_url: photoUrl,
               doc_photo_url: docUrl,
               weight_slips: pickupSOP.weight_slips || [],
+              sop_driver_id: pickupSOP.internal_driver_id || pickupSOP.external_driver_id || pickupSOP.freelance_driver_id || pickupSOP.driver_id || null,
             });
         } else {
           // No SOP yet, but might have check-in
@@ -165,6 +166,7 @@ export default function PickupSummaryPage() {
             sop_photo_url: null,
             doc_photo_url: null,
             weight_slips: [],
+            sop_driver_id: null,
           });
         }
       } else {
@@ -175,6 +177,7 @@ export default function PickupSummaryPage() {
           sop_photo_url: null,
           doc_photo_url: null,
           weight_slips: [],
+          sop_driver_id: null,
         });
       }
 
