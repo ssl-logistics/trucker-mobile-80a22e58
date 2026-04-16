@@ -629,6 +629,8 @@ const ContainerSOPPage = () => {
             'return_container': 'return_container',
             'port_fee': 'port_fee',
             'misc_no_receipt': 'misc_no_receipt',
+            'overtime': 'misc_no_receipt',
+            'ค่าล่วงเวลา': 'misc_no_receipt',
           };
 
           const mapped = variationMap[raw.trim()] || variationMap[normalized];
