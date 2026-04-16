@@ -1355,6 +1355,47 @@ const ContainerSOPPage = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Missing Expenses Dialog */}
+      <Dialog open={showMissingExpenseDialog} onOpenChange={setShowMissingExpenseDialog}>
+        <DialogContent className="max-w-[340px] rounded-2xl">
+          <DialogHeader className="items-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
+              <span className="text-4xl">📋</span>
+            </div>
+            <DialogTitle className="text-xl text-center">
+              {t('expense.requiredExpenseMissing')}
+            </DialogTitle>
+            <DialogDescription className="text-center text-base">
+              {t('expense.missingTypes').replace('{types}', missingExpenseTypes.join(', '))}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-3 sm:gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowMissingExpenseDialog(false)}
+              className="flex-1 h-11"
+            >
+              {t('sop.cancel')}
+            </Button>
+            <Button
+              onClick={() => {
+                setShowMissingExpenseDialog(false);
+                navigate(`/job/${jobId}/add-expense`, { 
+                  state: { 
+                    jobData: navState?.jobData,
+                    returnPath: location.pathname,
+                    checkinType: checkinTypeFromState,
+                  } 
+                });
+              }}
+              className="flex-1 h-11 bg-primary hover:bg-primary/90"
+            >
+              {t('expense.goToAddExpense')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Drawer open={showPhotoDrawer} onOpenChange={setShowPhotoDrawer}>
         <DrawerContent>
           <DrawerHeader>
