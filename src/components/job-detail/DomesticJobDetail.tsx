@@ -1307,6 +1307,7 @@ export default function DomesticJobDetail({
                   <Button
                     size="sm"
                     className="w-full h-9 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+                    disabled={isTransferred && isFromHistory}
                     onClick={() => {
                       const fromParam = new URLSearchParams(location.search).get('from');
                       const queryString = fromParam ? `?from=${fromParam}` : '';
@@ -1477,7 +1478,7 @@ export default function DomesticJobDetail({
                         } else {
                           navigate(`/job/${job.order_code}/pickup${queryString}`, { state: { jobData: job, isBidJob } });
                         }
-                      }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus}>
+                      }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus || (isTransferred && isFromHistory && !pickupCheckedIn && !pickupSopCompleted && !jobApplication?.checked_in_at && !jobApplication?.sop_completed_at)}>
                           {isLoadingCheckinStatus ?
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> :
 
@@ -1754,7 +1755,7 @@ export default function DomesticJobDetail({
                         <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
                         navigate(`/job/${job.order_code}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob } });
-                      }} disabled={isDestinationLocked}>
+                      }} disabled={isDestinationLocked || (isTransferred && isFromHistory && !isCheckedIn && !isPodCompleted)}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                           <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
@@ -1893,7 +1894,7 @@ export default function DomesticJobDetail({
                       <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
                         navigate(`/job/${job.order_code}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: job, isBidJob } });
-                      }} disabled={!isFallbackUnlocked}>
+                      }} disabled={!isFallbackUnlocked || (isTransferred && isFromHistory && !deliveryCheckedIn && !isPodCompleted)}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                         <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                       </Button>
@@ -2040,7 +2041,7 @@ export default function DomesticJobDetail({
                         </Button>
                       </>
                       }
-                    <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" disabled={!allDeliveriesCompleted}
+                    <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" disabled={!allDeliveriesCompleted || (isTransferred && isFromHistory && !containerReturnCheckedIn && !containerReturnConfirmed)}
                       onClick={() => {
                         const fromParam = new URLSearchParams(location.search).get('from');
                         if (containerReturnConfirmed) {
