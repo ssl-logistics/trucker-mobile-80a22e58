@@ -29,6 +29,8 @@ interface HistoryJob {
   product_quantity?: string | number;
   job_type?: string;
   isBidJob?: boolean;
+  is_transferred?: boolean;
+  status_at_transfer?: string;
   // International job identifiers
   booking_no?: string;
   bl_no?: string;
