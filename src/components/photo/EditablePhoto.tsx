@@ -27,6 +27,8 @@ interface EditablePhotoProps {
   completedAt?: string | null;
   /** Whether viewing from history */
   fromHistory?: boolean;
+  /** Whether this job was transferred — disables editing entirely */
+  isTransferred?: boolean;
   /** Called after successful upload with new S3 URL */
   onPhotoReplaced?: (newUrl: string) => void;
 }
