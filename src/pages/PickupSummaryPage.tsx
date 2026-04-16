@@ -280,7 +280,7 @@ export default function PickupSummaryPage() {
                         folder="sop-photos"
                         filenamePrefix={`${user?.id}-${jobId}-product-edit`}
                         completedAt={photoEditCompletedAt}
-                        fromHistory={fromHistory}
+                        fromHistory={fromHistory} isTransferred={isTransferred}
                       />
                     </div>
                   </div>
@@ -296,7 +296,7 @@ export default function PickupSummaryPage() {
                         folder="sop-photos"
                         filenamePrefix={`${user?.id}-${jobId}-doc-edit`}
                         completedAt={photoEditCompletedAt}
-                        fromHistory={fromHistory}
+                        fromHistory={fromHistory} isTransferred={isTransferred}
                       />
                     </div>
                   </div>
@@ -337,7 +337,7 @@ export default function PickupSummaryPage() {
                           folder="sop-photos"
                           filenamePrefix={`${user?.id}-${jobId}-weightslip-${idx}-edit`}
                           completedAt={photoEditCompletedAt}
-                          fromHistory={fromHistory}
+                          fromHistory={fromHistory} isTransferred={isTransferred}
                         />
                       </div>
                     )}
