@@ -440,12 +440,14 @@ export default function JobHistoryPage() {
         return allPodsCompleted;
       };
 
-      // Filter jobs that have ALL destinations POD completed (verified by checkins)
+      // Filter jobs that have ALL destinations POD completed (verified by checkins) OR transferred
       const completedFromApi = allJobs
-        .filter((job: any) => isJobFullyCompleted(job))
+        .filter((job: any) => job.is_transferred || isJobFullyCompleted(job))
         .map((job: any) => ({ 
           ...job, 
-          status: "completed",
+          status: job.is_transferred ? 'transferred' : "completed",
+          is_transferred: !!job.is_transferred,
+          status_at_transfer: job.status_at_transfer || null,
           // Preserve origins/destinations arrays for multi-destination detection
           origins: job.origins,
           destinations: job.destinations,
