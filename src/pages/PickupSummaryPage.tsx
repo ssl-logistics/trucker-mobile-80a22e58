@@ -41,6 +41,7 @@ export default function PickupSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const fromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
