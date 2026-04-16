@@ -104,12 +104,12 @@ export function AppHeader({
                   </>
                 )}
               </Avatar>
-              <div className="min-w-0 flex-1 h-11 rounded-xl bg-slate-100 px-3 py-1 overflow-hidden">
+              <div className="min-w-0 flex-1 h-auto min-h-[44px] rounded-xl bg-slate-100 px-3 py-1.5 overflow-hidden flex flex-col justify-center">
                 <div className="text-xs opacity-90 text-[#126D8A] truncate">{t('home.greeting')} {getDayName()}</div>
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="font-semibold text-sm text-[#153860] truncate min-w-0 flex-shrink">{userName || t('settings.title')}</span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-semibold text-sm text-[#153860] leading-tight break-words line-clamp-2">{userName || t('settings.title')}</span>
                   {userTypeInfo && (
-                    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-white whitespace-nowrap flex-shrink-0 ${userTypeInfo.color}`}>
+                    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-white w-fit ${userTypeInfo.color}`}>
                       <userTypeInfo.icon className="w-2.5 h-2.5" />
                       {userTypeInfo.label}
                     </span>
