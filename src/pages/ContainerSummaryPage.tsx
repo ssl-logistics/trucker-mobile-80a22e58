@@ -48,6 +48,7 @@ interface OcrScanData {
   seal_image_url: string | null;
   container_photos: string[];
   eir_photos: string[];
+  driver_id: string | null;
 }
 
 const parseUrlArray = (raw: unknown): string[] => {
@@ -124,6 +125,7 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     seal_image_url: firstMeaningfulValue(pickupRecords.map((record) => record?.seal_image_url)),
     container_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.container_photos))),
     eir_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.eir_photos))),
+    driver_id: pickupRecords[0]?.internal_driver_id || pickupRecords[0]?.external_driver_id || pickupRecords[0]?.freelance_driver_id || pickupRecords[0]?.driver_id || null,
   };
 };
 
