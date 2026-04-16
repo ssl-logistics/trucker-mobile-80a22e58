@@ -569,7 +569,7 @@ const ContainerSOPPage = () => {
     toast({ title: 'ยืนยันเลขซีลสำเร็จ' });
   };
 
-  const handleConfirmClick = () => {
+  const handleConfirmClick = async () => {
     if (needsOCR && !isContainerOcrDone) {
       toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
       return;
@@ -588,6 +588,63 @@ const ContainerSOPPage = () => {
       toast({ title: 'กรุณาถ่ายรูป EIR', variant: "destructive" });
       return;
     }
+
+    // BL container return: check mandatory expenses
+    if (isBLJob && isContainerReturn && user) {
+      setCheckingExpenses(true);
+      try {
+        const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+        const { data: expensesData } = await getExpenses(jobId || '', user.id, driverType);
+        
+        const expenses = Array.isArray(expensesData) ? expensesData : (expensesData as any)?.expenses || [];
+        
+        // Normalize expense types from API
+        const existingTypes = new Set<string>();
+        for (const exp of expenses) {
+          const raw = (exp.expense_type || '').toLowerCase().replace(/\s+/g, '_');
+          existingTypes.add(raw);
+          // Also match Thai labels
+          const thaiMap: Record<string, string> = {
+            'ค่าคืนตู้': 'return_container',
+            'ค่าผ่านท่า': 'port_fee',
+            'ค่าใช้จ่ายไม่มีใบเสร็จ': 'misc_no_receipt',
+          };
+          if (thaiMap[exp.expense_type?.trim()]) {
+            existingTypes.add(thaiMap[exp.expense_type.trim()]);
+          }
+          // Match English labels
+          const enMap: Record<string, string> = {
+            'container return': 'return_container',
+            'port fee': 'port_fee',
+            'misc (no receipt)': 'misc_no_receipt',
+          };
+          if (enMap[exp.expense_type?.trim()?.toLowerCase()]) {
+            existingTypes.add(enMap[exp.expense_type.trim().toLowerCase()]);
+          }
+        }
+        
+        const requiredTypes = [
+          { key: 'return_container', label: t('expense.returnContainer') },
+          { key: 'port_fee', label: t('expense.portFee') },
+          { key: 'misc_no_receipt', label: t('expense.miscNoReceipt') },
+        ];
+        
+        const missing = requiredTypes.filter(rt => !existingTypes.has(rt.key));
+        
+        if (missing.length > 0) {
+          setMissingExpenseTypes(missing.map(m => m.label));
+          setShowMissingExpenseDialog(true);
+          setCheckingExpenses(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[ContainerSOP] Failed to check expenses:', err);
+        // If we can't check, still allow (non-blocking)
+      } finally {
+        setCheckingExpenses(false);
+      }
+    }
+
     setShowConfirmDialog(true);
   };
 
