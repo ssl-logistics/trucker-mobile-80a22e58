@@ -90,6 +90,7 @@ interface JobApplication {
   payment_method: string | null;
   pod_photo_url: string | null;
   delivery_sop_completed_at: string | null;
+  pod_driver_id: string | null;
 }
 
 export default function DeliveryDetailPage() {
@@ -123,7 +124,7 @@ export default function DeliveryDetailPage() {
   
   // Check if viewing from history
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
-  const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
+  const isOwnPodData = !jobApplication?.pod_driver_id || jobApplication.pod_driver_id === user?.id;
   
   // GPS tracking hook
   const { stopTracking } = useGpsTracking();
@@ -382,6 +383,7 @@ export default function DeliveryDetailPage() {
               let deliveryConfirmedTime: string | null = null;
               let deliveryConfirmedPhotoUrl: string | null = null;
               let deliveryConfirmedPaymentMethod: string | null = null;
+              let deliveryConfirmedDriverId: string | null = null;
 
               if (checkinsError) {
                 console.error('Error fetching checkin status:', checkinsError);
@@ -424,6 +426,7 @@ export default function DeliveryDetailPage() {
                 deliveryConfirmedTime = deliveryConfirmed?.checkin_time || deliveryConfirmed?.checked_in_at || deliveryConfirmed?.created_at || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
                 deliveryConfirmedPaymentMethod = deliveryConfirmed?.payment_method || null;
+                deliveryConfirmedDriverId = deliveryConfirmed?.internal_driver_id || deliveryConfirmed?.external_driver_id || deliveryConfirmed?.freelance_driver_id || deliveryConfirmed?.driver_id || null;
                 console.log('Delivery confirmed for sequence', currentSequenceNumber, ':', deliveryConfirmed ? 'found' : 'not found');
               }
             
@@ -444,9 +447,9 @@ export default function DeliveryDetailPage() {
               delivery_checked_in_at: inferredCheckinTime,
               payment_completed_at: localJobApp?.payment_completed_at || null,
               payment_method: deliveryConfirmedPaymentMethod || localJobApp?.payment_method || null,
-              // Prefer external delivery_confirmed photo/time if present, fallback to local
               pod_photo_url: deliveryConfirmedPhotoUrl || localJobApp?.pod_photo_url || null,
               delivery_sop_completed_at: deliveryConfirmedTime || localJobApp?.delivery_sop_completed_at || null,
+              pod_driver_id: deliveryConfirmedDriverId || null,
             });
             
             // Also update the destination state with checkin times for accurate UI state
@@ -1005,7 +1008,7 @@ export default function DeliveryDetailPage() {
                     folder="sop-photos"
                     filenamePrefix={`${user?.id}-${job?.order_code}-pod-edit`}
                     completedAt={jobApplication?.delivery_sop_completed_at}
-                    fromHistory={isFromHistory} isTransferred={isTransferred}
+                    fromHistory={isFromHistory} isOwnData={isOwnPodData} 
                   />
                 </div>
               </div>

@@ -21,6 +21,10 @@ interface JobDetail {
   start_time: string;
 }
 
+/** Extract driver ID from a checkin/SOP record regardless of driver type */
+const getRecordDriverId = (record: any): string | null =>
+  record?.internal_driver_id || record?.external_driver_id || record?.freelance_driver_id || record?.driver_id || null;
+
 interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
@@ -28,11 +32,13 @@ interface SOPData {
   // Container pickup confirmed (BL jobs)
   pickup_confirmed_at: string | null;
   pickup_photo_urls: string[];
+  pickup_driver_id: string | null;
   // Container return specific
   return_checked_in_at: string | null;
   return_confirmed_at: string | null;
   return_photo_url: string | null;
   return_photo_urls: string[];
+  return_driver_id: string | null;
 }
 
 interface OcrScanData {
@@ -42,6 +48,7 @@ interface OcrScanData {
   seal_image_url: string | null;
   container_photos: string[];
   eir_photos: string[];
+  driver_id: string | null;
 }
 
 const parseUrlArray = (raw: unknown): string[] => {
@@ -118,6 +125,7 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     seal_image_url: firstMeaningfulValue(pickupRecords.map((record) => record?.seal_image_url)),
     container_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.container_photos))),
     eir_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.eir_photos))),
+    driver_id: pickupRecords[0]?.internal_driver_id || pickupRecords[0]?.external_driver_id || pickupRecords[0]?.freelance_driver_id || pickupRecords[0]?.driver_id || null,
   };
 };
 
@@ -154,7 +162,10 @@ export default function ContainerSummaryPage() {
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const isFromHistory = fromParam === 'history';
-  const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
+  // Determine ownership: photos uploaded by the current user are editable
+  const isOwnPickupData = !sopData?.pickup_driver_id || sopData.pickup_driver_id === user?.id;
+  const isOwnReturnData = !sopData?.return_driver_id || sopData.return_driver_id === user?.id;
+  const isOwnOcrData = !ocrScanData?.driver_id || ocrScanData.driver_id === user?.id;
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
   const photoEditCompletedAt = sopData?.return_confirmed_at || sopData?.pickup_confirmed_at || sopData?.sop_completed_at || null;
 
@@ -227,10 +238,12 @@ export default function ContainerSummaryPage() {
       let checkedInAt: string | null = null;
       let pickupConfirmedAt: string | null = null;
       let pickupPhotoUrls: string[] = [];
+      let pickupDriverId: string | null = null;
       let returnCheckedInAt: string | null = null;
       let returnConfirmedAt: string | null = null;
       let returnPhotoUrl: string | null = null;
       let returnPhotoUrls: string[] = [];
+      let returnDriverId: string | null = null;
 
       if (!checkinError) {
         const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
@@ -261,6 +274,7 @@ export default function ContainerSummaryPage() {
         );
         if (pickupConfirmed) {
           pickupConfirmedAt = pickupConfirmed.checkin_time || pickupConfirmed.checked_in_at || pickupConfirmed.created_at || null;
+          pickupDriverId = getRecordDriverId(pickupConfirmed);
           const pPhotoUrlsRaw = pickupConfirmed.photo_urls;
           if (Array.isArray(pPhotoUrlsRaw)) {
             pickupPhotoUrls = pPhotoUrlsRaw.filter(Boolean);
@@ -291,6 +305,7 @@ export default function ContainerSummaryPage() {
         );
         if (returnConfirmed) {
           returnConfirmedAt = returnConfirmed.checkin_time || returnConfirmed.checked_in_at || returnConfirmed.created_at || null;
+          returnDriverId = getRecordDriverId(returnConfirmed);
           returnPhotoUrl = returnConfirmed.photo_url || null;
           const photoUrlsRaw = returnConfirmed.photo_urls;
           if (Array.isArray(photoUrlsRaw)) {
@@ -337,10 +352,12 @@ export default function ContainerSummaryPage() {
         sop_photo_url: sopPhotoUrlVal,
         pickup_confirmed_at: pickupConfirmedAt,
         pickup_photo_urls: pickupPhotoUrls,
+        pickup_driver_id: pickupDriverId,
         return_checked_in_at: returnCheckedInAt,
         return_confirmed_at: returnConfirmedAt,
         return_photo_url: returnPhotoUrl,
         return_photo_urls: returnPhotoUrls,
+        return_driver_id: returnDriverId,
       });
 
       // Fetch OCR scan data for container/seal photos
@@ -460,7 +477,7 @@ export default function ContainerSummaryPage() {
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">รูปเลขตู้</div>
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <EditablePhoto src={containerNumberPhoto} alt="Container Number" originalUrl={ocrScanData?.container_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                  <EditablePhoto src={containerNumberPhoto} alt="Container Number" originalUrl={ocrScanData?.container_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isOwnData={isOwnOcrData}  />
                 </div>
               </div>
             )}
@@ -470,7 +487,7 @@ export default function ContainerSummaryPage() {
               <div className="space-y-2">
                 <div className="text-sm text-muted-foreground">รูปเลขซีล</div>
                 <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                  <EditablePhoto src={sealNumberPhoto} alt="Seal Number" originalUrl={ocrScanData?.seal_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-seal-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                  <EditablePhoto src={sealNumberPhoto} alt="Seal Number" originalUrl={ocrScanData?.seal_image_url} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-seal-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isOwnData={isOwnOcrData}  />
                 </div>
               </div>
             )}
@@ -482,7 +499,7 @@ export default function ContainerSummaryPage() {
                 <div className="grid grid-cols-2 gap-2">
                   {containerPhotos.map((url, idx) => (
                     <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                      <EditablePhoto src={url} alt={`Container Photo ${idx + 1}`} originalUrl={rawContainerPhotos[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                      <EditablePhoto src={url} alt={`Container Photo ${idx + 1}`} originalUrl={rawContainerPhotos[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-container-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isOwnData={isOwnOcrData}  />
                     </div>
                   ))}
                 </div>
@@ -513,7 +530,7 @@ export default function ContainerSummaryPage() {
                       <div className="grid grid-cols-2 gap-2">
                         {mergedUrls.map((url, idx) => (
                           <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} originalUrl={mergedRawUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                            <EditablePhoto src={url} alt={`EIR Document ${idx + 1}`} originalUrl={mergedRawUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-eir-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isOwnData={isOwnPickupData}  />
                           </div>
                         ))}
                       </div>
@@ -549,7 +566,7 @@ export default function ContainerSummaryPage() {
             <div className="grid grid-cols-2 gap-2">
               {returnPhotoUrls.map((url, idx) => (
                 <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                  <EditablePhoto src={url} alt={`Container Return Document ${idx + 1}`} originalUrl={rawReturnPhotoUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-return-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isTransferred={isTransferred} />
+                  <EditablePhoto src={url} alt={`Container Return Document ${idx + 1}`} originalUrl={rawReturnPhotoUrls[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-return-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isOwnData={isOwnReturnData}  />
                 </div>
               ))}
             </div>

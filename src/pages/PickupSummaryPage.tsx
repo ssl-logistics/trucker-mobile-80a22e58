@@ -35,13 +35,13 @@ interface SOPData {
   sop_photo_url: string | null;
   doc_photo_url: string | null;
   weight_slips: WeightSlipItem[];
+  sop_driver_id: string | null;
 }
 
 export default function PickupSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const fromHistory = new URLSearchParams(location.search).get('from') === 'history';
-  const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   const { jobId } = useParams();
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -54,6 +54,7 @@ export default function PickupSummaryPage() {
   const weightSlipImageUrls = (sopData?.weight_slips || []).map(ws => ws.image_url || null);
   const { urls: weightSlipPresignedUrls } = usePresignedImageUrls(weightSlipImageUrls);
   const photoEditCompletedAt = sopData?.sop_completed_at || null;
+  const isOwnSopData = !sopData?.sop_driver_id || sopData.sop_driver_id === user?.id;
 
   useEffect(() => {
     if (user && jobId) {
@@ -156,6 +157,7 @@ export default function PickupSummaryPage() {
               sop_photo_url: photoUrl,
               doc_photo_url: docUrl,
               weight_slips: pickupSOP.weight_slips || [],
+              sop_driver_id: pickupSOP.internal_driver_id || pickupSOP.external_driver_id || pickupSOP.freelance_driver_id || pickupSOP.driver_id || null,
             });
         } else {
           // No SOP yet, but might have check-in
@@ -165,6 +167,7 @@ export default function PickupSummaryPage() {
             sop_photo_url: null,
             doc_photo_url: null,
             weight_slips: [],
+            sop_driver_id: null,
           });
         }
       } else {
@@ -175,6 +178,7 @@ export default function PickupSummaryPage() {
           sop_photo_url: null,
           doc_photo_url: null,
           weight_slips: [],
+          sop_driver_id: null,
         });
       }
 
@@ -280,7 +284,7 @@ export default function PickupSummaryPage() {
                         folder="sop-photos"
                         filenamePrefix={`${user?.id}-${jobId}-product-edit`}
                         completedAt={photoEditCompletedAt}
-                        fromHistory={fromHistory} isTransferred={isTransferred}
+                        fromHistory={fromHistory} isOwnData={isOwnSopData} 
                       />
                     </div>
                   </div>
@@ -296,7 +300,7 @@ export default function PickupSummaryPage() {
                         folder="sop-photos"
                         filenamePrefix={`${user?.id}-${jobId}-doc-edit`}
                         completedAt={photoEditCompletedAt}
-                        fromHistory={fromHistory} isTransferred={isTransferred}
+                        fromHistory={fromHistory} isOwnData={isOwnSopData} 
                       />
                     </div>
                   </div>
@@ -337,7 +341,7 @@ export default function PickupSummaryPage() {
                           folder="sop-photos"
                           filenamePrefix={`${user?.id}-${jobId}-weightslip-${idx}-edit`}
                           completedAt={photoEditCompletedAt}
-                          fromHistory={fromHistory} isTransferred={isTransferred}
+                          fromHistory={fromHistory} isOwnData={isOwnSopData} 
                         />
                       </div>
                     )}
