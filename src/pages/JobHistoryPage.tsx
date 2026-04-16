@@ -284,6 +284,9 @@ export default function JobHistoryPage() {
             booking_no: job.booking_no || null,
             bl_no: job.bl_no || null,
             transport_category: job.transport_category || null,
+            // Transferred job flags
+            is_transferred: !!job.is_transferred,
+            status_at_transfer: job.status_at_transfer || null,
           }));
 
         console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
