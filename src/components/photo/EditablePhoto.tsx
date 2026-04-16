@@ -45,6 +45,7 @@ export function EditablePhoto({
   filenamePrefix = 'edit',
   completedAt,
   fromHistory = false,
+  isTransferred = false,
   onPhotoReplaced,
 }: EditablePhotoProps) {
   const [showDrawer, setShowDrawer] = useState(false);
@@ -56,8 +57,10 @@ export function EditablePhoto({
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
+  // Transferred jobs are always read-only
   // Editing allowed: always on current job pages, within 3 days on history pages
   const canEdit = (() => {
+    if (isTransferred) return false;
     if (!fromHistory) return true; // Current job page — always editable
     if (!completedAt) return false;
     const completedDate = new Date(completedAt);
