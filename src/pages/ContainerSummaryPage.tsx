@@ -162,7 +162,10 @@ export default function ContainerSummaryPage() {
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const isFromHistory = fromParam === 'history';
-  const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
+  // Determine ownership: photos uploaded by the current user are editable
+  const isOwnPickupData = !sopData?.pickup_driver_id || sopData.pickup_driver_id === user?.id;
+  const isOwnReturnData = !sopData?.return_driver_id || sopData.return_driver_id === user?.id;
+  const isOwnOcrData = !ocrScanData?.driver_id || ocrScanData.driver_id === user?.id;
   const checkinType = (location.state as any)?.checkinType || 'container_pickup';
   const photoEditCompletedAt = sopData?.return_confirmed_at || sopData?.pickup_confirmed_at || sopData?.sop_completed_at || null;
 
