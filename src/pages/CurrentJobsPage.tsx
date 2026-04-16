@@ -277,8 +277,17 @@ export default function CurrentJobsPage() {
            // Helper to detect international jobs
            const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_category && job.transport_category !== 'domestic') || (job.transport_mode && ['sea', 'air'].includes(job.transport_mode.toLowerCase())));
 
+           // Filter out transferred jobs first
+           const nonTransferredJobs = apiJobs.filter((job: any) => {
+             if (job.is_transferred) {
+               console.log(`[CurrentJobsPage] ⏭️ Skipping transferred job ${job.order_number}`);
+               return false;
+             }
+             return true;
+           });
+
            // Show jobs that have status 'in_transit' OR have check-in records (already started)
-            const startedJobs = apiJobs.filter((job: any) => {
+            const startedJobs = nonTransferredJobs.filter((job: any) => {
               const status = (job.status || '').toLowerCase();
               const hasCheckIn = startedTransportIds.has(String(job.id));
               const isInTransit = status === 'in_transit';
@@ -293,7 +302,7 @@ export default function CurrentJobsPage() {
               }
               return shouldInclude;
            });
-           console.log('Jobs with in_transit status or check-in records:', startedJobs.length, '(excluded not-yet-started:', apiJobs.length - startedJobs.length, ')');
+           console.log('Jobs with in_transit status or check-in records:', startedJobs.length, '(excluded not-yet-started:', nonTransferredJobs.length - startedJobs.length, ')');
           
            // Filter out completed jobs
            // Domestic: all PODs completed -> remove
@@ -518,7 +527,7 @@ export default function CurrentJobsPage() {
         const allCompanyJobs = Array.isArray(companyResult) ? companyResult : ((companyResult as any).data || []);
         // Filter out jobs that have ALL destinations POD completed, and map job_type/destinations
         companyJobs = allCompanyJobs
-          .filter((job: any) => !isJobFullyCompleted(job))
+          .filter((job: any) => !job.is_transferred && !isJobFullyCompleted(job))
           .map((job: any) => ({
             ...job,
             job_type: isInternationalJob(job) ? 'international' : (job.job_type || job.transport_category || 'domestic'),

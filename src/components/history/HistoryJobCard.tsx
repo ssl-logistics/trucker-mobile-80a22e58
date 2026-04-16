@@ -29,6 +29,8 @@ interface HistoryJob {
   product_quantity?: string | number;
   job_type?: string;
   isBidJob?: boolean;
+  is_transferred?: boolean;
+  status_at_transfer?: string;
   // International job identifiers
   booking_no?: string;
   bl_no?: string;
@@ -91,13 +93,19 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
 
   const destinations = getDestinationLocations();
 
+  const isTransferred = !!job.is_transferred;
+
   return (
     <Card 
-      className="p-4 pt-8 space-y-3 bg-card relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow" 
+      className={`p-4 pt-8 space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${
+        isTransferred ? 'bg-gray-100 opacity-75' : 'bg-card'
+      }`}
       onClick={onClick}
     >
       {/* Order Code Badge - Top Left */}
-      <div className="absolute top-0 left-0 px-3 py-1 rounded-br-xl bg-green-100 text-green-800 text-sm font-medium">
+      <div className={`absolute top-0 left-0 px-3 py-1 rounded-br-xl text-sm font-medium ${
+        isTransferred ? 'bg-gray-200 text-gray-600' : 'bg-green-100 text-green-800'
+      }`}>
         {!isDomestic && (job.bl_no || job.booking_no)
           ? `${job.bl_no ? 'BL' : 'Booking'} ${job.bl_no || job.booking_no}`
           : `${t('job.order_code')} ${job.order_number}`
@@ -120,13 +128,21 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
         {/* Job Type Badges */}
         <div className="flex items-center gap-2 flex-wrap">
           {job.vehicle_type && (
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-0">
+            <Badge variant="secondary" className={`border-0 ${
+              isTransferred ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+            }`}>
               {getTranslatedVehicleType(job.vehicle_type, t)}
             </Badge>
           )}
-          <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200 border-0">
-            {job.status === 'completed' ? t('jobStatus.completed') : t('jobStatus.delivered')}
-          </Badge>
+          {isTransferred ? (
+            <Badge variant="secondary" className="bg-gray-300 text-gray-700 border-0">
+              {t('jobStatus.transferred')}
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200 border-0">
+              {job.status === 'completed' ? t('jobStatus.completed') : t('jobStatus.delivered')}
+            </Badge>
+          )}
         </div>
 
         {/* Transport Type Badge */}
@@ -192,10 +208,14 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
           </div>
         </div>
 
-        {/* Completed Status */}
-        <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-100 rounded-lg">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          <span className="text-xs font-medium text-green-700">{t('jobHistory.statusCompleted')}</span>
+        {/* Status */}
+        <div className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg ${
+          isTransferred ? 'bg-gray-200' : 'bg-green-100'
+        }`}>
+          <div className={`w-2 h-2 rounded-full ${isTransferred ? 'bg-gray-500' : 'bg-green-500'}`}></div>
+          <span className={`text-xs font-medium ${isTransferred ? 'text-gray-600' : 'text-green-700'}`}>
+            {isTransferred ? t('jobStatus.transferred') : t('jobHistory.statusCompleted')}
+          </span>
         </div>
       </div>
     </Card>

@@ -78,6 +78,8 @@ interface CompletedJob {
   destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
   // Job type for domestic/international distinction
   job_type?: string;
+  is_transferred?: boolean;
+  status_at_transfer?: string | null;
 }
 
 export default function JobHistoryPage() {
@@ -217,10 +219,50 @@ export default function JobHistoryPage() {
         // Helper: check if job is international
         const isInternationalJob = (job: any) => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic'));
 
-        // Filter jobs that have ALL destinations POD completed
-        // Status must be completed/closed AND POD must be verified
+        // Separate transferred jobs and completed jobs
+        const transferredFromApi: CompletedJob[] = allJobs
+          .filter((job: any) => !!job.is_transferred)
+          .map((job: any) => ({
+            id: job.id,
+            order_number: job.order_number,
+            transport_type_id: job.transport_type_id,
+            transport_mode: job.transport_mode,
+            status: 'transferred',
+            sender_name: job.factory_name || job.sender_name,
+            sender_address: job.sender_address || '',
+            sender_province: job.sender_province || '',
+            sender_district: job.sender_district || '',
+            sender_pickup_date: job.sender_pickup_date,
+            sender_pickup_time: job.sender_pickup_time || '00:00',
+            destination_name: job.destination_name || '',
+            destination_address: job.destination_address || '',
+            destination_province: job.destination_province || '',
+            destination_district: job.destination_district || '',
+            destination_delivery_date: job.destination_delivery_date,
+            destination_delivery_time: job.destination_delivery_time || '00:00',
+            destination_company_name: job.destination_company_name,
+            product_name: job.product_name,
+            product_weight: job.product_weight,
+            product_quantity: job.product_quantity,
+            product_unit: job.product_unit,
+            vehicle_type: job.vehicle_type,
+            transport_price: job.transport_price || 0,
+            created_at: job.created_at,
+            updated_at: job.updated_at,
+            origins: job.origins,
+            destinations: job.destinations,
+            job_type: job.job_type || 'domestic',
+            booking_no: job.booking_no || null,
+            bl_no: job.bl_no || null,
+            transport_category: job.transport_category || null,
+            is_transferred: true,
+            status_at_transfer: job.status_at_transfer || null,
+          }));
+
+        // Filter jobs that have ALL destinations POD completed (exclude transferred)
         const completedFromApi: CompletedJob[] = allJobs
           .filter((job: any) => {
+            if (job.is_transferred) return false;
             const transportId = String(job.id);
             const podCount = podCountByTransportId[transportId] || 0;
             const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
@@ -229,9 +271,6 @@ export default function JobHistoryPage() {
             
             const allPodsCompleted = podCount >= destinationCount;
             
-            // For international jobs:
-            // - Booking jobs: completed when container return is confirmed
-            // - BL jobs: require all PODs + container return confirmed
             if (isInternationalJob(job)) {
               const hasContainerReturnConfirmed = containerReturnConfirmedByTransportId.has(transportId);
               const isBookingJob = !!job.booking_no && !job.bl_no;
@@ -240,7 +279,6 @@ export default function JobHistoryPage() {
                 : (allPodsCompleted && hasContainerReturnConfirmed);
             }
             
-            // Domestic jobs: need all PODs completed
             return allPodsCompleted;
           })
           .map((job: any) => ({
@@ -270,18 +308,18 @@ export default function JobHistoryPage() {
             transport_price: job.transport_price || 0,
             created_at: job.created_at,
             updated_at: job.updated_at,
-            // Preserve origins/destinations arrays for multi-destination detection
             origins: job.origins,
             destinations: job.destinations,
             job_type: job.job_type || 'domestic',
-            // International job identifiers
             booking_no: job.booking_no || null,
             bl_no: job.bl_no || null,
             transport_category: job.transport_category || null,
           }));
 
-        console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
-        setCompletedJobs(completedFromApi);
+        const allCompleted = [...completedFromApi, ...transferredFromApi];
+
+        console.log('Total completed jobs for internal/external driver:', completedFromApi.length, 'transferred:', transferredFromApi.length);
+        setCompletedJobs(allCompleted);
         setLoading(false);
         return;
       }
@@ -431,17 +469,31 @@ export default function JobHistoryPage() {
         return allPodsCompleted;
       };
 
-      // Filter jobs that have ALL destinations POD completed (verified by checkins)
-      const completedFromApi = allJobs
-        .filter((job: any) => isJobFullyCompleted(job))
-        .map((job: any) => ({ 
-          ...job, 
-          status: "completed",
-          // Preserve origins/destinations arrays for multi-destination detection
+      // Separate transferred jobs
+      const transferredFromFreelance = allJobs
+        .filter((job: any) => !!job.is_transferred)
+        .map((job: any) => ({
+          ...job,
+          status: 'transferred',
           origins: job.origins,
           destinations: job.destinations,
           job_type: job.job_type || 'domestic',
-          // Preserve international job identifiers
+          booking_no: job.booking_no || null,
+          bl_no: job.bl_no || null,
+          transport_category: job.transport_category || null,
+          is_transferred: true,
+          status_at_transfer: job.status_at_transfer || null,
+        }));
+
+      // Filter jobs that have ALL destinations POD completed (verified by checkins), exclude transferred
+      const completedFromApi = allJobs
+        .filter((job: any) => !job.is_transferred && isJobFullyCompleted(job))
+        .map((job: any) => ({ 
+          ...job, 
+          status: "completed",
+          origins: job.origins,
+          destinations: job.destinations,
+          job_type: job.job_type || 'domestic',
           booking_no: job.booking_no || null,
           bl_no: job.bl_no || null,
           transport_category: job.transport_category || null,
@@ -537,13 +589,13 @@ export default function JobHistoryPage() {
         console.log(`Found ${bidCompletedJobs.length} completed bid jobs for user ${freelanceDriverId} (with delivery_confirmed)`);
       }
 
-      // Merge API completed jobs with bid completed jobs, dedupe by order_number
-      const allCompleted = [...completedFromApi, ...bidCompletedJobs];
+      // Merge API completed jobs with bid completed jobs and transferred jobs, dedupe by order_number
+      const allCompleted = [...completedFromApi, ...bidCompletedJobs, ...transferredFromFreelance];
       const uniqueCompleted = allCompleted.filter((job, index, self) =>
         index === self.findIndex((j) => j.order_number === job.order_number)
       );
 
-      console.log('Total completed jobs:', uniqueCompleted.length, '(API:', completedFromApi.length, ', Bid:', bidCompletedJobs.length, ')');
+      console.log('Total history jobs:', uniqueCompleted.length, '(API:', completedFromApi.length, ', Bid:', bidCompletedJobs.length, ', Transferred:', transferredFromFreelance.length, ')');
       setCompletedJobs(uniqueCompleted);
     } catch (error) {
       console.error("Error fetching completed jobs:", error);
