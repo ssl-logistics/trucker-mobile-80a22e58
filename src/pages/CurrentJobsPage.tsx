@@ -527,7 +527,7 @@ export default function CurrentJobsPage() {
         const allCompanyJobs = Array.isArray(companyResult) ? companyResult : ((companyResult as any).data || []);
         // Filter out jobs that have ALL destinations POD completed, and map job_type/destinations
         companyJobs = allCompanyJobs
-          .filter((job: any) => !isJobFullyCompleted(job))
+          .filter((job: any) => !job.is_transferred && !isJobFullyCompleted(job))
           .map((job: any) => ({
             ...job,
             job_type: isInternationalJob(job) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
