@@ -49,7 +49,7 @@ interface HistoryJobCardProps {
 export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: HistoryJobCardProps) {
   const { t, language } = useLanguage();
   const { canViewPrice } = useUserRole();
-
+  const isTransferred = !!job.is_transferred;
   const isDomestic = !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic');
   // Multiple locations: has destinations array with items (same logic as JobCard)
   const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 0;
@@ -95,7 +95,7 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
 
   return (
     <Card 
-      className="p-4 pt-8 space-y-3 bg-card relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow" 
+      className={`p-4 pt-8 space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${isTransferred ? 'bg-gray-100 opacity-70' : 'bg-card'}`}
       onClick={onClick}
     >
       {/* Order Code Badge - Top Left */}
@@ -194,11 +194,18 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
           </div>
         </div>
 
-        {/* Completed Status */}
-        <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-100 rounded-lg">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          <span className="text-xs font-medium text-green-700">{t('jobHistory.statusCompleted')}</span>
-        </div>
+        {/* Status Badge */}
+        {isTransferred ? (
+          <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-200 rounded-lg">
+            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+            <span className="text-xs font-medium text-gray-600">{t('jobHistory.statusTransferred')}</span>
+          </div>
+        ) : (
+          <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-100 rounded-lg">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="text-xs font-medium text-green-700">{t('jobHistory.statusCompleted')}</span>
+          </div>
+        )}
       </div>
     </Card>
   );
