@@ -300,8 +300,13 @@ export default function CurrentJobsPage() {
            // International: all PODs completed AND container returned -> remove
           
            const activeJobs = startedJobs.filter((job: any) => {
+              // Exclude transferred jobs - they go to history
+              if (job.is_transferred) {
+                console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} is_transferred → excluding`);
+                return false;
+              }
+              
               const status = (job.status || '').toLowerCase();
-              const transportId = String(job.id);
               
               // Jobs with completed/closed/container_returned status are definitively done
               if (['completed', 'closed', 'container_returned'].includes(status)) {
