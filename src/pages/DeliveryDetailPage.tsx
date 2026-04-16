@@ -90,6 +90,7 @@ interface JobApplication {
   payment_method: string | null;
   pod_photo_url: string | null;
   delivery_sop_completed_at: string | null;
+  pod_driver_id: string | null;
 }
 
 export default function DeliveryDetailPage() {
@@ -123,7 +124,7 @@ export default function DeliveryDetailPage() {
   
   // Check if viewing from history
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
-  const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
+  const isOwnPodData = !jobApplication?.pod_driver_id || jobApplication.pod_driver_id === user?.id;
   
   // GPS tracking hook
   const { stopTracking } = useGpsTracking();
