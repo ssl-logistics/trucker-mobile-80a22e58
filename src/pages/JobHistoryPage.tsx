@@ -316,8 +316,8 @@ export default function JobHistoryPage() {
 
         const allCompleted = [...completedFromApi, ...transferredFromApi];
 
-        console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
-        setCompletedJobs(completedFromApi);
+        console.log('Total completed jobs for internal/external driver:', completedFromApi.length, 'transferred:', transferredFromApi.length);
+        setCompletedJobs(allCompleted);
         setLoading(false);
         return;
       }
