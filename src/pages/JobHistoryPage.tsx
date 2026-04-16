@@ -224,6 +224,9 @@ export default function JobHistoryPage() {
         // Status must be completed/closed AND POD must be verified
         const completedFromApi: CompletedJob[] = allJobs
           .filter((job: any) => {
+            // Always include transferred jobs in history
+            if (job.is_transferred) return true;
+            
             const transportId = String(job.id);
             const podCount = podCountByTransportId[transportId] || 0;
             const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
