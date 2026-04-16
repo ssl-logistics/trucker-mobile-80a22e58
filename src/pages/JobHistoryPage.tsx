@@ -78,6 +78,8 @@ interface CompletedJob {
   destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
   // Job type for domestic/international distinction
   job_type?: string;
+  is_transferred?: boolean;
+  status_at_transfer?: string | null;
 }
 
 export default function JobHistoryPage() {
@@ -467,17 +469,31 @@ export default function JobHistoryPage() {
         return allPodsCompleted;
       };
 
-      // Filter jobs that have ALL destinations POD completed (verified by checkins)
-      const completedFromApi = allJobs
-        .filter((job: any) => isJobFullyCompleted(job))
-        .map((job: any) => ({ 
-          ...job, 
-          status: "completed",
-          // Preserve origins/destinations arrays for multi-destination detection
+      // Separate transferred jobs
+      const transferredFromFreelance = allJobs
+        .filter((job: any) => !!job.is_transferred)
+        .map((job: any) => ({
+          ...job,
+          status: 'transferred',
           origins: job.origins,
           destinations: job.destinations,
           job_type: job.job_type || 'domestic',
-          // Preserve international job identifiers
+          booking_no: job.booking_no || null,
+          bl_no: job.bl_no || null,
+          transport_category: job.transport_category || null,
+          is_transferred: true,
+          status_at_transfer: job.status_at_transfer || null,
+        }));
+
+      // Filter jobs that have ALL destinations POD completed (verified by checkins), exclude transferred
+      const completedFromApi = allJobs
+        .filter((job: any) => !job.is_transferred && isJobFullyCompleted(job))
+        .map((job: any) => ({ 
+          ...job, 
+          status: "completed",
+          origins: job.origins,
+          destinations: job.destinations,
+          job_type: job.job_type || 'domestic',
           booking_no: job.booking_no || null,
           bl_no: job.bl_no || null,
           transport_category: job.transport_category || null,
@@ -573,13 +589,13 @@ export default function JobHistoryPage() {
         console.log(`Found ${bidCompletedJobs.length} completed bid jobs for user ${freelanceDriverId} (with delivery_confirmed)`);
       }
 
-      // Merge API completed jobs with bid completed jobs, dedupe by order_number
-      const allCompleted = [...completedFromApi, ...bidCompletedJobs];
+      // Merge API completed jobs with bid completed jobs and transferred jobs, dedupe by order_number
+      const allCompleted = [...completedFromApi, ...bidCompletedJobs, ...transferredFromFreelance];
       const uniqueCompleted = allCompleted.filter((job, index, self) =>
         index === self.findIndex((j) => j.order_number === job.order_number)
       );
 
-      console.log('Total completed jobs:', uniqueCompleted.length, '(API:', completedFromApi.length, ', Bid:', bidCompletedJobs.length, ')');
+      console.log('Total history jobs:', uniqueCompleted.length, '(API:', completedFromApi.length, ', Bid:', bidCompletedJobs.length, ', Transferred:', transferredFromFreelance.length, ')');
       setCompletedJobs(uniqueCompleted);
     } catch (error) {
       console.error("Error fetching completed jobs:", error);
