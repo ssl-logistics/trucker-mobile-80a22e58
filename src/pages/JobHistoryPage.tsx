@@ -78,6 +78,9 @@ interface CompletedJob {
   destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
   // Job type for domestic/international distinction
   job_type?: string;
+  // Transferred job flags
+  is_transferred?: boolean;
+  status_at_transfer?: string;
 }
 
 export default function JobHistoryPage() {
