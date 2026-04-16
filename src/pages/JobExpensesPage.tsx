@@ -340,6 +340,7 @@ export default function JobExpensesPage() {
       'repair_container': 'expense.repairContainer',
       'container_repair': 'expense.repairContainer',
       'overtime': 'expense.overtime',
+      'misc_no_receipt': 'expense.miscNoReceipt',
       'food': 'expenses.types.food',
       'maintenance': 'expenses.types.maintenance',
     };
