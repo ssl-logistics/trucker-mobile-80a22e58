@@ -54,6 +54,7 @@ export default function PickupSummaryPage() {
   const weightSlipImageUrls = (sopData?.weight_slips || []).map(ws => ws.image_url || null);
   const { urls: weightSlipPresignedUrls } = usePresignedImageUrls(weightSlipImageUrls);
   const photoEditCompletedAt = sopData?.sop_completed_at || null;
+  const isOwnSopData = !sopData?.sop_driver_id || sopData.sop_driver_id === user?.id;
 
   useEffect(() => {
     if (user && jobId) {
