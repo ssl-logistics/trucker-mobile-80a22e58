@@ -969,6 +969,13 @@ export default function DomesticJobDetail({
 
       {/* Content */}
       <div className="px-4 py-3 space-y-3">
+        {/* Transferred Job Banner */}
+        {isTransferred && isFromHistory && (
+          <div className="flex items-center gap-2 p-3 bg-gray-100 border border-gray-300 rounded-xl">
+            <div className="w-2 h-2 rounded-full bg-gray-500 shrink-0"></div>
+            <span className="text-sm font-medium text-gray-600">{t('jobHistory.statusTransferred')}</span>
+          </div>
+        )}
         {/* Compact Summary Row */}
         <div className="flex items-center gap-2">
           {canViewPrice &&
