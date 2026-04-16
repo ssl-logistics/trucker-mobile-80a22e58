@@ -1315,9 +1315,9 @@ const ContainerSOPPage = () => {
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={isConfirmDisabled}
+          disabled={isConfirmDisabled || checkingExpenses}
         >
-          {uploading ? t('sop.saving') : confirmButtonText}
+          {checkingExpenses ? t('common.loading') : uploading ? t('sop.saving') : confirmButtonText}
         </Button>
       </div>
 
