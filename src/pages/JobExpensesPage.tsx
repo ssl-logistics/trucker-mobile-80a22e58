@@ -356,7 +356,7 @@ export default function JobExpensesPage() {
       'ค่าคืนตู้': 'expense.returnContainer', 'ค่าซ่อมตู้': 'expense.repairContainer',
       'ค่าผ่านท่า': 'expense.portFee', 'ค่าล่วงเวลา': 'expense.overtime',
       'ค่าทางด่วน': 'expense.tollFee', 'ค่าที่จอด': 'expense.parkingFee',
-      'อื่นๆ': 'expense.other',
+      'อื่นๆ': 'expense.other', 'ค่าใช้จ่ายไม่มีใบเสร็จ': 'expense.miscNoReceipt',
       // English
       'fuel': 'expense.fuel', 'fuel (drop)': 'expense.fuelDrop',
       'transport fee': 'expense.transportFee', 'labor': 'expense.labor',
