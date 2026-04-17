@@ -893,11 +893,22 @@ const ContainerSOPPage = () => {
         }
       }
 
+      // Determine confirm status: container return / loaded (BL) / empty (Booking)
+      const isBLJobForConfirm = !!jobDetail?.bl_no;
+      let confirmStatus: 'container_return_confirmed' | 'loaded_container_confirmed' | 'container_sop_completed';
+      if (isContainerReturn) {
+        confirmStatus = 'container_return_confirmed';
+      } else if (isLoadedContainer || isBLJobForConfirm) {
+        confirmStatus = 'loaded_container_confirmed';
+      } else {
+        confirmStatus = 'container_sop_completed';
+      }
+
       await sendJobStatus({
         jobId,
         orderCode: jobDetail!.order_code,
         userId: user.id,
-        status: isContainerReturn ? 'container_return_confirmed' : 'container_sop_completed',
+        status: confirmStatus,
         sequenceNumber: 1,
         containerNumber: finalContainerNumber,
         sealNumber: finalSealNumber,
