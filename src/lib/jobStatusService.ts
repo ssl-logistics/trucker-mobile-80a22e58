@@ -2,8 +2,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 export type JobStatusType = 
   | 'empty_container_checked_in'
+  | 'loaded_container_checked_in'
   | 'container_checked_in'
   | 'container_sop_completed'
+  | 'loaded_container_confirmed'
   | 'pickup_checked_in'
   | 'pickup_sop_completed'
   | 'delivery_checked_in'
@@ -14,8 +16,10 @@ export type JobStatusType =
 
 const STATUS_LABELS: Record<JobStatusType, string> = {
   empty_container_checked_in: 'เช็คอินจุดรับตู้เปล่าสำเร็จ',
+  loaded_container_checked_in: 'เช็คอินจุดรับตู้หนักสำเร็จ',
   container_checked_in: 'เช็คอินจุดรับตู้สำเร็จ',
-  container_sop_completed: 'ดำเนินการจุดรับตู้สำเร็จ',
+  container_sop_completed: 'ยืนยันรับตู้เปล่าสำเร็จ',
+  loaded_container_confirmed: 'ยืนยันรับตู้หนักสำเร็จ',
   pickup_checked_in: 'เช็คอินจุดรับสินค้าสำเร็จ',
   pickup_sop_completed: 'ดำเนินการจุดรับสินค้าสำเร็จ',
   delivery_checked_in: 'เช็คอินจุดส่งสินค้าสำเร็จ',
@@ -27,8 +31,10 @@ const STATUS_LABELS: Record<JobStatusType, string> = {
 
 const STATUS_NOTIFICATION_TITLES: Record<JobStatusType, { th: string; en: string }> = {
   empty_container_checked_in: { th: '📍 เช็คอินจุดรับตู้เปล่า', en: '📍 Empty Container Check-in' },
+  loaded_container_checked_in: { th: '📍 เช็คอินจุดรับตู้หนัก', en: '📍 Loaded Container Check-in' },
   container_checked_in: { th: '📍 เช็คอินจุดรับตู้', en: '📍 Container Check-in' },
-  container_sop_completed: { th: '✅ ดำเนินการจุดรับตู้เสร็จ', en: '✅ Container SOP Completed' },
+  container_sop_completed: { th: '✅ ยืนยันรับตู้เปล่าเสร็จ', en: '✅ Empty Container Confirmed' },
+  loaded_container_confirmed: { th: '✅ ยืนยันรับตู้หนักเสร็จ', en: '✅ Loaded Container Confirmed' },
   pickup_checked_in: { th: '📍 เช็คอินจุดรับสินค้า', en: '📍 Pickup Check-in' },
   pickup_sop_completed: { th: '✅ ดำเนินการจุดรับสินค้าเสร็จ', en: '✅ Pickup SOP Completed' },
   delivery_checked_in: { th: '📍 เช็คอินจุดส่งสินค้า', en: '📍 Delivery Check-in' },
