@@ -395,12 +395,22 @@ export default function ContainerCheckInPage() {
         throw new Error('Check-in failed');
       }
 
-      // Send job status update
+      // Send job status update — distinguish BL (loaded) vs Booking (empty)
+      const isBLJobForStatus = !!job.bl_no;
+      let checkinStatus: 'container_return_checked_in' | 'loaded_container_checked_in' | 'empty_container_checked_in';
+      if (isContainerReturn) {
+        checkinStatus = 'container_return_checked_in';
+      } else if (isBLJobForStatus) {
+        checkinStatus = 'loaded_container_checked_in';
+      } else {
+        checkinStatus = 'empty_container_checked_in';
+      }
+
       await sendJobStatus({
         jobId: job.id,
         orderCode: job.order_code,
         userId: user.id,
-        status: isContainerReturn ? 'container_return_checked_in' : 'empty_container_checked_in',
+        status: checkinStatus,
         sequenceNumber: isContainerReturn ? 99 : 0,
         containerNumber: container1Number,
         sealNumber: container1Seal,
