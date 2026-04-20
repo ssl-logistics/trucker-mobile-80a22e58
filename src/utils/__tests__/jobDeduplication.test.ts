@@ -105,7 +105,7 @@ describe("jobDeduplication", () => {
     it("merges and prioritizes factory jobs", () => {
       const company = [{ order_number: "OR001", price: 1000 }];
       const factory = [{ order_number: "OR001", price: 5000 }];
-      const result = mergeJobSources(company, factory);
+      const result = mergeJobSources<any>(company, factory);
       expect(result).toHaveLength(1);
       expect(result[0].price).toBe(5000);
       expect(result[0].isFactoryJob).toBe(true);
