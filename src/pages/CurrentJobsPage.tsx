@@ -429,9 +429,10 @@ export default function CurrentJobsPage() {
             products: Array.isArray(job.products) ? job.products : (Array.isArray(job.destinations) ? job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
            }));
 
-           console.log(`[CurrentJobsPage] Setting accepted jobs: ${mappedJobs.length} jobs`);
-           mappedJobs.forEach(j => console.log(`  - ${j.order_number} (status: ${j.status})`));
-           setAcceptedJobs(mappedJobs);
+           const dedupedMapped = dedupeJobs(mappedJobs);
+           console.log(`[CurrentJobsPage] Setting accepted jobs: ${dedupedMapped.length} jobs (deduped from ${mappedJobs.length})`);
+           dedupedMapped.forEach(j => console.log(`  - ${j.order_number} (status: ${j.status})`));
+           setAcceptedJobs(dedupedMapped);
         } else {
           console.error('Error loading driver assigned jobs:', inTransitResult.error, deliveredResult.error, completedResult.error);
           setAcceptedJobs([]);
