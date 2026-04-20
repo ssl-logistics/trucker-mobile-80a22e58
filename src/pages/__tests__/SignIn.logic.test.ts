@@ -146,13 +146,13 @@ describe("SignIn Logic", () => {
           },
         },
         error: null,
-      });
+      } as any);
 
       const result = await loginExternal("user@test.com", "password123");
 
       expect(mockLogin).toHaveBeenCalledWith("user@test.com", "password123");
-      expect(result.data?.success).toBe(true);
-      expect(result.data?.data?.driver?.id).toBe("D1");
+      expect((result.data as any)?.success).toBe(true);
+      expect((result.data as any)?.data?.driver?.id).toBe("D1");
     });
 
     it("handles failed login response", async () => {
@@ -160,12 +160,12 @@ describe("SignIn Logic", () => {
       mockLogin.mockResolvedValue({
         data: { success: false, error: "Invalid credentials" },
         error: null,
-      });
+      } as any);
 
       const result = await loginExternal("wrong@test.com", "wrongpass");
 
-      expect(result.data?.success).toBe(false);
-      expect(result.data?.error).toBe("Invalid credentials");
+      expect((result.data as any)?.success).toBe(false);
+      expect((result.data as any)?.error).toBe("Invalid credentials");
     });
 
     it("handles network errors", async () => {
@@ -233,8 +233,8 @@ describe("SignIn Logic", () => {
 
   describe("Vehicle data merging for internal/external drivers", () => {
     it("merges vehicle data into driver for internal_driver", () => {
-      const driver = { id: "D1", full_name: "ทดสอบ", car_brand: "Hino" };
-      const vehicle = {
+      const driver: any = { id: "D1", full_name: "ทดสอบ", car_brand: "Hino" };
+      const vehicle: any = {
         id: "V1",
         license_plate: "1กก-1234",
         province: "กรุงเทพ",
@@ -244,8 +244,8 @@ describe("SignIn Logic", () => {
       };
       const userType = "internal_driver";
 
-      const merged =
-        driver && vehicle && (userType === "internal_driver" || userType === "external_driver")
+      const merged: any =
+        driver && vehicle && (userType === "internal_driver" || (userType as string) === "external_driver")
           ? {
               ...driver,
               plate_number: vehicle.license_plate,
@@ -260,14 +260,11 @@ describe("SignIn Logic", () => {
       expect(merged.plate_number).toBe("1กก-1234");
       expect(merged.vehicle_brand).toBe("Isuzu");
       expect(merged.load_capacity).toBe(25000);
-      expect((merged as any).vehicle_id).toBe("V1");
+      expect(merged.vehicle_id).toBe("V1");
     });
 
     it("does not merge vehicle data for freelance_driver", () => {
-      const driver = { id: "D1" };
-      const vehicle = { id: "V1", license_plate: "ABC" };
-      const userType = "freelance_driver";
-
+      const userType: string = "freelance_driver";
       const shouldMerge =
         userType === "internal_driver" || userType === "external_driver";
       expect(shouldMerge).toBe(false);
@@ -287,12 +284,12 @@ describe("SignIn Logic", () => {
           },
         },
         error: null,
-      });
+      } as any);
 
       const { data: result } = await loginExternal("u", "p");
-      const driver = result?.data?.driver;
-      const userType = result?.data?.user_type;
-      const apiKey = result?.data?.api_key;
+      const driver = (result as any)?.data?.driver;
+      const userType = (result as any)?.data?.user_type;
+      const apiKey = (result as any)?.data?.api_key;
       const employerType = driver?.company_type;
       const role = mapUserTypeToRole(userType);
 
