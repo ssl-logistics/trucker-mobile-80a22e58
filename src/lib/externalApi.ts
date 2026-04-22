@@ -37,6 +37,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'save-ocr-scan': 'EXPRESS_RENT_API_KEY',
   'ocr-extra': 'EXPRESS_RENT_API_KEY',
   'update-destination-coordinates': 'EXPRESS_RENT_API_KEY',
+  'submit-accident-evidence': 'EXPRESS_RENT_API_KEY',
   'check-driver-phone': 'DRIVER_API_KEY',
   'update-driver-password': 'DRIVER_API_KEY',
   'call-signal': 'DRIVER_API_KEY',
