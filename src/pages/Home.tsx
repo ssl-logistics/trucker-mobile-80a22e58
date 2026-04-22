@@ -188,10 +188,10 @@ const isValidName = (val: any): string => {
   // Load factory/driver assigned jobs from API
   // For internal/external drivers from factory company, use get-driver-assigned-jobs
   // For freelance drivers, use get-factory-assigned-jobs
-  const loadFactoryJobs = async () => {
+  const loadFactoryJobs = async (silent = false) => {
     if (!user?.id) return;
     
-    setIsLoadingFactoryJobs(true);
+    if (!silent) setIsLoadingFactoryJobs(true);
     try {
       let result: any;
       
