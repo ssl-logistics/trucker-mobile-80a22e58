@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -1171,7 +1171,14 @@ const isValidName = (val: any): string => {
 
           {/* Job Cards - Responsive grid */}
           <div className="card-grid-responsive">
-            {displayedJobs.length === 0 ? (
+            {isLoadingFactoryJobs && displayedJobs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center col-span-full">
+                <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
+                <p className="text-muted-foreground sm:text-lg">
+                  {t('common.loading') || 'กำลังโหลด...'}
+                </p>
+              </div>
+            ) : displayedJobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center col-span-full">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 sm:w-20 sm:h-20">
                   <Search className="w-8 h-8 text-muted-foreground sm:w-10 sm:h-10" />
