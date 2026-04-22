@@ -2090,6 +2090,20 @@ export default function DomesticJobDetail({
 
 
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} orderNumber={job.order_code} />
+
+      {/* Accident Evidence — auto-opened when job is locked */}
+      <AccidentEvidenceModal
+        open={showAccidentModal}
+        onOpenChange={setShowAccidentModal}
+        orderId={job.id}
+        orderNumber={job.order_code}
+        onSuccess={() => {
+          setAccidentLocked(false);
+          // Mutate flag in-place so re-render reflects unlocked state without refetch
+          (job as any).requires_accident_evidence = false;
+          onUpdate?.();
+        }}
+      />
       
       {/* OCR Photo Selection Drawer */}
       <Drawer open={showOcrDrawer} onOpenChange={setShowOcrDrawer}>
