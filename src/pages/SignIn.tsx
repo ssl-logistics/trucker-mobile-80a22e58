@@ -23,6 +23,7 @@ import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
+import { LineDebugModal } from "@/components/debug/LineDebugModal";
 const languageOptions = [{
   code: 'en' as const,
   label: 'EN',
@@ -69,6 +70,7 @@ const SignIn = () => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showLineDebug, setShowLineDebug] = useState(false);
   const currentPlatform = Capacitor.getPlatform();
   const showAppleSignIn = currentPlatform !== 'android';
   console.log('[Apple Sign In] Platform:', currentPlatform, 'Show:', showAppleSignIn);
@@ -531,10 +533,21 @@ const SignIn = () => {
         </form>
       </div>
       
+      {/* Debug Button (bottom-left) */}
+      <button
+        type="button"
+        onClick={() => setShowLineDebug(true)}
+        className="absolute bottom-2 left-4 text-[10px] text-muted-foreground/60 underline"
+      >
+        🔍 Debug LINE
+      </button>
+
       {/* App Version */}
       <div className="absolute bottom-2 right-4 text-xs text-muted-foreground/60">
         v{appVersion}
       </div>
+
+      <LineDebugModal open={showLineDebug} onClose={() => setShowLineDebug(false)} />
     </div>;
 };
 export default SignIn;

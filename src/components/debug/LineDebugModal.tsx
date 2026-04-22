@@ -1,0 +1,252 @@
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Capacitor } from '@capacitor/core';
+import { Copy, Trash2, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface LineDebugModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+interface DebugInfo {
+  // Environment
+  userAgent: string;
+  platform: string;
+  isNative: boolean;
+  origin: string;
+  href: string;
+  // LINE OAuth state
+  lineOAuthStateLocal: string | null;
+  lineOAuthStateSession: string | null;
+  // Last callback info (saved by LineCallbackPage)
+  lastCallbackUrl: string | null;
+  lastCallbackParams: string | null;
+  // Auth state
+  authLoginType: string | null;
+  authDriverId: string | null;
+  hasAuthDriver: boolean;
+  // Detection
+  hasAppPrefixInState: boolean;
+  hasAppPrefixInSavedState: boolean;
+}
+
+const collectDebugInfo = (): DebugInfo => {
+  const lineOAuthStateLocal = localStorage.getItem('line_oauth_state');
+  const lineOAuthStateSession = sessionStorage.getItem('line_oauth_state');
+  const lastCallbackParams = localStorage.getItem('line_last_callback_params');
+
+  let stateFromUrl: string | null = null;
+  try {
+    if (lastCallbackParams) {
+      stateFromUrl = JSON.parse(lastCallbackParams).state || null;
+    }
+  } catch {
+    // ignore
+  }
+
+  return {
+    userAgent: navigator.userAgent,
+    platform: Capacitor.getPlatform(),
+    isNative: Capacitor.isNativePlatform(),
+    origin: window.location.origin,
+    href: window.location.href,
+    lineOAuthStateLocal,
+    lineOAuthStateSession,
+    lastCallbackUrl: localStorage.getItem('line_last_callback_url'),
+    lastCallbackParams,
+    authLoginType: localStorage.getItem('auth_login_type'),
+    authDriverId: localStorage.getItem('auth_driver_id'),
+    hasAuthDriver: !!localStorage.getItem('auth_driver'),
+    hasAppPrefixInState: !!stateFromUrl?.startsWith('thetroob_'),
+    hasAppPrefixInSavedState:
+      !!lineOAuthStateLocal?.startsWith('thetroob_') ||
+      !!lineOAuthStateSession?.startsWith('thetroob_'),
+  };
+};
+
+export const LineDebugModal = ({ open, onClose }: LineDebugModalProps) => {
+  const { toast } = useToast();
+  const [info, setInfo] = useState<DebugInfo | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setInfo(collectDebugInfo());
+    }
+  }, [open]);
+
+  const refresh = () => {
+    setInfo(collectDebugInfo());
+    toast({ title: 'รีเฟรชข้อมูลแล้ว' });
+  };
+
+  const clearLineDebug = () => {
+    localStorage.removeItem('line_last_callback_url');
+    localStorage.removeItem('line_last_callback_params');
+    localStorage.removeItem('line_oauth_state');
+    sessionStorage.removeItem('line_oauth_state');
+    setInfo(collectDebugInfo());
+    toast({ title: 'ล้างข้อมูล Debug แล้ว' });
+  };
+
+  const copyAll = async () => {
+    if (!info) return;
+    const text = JSON.stringify(info, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ title: 'คัดลอกข้อมูลแล้ว', description: 'วางลงในแชทเพื่อส่งให้ทีม' });
+    } catch {
+      toast({ variant: 'destructive', title: 'คัดลอกไม่สำเร็จ' });
+    }
+  };
+
+  if (!info) return null;
+
+  // Diagnosis
+  const diagnoses: Array<{ label: string; status: 'ok' | 'warn' | 'fail'; message: string }> = [];
+
+  if (!info.lastCallbackUrl) {
+    diagnoses.push({
+      label: 'LINE Callback',
+      status: 'warn',
+      message: 'ยังไม่เคยมีการ callback จาก LINE บนเครื่องนี้ — ลอง login LINE ก่อน',
+    });
+  } else {
+    diagnoses.push({
+      label: 'LINE Callback',
+      status: 'ok',
+      message: 'มีการ callback จาก LINE แล้ว',
+    });
+
+    if (!info.hasAppPrefixInState && !info.hasAppPrefixInSavedState) {
+      diagnoses.push({
+        label: 'App-prefix Detection',
+        status: 'fail',
+        message:
+          '❌ State ไม่มี prefix "thetroob_" — ระบบจึงไม่รู้ว่า login มาจากแอป จึงไม่เด้งกลับ. ' +
+          'ตรวจสอบโค้ดที่สร้าง state ตอนเริ่ม login LINE บนแอป',
+      });
+    } else if (info.hasAppPrefixInState) {
+      diagnoses.push({
+        label: 'App-prefix Detection',
+        status: 'ok',
+        message: '✅ State มี prefix "thetroob_" → ควรจะเด้งกลับแอป',
+      });
+    } else {
+      diagnoses.push({
+        label: 'App-prefix Detection',
+        status: 'warn',
+        message:
+          '⚠️ State ใน URL ไม่มี prefix แต่ savedState มี — อาจเป็นการ retry หรือ LINE ตัด state',
+      });
+    }
+  }
+
+  if (info.isNative) {
+    diagnoses.push({
+      label: 'Platform',
+      status: 'ok',
+      message: '✅ กำลังทำงานในแอปแบบ native',
+    });
+  } else {
+    diagnoses.push({
+      label: 'Platform',
+      status: 'warn',
+      message: 'อยู่ในเว็บ/in-app browser ไม่ใช่ native — ต้องเด้งกลับแอปด้วย deep link',
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>🔍 LINE Login Debug</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex gap-2 flex-wrap">
+          <Button size="sm" variant="outline" onClick={refresh}>
+            <RefreshCw className="w-3 h-3 mr-1" /> รีเฟรช
+          </Button>
+          <Button size="sm" variant="outline" onClick={copyAll}>
+            <Copy className="w-3 h-3 mr-1" /> คัดลอก
+          </Button>
+          <Button size="sm" variant="outline" onClick={clearLineDebug}>
+            <Trash2 className="w-3 h-3 mr-1" /> ล้าง
+          </Button>
+        </div>
+
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-4 text-xs">
+            {/* Diagnosis */}
+            <section>
+              <h3 className="font-bold text-sm mb-2">📋 การวินิจฉัย</h3>
+              <div className="space-y-2">
+                {diagnoses.map((d, i) => (
+                  <div
+                    key={i}
+                    className={`p-2 rounded border ${
+                      d.status === 'ok'
+                        ? 'bg-green-50 border-green-200 text-green-900'
+                        : d.status === 'warn'
+                          ? 'bg-yellow-50 border-yellow-200 text-yellow-900'
+                          : 'bg-red-50 border-red-200 text-red-900'
+                    }`}
+                  >
+                    <div className="font-medium">{d.label}</div>
+                    <div className="text-[11px] mt-0.5">{d.message}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Environment */}
+            <section>
+              <h3 className="font-bold text-sm mb-2">🌐 Environment</h3>
+              <div className="space-y-1 font-mono break-all bg-muted p-2 rounded">
+                <div><b>Platform:</b> {info.platform}</div>
+                <div><b>isNative:</b> {String(info.isNative)}</div>
+                <div><b>Origin:</b> {info.origin}</div>
+                <div><b>Href:</b> {info.href}</div>
+                <div><b>UA:</b> {info.userAgent}</div>
+              </div>
+            </section>
+
+            {/* OAuth State */}
+            <section>
+              <h3 className="font-bold text-sm mb-2">🔑 LINE OAuth State</h3>
+              <div className="space-y-1 font-mono break-all bg-muted p-2 rounded">
+                <div><b>localStorage:</b> {info.lineOAuthStateLocal || '(ไม่มี)'}</div>
+                <div><b>sessionStorage:</b> {info.lineOAuthStateSession || '(ไม่มี)'}</div>
+                <div><b>มี prefix thetroob_ ใน saved:</b> {String(info.hasAppPrefixInSavedState)}</div>
+              </div>
+            </section>
+
+            {/* Last Callback */}
+            <section>
+              <h3 className="font-bold text-sm mb-2">📞 Last LINE Callback</h3>
+              <div className="space-y-1 font-mono break-all bg-muted p-2 rounded">
+                <div><b>URL:</b> {info.lastCallbackUrl || '(ไม่มี — ยังไม่เคย callback)'}</div>
+                <div><b>Params:</b> {info.lastCallbackParams || '(ไม่มี)'}</div>
+                <div><b>มี prefix thetroob_ ใน state:</b> {String(info.hasAppPrefixInState)}</div>
+              </div>
+            </section>
+
+            {/* Auth State */}
+            <section>
+              <h3 className="font-bold text-sm mb-2">👤 Auth State</h3>
+              <div className="space-y-1 font-mono break-all bg-muted p-2 rounded">
+                <div><b>Login Type:</b> {info.authLoginType || '(ไม่มี)'}</div>
+                <div><b>Driver ID:</b> {info.authDriverId || '(ไม่มี)'}</div>
+                <div><b>มี auth_driver:</b> {String(info.hasAuthDriver)}</div>
+              </div>
+            </section>
+          </div>
+        </ScrollArea>
+
+        <Button onClick={onClose} className="w-full">ปิด</Button>
+      </DialogContent>
+    </Dialog>
+  );
+};
