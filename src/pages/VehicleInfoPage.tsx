@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
@@ -60,6 +61,7 @@ export default function VehicleInfoPage() {
   const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
   const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
+  const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
 
   // Only freelance drivers can edit vehicle info
   const canEditVehicle = userType === 'freelance_driver';
@@ -856,9 +858,14 @@ export default function VehicleInfoPage() {
                           className="w-full h-full object-cover"
                           key={`${photoType}-${photoTimestamp}`}
                         />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewPhotoUrl(photoUrl)}
+                          className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors cursor-pointer"
+                          aria-label={labels[photoType]}
+                        >
                           <span className="text-white text-lg font-medium drop-shadow-lg">{t('vehicle.clickToView')}</span>
-                        </div>
+                        </button>
                       </>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
@@ -1001,6 +1008,19 @@ export default function VehicleInfoPage() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Photo Preview Dialog */}
+      <Dialog open={!!previewPhotoUrl} onOpenChange={(open) => !open && setPreviewPhotoUrl(null)}>
+        <DialogContent className="max-w-3xl p-0 bg-transparent border-0 shadow-none">
+          {previewPhotoUrl && (
+            <img
+              src={previewPhotoUrl}
+              alt="Preview"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
