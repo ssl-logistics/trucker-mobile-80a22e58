@@ -188,10 +188,10 @@ const isValidName = (val: any): string => {
   // Load factory/driver assigned jobs from API
   // For internal/external drivers from factory company, use get-driver-assigned-jobs
   // For freelance drivers, use get-factory-assigned-jobs
-  const loadFactoryJobs = async () => {
+  const loadFactoryJobs = async (silent = false) => {
     if (!user?.id) return;
     
-    setIsLoadingFactoryJobs(true);
+    if (!silent) setIsLoadingFactoryJobs(true);
     try {
       let result: any;
       
@@ -340,20 +340,20 @@ const isValidName = (val: any): string => {
     if (user) {
       console.log('🔄 Loading jobs with userType:', userType, 'isInternalDriver:', isInternalDriver, 'isExternalDriver:', isExternalDriver);
       
-      const refreshJobs = () => {
+      const refreshJobs = (silent = false) => {
         if (userType === 'internal_driver' || userType === 'external_driver') {
-          loadFactoryJobs();
+          loadFactoryJobs(silent);
         } else if (userType === 'freelance_driver') {
           loadJobs();
-          loadFactoryJobs();
+          loadFactoryJobs(silent);
         }
       };
 
-      // Initial load
-      refreshJobs();
+      // Initial load (show loading UI)
+      refreshJobs(false);
 
-      // Auto-refresh every 30 seconds so deleted/updated jobs reflect without page switch
-      const intervalId = setInterval(refreshJobs, 30_000);
+      // Auto-refresh every 30 seconds — silent (don't show loading UI to avoid flicker)
+      const intervalId = setInterval(() => refreshJobs(true), 30_000);
       return () => clearInterval(intervalId);
     }
   }, [user, userType]);
