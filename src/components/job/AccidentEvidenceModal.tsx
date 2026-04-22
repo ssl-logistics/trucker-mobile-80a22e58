@@ -227,7 +227,7 @@ export default function AccidentEvidenceModal({
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
+            <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 text-xs text-destructive">
               {t("accidentEvidence.lockNotice")}
             </div>
 
