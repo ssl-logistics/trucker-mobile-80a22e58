@@ -1,30 +1,33 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LINE Callback - Redirecting...</title>
+    <title>LINE Callback - กลับเข้าแอป</title>
     <style>
+      * { box-sizing: border-box; }
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh;
         margin: 0;
         background: #06C755;
         color: white;
+        padding: 20px;
       }
       .container {
         text-align: center;
-        padding: 20px;
+        max-width: 420px;
+        width: 100%;
       }
       .spinner {
         border: 4px solid rgba(255,255,255,0.3);
         border-top: 4px solid white;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
         animation: spin 1s linear infinite;
         margin: 0 auto 20px;
       }
@@ -32,74 +35,120 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+      h1 { font-size: 20px; margin: 0 0 8px; }
+      p { font-size: 14px; opacity: 0.9; margin: 4px 0; }
+      .open-btn {
+        display: block;
+        margin: 24px auto 12px;
+        padding: 16px 24px;
+        background: white;
+        color: #06C755;
+        font-size: 17px;
+        font-weight: bold;
+        text-decoration: none;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        max-width: 320px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      .open-btn:active { transform: scale(0.98); }
+      .web-link {
+        display: inline-block;
+        margin-top: 16px;
+        color: white;
+        font-size: 13px;
+        text-decoration: underline;
+        opacity: 0.85;
+      }
       .debug {
-        margin-top: 20px;
-        font-size: 12px;
+        margin-top: 24px;
+        font-size: 11px;
         background: rgba(0,0,0,0.2);
         padding: 10px;
         border-radius: 8px;
         word-break: break-all;
+        text-align: left;
+        max-height: 120px;
+        overflow: auto;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="spinner"></div>
-      <p>กำลังดำเนินการ LINE Login...</p>
+      <h1>เข้าสู่ระบบ LINE สำเร็จ</h1>
+      <p>กำลังกลับเข้าแอป The Trucker...</p>
+
+      <a id="openAppBtn" class="open-btn" href="#">📱 เปิดแอป The Trucker</a>
+      <a id="webFallback" class="web-link" href="#">หรือใช้งานต่อบนเว็บ</a>
+
       <div class="debug" id="debug"></div>
     </div>
+
     <script>
-      // LINE redirects here with ?code=...&state=...
-      // Check if native app can handle this - try deep link first
       (function () {
         var debugEl = document.getElementById('debug');
         function log(msg) {
-          console.log('[LINE Callback HTML] ' + msg);
+          try { console.log('[LINE Callback HTML] ' + msg); } catch (e) {}
           debugEl.innerHTML += msg + '<br>';
         }
-        
+
+        var search = window.location.search || '';
         log('URL: ' + window.location.href);
-        log('Search: ' + window.location.search);
-        
-        var search = window.location.search || "";
-        
+
         if (!search || search === '?') {
-          log('ERROR: No query params found!');
-          debugEl.innerHTML += '<br><strong style="color:red">ไม่พบ code จาก LINE กรุณาลองใหม่</strong>';
-          setTimeout(function() {
-            window.location.href = '/';
-          }, 3000);
+          log('ERROR: ไม่พบ code จาก LINE');
+          document.querySelector('h1').textContent = 'เกิดข้อผิดพลาด';
+          document.querySelector('p').textContent = 'ไม่พบ code จาก LINE — กลับไปหน้าเข้าสู่ระบบใน 3 วินาที';
+          setTimeout(function () { window.location.href = '/'; }, 3000);
           return;
         }
-        
-        // Extract code and state from URL
+
         var urlParams = new URLSearchParams(search);
         var code = urlParams.get('code');
         var state = urlParams.get('state');
-        
-        log('Code: ' + (code ? code.substring(0, 20) + '...' : 'NONE'));
+        log('Code: ' + (code ? code.substring(0, 16) + '...' : 'NONE'));
         log('State: ' + state);
-        
-        // Try to redirect to native app first using custom URL scheme
-        // This will work if the app is installed
-        var deepLinkUrl = 'thetroob://line-callback' + search;
-        log('Trying deep link: ' + deepLinkUrl);
-        
-        // Set a flag to track if we've been redirected
-        var redirected = false;
-        
-        // Try opening the native app
-        window.location.href = deepLinkUrl;
-        
-        // If still here after 1.5 seconds, fallback to web app (HashRouter)
-        setTimeout(function() {
-          if (!redirected) {
-            log('Deep link did not work, falling back to web...');
-            var newUrl = window.location.origin + "/#/auth/line/callback" + search;
-            log('Redirecting to: ' + newUrl);
-            window.location.replace(newUrl);
-          }
-        }, 1500);
+
+        var ua = navigator.userAgent || '';
+        var isAndroid = /Android/i.test(ua);
+        var isIOS = /iPhone|iPad|iPod/i.test(ua);
+        log('Platform: ' + (isAndroid ? 'Android' : isIOS ? 'iOS' : 'Other'));
+
+        // Build deep link URLs
+        var customScheme = 'thetroob://line-callback' + search;
+        // Android Intent URL — best chance to open native app from Chrome Custom Tabs
+        var intentUrl = 'intent://line-callback' + search +
+          '#Intent;scheme=thetroob;package=com.thetroob.mobile;' +
+          'S.browser_fallback_url=' + encodeURIComponent(window.location.origin + '/#/auth/line/callback' + search) +
+          ';end';
+
+        var deepLink = isAndroid ? intentUrl : customScheme;
+        log('Deep link: ' + deepLink.substring(0, 80) + '...');
+
+        var openBtn = document.getElementById('openAppBtn');
+        var webBtn = document.getElementById('webFallback');
+
+        openBtn.href = deepLink;
+        webBtn.href = window.location.origin + '/#/auth/line/callback' + search;
+
+        // Auto-attempt deep link immediately (works on iOS Safari and some Android cases)
+        // Do NOT auto-fallback to web — user must explicitly choose web fallback,
+        // otherwise they end up logged in on the browser instead of the app.
+        try {
+          log('Auto-attempting deep link...');
+          window.location.href = deepLink;
+        } catch (e) {
+          log('Auto deep link failed: ' + e.message);
+        }
+
+        // Also bind click for explicit user gesture (Chrome Custom Tabs requires this)
+        openBtn.addEventListener('click', function (e) {
+          log('User tapped open-app button');
+          // Let the default <a href> navigation happen — user gesture allows scheme launch
+        });
       })();
     </script>
   </body>
