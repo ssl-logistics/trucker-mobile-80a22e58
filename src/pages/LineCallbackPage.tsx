@@ -5,14 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
 import { Loader2 } from 'lucide-react';
 
-interface LineUserData {
-  lineUserId: string;
-  displayName: string;
-  pictureUrl?: string;
-  statusMessage?: string;
-  email?: string;
-}
-
 // Check if running inside Capacitor native app
 const isRunningInCapacitor = () => {
   return !!(window as any).Capacitor?.isNativePlatform?.() || 
