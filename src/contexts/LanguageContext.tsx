@@ -757,6 +757,23 @@ const thTranslations: Record<string, string> = {
   'reportProblem.submitSuccess': 'แจ้งปัญหาสำเร็จ',
   'reportProblem.submitFailed': 'แจ้งปัญหาไม่สำเร็จ',
   'reportProblem.submitting': 'กำลังส่ง...',
+  // Accident Evidence
+  'accidentEvidence.title': 'ต้องส่งหลักฐานอุบัติเหตุ',
+  'accidentEvidence.subtitle': 'งานนี้ถูกล็อก กรุณาส่งหลักฐานก่อนดำเนินการต่อ',
+  'accidentEvidence.lockNotice': 'คุณไม่สามารถเช็คอิน หรือดำเนินขั้นตอนถัดไปได้ จนกว่าจะส่งรูปหลักฐานครบถ้วน',
+  'accidentEvidence.photosLabel': 'รูปหลักฐาน (ความเสียหาย/ที่เกิดเหตุ)',
+  'accidentEvidence.addPhoto': 'เพิ่มรูป',
+  'accidentEvidence.notesLabel': 'รายละเอียดเพิ่มเติม',
+  'accidentEvidence.notesPlaceholder': 'อธิบายเหตุการณ์ที่เกิดขึ้น (ถ้ามี)',
+  'accidentEvidence.submit': 'ส่งหลักฐาน',
+  'accidentEvidence.submitting': 'กำลังส่ง...',
+  'accidentEvidence.photoRequired': 'กรุณาแนบรูปอย่างน้อย 1 รูป',
+  'accidentEvidence.uploadFailed': 'อัปโหลดรูปไม่สำเร็จ',
+  'accidentEvidence.submitFailed': 'ส่งหลักฐานไม่สำเร็จ',
+  'accidentEvidence.success': 'ส่งหลักฐานสำเร็จ',
+  'accidentEvidence.unlockedDescription': 'ปลดล็อกงานเรียบร้อยแล้ว สามารถดำเนินการต่อได้',
+  'accidentEvidence.alreadyUnlocked': 'งานนี้ถูกปลดล็อกแล้ว',
+  'accidentEvidence.error': 'เกิดข้อผิดพลาด',
   
   // Job Action Buttons
   'jobActions.viewExpenses': 'ดูค่าใช้จ่าย',
