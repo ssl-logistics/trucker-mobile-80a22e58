@@ -8,6 +8,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useCheckinStatus } from '@/hooks/useCheckinStatus';
 import { toast } from '@/hooks/use-toast';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 
 
 // Interface matching what the detail components expect
@@ -179,6 +180,8 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accidentEvidenceRequired, setAccidentEvidenceRequired] = useState(false);
+  const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
 
   // Use checkin status hook to get real-time status from API
   const { 
@@ -465,6 +468,15 @@ export default function JobDetailPage() {
 
           setJob(mappedJob);
 
+          // Auto-open accident evidence modal if backend flagged this order
+          if (foundJob.requires_accident_evidence === true && !foundJob.accident_evidence_uploaded_at) {
+            setAccidentOrderInfo({ id: foundJob.id, order_number: foundJob.order_number || foundJob.order_code });
+            setAccidentEvidenceRequired(true);
+          } else {
+            setAccidentEvidenceRequired(false);
+            setAccidentOrderInfo(null);
+          }
+
           // Create job application based on status from API
           // Note: 'delivered' status means arrived at destination but NOT POD completed
           // Only 'completed' status means POD is done
@@ -700,11 +712,25 @@ export default function JobDetailPage() {
   };
 
   return (
-    <DomesticJobDetail 
-      job={job} 
-      jobApplication={jobApplication} 
-      userId={user.id}
-      onUpdate={handleUpdate}
-    />
+    <>
+      <DomesticJobDetail 
+        job={job} 
+        jobApplication={jobApplication} 
+        userId={user.id}
+        onUpdate={handleUpdate}
+      />
+      <AccidentEvidenceModal
+        open={accidentEvidenceRequired}
+        onOpenChange={(o) => {
+          if (!o) setAccidentEvidenceRequired(false);
+        }}
+        orderId={accidentOrderInfo?.id}
+        orderNumber={accidentOrderInfo?.order_number}
+        onSuccess={() => {
+          setAccidentEvidenceRequired(false);
+          loadJobDetail();
+        }}
+      />
+    </>
   );
 }
