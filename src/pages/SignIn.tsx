@@ -378,38 +378,34 @@ const SignIn = () => {
                 scope: scope,
               });
 
-              // Check if running in Capacitor (native app)
-              const isCapacitor = !!(window as any).Capacitor?.isNativePlatform?.() || 
-                                  window.location.origin.includes('capacitor://');
-              
-              // Web OAuth URL (fallback)
+              // Check if running in Capacitor (native app) - use official API
+              const isCapacitor = Capacitor.isNativePlatform();
+              const platform = Capacitor.getPlatform();
+
+              // Web OAuth URL (used for both web and as fallback in native in-app browser)
               const webAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
-              
-              // LINE app URL scheme for native authentication
-              // This will open the LINE app directly if installed
-              const lineAppUrl = `line://authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
-              
-              console.log('[LINE Login] isCapacitor:', isCapacitor);
-              
+
+              console.log('[LINE Login] isCapacitor:', isCapacitor, 'platform:', platform);
+
               if (isCapacitor) {
-                // Try to open LINE app directly
-                console.log('[LINE Login] Trying LINE app URL:', lineAppUrl);
-                
+                // On native, open the standard LINE web OAuth URL in the in-app browser.
+                // LINE will detect the LINE app on the device automatically and switch to it
+                // (or stay in browser if not installed). The `line://` scheme opened via
+                // Capacitor Browser.open often fails silently because Browser.open expects http(s).
+                console.log('[LINE Login] Opening web OAuth in in-app browser:', webAuthUrl);
                 try {
-                  // First try LINE app URL scheme
-                  await Browser.open({ 
-                    url: lineAppUrl,
-                    presentationStyle: 'popover',
-                    toolbarColor: '#00B900',
-                  });
-                  console.log('[LINE Login] LINE app opened');
-                } catch (err) {
-                  console.error('[LINE Login] LINE app open error, falling back to web:', err);
-                  // Fallback to web OAuth
-                  await Browser.open({ 
+                  await Browser.open({
                     url: webAuthUrl,
                     presentationStyle: 'popover',
                     toolbarColor: '#00B900',
+                  });
+                  console.log('[LINE Login] In-app browser opened');
+                } catch (err) {
+                  console.error('[LINE Login] Browser.open failed:', err);
+                  toast({
+                    variant: 'destructive',
+                    title: 'เกิดข้อผิดพลาด',
+                    description: 'ไม่สามารถเปิดหน้าเข้าสู่ระบบ LINE ได้',
                   });
                 }
               } else {
