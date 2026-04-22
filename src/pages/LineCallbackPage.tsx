@@ -57,6 +57,23 @@ const LineCallbackPage = () => {
       const error = searchParams.get('error');
       const errorDescription = searchParams.get('error_description');
 
+      // ⚡ CRITICAL: If we have a `thetroob_` state prefix, the OAuth was initiated from the
+      // native mobile app (the in-app browser). LINE redirected back to the HTTPS callback,
+      // but we MUST hand control back to the native app via deep link instead of processing
+      // the login on the web. Otherwise the user ends up logged into the web version.
+      const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
+      const hasAppPrefix = state?.startsWith('thetroob_');
+      if (!isNative && hasAppPrefix && (code || error)) {
+        const search = window.location.search || '';
+        const deepLink = `thetroob://line-callback${search}`;
+        console.log('[LINE Callback] 🔗 Native flow detected — handing back to app via deep link:', deepLink);
+        setRedirectingToApp(true);
+        // Try to open the native app
+        window.location.href = deepLink;
+        // Don't process further; the native app's deep link handler takes over
+        return;
+      }
+
       console.log('[LINE Callback] Parsed params:', { 
         code: code ? `${code.substring(0, 20)}...` : null, 
         state, 
@@ -92,7 +109,6 @@ const LineCallbackPage = () => {
       
       // Check if state matches stored value OR has our app prefix (for cross-browser iOS flow)
       // On iOS: native app stores state, but callback opens in Safari with different storage
-      const hasAppPrefix = state?.startsWith('thetroob_');
       const stateMatch = (state && savedStateSession && state === savedStateSession) || 
                          (state && savedStateLocal && state === savedStateLocal) ||
                          hasAppPrefix; // Trust state if it has our app prefix (iOS cross-browser case)
