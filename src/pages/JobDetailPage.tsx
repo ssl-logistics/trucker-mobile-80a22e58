@@ -468,6 +468,15 @@ export default function JobDetailPage() {
 
           setJob(mappedJob);
 
+          // Auto-open accident evidence modal if backend flagged this order
+          if (foundJob.requires_accident_evidence === true && !foundJob.accident_evidence_uploaded_at) {
+            setAccidentOrderInfo({ id: foundJob.id, order_number: foundJob.order_number || foundJob.order_code });
+            setAccidentEvidenceRequired(true);
+          } else {
+            setAccidentEvidenceRequired(false);
+            setAccidentOrderInfo(null);
+          }
+
           // Create job application based on status from API
           // Note: 'delivered' status means arrived at destination but NOT POD completed
           // Only 'completed' status means POD is done
