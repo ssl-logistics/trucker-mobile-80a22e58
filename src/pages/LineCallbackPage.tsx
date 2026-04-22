@@ -332,36 +332,30 @@ const LineCallbackPage = () => {
           await setAuthItem('auth_driver', JSON.stringify(lineDriver));
         }
 
-        // Store LINE user data for modal display BEFORE dispatching event
-        console.log('[LINE Callback] 🎯 Setting modal state...');
-        console.log('[LINE Callback] 🎯 lineUserData:', JSON.stringify(data.user, null, 2));
-        
-        setLineUserData(data.user);
-        console.log('[LINE Callback] ✅ setLineUserData called');
-        
+        // ✅ Login complete — navigate directly into the app (no confirmation modal)
         setStatus('success');
-        console.log('[LINE Callback] ✅ setStatus("success") called');
-        
-        setShowUserModal(true);
-        console.log('[LINE Callback] ✅ setShowUserModal(true) called');
 
         toast({
           title: 'เข้าสู่ระบบสำเร็จ',
           description: `ยินดีต้อนรับ ${data.user.displayName}`,
         });
 
-        console.log('[LINE Callback] 🎉 LOGIN COMPLETE! Summary:');
-        console.log('[LINE Callback] - User ID:', data.user.lineUserId);
-        console.log('[LINE Callback] - Name:', data.user.displayName);
-        console.log('[LINE Callback] - Has Picture:', !!data.user.pictureUrl);
-        console.log('[LINE Callback] 📋 Modal should be visible now!');
-        console.log('[LINE Callback] 📋 showUserModal state will be true after next render');
-        
-        // NOTE: Dispatch event AFTER setting modal state
-        // This ensures modal shows before any navigation from AuthContext
-        console.log('[LINE Callback] 📢 Dispatching auth_driver_updated event (DELAYED)...');
-        // Don't dispatch yet - let modal show first
-        // window.dispatchEvent(new Event('auth_driver_updated'));
+        console.log('[LINE Callback] 🎉 LOGIN COMPLETE — navigating into app');
+
+        // Dispatch auth event so AuthContext picks up the new session
+        window.dispatchEvent(new Event('auth_driver_updated'));
+
+        // Navigate to saved redirect path or home
+        const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
+        sessionStorage.removeItem('auth_redirect_after_login');
+
+        if (redirectPath && redirectPath !== '/' && redirectPath !== '/home') {
+          console.log('[LINE Callback] 🚀 Navigating to saved redirect:', redirectPath);
+          navigate(redirectPath, { replace: true });
+        } else {
+          console.log('[LINE Callback] 🚀 Navigating to /home...');
+          navigate('/home', { replace: true });
+        }
 
       } catch (err: any) {
         console.error('[LINE Callback] ❌ Exception:', err);
