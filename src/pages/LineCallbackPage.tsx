@@ -370,38 +370,11 @@ const LineCallbackPage = () => {
     handleCallback();
   }, [searchParams, navigate, toast]);
 
-  const handleModalClose = () => {
-    console.log('[LINE Callback] 🔘 Modal close button clicked');
-    setShowUserModal(false);
-    
-    // Dispatch auth event NOW (after user has seen the modal)
-    console.log('[LINE Callback] 📢 Dispatching auth_driver_updated event...');
-    window.dispatchEvent(new Event('auth_driver_updated'));
-    
-    // Check if there's a saved redirect destination (from ProtectedRoute)
-    const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
-    sessionStorage.removeItem('auth_redirect_after_login');
-
-    if (redirectPath && redirectPath !== '/' && redirectPath !== '/home') {
-      console.log('[LINE Callback] 🚀 Navigating to saved redirect:', redirectPath);
-      navigate(redirectPath, { replace: true });
-    } else {
-      console.log('[LINE Callback] 🚀 Navigating to /home...');
-      navigate('/home', { replace: true });
-    }
-  };
-
   // Debug: Log render state
-  console.log('[LINE Callback] 🔄 Render - status:', status, 'showUserModal:', showUserModal, 'lineUserData:', !!lineUserData);
+  console.log('[LINE Callback] 🔄 Render - status:', status, 'redirectingToApp:', redirectingToApp);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      {/* LINE User Info Modal */}
-      <LineUserInfoModal
-        open={showUserModal}
-        onClose={handleModalClose}
-        userData={lineUserData}
-      />
 
       <div className="text-center space-y-4">
         {redirectingToApp ? (
