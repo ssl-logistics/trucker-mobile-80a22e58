@@ -392,8 +392,16 @@ const LineCallbackPage = () => {
             </div>
             <p className="text-lg font-medium text-[#00B900]">เข้าสู่ระบบสำเร็จ</p>
             <p className="text-sm text-muted-foreground">กำลังกลับไปที่แอพ...</p>
+            {deepLinkUrl && (
+              <a
+                href={deepLinkUrl}
+                className="inline-block mt-4 px-6 py-3 rounded-lg bg-[#00B900] text-white font-medium hover:bg-[#00A000] active:bg-[#008F00]"
+              >
+                แตะที่นี่เพื่อกลับเข้าแอพ
+              </a>
+            )}
             <p className="text-xs text-muted-foreground mt-4">
-              หากไม่ถูกเปลี่ยนหน้าอัตโนมัติ กรุณากลับไปที่แอพ thetroob
+              หากไม่ถูกเปลี่ยนหน้าอัตโนมัติ กรุณาแตะปุ่มด้านบนหรือกลับไปที่แอพ thetroob
             </p>
           </>
         ) : status === 'loading' ? (
