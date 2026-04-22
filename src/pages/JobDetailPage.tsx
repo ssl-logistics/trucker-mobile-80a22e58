@@ -712,11 +712,25 @@ export default function JobDetailPage() {
   };
 
   return (
-    <DomesticJobDetail 
-      job={job} 
-      jobApplication={jobApplication} 
-      userId={user.id}
-      onUpdate={handleUpdate}
-    />
+    <>
+      <DomesticJobDetail 
+        job={job} 
+        jobApplication={jobApplication} 
+        userId={user.id}
+        onUpdate={handleUpdate}
+      />
+      <AccidentEvidenceModal
+        open={accidentEvidenceRequired}
+        onOpenChange={(o) => {
+          if (!o) setAccidentEvidenceRequired(false);
+        }}
+        orderId={accidentOrderInfo?.id}
+        orderNumber={accidentOrderInfo?.order_number}
+        onSuccess={() => {
+          setAccidentEvidenceRequired(false);
+          loadJobDetail();
+        }}
+      />
+    </>
   );
 }
