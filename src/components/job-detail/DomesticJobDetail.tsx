@@ -1377,7 +1377,7 @@ export default function DomesticJobDetail({
               {!job.bl_no && (() => {
               const isInternationalJob = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
               // Lock pickup if: international job AND (not checked in OR checked in but OCR not verified)
-              const isPickupLocked = isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isContainerStepCompleted);
+              const isPickupLocked = accidentLocked || (isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isContainerStepCompleted));
 
               return (
                 <Card ref={card1Ref} className={`overflow-hidden border-2 rounded-2xl ${pickupSopCompleted || jobApplication?.sop_completed_at ? 'border-green-500' : pickupCheckedIn ? 'border-teal-500' : isPickupLocked ? 'border-gray-300' : 'border-teal-500'}`}>
