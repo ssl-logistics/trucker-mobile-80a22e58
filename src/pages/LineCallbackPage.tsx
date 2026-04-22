@@ -47,35 +47,85 @@ const LineCallbackPage = () => {
       const error = searchParams.get('error');
       const errorDescription = searchParams.get('error_description');
 
-      // ⚡ CRITICAL: If we have a `thetroob_` state prefix, the OAuth was initiated from the
-      // native mobile app (the in-app browser). LINE redirected back to the HTTPS callback,
-      // but we MUST hand control back to the native app via deep link instead of processing
-      // the login on the web. Otherwise the user ends up logged into the web version.
+      // ============= 🔍 DETAILED DETECTION LOGS =============
+      const ua = navigator.userAgent || '';
+      const isAndroid = /android/i.test(ua);
+      const isIOS = /iphone|ipad|ipod/i.test(ua);
       const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
       const hasAppPrefix = state?.startsWith('thetroob_');
-      if (!isNative && hasAppPrefix && (code || error)) {
+      const savedStateLocal = localStorage.getItem('line_oauth_state');
+      const savedStateSession = sessionStorage.getItem('line_oauth_state');
+      const wasInitiatedByApp = savedStateLocal?.startsWith('thetroob_') || savedStateSession?.startsWith('thetroob_');
+
+      console.log('[LINE Callback] 🔍 ============ DETECTION INFO ============');
+      console.log('[LINE Callback] 🔍 User Agent:', ua);
+      console.log('[LINE Callback] 🔍 isAndroid:', isAndroid, '| isIOS:', isIOS);
+      console.log('[LINE Callback] 🔍 isNative (Capacitor):', isNative);
+      console.log('[LINE Callback] 🔍 window.location.origin:', window.location.origin);
+      console.log('[LINE Callback] 🔍 window.location.href:', window.location.href);
+      console.log('[LINE Callback] 🔍 state from URL:', state);
+      console.log('[LINE Callback] 🔍 hasAppPrefix (state starts with thetroob_):', hasAppPrefix);
+      console.log('[LINE Callback] 🔍 savedStateLocal:', savedStateLocal);
+      console.log('[LINE Callback] 🔍 savedStateSession:', savedStateSession);
+      console.log('[LINE Callback] 🔍 wasInitiatedByApp (saved state has prefix):', wasInitiatedByApp);
+      console.log('[LINE Callback] 🔍 ==========================================');
+
+      // ⚡ CRITICAL: If we have a `thetroob_` state prefix OR the local storage shows that the
+      // OAuth was initiated by the native app, hand control back to the native app via deep link.
+      // Otherwise the user ends up logged into the web version.
+      const shouldRedirectToApp = !isNative && (hasAppPrefix || wasInitiatedByApp) && (code || error);
+
+      console.log('[LINE Callback] 🎯 shouldRedirectToApp:', shouldRedirectToApp);
+
+      if (shouldRedirectToApp) {
         const search = window.location.search || '';
         const customSchemeUrl = `thetroob://line-callback${search}`;
         // Android intent URL — works in Chrome Custom Tabs (LINE in-app browser on Android)
         // where plain custom-scheme navigation is blocked.
-        const ua = navigator.userAgent || '';
-        const isAndroid = /android/i.test(ua);
         const intentUrl = `intent://line-callback${search}#Intent;scheme=thetroob;package=com.thetroob.mobile;end`;
         const deepLink = isAndroid ? intentUrl : customSchemeUrl;
 
-        console.log('[LINE Callback] 🔗 Native flow detected — handing back to app');
-        console.log('[LINE Callback] 🔗 isAndroid:', isAndroid, 'deepLink:', deepLink);
+        console.log('[LINE Callback] 🔗 ========== REDIRECTING TO APP ==========');
+        console.log('[LINE Callback] 🔗 Platform:', isAndroid ? 'Android' : isIOS ? 'iOS' : 'Other');
+        console.log('[LINE Callback] 🔗 Deep link URL:', deepLink);
+        console.log('[LINE Callback] 🔗 ==========================================');
+
         setRedirectingToApp(true);
         setDeepLinkUrl(deepLink);
 
         // Try to open the native app immediately
         try {
+          console.log('[LINE Callback] 🔗 Setting window.location.href...');
           window.location.href = deepLink;
+          console.log('[LINE Callback] 🔗 window.location.href set successfully');
         } catch (e) {
-          console.warn('[LINE Callback] location.href failed:', e);
+          console.error('[LINE Callback] ❌ location.href failed:', e);
         }
+
+        // Fallback: try iframe trick after 500ms (sometimes works when location.href is blocked)
+        setTimeout(() => {
+          console.log('[LINE Callback] 🔗 Trying iframe fallback...');
+          try {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = deepLink;
+            document.body.appendChild(iframe);
+            setTimeout(() => iframe.remove(), 2000);
+          } catch (e) {
+            console.error('[LINE Callback] ❌ iframe fallback failed:', e);
+          }
+        }, 500);
+
         // Don't process further; the native app's deep link handler takes over
         return;
+      } else {
+        console.log('[LINE Callback] ⚠️ NOT redirecting to app. Reason:');
+        if (isNative) console.log('[LINE Callback] ⚠️   - Already running in native (Capacitor)');
+        if (!hasAppPrefix && !wasInitiatedByApp) {
+          console.log('[LINE Callback] ⚠️   - No app prefix in state AND no app prefix in saved state');
+          console.log('[LINE Callback] ⚠️   - This means the OAuth was initiated from the web, not the app');
+        }
+        if (!code && !error) console.log('[LINE Callback] ⚠️   - No code or error in URL');
       }
 
 
