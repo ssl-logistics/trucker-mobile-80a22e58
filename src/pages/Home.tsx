@@ -15,6 +15,7 @@ import { useNewJobPolling } from '@/hooks/useNewJobPolling';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { RejectFactoryJobDialog } from '@/components/home/RejectFactoryJobDialog';
+import { preloadablePages } from '@/App';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -356,6 +357,24 @@ const isValidName = (val: any): string => {
       return () => clearInterval(intervalId);
     }
   }, [user, userType]);
+
+  // Preload pages users are likely to navigate to from "งานสำหรับคุณ" section
+  useEffect(() => {
+    if (!user) return;
+    const idle = (cb: () => void) => {
+      const w = window as any;
+      if (typeof w.requestIdleCallback === 'function') {
+        w.requestIdleCallback(cb, { timeout: 2000 });
+      } else {
+        setTimeout(cb, 800);
+      }
+    };
+    idle(() => {
+      preloadablePages.JobDetailPage.preload?.();
+      preloadablePages.CurrentJobsPage.preload?.();
+      preloadablePages.PickupDetailPage.preload?.();
+    });
+  }, [user]);
 
   // Handle openJobOrderCode from notifications navigation (state or query string)
   useEffect(() => {
