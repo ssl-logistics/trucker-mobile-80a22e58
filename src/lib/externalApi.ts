@@ -682,3 +682,25 @@ export async function updateDestinationCoordinates(body: {
     body,
   });
 }
+
+// ==================== Accident Evidence APIs ====================
+
+export async function submitAccidentEvidence(body: {
+  order_id?: string;
+  order_number?: string;
+  photo_urls: string[];
+  notes?: string;
+  latitude?: number;
+  longitude?: number;
+}) {
+  return callExternalApi<{
+    success: boolean;
+    message?: string;
+    error?: string;
+    code?: 'NO_PHOTOS' | 'EVIDENCE_NOT_REQUIRED';
+    data?: { photo_urls: string[]; requires_accident_evidence: boolean };
+  }>('submit-accident-evidence', {
+    method: 'POST',
+    body,
+  });
+}
