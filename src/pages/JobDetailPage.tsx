@@ -8,6 +8,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useCheckinStatus } from '@/hooks/useCheckinStatus';
 import { toast } from '@/hooks/use-toast';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 
 
 // Interface matching what the detail components expect
