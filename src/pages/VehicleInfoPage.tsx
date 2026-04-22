@@ -61,6 +61,7 @@ export default function VehicleInfoPage() {
   const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
   const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
+  const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
 
   // Only freelance drivers can edit vehicle info
   const canEditVehicle = userType === 'freelance_driver';
