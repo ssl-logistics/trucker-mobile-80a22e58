@@ -1008,6 +1008,19 @@ export default function VehicleInfoPage() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Photo Preview Dialog */}
+      <Dialog open={!!previewPhotoUrl} onOpenChange={(open) => !open && setPreviewPhotoUrl(null)}>
+        <DialogContent className="max-w-3xl p-0 bg-transparent border-0 shadow-none">
+          {previewPhotoUrl && (
+            <img
+              src={previewPhotoUrl}
+              alt="Preview"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
