@@ -26,6 +26,7 @@ const LineCallbackPage = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [redirectingToApp, setRedirectingToApp] = useState(false);
+  const [deepLinkUrl, setDeepLinkUrl] = useState<string>('');
 
   useEffect(() => {
     const handleCallback = async () => {
