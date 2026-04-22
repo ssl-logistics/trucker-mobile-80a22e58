@@ -533,10 +533,21 @@ const SignIn = () => {
         </form>
       </div>
       
+      {/* Debug Button (bottom-left) */}
+      <button
+        type="button"
+        onClick={() => setShowLineDebug(true)}
+        className="absolute bottom-2 left-4 text-[10px] text-muted-foreground/60 underline"
+      >
+        🔍 Debug LINE
+      </button>
+
       {/* App Version */}
       <div className="absolute bottom-2 right-4 text-xs text-muted-foreground/60">
         v{appVersion}
       </div>
+
+      <LineDebugModal open={showLineDebug} onClose={() => setShowLineDebug(false)} />
     </div>;
 };
 export default SignIn;
