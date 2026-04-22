@@ -318,9 +318,14 @@ export default function CurrentJobsPage() {
           
            const activeJobs = startedJobs.filter((job: any) => {
               // Exclude transferred jobs - they go to history
-              if (job.is_transferred) {
-                console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} is_transferred → excluding`);
+              // EXCEPTION: keep transferred jobs that still require accident evidence upload
+              // so the new driver can submit it from current jobs.
+              if (job.is_transferred && !job.requires_accident_evidence) {
+                console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} is_transferred (evidence done) → excluding`);
                 return false;
+              }
+              if (job.is_transferred && job.requires_accident_evidence) {
+                console.log(`[CurrentJobsPage] ⚠️ Job ${job.order_number} is_transferred but requires_accident_evidence → keeping for upload`);
               }
               
               const status = (job.status || '').toLowerCase();
