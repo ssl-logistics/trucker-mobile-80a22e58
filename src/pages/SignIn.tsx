@@ -70,6 +70,7 @@ const SignIn = () => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showLineDebug, setShowLineDebug] = useState(false);
   const currentPlatform = Capacitor.getPlatform();
   const showAppleSignIn = currentPlatform !== 'android';
   console.log('[Apple Sign In] Platform:', currentPlatform, 'Show:', showAppleSignIn);
