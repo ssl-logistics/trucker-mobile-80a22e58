@@ -858,9 +858,14 @@ export default function VehicleInfoPage() {
                           className="w-full h-full object-cover"
                           key={`${photoType}-${photoTimestamp}`}
                         />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewPhotoUrl(photoUrl)}
+                          className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors cursor-pointer"
+                          aria-label={labels[photoType]}
+                        >
                           <span className="text-white text-lg font-medium drop-shadow-lg">{t('vehicle.clickToView')}</span>
-                        </div>
+                        </button>
                       </>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
