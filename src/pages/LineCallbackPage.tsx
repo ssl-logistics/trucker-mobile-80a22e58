@@ -54,14 +54,29 @@ const LineCallbackPage = () => {
       const hasAppPrefix = state?.startsWith('thetroob_');
       if (!isNative && hasAppPrefix && (code || error)) {
         const search = window.location.search || '';
-        const deepLink = `thetroob://line-callback${search}`;
-        console.log('[LINE Callback] 🔗 Native flow detected — handing back to app via deep link:', deepLink);
+        const customSchemeUrl = `thetroob://line-callback${search}`;
+        // Android intent URL — works in Chrome Custom Tabs (LINE in-app browser on Android)
+        // where plain custom-scheme navigation is blocked.
+        const ua = navigator.userAgent || '';
+        const isAndroid = /android/i.test(ua);
+        const intentUrl = `intent://line-callback${search}#Intent;scheme=thetroob;package=com.thetroob.mobile;end`;
+        const deepLink = isAndroid ? intentUrl : customSchemeUrl;
+
+        console.log('[LINE Callback] 🔗 Native flow detected — handing back to app');
+        console.log('[LINE Callback] 🔗 isAndroid:', isAndroid, 'deepLink:', deepLink);
         setRedirectingToApp(true);
-        // Try to open the native app
-        window.location.href = deepLink;
+        setDeepLinkUrl(deepLink);
+
+        // Try to open the native app immediately
+        try {
+          window.location.href = deepLink;
+        } catch (e) {
+          console.warn('[LINE Callback] location.href failed:', e);
+        }
         // Don't process further; the native app's deep link handler takes over
         return;
       }
+
 
       console.log('[LINE Callback] Parsed params:', { 
         code: code ? `${code.substring(0, 20)}...` : null, 
