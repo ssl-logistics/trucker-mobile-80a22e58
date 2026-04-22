@@ -14,6 +14,7 @@ import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates, updateOrderStatus } from '@/lib/externalApi';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import {
@@ -121,6 +122,8 @@ export default function DeliveryDetailPage() {
     date: string | null;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [accidentEvidenceRequired, setAccidentEvidenceRequired] = useState(false);
+  const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
   
   // Check if viewing from history
   const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
@@ -312,6 +315,17 @@ export default function DeliveryDetailPage() {
             })(),
           };
           setJob(mappedJob);
+
+          if (foundJob.requires_accident_evidence === true && !foundJob.accident_evidence_uploaded_at) {
+            setAccidentOrderInfo({
+              id: foundJob.id,
+              order_number: foundJob.order_number || foundJob.order_code,
+            });
+            setAccidentEvidenceRequired(true);
+          } else {
+            setAccidentEvidenceRequired(false);
+            setAccidentOrderInfo(null);
+          }
           
           // Set container return data for international jobs
           if (foundJob.container_return_location || foundJob.container_return_latitude) {
@@ -753,8 +767,22 @@ export default function DeliveryDetailPage() {
       const { data: checkinResult, error: checkinError } = await driverCheckin(checkinPayload);
 
       if (checkinError) {
-        console.error('Check-in error:', checkinError);
-        throw new Error('Check-in failed');
+        console.error('Check-in error:', checkinError, checkinResult);
+
+        const accidentError = (checkinResult as any)?.error_code === 'ACCIDENT_EVIDENCE_REQUIRED';
+        const accidentData = (checkinResult as any)?.data;
+
+        if (accidentError) {
+          setAccidentOrderInfo({
+            id: accidentData?.order_id || job.id,
+            order_number: accidentData?.order_number || job.order_code,
+          });
+          setAccidentEvidenceRequired(true);
+          setShowConfirmDialog(false);
+          return;
+        }
+
+        throw new Error(checkinError || 'Check-in failed');
       }
 
       // Also send job status update
@@ -1166,6 +1194,21 @@ export default function DeliveryDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AccidentEvidenceModal
+        open={accidentEvidenceRequired}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAccidentEvidenceRequired(false);
+          }
+        }}
+        orderId={accidentOrderInfo?.id}
+        orderNumber={accidentOrderInfo?.order_number}
+        onSuccess={() => {
+          setAccidentEvidenceRequired(false);
+          loadJobDetail();
+        }}
+      />
     </div>
   );
 }
