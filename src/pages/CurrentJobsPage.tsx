@@ -1187,5 +1187,26 @@ export default function CurrentJobsPage() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Accident evidence modal — auto-opens when tapping a transferred job that requires evidence */}
+      <AccidentEvidenceModal
+        open={!!accidentJob}
+        onOpenChange={(o) => { if (!o) setAccidentJob(null); }}
+        orderId={accidentJob?.id}
+        orderNumber={accidentJob?.order_number}
+        onSuccess={() => {
+          const job = accidentJob;
+          setAccidentJob(null);
+          if (!job) return;
+          setAcceptedJobs((prev) => prev.map((j) =>
+            j.id === job.id ? ({ ...j, requires_accident_evidence: false } as AcceptedJob) : j
+          ));
+          if (job.isBidJob) {
+            navigate(`/bid-job/${job.order_number}`);
+          } else {
+            navigate(`/job/${job.order_number}`, { state: { job: { ...job, requires_accident_evidence: false } } });
+          }
+        }}
+      />
     </div>;
 }
