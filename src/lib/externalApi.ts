@@ -37,6 +37,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'save-ocr-scan': 'EXPRESS_RENT_API_KEY',
   'ocr-extra': 'EXPRESS_RENT_API_KEY',
   'update-destination-coordinates': 'EXPRESS_RENT_API_KEY',
+  'submit-accident-evidence': 'EXPRESS_RENT_API_KEY',
   'check-driver-phone': 'DRIVER_API_KEY',
   'update-driver-password': 'DRIVER_API_KEY',
   'call-signal': 'DRIVER_API_KEY',
@@ -678,6 +679,28 @@ export async function updateDestinationCoordinates(body: {
   longitude: number;
 }) {
   return callExternalApi<{ success: boolean; message?: string }>('update-destination-coordinates', {
+    method: 'POST',
+    body,
+  });
+}
+
+// ==================== Accident Evidence APIs ====================
+
+export async function submitAccidentEvidence(body: {
+  order_id?: string;
+  order_number?: string;
+  photo_urls: string[];
+  notes?: string;
+  latitude?: number;
+  longitude?: number;
+}) {
+  return callExternalApi<{
+    success: boolean;
+    message?: string;
+    error?: string;
+    code?: 'NO_PHOTOS' | 'EVIDENCE_NOT_REQUIRED';
+    data?: { photo_urls: string[]; requires_accident_evidence: boolean };
+  }>('submit-accident-evidence', {
     method: 'POST',
     body,
   });
