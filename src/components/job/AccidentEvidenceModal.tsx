@@ -116,20 +116,24 @@ export default function AccidentEvidenceModal({
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const filename = `accident-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const path = `accident-evidence/${orderNumber || orderId || "unknown"}/${filename}`;
+      const folder = `accident-evidence/${orderNumber || orderId || "unknown"}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", folder);
 
-      const { error } = await supabase.storage
-        .from("expense-receipts")
-        .upload(path, file, { contentType: file.type, upsert: false });
+      const { data, error } = await supabase.functions.invoke("upload-to-s3", {
+        body: formData,
+      });
 
       if (error) {
-        console.error("Upload error:", error);
+        console.error("S3 upload error:", error);
         return null;
       }
-      const { data } = supabase.storage.from("expense-receipts").getPublicUrl(path);
-      return data.publicUrl;
+      if (!data?.url) {
+        console.error("S3 upload returned no url:", data);
+        return null;
+      }
+      return data.url as string;
     } catch (err) {
       console.error("Upload exception:", err);
       return null;
