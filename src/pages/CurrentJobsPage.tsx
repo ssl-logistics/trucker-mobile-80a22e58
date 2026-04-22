@@ -25,6 +25,7 @@ import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { translateJobType, translateUnit } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { 
   getDriverAssignedJobs, 
   getFactoryAssignedJobs, 
@@ -143,6 +144,22 @@ export default function CurrentJobsPage() {
   const [selectedTransportType, setSelectedTransportType] = useState<string>('all');
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+
+  // Accident evidence modal state — opened when tapping a job that requires evidence (transferred + accident)
+  const [accidentJob, setAccidentJob] = useState<AcceptedJob | null>(null);
+
+  const handleOpenJob = (job: AcceptedJob) => {
+    const needsEvidence = !!(job as any).requires_accident_evidence;
+    if (needsEvidence) {
+      setAccidentJob(job);
+      return;
+    }
+    if (job.isBidJob) {
+      navigate(`/bid-job/${job.order_number}`);
+    } else {
+      navigate(`/job/${job.order_number}`, { state: { job } });
+    }
+  };
   useEffect(() => {
     console.log(`[CurrentJobsPage] useEffect triggered - user: ${user?.id}, userType: ${userType}, justStartedOrder: ${justStartedOrderRef.current}`);
     loadAcceptedJobs();
@@ -963,7 +980,11 @@ export default function CurrentJobsPage() {
           const deliveryDate = job.destination_delivery_date || '';
           const deliveryTime = job.destination_delivery_time || '';
 
-          return <Card key={job.id} className="overflow-hidden bg-card">
+          return <Card
+                  key={job.id}
+                  className="overflow-hidden bg-card cursor-pointer"
+                  onClick={() => handleOpenJob(job)}
+                >
                   <div className="flex items-center justify-between px-3 py-2 bg-white">
                     <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
                       {job.bl_no ? `BL ${job.bl_no}` : job.booking_no ? `Booking ${job.booking_no}` : `${t('job.order_code')} ${job.order_number}`}
@@ -1090,15 +1111,14 @@ export default function CurrentJobsPage() {
                     </div>
                     )}
 
-                    <Button variant="outline" className="w-full h-11 text-base font-medium" onClick={() => {
-                      // Navigate to correct page based on job type
-                      if (job.isBidJob) {
-                        navigate(`/bid-job/${job.order_number}`);
-                      } else {
-                        // Pass the job payload as navigation state (fallback if API no longer returns it)
-                        navigate(`/job/${job.order_number}`, { state: { job } });
-                      }
-                    }}>
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 text-base font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenJob(job);
+                      }}
+                    >
                       {t('currentJobs.viewDetails')}
                     </Button>
                   </div>
