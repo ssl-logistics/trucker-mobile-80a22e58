@@ -180,6 +180,8 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accidentEvidenceRequired, setAccidentEvidenceRequired] = useState(false);
+  const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
 
   // Use checkin status hook to get real-time status from API
   const { 
