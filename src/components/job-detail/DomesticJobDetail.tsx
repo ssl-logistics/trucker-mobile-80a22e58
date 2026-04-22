@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { formatDate } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
 import { useNativeCamera } from '@/hooks/useNativeCamera';import { getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
@@ -204,6 +205,19 @@ export default function DomesticJobDetail({
     containerReturn: 0
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  // Accident evidence lock — read from job object (mapped from API field requires_accident_evidence)
+  const requiresAccidentEvidence = !!(job as any)?.requires_accident_evidence;
+  const [showAccidentModal, setShowAccidentModal] = useState(false);
+  const [accidentLocked, setAccidentLocked] = useState(requiresAccidentEvidence);
+  // Auto-open modal when job is locked, on entering page or when flag flips on
+  useEffect(() => {
+    if (requiresAccidentEvidence && !isFromHistory) {
+      setAccidentLocked(true);
+      setShowAccidentModal(true);
+    } else {
+      setAccidentLocked(false);
+    }
+  }, [requiresAccidentEvidence, isFromHistory]);
   // destinations state removed - job_destinations table no longer exists
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
@@ -978,7 +992,27 @@ export default function DomesticJobDetail({
             <span className="text-sm font-medium text-gray-600">{t('jobHistory.statusTransferred')}</span>
           </div>
         )}
-        {/* Compact Summary Row */}
+        {/* Accident Evidence Lock Banner */}
+        {accidentLocked && (
+          <button
+            type="button"
+            onClick={() => setShowAccidentModal(true)}
+            className="w-full flex items-center gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-xl hover:bg-destructive/15 transition-colors text-left"
+          >
+            <div className="w-9 h-9 rounded-full bg-destructive/15 flex items-center justify-center flex-shrink-0">
+              <span className="text-destructive text-lg">⚠️</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-destructive">
+                {t('accidentEvidence.title')}
+              </div>
+              <div className="text-xs text-destructive/80 mt-0.5">
+                {t('accidentEvidence.subtitle')}
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-destructive flex-shrink-0" />
+          </button>
+        )}
         <div className="flex items-center gap-2">
           {canViewPrice &&
         <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-base font-semibold">
@@ -1343,7 +1377,7 @@ export default function DomesticJobDetail({
               {!job.bl_no && (() => {
               const isInternationalJob = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
               // Lock pickup if: international job AND (not checked in OR checked in but OCR not verified)
-              const isPickupLocked = isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isContainerStepCompleted);
+              const isPickupLocked = accidentLocked || (isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isContainerStepCompleted));
 
               return (
                 <Card ref={card1Ref} className={`overflow-hidden border-2 rounded-2xl ${pickupSopCompleted || jobApplication?.sop_completed_at ? 'border-green-500' : pickupCheckedIn ? 'border-teal-500' : isPickupLocked ? 'border-gray-300' : 'border-teal-500'}`}>
@@ -2076,6 +2110,20 @@ export default function DomesticJobDetail({
 
 
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} orderNumber={job.order_code} />
+
+      {/* Accident Evidence — auto-opened when job is locked */}
+      <AccidentEvidenceModal
+        open={showAccidentModal}
+        onOpenChange={setShowAccidentModal}
+        orderId={job.id}
+        orderNumber={job.order_code}
+        onSuccess={() => {
+          setAccidentLocked(false);
+          // Mutate flag in-place so re-render reflects unlocked state without refetch
+          (job as any).requires_accident_evidence = false;
+          onUpdate?.();
+        }}
+      />
       
       {/* OCR Photo Selection Drawer */}
       <Drawer open={showOcrDrawer} onOpenChange={setShowOcrDrawer}>
