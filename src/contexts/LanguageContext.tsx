@@ -1151,6 +1151,7 @@ const thTranslations: Record<string, string> = {
   'sop.selectSource': 'เลือกแหล่งที่มาของรูปภาพ',
   'sop.takePhoto': 'ถ่ายภาพ',
   'sop.selectFromGallery': 'เลือกรูปจากแกลอรี่',
+  'common.optional': 'ไม่บังคับ',
   
   // Container SOP Page
   'containerSop.title': 'จุดรับตู้เปล่า',
@@ -2878,6 +2879,7 @@ const enTranslations: Record<string, string> = {
   'sop.selectSource': 'Select Photo Source',
   'sop.takePhoto': 'Take Photo',
   'sop.selectFromGallery': 'Select from Gallery',
+  'common.optional': 'Optional',
   
   // Container SOP Page
   'containerSop.title': 'Empty Container Point',
@@ -4443,8 +4445,10 @@ const koTranslations: Record<string, string> = {
   'sop.rightPhoto': '우측 사진',
   'sop.rearPhoto': '후면 사진',
   'sop.uploadInstruction': '각 각도에서 차량 사진을 업로드하세요',
+  'sop.selectSource': '사진 소스 선택',
   'sop.takePhoto': '사진 촬영',
   'sop.selectFromGallery': '갤러리에서 선택',
+  'common.optional': '선택 사항',
   'sop.submit': '제출',
   'sop.submitting': '제출 중...',
   
@@ -5489,6 +5493,7 @@ const zhTranslations: Record<string, string> = {
   'sop.selectSource': '选择照片来源',
   'sop.takePhoto': '拍照',
   'sop.selectFromGallery': '从相册选择',
+  'common.optional': '可选',
   'sop.frontPhoto': '正面照片',
   'sop.leftPhoto': '左侧照片',
   'sop.rightPhoto': '右侧照片',

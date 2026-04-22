@@ -324,7 +324,7 @@ export default function AccidentEvidenceModal({
               onClick={() => handleSourceSelect("gallery")}
             >
               <ImageIcon className="w-5 h-5" />
-              {t("sop.chooseFromGallery")}
+              {t("sop.selectFromGallery")}
             </Button>
           </div>
         </DrawerContent>
