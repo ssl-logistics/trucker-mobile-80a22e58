@@ -205,6 +205,19 @@ export default function DomesticJobDetail({
     containerReturn: 0
   });
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  // Accident evidence lock — read from job object (mapped from API field requires_accident_evidence)
+  const requiresAccidentEvidence = !!(job as any)?.requires_accident_evidence;
+  const [showAccidentModal, setShowAccidentModal] = useState(false);
+  const [accidentLocked, setAccidentLocked] = useState(requiresAccidentEvidence);
+  // Auto-open modal when job is locked, on entering page or when flag flips on
+  useEffect(() => {
+    if (requiresAccidentEvidence && !isFromHistory) {
+      setAccidentLocked(true);
+      setShowAccidentModal(true);
+    } else {
+      setAccidentLocked(false);
+    }
+  }, [requiresAccidentEvidence, isFromHistory]);
   // destinations state removed - job_destinations table no longer exists
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
