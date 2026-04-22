@@ -158,9 +158,7 @@ const LineCallbackPage = () => {
         return;
       }
 
-      // Verify state to prevent CSRF
-      const savedStateSession = sessionStorage.getItem('line_oauth_state');
-      const savedStateLocal = localStorage.getItem('line_oauth_state');
+      // Verify state to prevent CSRF (savedStateSession/savedStateLocal already declared above)
       
       // Check if state matches stored value OR has our app prefix (for cross-browser iOS flow)
       // On iOS: native app stores state, but callback opens in Safari with different storage
