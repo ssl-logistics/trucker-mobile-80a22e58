@@ -4,15 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
 import { Loader2 } from 'lucide-react';
-import { LineUserInfoModal } from '@/components/line/LineUserInfoModal';
-
-interface LineUserData {
-  lineUserId: string;
-  displayName: string;
-  pictureUrl?: string;
-  statusMessage?: string;
-  email?: string;
-}
 
 // Check if running inside Capacitor native app
 const isRunningInCapacitor = () => {
@@ -34,8 +25,6 @@ const LineCallbackPage = () => {
   const { toast } = useToast();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
-  const [lineUserData, setLineUserData] = useState<LineUserData | null>(null);
-  const [showUserModal, setShowUserModal] = useState(false);
   const [redirectingToApp, setRedirectingToApp] = useState(false);
 
   useEffect(() => {
@@ -332,36 +321,30 @@ const LineCallbackPage = () => {
           await setAuthItem('auth_driver', JSON.stringify(lineDriver));
         }
 
-        // Store LINE user data for modal display BEFORE dispatching event
-        console.log('[LINE Callback] 🎯 Setting modal state...');
-        console.log('[LINE Callback] 🎯 lineUserData:', JSON.stringify(data.user, null, 2));
-        
-        setLineUserData(data.user);
-        console.log('[LINE Callback] ✅ setLineUserData called');
-        
+        // ✅ Login complete — navigate directly into the app (no confirmation modal)
         setStatus('success');
-        console.log('[LINE Callback] ✅ setStatus("success") called');
-        
-        setShowUserModal(true);
-        console.log('[LINE Callback] ✅ setShowUserModal(true) called');
 
         toast({
           title: 'เข้าสู่ระบบสำเร็จ',
           description: `ยินดีต้อนรับ ${data.user.displayName}`,
         });
 
-        console.log('[LINE Callback] 🎉 LOGIN COMPLETE! Summary:');
-        console.log('[LINE Callback] - User ID:', data.user.lineUserId);
-        console.log('[LINE Callback] - Name:', data.user.displayName);
-        console.log('[LINE Callback] - Has Picture:', !!data.user.pictureUrl);
-        console.log('[LINE Callback] 📋 Modal should be visible now!');
-        console.log('[LINE Callback] 📋 showUserModal state will be true after next render');
-        
-        // NOTE: Dispatch event AFTER setting modal state
-        // This ensures modal shows before any navigation from AuthContext
-        console.log('[LINE Callback] 📢 Dispatching auth_driver_updated event (DELAYED)...');
-        // Don't dispatch yet - let modal show first
-        // window.dispatchEvent(new Event('auth_driver_updated'));
+        console.log('[LINE Callback] 🎉 LOGIN COMPLETE — navigating into app');
+
+        // Dispatch auth event so AuthContext picks up the new session
+        window.dispatchEvent(new Event('auth_driver_updated'));
+
+        // Navigate to saved redirect path or home
+        const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
+        sessionStorage.removeItem('auth_redirect_after_login');
+
+        if (redirectPath && redirectPath !== '/' && redirectPath !== '/home') {
+          console.log('[LINE Callback] 🚀 Navigating to saved redirect:', redirectPath);
+          navigate(redirectPath, { replace: true });
+        } else {
+          console.log('[LINE Callback] 🚀 Navigating to /home...');
+          navigate('/home', { replace: true });
+        }
 
       } catch (err: any) {
         console.error('[LINE Callback] ❌ Exception:', err);
@@ -379,38 +362,11 @@ const LineCallbackPage = () => {
     handleCallback();
   }, [searchParams, navigate, toast]);
 
-  const handleModalClose = () => {
-    console.log('[LINE Callback] 🔘 Modal close button clicked');
-    setShowUserModal(false);
-    
-    // Dispatch auth event NOW (after user has seen the modal)
-    console.log('[LINE Callback] 📢 Dispatching auth_driver_updated event...');
-    window.dispatchEvent(new Event('auth_driver_updated'));
-    
-    // Check if there's a saved redirect destination (from ProtectedRoute)
-    const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
-    sessionStorage.removeItem('auth_redirect_after_login');
-
-    if (redirectPath && redirectPath !== '/' && redirectPath !== '/home') {
-      console.log('[LINE Callback] 🚀 Navigating to saved redirect:', redirectPath);
-      navigate(redirectPath, { replace: true });
-    } else {
-      console.log('[LINE Callback] 🚀 Navigating to /home...');
-      navigate('/home', { replace: true });
-    }
-  };
-
   // Debug: Log render state
-  console.log('[LINE Callback] 🔄 Render - status:', status, 'showUserModal:', showUserModal, 'lineUserData:', !!lineUserData);
+  console.log('[LINE Callback] 🔄 Render - status:', status, 'redirectingToApp:', redirectingToApp);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      {/* LINE User Info Modal */}
-      <LineUserInfoModal
-        open={showUserModal}
-        onClose={handleModalClose}
-        userData={lineUserData}
-      />
 
       <div className="text-center space-y-4">
         {redirectingToApp ? (
