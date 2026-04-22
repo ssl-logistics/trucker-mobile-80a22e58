@@ -992,7 +992,27 @@ export default function DomesticJobDetail({
             <span className="text-sm font-medium text-gray-600">{t('jobHistory.statusTransferred')}</span>
           </div>
         )}
-        {/* Compact Summary Row */}
+        {/* Accident Evidence Lock Banner */}
+        {accidentLocked && (
+          <button
+            type="button"
+            onClick={() => setShowAccidentModal(true)}
+            className="w-full flex items-center gap-3 p-3 bg-destructive/10 border border-destructive/30 rounded-xl hover:bg-destructive/15 transition-colors text-left"
+          >
+            <div className="w-9 h-9 rounded-full bg-destructive/15 flex items-center justify-center flex-shrink-0">
+              <span className="text-destructive text-lg">⚠️</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-destructive">
+                {t('accidentEvidence.title')}
+              </div>
+              <div className="text-xs text-destructive/80 mt-0.5">
+                {t('accidentEvidence.subtitle')}
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-destructive flex-shrink-0" />
+          </button>
+        )}
         <div className="flex items-center gap-2">
           {canViewPrice &&
         <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-base font-semibold">
