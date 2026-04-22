@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { formatDate } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
 import { useNativeCamera } from '@/hooks/useNativeCamera';import { getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
