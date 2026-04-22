@@ -26,6 +26,7 @@ const LineCallbackPage = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [redirectingToApp, setRedirectingToApp] = useState(false);
+  const [deepLinkUrl, setDeepLinkUrl] = useState<string>('');
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -54,14 +55,29 @@ const LineCallbackPage = () => {
       const hasAppPrefix = state?.startsWith('thetroob_');
       if (!isNative && hasAppPrefix && (code || error)) {
         const search = window.location.search || '';
-        const deepLink = `thetroob://line-callback${search}`;
-        console.log('[LINE Callback] 🔗 Native flow detected — handing back to app via deep link:', deepLink);
+        const customSchemeUrl = `thetroob://line-callback${search}`;
+        // Android intent URL — works in Chrome Custom Tabs (LINE in-app browser on Android)
+        // where plain custom-scheme navigation is blocked.
+        const ua = navigator.userAgent || '';
+        const isAndroid = /android/i.test(ua);
+        const intentUrl = `intent://line-callback${search}#Intent;scheme=thetroob;package=com.thetroob.mobile;end`;
+        const deepLink = isAndroid ? intentUrl : customSchemeUrl;
+
+        console.log('[LINE Callback] 🔗 Native flow detected — handing back to app');
+        console.log('[LINE Callback] 🔗 isAndroid:', isAndroid, 'deepLink:', deepLink);
         setRedirectingToApp(true);
-        // Try to open the native app
-        window.location.href = deepLink;
+        setDeepLinkUrl(deepLink);
+
+        // Try to open the native app immediately
+        try {
+          window.location.href = deepLink;
+        } catch (e) {
+          console.warn('[LINE Callback] location.href failed:', e);
+        }
         // Don't process further; the native app's deep link handler takes over
         return;
       }
+
 
       console.log('[LINE Callback] Parsed params:', { 
         code: code ? `${code.substring(0, 20)}...` : null, 
@@ -376,8 +392,16 @@ const LineCallbackPage = () => {
             </div>
             <p className="text-lg font-medium text-[#00B900]">เข้าสู่ระบบสำเร็จ</p>
             <p className="text-sm text-muted-foreground">กำลังกลับไปที่แอพ...</p>
+            {deepLinkUrl && (
+              <a
+                href={deepLinkUrl}
+                className="inline-block mt-4 px-6 py-3 rounded-lg bg-[#00B900] text-white font-medium hover:bg-[#00A000] active:bg-[#008F00]"
+              >
+                แตะที่นี่เพื่อกลับเข้าแอพ
+              </a>
+            )}
             <p className="text-xs text-muted-foreground mt-4">
-              หากไม่ถูกเปลี่ยนหน้าอัตโนมัติ กรุณากลับไปที่แอพ thetroob
+              หากไม่ถูกเปลี่ยนหน้าอัตโนมัติ กรุณาแตะปุ่มด้านบนหรือกลับไปที่แอพ thetroob
             </p>
           </>
         ) : status === 'loading' ? (
