@@ -33,8 +33,6 @@ const LineCallbackPage = () => {
   const { toast } = useToast();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
-  const [lineUserData, setLineUserData] = useState<LineUserData | null>(null);
-  const [showUserModal, setShowUserModal] = useState(false);
   const [redirectingToApp, setRedirectingToApp] = useState(false);
 
   useEffect(() => {
