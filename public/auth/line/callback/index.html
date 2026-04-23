@@ -22,66 +22,82 @@
         max-width: 420px;
         width: 100%;
       }
-      .spinner {
-        border: 4px solid rgba(255,255,255,0.3);
-        border-top: 4px solid white;
+      .check {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 16px;
+        background: white;
         border-radius: 50%;
-        width: 48px;
-        height: 48px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        color: #06C755;
+        font-weight: bold;
       }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      h1 { font-size: 20px; margin: 0 0 8px; }
-      p { font-size: 14px; opacity: 0.9; margin: 4px 0; }
+      h1 { font-size: 22px; margin: 0 0 8px; }
+      p { font-size: 15px; opacity: 0.95; margin: 4px 0 16px; line-height: 1.5; }
       .open-btn {
         display: block;
         margin: 24px auto 12px;
-        padding: 16px 24px;
+        padding: 18px 24px;
         background: white;
         color: #06C755;
-        font-size: 17px;
+        font-size: 18px;
         font-weight: bold;
         text-decoration: none;
-        border-radius: 12px;
+        border-radius: 14px;
         border: none;
         cursor: pointer;
         width: 100%;
         max-width: 320px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        transition: transform 0.1s;
+        animation: pulse 2s ease-in-out infinite;
       }
-      .open-btn:active { transform: scale(0.98); }
+      .open-btn:active { transform: scale(0.97); animation: none; }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+        50% { transform: scale(1.03); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+      }
       .web-link {
         display: inline-block;
-        margin-top: 16px;
+        margin-top: 8px;
         color: white;
         font-size: 13px;
         text-decoration: underline;
         opacity: 0.85;
       }
+      .hint {
+        margin-top: 16px;
+        font-size: 12px;
+        opacity: 0.8;
+        line-height: 1.5;
+      }
       .debug {
-        margin-top: 24px;
-        font-size: 11px;
+        margin-top: 20px;
+        font-size: 10px;
         background: rgba(0,0,0,0.2);
-        padding: 10px;
+        padding: 8px;
         border-radius: 8px;
         word-break: break-all;
         text-align: left;
-        max-height: 120px;
+        max-height: 100px;
         overflow: auto;
+        opacity: 0.7;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="spinner"></div>
+      <div class="check">✓</div>
       <h1>เข้าสู่ระบบ LINE สำเร็จ</h1>
-      <p>กำลังกลับเข้าแอป The Trucker...</p>
+      <p>กดปุ่มด้านล่างเพื่อกลับเข้าแอป The Trucker</p>
 
       <a id="openAppBtn" class="open-btn" href="#">📱 เปิดแอป The Trucker</a>
+      <div class="hint">
+        หากไม่เด้งกลับแอปอัตโนมัติ<br>กรุณากดปุ่มด้านบน
+      </div>
       <a id="webFallback" class="web-link" href="#">หรือใช้งานต่อบนเว็บ</a>
 
       <div class="debug" id="debug"></div>
@@ -134,17 +150,38 @@
         openBtn.href = deepLink;
         webBtn.href = window.location.origin + '/#/auth/line/callback' + search;
 
-        // Auto-attempt deep link immediately (works on iOS Safari and some Android cases)
-        // Do NOT auto-fallback to web — user must explicitly choose web fallback,
-        // otherwise they end up logged in on the browser instead of the app.
-        try {
-          log('Auto-attempting deep link...');
-          window.location.href = deepLink;
-        } catch (e) {
-          log('Auto deep link failed: ' + e.message);
+        // Track if user has interacted (helps with iOS Safari restrictions)
+        var hasUserGesture = false;
+        ['touchstart', 'click', 'keydown'].forEach(function (ev) {
+          window.addEventListener(ev, function () { hasUserGesture = true; }, { once: true, passive: true });
+        });
+
+        // On Android: try auto-redirect immediately (Chrome handles intent:// well)
+        // On iOS: do NOT auto-redirect (Safari blocks custom schemes without user gesture)
+        //         Wait for user to tap the big button.
+        if (isAndroid) {
+          setTimeout(function () {
+            log('Android auto-redirect to intent URL');
+            try {
+              window.location.href = deepLink;
+            } catch (e) {
+              log('Auto deep link failed: ' + e.message);
+            }
+          }, 500);
+        } else if (isIOS) {
+          // iOS: try one auto-attempt after a short delay (some in-app browsers allow it)
+          // but rely primarily on the user tapping the button.
+          setTimeout(function () {
+            log('iOS auto-attempt deep link');
+            try {
+              window.location.href = deepLink;
+            } catch (e) {
+              log('Auto deep link blocked: ' + e.message);
+            }
+          }, 800);
         }
 
-        // Also bind click for explicit user gesture (Chrome Custom Tabs requires this)
+        // Bind click for explicit user gesture (most reliable)
         openBtn.addEventListener('click', function (e) {
           log('User tapped open-app button');
           // Let the default <a href> navigation happen — user gesture allows scheme launch
