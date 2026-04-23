@@ -35,7 +35,6 @@ import { supabase } from "./integrations/supabase/client";
     return;
   }
 
-  const hash = window.location.hash;
   if (!hash) return;
 
   // Strip the leading "#" (or "#/" if present)
