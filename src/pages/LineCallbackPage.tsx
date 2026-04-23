@@ -195,7 +195,7 @@ const LineCallbackPage = () => {
         const isCapacitor = window.location.origin.includes('capacitor://') || 
                             window.location.origin.includes('localhost');
         const baseUrl = isCapacitor 
-          ? 'https://mobile.thetroob.com' 
+          ? 'https://mobile.the-trucker.com' 
           : window.location.origin;
         const redirectUri = `${baseUrl}/auth/line/callback`;
         console.log('[LINE Callback] 📡 Calling line-auth edge function with redirectUri:', redirectUri);

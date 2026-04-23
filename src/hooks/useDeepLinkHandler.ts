@@ -89,7 +89,8 @@ export const useDeepLinkHandler = () => {
             console.log('[DeepLink] 📡 Exchanging code for token...');
             
             // Call edge function to exchange code for token
-            const redirectUri = 'https://mobile.thetroob.com/auth/line/callback';
+            // Must match the redirectUri originally sent to LINE in SignIn.tsx
+            const redirectUri = 'https://mobile.the-trucker.com/auth/line/callback';
             const { data, error: fnError } = await supabase.functions.invoke('line-auth', {
               body: { code, redirectUri },
             });
