@@ -24,6 +24,10 @@ interface DebugInfo {
   // Last callback info (saved by LineCallbackPage)
   lastCallbackUrl: string | null;
   lastCallbackParams: string | null;
+  lastDeepLinkUrl: string | null;
+  lastDeepLinkSource: string | null;
+  lastDeepLinkAt: string | null;
+  lastDeepLinkError: string | null;
   // Auth state
   authLoginType: string | null;
   authDriverId: string | null;
@@ -57,6 +61,10 @@ const collectDebugInfo = (): DebugInfo => {
     lineOAuthStateSession,
     lastCallbackUrl: localStorage.getItem('line_last_callback_url'),
     lastCallbackParams,
+    lastDeepLinkUrl: localStorage.getItem('line_last_deep_link_url'),
+    lastDeepLinkSource: localStorage.getItem('line_last_deep_link_source'),
+    lastDeepLinkAt: localStorage.getItem('line_last_deep_link_at'),
+    lastDeepLinkError: localStorage.getItem('line_last_deep_link_error'),
     authLoginType: localStorage.getItem('auth_login_type'),
     authDriverId: localStorage.getItem('auth_driver_id'),
     hasAuthDriver: !!localStorage.getItem('auth_driver'),
@@ -85,6 +93,10 @@ export const LineDebugModal = ({ open, onClose }: LineDebugModalProps) => {
   const clearLineDebug = () => {
     localStorage.removeItem('line_last_callback_url');
     localStorage.removeItem('line_last_callback_params');
+    localStorage.removeItem('line_last_deep_link_url');
+    localStorage.removeItem('line_last_deep_link_source');
+    localStorage.removeItem('line_last_deep_link_at');
+    localStorage.removeItem('line_last_deep_link_error');
     localStorage.removeItem('line_oauth_state');
     sessionStorage.removeItem('line_oauth_state');
     setInfo(collectDebugInfo());
@@ -107,11 +119,17 @@ export const LineDebugModal = ({ open, onClose }: LineDebugModalProps) => {
   // Diagnosis
   const diagnoses: Array<{ label: string; status: 'ok' | 'warn' | 'fail'; message: string }> = [];
 
-  if (!info.lastCallbackUrl) {
+  if (!info.lastCallbackUrl && !info.lastDeepLinkUrl) {
     diagnoses.push({
       label: 'LINE Callback',
       status: 'warn',
       message: 'ยังไม่เคยมีการ callback จาก LINE บนเครื่องนี้ — ลอง login LINE ก่อน',
+    });
+  } else if (info.lastDeepLinkUrl && !info.lastCallbackUrl) {
+    diagnoses.push({
+      label: 'LINE Callback',
+      status: 'warn',
+      message: 'แอปรับ deep link กลับมาแล้ว แต่หน้า callback ในเว็บไม่ได้รันใน WebView โดยตรง — ดูค่า Last Deep Link ด้านล่าง',
     });
   } else {
     diagnoses.push({
@@ -155,6 +173,14 @@ export const LineDebugModal = ({ open, onClose }: LineDebugModalProps) => {
       label: 'Platform',
       status: 'warn',
       message: 'อยู่ในเว็บ/in-app browser ไม่ใช่ native — ต้องเด้งกลับแอปด้วย deep link',
+    });
+  }
+
+  if (info.lastDeepLinkError) {
+    diagnoses.push({
+      label: 'Deep Link Error',
+      status: 'fail',
+      message: `❌ แอปเจอปัญหาระหว่าง parse deep link: ${info.lastDeepLinkError}`,
     });
   }
 
@@ -230,6 +256,16 @@ export const LineDebugModal = ({ open, onClose }: LineDebugModalProps) => {
                 <div><b>URL:</b> {info.lastCallbackUrl || '(ไม่มี — ยังไม่เคย callback)'}</div>
                 <div><b>Params:</b> {info.lastCallbackParams || '(ไม่มี)'}</div>
                 <div><b>มี prefix thetroob_ ใน state:</b> {String(info.hasAppPrefixInState)}</div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="font-bold text-sm mb-2">🔗 Last Deep Link</h3>
+              <div className="space-y-1 font-mono break-all bg-muted p-2 rounded">
+                <div><b>URL:</b> {info.lastDeepLinkUrl || '(ไม่มี)'}</div>
+                <div><b>Source:</b> {info.lastDeepLinkSource || '(ไม่มี)'}</div>
+                <div><b>At:</b> {info.lastDeepLinkAt || '(ไม่มี)'}</div>
+                <div><b>Error:</b> {info.lastDeepLinkError || '(ไม่มี)'}</div>
               </div>
             </section>
 

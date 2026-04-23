@@ -7,6 +7,34 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { autoRegisterOAuthUser } from '@/utils/oauthAutoRegister';
 
+const setDebugValue = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // ignore debug persistence failures
+  }
+};
+
+const clearDebugValue = (key: string) => {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // ignore debug persistence failures
+  }
+};
+
+const normalizeDeepLinkPath = (url: URL) => {
+  const combined = `${url.host}${url.pathname}`;
+  return combined.replace(/^\/+|\/+$/g, '');
+};
+
+const persistDeepLinkDebug = (rawUrl: string, source: string) => {
+  setDebugValue('line_last_deep_link_url', rawUrl);
+  setDebugValue('line_last_deep_link_source', source);
+  setDebugValue('line_last_deep_link_at', new Date().toISOString());
+  clearDebugValue('line_last_deep_link_error');
+};
+
 interface LineUserData {
   lineUserId: string;
   displayName: string;
@@ -19,12 +47,16 @@ export const useDeepLinkHandler = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const handleDeepLink = async (event: URLOpenListenerEvent) => {
-      console.log('[DeepLink] 📱 Received deep link:', event.url);
+    let lastHandledUrl: string | null = null;
+
+    const handleDeepLink = async (event: URLOpenListenerEvent, source = 'appUrlOpen') => {
+      console.log('[DeepLink] 📱 Received deep link:', event.url, '| source:', source);
+      persistDeepLinkDebug(event.url, source);
+      lastHandledUrl = event.url;
       
       try {
         const url = new URL(event.url);
-        const path = url.host + url.pathname;
+        const path = normalizeDeepLinkPath(url);
         
         console.log('[DeepLink] Path:', path);
         console.log('[DeepLink] Host:', url.host);
@@ -41,10 +73,17 @@ export const useDeepLinkHandler = () => {
 
         // Handle LINE callback with code/state (from LINE app redirect)
         // thetroob://line-callback?code=xxx&state=yyy
-        if (url.host === 'line-callback') {
+        if (path === 'line-callback') {
           console.log('[DeepLink] 🔐 LINE callback detected');
+          setDebugValue('line_last_callback_url', event.url);
+          setDebugValue('line_last_callback_params', JSON.stringify(Object.fromEntries(url.searchParams.entries())));
           const code = url.searchParams.get('code');
           const state = url.searchParams.get('state');
+
+          console.log('[DeepLink] LINE callback params:', {
+            hasCode: !!code,
+            state,
+          });
           
           if (code) {
             console.log('[DeepLink] 📡 Exchanging code for token...');
@@ -162,7 +201,7 @@ export const useDeepLinkHandler = () => {
 
         // Handle Apple auth callback (from Safari redirect with tokens)
         // thetroob://apple-auth-callback?access_token=xxx&refresh_token=xxx
-        if (url.host === 'apple-auth-callback') {
+        if (path === 'apple-auth-callback') {
           console.log('[DeepLink] 🍎 Apple auth callback detected');
           const code = url.searchParams.get('code');
           const accessToken = url.searchParams.get('access_token');
@@ -359,7 +398,7 @@ export const useDeepLinkHandler = () => {
         }
 
         // Handle LINE auth success callback (from Safari redirect with encoded data)
-        if (path === 'line-auth-success' || url.host === 'line-auth-success') {
+        if (path === 'line-auth-success') {
           const encodedData = url.searchParams.get('data');
           
           if (encodedData) {
@@ -417,6 +456,10 @@ export const useDeepLinkHandler = () => {
         console.log('[DeepLink] No specific handler, navigating to home');
         
       } catch (error) {
+        setDebugValue(
+          'line_last_deep_link_error',
+          error instanceof Error ? error.message : 'Unknown deep link error'
+        );
         console.error('[DeepLink] ❌ Error handling deep link:', error);
         toast({
           variant: 'destructive',
@@ -426,21 +469,48 @@ export const useDeepLinkHandler = () => {
       }
     };
 
-    // Listen for deep links when app is already open
-    const listener = App.addListener('appUrlOpen', handleDeepLink);
-
-    // Check if app was opened with a deep link
-    App.getLaunchUrl().then((result) => {
-      if (result?.url) {
-        console.log('[DeepLink] 🚀 App launched with URL:', result.url);
-        handleDeepLink({ url: result.url });
+    const handleUrlOnce = async (url: string, source: string) => {
+      if (!url) return;
+      if (lastHandledUrl === url) {
+        console.log('[DeepLink] Skipping duplicate URL:', url, '| source:', source);
+        return;
       }
-    }).catch(() => {
-      // Not running in Capacitor
+
+      await handleDeepLink({ url }, source);
+    };
+
+    const checkLaunchUrl = async (source: string) => {
+      try {
+        const result = await App.getLaunchUrl();
+        if (result?.url) {
+          console.log('[DeepLink] 🚀 Launch URL found:', result.url, '| source:', source);
+          await handleUrlOnce(result.url, source);
+        } else {
+          console.log('[DeepLink] No launch URL available | source:', source);
+        }
+      } catch {
+        // Not running in Capacitor
+      }
+    };
+
+    const urlOpenListener = App.addListener('appUrlOpen', (event) => {
+      void handleDeepLink(event, 'appUrlOpen');
     });
 
+    const appStateListener = App.addListener('appStateChange', (state) => {
+      console.log('[DeepLink] App state changed:', state.isActive);
+      if (state.isActive) {
+        window.setTimeout(() => {
+          void checkLaunchUrl('appStateChange');
+        }, 250);
+      }
+    });
+
+    void checkLaunchUrl('initial-launch');
+
     return () => {
-      listener.then(l => l.remove());
+      urlOpenListener.then(l => l.remove());
+      appStateListener.then(l => l.remove());
     };
   }, [navigate, toast]);
 };
