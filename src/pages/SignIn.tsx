@@ -382,7 +382,7 @@ const SignIn = () => {
               // LINE OAuth URL
               const LINE_CHANNEL_ID = '2008888039';
               // Use production URL for redirect (LINE requires HTTPS)
-              const baseUrl = 'https://mobile.thetroob.com';
+              const baseUrl = 'https://mobile.the-trucker.com';
               const redirectUri = `${baseUrl}/auth/line/callback`;
               const scope = 'profile openid';
               
