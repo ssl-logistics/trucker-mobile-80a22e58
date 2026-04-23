@@ -5,6 +5,10 @@ import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
 import { Loader2 } from 'lucide-react';
 
+const LINE_CALLBACK_BASE_URL = 'https://mobile.the-trucker.com';
+const LINE_CALLBACK_PATH = '/auth/line/callback/index.html';
+const LINE_REDIRECT_URI = `${LINE_CALLBACK_BASE_URL}${LINE_CALLBACK_PATH}`;
+
 // Check if running inside Capacitor native app
 const isRunningInCapacitor = () => {
   return !!(window as any).Capacitor?.isNativePlatform?.() || 
@@ -85,10 +89,11 @@ const LineCallbackPage = () => {
         const payload = toBase64Url(JSON.stringify({ code, state, error, error_description: errorDescription }));
         const customSchemeUrl = `thetroob://line-callback${search}`;
         const payloadSchemeUrl = `thetroob://line-callback/payload/${payload}`;
-        // Android intent URL — works in Chrome Custom Tabs (LINE in-app browser on Android)
-        // where plain custom-scheme navigation is blocked.
-        const intentUrl = `intent://line-callback${search}#Intent;scheme=thetroob;package=com.thetroob.mobile;end`;
-        const deepLink = isAndroid ? payloadSchemeUrl : customSchemeUrl;
+        const intentExtras = `${code ? `S.code=${encodeURIComponent(code)};` : ''}${state ? `S.state=${encodeURIComponent(state)};` : ''}`;
+        // Android intent URL — keep the full query in the data URI so the native app receives
+        // code/state even when the browser strips plain custom-scheme query params.
+        const intentUrl = `intent://line-callback${search}#Intent;scheme=thetroob;package=com.thetroob.mobile;${intentExtras}S.browser_fallback_url=${encodeURIComponent(`${window.location.origin}/#/auth/line/callback${search}`)};end`;
+        const deepLink = isAndroid ? intentUrl : payloadSchemeUrl;
 
         console.log('[LINE Callback] 🔗 ========== REDIRECTING TO APP ==========');
         console.log('[LINE Callback] 🔗 Platform:', isAndroid ? 'Android' : isIOS ? 'iOS' : 'Other');
@@ -199,10 +204,7 @@ const LineCallbackPage = () => {
         // which LINE does not accept. Use production URL to match what was sent.
         const isCapacitor = window.location.origin.includes('capacitor://') || 
                             window.location.origin.includes('localhost');
-        const baseUrl = isCapacitor 
-          ? 'https://mobile.the-trucker.com' 
-          : window.location.origin;
-        const redirectUri = `${baseUrl}/auth/line/callback`;
+        const redirectUri = LINE_REDIRECT_URI;
         console.log('[LINE Callback] 📡 Calling line-auth edge function with redirectUri:', redirectUri);
         console.log('[LINE Callback] 📡 isCapacitor:', isCapacitor, 'originalOrigin:', window.location.origin);
 

@@ -25,6 +25,11 @@ import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
 import { LineDebugModal } from "@/components/debug/LineDebugModal";
 
+const LINE_CALLBACK_BASE_URL = 'https://mobile.the-trucker.com';
+const LINE_CALLBACK_PATH = '/auth/line/callback/index.html';
+const LINE_REDIRECT_URI = `${LINE_CALLBACK_BASE_URL}${LINE_CALLBACK_PATH}`;
+const LINE_CHANNEL_ID = '2008888039';
+
 const setLineDebugValue = (key: string, value: string) => {
   try {
     localStorage.setItem(key, value);
@@ -380,10 +385,7 @@ const SignIn = () => {
               console.log('[LINE Login] State generated:', state);
               
               // LINE OAuth URL
-              const LINE_CHANNEL_ID = '2008888039';
-              // Use production URL for redirect (LINE requires HTTPS)
-              const baseUrl = 'https://mobile.the-trucker.com';
-              const redirectUri = `${baseUrl}/auth/line/callback`;
+              const redirectUri = LINE_REDIRECT_URI;
               const scope = 'profile openid';
               
               console.log('[LINE Login] Config:', {

@@ -150,8 +150,10 @@
         var customScheme = 'thetroob://line-callback' + search;
         var payloadScheme = 'thetroob://line-callback/payload/' + encodedPayload;
 
-        // Android Intent URL — encode query into intent path so params survive the conversion
-        // Use S.code / S.state extras as a backup so the app can read them even if query is dropped
+        // Android Intent URL — encode query into the intent data URI so Chrome Custom Tabs /
+        // LINE in-app browser hand the full callback back to the app instead of collapsing it
+        // down to plain `thetroob://line-callback`.
+        // Keep S.code / S.state extras as a backup for native debugging.
         var intentExtras = '';
         if (code) intentExtras += 'S.code=' + encodeURIComponent(code) + ';';
         if (state) intentExtras += 'S.state=' + encodeURIComponent(state) + ';';
@@ -161,10 +163,10 @@
           'S.browser_fallback_url=' + encodeURIComponent(window.location.origin + '/#/auth/line/callback' + search) +
           ';end';
 
-        // Prefer custom scheme on Android too — it preserves query string reliably for Capacitor appUrlOpen
-        var deepLink = payloadScheme;
+        var deepLink = isAndroid ? intentUrl : payloadScheme;
         log('Deep link: ' + deepLink.substring(0, 120));
         log('Fallback query link: ' + customScheme.substring(0, 120));
+        log('Intent link: ' + intentUrl.substring(0, 120));
         log('Search preserved: ' + (search ? 'YES (' + search.length + ' chars)' : 'NO'));
 
         var openBtn = document.getElementById('openAppBtn');
