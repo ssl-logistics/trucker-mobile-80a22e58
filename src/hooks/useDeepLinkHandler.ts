@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
 
+const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback/index.html";
+
 
 const setDebugValue = (key: string, value: string) => {
   try {
@@ -149,7 +151,7 @@ export const useDeepLinkHandler = () => {
 
             // Call edge function to exchange code for token
             // Must match the redirectUri originally sent to LINE in SignIn.tsx
-            const redirectUri = "https://mobile.the-trucker.com/auth/line/callback";
+            const redirectUri = LINE_REDIRECT_URI;
             const { data, error: fnError } = await supabase.functions.invoke("line-auth", {
               body: { code, redirectUri },
             });

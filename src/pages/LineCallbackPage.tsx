@@ -6,7 +6,7 @@ import { setAuthItem } from '@/utils/authStorage';
 import { Loader2 } from 'lucide-react';
 
 const LINE_CALLBACK_BASE_URL = 'https://mobile.the-trucker.com';
-const LINE_CALLBACK_PATH = '/auth/line/callback';
+const LINE_CALLBACK_PATH = '/auth/line/callback/index.html';
 const LINE_REDIRECT_URI = `${LINE_CALLBACK_BASE_URL}${LINE_CALLBACK_PATH}`;
 
 // Check if running inside Capacitor native app
