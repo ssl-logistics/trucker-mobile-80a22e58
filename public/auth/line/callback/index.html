@@ -133,8 +133,22 @@
         var isIOS = /iPhone|iPad|iPod/i.test(ua);
         log('Platform: ' + (isAndroid ? 'Android' : isIOS ? 'iOS' : 'Other'));
 
-        // Build deep link URLs — use custom scheme directly (preserves query string reliably)
+        function toBase64Url(obj) {
+          var json = JSON.stringify(obj || {});
+          return btoa(unescape(encodeURIComponent(json)))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/g, '');
+        }
+
+        var payload = {};
+        if (code) payload.code = code;
+        if (state) payload.state = state;
+        var encodedPayload = toBase64Url(payload);
+
+        // Build deep link URLs — keep query version plus a path-payload fallback for Android WebView
         var customScheme = 'thetroob://line-callback' + search;
+        var payloadScheme = 'thetroob://line-callback/payload/' + encodedPayload;
 
         // Android Intent URL — encode query into intent path so params survive the conversion
         // Use S.code / S.state extras as a backup so the app can read them even if query is dropped
@@ -148,8 +162,9 @@
           ';end';
 
         // Prefer custom scheme on Android too — it preserves query string reliably for Capacitor appUrlOpen
-        var deepLink = customScheme;
+        var deepLink = payloadScheme;
         log('Deep link: ' + deepLink.substring(0, 120));
+        log('Fallback query link: ' + customScheme.substring(0, 120));
         log('Search preserved: ' + (search ? 'YES (' + search.length + ' chars)' : 'NO'));
 
         var openBtn = document.getElementById('openAppBtn');

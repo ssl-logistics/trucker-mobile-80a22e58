@@ -35,6 +35,52 @@ const persistDeepLinkDebug = (rawUrl: string, source: string) => {
   clearDebugValue('line_last_deep_link_error');
 };
 
+const decodeBase64Url = (value: string) => {
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+  return atob(padded);
+};
+
+const extractLineCallbackParams = (url: URL, path: string) => {
+  const queryParams = Object.fromEntries(url.searchParams.entries());
+  const queryCode = url.searchParams.get('code');
+  const queryState = url.searchParams.get('state');
+
+  if (queryCode || queryState) {
+    return {
+      params: queryParams,
+      code: queryCode,
+      state: queryState,
+      source: 'query',
+    };
+  }
+
+  const payloadPrefix = 'line-callback/payload/';
+  if (path.startsWith(payloadPrefix)) {
+    const encodedPayload = path.slice(payloadPrefix.length);
+    if (encodedPayload) {
+      try {
+        const payload = JSON.parse(decodeBase64Url(encodedPayload));
+        return {
+          params: payload,
+          code: payload?.code ?? null,
+          state: payload?.state ?? null,
+          source: 'path-payload',
+        };
+      } catch (error) {
+        console.error('[DeepLink] Failed to decode LINE payload from path:', error);
+      }
+    }
+  }
+
+  return {
+    params: queryParams,
+    code: null,
+    state: null,
+    source: 'empty',
+  };
+};
+
 interface LineUserData {
   lineUserId: string;
   displayName: string;
@@ -73,16 +119,16 @@ export const useDeepLinkHandler = () => {
 
         // Handle LINE callback with code/state (from LINE app redirect)
         // thetroob://line-callback?code=xxx&state=yyy
-        if (path === 'line-callback') {
+        if (path === 'line-callback' || path.startsWith('line-callback/payload/')) {
           console.log('[DeepLink] 🔐 LINE callback detected');
+          const { params, code, state, source: callbackParamSource } = extractLineCallbackParams(url, path);
           setDebugValue('line_last_callback_url', event.url);
-          setDebugValue('line_last_callback_params', JSON.stringify(Object.fromEntries(url.searchParams.entries())));
-          const code = url.searchParams.get('code');
-          const state = url.searchParams.get('state');
+          setDebugValue('line_last_callback_params', JSON.stringify(params));
 
           console.log('[DeepLink] LINE callback params:', {
             hasCode: !!code,
             state,
+            source: callbackParamSource,
           });
           
           if (code) {
