@@ -17,13 +17,25 @@ export default defineConfig(({ mode }) => ({
       registerType: 'prompt',
       workbox: {
         maximumFileSizeToCacheInBytes: 5000000, // 5MB
-        navigateFallbackDenylist: [/^\/~oauth/],
+        navigateFallbackDenylist: [
+          /^\/~oauth/,
+          /^\/auth\/line\/callback(?:\/index\.html)?$/,
+          /^\/auth\/apple\/callback(?:\/index\.html)?$/,
+        ],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
+        globIgnores: [
+          'auth/line/callback/index.html',
+          'auth/apple/callback/index.html',
+        ],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         navigateFallback: null,
         runtimeCaching: [
+          {
+            urlPattern: ({ url }) => /^\/auth\/(line|apple)\/callback(?:\/index\.html)?$/.test(url.pathname),
+            handler: 'NetworkOnly',
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
