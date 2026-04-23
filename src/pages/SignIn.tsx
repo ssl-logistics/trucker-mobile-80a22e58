@@ -24,6 +24,14 @@ import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
 import { LineDebugModal } from "@/components/debug/LineDebugModal";
+
+const setLineDebugValue = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // ignore debug-only persistence failures
+  }
+};
 const languageOptions = [{
   code: 'en' as const,
   label: 'EN',
@@ -358,6 +366,10 @@ const SignIn = () => {
             type="button" 
             onClick={async () => {
               console.log('[LINE Login] 🚀 Button clicked');
+              setLineDebugValue('line_last_deep_link_error', '');
+              setLineDebugValue('line_last_deep_link_url', '');
+              setLineDebugValue('line_last_deep_link_source', '');
+              setLineDebugValue('line_last_deep_link_at', '');
               
               // Generate random state for CSRF protection
               // Include a prefix to identify it came from our app
