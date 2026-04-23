@@ -19,6 +19,9 @@ const isExternalBrowser = () => {
          !isRunningInCapacitor();
 };
 
+const toBase64Url = (value: string) =>
+  btoa(unescape(encodeURIComponent(value))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+
 const LineCallbackPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -79,11 +82,13 @@ const LineCallbackPage = () => {
 
       if (shouldRedirectToApp) {
         const search = window.location.search || '';
+        const payload = toBase64Url(JSON.stringify({ code, state, error, error_description: errorDescription }));
         const customSchemeUrl = `thetroob://line-callback${search}`;
+        const payloadSchemeUrl = `thetroob://line-callback/payload/${payload}`;
         // Android intent URL — works in Chrome Custom Tabs (LINE in-app browser on Android)
         // where plain custom-scheme navigation is blocked.
         const intentUrl = `intent://line-callback${search}#Intent;scheme=thetroob;package=com.thetroob.mobile;end`;
-        const deepLink = isAndroid ? intentUrl : customSchemeUrl;
+        const deepLink = isAndroid ? payloadSchemeUrl : customSchemeUrl;
 
         console.log('[LINE Callback] 🔗 ========== REDIRECTING TO APP ==========');
         console.log('[LINE Callback] 🔗 Platform:', isAndroid ? 'Android' : isIOS ? 'iOS' : 'Other');
