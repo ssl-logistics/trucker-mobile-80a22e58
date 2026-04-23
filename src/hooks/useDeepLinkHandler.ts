@@ -92,7 +92,17 @@ interface LineUserData {
 export const useDeepLinkHandler = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { loginWithDriver } = useAuth();
+
+  const persistDriverSession = async (driver: Record<string, any>, loginType: string) => {
+    await Promise.all([
+      setAuthItem("auth_driver", JSON.stringify(driver)),
+      setAuthItem("auth_driver_id", driver.id),
+      setAuthItem("auth_login_type", loginType),
+      setAuthItem("auth_user_type", "freelance_driver"),
+      setAuthItem("user_role", "freelance"),
+    ]);
+    window.dispatchEvent(new Event("auth_driver_updated"));
+  };
 
   useEffect(() => {
     let lastHandledUrl: string | null = null;
