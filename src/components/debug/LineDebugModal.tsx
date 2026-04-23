@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Capacitor } from '@capacitor/core';
 import { Copy, Trash2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -206,9 +205,8 @@ export const LineDebugModal = ({ open, onClose }: LineDebugModalProps) => {
           </Button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-hidden">
-          <ScrollArea className="h-full min-h-0 pr-4">
-            <div className="space-y-4 pb-4 text-xs">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 [-webkit-overflow-scrolling:touch]">
+          <div className="space-y-4 pb-4 text-xs">
               <section>
                 <h3 className="mb-2 text-sm font-bold">📋 การวินิจฉัย</h3>
                 <div className="space-y-2">
@@ -277,8 +275,7 @@ export const LineDebugModal = ({ open, onClose }: LineDebugModalProps) => {
                   <div><b>มี auth_driver:</b> {String(info.hasAuthDriver)}</div>
                 </div>
               </section>
-            </div>
-          </ScrollArea>
+          </div>
         </div>
 
         <Button onClick={onClose} className="w-full">ปิด</Button>
