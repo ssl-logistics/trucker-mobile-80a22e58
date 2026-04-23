@@ -242,7 +242,7 @@ export const useDeepLinkHandler = () => {
             };
             console.log("[DeepLink] ✅ Auth data saved, driverId:", driverUserId);
 
-            await loginWithDriver(lineDriver, "line");
+            await persistDriverSession(lineDriver, "line");
 
             toast({
               title: "เข้าสู่ระบบสำเร็จ",
@@ -482,7 +482,7 @@ export const useDeepLinkHandler = () => {
             };
             console.log("[DeepLink] ✅ Auth data saved");
 
-            await loginWithDriver(lineDriver, "line");
+            await persistDriverSession(lineDriver, "line");
 
             toast({
               title: "เข้าสู่ระบบสำเร็จ",
@@ -564,5 +564,5 @@ export const useDeepLinkHandler = () => {
       urlOpenListener.then((l) => l.remove());
       appStateListener.then((l) => l.remove());
     };
-  }, [loginWithDriver, navigate, toast]);
+  }, [navigate, toast]);
 };
