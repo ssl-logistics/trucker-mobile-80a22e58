@@ -6,7 +6,7 @@ import { setAuthItem } from "@/utils/authStorage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
-import { useAuth } from "@/contexts/AuthContext";
+
 
 const setDebugValue = (key: string, value: string) => {
   try {
@@ -92,7 +92,17 @@ interface LineUserData {
 export const useDeepLinkHandler = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { loginWithDriver } = useAuth();
+
+  const persistDriverSession = async (driver: Record<string, any>, loginType: string) => {
+    await Promise.all([
+      setAuthItem("auth_driver", JSON.stringify(driver)),
+      setAuthItem("auth_driver_id", driver.id),
+      setAuthItem("auth_login_type", loginType),
+      setAuthItem("auth_user_type", "freelance_driver"),
+      setAuthItem("user_role", "freelance"),
+    ]);
+    window.dispatchEvent(new Event("auth_driver_updated"));
+  };
 
   useEffect(() => {
     let lastHandledUrl: string | null = null;
@@ -232,7 +242,7 @@ export const useDeepLinkHandler = () => {
             };
             console.log("[DeepLink] ✅ Auth data saved, driverId:", driverUserId);
 
-            await loginWithDriver(lineDriver, "line");
+            await persistDriverSession(lineDriver, "line");
 
             toast({
               title: "เข้าสู่ระบบสำเร็จ",
@@ -472,7 +482,7 @@ export const useDeepLinkHandler = () => {
             };
             console.log("[DeepLink] ✅ Auth data saved");
 
-            await loginWithDriver(lineDriver, "line");
+            await persistDriverSession(lineDriver, "line");
 
             toast({
               title: "เข้าสู่ระบบสำเร็จ",
@@ -554,5 +564,5 @@ export const useDeepLinkHandler = () => {
       urlOpenListener.then((l) => l.remove());
       appStateListener.then((l) => l.remove());
     };
-  }, [loginWithDriver, navigate, toast]);
+  }, [navigate, toast]);
 };
