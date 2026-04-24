@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
 
-const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback/index.html";
+const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback";
 
 
 const setDebugValue = (key: string, value: string) => {

@@ -21,17 +21,15 @@ import { supabase } from "./integrations/supabase/client";
     return;
   }
 
-  // ⚡ LINE OAuth: When SPA fallback intercepts /auth/line/callback?code=... (because
-  // Lovable hosting served index.html instead of the static file), the HashRouter
-  // ignores path-based routes and the LINE callback page never mounts.
-  // Forward to the hash route so React's LineCallbackPage receives the params.
+  // ⚡ LINE OAuth: LINE Console requires redirect_uri without `index.html` suffix,
+  // but Lovable SPA hosting serves index.html for /auth/line/callback.
+  // Forward to the real static file so the deep-link intent logic runs.
   if (
     (pathname === '/auth/line/callback' || pathname === '/auth/line/callback/') &&
-    search.includes('code=') &&
-    !hash.startsWith('#/auth/line/callback')
+    search.includes('code=')
   ) {
-    console.log('[OAuth Recovery] LINE callback hit SPA fallback — forwarding to hash route');
-    window.location.replace(`/#/auth/line/callback${search}`);
+    console.log('[OAuth Recovery] LINE callback → forwarding to static file');
+    window.location.replace(`/auth/line/callback/index.html${search}`);
     return;
   }
 
