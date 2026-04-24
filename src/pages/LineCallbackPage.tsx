@@ -87,12 +87,11 @@ const LineCallbackPage = () => {
       if (shouldRedirectToApp) {
         const search = window.location.search || '';
         const payload = toBase64Url(JSON.stringify({ code, state, error, error_description: errorDescription }));
-        const customSchemeUrl = `thetroob://line-callback${search}`;
         const payloadSchemeUrl = `thetroob://line-callback/payload/${payload}`;
-        const intentExtras = `${code ? `S.code=${encodeURIComponent(code)};` : ''}${state ? `S.state=${encodeURIComponent(state)};` : ''}`;
-        // Android intent URL — keep the full query in the data URI so the native app receives
-        // code/state even when the browser strips plain custom-scheme query params.
-        const intentUrl = `intent://line-callback${search}#Intent;scheme=thetroob;package=com.thetroob.mobile;${intentExtras}S.browser_fallback_url=${encodeURIComponent(`${window.location.origin}/#/auth/line/callback${search}`)};end`;
+        // Android intent URL — use a path payload instead of query params because some
+        // Android in-app browsers/custom-tab handoffs collapse `thetroob://line-callback?code=...`
+        // down to `thetroob://line-callback`, which makes the params disappear before the app sees them.
+        const intentUrl = `intent://line-callback/payload/${payload}#Intent;scheme=thetroob;package=com.thetroob.mobile;S.browser_fallback_url=${encodeURIComponent(`${window.location.origin}/#/auth/line/callback${search}`)};end`;
         const deepLink = isAndroid ? intentUrl : payloadSchemeUrl;
 
         console.log('[LINE Callback] 🔗 ========== REDIRECTING TO APP ==========');
