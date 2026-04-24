@@ -602,16 +602,19 @@ export default function DomesticJobDetail({
           destCheckins[1].sop_completed_at = c.checked_in_at || c.created_at;
         }
         // Also check destination_sequence_number field if present
-        if (c.destination_sequence_number && (c.checkin_type === 'delivery' || c.checkin_type?.startsWith('delivery'))) {
+        // IMPORTANT: Check delivery_confirmed BEFORE delivery to avoid the startsWith('delivery') ambiguity
+        if (c.destination_sequence_number && c.checkin_type?.startsWith('delivery')) {
           const seqNum = c.destination_sequence_number;
           if (!destCheckins[seqNum]) {
             destCheckins[seqNum] = { checked_in_at: null, sop_completed_at: null };
           }
-          if (c.checkin_type === 'delivery' || c.checkin_type?.match(/^delivery_\d+$/)) {
-            destCheckins[seqNum].checked_in_at = c.checked_in_at || c.created_at;
+          // POD/confirmed: matches "delivery_confirmed" or "delivery_confirmed_N"
+          if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.match(/^delivery_confirmed(_\d+)?$/)) {
+            destCheckins[seqNum].sop_completed_at = c.checked_in_at || c.created_at || c.checkin_time;
           }
-          if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.match(/^delivery_confirmed_\d+$/)) {
-            destCheckins[seqNum].sop_completed_at = c.checked_in_at || c.created_at;
+          // Plain check-in: matches "delivery" or "delivery_N" (but NOT delivery_confirmed*)
+          else if (c.checkin_type === 'delivery' || c.checkin_type?.match(/^delivery_\d+$/)) {
+            destCheckins[seqNum].checked_in_at = c.checked_in_at || c.created_at || c.checkin_time;
           }
         }
       });
