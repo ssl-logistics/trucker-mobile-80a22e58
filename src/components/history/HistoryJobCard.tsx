@@ -164,12 +164,19 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
                 <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                 <div className="text-sm">
                   <div className="text-foreground/70">
-                    {t('job.destination')} {destinations.length > 1 ? `#${idx + 1}` : ''}
+                    {t('job.destination')} {allDestinations.length > 1 ? `#${idx + 1}` : ''}
                   </div>
                   <div className="font-medium text-foreground">{dest.location}</div>
                 </div>
               </div>
             ))}
+            {remainingCount > 0 && (
+              <div className="flex items-start gap-2 pl-6">
+                <div className="text-sm text-foreground/60 italic">
+                  +{remainingCount} {t('job.destination')}
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Price */}
