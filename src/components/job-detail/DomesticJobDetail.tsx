@@ -515,7 +515,8 @@ export default function DomesticJobDetail({
       const { data: checkinResult, error: checkinError } = await getDriverCheckins(
         userId,
         driverType,
-        job.order_code
+        job.order_code,
+        { allDrivers: true } // Include checkins from previous drivers (job transfer scenarios)
       );
 
       if (checkinError) {

@@ -230,19 +230,24 @@ export async function driverCheckin(body: {
 export async function getDriverCheckins(
   driverId: string,
   driverType: 'internal' | 'external' | 'freelance',
-  orderNumber = 'all'
+  orderNumber = 'all',
+  options?: { allDrivers?: boolean }
 ) {
   const params: Record<string, string> = { order_number: orderNumber };
-  
-  if (driverType === 'internal') {
-    params.internal_driver_id = driverId;
-  } else if (driverType === 'external') {
-    params.external_driver_id = driverId;
-  } else {
-    params.freelance_driver_id = driverId;
+
+  // When allDrivers=true, fetch all checkins for this order regardless of driver
+  // (needed for job-transfer scenarios where previous drivers' PODs must be visible)
+  if (!options?.allDrivers) {
+    if (driverType === 'internal') {
+      params.internal_driver_id = driverId;
+    } else if (driverType === 'external') {
+      params.external_driver_id = driverId;
+    } else {
+      params.freelance_driver_id = driverId;
+    }
+    params.driver_type = driverType;
   }
-  params.driver_type = driverType;
-  
+
   return callExternalApi<{ data: any[] }>('get-driver-checkins', {
     params,
   });
