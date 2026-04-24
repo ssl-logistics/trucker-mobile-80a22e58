@@ -331,16 +331,39 @@ export default function CurrentJobsPage() {
               const status = (job.status || '').toLowerCase();
               const transportId = String(job.id);
 
-              // Jobs with completed/closed/container_returned status are definitively done
-              if (['completed', 'closed', 'container_returned'].includes(status)) {
+              // Pre-compute POD progress so we can keep "completed/delivered" jobs that
+              // still have pending PODs visible in current jobs (driver needs to finish them).
+              const _podCount = podCountByTransportId[transportId] || 0;
+              const _destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0
+                ? job.destinations.length
+                : 1;
+              const _allPodsDone = _podCount >= _destinationCount;
+
+              // container_returned is always done (international flow)
+              if (status === 'container_returned') {
                 console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} status='${status}' → excluding (done)`);
                 return false;
               }
-              
-              // Also exclude 'delivered' status for domestic jobs (TMS already marked as delivered)
+
+              // For completed/closed: only exclude if all PODs are actually done.
+              // Otherwise keep visible so driver can continue submitting POD.
+              if (['completed', 'closed'].includes(status)) {
+                if (_allPodsDone) {
+                  console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} status='${status}' & PODs ${_podCount}/${_destinationCount} → excluding (done)`);
+                  return false;
+                }
+                console.log(`[CurrentJobsPage] ⚠️ Job ${job.order_number} status='${status}' but PODs ${_podCount}/${_destinationCount} → keeping in current jobs`);
+                return true;
+              }
+
+              // Also exclude 'delivered' status for domestic jobs only when PODs are complete
               if (status === 'delivered' && !isInternationalJob(job)) {
-                console.log(`[CurrentJobsPage] ➡️ Domestic job ${job.order_number} status='delivered' → excluding`);
-                return false;
+                if (_allPodsDone) {
+                  console.log(`[CurrentJobsPage] ➡️ Domestic job ${job.order_number} status='delivered' & PODs done → excluding`);
+                  return false;
+                }
+                console.log(`[CurrentJobsPage] ⚠️ Domestic job ${job.order_number} status='delivered' but PODs ${_podCount}/${_destinationCount} → keeping`);
+                return true;
               }
               
               const podCount = podCountByTransportId[transportId] || 0;
