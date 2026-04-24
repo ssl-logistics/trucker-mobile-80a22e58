@@ -234,8 +234,8 @@ export default function DeliveryDetailPage() {
             relevantKeys: Object.keys(foundJob).filter((k: string) => /lat|lon|cargo|return|dest/i.test(k)),
           });
           const mappedJob: JobDetail = {
-            id: foundJob.id,
-            order_code: foundJob.order_number,
+            id: foundJob.id || jobId,
+            order_code: foundJob.order_number || foundJob.order_code || jobId,
             employer_name: foundJob.factory_name || destData.company_name || destData.destination_name || foundJob.destination_company_name,
             destination_location: `${destData.district || foundJob.destination_district || ''}, ${destData.province || foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
             start_date: destData.delivery_date || foundJob.destination_delivery_date || foundJob.sender_pickup_date,
