@@ -645,6 +645,30 @@ export type Database = {
         }
         Relationships: []
       }
+      line_pending_auth: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          state: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          state: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          state?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
