@@ -146,26 +146,20 @@
         if (state) payload.state = state;
         var encodedPayload = toBase64Url(payload);
 
-        // Build deep link URLs — keep query version plus a path-payload fallback for Android WebView
-        var customScheme = 'thetroob://line-callback' + search;
+        // Build deep link URLs — use a path payload so Android browsers can't strip query params
+        // before the app receives the callback.
         var payloadScheme = 'thetroob://line-callback/payload/' + encodedPayload;
 
-        // Android Intent URL — encode query into the intent data URI so Chrome Custom Tabs /
-        // LINE in-app browser hand the full callback back to the app instead of collapsing it
-        // down to plain `thetroob://line-callback`.
-        // Keep S.code / S.state extras as a backup for native debugging.
-        var intentExtras = '';
-        if (code) intentExtras += 'S.code=' + encodeURIComponent(code) + ';';
-        if (state) intentExtras += 'S.state=' + encodeURIComponent(state) + ';';
-        var intentUrl = 'intent://line-callback' + search +
+        // Android Intent URL — keep the payload in the path, not in ?code=...&state=...
+        // because some Android handoffs collapse the callback to plain `thetroob://line-callback`.
+        var intentUrl = 'intent://line-callback/payload/' + encodedPayload +
           '#Intent;scheme=thetroob;package=com.thetroob.mobile;' +
-          intentExtras +
           'S.browser_fallback_url=' + encodeURIComponent(window.location.origin + '/#/auth/line/callback' + search) +
           ';end';
 
         var deepLink = isAndroid ? intentUrl : payloadScheme;
         log('Deep link: ' + deepLink.substring(0, 120));
-        log('Fallback query link: ' + customScheme.substring(0, 120));
+        log('Payload scheme: ' + payloadScheme.substring(0, 120));
         log('Intent link: ' + intentUrl.substring(0, 120));
         log('Search preserved: ' + (search ? 'YES (' + search.length + ' chars)' : 'NO'));
 
