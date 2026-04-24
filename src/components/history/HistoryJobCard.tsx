@@ -91,7 +91,10 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
     return [{ location }];
   };
 
-  const destinations = getDestinationLocations();
+  const allDestinations = getDestinationLocations();
+  const MAX_VISIBLE_DESTINATIONS = 2;
+  const destinations = allDestinations.slice(0, MAX_VISIBLE_DESTINATIONS);
+  const remainingCount = allDestinations.length - destinations.length;
 
   return (
     <Card 
