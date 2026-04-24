@@ -49,7 +49,8 @@ export const useCheckinStatus = (orderNumber: string | undefined, driverId: stri
       });
 
       // Use direct external API call
-      const { data: result, error } = await getDriverCheckins(driverId, driverType, orderNumber);
+      // allDrivers: true → fetches checkins from ALL drivers (supports driver swap/transfer scenarios)
+      const { data: result, error } = await getDriverCheckins(driverId, driverType, orderNumber, { allDrivers: true });
 
       if (error) {
         console.error('[useCheckinStatus] API error:', error);
