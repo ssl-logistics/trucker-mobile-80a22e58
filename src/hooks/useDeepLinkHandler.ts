@@ -9,7 +9,6 @@ import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
 
 const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback";
 
-
 const setDebugValue = (key: string, value: string) => {
   try {
     localStorage.setItem(key, value);
@@ -108,6 +107,181 @@ export const useDeepLinkHandler = () => {
 
   useEffect(() => {
     let lastHandledUrl: string | null = null;
+    // Prevents double-processing if both appUrlOpen and browserFinished fire
+    // for the same auth attempt within a short window.
+    let lineCodeProcessed = false;
+
+    // ── Shared LINE code-exchange helper ──────────────────────────────────────
+    const processLineCode = async (code: string): Promise<void> => {
+      if (lineCodeProcessed) {
+        console.log("[DeepLink] ⏭️ LINE code already processed, skipping duplicate");
+        return;
+      }
+      lineCodeProcessed = true;
+      // Allow a retry after 30 s in case the first attempt fails hard.
+      const resetTimer = window.setTimeout(() => {
+        lineCodeProcessed = false;
+      }, 30_000);
+
+      try {
+        console.log("[DeepLink] 📡 Exchanging LINE code for token...");
+
+        const redirectUri = LINE_REDIRECT_URI;
+        const { data, error: fnError } = await supabase.functions.invoke("line-auth", {
+          body: { code, redirectUri },
+        });
+
+        if (fnError || data?.error) {
+          console.error("[DeepLink] ❌ LINE auth error:", fnError || data?.error);
+          toast({
+            variant: "destructive",
+            title: "เกิดข้อผิดพลาด",
+            description: "ไม่สามารถเข้าสู่ระบบ LINE ได้",
+          });
+          navigate("/", { replace: true });
+          return;
+        }
+
+        console.log("[DeepLink] ✅ LINE user data received:", data.user.displayName);
+
+        // Auto-create account in database
+        let driverUserId = data.user.lineUserId;
+        try {
+          const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
+            body: {
+              authProvider: "line",
+              lineUserId: data.user.lineUserId,
+              firstName: data.user.displayName?.split(" ")[0] || "LINE",
+              lastName: data.user.displayName?.split(" ").slice(1).join(" ") || "User",
+              phone: "0000000000",
+              email: "",
+              avatarUrl: data.user.pictureUrl || "",
+            },
+          });
+          if (!accountError && accountData?.userId) {
+            driverUserId = accountData.userId;
+            console.log("[DeepLink] ✅ Account created/found:", driverUserId);
+          }
+        } catch (e) {
+          console.warn("[DeepLink] ⚠️ Account creation failed (non-blocking):", e);
+        }
+
+        // Register driver in external TMS
+        let registeredPhone = "";
+        let registeredEmail = "";
+        let registeredFirstName = "";
+        let registeredLastName = "";
+        try {
+          const registerBody: Record<string, string> = {
+            authProvider: "line",
+            authUserId: driverUserId,
+          };
+          if (data.user.displayName) {
+            const nameParts = data.user.displayName.split(" ");
+            registerBody.firstName = nameParts[0] || "LINE";
+            registerBody.lastName = nameParts.slice(1).join(" ") || "User";
+          }
+          const { data: regData, error: regError } = await supabase.functions.invoke("register-driver", {
+            body: registerBody,
+          });
+          if (regError) {
+            console.warn("[DeepLink] ⚠️ External registration warning:", regError.message);
+          } else {
+            console.log("[DeepLink] ✅ External TMS registration:", regData);
+          }
+          const regDriverData = regData?.data || regData;
+          registeredPhone = regDriverData?.phone || "";
+          registeredEmail = regDriverData?.email || "";
+          registeredFirstName = regDriverData?.firstName || "";
+          registeredLastName = regDriverData?.lastName || "";
+        } catch (regErr) {
+          console.warn("[DeepLink] ⚠️ External registration failed (non-blocking):", regErr);
+        }
+
+        await setAuthItem("line_user", JSON.stringify(data.user));
+        await setAuthItem("auth_login_type", "line");
+
+        const lineDriver: Record<string, any> = {
+          id: driverUserId,
+          full_name: data.user.displayName,
+          first_name: registeredFirstName || data.user.displayName?.split(" ")[0] || "",
+          last_name: registeredLastName || data.user.displayName?.split(" ").slice(1).join(" ") || "",
+          phone: registeredPhone,
+          phone_number: registeredPhone,
+          email: registeredEmail || "",
+          avatar_url: data.user.pictureUrl || null,
+          loginType: "line",
+          lineUser: data.user,
+        };
+        console.log("[DeepLink] ✅ Auth data saved, driverId:", driverUserId);
+
+        await persistDriverSession(lineDriver, "line");
+
+        // Clear saved state after successful auth
+        localStorage.removeItem("line_oauth_state");
+        sessionStorage.removeItem("line_oauth_state");
+
+        toast({
+          title: "เข้าสู่ระบบสำเร็จ",
+          description: `ยินดีต้อนรับ ${data.user.displayName}`,
+        });
+
+        navigate("/home", { replace: true });
+      } catch (err) {
+        console.error("[DeepLink] ❌ processLineCode error:", err);
+        lineCodeProcessed = false;
+        clearTimeout(resetTimer);
+      }
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // ── Supabase bridge helper ────────────────────────────────────────────────
+    // Retrieves and consumes the pending code stored by the callback page.
+    const fetchAndProcessBridgeCode = async (): Promise<boolean> => {
+      const savedState = localStorage.getItem("line_oauth_state") || sessionStorage.getItem("line_oauth_state");
+
+      if (!savedState?.startsWith("thetroob_")) return false;
+
+      console.log("[DeepLink] 🔄 Checking Supabase bridge for state:", savedState);
+      try {
+        // Use `as any` because the generated types don't include the new
+        // line_pending_auth table until the migration is applied to Supabase.
+        const { data: rows, error: rowsError } = await (supabase as any)
+          .from("line_pending_auth")
+          .select("code")
+          .eq("state", savedState)
+          .limit(1);
+
+        if (rowsError) {
+          console.warn("[DeepLink] ⚠️ Bridge query error:", rowsError.message);
+          return false;
+        }
+
+        const bridgeCode = (rows as Array<{ code: string }> | null)?.[0]?.code;
+        if (!bridgeCode) {
+          console.log("[DeepLink] 🔍 Bridge: no pending code found");
+          return false;
+        }
+
+        console.log("[DeepLink] ✅ Bridge code retrieved, processing...");
+        // Delete the bridge record (non-blocking cleanup)
+        (supabase as any)
+          .from("line_pending_auth")
+          .delete()
+          .eq("state", savedState)
+          .then(
+            () => console.log("[DeepLink] 🗑️ Bridge record deleted"),
+            (e: unknown) => console.warn("[DeepLink] ⚠️ Bridge delete warning:", e),
+          );
+
+        await processLineCode(bridgeCode);
+        return true;
+      } catch (err) {
+        console.warn("[DeepLink] ⚠️ Bridge retrieval error:", err);
+        return false;
+      }
+    };
+    // ─────────────────────────────────────────────────────────────────────────
 
     const handleDeepLink = async (event: URLOpenListenerEvent, source = "appUrlOpen") => {
       console.log("[DeepLink] 📱 Received deep link:", event.url, "| source:", source);
@@ -147,113 +321,16 @@ export const useDeepLinkHandler = () => {
           });
 
           if (code) {
-            console.log("[DeepLink] 📡 Exchanging code for token...");
-
-            // Call edge function to exchange code for token
-            // Must match the redirectUri originally sent to LINE in SignIn.tsx
-            const redirectUri = LINE_REDIRECT_URI;
-            const { data, error: fnError } = await supabase.functions.invoke("line-auth", {
-              body: { code, redirectUri },
-            });
-
-            if (fnError || data?.error) {
-              console.error("[DeepLink] ❌ LINE auth error:", fnError || data?.error);
-              toast({
-                variant: "destructive",
-                title: "เกิดข้อผิดพลาด",
-                description: "ไม่สามารถเข้าสู่ระบบ LINE ได้",
-              });
-              navigate("/", { replace: true });
-              return;
-            }
-
-            console.log("[DeepLink] ✅ LINE user data received:", data.user.displayName);
-
-            // Auto-create account in database
-            let driverUserId = data.user.lineUserId;
-            try {
-              const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
-                body: {
-                  authProvider: "line",
-                  lineUserId: data.user.lineUserId,
-                  firstName: data.user.displayName?.split(" ")[0] || "LINE",
-                  lastName: data.user.displayName?.split(" ").slice(1).join(" ") || "User",
-                  phone: "0000000000",
-                  email: "",
-                  avatarUrl: data.user.pictureUrl || "",
-                },
-              });
-              if (!accountError && accountData?.userId) {
-                driverUserId = accountData.userId;
-                console.log("[DeepLink] ✅ Account created/found:", driverUserId);
-              }
-            } catch (e) {
-              console.warn("[DeepLink] ⚠️ Account creation failed (non-blocking):", e);
-            }
-
-            // Register driver in external TMS (minimal body)
-            let registeredPhone = "";
-            let registeredEmail = "";
-            let registeredFirstName = "";
-            let registeredLastName = "";
-            try {
-              const registerBody: Record<string, string> = {
-                authProvider: "line",
-                authUserId: driverUserId,
-              };
-              if (data.user.displayName) {
-                const nameParts = data.user.displayName.split(" ");
-                registerBody.firstName = nameParts[0] || "LINE";
-                registerBody.lastName = nameParts.slice(1).join(" ") || "User";
-              }
-              const { data: regData, error: regError } = await supabase.functions.invoke("register-driver", {
-                body: registerBody,
-              });
-              if (regError) {
-                console.warn("[DeepLink] ⚠️ External registration warning:", regError.message);
-              } else {
-                console.log("[DeepLink] ✅ External TMS registration:", regData);
-              }
-
-              // Extract phone/email from registration data
-              const regDriverData = regData?.data || regData;
-              registeredPhone = regDriverData?.phone || "";
-              registeredEmail = regDriverData?.email || "";
-              registeredFirstName = regDriverData?.firstName || "";
-              registeredLastName = regDriverData?.lastName || "";
-            } catch (regErr) {
-              console.warn("[DeepLink] ⚠️ External registration failed (non-blocking):", regErr);
-            }
-
-            // Store LINE user data
-            await setAuthItem("line_user", JSON.stringify(data.user));
-            await setAuthItem("auth_login_type", "line");
-
-            // Create driver record with resolved userId and TMS data
-            const lineDriver: Record<string, any> = {
-              id: driverUserId,
-              full_name: data.user.displayName,
-              first_name: registeredFirstName || data.user.displayName?.split(" ")[0] || "",
-              last_name: registeredLastName || data.user.displayName?.split(" ").slice(1).join(" ") || "",
-              phone: registeredPhone,
-              phone_number: registeredPhone,
-              email: registeredEmail || "",
-              avatar_url: data.user.pictureUrl || null,
-              loginType: "line",
-              lineUser: data.user,
-            };
-            console.log("[DeepLink] ✅ Auth data saved, driverId:", driverUserId);
-
-            await persistDriverSession(lineDriver, "line");
-
-            toast({
-              title: "เข้าสู่ระบบสำเร็จ",
-              description: `ยินดีต้อนรับ ${data.user.displayName}`,
-            });
-
-            navigate("/home", { replace: true });
+            await processLineCode(code);
             return;
           }
+
+          // No code in URL/payload — the Android Chrome Custom Tab likely
+          // stripped the deep-link path.  Try the Supabase bridge that the
+          // callback page wrote to before firing this signal.
+          console.log("[DeepLink] ⚠️ No code in URL, trying Supabase bridge...");
+          const bridgeHandled = await fetchAndProcessBridgeCode();
+          if (bridgeHandled) return;
 
           setDebugValue(
             "line_last_deep_link_error",
@@ -560,11 +637,22 @@ export const useDeepLinkHandler = () => {
       }
     });
 
+    // Fallback: when the in-app browser closes, try the Supabase bridge in case
+    // appUrlOpen never fired (or fired without a code because the Android Chrome
+    // Custom Tab stripped the deep-link path).
+    const browserFinishedListener = Browser.addListener("browserFinished", async () => {
+      console.log("[DeepLink] 🌐 browserFinished — checking Supabase bridge...");
+      // Give the callback page a moment to write to Supabase before we query.
+      await new Promise((resolve) => window.setTimeout(resolve, 900));
+      await fetchAndProcessBridgeCode();
+    });
+
     void checkLaunchUrl("initial-launch");
 
     return () => {
       urlOpenListener.then((l) => l.remove());
       appStateListener.then((l) => l.remove());
+      browserFinishedListener.then((l) => l.remove());
     };
   }, [navigate, toast]);
 };
