@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
+import { logout as externalLogout } from '@/lib/externalApi';
 import {
   isPushSupported,
   isPushEnabled,
