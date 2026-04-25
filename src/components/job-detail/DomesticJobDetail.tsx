@@ -230,14 +230,14 @@ export default function DomesticJobDetail({
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, {checked_in_at: string | null;sop_completed_at: string | null;}>>({});
-  // Reorder state for multi-destination
-  const [isReorderMode, setIsReorderMode] = useState(false);
+  // Reorder state for multi-destination (drag-and-drop, no toggle button)
   const [localDestOrder, setLocalDestOrder] = useState<JobDestination[]>([]);
-  const [pendingSwap, setPendingSwap] = useState<{fromIdx: number; toIdx: number; fromName: string; toName: string} | null>(null);
-  const [showSwapConfirm, setShowSwapConfirm] = useState(false);
   const [activeDestIdx, setActiveDestIdx] = useState<number | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  // Long-press to start drag (mobile): require 3s hold before drag is enabled
+  const [longPressIdx, setLongPressIdx] = useState<number | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStartY = useRef<number>(0);
   const dragItemRef = useRef<number | null>(null);
   const [showOcrDrawer, setShowOcrDrawer] = useState(false);
