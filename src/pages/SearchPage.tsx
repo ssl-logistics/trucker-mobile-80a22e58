@@ -12,6 +12,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
 import {
+  getDriverAssignedJobs,
+  getFactoryAssignedJobs,
+  getFreelanceAcceptedJobs,
+} from '@/lib/externalApi';
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -145,170 +150,110 @@ export default function SearchPage() {
   }, [searchQuery, domesticType, internationalType, province, district, minPrice, maxPrice]);
 
   const loadJobs = async () => {
+    if (!user) return;
     try {
-      // Use get-express-rent-posts API like Home page
-      const { data: responseData, error } = await supabase.functions.invoke('get-express-rent-posts');
+      const driverId = user.id;
+      let assignedItems: any[] = [];
 
-      if (error) {
-        console.error('Error loading jobs from API:', error);
-        toast({
-          title: t('home.error_load'),
-          description: t('home.error_load_desc'),
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      console.log('Search page - Loaded jobs from API:', responseData);
-      
-      // Transform API response to Job format
-      const apiJobs = Array.isArray(responseData) ? responseData : (responseData?.data || []);
-      
-      // Filter by is_express_rent based on user type (same as Home page)
-      // internal_driver & external_driver: show is_express_rent = false (งานปกติ)
-      // freelance_driver: show is_express_rent = true (งานด่วน)
-      const isExpressRentFilter = isInternalDriver || isExternalDriver ? false : true;
-      
-      const transformedJobs = apiJobs
-        .filter((item: any) => item.is_express_rent === isExpressRentFilter)
-        .map((item: any) => {
-          // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
-          let originLocation = item.origin || item.from_location || '';
-          let destinationLocation = item.destination || item.to_location || '';
-          
-          // If origin/destination is empty or "-", try to parse from description
-          if ((!originLocation || originLocation === '-') && item.description) {
-            const parts = item.description.split('→').map((p: string) => p.trim());
-            if (parts.length >= 2) {
-              originLocation = parts[0] || '';
-              destinationLocation = parts[1] || '';
-            }
-          }
-          
-          // If destination is still empty, try parsing from description
-          if ((!destinationLocation || destinationLocation === '-') && item.description) {
-            const parts = item.description.split('→').map((p: string) => p.trim());
-            if (parts.length >= 2) {
-              destinationLocation = parts[1] || '';
-            }
-          }
-          
-          // Extract order code from title (format: "โพสต์หารถด่วน - OR20251203002")
-          let orderCode = item.post_code || item.order_number || item.quote_number || '';
-          if (item.title && item.title.includes(' - ')) {
-            const titleParts = item.title.split(' - ');
-            if (titleParts.length >= 2) {
-              orderCode = titleParts[titleParts.length - 1].trim();
-            }
-          }
-          
-          return {
-            id: item.id || String(Math.random()),
-            post_id: item.id || item.post_id || '',
-            order_code: orderCode,
-            job_type: item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic',
-            employer_name: item.company_name || item.factory_name || item.customer_name || '',
-            transport_type: item.send_mode || 'single',
-            transport_type_label: item.transport_type_label || item.send_mode_label || '',
-            origin_location: originLocation,
-            destination_location: destinationLocation,
-            destination_company_name: item.company_name || null,
-            price: item.price || 0,
-            start_date: item.pickup_date || item.start_date || item.period_start || '',
-            pickup_time: item.pickup_time || item.start_time || '',
-            equipment_list: item.truck_type !== '-' ? item.truck_type : null,
-            safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
-            goods_type: item.product_name || item.goods_type || item.product_type || null,
-            goods_quantity: item.goods_quantity || item.quantity || null,
-            isAccepted: false,
-            origin_lat: item.origin_lat || undefined,
-            origin_lng: item.origin_lng || undefined,
-            destination_lat: item.destination_lat || undefined,
-            destination_lng: item.destination_lng || undefined
-          };
-        });
-
-      // Check which jobs the user has accepted
-      if (user && transformedJobs.length > 0) {
-        // Fetch accepted jobs from external API
-        let acceptedOrderNumbers = new Set<string>();
-        try {
-          const acceptedResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-freelance-accepted-jobs-proxy?freelance_driver_id=${user.id}`,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            }
-          );
-          
-          if (acceptedResponse.ok) {
-            const acceptedResult = await acceptedResponse.json();
-            if (acceptedResult.success && acceptedResult.data) {
-              acceptedOrderNumbers = new Set(
-                acceptedResult.data.map((job: any) => job.order_number)
-              );
-            }
-          }
-        } catch (err) {
-          console.error('Error fetching accepted jobs:', err);
-        }
-
-        // Also check local job_applications table
-        const { data: applications } = await supabase
-          .from('job_applications')
-          .select('job_id, payment_completed_at')
-          .eq('driver_id', user.id);
-        
-        const completedJobIds = new Set(
-          applications?.filter(app => app.payment_completed_at).map(app => app.job_id) || []
+      if (isInternalDriver || isExternalDriver) {
+        // Internal/External: ดึงงานที่ได้รับมอบหมายจากบริษัท
+        const driverType = isInternalDriver ? 'internal' : 'external';
+        const statuses = [
+          'awaiting_response',
+          'accepted',
+          'in_progress',
+          'arrived_at_pickup',
+          'in_transit',
+          'delivered',
+          'returning_container',
+          'at_container_return',
+          'container_returned',
+        ];
+        const results = await Promise.all(
+          statuses.map((s) =>
+            getDriverAssignedJobs(driverId, driverType, 50, s).catch(() => ({ data: null }))
+          )
         );
-        const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
-        
-        // Filter out jobs with past pickup date/time
-        const now = new Date();
-        const filterPastJobs = (jobList: any[]) => {
-          return jobList.filter(job => {
-            if (!job.start_date) return true;
-            const time = job.pickup_time || '23:59:59';
-            const normalizedTime = time.length === 5 ? `${time}:00` : time;
-            const pickupDateTime = new Date(`${job.start_date}T${normalizedTime}`);
-            return pickupDateTime >= now;
-          });
-        };
-
-        // Get driver's vehicle type for filtering
-        const driverVehicleType = user.vehicle_type || '';
-        console.log('🚛 Search - Driver vehicle type:', driverVehicleType);
-        
-        // Filter out: completed jobs, accepted via external API, past jobs, and jobs requiring bigger trucks
-        const availableJobs = filterPastJobs(transformedJobs)
-          .filter(job => !completedJobIds.has(job.id))
-          .filter(job => !acceptedOrderNumbers.has(job.order_code))
-          .filter(job => {
-            const canHandle = canHandleJobTruckType(driverVehicleType, job.equipment_list);
-            return canHandle;
-          })
-          .map(job => ({
-            ...job,
-            isAccepted: acceptedJobIds.has(job.id)
-          }));
-        
-        setAllJobs(availableJobs);
+        const merged: any[] = [];
+        const seen = new Set<string>();
+        for (const r of results) {
+          const arr = (r as any)?.data || [];
+          for (const item of arr) {
+            const key = item.id || item.order_number;
+            if (key && !seen.has(key)) {
+              seen.add(key);
+              merged.push(item);
+            }
+          }
+        }
+        assignedItems = merged;
       } else {
-        // Filter out jobs with past pickup date/time for non-logged in users too
-        const now = new Date();
-        const filteredJobs = transformedJobs.filter(job => {
-          if (!job.start_date) return true;
-          const time = job.pickup_time || '23:59:59';
-          const normalizedTime = time.length === 5 ? `${time}:00` : time;
-          const pickupDateTime = new Date(`${job.start_date}T${normalizedTime}`);
-          return pickupDateTime >= now;
-        });
-        setAllJobs(filteredJobs);
+        // Freelance: รับงานอิสระ + งานโรงงาน
+        const [accepted, factory] = await Promise.all([
+          getFreelanceAcceptedJobs(driverId).catch(() => ({ data: null })),
+          getFactoryAssignedJobs(driverId, 50).catch(() => ({ data: null })),
+        ]);
+        const merged: any[] = [];
+        const seen = new Set<string>();
+        const pushAll = (arr: any[]) => {
+          for (const item of arr || []) {
+            const key = item.id || item.order_number;
+            if (key && !seen.has(key)) {
+              seen.add(key);
+              merged.push(item);
+            }
+          }
+        };
+        pushAll(((accepted as any)?.data) || []);
+        pushAll(((factory as any)?.data) || []);
+        assignedItems = merged;
       }
+
+      // Map external API shape -> JobCard shape
+      const transformedJobs = assignedItems.map((item: any) => {
+        const originDistrict = item.sender_district || item.place_of_receipt_district || '';
+        const originProvince = item.sender_province || item.place_of_receipt_province || '';
+        const destDistrict = item.destination_district || '';
+        const destProvince = item.destination_province || '';
+
+        const originLocationParts = [originDistrict, originProvince].filter(Boolean);
+        const destLocationParts = [destDistrict, destProvince].filter(Boolean);
+
+        const originLocation = originLocationParts.join(', ') ||
+          item.sender_address || item.place_of_receipt || item.sender_name || '';
+        const destinationLocation = destLocationParts.join(', ') ||
+          item.destination_address || item.destination_name || '';
+
+        return {
+          id: item.id || item.order_number,
+          order_code: item.order_number || '',
+          job_type: item.transport_category || item.job_type || 'domestic',
+          employer_name:
+            item.factory_name || item.factory_details?.name_th || item.shipper || item.sender_name || '',
+          transport_type: item.transport_mode || 'single',
+          transport_type_label: item.transport_category || '',
+          origin_location: originLocation,
+          destination_location: destinationLocation,
+          destination_company_name: item.destination_company_name || item.consignee || null,
+          price: item.transport_price || 0,
+          start_date: item.sender_pickup_date || item.created_at || '',
+          pickup_time: item.sender_pickup_time || '',
+          equipment_list: item.vehicle_type || null,
+          safety_equipment: null,
+          goods_type: item.product_name || item.product_type || item.commodity || null,
+          goods_quantity: item.product_quantity || null,
+          isAccepted: true,
+          origin_lat: item.sender_latitude || item.place_of_receipt_latitude || undefined,
+          origin_lng: item.sender_longitude || item.place_of_receipt_longitude || undefined,
+          destination_lat: item.destination_latitude || undefined,
+          destination_lng: item.destination_longitude || undefined,
+          status: item.status,
+        };
+      });
+
+      setAllJobs(transformedJobs);
     } catch (err) {
-      console.error('Error loading jobs:', err);
+      console.error('Error loading assigned jobs:', err);
       toast({
         title: t('home.error_load'),
         description: t('home.error_load_desc'),
