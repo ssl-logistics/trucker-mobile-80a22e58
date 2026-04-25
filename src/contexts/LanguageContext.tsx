@@ -3273,6 +3273,14 @@ const koTranslations: Record<string, string> = {
   
   // Home Page
   'home.search': '검색',
+  'home.filter': '필터',
+  'home.filterDescription': '표시할 작업 종류 선택 (복수 선택 가능)',
+  'home.filterBL': 'BL 작업',
+  'home.filterBooking': 'Booking 작업',
+  'home.filterMulti': '다중 배송지',
+  'home.filterSingle': '단일 배송',
+  'home.filterClear': '필터 지우기',
+  'home.filterApply': '적용',
   'home.recommended': '추천 작업',
   'home.yourJobs': '귀하의 작업',
   'home.items': '항목',
