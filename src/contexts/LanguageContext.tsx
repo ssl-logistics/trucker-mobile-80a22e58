@@ -122,6 +122,14 @@ const thTranslations: Record<string, string> = {
   
   // Home Page
   'home.search': 'ค้นหา',
+  'home.filter': 'ตัวกรอง',
+  'home.filterDescription': 'เลือกประเภทงานที่ต้องการแสดง (เลือกได้หลายรายการ)',
+  'home.filterBL': 'งาน BL',
+  'home.filterBooking': 'งาน Booking',
+  'home.filterMulti': 'งานส่งหลายที่',
+  'home.filterSingle': 'งานส่งเที่ยวเดียว',
+  'home.filterClear': 'ล้างตัวกรอง',
+  'home.filterApply': 'ใช้ตัวกรอง',
   'home.recommended': 'งานแนะนำสำหรับคุณ',
   'home.yourJobs': 'งานสำหรับคุณ',
   'home.items': 'รายการ',
