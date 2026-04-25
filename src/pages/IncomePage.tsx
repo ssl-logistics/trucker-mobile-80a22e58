@@ -79,25 +79,23 @@ export default function IncomePage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        // Fetch jobs from ALL relevant statuses (not just in_progress) to find completed ones
+        // Single API call with comma-separated statuses (instead of N parallel calls)
         const statuses = ['in_progress', 'in_transit', 'delivered', 'completed'];
-        const [checkinsResult, ...jobResults] = await Promise.all([
+        const [checkinsResult, jobsResult] = await Promise.all([
           getDriverCheckins(driverId, driverType, 'all'),
-          ...statuses.map(s => getDriverAssignedJobs(driverId, driverType, 1000, s)),
+          getDriverAssignedJobs(driverId, driverType, 1000, statuses.join(',')),
         ]);
 
-        // Combine and deduplicate jobs from all statuses
+        // Deduplicate jobs by id (single response, but keep guard)
         const allJobsRaw: any[] = [];
         const seenIds = new Set<string>();
-        jobResults.forEach(result => {
-          const jobs = (result.data as any)?.data || [];
-          jobs.forEach((job: any) => {
-            const id = String(job.id);
-            if (!seenIds.has(id)) {
-              seenIds.add(id);
-              allJobsRaw.push(job);
-            }
-          });
+        const jobs = (jobsResult.data as any)?.data || [];
+        jobs.forEach((job: any) => {
+          const id = String(job.id);
+          if (!seenIds.has(id)) {
+            seenIds.add(id);
+            allJobsRaw.push(job);
+          }
         });
 
         const allJobs = allJobsRaw;
