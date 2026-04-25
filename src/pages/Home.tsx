@@ -30,7 +30,8 @@ import {
   getFactoryAssignedJobs, 
   getFreelanceAcceptedJobs,
   getExpressRentPosts,
-  acceptExpressRentJob 
+  acceptExpressRentJob,
+  logout as externalLogout,
 } from '@/lib/externalApi';
 interface Job {
   id: string;
