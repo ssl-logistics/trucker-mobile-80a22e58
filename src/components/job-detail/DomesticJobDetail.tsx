@@ -1568,111 +1568,123 @@ export default function DomesticJobDetail({
               };
               const statusInfo = getStatusInfo();
 
+              const canDrag = displayDestinations.length > 1 && !isCheckedIn && !isPodCompleted && !isFromHistory;
+              const isDragging = dragIdx === index;
+              const isDragTarget = dragOverIdx === index && dragIdx !== null && dragIdx !== index;
+              const isLongPressActive = longPressIdx === index;
+
+              const clearLongPress = () => {
+                if (longPressTimerRef.current) {
+                  clearTimeout(longPressTimerRef.current);
+                  longPressTimerRef.current = null;
+                }
+                setLongPressIdx(null);
+              };
+
               return (
-                <Card key={dest.id} ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}} className={`overflow-hidden border-2 rounded-xl ${isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
+                <Card
+                  key={dest.id}
+                  ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}}
+                  data-reorder-idx={index}
+                  draggable={canDrag}
+                  onDragStart={(e) => {
+                    if (!canDrag) { e.preventDefault(); return; }
+                    setDragIdx(index);
+                    dragItemRef.current = index;
+                    e.dataTransfer.effectAllowed = 'move';
+                  }}
+                  onDragOver={(e) => {
+                    if (dragItemRef.current === null) return;
+                    if (isCheckedIn || isPodCompleted) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    setDragOverIdx(index);
+                  }}
+                  onDragLeave={() => {
+                    if (dragOverIdx === index) setDragOverIdx(null);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (isCheckedIn || isPodCompleted) return;
+                    const fromIdx = dragItemRef.current;
+                    if (fromIdx !== null && fromIdx !== index) {
+                      handleSwapRequest(fromIdx, index);
+                    }
+                    setDragIdx(null);
+                    setDragOverIdx(null);
+                    dragItemRef.current = null;
+                  }}
+                  onDragEnd={() => {
+                    setDragIdx(null);
+                    setDragOverIdx(null);
+                    dragItemRef.current = null;
+                  }}
+                  onTouchStart={(e) => {
+                    if (!canDrag) return;
+                    dragStartY.current = e.touches[0].clientY;
+                    // Start 3-second long-press timer to enable drag
+                    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+                    longPressTimerRef.current = setTimeout(() => {
+                      setLongPressIdx(index);
+                      setDragIdx(index);
+                      dragItemRef.current = index;
+                      // Haptic feedback if available
+                      if (navigator.vibrate) navigator.vibrate(50);
+                    }, 3000);
+                  }}
+                  onTouchMove={(e) => {
+                    // If user moves significantly before 3s, cancel long-press (treat as scroll)
+                    if (dragItemRef.current === null) {
+                      const dy = Math.abs(e.touches[0].clientY - dragStartY.current);
+                      if (dy > 10 && longPressTimerRef.current) {
+                        clearTimeout(longPressTimerRef.current);
+                        longPressTimerRef.current = null;
+                      }
+                      return;
+                    }
+                    // Drag in progress: detect target
+                    const touch = e.touches[0];
+                    const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+                    const cardEl = elements.find(el => el.getAttribute('data-reorder-idx'));
+                    if (cardEl) {
+                      const overIdx = parseInt(cardEl.getAttribute('data-reorder-idx')!, 10);
+                      setDragOverIdx(overIdx);
+                    }
+                  }}
+                  onTouchEnd={() => {
+                    if (longPressTimerRef.current) {
+                      clearTimeout(longPressTimerRef.current);
+                      longPressTimerRef.current = null;
+                    }
+                    if (dragItemRef.current !== null) {
+                      const fromIdx = dragItemRef.current;
+                      if (dragOverIdx !== null && fromIdx !== dragOverIdx) {
+                        handleSwapRequest(fromIdx, dragOverIdx);
+                      }
+                    }
+                    setDragIdx(null);
+                    setDragOverIdx(null);
+                    dragItemRef.current = null;
+                    setLongPressIdx(null);
+                  }}
+                  onTouchCancel={clearLongPress}
+                  className={`overflow-hidden border-2 rounded-xl transition-all ${
+                    isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'
+                  } ${isDragging ? 'opacity-60 scale-[0.98] shadow-lg' : ''} ${isDragTarget ? 'ring-2 ring-orange-400 ring-offset-1' : ''} ${isLongPressActive ? 'ring-2 ring-blue-400' : ''} ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                >
                     <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
                       <h3 className="font-medium text-xs text-white">
                         {t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}
-                        {isReorderMode && dest.company_name ? ` — ${dest.company_name}` : ''}
                       </h3>
-                      {!isReorderMode && (isDestinationLocked ?
+                      {isDestinationLocked ?
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
                           {t('jobDetail.waitingPreviousStep')}
                         </span> :
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
                           {statusInfo.text}
                         </span>
-                    )}
+                    }
                     </div>
-                    {/* Compact reorder mode - only drag for non-checked-in items */}
-                    {isReorderMode && displayDestinations.length > 1 ? (
-                      <div
-                        className={`flex items-center gap-3 px-3 py-2.5 select-none transition-all ${
-                          isCheckedIn || isPodCompleted
-                            ? 'bg-gray-100 cursor-not-allowed opacity-60'
-                            : `bg-white cursor-grab active:cursor-grabbing ${dragIdx === index ? 'opacity-50 scale-95' : ''} ${dragOverIdx === index && dragIdx !== index ? 'border-t-2 border-orange-400' : ''}`
-                        }`}
-                        draggable={!isCheckedIn && !isPodCompleted}
-                        onDragStart={(e) => {
-                          if (isCheckedIn || isPodCompleted) { e.preventDefault(); return; }
-                          setDragIdx(index);
-                          dragItemRef.current = index;
-                          e.dataTransfer.effectAllowed = 'move';
-                        }}
-                        onDragOver={(e) => {
-                          if (isCheckedIn || isPodCompleted) return;
-                          e.preventDefault();
-                          e.dataTransfer.dropEffect = 'move';
-                          setDragOverIdx(index);
-                        }}
-                        onDragLeave={() => setDragOverIdx(null)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (isCheckedIn || isPodCompleted) return;
-                          const fromIdx = dragItemRef.current;
-                          if (fromIdx !== null && fromIdx !== index) {
-                            handleSwapRequest(fromIdx, index);
-                          }
-                          setDragIdx(null);
-                          setDragOverIdx(null);
-                          dragItemRef.current = null;
-                        }}
-                        onDragEnd={() => {
-                          setDragIdx(null);
-                          setDragOverIdx(null);
-                          dragItemRef.current = null;
-                        }}
-                        onTouchStart={(e) => {
-                          if (isCheckedIn || isPodCompleted) return;
-                          dragStartY.current = e.touches[0].clientY;
-                          setDragIdx(index);
-                          dragItemRef.current = index;
-                        }}
-                        onTouchMove={(e) => {
-                          if (isCheckedIn || isPodCompleted) return;
-                          const touch = e.touches[0];
-                          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
-                          const cardEl = elements.find(el => el.getAttribute('data-reorder-idx'));
-                          if (cardEl) {
-                            const overIdx = parseInt(cardEl.getAttribute('data-reorder-idx')!, 10);
-                            setDragOverIdx(overIdx);
-                          }
-                        }}
-                        onTouchEnd={() => {
-                          if (isCheckedIn || isPodCompleted) { setDragIdx(null); setDragOverIdx(null); dragItemRef.current = null; return; }
-                          const fromIdx = dragItemRef.current;
-                          if (fromIdx !== null && dragOverIdx !== null && fromIdx !== dragOverIdx) {
-                            handleSwapRequest(fromIdx, dragOverIdx);
-                          }
-                          setDragIdx(null);
-                          setDragOverIdx(null);
-                          dragItemRef.current = null;
-                        }}
-                        data-reorder-idx={index}
-                      >
-                        {isCheckedIn || isPodCompleted ? (
-                          <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
-                        ) : (
-                          <GripVertical className="w-5 h-5 text-gray-400 shrink-0" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium text-gray-700">
-                            {t('jobDetail.deliveryPoint')} #{index + 1}
-                            {dest.company_name ? ` — ${dest.company_name}` : ''}
-                            {dest.district ? ` (${dest.district})` : ''}
-                          </span>
-                          {dest.invoice_number && (
-                            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
-                              <FileText className="w-3.5 h-3.5 shrink-0" />
-                              <span className="font-medium">INV: {dest.invoice_number}</span>
-                            </div>
-                          )}
-                        </div>
-                        {(isCheckedIn || isPodCompleted) && (
-                          <span className="text-[10px] text-gray-400">{t('jobDetail.cannotReorder') || 'สลับไม่ได้'}</span>
-                        )}
-                      </div>
-                    ) : (
                     <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         <div className="flex items-start gap-2">
@@ -1796,7 +1808,6 @@ export default function DomesticJobDetail({
                         </Button>
                       </div>
                     </div>
-                    )}
                   </Card>);
 
             }) :
