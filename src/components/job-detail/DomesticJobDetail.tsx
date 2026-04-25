@@ -871,21 +871,21 @@ export default function DomesticJobDetail({
     },
   });
 
-  const confirmSwap = async () => {
-    if (!pendingSwap) return;
+  const performSwap = async (fromIdx: number, toIdx: number) => {
     const newOrder = [...displayDestinations];
+    if (fromIdx < 0 || toIdx < 0 || fromIdx >= newOrder.length || toIdx >= newOrder.length) return;
     // Save delivery_date/time from original positions so they stay in place
-    const fromDate = newOrder[pendingSwap.fromIdx].delivery_date;
-    const fromTime = newOrder[pendingSwap.fromIdx].delivery_time;
-    const toDate = newOrder[pendingSwap.toIdx].delivery_date;
-    const toTime = newOrder[pendingSwap.toIdx].delivery_time;
+    const fromDate = newOrder[fromIdx].delivery_date;
+    const fromTime = newOrder[fromIdx].delivery_time;
+    const toDate = newOrder[toIdx].delivery_date;
+    const toTime = newOrder[toIdx].delivery_time;
     // Swap destinations
-    [newOrder[pendingSwap.fromIdx], newOrder[pendingSwap.toIdx]] = [newOrder[pendingSwap.toIdx], newOrder[pendingSwap.fromIdx]];
+    [newOrder[fromIdx], newOrder[toIdx]] = [newOrder[toIdx], newOrder[fromIdx]];
     // Restore delivery_date/time to their original positions (don't swap them)
-    newOrder[pendingSwap.fromIdx].delivery_date = fromDate;
-    newOrder[pendingSwap.fromIdx].delivery_time = fromTime;
-    newOrder[pendingSwap.toIdx].delivery_date = toDate;
-    newOrder[pendingSwap.toIdx].delivery_time = toTime;
+    newOrder[fromIdx].delivery_date = fromDate;
+    newOrder[fromIdx].delivery_time = fromTime;
+    newOrder[toIdx].delivery_date = toDate;
+    newOrder[toIdx].delivery_time = toTime;
     // Reassign sequence_number to match new visual order so API calls use the correct sequence
     const resequenced = newOrder.map((dest, idx) => ({
       ...dest,
@@ -898,8 +898,6 @@ export default function DomesticJobDetail({
     } catch (e) {
       console.error('Error saving dest order:', e);
     }
-    setShowSwapConfirm(false);
-    setPendingSwap(null);
     toast({ title: t('jobDetail.swapSuccess') || 'สลับจุดส่งสำเร็จ' });
 
     // Send reorder to API (fire-and-forget, localStorage is the primary persistence)
