@@ -815,6 +815,7 @@ export default function DomesticJobDetail({
 
   const handleSwapRequest = (fromIdx: number, toIdx: number) => {
     if (toIdx < 0 || toIdx >= displayDestinations.length) return;
+    if (fromIdx === toIdx) return;
     // Prevent swapping destinations that are already checked in
     const fromDest = displayDestinations[fromIdx];
     const toDest = displayDestinations[toIdx];
@@ -826,10 +827,8 @@ export default function DomesticJobDetail({
       toast({ title: t('jobDetail.cannotReorder') || 'สลับไม่ได้', description: t('jobDetail.cannotReorderCheckedIn') || 'จุดส่งที่เช็คอินแล้วไม่สามารถสลับได้', variant: 'destructive' });
       return;
     }
-    const fromName = fromDest.company_name || `#${fromDest.sequence_number}`;
-    const toName = toDest.company_name || `#${toDest.sequence_number}`;
-    setPendingSwap({ fromIdx, toIdx, fromName, toName });
-    setShowSwapConfirm(true);
+    // Swap immediately without confirmation
+    void performSwap(fromIdx, toIdx);
   };
 
   // Voice reorder hook
