@@ -397,11 +397,12 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       }
     };
 
-    const interval = setInterval(pollCallStatus, 2500);
+    // Increased from 2.5s to 12s to reduce 503s on the upstream call-signal edge function.
+    const interval = setInterval(pollCallStatus, 12000);
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
-  // Poll for incoming call signals every 2.5 seconds
+  // Poll for incoming call signals every 12 seconds (was 2.5s — caused 503s upstream)
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -444,7 +445,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     };
 
     pollCallSignal();
-    pollingIntervalRef.current = setInterval(pollCallSignal, 2500);
+    // Increased from 2.5s to 12s to reduce 503s on the upstream call-signal edge function.
+    pollingIntervalRef.current = setInterval(pollCallSignal, 12000);
 
     return () => {
       if (pollingIntervalRef.current) {
