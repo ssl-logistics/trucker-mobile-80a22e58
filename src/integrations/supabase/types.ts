@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      call_logs: {
+        Row: {
+          call_result: string
+          call_type: string
+          conversation_id: string | null
+          created_at: string
+          driver_id: string
+          duration_seconds: number
+          id: string
+          peer_avatar: string | null
+          peer_id: string
+          peer_name: string
+        }
+        Insert: {
+          call_result: string
+          call_type: string
+          conversation_id?: string | null
+          created_at?: string
+          driver_id: string
+          duration_seconds?: number
+          id?: string
+          peer_avatar?: string | null
+          peer_id: string
+          peer_name: string
+        }
+        Update: {
+          call_result?: string
+          call_type?: string
+          conversation_id?: string | null
+          created_at?: string
+          driver_id?: string
+          duration_seconds?: number
+          id?: string
+          peer_avatar?: string | null
+          peer_id?: string
+          peer_name?: string
+        }
+        Relationships: []
+      }
       chatbot_faqs: {
         Row: {
           answer: string
