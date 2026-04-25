@@ -208,7 +208,7 @@ const isValidName = (val: any): string => {
   // Reset page when filter or jobs change
   useEffect(() => {
     setCurrentPage(1);
-  }, [jobFilter, jobs.length, factoryJobs.length]);
+  }, [jobFilter, jobs.length, factoryJobs.length, searchQuery]);
 
   // Load factory/driver assigned jobs from API
   // For internal/external drivers from factory company, use get-driver-assigned-jobs
