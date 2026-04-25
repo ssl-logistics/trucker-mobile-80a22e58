@@ -165,11 +165,21 @@ const isValidName = (val: any): string => {
       });
 
     // Apply free-text search across common identifiers (BL/Booking/Order/Origin/Destination/Employer/Goods)
+    // Splits the query into tokens so "BL YMJAN710625124" still matches a job whose bl_no is "YMJAN710625124".
     const applySearch = (jobList: Job[]) => {
-      const q = searchQuery.trim().toLowerCase();
-      if (!q) return jobList;
+      const raw = searchQuery.trim().toLowerCase();
+      if (!raw) return jobList;
+      // Strip common prefixes/labels like "bl", "bl:", "booking", "booking#", "order", "no", "no.", "#"
+      const noiseWords = new Set(['bl', 'booking', 'order', 'no', 'no.', '#', 'ref', 'เลข']);
+      const tokens = raw
+        .split(/[\s,;:#\/]+/)
+        .map((t) => t.replace(/^[#:]+|[#:]+$/g, ''))
+        .filter((t) => t.length > 0 && !noiseWords.has(t));
+      // If the query was only label words, fall back to substring match on the raw string
+      const effectiveTokens = tokens.length > 0 ? tokens : [raw];
+
       return jobList.filter((job: any) => {
-        const fields = [
+        const haystack = [
           job.order_code,
           job.bl_no,
           job.booking_no,
@@ -183,8 +193,13 @@ const isValidName = (val: any): string => {
           job.equipment_list,
           job.shipper,
           job.consignee,
-        ];
-        return fields.some((f) => typeof f === 'string' && f.toLowerCase().includes(q));
+        ]
+          .filter((f) => typeof f === 'string')
+          .join(' ')
+          .toLowerCase();
+
+        // Every token must appear somewhere in the haystack
+        return effectiveTokens.every((t) => haystack.includes(t));
       });
     };
 
