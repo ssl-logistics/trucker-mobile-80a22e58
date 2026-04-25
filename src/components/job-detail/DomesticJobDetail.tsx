@@ -759,7 +759,7 @@ export default function DomesticJobDetail({
       cancelAnimationFrame(raf1);
       if (raf2) cancelAnimationFrame(raf2);
     };
-  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location, localDestOrder, isReorderMode]);
+  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location, localDestOrder]);
 
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
