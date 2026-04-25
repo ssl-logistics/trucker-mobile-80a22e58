@@ -91,6 +91,7 @@ const isValidName = (val: any): string => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   // Set default filter based on user type from AuthContext (more reliable than hooks)
   // Internal/External drivers should see factory jobs by default (their assigned jobs)
   const getDefaultFilter = (): 'all' | 'company' | 'factory' => {
@@ -163,17 +164,41 @@ const isValidName = (val: any): string => {
         return true;
       });
 
+    // Apply free-text search across common identifiers (BL/Booking/Order/Origin/Destination/Employer/Goods)
+    const applySearch = (jobList: Job[]) => {
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return jobList;
+      return jobList.filter((job: any) => {
+        const fields = [
+          job.order_code,
+          job.bl_no,
+          job.booking_no,
+          job.employer_name,
+          job.destination_company_name,
+          job.origin_location,
+          job.destination_location,
+          job.goods_type,
+          job.transport_type,
+          job.transport_type_label,
+          job.equipment_list,
+          job.shipper,
+          job.consignee,
+        ];
+        return fields.some((f) => typeof f === 'string' && f.toLowerCase().includes(q));
+      });
+    };
+
     // Internal/External drivers ONLY see their assigned factory jobs
     if (userType === 'internal_driver' || userType === 'external_driver') {
-      return sortJobsByDateDesc(filterInternationalWithoutRef(factoryJobs));
+      return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(factoryJobs)));
     }
 
     if (jobFilter === 'factory') {
-      return sortJobsByDateDesc(filterInternationalWithoutRef(factoryJobs));
+      return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(factoryJobs)));
     }
 
     // 'all' and 'company' both show company jobs (current API)
-    return sortJobsByDateDesc(filterInternationalWithoutRef(jobs));
+    return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(jobs)));
   };
 
   const displayedJobs = getDisplayedJobs();
@@ -183,7 +208,7 @@ const isValidName = (val: any): string => {
   // Reset page when filter or jobs change
   useEffect(() => {
     setCurrentPage(1);
-  }, [jobFilter, jobs.length, factoryJobs.length]);
+  }, [jobFilter, jobs.length, factoryJobs.length, searchQuery]);
 
   // Load factory/driver assigned jobs from API
   // For internal/external drivers from factory company, use get-driver-assigned-jobs
@@ -1119,7 +1144,22 @@ const isValidName = (val: any): string => {
         <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-[#d6e4f5] lg:px-6 xl:px-8">
           <div className="relative max-w-2xl mx-auto lg:max-w-3xl xl:max-w-4xl">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input placeholder={t('home.search')} className="pl-10 bg-white shadow-sm border-0" onClick={() => navigate('/search')} readOnly />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('home.search')}
+              className="pl-10 pr-10 bg-white shadow-sm border-0"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="clear"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            )}
           </div>
         </div>
       </div>
