@@ -227,7 +227,7 @@ export default function CurrentJobsPage() {
          const mergedApiJobs = allAssignedJobs;
          console.log(`[CurrentJobsPage] Single-call merged jobs: ${acceptedJobs.length} accepted + ${arrivedAtPickupJobs.length} arrived_at_pickup + ${inTransitJobs.length} in_transit + ${deliveredJobs.length} delivered + ${returningContainerJobs.length} returning_container + ${atContainerReturnJobs.length} at_container_return + ${containerReturnedJobs.length} container_returned + ${completedJobs.length} completed = ${mergedApiJobs.length} total`);
 
-        if (mergedApiJobs.length > 0 || (!inTransitResult.error && !deliveredResult.error && !completedResult.error)) {
+        if (mergedApiJobs.length > 0 || !assignedResult.error) {
           // Get check-ins to determine which jobs are actually started and which are completed
           let startedTransportIds = new Set<string>();
           // Track POD count per transport_order_id for multi-destination jobs
