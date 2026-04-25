@@ -122,6 +122,14 @@ const thTranslations: Record<string, string> = {
   
   // Home Page
   'home.search': 'ค้นหา',
+  'home.filter': 'ตัวกรอง',
+  'home.filterDescription': 'เลือกประเภทงานที่ต้องการแสดง (เลือกได้หลายรายการ)',
+  'home.filterBL': 'งาน BL',
+  'home.filterBooking': 'งาน Booking',
+  'home.filterMulti': 'งานส่งหลายที่',
+  'home.filterSingle': 'งานส่งเที่ยวเดียว',
+  'home.filterClear': 'ล้างตัวกรอง',
+  'home.filterApply': 'ใช้ตัวกรอง',
   'home.recommended': 'งานแนะนำสำหรับคุณ',
   'home.yourJobs': 'งานสำหรับคุณ',
   'home.items': 'รายการ',
@@ -1690,6 +1698,14 @@ const enTranslations: Record<string, string> = {
   
   // Home Page
   'home.search': 'Search',
+  'home.filter': 'Filter',
+  'home.filterDescription': 'Select job categories to display (multiple allowed)',
+  'home.filterBL': 'BL Jobs',
+  'home.filterBooking': 'Booking Jobs',
+  'home.filterMulti': 'Multi-destination',
+  'home.filterSingle': 'Single trip',
+  'home.filterClear': 'Clear filters',
+  'home.filterApply': 'Apply',
   'home.recommended': 'Recommended Jobs for You',
   'home.yourJobs': 'Jobs for You',
   'home.items': 'items',
@@ -3257,6 +3273,14 @@ const koTranslations: Record<string, string> = {
   
   // Home Page
   'home.search': '검색',
+  'home.filter': '필터',
+  'home.filterDescription': '표시할 작업 종류 선택 (복수 선택 가능)',
+  'home.filterBL': 'BL 작업',
+  'home.filterBooking': 'Booking 작업',
+  'home.filterMulti': '다중 배송지',
+  'home.filterSingle': '단일 배송',
+  'home.filterClear': '필터 지우기',
+  'home.filterApply': '적용',
   'home.recommended': '추천 작업',
   'home.yourJobs': '귀하의 작업',
   'home.items': '항목',
@@ -5017,6 +5041,14 @@ const zhTranslations: Record<string, string> = {
   // Home Page
   'home.title': '主页',
   'home.search': '搜索',
+  'home.filter': '筛选',
+  'home.filterDescription': '选择要显示的工作类型（可多选）',
+  'home.filterBL': 'BL 工作',
+  'home.filterBooking': 'Booking 工作',
+  'home.filterMulti': '多点配送',
+  'home.filterSingle': '单程配送',
+  'home.filterClear': '清除筛选',
+  'home.filterApply': '应用',
   'home.recommended': '为您推荐的工作',
   'home.yourJobs': '您的工作',
   'home.items': '项',
@@ -5069,7 +5101,6 @@ const zhTranslations: Record<string, string> = {
   'home.welcome': '欢迎',
   'home.available_jobs': '可用工作',
   'home.no_jobs': '暂无可用工作',
-  'home.filter': '筛选',
   'home.sort': '排序',
   
   // Job Card

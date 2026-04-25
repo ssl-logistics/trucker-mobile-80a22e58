@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2, SlidersHorizontal, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -18,6 +18,15 @@ import { RejectFactoryJobDialog } from '@/components/home/RejectFactoryJobDialog
 import { preloadablePages } from '@/App';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
@@ -93,6 +102,19 @@ const isValidName = (val: any): string => {
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Category filter (multi-select). Empty = show all categories.
+  type CategoryKey = 'bl' | 'booking' | 'multi' | 'single';
+  const [categoryFilters, setCategoryFilters] = useState<Set<CategoryKey>>(new Set());
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const toggleCategoryFilter = (key: CategoryKey) => {
+    setCategoryFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+  const clearCategoryFilters = () => setCategoryFilters(new Set());
   // Set default filter based on user type from AuthContext (more reliable than hooks)
   // Internal/External drivers should see factory jobs by default (their assigned jobs)
   const getDefaultFilter = (): 'all' | 'company' | 'factory' => {
@@ -204,17 +226,38 @@ const isValidName = (val: any): string => {
       });
     };
 
+    // Apply category filter (BL / Booking / Multi-destination / Single-destination)
+    // Multi-select: a job passes if it matches ANY selected category. Empty set = pass-through.
+    const applyCategoryFilter = (jobList: Job[]) => {
+      if (categoryFilters.size === 0) return jobList;
+      return jobList.filter((job: any) => {
+        const destCount = Array.isArray(job.destinations) ? job.destinations.length : 0;
+        const isMulti = destCount > 1;
+        const isSingle = destCount <= 1;
+        const hasBl = !!(job.bl_no || job.bl_number || job.bill_of_lading);
+        const hasBooking = !!(job.booking_no || job.booking_number);
+        if (categoryFilters.has('bl') && hasBl) return true;
+        if (categoryFilters.has('booking') && hasBooking) return true;
+        if (categoryFilters.has('multi') && isMulti) return true;
+        if (categoryFilters.has('single') && isSingle) return true;
+        return false;
+      });
+    };
+
+    const pipeline = (jobList: Job[]) =>
+      sortJobsByDateDesc(applyCategoryFilter(applySearch(filterInternationalWithoutRef(jobList))));
+
     // Internal/External drivers ONLY see their assigned factory jobs
     if (userType === 'internal_driver' || userType === 'external_driver') {
-      return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(factoryJobs)));
+      return pipeline(factoryJobs);
     }
 
     if (jobFilter === 'factory') {
-      return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(factoryJobs)));
+      return pipeline(factoryJobs);
     }
 
     // 'all' and 'company' both show company jobs (current API)
-    return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(jobs)));
+    return pipeline(jobs);
   };
 
   const displayedJobs = getDisplayedJobs();
@@ -224,7 +267,7 @@ const isValidName = (val: any): string => {
   // Reset page when filter or jobs change
   useEffect(() => {
     setCurrentPage(1);
-  }, [jobFilter, jobs.length, factoryJobs.length, searchQuery]);
+  }, [jobFilter, jobs.length, factoryJobs.length, searchQuery, categoryFilters]);
 
   // Load factory/driver assigned jobs from API
   // For internal/external drivers from factory company, use get-driver-assigned-jobs
@@ -1147,24 +1190,39 @@ const isValidName = (val: any): string => {
 
         {/* Search Bar - inside the rounded container */}
         <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-[#d6e4f5] lg:px-6 xl:px-8">
-          <div className="relative max-w-2xl mx-auto lg:max-w-3xl xl:max-w-4xl">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('home.search')}
-              className="pl-10 pr-10 bg-white shadow-sm border-0"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="clear"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                ✕
-              </button>
-            )}
+          <div className="flex items-center gap-2 max-w-2xl mx-auto lg:max-w-3xl xl:max-w-4xl">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('home.search')}
+                className="pl-10 pr-10 bg-white shadow-sm border-0"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="clear"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setFilterSheetOpen(true)}
+              aria-label={t('home.filter') || 'ตัวกรอง'}
+              className="relative shrink-0 h-10 w-10 flex items-center justify-center rounded-md bg-white shadow-sm text-foreground hover:bg-muted/40 transition-colors"
+            >
+              <SlidersHorizontal className="w-5 h-5" />
+              {categoryFilters.size > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  {categoryFilters.size}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -1303,6 +1361,65 @@ const isValidName = (val: any): string => {
         orderCode={selectedFactoryJob?.order_code || ''} 
         isLoading={isFactoryJobProcessing} 
       />
+
+      {/* Filter Sheet (slides in from the right) */}
+      <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+        <SheetContent side="right" className="w-[85vw] sm:w-[380px] flex flex-col">
+          <SheetHeader>
+            <SheetTitle>{t('home.filter') || 'ตัวกรอง'}</SheetTitle>
+            <SheetDescription>
+              {t('home.filterDescription') || 'เลือกประเภทงานที่ต้องการแสดง'}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto py-4 space-y-2">
+            {([
+              { key: 'bl' as CategoryKey, label: t('home.filterBL') || 'งาน BL' },
+              { key: 'booking' as CategoryKey, label: t('home.filterBooking') || 'งาน Booking' },
+              { key: 'multi' as CategoryKey, label: t('home.filterMulti') || 'งานส่งหลายที่' },
+              { key: 'single' as CategoryKey, label: t('home.filterSingle') || 'งานส่งเที่ยวเดียว' },
+            ]).map((opt) => {
+              const checked = categoryFilters.has(opt.key);
+              return (
+                <label
+                  key={opt.key}
+                  htmlFor={`cat-${opt.key}`}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    checked ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'
+                  }`}
+                >
+                  <Checkbox
+                    id={`cat-${opt.key}`}
+                    checked={checked}
+                    onCheckedChange={() => toggleCategoryFilter(opt.key)}
+                  />
+                  <span className="text-sm font-medium">{opt.label}</span>
+                </label>
+              );
+            })}
+          </div>
+
+          <SheetFooter className="flex-row gap-2 sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={clearCategoryFilters}
+              disabled={categoryFilters.size === 0}
+              className="flex-1"
+            >
+              <X className="w-4 h-4 mr-1" />
+              {t('home.filterClear') || 'ล้างตัวกรอง'}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setFilterSheetOpen(false)}
+              className="flex-1"
+            >
+              {t('home.filterApply') || 'ใช้ตัวกรอง'}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
