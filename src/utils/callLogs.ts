@@ -15,9 +15,38 @@ export interface CallLogEntry {
   timestamp: string; // ISO string
 }
 
-const CALL_LOGS_KEY = 'call_logs';
+const CALL_LOGS_KEY_PREFIX = 'call_logs';
+const LEGACY_CALL_LOGS_KEY = 'call_logs';
 const MAX_LOGS = 100;
 const MAX_AGE_DAYS = 30;
+
+/** Get current logged-in user id (driver id) to scope logs per user */
+function getCurrentUserId(): string {
+  try {
+    return (
+      localStorage.getItem('auth_driver_id') ||
+      localStorage.getItem('auth_user_id') ||
+      'guest'
+    );
+  } catch {
+    return 'guest';
+  }
+}
+
+function getCallLogsKey(): string {
+  return `${CALL_LOGS_KEY_PREFIX}:${getCurrentUserId()}`;
+}
+
+/** One-time cleanup: delete legacy shared key so it doesn't leak across users */
+function clearLegacySharedLogs(): void {
+  try {
+    if (localStorage.getItem(LEGACY_CALL_LOGS_KEY)) {
+      localStorage.removeItem(LEGACY_CALL_LOGS_KEY);
+    }
+  } catch {
+    // ignore
+  }
+}
 
 /** Remove logs older than 30 days */
 function pruneOldLogs(logs: CallLogEntry[]): CallLogEntry[] {
@@ -27,6 +56,7 @@ function pruneOldLogs(logs: CallLogEntry[]): CallLogEntry[] {
 
 export function saveCallLog(entry: Omit<CallLogEntry, 'id' | 'timestamp'>): void {
   try {
+    clearLegacySharedLogs();
     let logs = getCallLogs();
     const newEntry: CallLogEntry = {
       ...entry,
@@ -36,7 +66,7 @@ export function saveCallLog(entry: Omit<CallLogEntry, 'id' | 'timestamp'>): void
     logs.unshift(newEntry);
     logs = pruneOldLogs(logs);
     if (logs.length > MAX_LOGS) logs.length = MAX_LOGS;
-    localStorage.setItem(CALL_LOGS_KEY, JSON.stringify(logs));
+    localStorage.setItem(getCallLogsKey(), JSON.stringify(logs));
   } catch (e) {
     console.warn('[CallLog] Failed to save:', e);
   }
@@ -44,12 +74,23 @@ export function saveCallLog(entry: Omit<CallLogEntry, 'id' | 'timestamp'>): void
 
 export function getCallLogs(): CallLogEntry[] {
   try {
-    const raw = localStorage.getItem(CALL_LOGS_KEY);
+    clearLegacySharedLogs();
+    const raw = localStorage.getItem(getCallLogsKey());
     if (!raw) return [];
     const logs = JSON.parse(raw) as CallLogEntry[];
     return pruneOldLogs(logs);
   } catch {
     return [];
+  }
+}
+
+/** Clear current user's call logs (e.g. on logout) */
+export function clearCallLogs(): void {
+  try {
+    localStorage.removeItem(getCallLogsKey());
+    clearLegacySharedLogs();
+  } catch {
+    // ignore
   }
 }
 
