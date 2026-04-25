@@ -445,7 +445,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     };
 
     pollCallSignal();
-    pollingIntervalRef.current = setInterval(pollCallSignal, 2500);
+    // Increased from 2.5s to 12s to reduce 503s on the upstream call-signal edge function.
+    pollingIntervalRef.current = setInterval(pollCallSignal, 12000);
 
     return () => {
       if (pollingIntervalRef.current) {
