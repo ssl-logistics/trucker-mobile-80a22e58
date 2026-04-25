@@ -1190,24 +1190,39 @@ const isValidName = (val: any): string => {
 
         {/* Search Bar - inside the rounded container */}
         <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-[#d6e4f5] lg:px-6 xl:px-8">
-          <div className="relative max-w-2xl mx-auto lg:max-w-3xl xl:max-w-4xl">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('home.search')}
-              className="pl-10 pr-10 bg-white shadow-sm border-0"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="clear"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                ✕
-              </button>
-            )}
+          <div className="flex items-center gap-2 max-w-2xl mx-auto lg:max-w-3xl xl:max-w-4xl">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('home.search')}
+                className="pl-10 pr-10 bg-white shadow-sm border-0"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="clear"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setFilterSheetOpen(true)}
+              aria-label={t('home.filter') || 'ตัวกรอง'}
+              className="relative shrink-0 h-10 w-10 flex items-center justify-center rounded-md bg-white shadow-sm text-foreground hover:bg-muted/40 transition-colors"
+            >
+              <SlidersHorizontal className="w-5 h-5" />
+              {categoryFilters.size > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  {categoryFilters.size}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
