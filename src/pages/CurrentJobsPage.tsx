@@ -487,7 +487,7 @@ export default function CurrentJobsPage() {
            dedupedMapped.forEach(j => console.log(`  - ${j.order_number} (status: ${j.status})`));
            setAcceptedJobs(dedupedMapped);
         } else {
-          console.error('Error loading driver assigned jobs:', inTransitResult.error, deliveredResult.error, completedResult.error);
+          console.error('Error loading driver assigned jobs:', assignedResult.error);
           setAcceptedJobs([]);
         }
         
