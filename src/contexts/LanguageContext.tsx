@@ -1698,6 +1698,14 @@ const enTranslations: Record<string, string> = {
   
   // Home Page
   'home.search': 'Search',
+  'home.filter': 'Filter',
+  'home.filterDescription': 'Select job categories to display (multiple allowed)',
+  'home.filterBL': 'BL Jobs',
+  'home.filterBooking': 'Booking Jobs',
+  'home.filterMulti': 'Multi-destination',
+  'home.filterSingle': 'Single trip',
+  'home.filterClear': 'Clear filters',
+  'home.filterApply': 'Apply',
   'home.recommended': 'Recommended Jobs for You',
   'home.yourJobs': 'Jobs for You',
   'home.items': 'items',
