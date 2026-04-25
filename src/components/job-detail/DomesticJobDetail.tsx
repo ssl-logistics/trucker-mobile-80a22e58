@@ -2267,27 +2267,7 @@ export default function DomesticJobDetail({
         </DrawerContent>
       </Drawer>
 
-      {/* Swap Confirmation Dialog */}
-      <AlertDialog open={showSwapConfirm} onOpenChange={setShowSwapConfirm}>
-        <AlertDialogContent className="w-[calc(100%-2rem)] rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-center">{t('jobDetail.confirmSwap') || 'ยืนยันการสลับจุดส่ง'}</AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              {pendingSwap && (
-                <span className="flex items-center justify-center gap-2 mt-2">
-                  <span className="px-2 py-1 bg-blue-50 rounded-lg text-sm font-medium text-blue-700">{pendingSwap.fromName}</span>
-                  <Repeat2 className="w-4 h-4 text-gray-400" />
-                  <span className="px-2 py-1 bg-blue-50 rounded-lg text-sm font-medium text-blue-700">{pendingSwap.toName}</span>
-                </span>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2">
-            <AlertDialogCancel className="flex-1 mt-0">{t('common.cancel') || 'ยกเลิก'}</AlertDialogCancel>
-            <AlertDialogAction className="flex-1 bg-[#225795]" onClick={confirmSwap}>{t('common.confirm') || 'ยืนยัน'}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Swap is now instant via drag-and-drop — no confirmation dialog */}
 
       {/* Goods Detail Modal */}
       <Dialog open={showGoodsModal} onOpenChange={setShowGoodsModal}>
