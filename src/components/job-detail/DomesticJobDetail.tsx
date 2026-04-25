@@ -230,14 +230,14 @@ export default function DomesticJobDetail({
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, {checked_in_at: string | null;sop_completed_at: string | null;}>>({});
-  // Reorder state for multi-destination
-  const [isReorderMode, setIsReorderMode] = useState(false);
+  // Reorder state for multi-destination (drag-and-drop, no toggle button)
   const [localDestOrder, setLocalDestOrder] = useState<JobDestination[]>([]);
-  const [pendingSwap, setPendingSwap] = useState<{fromIdx: number; toIdx: number; fromName: string; toName: string} | null>(null);
-  const [showSwapConfirm, setShowSwapConfirm] = useState(false);
   const [activeDestIdx, setActiveDestIdx] = useState<number | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  // Long-press to start drag (mobile): require 3s hold before drag is enabled
+  const [longPressIdx, setLongPressIdx] = useState<number | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStartY = useRef<number>(0);
   const dragItemRef = useRef<number | null>(null);
   const [showOcrDrawer, setShowOcrDrawer] = useState(false);
@@ -759,7 +759,7 @@ export default function DomesticJobDetail({
       cancelAnimationFrame(raf1);
       if (raf2) cancelAnimationFrame(raf2);
     };
-  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location, localDestOrder, isReorderMode]);
+  }, [jobApplication, job.destinations, pickupSopCompleted, pickupCheckedIn, deliveryCheckedIn, deliverySopCompleted, destinationCheckins, isOcrVerified, emptyContainerCheckedIn, job.container_return_location, localDestOrder]);
 
   // Use destinations from job props if available, otherwise empty array
   const destinations: JobDestination[] = job.destinations || [];
@@ -815,6 +815,7 @@ export default function DomesticJobDetail({
 
   const handleSwapRequest = (fromIdx: number, toIdx: number) => {
     if (toIdx < 0 || toIdx >= displayDestinations.length) return;
+    if (fromIdx === toIdx) return;
     // Prevent swapping destinations that are already checked in
     const fromDest = displayDestinations[fromIdx];
     const toDest = displayDestinations[toIdx];
@@ -826,10 +827,8 @@ export default function DomesticJobDetail({
       toast({ title: t('jobDetail.cannotReorder') || 'สลับไม่ได้', description: t('jobDetail.cannotReorderCheckedIn') || 'จุดส่งที่เช็คอินแล้วไม่สามารถสลับได้', variant: 'destructive' });
       return;
     }
-    const fromName = fromDest.company_name || `#${fromDest.sequence_number}`;
-    const toName = toDest.company_name || `#${toDest.sequence_number}`;
-    setPendingSwap({ fromIdx, toIdx, fromName, toName });
-    setShowSwapConfirm(true);
+    // Swap immediately without confirmation
+    void performSwap(fromIdx, toIdx);
   };
 
   // Voice reorder hook
@@ -872,21 +871,21 @@ export default function DomesticJobDetail({
     },
   });
 
-  const confirmSwap = async () => {
-    if (!pendingSwap) return;
+  const performSwap = async (fromIdx: number, toIdx: number) => {
     const newOrder = [...displayDestinations];
+    if (fromIdx < 0 || toIdx < 0 || fromIdx >= newOrder.length || toIdx >= newOrder.length) return;
     // Save delivery_date/time from original positions so they stay in place
-    const fromDate = newOrder[pendingSwap.fromIdx].delivery_date;
-    const fromTime = newOrder[pendingSwap.fromIdx].delivery_time;
-    const toDate = newOrder[pendingSwap.toIdx].delivery_date;
-    const toTime = newOrder[pendingSwap.toIdx].delivery_time;
+    const fromDate = newOrder[fromIdx].delivery_date;
+    const fromTime = newOrder[fromIdx].delivery_time;
+    const toDate = newOrder[toIdx].delivery_date;
+    const toTime = newOrder[toIdx].delivery_time;
     // Swap destinations
-    [newOrder[pendingSwap.fromIdx], newOrder[pendingSwap.toIdx]] = [newOrder[pendingSwap.toIdx], newOrder[pendingSwap.fromIdx]];
+    [newOrder[fromIdx], newOrder[toIdx]] = [newOrder[toIdx], newOrder[fromIdx]];
     // Restore delivery_date/time to their original positions (don't swap them)
-    newOrder[pendingSwap.fromIdx].delivery_date = fromDate;
-    newOrder[pendingSwap.fromIdx].delivery_time = fromTime;
-    newOrder[pendingSwap.toIdx].delivery_date = toDate;
-    newOrder[pendingSwap.toIdx].delivery_time = toTime;
+    newOrder[fromIdx].delivery_date = fromDate;
+    newOrder[fromIdx].delivery_time = fromTime;
+    newOrder[toIdx].delivery_date = toDate;
+    newOrder[toIdx].delivery_time = toTime;
     // Reassign sequence_number to match new visual order so API calls use the correct sequence
     const resequenced = newOrder.map((dest, idx) => ({
       ...dest,
@@ -899,8 +898,6 @@ export default function DomesticJobDetail({
     } catch (e) {
       console.error('Error saving dest order:', e);
     }
-    setShowSwapConfirm(false);
-    setPendingSwap(null);
     toast({ title: t('jobDetail.swapSuccess') || 'สลับจุดส่งสำเร็จ' });
 
     // Send reorder to API (fire-and-forget, localStorage is the primary persistence)
@@ -1106,17 +1103,8 @@ export default function DomesticJobDetail({
                       {voiceReorder.isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsReorderMode(!isReorderMode)}
-                    className={`h-7 px-3 text-[11px] font-medium gap-1.5 rounded-lg shadow-sm ${
-                      isReorderMode ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'bg-white text-[#225795] border-[#225795]/40 hover:bg-[#225795]/5 hover:text-black'
-                    }`}
-                  >
-                    <Repeat2 className="w-3.5 h-3.5" />
-                    {isReorderMode ? t('jobDetail.doneReorder') : t('jobDetail.reorder')}
-                  </Button>
+                  {/* Swap toggle button removed — drag-and-drop is always active.
+                      Long-press 3s on a delivery card and drag it onto another card to swap. */}
                 </div>
               )}
             </div>
@@ -1580,111 +1568,123 @@ export default function DomesticJobDetail({
               };
               const statusInfo = getStatusInfo();
 
+              const canDrag = displayDestinations.length > 1 && !isCheckedIn && !isPodCompleted && !isFromHistory;
+              const isDragging = dragIdx === index;
+              const isDragTarget = dragOverIdx === index && dragIdx !== null && dragIdx !== index;
+              const isLongPressActive = longPressIdx === index;
+
+              const clearLongPress = () => {
+                if (longPressTimerRef.current) {
+                  clearTimeout(longPressTimerRef.current);
+                  longPressTimerRef.current = null;
+                }
+                setLongPressIdx(null);
+              };
+
               return (
-                <Card key={dest.id} ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}} className={`overflow-hidden border-2 rounded-xl ${isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
+                <Card
+                  key={dest.id}
+                  ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}}
+                  data-reorder-idx={index}
+                  draggable={canDrag}
+                  onDragStart={(e) => {
+                    if (!canDrag) { e.preventDefault(); return; }
+                    setDragIdx(index);
+                    dragItemRef.current = index;
+                    e.dataTransfer.effectAllowed = 'move';
+                  }}
+                  onDragOver={(e) => {
+                    if (dragItemRef.current === null) return;
+                    if (isCheckedIn || isPodCompleted) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    setDragOverIdx(index);
+                  }}
+                  onDragLeave={() => {
+                    if (dragOverIdx === index) setDragOverIdx(null);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (isCheckedIn || isPodCompleted) return;
+                    const fromIdx = dragItemRef.current;
+                    if (fromIdx !== null && fromIdx !== index) {
+                      handleSwapRequest(fromIdx, index);
+                    }
+                    setDragIdx(null);
+                    setDragOverIdx(null);
+                    dragItemRef.current = null;
+                  }}
+                  onDragEnd={() => {
+                    setDragIdx(null);
+                    setDragOverIdx(null);
+                    dragItemRef.current = null;
+                  }}
+                  onTouchStart={(e) => {
+                    if (!canDrag) return;
+                    dragStartY.current = e.touches[0].clientY;
+                    // Start 3-second long-press timer to enable drag
+                    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+                    longPressTimerRef.current = setTimeout(() => {
+                      setLongPressIdx(index);
+                      setDragIdx(index);
+                      dragItemRef.current = index;
+                      // Haptic feedback if available
+                      if (navigator.vibrate) navigator.vibrate(50);
+                    }, 3000);
+                  }}
+                  onTouchMove={(e) => {
+                    // If user moves significantly before 3s, cancel long-press (treat as scroll)
+                    if (dragItemRef.current === null) {
+                      const dy = Math.abs(e.touches[0].clientY - dragStartY.current);
+                      if (dy > 10 && longPressTimerRef.current) {
+                        clearTimeout(longPressTimerRef.current);
+                        longPressTimerRef.current = null;
+                      }
+                      return;
+                    }
+                    // Drag in progress: detect target
+                    const touch = e.touches[0];
+                    const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+                    const cardEl = elements.find(el => el.getAttribute('data-reorder-idx'));
+                    if (cardEl) {
+                      const overIdx = parseInt(cardEl.getAttribute('data-reorder-idx')!, 10);
+                      setDragOverIdx(overIdx);
+                    }
+                  }}
+                  onTouchEnd={() => {
+                    if (longPressTimerRef.current) {
+                      clearTimeout(longPressTimerRef.current);
+                      longPressTimerRef.current = null;
+                    }
+                    if (dragItemRef.current !== null) {
+                      const fromIdx = dragItemRef.current;
+                      if (dragOverIdx !== null && fromIdx !== dragOverIdx) {
+                        handleSwapRequest(fromIdx, dragOverIdx);
+                      }
+                    }
+                    setDragIdx(null);
+                    setDragOverIdx(null);
+                    dragItemRef.current = null;
+                    setLongPressIdx(null);
+                  }}
+                  onTouchCancel={clearLongPress}
+                  className={`overflow-hidden border-2 rounded-xl transition-all ${
+                    isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'
+                  } ${isDragging ? 'opacity-60 scale-[0.98] shadow-lg' : ''} ${isDragTarget ? 'ring-2 ring-orange-400 ring-offset-1' : ''} ${isLongPressActive ? 'ring-2 ring-blue-400' : ''} ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                >
                     <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
                       <h3 className="font-medium text-xs text-white">
                         {t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}
-                        {isReorderMode && dest.company_name ? ` — ${dest.company_name}` : ''}
                       </h3>
-                      {!isReorderMode && (isDestinationLocked ?
+                      {isDestinationLocked ?
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
                           {t('jobDetail.waitingPreviousStep')}
                         </span> :
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">
                           {statusInfo.text}
                         </span>
-                    )}
+                    }
                     </div>
-                    {/* Compact reorder mode - only drag for non-checked-in items */}
-                    {isReorderMode && displayDestinations.length > 1 ? (
-                      <div
-                        className={`flex items-center gap-3 px-3 py-2.5 select-none transition-all ${
-                          isCheckedIn || isPodCompleted
-                            ? 'bg-gray-100 cursor-not-allowed opacity-60'
-                            : `bg-white cursor-grab active:cursor-grabbing ${dragIdx === index ? 'opacity-50 scale-95' : ''} ${dragOverIdx === index && dragIdx !== index ? 'border-t-2 border-orange-400' : ''}`
-                        }`}
-                        draggable={!isCheckedIn && !isPodCompleted}
-                        onDragStart={(e) => {
-                          if (isCheckedIn || isPodCompleted) { e.preventDefault(); return; }
-                          setDragIdx(index);
-                          dragItemRef.current = index;
-                          e.dataTransfer.effectAllowed = 'move';
-                        }}
-                        onDragOver={(e) => {
-                          if (isCheckedIn || isPodCompleted) return;
-                          e.preventDefault();
-                          e.dataTransfer.dropEffect = 'move';
-                          setDragOverIdx(index);
-                        }}
-                        onDragLeave={() => setDragOverIdx(null)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (isCheckedIn || isPodCompleted) return;
-                          const fromIdx = dragItemRef.current;
-                          if (fromIdx !== null && fromIdx !== index) {
-                            handleSwapRequest(fromIdx, index);
-                          }
-                          setDragIdx(null);
-                          setDragOverIdx(null);
-                          dragItemRef.current = null;
-                        }}
-                        onDragEnd={() => {
-                          setDragIdx(null);
-                          setDragOverIdx(null);
-                          dragItemRef.current = null;
-                        }}
-                        onTouchStart={(e) => {
-                          if (isCheckedIn || isPodCompleted) return;
-                          dragStartY.current = e.touches[0].clientY;
-                          setDragIdx(index);
-                          dragItemRef.current = index;
-                        }}
-                        onTouchMove={(e) => {
-                          if (isCheckedIn || isPodCompleted) return;
-                          const touch = e.touches[0];
-                          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
-                          const cardEl = elements.find(el => el.getAttribute('data-reorder-idx'));
-                          if (cardEl) {
-                            const overIdx = parseInt(cardEl.getAttribute('data-reorder-idx')!, 10);
-                            setDragOverIdx(overIdx);
-                          }
-                        }}
-                        onTouchEnd={() => {
-                          if (isCheckedIn || isPodCompleted) { setDragIdx(null); setDragOverIdx(null); dragItemRef.current = null; return; }
-                          const fromIdx = dragItemRef.current;
-                          if (fromIdx !== null && dragOverIdx !== null && fromIdx !== dragOverIdx) {
-                            handleSwapRequest(fromIdx, dragOverIdx);
-                          }
-                          setDragIdx(null);
-                          setDragOverIdx(null);
-                          dragItemRef.current = null;
-                        }}
-                        data-reorder-idx={index}
-                      >
-                        {isCheckedIn || isPodCompleted ? (
-                          <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
-                        ) : (
-                          <GripVertical className="w-5 h-5 text-gray-400 shrink-0" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium text-gray-700">
-                            {t('jobDetail.deliveryPoint')} #{index + 1}
-                            {dest.company_name ? ` — ${dest.company_name}` : ''}
-                            {dest.district ? ` (${dest.district})` : ''}
-                          </span>
-                          {dest.invoice_number && (
-                            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
-                              <FileText className="w-3.5 h-3.5 shrink-0" />
-                              <span className="font-medium">INV: {dest.invoice_number}</span>
-                            </div>
-                          )}
-                        </div>
-                        {(isCheckedIn || isPodCompleted) && (
-                          <span className="text-[10px] text-gray-400">{t('jobDetail.cannotReorder') || 'สลับไม่ได้'}</span>
-                        )}
-                      </div>
-                    ) : (
                     <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         <div className="flex items-start gap-2">
@@ -1808,7 +1808,6 @@ export default function DomesticJobDetail({
                         </Button>
                       </div>
                     </div>
-                    )}
                   </Card>);
 
             }) :
@@ -2268,27 +2267,7 @@ export default function DomesticJobDetail({
         </DrawerContent>
       </Drawer>
 
-      {/* Swap Confirmation Dialog */}
-      <AlertDialog open={showSwapConfirm} onOpenChange={setShowSwapConfirm}>
-        <AlertDialogContent className="w-[calc(100%-2rem)] rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-center">{t('jobDetail.confirmSwap') || 'ยืนยันการสลับจุดส่ง'}</AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              {pendingSwap && (
-                <span className="flex items-center justify-center gap-2 mt-2">
-                  <span className="px-2 py-1 bg-blue-50 rounded-lg text-sm font-medium text-blue-700">{pendingSwap.fromName}</span>
-                  <Repeat2 className="w-4 h-4 text-gray-400" />
-                  <span className="px-2 py-1 bg-blue-50 rounded-lg text-sm font-medium text-blue-700">{pendingSwap.toName}</span>
-                </span>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2">
-            <AlertDialogCancel className="flex-1 mt-0">{t('common.cancel') || 'ยกเลิก'}</AlertDialogCancel>
-            <AlertDialogAction className="flex-1 bg-[#225795]" onClick={confirmSwap}>{t('common.confirm') || 'ยืนยัน'}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Swap is now instant via drag-and-drop — no confirmation dialog */}
 
       {/* Goods Detail Modal */}
       <Dialog open={showGoodsModal} onOpenChange={setShowGoodsModal}>
