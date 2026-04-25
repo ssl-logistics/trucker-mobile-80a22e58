@@ -239,24 +239,20 @@ const isValidName = (val: any): string => {
       // Determine which API to call based on user type - using external API directly
       if (isInternalDriver || isExternalDriver) {
         // Internal/External drivers use get-driver-assigned-jobs API
+        // Single API call with comma-separated statuses, then filter client-side
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [inProgressRes, awaitingRes] = await Promise.all([
-          getDriverAssignedJobs(user.id, driverType, 10, 'in_progress'),
-          getDriverAssignedJobs(user.id, driverType, 10, 'awaiting_response'),
-        ]);
+        const statuses = ['in_progress', 'awaiting_response'].join(',');
+        const res = await getDriverAssignedJobs(user.id, driverType, 50, statuses);
 
-        if (inProgressRes.error && awaitingRes.error) {
-          console.error('Error loading factory/driver jobs:', inProgressRes.error, awaitingRes.error);
+        if (res.error) {
+          console.error('Error loading factory/driver jobs:', res.error);
           setIsLoadingFactoryJobs(false);
           return;
         }
 
-        const mergedJobs = [
-          ...((inProgressRes.data as any)?.data || []),
-          ...((awaitingRes.data as any)?.data || []),
-        ];
+        const allJobs = ((res.data as any)?.data || []) as any[];
 
-        const uniqueJobs = mergedJobs.filter((item: any, index: number, arr: any[]) => {
+        const uniqueJobs = allJobs.filter((item: any, index: number, arr: any[]) => {
           const itemKey = item?.id || item?.order_number;
           return arr.findIndex((j: any) => (j?.id || j?.order_number) === itemKey) === index;
         });
