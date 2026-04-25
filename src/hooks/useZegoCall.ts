@@ -397,7 +397,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       }
     };
 
-    const interval = setInterval(pollCallStatus, 2500);
+    // Increased from 2.5s to 12s to reduce 503s on the upstream call-signal edge function.
+    const interval = setInterval(pollCallStatus, 12000);
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
