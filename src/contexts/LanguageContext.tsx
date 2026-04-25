@@ -5101,7 +5101,6 @@ const zhTranslations: Record<string, string> = {
   'home.welcome': '欢迎',
   'home.available_jobs': '可用工作',
   'home.no_jobs': '暂无可用工作',
-  'home.filter': '筛选',
   'home.sort': '排序',
   
   // Job Card
