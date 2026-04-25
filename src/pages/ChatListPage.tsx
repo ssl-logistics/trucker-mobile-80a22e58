@@ -14,8 +14,9 @@ export default function ChatListPage() {
   const [callLogs, setCallLogs] = useState<CallLogEntry[]>([]);
   const [page, setPage] = useState(0);
 
-  const loadLogs = () => {
-    setCallLogs(getCallLogs());
+  const loadLogs = async () => {
+    const logs = await getCallLogs();
+    setCallLogs(logs);
     setPage(0);
   };
 
