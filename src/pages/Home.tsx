@@ -30,7 +30,8 @@ import {
   getFactoryAssignedJobs, 
   getFreelanceAcceptedJobs,
   getExpressRentPosts,
-  acceptExpressRentJob 
+  acceptExpressRentJob,
+  logout as externalLogout,
 } from '@/lib/externalApi';
 interface Job {
   id: string;
@@ -1124,15 +1125,8 @@ const isValidName = (val: any): string => {
   const handleSignOut = async () => {
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
-      
       if (driverId) {
-        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/logout-proxy`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ driver_id: driverId }),
-        });
+        await externalLogout(driverId);
       }
     } catch (error) {
       console.error('Logout API error:', error);

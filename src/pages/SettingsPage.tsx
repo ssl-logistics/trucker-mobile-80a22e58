@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
+import { logout as externalLogout } from '@/lib/externalApi';
 import {
   isPushSupported,
   isPushEnabled,
@@ -232,18 +233,11 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    
+
     try {
       const driverId = user?.id || localStorage.getItem('auth_driver_id');
-      
       if (driverId) {
-        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/logout-proxy`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ driver_id: driverId }),
-        });
+        await externalLogout(driverId);
       }
     } catch (error) {
       console.error('Logout API error:', error);
