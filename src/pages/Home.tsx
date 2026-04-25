@@ -91,6 +91,7 @@ const isValidName = (val: any): string => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   // Set default filter based on user type from AuthContext (more reliable than hooks)
   // Internal/External drivers should see factory jobs by default (their assigned jobs)
   const getDefaultFilter = (): 'all' | 'company' | 'factory' => {
