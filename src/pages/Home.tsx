@@ -102,6 +102,19 @@ const isValidName = (val: any): string => {
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Category filter (multi-select). Empty = show all categories.
+  type CategoryKey = 'bl' | 'booking' | 'multi' | 'single';
+  const [categoryFilters, setCategoryFilters] = useState<Set<CategoryKey>>(new Set());
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const toggleCategoryFilter = (key: CategoryKey) => {
+    setCategoryFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+  const clearCategoryFilters = () => setCategoryFilters(new Set());
   // Set default filter based on user type from AuthContext (more reliable than hooks)
   // Internal/External drivers should see factory jobs by default (their assigned jobs)
   const getDefaultFilter = (): 'all' | 'company' | 'factory' => {
