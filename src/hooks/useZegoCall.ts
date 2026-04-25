@@ -402,7 +402,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
-  // Poll for incoming call signals every 2.5 seconds
+  // Poll for incoming call signals every 12 seconds (was 2.5s — caused 503s upstream)
   useEffect(() => {
     if (!currentUserId) return;
 
