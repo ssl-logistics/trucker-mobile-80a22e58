@@ -1728,6 +1728,9 @@ export default function DomesticJobDetail({
                               <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.goodsType') || 'สินค้า'}</span>
                               <div className="flex flex-wrap gap-1 items-center">
+                                <span className="inline-flex items-center justify-center bg-[#225795] text-white text-xs font-semibold px-2 py-0.5 rounded-full min-w-[24px]">
+                                  {allItems.length}
+                                </span>
                                 {display.length > 0 ? display.map((item, i) => (
                                   <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[140px]">
                                     {item.label}
