@@ -164,17 +164,41 @@ const isValidName = (val: any): string => {
         return true;
       });
 
+    // Apply free-text search across common identifiers (BL/Booking/Order/Origin/Destination/Employer/Goods)
+    const applySearch = (jobList: Job[]) => {
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return jobList;
+      return jobList.filter((job: any) => {
+        const fields = [
+          job.order_code,
+          job.bl_no,
+          job.booking_no,
+          job.employer_name,
+          job.destination_company_name,
+          job.origin_location,
+          job.destination_location,
+          job.goods_type,
+          job.transport_type,
+          job.transport_type_label,
+          job.equipment_list,
+          job.shipper,
+          job.consignee,
+        ];
+        return fields.some((f) => typeof f === 'string' && f.toLowerCase().includes(q));
+      });
+    };
+
     // Internal/External drivers ONLY see their assigned factory jobs
     if (userType === 'internal_driver' || userType === 'external_driver') {
-      return sortJobsByDateDesc(filterInternationalWithoutRef(factoryJobs));
+      return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(factoryJobs)));
     }
 
     if (jobFilter === 'factory') {
-      return sortJobsByDateDesc(filterInternationalWithoutRef(factoryJobs));
+      return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(factoryJobs)));
     }
 
     // 'all' and 'company' both show company jobs (current API)
-    return sortJobsByDateDesc(filterInternationalWithoutRef(jobs));
+    return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(jobs)));
   };
 
   const displayedJobs = getDisplayedJobs();
