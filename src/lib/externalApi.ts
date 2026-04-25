@@ -102,22 +102,29 @@ export async function callExternalApi<T>(
     
     console.log(`[ExternalAPI] ${method} ${endpoint}`, params || body || '');
     
-    // Retry logic for transient network errors
-    const MAX_RETRIES = 2;
+    // Retry logic for transient network errors (5xx, including 503 from edge runtime cold-starts)
+    const MAX_RETRIES = 3;
     let lastError: string = '';
     
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
         if (attempt > 0) {
-          console.log(`[ExternalAPI] Retry ${attempt}/${MAX_RETRIES} for ${endpoint}`);
-          await new Promise(r => setTimeout(r, 1000 * attempt));
+          // Exponential backoff: 800ms, 1600ms, 3200ms
+          const delay = 800 * Math.pow(2, attempt - 1);
+          console.log(`[ExternalAPI] Retry ${attempt}/${MAX_RETRIES} for ${endpoint} after ${delay}ms`);
+          await new Promise(r => setTimeout(r, delay));
         }
         
         const response = await fetch(url, fetchOptions);
         
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`[ExternalAPI] Error ${response.status}:`, errorText);
+          // 503 from edge runtime is transient — log as warn instead of error to avoid runtime-error overlay
+          if (response.status === 503) {
+            console.warn(`[ExternalAPI] 503 transient (attempt ${attempt + 1}) on ${endpoint}`);
+          } else {
+            console.error(`[ExternalAPI] Error ${response.status}:`, errorText);
+          }
           let errorMessage = `API Error: ${response.status}`;
           try {
             const errorJson = JSON.parse(errorText);
