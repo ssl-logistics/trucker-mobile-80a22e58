@@ -12,6 +12,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
 import {
+  getDriverAssignedJobs,
+  getFactoryAssignedJobs,
+  getFreelanceAcceptedJobs,
+} from '@/lib/externalApi';
+import {
   Sheet,
   SheetContent,
   SheetDescription,
