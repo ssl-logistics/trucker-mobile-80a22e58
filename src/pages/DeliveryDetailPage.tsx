@@ -162,19 +162,15 @@ export default function DeliveryDetailPage() {
         foundJob = stateJob;
       } else if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
-        // Only fetch statuses relevant to delivery flow
-        const [inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes] = await Promise.all([
-          getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'returning_container'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'at_container_return'),
-        ]);
-        const combinedData = [
-          ...((inTransitRes.data as any)?.data || []),
-          ...((deliveredRes.data as any)?.data || []),
-          ...((returningContainerRes.data as any)?.data || []),
-          ...((atContainerReturnRes.data as any)?.data || []),
-        ];
+        // Single API call with comma-separated statuses, then filter client-side
+        const statuses = [
+          'in_transit',
+          'delivered',
+          'returning_container',
+          'at_container_return',
+        ].join(',');
+        const res = await getDriverAssignedJobs(user.id, driverType, 100, statuses);
+        const combinedData = ((res.data as any)?.data || []) as any[];
         foundJob = combinedData.find((j: any) => j.order_number === jobId);
         
         // Fallback to navigation state if not found

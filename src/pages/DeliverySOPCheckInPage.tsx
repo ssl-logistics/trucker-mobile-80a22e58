@@ -107,24 +107,18 @@ export default function DeliverySOPCheckInPage() {
       let allJobs: any[] = [];
 
       if (isInternalDriver || isExternalDriver) {
-        // For internal/external drivers, use getDriverAssignedJobs
+        // For internal/external drivers, use getDriverAssignedJobs (single call, comma-separated statuses)
         const driverType = isInternalDriver ? 'internal' : 'external';
-        const [inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes, containerReturnedRes, completedRes] = await Promise.all([
-          getDriverAssignedJobs(user.id, driverType, 50, 'in_transit'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'delivered'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'returning_container'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'at_container_return'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'container_returned'),
-          getDriverAssignedJobs(user.id, driverType, 50, 'completed'),
-        ]) as any[];
-        allJobs = [
-          ...((inTransitRes as any)?.data || []),
-          ...((deliveredRes as any)?.data || []),
-          ...((returningContainerRes as any)?.data || []),
-          ...((atContainerReturnRes as any)?.data || []),
-          ...((containerReturnedRes as any)?.data || []),
-          ...((completedRes as any)?.data || []),
-        ];
+        const statuses = [
+          'in_transit',
+          'delivered',
+          'returning_container',
+          'at_container_return',
+          'container_returned',
+          'completed',
+        ].join(',');
+        const res = await getDriverAssignedJobs(user.id, driverType, 100, statuses);
+        allJobs = ((res.data as any)?.data || []) as any[];
       } else {
         // For freelance drivers, use getFreelanceAcceptedJobs
         const result = await getFreelanceAcceptedJobs(user.id) as any;
