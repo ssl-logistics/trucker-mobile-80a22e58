@@ -1361,6 +1361,65 @@ const isValidName = (val: any): string => {
         orderCode={selectedFactoryJob?.order_code || ''} 
         isLoading={isFactoryJobProcessing} 
       />
+
+      {/* Filter Sheet (slides in from the right) */}
+      <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+        <SheetContent side="right" className="w-[85vw] sm:w-[380px] flex flex-col">
+          <SheetHeader>
+            <SheetTitle>{t('home.filter') || 'ตัวกรอง'}</SheetTitle>
+            <SheetDescription>
+              {t('home.filterDescription') || 'เลือกประเภทงานที่ต้องการแสดง'}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto py-4 space-y-2">
+            {([
+              { key: 'bl' as CategoryKey, label: t('home.filterBL') || 'งาน BL' },
+              { key: 'booking' as CategoryKey, label: t('home.filterBooking') || 'งาน Booking' },
+              { key: 'multi' as CategoryKey, label: t('home.filterMulti') || 'งานส่งหลายที่' },
+              { key: 'single' as CategoryKey, label: t('home.filterSingle') || 'งานส่งเที่ยวเดียว' },
+            ]).map((opt) => {
+              const checked = categoryFilters.has(opt.key);
+              return (
+                <label
+                  key={opt.key}
+                  htmlFor={`cat-${opt.key}`}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    checked ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'
+                  }`}
+                >
+                  <Checkbox
+                    id={`cat-${opt.key}`}
+                    checked={checked}
+                    onCheckedChange={() => toggleCategoryFilter(opt.key)}
+                  />
+                  <span className="text-sm font-medium">{opt.label}</span>
+                </label>
+              );
+            })}
+          </div>
+
+          <SheetFooter className="flex-row gap-2 sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={clearCategoryFilters}
+              disabled={categoryFilters.size === 0}
+              className="flex-1"
+            >
+              <X className="w-4 h-4 mr-1" />
+              {t('home.filterClear') || 'ล้างตัวกรอง'}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setFilterSheetOpen(false)}
+              className="flex-1"
+            >
+              {t('home.filterApply') || 'ใช้ตัวกรอง'}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
