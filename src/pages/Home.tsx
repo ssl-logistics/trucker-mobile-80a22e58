@@ -226,17 +226,38 @@ const isValidName = (val: any): string => {
       });
     };
 
+    // Apply category filter (BL / Booking / Multi-destination / Single-destination)
+    // Multi-select: a job passes if it matches ANY selected category. Empty set = pass-through.
+    const applyCategoryFilter = (jobList: Job[]) => {
+      if (categoryFilters.size === 0) return jobList;
+      return jobList.filter((job: any) => {
+        const destCount = Array.isArray(job.destinations) ? job.destinations.length : 0;
+        const isMulti = destCount > 1;
+        const isSingle = destCount <= 1;
+        const hasBl = !!(job.bl_no || job.bl_number || job.bill_of_lading);
+        const hasBooking = !!(job.booking_no || job.booking_number);
+        if (categoryFilters.has('bl') && hasBl) return true;
+        if (categoryFilters.has('booking') && hasBooking) return true;
+        if (categoryFilters.has('multi') && isMulti) return true;
+        if (categoryFilters.has('single') && isSingle) return true;
+        return false;
+      });
+    };
+
+    const pipeline = (jobList: Job[]) =>
+      sortJobsByDateDesc(applyCategoryFilter(applySearch(filterInternationalWithoutRef(jobList))));
+
     // Internal/External drivers ONLY see their assigned factory jobs
     if (userType === 'internal_driver' || userType === 'external_driver') {
-      return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(factoryJobs)));
+      return pipeline(factoryJobs);
     }
 
     if (jobFilter === 'factory') {
-      return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(factoryJobs)));
+      return pipeline(factoryJobs);
     }
 
     // 'all' and 'company' both show company jobs (current API)
-    return sortJobsByDateDesc(applySearch(filterInternationalWithoutRef(jobs)));
+    return pipeline(jobs);
   };
 
   const displayedJobs = getDisplayedJobs();
