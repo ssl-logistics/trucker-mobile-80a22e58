@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, X, Image as ImageIcon } from 'lucide-react';
@@ -280,7 +281,7 @@ export default function PlaceBidPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,.pdf"
+              accept={ACCEPT_IMAGE_DOC}
               onChange={handleFileChange}
               className="hidden"
             />

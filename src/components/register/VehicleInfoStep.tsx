@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
@@ -209,7 +210,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         <input 
           id={`${id}-camera`}
           type="file" 
-          accept="image/*"
+          accept={ACCEPT_IMAGE_DOC}
           capture="environment"
           className="hidden"
           onChange={(e) => {
@@ -220,7 +221,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         <input 
           id={`${id}-gallery`}
           type="file" 
-          accept="image/*" 
+          accept={ACCEPT_IMAGE_DOC} 
           className="hidden"
           onChange={(e) => {
             const selectedFile = e.target.files?.[0] || null;

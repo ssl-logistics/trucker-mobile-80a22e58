@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown } from "lucide-react";
@@ -552,7 +553,7 @@ const AddExpensePage = () => {
                 <div className="relative">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPT_IMAGE_DOC}
                     capture="environment"
                     onChange={(e) => handlePhotoSelect(expense.id, e)}
                     className="hidden"

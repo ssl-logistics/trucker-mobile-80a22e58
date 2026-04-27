@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Camera, Edit2, Image } from 'lucide-react';
@@ -917,7 +918,7 @@ export default function VehicleInfoPage() {
                   <span>{t('vehicle.takePhoto')}</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPT_IMAGE_DOC}
                     capture="environment"
                     className="hidden"
                     onChange={(e) => {
@@ -940,7 +941,7 @@ export default function VehicleInfoPage() {
                   <span>{t('vehicle.chooseFromGallery')}</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPT_IMAGE_DOC}
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -972,7 +973,7 @@ export default function VehicleInfoPage() {
                   <span>{t('vehicle.takePhoto')}</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPT_IMAGE_DOC}
                     capture="environment"
                     className="hidden"
                     onChange={(e) => {
@@ -995,7 +996,7 @@ export default function VehicleInfoPage() {
                   <span>{t('vehicle.chooseFromGallery')}</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPT_IMAGE_DOC}
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];

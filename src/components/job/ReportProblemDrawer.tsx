@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -278,7 +279,7 @@ export default function ReportProblemDrawer({
                       <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
                         <input
                           type="file"
-                          accept="image/*"
+                          accept={ACCEPT_IMAGE_DOC}
                           capture="environment"
                           onChange={handlePhotoChange}
                           className="hidden"
@@ -341,7 +342,7 @@ export default function ReportProblemDrawer({
                       <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
                         <input
                           type="file"
-                          accept="image/*"
+                          accept={ACCEPT_IMAGE_DOC}
                           capture="environment"
                           onChange={handlePhotoChange}
                           className="hidden"
@@ -404,7 +405,7 @@ export default function ReportProblemDrawer({
                       <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
                         <input
                           type="file"
-                          accept="image/*"
+                          accept={ACCEPT_IMAGE_DOC}
                           capture="environment"
                           onChange={handlePhotoChange}
                           className="hidden"

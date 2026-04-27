@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, ArrowLeft, X } from "lucide-react";
@@ -177,7 +178,7 @@ export default function ReportAppProblemPage() {
           <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
             <input
               type="file"
-              accept="image/*"
+              accept={ACCEPT_IMAGE_DOC}
               multiple
               onChange={handlePhotoChange}
               className="hidden"

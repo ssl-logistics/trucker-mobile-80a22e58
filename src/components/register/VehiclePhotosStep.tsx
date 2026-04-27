@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect, useRef } from "react";
 import { Camera, Image } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -170,7 +171,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
         <input
           id={`photo-camera-${type}`}
           type="file"
-          accept="image/*"
+          accept={ACCEPT_IMAGE_DOC}
           capture="environment"
           className="hidden"
           onChange={(e) => handlePhotoChange(type, e)}
@@ -178,7 +179,7 @@ const VehiclePhotosStep = ({ data, onNext, onBack }: VehiclePhotosStepProps) => 
         <input
           id={`photo-gallery-${type}`}
           type="file"
-          accept="image/*"
+          accept={ACCEPT_IMAGE_DOC}
           className="hidden"
           onChange={(e) => handlePhotoChange(type, e)}
         />

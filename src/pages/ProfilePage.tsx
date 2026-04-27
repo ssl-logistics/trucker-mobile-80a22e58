@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Camera, Edit2, Loader2 } from 'lucide-react';
@@ -283,7 +284,7 @@ export default function ProfilePage() {
             <input
               ref={cameraInputRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPT_IMAGE_DOC}
               capture="environment"
               onChange={handleFileSelect}
               className="hidden"
@@ -292,7 +293,7 @@ export default function ProfilePage() {
             <input
               ref={galleryInputRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPT_IMAGE_DOC}
               onChange={handleFileSelect}
               className="hidden"
               disabled={loading}

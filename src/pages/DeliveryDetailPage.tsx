@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Phone, MapPin, Camera, Check, CheckCircle } from "lucide-react";
@@ -977,7 +978,7 @@ export default function DeliveryDetailPage() {
                 </>
               )}
             </div>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+            <input ref={fileInputRef} type="file" accept={ACCEPT_IMAGE_DOC} onChange={handlePhotoChange} className="hidden" />
 
             {/* Payment method removed - sending null to API */}
           </div>

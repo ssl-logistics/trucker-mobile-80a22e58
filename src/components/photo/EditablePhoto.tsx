@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useRef } from 'react';
 import { Camera, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -191,7 +192,7 @@ export function EditablePhoto({
       <input
         ref={cameraInputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT_IMAGE_DOC}
         capture="environment"
         onChange={handleFileChange}
         className="hidden"
@@ -199,7 +200,7 @@ export function EditablePhoto({
       <input
         ref={galleryInputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT_IMAGE_DOC}
         onChange={handleFileChange}
         className="hidden"
       />

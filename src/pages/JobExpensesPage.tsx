@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Camera, Coins, Loader2, Plus, ImagePlus, Trash2 } from 'lucide-react';
@@ -562,7 +563,7 @@ export default function JobExpensesPage() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT_IMAGE_DOC}
         capture="environment"
         className="hidden"
         onChange={handleFileChange}

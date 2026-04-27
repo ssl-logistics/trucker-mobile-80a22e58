@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useRef, useEffect } from "react";
 import { X, Image as ImageIcon, Copy, Check, Lock, Eye, Loader2, AlertCircle, CheckCircle2, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -660,7 +661,7 @@ export function MultiBidPaymentModal({
                         <input
                           ref={hintFileInputRef}
                           type="file"
-                          accept="image/*"
+                          accept={ACCEPT_IMAGE_DOC}
                           onChange={(e) => handleHintSlipChange(e, hintFee)}
                           className="hidden"
                         />
@@ -909,7 +910,7 @@ export function MultiBidPaymentModal({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPT_IMAGE_DOC}
               onChange={handleFileChange}
               className="hidden"
             />
