@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect, useRef } from "react";
 import { Camera, Image } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";

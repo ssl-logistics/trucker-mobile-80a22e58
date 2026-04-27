@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useRef } from 'react';
 import { Camera, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';

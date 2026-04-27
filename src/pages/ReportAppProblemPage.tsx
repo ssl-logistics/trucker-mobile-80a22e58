@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, ArrowLeft, X } from "lucide-react";

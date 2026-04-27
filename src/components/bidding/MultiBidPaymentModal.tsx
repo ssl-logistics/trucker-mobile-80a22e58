@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useRef, useEffect } from "react";
 import { X, Image as ImageIcon, Copy, Check, Lock, Eye, Loader2, AlertCircle, CheckCircle2, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";

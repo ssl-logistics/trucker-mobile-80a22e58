@@ -1,3 +1,4 @@
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown } from "lucide-react";
