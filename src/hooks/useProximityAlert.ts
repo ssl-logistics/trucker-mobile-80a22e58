@@ -67,6 +67,24 @@ function saveWasNear(set: Set<string>) {
   } catch { /* noop */ }
 }
 
+// ── Auto check-in tracking (per-order, persisted) ──────────
+const AUTO_CHECKIN_KEY = (orderCode: string) => `auto_checkin_done_${orderCode}`;
+function isAutoCheckinDone(orderCode: string): boolean {
+  try { return localStorage.getItem(AUTO_CHECKIN_KEY(orderCode)) === '1'; } catch { return false; }
+}
+function markAutoCheckinDone(orderCode: string) {
+  try { localStorage.setItem(AUTO_CHECKIN_KEY(orderCode), '1'); } catch { /* noop */ }
+}
+
+// ── Missing-coords notice (one-shot per order, session) ────
+const MISSING_COORDS_KEY = (orderCode: string) => `missing_pickup_coords_notified_${orderCode}`;
+function isMissingCoordsNotified(orderCode: string): boolean {
+  try { return sessionStorage.getItem(MISSING_COORDS_KEY(orderCode)) === '1'; } catch { return false; }
+}
+function markMissingCoordsNotified(orderCode: string) {
+  try { sessionStorage.setItem(MISSING_COORDS_KEY(orderCode), '1'); } catch { /* noop */ }
+}
+
 // ── Point interface ────────────────────────────────────────
 interface CheckPoint {
   orderCode: string;
