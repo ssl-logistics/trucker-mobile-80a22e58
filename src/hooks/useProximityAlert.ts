@@ -7,7 +7,9 @@ import {
   getFreelanceAcceptedJobs,
   getFactoryAssignedJobs,
   getDriverCheckins,
+  driverCheckin,
 } from '@/lib/externalApi';
+import { toast } from 'sonner';
 
 const CHECK_INTERVAL_MS = 30_000; // 30 seconds
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
@@ -63,6 +65,24 @@ function saveWasNear(set: Set<string>) {
   try {
     localStorage.setItem(WAS_NEAR_STORAGE_KEY, JSON.stringify([...set]));
   } catch { /* noop */ }
+}
+
+// ── Auto check-in tracking (per-order, persisted) ──────────
+const AUTO_CHECKIN_KEY = (orderCode: string) => `auto_checkin_done_${orderCode}`;
+function isAutoCheckinDone(orderCode: string): boolean {
+  try { return localStorage.getItem(AUTO_CHECKIN_KEY(orderCode)) === '1'; } catch { return false; }
+}
+function markAutoCheckinDone(orderCode: string) {
+  try { localStorage.setItem(AUTO_CHECKIN_KEY(orderCode), '1'); } catch { /* noop */ }
+}
+
+// ── Missing-coords notice (one-shot per order, session) ────
+const MISSING_COORDS_KEY = (orderCode: string) => `missing_pickup_coords_notified_${orderCode}`;
+function isMissingCoordsNotified(orderCode: string): boolean {
+  try { return sessionStorage.getItem(MISSING_COORDS_KEY(orderCode)) === '1'; } catch { return false; }
+}
+function markMissingCoordsNotified(orderCode: string) {
+  try { sessionStorage.setItem(MISSING_COORDS_KEY(orderCode), '1'); } catch { /* noop */ }
 }
 
 // ── Point interface ────────────────────────────────────────
@@ -183,6 +203,67 @@ export function useProximityAlert() {
       }
 
       if (!jobs.length) { runningRef.current = false; return; }
+
+      // 2.5 Auto Check-in: ตรวจสอบจุดรับสินค้าจุดแรกของแต่ละงาน
+      // - ถ้าไม่มีพิกัด → แจ้ง toast ให้คนขับเช็คอินเอง
+      // - ถ้ามีพิกัดและอยู่ใกล้ ≤ 1 กม. → ทำ auto check-in
+      for (const job of jobs) {
+        const orderCode = job.order_number || job.order_code || '';
+        if (!orderCode) continue;
+        if (isAutoCheckinDone(orderCode)) continue;
+
+        // Check ว่ามี pickup checkin อยู่แล้วใน DB หรือไม่ (กันซ้ำข้ามอุปกรณ์)
+        const { data: checkinResult } = await getDriverCheckins(user.id, driverType, orderCode);
+        const checkins: any[] = (checkinResult as any)?.data || checkinResult || [];
+        const alreadyPickedUp = Array.isArray(checkins) && checkins.some((c: any) => {
+          const matchesOrder = c.order_number === orderCode || c.transport_orders?.order_number === orderCode;
+          return matchesOrder && c.checkin_type === 'pickup';
+        });
+        if (alreadyPickedUp) {
+          markAutoCheckinDone(orderCode);
+          continue;
+        }
+
+        // ดึงพิกัดจุดรับสินค้าจุดแรก
+        const sLat = Number(job.sender_latitude ?? job.origin_latitude);
+        const sLng = Number(job.sender_longitude ?? job.origin_longitude);
+        const hasPickupCoords = !!(sLat && sLng && !Number.isNaN(sLat) && !Number.isNaN(sLng));
+
+        if (!hasPickupCoords) {
+          // กรณีไม่มีพิกัดจากจุดรับสินค้า → แจ้งให้เช็คอินเอง (one-shot per session)
+          if (!isMissingCoordsNotified(orderCode)) {
+            toast.warning('ไม่มีพิกัดจากจุดรับสินค้า', {
+              description: `งาน ${orderCode} กรุณาเช็คอินที่จุดรับสินค้าด้วยตนเอง`,
+              duration: 8000,
+            });
+            markMissingCoordsNotified(orderCode);
+          }
+          continue;
+        }
+
+        const distToPickup = haversineDistance(myLat, myLng, sLat, sLng);
+        if (distToPickup <= PROXIMITY_THRESHOLD_KM) {
+          try {
+            await driverCheckin({
+              order_number: orderCode,
+              driver_id: user.id,
+              driver_type: driverType,
+              checkin_type: 'pickup',
+              latitude: myLat,
+              longitude: myLng,
+              notes: 'Auto check-in (ภายในระยะ 1 กม. จากจุดรับสินค้า)',
+            });
+            markAutoCheckinDone(orderCode);
+            toast.success('เช็คอินจุดรับสินค้าอัตโนมัติ', {
+              description: `งาน ${orderCode} (ระยะ ${distToPickup.toFixed(2)} กม.)`,
+              duration: 6000,
+            });
+            console.log(`[AutoCheckin] Done for ${orderCode} at ${distToPickup.toFixed(2)} km`);
+          } catch (e) {
+            console.error('[AutoCheckin] Failed:', e);
+          }
+        }
+      }
 
       // 3. Build check-points from jobs (with unique key including coords)
       const points: CheckPoint[] = [];
