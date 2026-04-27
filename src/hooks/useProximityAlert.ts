@@ -7,7 +7,9 @@ import {
   getFreelanceAcceptedJobs,
   getFactoryAssignedJobs,
   getDriverCheckins,
+  driverCheckin,
 } from '@/lib/externalApi';
+import { toast } from 'sonner';
 
 const CHECK_INTERVAL_MS = 30_000; // 30 seconds
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
