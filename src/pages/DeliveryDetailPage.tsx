@@ -977,7 +977,7 @@ export default function DeliveryDetailPage() {
                 </>
               )}
             </div>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+            <input ref={fileInputRef} type="file" accept={ACCEPT_IMAGE_DOC} onChange={handlePhotoChange} className="hidden" />
 
             {/* Payment method removed - sending null to API */}
           </div>

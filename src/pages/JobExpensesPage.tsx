@@ -562,7 +562,7 @@ export default function JobExpensesPage() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT_IMAGE_DOC}
         capture="environment"
         className="hidden"
         onChange={handleFileChange}

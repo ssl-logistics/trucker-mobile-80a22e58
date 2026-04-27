@@ -209,7 +209,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         <input 
           id={`${id}-camera`}
           type="file" 
-          accept="image/*"
+          accept={ACCEPT_IMAGE_DOC}
           capture="environment"
           className="hidden"
           onChange={(e) => {
@@ -220,7 +220,7 @@ const VehicleInfoStep = ({ data, onNext, onBack }: VehicleInfoStepProps) => {
         <input 
           id={`${id}-gallery`}
           type="file" 
-          accept="image/*" 
+          accept={ACCEPT_IMAGE_DOC} 
           className="hidden"
           onChange={(e) => {
             const selectedFile = e.target.files?.[0] || null;

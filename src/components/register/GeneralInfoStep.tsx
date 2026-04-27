@@ -232,7 +232,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
                   <input
                     id="camera-capture"
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPT_IMAGE_DOC}
                     capture
                     className="hidden"
                     onChange={handleProfilePhotoChange}
@@ -248,7 +248,7 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
                   <input
                     id="gallery-select"
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPT_IMAGE_DOC}
                     className="hidden"
                     onChange={handleProfilePhotoChange}
                   />

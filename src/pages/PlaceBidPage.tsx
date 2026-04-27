@@ -280,7 +280,7 @@ export default function PlaceBidPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,.pdf"
+              accept={ACCEPT_IMAGE_DOC}
               onChange={handleFileChange}
               className="hidden"
             />

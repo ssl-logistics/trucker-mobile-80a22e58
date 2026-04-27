@@ -660,7 +660,7 @@ export function MultiBidPaymentModal({
                         <input
                           ref={hintFileInputRef}
                           type="file"
-                          accept="image/*"
+                          accept={ACCEPT_IMAGE_DOC}
                           onChange={(e) => handleHintSlipChange(e, hintFee)}
                           className="hidden"
                         />
@@ -909,7 +909,7 @@ export function MultiBidPaymentModal({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPT_IMAGE_DOC}
               onChange={handleFileChange}
               className="hidden"
             />

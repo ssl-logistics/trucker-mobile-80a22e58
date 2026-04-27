@@ -552,7 +552,7 @@ const AddExpensePage = () => {
                 <div className="relative">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPT_IMAGE_DOC}
                     capture="environment"
                     onChange={(e) => handlePhotoSelect(expense.id, e)}
                     className="hidden"

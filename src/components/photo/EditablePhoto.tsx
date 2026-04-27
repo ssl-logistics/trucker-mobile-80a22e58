@@ -191,7 +191,7 @@ export function EditablePhoto({
       <input
         ref={cameraInputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT_IMAGE_DOC}
         capture="environment"
         onChange={handleFileChange}
         className="hidden"
@@ -199,7 +199,7 @@ export function EditablePhoto({
       <input
         ref={galleryInputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT_IMAGE_DOC}
         onChange={handleFileChange}
         className="hidden"
       />
