@@ -119,29 +119,18 @@ const LineCallbackPage = () => {
         console.log('[LINE Callback] 🔗 Deep link URL:', deepLink);
         console.log('[LINE Callback] 🔗 ==========================================');
 
-        setRedirectingToApp(true);
-        setDeepLinkUrl(deepLink);
-
-        // Try Intent first on Android, then fall back to the custom scheme if
-        // the in-app browser does not hand the intent to Android.
+        // Try to return to the native app silently. If the browser stays visible,
+        // continue the login in this web view instead of showing the stuck
+        // "tap to return to app" interstitial page.
         openNativeApp(deepLink, payloadSchemeUrl);
+        await new Promise((resolve) => window.setTimeout(resolve, 1200));
 
-        // Fallback: try iframe trick after 500ms (sometimes works when location.href is blocked)
-        setTimeout(() => {
-          console.log('[LINE Callback] 🔗 Trying iframe fallback...');
-          try {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = deepLink;
-            document.body.appendChild(iframe);
-            setTimeout(() => iframe.remove(), 2000);
-          } catch (e) {
-            console.error('[LINE Callback] ❌ iframe fallback failed:', e);
-          }
-        }, 500);
+        if (document.visibilityState !== 'visible') {
+          console.log('[LINE Callback] ✅ Native app appears to have opened; stopping web fallback');
+          return;
+        }
 
-        // Don't process further; the native app's deep link handler takes over
-        return;
+        console.log('[LINE Callback] ⚠️ Native app did not open; continuing login on web without interstitial');
       } else {
         console.log('[LINE Callback] ⚠️ NOT redirecting to app. Reason:');
         if (isNative) console.log('[LINE Callback] ⚠️   - Already running in native (Capacitor)');
