@@ -48,7 +48,14 @@ export const initLiff = async (): Promise<void> => {
 export const liffLogin = async (redirectUri?: string): Promise<void> => {
   await initLiff();
   if (!liff.isLoggedIn()) {
-    liff.login({ redirectUri: redirectUri || getLiffRedirectUri() });
+    // ⚠️ Do NOT pass a redirectUri unless it EXACTLY matches the LIFF Endpoint URL
+    // configured in LINE Developers Console. Mismatched values cause 400 Bad Request
+    // on the LINE OAuth callback. Letting LIFF default to the Endpoint URL is safest.
+    if (redirectUri) {
+      liff.login({ redirectUri });
+    } else {
+      liff.login();
+    }
   }
 };
 
