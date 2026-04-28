@@ -26,8 +26,6 @@ import flagCn from "@/assets/flag-cn.png";
 import { LineDebugModal } from "@/components/debug/LineDebugModal";
 import { initLiff, liffLogin, getLiffProfile, liff } from "@/lib/liff";
 
-const LINE_CHANNEL_ID = '2008888039';
-
 const setLineDebugValue = (key: string, value: string) => {
   try {
     localStorage.setItem(key, value);
