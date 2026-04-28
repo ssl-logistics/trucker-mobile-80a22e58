@@ -167,6 +167,18 @@
         var webBtn = document.getElementById('webFallback');
 
         openBtn.href = deepLink;
+        openBtn.addEventListener('click', function (e) {
+          log('User tapped open-app button');
+          if (!isAndroid) return;
+          e.preventDefault();
+          try { window.location.href = intentUrl; } catch (err) { log('Intent click failed: ' + err.message); }
+          setTimeout(function () {
+            if (document.visibilityState === 'visible') {
+              log('Intent did not open app, trying custom scheme');
+              try { window.location.href = payloadScheme; } catch (err) { log('Scheme click failed: ' + err.message); }
+            }
+          }, 650);
+        });
         webBtn.href = window.location.origin + '/#/auth/line/callback' + search;
 
         // Track if user has interacted (helps with iOS Safari restrictions)
@@ -200,11 +212,7 @@
           }, 800);
         }
 
-        // Bind click for explicit user gesture (most reliable)
-        openBtn.addEventListener('click', function (e) {
-          log('User tapped open-app button');
-          // Let the default <a href> navigation happen — user gesture allows scheme launch
-        });
+        // iOS keeps the default <a href> navigation because Safari requires the user gesture.
       })();
     </script>
   </body>

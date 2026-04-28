@@ -26,6 +26,26 @@ const isExternalBrowser = () => {
 const toBase64Url = (value: string) =>
   btoa(unescape(encodeURIComponent(value))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 
+const openNativeApp = (primaryUrl: string, fallbackUrl?: string) => {
+  try {
+    window.location.href = primaryUrl;
+  } catch (e) {
+    console.error('[LINE Callback] ❌ primary deep link failed:', e);
+  }
+
+  if (!fallbackUrl || fallbackUrl === primaryUrl) return;
+
+  window.setTimeout(() => {
+    if (document.visibilityState === 'visible') {
+      try {
+        window.location.href = fallbackUrl;
+      } catch (e) {
+        console.error('[LINE Callback] ❌ fallback deep link failed:', e);
+      }
+    }
+  }, 650);
+};
+
 const LineCallbackPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -102,14 +122,9 @@ const LineCallbackPage = () => {
         setRedirectingToApp(true);
         setDeepLinkUrl(deepLink);
 
-        // Try to open the native app immediately
-        try {
-          console.log('[LINE Callback] 🔗 Setting window.location.href...');
-          window.location.href = deepLink;
-          console.log('[LINE Callback] 🔗 window.location.href set successfully');
-        } catch (e) {
-          console.error('[LINE Callback] ❌ location.href failed:', e);
-        }
+        // Try Intent first on Android, then fall back to the custom scheme if
+        // the in-app browser does not hand the intent to Android.
+        openNativeApp(deepLink, payloadSchemeUrl);
 
         // Fallback: try iframe trick after 500ms (sometimes works when location.href is blocked)
         setTimeout(() => {
