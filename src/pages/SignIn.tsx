@@ -405,7 +405,7 @@ const SignIn = () => {
                 if (!liff.isLoggedIn()) {
                   // Persist redirect target so we can resume after returning
                   try { sessionStorage.setItem('liff_pending_login', '1'); } catch {}
-                  liff.login({ redirectUri: window.location.href });
+                  await liffLogin();
                   return; // browser will navigate away
                 }
 
