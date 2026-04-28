@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
 import { Loader2 } from 'lucide-react';
+import { initLiff, liff } from '@/lib/liff';
 
 const LINE_CALLBACK_BASE_URL = 'https://mobile.the-trucker.com';
 const LINE_CALLBACK_PATH = '/auth/line/callback';
@@ -159,6 +160,89 @@ const LineCallbackPage = () => {
         });
         setTimeout(() => navigate('/'), 3000);
         return;
+      }
+
+      // ============= 🟢 LIFF FLOW =============
+      // If LIFF redirected here (no `code` param, but liff.state or liffClientId etc.),
+      // initialize LIFF SDK and use the access token instead of OIDC code exchange.
+      if (!code && !error) {
+        console.log('[LINE Callback] 🟢 No code/error in URL → trying LIFF flow');
+        try {
+          await initLiff();
+          console.log('[LINE Callback] 🟢 LIFF init OK. isLoggedIn=', liff.isLoggedIn(), 'isInClient=', liff.isInClient());
+
+          if (!liff.isLoggedIn()) {
+            // LIFF will redirect back to this same Endpoint URL after login
+            liff.login();
+            return;
+          }
+
+          const accessToken = liff.getAccessToken();
+          if (!accessToken) throw new Error('LIFF access token is empty');
+
+          console.log('[LINE Callback] 🟢 Got LIFF access token, calling line-auth...');
+          const { data: liffData, error: liffFnError } = await supabase.functions.invoke('line-auth', {
+            body: { accessToken },
+          });
+
+          if (liffFnError) throw new Error(liffFnError.message);
+          if (liffData?.error) throw new Error(liffData.error);
+
+          console.log('[LINE Callback] 🟢 LIFF auth success:', liffData?.user?.displayName);
+
+          // Persist auth + navigate (mirrors the OIDC success path below, simplified)
+          await setAuthItem('line_user', JSON.stringify(liffData.user));
+          await setAuthItem('auth_login_type', 'line');
+
+          // Try to create/link account (non-blocking)
+          let driverUserId = liffData.user.lineUserId;
+          try {
+            const { data: accountData } = await supabase.functions.invoke('create-account', {
+              body: {
+                authProvider: 'line',
+                lineUserId: liffData.user.lineUserId,
+                firstName: liffData.user.displayName?.split(' ')[0] || 'LINE',
+                lastName: liffData.user.displayName?.split(' ').slice(1).join(' ') || 'User',
+                phone: '0000000000',
+                email: liffData.user.email || '',
+                avatarUrl: liffData.user.pictureUrl || '',
+              },
+            });
+            if (accountData?.userId) driverUserId = accountData.userId;
+          } catch (e) {
+            console.warn('[LINE Callback] LIFF create-account non-blocking error:', e);
+          }
+
+          const lineDriver = {
+            id: driverUserId,
+            full_name: liffData.user.displayName,
+            avatar_url: liffData.user.pictureUrl || null,
+            loginType: 'line',
+            lineUser: liffData.user,
+          };
+          await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+          await setAuthItem('auth_driver_id', driverUserId);
+
+          setStatus('success');
+          toast({
+            title: 'เข้าสู่ระบบสำเร็จ',
+            description: `ยินดีต้อนรับ ${liffData.user.displayName}`,
+          });
+          window.dispatchEvent(new Event('auth_driver_updated'));
+          navigate('/home', { replace: true });
+          return;
+        } catch (liffErr: any) {
+          console.error('[LINE Callback] ❌ LIFF flow error:', liffErr);
+          setStatus('error');
+          setErrorMessage(liffErr.message || 'LIFF login failed');
+          toast({
+            variant: 'destructive',
+            title: 'เกิดข้อผิดพลาด',
+            description: liffErr.message || 'ไม่สามารถเข้าสู่ระบบได้',
+          });
+          setTimeout(() => navigate('/'), 3000);
+          return;
+        }
       }
 
       if (!code) {
