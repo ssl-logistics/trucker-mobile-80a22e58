@@ -110,6 +110,28 @@ const SignIn = () => {
     const timer = setTimeout(getAppVersion, 300);
     return () => clearTimeout(timer);
   }, []);
+
+  // Auto-resume LIFF login after returning from LINE OAuth (external browser only)
+  useEffect(() => {
+    const pending = (() => {
+      try { return sessionStorage.getItem('liff_pending_login'); } catch { return null; }
+    })();
+    if (!pending) return;
+    (async () => {
+      try {
+        await initLiff();
+        if (!liff.isLoggedIn()) {
+          try { sessionStorage.removeItem('liff_pending_login'); } catch {}
+          return;
+        }
+        const btn = document.querySelector<HTMLButtonElement>('button[data-liff-trigger="1"]');
+        btn?.click();
+      } catch (e) {
+        console.warn('[LIFF Resume] error:', e);
+        try { sessionStorage.removeItem('liff_pending_login'); } catch {}
+      }
+    })();
+  }, []);
   const currentLang = languageOptions.find(l => l.code === language) || languageOptions[0];
   const {
     register,
