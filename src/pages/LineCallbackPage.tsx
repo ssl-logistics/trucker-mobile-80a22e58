@@ -52,8 +52,6 @@ const LineCallbackPage = () => {
   const { toast } = useToast();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
-  const [redirectingToApp, setRedirectingToApp] = useState(false);
-  const [deepLinkUrl, setDeepLinkUrl] = useState<string>('');
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -119,29 +117,18 @@ const LineCallbackPage = () => {
         console.log('[LINE Callback] 🔗 Deep link URL:', deepLink);
         console.log('[LINE Callback] 🔗 ==========================================');
 
-        setRedirectingToApp(true);
-        setDeepLinkUrl(deepLink);
-
-        // Try Intent first on Android, then fall back to the custom scheme if
-        // the in-app browser does not hand the intent to Android.
+        // Try to return to the native app silently. If the browser stays visible,
+        // continue the login in this web view instead of showing the stuck
+        // "tap to return to app" interstitial page.
         openNativeApp(deepLink, payloadSchemeUrl);
+        await new Promise((resolve) => window.setTimeout(resolve, 1200));
 
-        // Fallback: try iframe trick after 500ms (sometimes works when location.href is blocked)
-        setTimeout(() => {
-          console.log('[LINE Callback] 🔗 Trying iframe fallback...');
-          try {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = deepLink;
-            document.body.appendChild(iframe);
-            setTimeout(() => iframe.remove(), 2000);
-          } catch (e) {
-            console.error('[LINE Callback] ❌ iframe fallback failed:', e);
-          }
-        }, 500);
+        if (document.visibilityState !== 'visible') {
+          console.log('[LINE Callback] ✅ Native app appears to have opened; stopping web fallback');
+          return;
+        }
 
-        // Don't process further; the native app's deep link handler takes over
-        return;
+        console.log('[LINE Callback] ⚠️ Native app did not open; continuing login on web without interstitial');
       } else {
         console.log('[LINE Callback] ⚠️ NOT redirecting to app. Reason:');
         if (isNative) console.log('[LINE Callback] ⚠️   - Already running in native (Capacitor)');
@@ -264,10 +251,6 @@ const LineCallbackPage = () => {
         // If so, redirect back to native app with user data
         if (isExternalBrowser()) {
           console.log('[LINE Callback] 📱 Detected external browser - redirecting to native app');
-          setRedirectingToApp(true);
-          setStatus('success');
-          
-          // Encode user data for URL
           const userData = {
             lineUserId: data.user.lineUserId,
             displayName: data.user.displayName,
@@ -275,17 +258,10 @@ const LineCallbackPage = () => {
             statusMessage: data.user.statusMessage || '',
           };
           const encodedData = encodeURIComponent(btoa(JSON.stringify(userData)));
-          
-          // Redirect to native app using custom URL scheme
-          const deepLinkUrl = `thetroob://line-auth-success?data=${encodedData}`;
-          console.log('[LINE Callback] 🔗 Deep link URL:', deepLinkUrl);
-          
-          // Show message and redirect
-          setTimeout(() => {
-            window.location.href = deepLinkUrl;
-          }, 1000);
-          
-          return;
+          const lineSuccessUrl = `thetroob://line-auth-success?data=${encodedData}`;
+          console.log('[LINE Callback] 🔗 Deep link URL:', lineSuccessUrl);
+          openNativeApp(lineSuccessUrl);
+          await new Promise((resolve) => window.setTimeout(resolve, 800));
         }
 
         // Normal flow (running inside Capacitor or web)
@@ -448,32 +424,13 @@ const LineCallbackPage = () => {
   }, [searchParams, navigate, toast]);
 
   // Debug: Log render state
-  console.log('[LINE Callback] 🔄 Render - status:', status, 'redirectingToApp:', redirectingToApp);
+  console.log('[LINE Callback] 🔄 Render - status:', status);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
 
       <div className="text-center space-y-4">
-        {redirectingToApp ? (
-          <>
-            <div className="w-12 h-12 mx-auto rounded-full bg-[#00B900]/10 flex items-center justify-center">
-              <span className="text-2xl">📱</span>
-            </div>
-            <p className="text-lg font-medium text-[#00B900]">เข้าสู่ระบบสำเร็จ</p>
-            <p className="text-sm text-muted-foreground">กำลังกลับไปที่แอพ...</p>
-            {deepLinkUrl && (
-              <a
-                href={deepLinkUrl}
-                className="inline-block mt-4 px-6 py-3 rounded-lg bg-[#00B900] text-white font-medium hover:bg-[#00A000] active:bg-[#008F00]"
-              >
-                แตะที่นี่เพื่อกลับเข้าแอพ
-              </a>
-            )}
-            <p className="text-xs text-muted-foreground mt-4">
-              หากไม่ถูกเปลี่ยนหน้าอัตโนมัติ กรุณาแตะปุ่มด้านบนหรือกลับไปที่แอพ thetroob
-            </p>
-          </>
-        ) : status === 'loading' ? (
+        {status === 'loading' ? (
           <>
             <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#00B900]" />
             <p className="text-lg font-medium">กำลังเข้าสู่ระบบ LINE...</p>
