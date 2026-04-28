@@ -21,6 +21,7 @@
     "@capacitor/preferences": "^8.0.0",
     "@capacitor/push-notifications": "^8.0.0",
     "@hookform/resolvers": "^3.10.0",
+    "@line/liff": "^2.28.0",
     "@lovable.dev/cloud-auth-js": "^1.0.0",
     "@playwright/test": "^1.48.0",
     "@radix-ui/react-accordion": "^1.2.11",
