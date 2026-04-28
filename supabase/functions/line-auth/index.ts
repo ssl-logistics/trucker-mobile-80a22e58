@@ -18,16 +18,17 @@ serve(async (req) => {
     const body = await req.json();
     console.log('[line-auth] 📥 Request body:', JSON.stringify({
       hasCode: !!body.code,
-      codePreview: body.code ? body.code.substring(0, 20) + '...' : null,
+      hasAccessToken: !!body.accessToken,
+      tokenPreview: body.accessToken ? body.accessToken.substring(0, 20) + '...' : null,
       redirectUri: body.redirectUri,
     }));
-    
-    const { code, redirectUri } = body;
 
-    if (!code) {
-      console.log('[line-auth] ❌ No code provided');
+    const { code, redirectUri, accessToken: liffAccessToken } = body;
+
+    if (!code && !liffAccessToken) {
+      console.log('[line-auth] ❌ No code or accessToken provided');
       return new Response(
-        JSON.stringify({ error: 'Authorization code is required' }),
+        JSON.stringify({ error: 'Authorization code or LIFF accessToken is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
