@@ -50,46 +50,68 @@ serve(async (req) => {
       );
     }
 
-    // Step 1: Exchange authorization code for access token
-    console.log('[line-auth] 📡 Calling LINE token API...');
-    console.log('[line-auth] 📡 Token request params:', {
-      grant_type: 'authorization_code',
-      redirect_uri: redirectUri,
-      client_id: LINE_CHANNEL_ID,
-    });
-    
-    const tokenResponse = await fetch('https://api.line.me/oauth2/v2.1/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: redirectUri,
-        client_id: LINE_CHANNEL_ID,
-        client_secret: LINE_CHANNEL_SECRET,
-      }),
-    });
+    let access_token: string;
 
-    const tokenData = await tokenResponse.json();
-    console.log('[line-auth] 📡 Token response status:', tokenResponse.status);
-    console.log('[line-auth] 📡 Token response:', JSON.stringify({
-      hasAccessToken: !!tokenData.access_token,
-      hasIdToken: !!tokenData.id_token,
-      error: tokenData.error,
-      errorDescription: tokenData.error_description,
-    }));
-
-    if (tokenData.error) {
-      console.error('[line-auth] ❌ LINE token error:', JSON.stringify(tokenData));
-      return new Response(
-        JSON.stringify({ error: tokenData.error_description || 'Failed to get access token' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    if (liffAccessToken) {
+      // LIFF flow: verify the access token is valid AND issued for our channel
+      console.log('[line-auth] 📡 Verifying LIFF access token...');
+      const verifyResponse = await fetch(
+        `https://api.line.me/oauth2/v2.1/verify?access_token=${encodeURIComponent(liffAccessToken)}`
       );
-    }
+      const verifyData = await verifyResponse.json();
+      console.log('[line-auth] 📡 Verify response status:', verifyResponse.status);
+      console.log('[line-auth] 📡 Verify response:', JSON.stringify({
+        client_id: verifyData.client_id,
+        expires_in: verifyData.expires_in,
+        error: verifyData.error,
+      }));
 
-    const { access_token, id_token } = tokenData;
+      if (!verifyResponse.ok || verifyData.error) {
+        console.error('[line-auth] ❌ LIFF token verify failed:', JSON.stringify(verifyData));
+        return new Response(
+          JSON.stringify({ error: verifyData.error_description || 'Invalid LIFF access token' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Ensure the token was issued for our channel
+      if (verifyData.client_id && verifyData.client_id !== LINE_CHANNEL_ID) {
+        console.error('[line-auth] ❌ Token client_id mismatch:', verifyData.client_id, 'vs', LINE_CHANNEL_ID);
+        return new Response(
+          JSON.stringify({ error: 'LIFF access token issued for a different channel' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      access_token = liffAccessToken;
+    } else {
+      // Legacy code-exchange flow (web OAuth)
+      console.log('[line-auth] 📡 Exchanging code for access token...');
+      const tokenResponse = await fetch('https://api.line.me/oauth2/v2.1/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: code,
+          redirect_uri: redirectUri,
+          client_id: LINE_CHANNEL_ID,
+          client_secret: LINE_CHANNEL_SECRET,
+        }),
+      });
+
+      const tokenData = await tokenResponse.json();
+      console.log('[line-auth] 📡 Token response status:', tokenResponse.status);
+
+      if (tokenData.error) {
+        console.error('[line-auth] ❌ LINE token error:', JSON.stringify(tokenData));
+        return new Response(
+          JSON.stringify({ error: tokenData.error_description || 'Failed to get access token' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      access_token = tokenData.access_token;
+    }
 
     // Step 2: Get user profile from LINE
     console.log('[line-auth] 📡 Calling LINE profile API...');
