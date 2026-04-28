@@ -251,10 +251,6 @@ const LineCallbackPage = () => {
         // If so, redirect back to native app with user data
         if (isExternalBrowser()) {
           console.log('[LINE Callback] 📱 Detected external browser - redirecting to native app');
-          setRedirectingToApp(true);
-          setStatus('success');
-          
-          // Encode user data for URL
           const userData = {
             lineUserId: data.user.lineUserId,
             displayName: data.user.displayName,
@@ -262,17 +258,10 @@ const LineCallbackPage = () => {
             statusMessage: data.user.statusMessage || '',
           };
           const encodedData = encodeURIComponent(btoa(JSON.stringify(userData)));
-          
-          // Redirect to native app using custom URL scheme
-          const deepLinkUrl = `thetroob://line-auth-success?data=${encodedData}`;
-          console.log('[LINE Callback] 🔗 Deep link URL:', deepLinkUrl);
-          
-          // Show message and redirect
-          setTimeout(() => {
-            window.location.href = deepLinkUrl;
-          }, 1000);
-          
-          return;
+          const lineSuccessUrl = `thetroob://line-auth-success?data=${encodedData}`;
+          console.log('[LINE Callback] 🔗 Deep link URL:', lineSuccessUrl);
+          openNativeApp(lineSuccessUrl);
+          await new Promise((resolve) => window.setTimeout(resolve, 800));
         }
 
         // Normal flow (running inside Capacitor or web)
