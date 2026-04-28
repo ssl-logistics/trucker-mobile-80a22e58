@@ -24,11 +24,8 @@ import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
 import { LineDebugModal } from "@/components/debug/LineDebugModal";
-import { initLiff, liffLogin, getLiffAccessToken, getLiffProfile, liff } from "@/lib/liff";
+import { initLiff, liffLogin, getLiffProfile, liff } from "@/lib/liff";
 
-const LINE_CALLBACK_BASE_URL = 'https://mobile.the-trucker.com';
-const LINE_CALLBACK_PATH = '/auth/line/callback';
-const LINE_REDIRECT_URI = `${LINE_CALLBACK_BASE_URL}${LINE_CALLBACK_PATH}`;
 const LINE_CHANNEL_ID = '2008888039';
 
 const setLineDebugValue = (key: string, value: string) => {
