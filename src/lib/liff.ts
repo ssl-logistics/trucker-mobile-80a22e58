@@ -12,6 +12,8 @@ const getLiffRedirectUri = () => {
   return `${origin}${pathname}${route === '/' ? '' : hash.split('?')[0]}`;
 };
 
+export const getStableLiffRedirectUri = getLiffRedirectUri;
+
 /**
  * Initialize LIFF SDK once. Subsequent calls return the same promise.
  */
