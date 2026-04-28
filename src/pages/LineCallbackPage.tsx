@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
 import { Loader2 } from 'lucide-react';
+import { initLiff, liff } from '@/lib/liff';
 
 const LINE_CALLBACK_BASE_URL = 'https://mobile.the-trucker.com';
 const LINE_CALLBACK_PATH = '/auth/line/callback';
