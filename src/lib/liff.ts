@@ -6,6 +6,12 @@ export const LIFF_ID = (import.meta.env.VITE_LIFF_ID as string) || '2008888039-Q
 
 let initPromise: Promise<void> | null = null;
 
+const getLiffRedirectUri = () => {
+  const { origin, pathname, hash } = window.location;
+  const route = hash.startsWith('#/') ? hash.slice(1).split('?')[0] : '/';
+  return `${origin}${pathname}${route === '/' ? '' : hash.split('?')[0]}`;
+};
+
 /**
  * Initialize LIFF SDK once. Subsequent calls return the same promise.
  */
@@ -13,11 +19,15 @@ export const initLiff = async (): Promise<void> => {
   if (initPromise) return initPromise;
   initPromise = (async () => {
     console.log('[LIFF] Initializing with id:', LIFF_ID);
-    await liff.init({ liffId: LIFF_ID });
+    await liff.init({
+      liffId: LIFF_ID,
+      withLoginOnExternalBrowser: false,
+    });
     console.log('[LIFF] ✅ Init complete', {
       isLoggedIn: liff.isLoggedIn(),
       isInClient: liff.isInClient(),
       os: liff.getOS?.(),
+      redirectUri: getLiffRedirectUri(),
     });
   })();
   try {
@@ -36,7 +46,7 @@ export const initLiff = async (): Promise<void> => {
 export const liffLogin = async (redirectUri?: string): Promise<void> => {
   await initLiff();
   if (!liff.isLoggedIn()) {
-    liff.login(redirectUri ? { redirectUri } : undefined);
+    liff.login({ redirectUri: redirectUri || getLiffRedirectUri() });
   }
 };
 
