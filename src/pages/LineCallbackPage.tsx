@@ -163,9 +163,22 @@ const LineCallbackPage = () => {
       }
 
       // ============= 🟢 LIFF FLOW =============
-      // If LIFF redirected here (no `code` param, but liff.state or liffClientId etc.),
-      // initialize LIFF SDK and use the access token instead of OIDC code exchange.
-      if (!code && !error) {
+      // Detect LIFF callback. LIFF appends `liffClientId` / `liffRedirectUri` query params
+      // when it redirects back from LINE OAuth. In that case, even though there is a `code`
+      // in the URL, it belongs to LIFF's internal flow (not our app-initiated OIDC flow),
+      // so we must NOT try to exchange it ourselves and must NOT validate `line_oauth_state`
+      // (we never set it). Instead we let LIFF handle the token and call line-auth with the
+      // resulting access token.
+      const liffClientId = searchParams.get('liffClientId');
+      const liffRedirectUri = searchParams.get('liffRedirectUri');
+      const isLiffCallback = !!liffClientId || !!liffRedirectUri;
+      // Also treat as LIFF callback when there is a code/state but we did NOT initiate the
+      // OIDC flow ourselves (no saved state and no thetroob_ prefix). This covers cases where
+      // LIFF strips its own params before we read them.
+      const isUnattributedCallback = !!code && !savedStateLocal && !savedStateSession && !hasAppPrefix;
+
+      if ((!code && !error) || isLiffCallback || isUnattributedCallback) {
+        console.log('[LINE Callback] 🟢 LIFF callback detected', { isLiffCallback, isUnattributedCallback, hasCode: !!code });
         console.log('[LINE Callback] 🟢 No code/error in URL → trying LIFF flow');
         try {
           await initLiff();
