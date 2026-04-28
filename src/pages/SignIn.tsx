@@ -371,64 +371,115 @@ const SignIn = () => {
           <button 
             type="button" 
             onClick={async () => {
-              console.log('[LINE Login] 🚀 Button clicked');
-              setLineDebugValue('line_last_deep_link_error', '');
-              setLineDebugValue('line_last_deep_link_url', '');
-              setLineDebugValue('line_last_deep_link_source', '');
-              setLineDebugValue('line_last_deep_link_at', '');
-              
-              // Generate random state for CSRF protection
-              // Include a prefix to identify it came from our app
-              const stateValue = Math.random().toString(36).substring(2, 15);
-              const state = `thetroob_${stateValue}`;
-              sessionStorage.setItem('line_oauth_state', state);
-              localStorage.setItem('line_oauth_state', state);
-              console.log('[LINE Login] State generated:', state);
-              
-              // LINE OAuth URL
-              const redirectUri = LINE_REDIRECT_URI;
-              const scope = 'profile openid';
-              
-              console.log('[LINE Login] Config:', {
-                channelId: LINE_CHANNEL_ID,
-                redirectUri: redirectUri,
-                scope: scope,
-              });
+              console.log('[LIFF Login] 🚀 Button clicked');
+              setIsLoggingIn(true);
+              try {
+                await initLiff();
+                console.log('[LIFF Login] init done. isLoggedIn =', liff.isLoggedIn(), 'isInClient =', liff.isInClient());
 
-              // Check if running in Capacitor (native app) - use official API
-              const isCapacitor = Capacitor.isNativePlatform();
-              const platform = Capacitor.getPlatform();
-
-              // Web OAuth URL (used for both web and as fallback in native in-app browser)
-              const webAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
-
-              console.log('[LINE Login] isCapacitor:', isCapacitor, 'platform:', platform);
-
-              if (isCapacitor) {
-                // On native, open the standard LINE web OAuth URL in the in-app browser.
-                // LINE will detect the LINE app on the device automatically and switch to it
-                // (or stay in browser if not installed). The `line://` scheme opened via
-                // Capacitor Browser.open often fails silently because Browser.open expects http(s).
-                console.log('[LINE Login] Opening web OAuth in in-app browser:', webAuthUrl);
-                try {
-                  await Browser.open({
-                    url: webAuthUrl,
-                    presentationStyle: 'popover',
-                    toolbarColor: '#00B900',
-                  });
-                  console.log('[LINE Login] In-app browser opened');
-                } catch (err) {
-                  console.error('[LINE Login] Browser.open failed:', err);
-                  toast({
-                    variant: 'destructive',
-                    title: 'เกิดข้อผิดพลาด',
-                    description: 'ไม่สามารถเปิดหน้าเข้าสู่ระบบ LINE ได้',
-                  });
+                // If not logged in, trigger LIFF login.
+                // - In LINE in-app browser: silent / auto-consent
+                // - In external browser: redirects to LINE OAuth, returns to this same URL
+                if (!liff.isLoggedIn()) {
+                  // Persist redirect target so we can resume after returning
+                  try { sessionStorage.setItem('liff_pending_login', '1'); } catch {}
+                  liff.login({ redirectUri: window.location.href });
+                  return; // browser will navigate away
                 }
-              } else {
-                // Web browser - use regular redirect
-                console.log('[LINE Login] Web redirect:', webAuthUrl);
-                window.location.href = webAuthUrl;
+
+                const accessToken = liff.getAccessToken();
+                if (!accessToken) {
+                  throw new Error('LIFF access token is empty');
+                }
+
+                const profile = await getLiffProfile();
+                console.log('[LIFF Login] ✅ Got profile:', profile?.displayName);
+
+                // Send accessToken to line-auth edge function for verification + account creation
+                const { data, error: fnError } = await supabase.functions.invoke('line-auth', {
+                  body: { accessToken },
+                });
+
+                if (fnError) throw new Error(fnError.message);
+                if (data?.error) throw new Error(data.error);
+
+                console.log('[LIFF Login] ✅ line-auth returned:', data?.user?.lineUserId);
+
+                // Auto-create account in internal DB
+                const { data: accountData } = await supabase.functions.invoke('create-account', {
+                  body: {
+                    authProvider: 'line',
+                    lineUserId: data.user.lineUserId,
+                    firstName: data.user.displayName?.split(' ')[0] || 'LINE',
+                    lastName: data.user.displayName?.split(' ').slice(1).join(' ') || 'User',
+                    phone: '0000000000',
+                    email: '',
+                    avatarUrl: data.user.pictureUrl || '',
+                  },
+                });
+
+                const driverUserId = accountData?.userId || data.user.lineUserId;
+
+                // Register driver in external TMS (non-blocking)
+                let tmsData: any = null;
+                try {
+                  const { data: registerData } = await supabase.functions.invoke('register-driver', {
+                    body: {
+                      authProvider: 'line',
+                      authUserId: driverUserId,
+                      firstName: data.user.displayName?.split(' ')[0] || 'LINE',
+                      lastName: data.user.displayName?.split(' ').slice(1).join(' ') || 'User',
+                    },
+                  });
+                  tmsData = registerData?.data || registerData;
+                } catch (e) {
+                  console.warn('[LIFF Login] register-driver non-blocking error:', e);
+                }
+
+                // Persist auth data
+                await setAuthItem('line_user', JSON.stringify(data.user));
+                await setAuthItem('auth_login_type', 'line');
+
+                const tmsFullName = tmsData
+                  ? `${tmsData.firstName || ''} ${tmsData.lastName || ''}`.trim()
+                  : '';
+
+                const lineDriver: Record<string, any> = {
+                  ...(tmsData && typeof tmsData === 'object' ? tmsData : {}),
+                  id: tmsData?.id || driverUserId,
+                  full_name: tmsFullName || data.user.displayName,
+                  avatar_url: data.user.pictureUrl || tmsData?.avatar_url || null,
+                  phone_number: tmsData?.phone || '',
+                  email: tmsData?.email || '',
+                  username: tmsData?.driverCode || '',
+                  loginType: 'line',
+                  lineUser: data.user,
+                };
+
+                await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+                await setAuthItem('auth_driver_id', driverUserId);
+
+                try { sessionStorage.removeItem('liff_pending_login'); } catch {}
+
+                window.dispatchEvent(new Event('auth_driver_updated'));
+
+                toast({
+                  title: 'เข้าสู่ระบบสำเร็จ',
+                  description: `ยินดีต้อนรับ ${data.user.displayName}`,
+                });
+
+                const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
+                sessionStorage.removeItem('auth_redirect_after_login');
+                navigate(redirectPath && redirectPath !== '/' ? redirectPath : '/home', { replace: true });
+              } catch (err: any) {
+                console.error('[LIFF Login] ❌ Error:', err);
+                toast({
+                  variant: 'destructive',
+                  title: 'เกิดข้อผิดพลาด',
+                  description: err?.message || 'ไม่สามารถเข้าสู่ระบบ LINE ได้',
+                });
+              } finally {
+                setIsLoggingIn(false);
               }
             }}
             disabled={isLoggingIn}
