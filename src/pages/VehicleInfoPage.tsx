@@ -132,6 +132,7 @@ export default function VehicleInfoPage() {
         // Also set registration photos from user (support both single and array)
         const u = user as any;
         const fallbackUrl =
+          u.registration_document_url ||
           u.registration_photo_url ||
           u.document_url ||
           u.vehicle_registration_url ||
