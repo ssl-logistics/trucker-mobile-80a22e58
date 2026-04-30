@@ -50,6 +50,35 @@ const languageOptions = [{
   label: 'ZH',
   flag: flagCn
 }];
+
+const getFirstRecord = (value: unknown): Record<string, any> | null => {
+  if (Array.isArray(value)) return getFirstRecord(value[0]);
+  return value && typeof value === 'object' ? value as Record<string, any> : null;
+};
+
+const resolveVehicleFromLoginData = (loginData: Record<string, any> | null | undefined) => {
+  if (!loginData) return null;
+
+  const driver = getFirstRecord(loginData.driver);
+  const candidateKeys = [
+    'vehicle',
+    'truck',
+    'factory_truck',
+    'factory_trucks',
+    'logistics_truck',
+    'logistics_trucks',
+    'logistics_trailer',
+    'logistics_trailers',
+  ];
+
+  for (const key of candidateKeys) {
+    const vehicle = getFirstRecord(loginData[key]) || getFirstRecord(driver?.[key]);
+    if (vehicle) return vehicle;
+  }
+
+  return null;
+};
+
 const SignIn = () => {
   const navigate = useNavigate();
   const {
@@ -198,7 +227,7 @@ const SignIn = () => {
 
       // Parse API response
       let driver = result.data?.driver || null;
-      const vehicle = result.data?.vehicle || null;
+      const vehicle = resolveVehicleFromLoginData(result.data as Record<string, any> | null | undefined);
       const userType = result.data?.user_type || null;
       const loginApiKey = result.data?.api_key || null;
       
@@ -231,11 +260,13 @@ const SignIn = () => {
           side_photo_url: vehicle.side_image_url,
           back_photo_url: vehicle.rear_image_url,
           plate_photo_url: vehicle.license_plate_image_url,
-          registration_photo_url: vehicle.registration_document_url || vehicle.document_url,
-          registration_document_url: vehicle.registration_document_url,
+          registration_photo_url: vehicle.registration_document_url || vehicle.document_url || driver.registration_document_url,
+          registration_document_url: vehicle.registration_document_url || vehicle.document_url || driver.registration_document_url,
           document_url: vehicle.document_url,
           // Support for array of registration photos
           registration_photos: vehicle.registration_photos || [],
+          insurance_document_url: vehicle.insurance_document_url || driver.insurance_document_url,
+          other_image_url: vehicle.other_image_url || driver.other_image_url,
           // Keep vehicle reference
           vehicle_id: vehicle.id,
           vehicle,
