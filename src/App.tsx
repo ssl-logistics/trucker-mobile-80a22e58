@@ -15,12 +15,32 @@ import { GlobalProximityAlert } from "@/components/GlobalProximityAlert";
 import { CallProvider } from "@/components/call/CallProvider";
 import { Loader2 } from "lucide-react";
 
-// Preloadable lazy import helper
+// Preloadable lazy import helper with auto-reload on stale chunk errors.
+// After a deploy, old chunk hashes (e.g. ContainerSummaryPage-XXXX.js) stop existing.
+// When a dynamic import fails, force a one-time hard reload to fetch the new index.
 function lazyWithPreload<T extends React.ComponentType<any>>(
   factory: () => Promise<{ default: T }>
 ) {
-  const Component = lazy(factory) as React.LazyExoticComponent<T> & { preload: () => Promise<{ default: T }> };
-  Component.preload = factory;
+  const wrapped = () =>
+    factory().catch((err) => {
+      const msg = String(err?.message || err);
+      const isChunkError =
+        msg.includes('Failed to fetch dynamically imported module') ||
+        msg.includes('Importing a module script failed') ||
+        msg.includes('error loading dynamically imported module');
+      if (isChunkError && typeof window !== 'undefined') {
+        const KEY = '__lovable_chunk_reload__';
+        const last = Number(sessionStorage.getItem(KEY) || '0');
+        // Avoid infinite reload loop — only reload once per 10s window
+        if (Date.now() - last > 10_000) {
+          sessionStorage.setItem(KEY, String(Date.now()));
+          window.location.reload();
+        }
+      }
+      throw err;
+    });
+  const Component = lazy(wrapped) as React.LazyExoticComponent<T> & { preload: () => Promise<{ default: T }> };
+  Component.preload = wrapped;
   return Component;
 }
 
