@@ -231,11 +231,14 @@ const SignIn = () => {
           side_photo_url: vehicle.side_image_url,
           back_photo_url: vehicle.rear_image_url,
           plate_photo_url: vehicle.license_plate_image_url,
-          registration_photo_url: vehicle.document_url,
+          registration_photo_url: vehicle.registration_document_url || vehicle.document_url,
+          registration_document_url: vehicle.registration_document_url,
+          document_url: vehicle.document_url,
           // Support for array of registration photos
           registration_photos: vehicle.registration_photos || [],
           // Keep vehicle reference
           vehicle_id: vehicle.id,
+          vehicle,
         };
       }
       
