@@ -46,6 +46,7 @@ import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
 import statusIcon from '@/assets/status-icon.png';
 import checkInIcon from '@/assets/check-in-icon.png';
+import { ContainerReturnDeadlineBanner } from '@/components/job-detail/ContainerReturnDeadlineBanner';
 
 interface DriverCheckin {
   order_number: string;
