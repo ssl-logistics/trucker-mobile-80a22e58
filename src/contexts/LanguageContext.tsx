@@ -1309,6 +1309,8 @@ const thTranslations: Record<string, string> = {
   'expense.repairContainer': 'ค่าซ่อมตู้',
   'expense.overtime': 'ค่าล่วงเวลา',
   'expense.miscNoReceipt': 'ค่าใช้จ่ายไม่มีใบเสร็จ',
+  'expense.diveKnockOut': 'ค่าดำน้ำ/น็อคออก',
+  'expense.waste': 'ค่าขยะ',
   'expense.other': 'อื่นๆ',
   'expense.requiredExpenseMissing': 'กรุณาเพิ่มค่าใช้จ่ายก่อนยืนยันคืนตู้',
   'expense.missingTypes': 'ยังขาด: {types}',
