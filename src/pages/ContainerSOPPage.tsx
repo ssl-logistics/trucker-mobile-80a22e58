@@ -1106,7 +1106,7 @@ const ContainerSOPPage = () => {
       </header>
 
       <div className="px-4 py-6 space-y-6">
-        <JobActionButtons jobId={jobId} orderNumber={jobId} />
+        <JobActionButtons jobId={jobId} orderNumber={jobId} jobData={navState?.jobData} />
 
         <Card className="p-4 bg-green-50 border-green-200">
           <div className="flex items-center gap-3">
