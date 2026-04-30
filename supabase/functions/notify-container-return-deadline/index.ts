@@ -22,20 +22,14 @@ Deno.serve(async (req) => {
     const orderNumber: string | undefined = body.order_number;
     const containerNumber: string | undefined = body.container_number;
     const freeDaysRaw = body.container_free_days;
-    const freeDays = Number(freeDaysRaw);
+    const parsedFreeDays = Number(freeDaysRaw);
+    // Default to 2 days if office hasn't configured container_free_days.
+    const freeDays = Number.isFinite(parsedFreeDays) && parsedFreeDays > 0 ? parsedFreeDays : 2;
 
     if (!userId || !orderNumber) {
       return new Response(
         JSON.stringify({ error: 'user_id and order_number are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    // If office hasn't set free days, skip (UI banner will also stay hidden).
-    if (!Number.isFinite(freeDays) || freeDays <= 0) {
-      return new Response(
-        JSON.stringify({ skipped: 'no container_free_days configured' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
