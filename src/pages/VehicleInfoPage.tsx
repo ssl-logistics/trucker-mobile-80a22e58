@@ -483,10 +483,10 @@ export default function VehicleInfoPage() {
 
     const apiSources = getVehicleApiSources(user);
     const photoKeysByType: Record<string, string[]> = {
-      front: ['front_photo_url', 'front_image_url'],
-      side: ['side_photo_url', 'side_image_url'],
-      back: ['back_photo_url', 'rear_image_url', 'back_image_url'],
-      plate: ['plate_photo_url', 'license_plate_image_url'],
+      front: ['front_photo_url', 'front_image_url', 'front_url', 'photo_front_url'],
+      side: ['side_photo_url', 'side_image_url', 'left_photo_url', 'left_image_url', 'photo_side_url'],
+      back: ['back_photo_url', 'rear_image_url', 'back_image_url', 'rear_photo_url', 'photo_back_url'],
+      plate: ['plate_photo_url', 'license_plate_image_url', 'license_plate_photo_url', 'plate_image_url', 'other_image_url'],
       trailer_plate: ['trailer_plate_photo_url', 'trailer_license_plate_image_url'],
     };
     const fallbackUrl = getFirstApiUrl(apiSources, photoKeysByType[type] || []);
