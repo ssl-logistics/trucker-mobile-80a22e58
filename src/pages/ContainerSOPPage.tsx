@@ -1038,22 +1038,27 @@ const ContainerSOPPage = () => {
           || (navState?.jobData as any)?.closing_time
           || (navState?.jobData as any)?.closingTime
           || (navState?.jobData as any)?.closing_date
+          || (jobDetail as any)?.cy_cfs_date
+          || (navState?.jobData as any)?.cy_cfs_date
           || '';
-        if (closingTime) {
-          supabase.functions
-            .invoke('notify-booking-closing-date', {
-              body: {
-                user_id: user.id,
-                order_number: jobDetail!.order_code,
-                container_number: finalContainerNumber,
-                booking_no: jobDetail!.booking_no,
-                closing_time: closingTime,
-              },
-            })
-            .catch((e) => console.warn('[ContainerSOP] notify-booking-closing-date error:', e));
-        } else {
-          console.log('[ContainerSOP] Booking job has no closing_time, skipping notification');
-        }
+        console.log('[ContainerSOP] firing notify-booking-closing-date', {
+          order_number: jobDetail!.order_code,
+          booking_no: jobDetail!.booking_no,
+          container_number: finalContainerNumber,
+          closingTime,
+        });
+        supabase.functions
+          .invoke('notify-booking-closing-date', {
+            body: {
+              user_id: user.id,
+              order_number: jobDetail!.order_code,
+              container_number: finalContainerNumber,
+              booking_no: jobDetail!.booking_no,
+              closing_time: closingTime || null,
+            },
+          })
+          .then((r) => console.log('[ContainerSOP] notify-booking-closing-date result:', r))
+          .catch((e) => console.warn('[ContainerSOP] notify-booking-closing-date error:', e));
       }
 
       toast({
