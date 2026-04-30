@@ -928,20 +928,26 @@ const ContainerSOPPage = () => {
 
           // BL job: fire one-shot return deadline notification (push + in-app).
           // Banner on the job page handles the live countdown.
+          // Default to 2 days if container_free_days is not configured by office.
           if (!checkinError && isBLJob) {
-            const freeDays = Number((jobDetail as any)?.container_free_days);
-            if (Number.isFinite(freeDays) && freeDays > 0) {
-              supabase.functions
-                .invoke('notify-container-return-deadline', {
-                  body: {
-                    user_id: user.id,
-                    order_number: jobDetail!.order_code,
-                    container_number: finalContainerNumber,
-                    container_free_days: freeDays,
-                  },
-                })
-                .catch((e) => console.warn('[ContainerSOP] notify-container-return-deadline error:', e));
-            }
+            const freeDaysRaw = Number((jobDetail as any)?.container_free_days);
+            const freeDays = Number.isFinite(freeDaysRaw) && freeDaysRaw > 0 ? freeDaysRaw : 2;
+            console.log('[ContainerSOP] firing notify-container-return-deadline', {
+              order_number: jobDetail!.order_code,
+              container_number: finalContainerNumber,
+              freeDays,
+            });
+            supabase.functions
+              .invoke('notify-container-return-deadline', {
+                body: {
+                  user_id: user.id,
+                  order_number: jobDetail!.order_code,
+                  container_number: finalContainerNumber,
+                  container_free_days: freeDays,
+                },
+              })
+              .then((r) => console.log('[ContainerSOP] notify-container-return-deadline result:', r))
+              .catch((e) => console.warn('[ContainerSOP] notify-container-return-deadline error:', e));
           }
 
           if (checkinError) {
