@@ -167,25 +167,42 @@ export default function VehicleInfoPage() {
     if (!user) return;
 
     try {
+      // Resolve vehicle data from root user fields OR nested logistics_truck(s)/truck/vehicle
+      const apiSources = getVehicleApiSources(user);
+      const pick = (...keys: string[]) => getFirstApiUrl(apiSources, keys);
+      const pickAny = (...keys: string[]): unknown => {
+        for (const source of apiSources) {
+          for (const key of keys) {
+            const v = source[key];
+            if (v !== undefined && v !== null && v !== '') return v;
+          }
+        }
+        return undefined;
+      };
+
+      const plateNumber = (pick('plate_number', 'license_plate') || '') as string;
+      const plateProvince = (pick('plate_province', 'province', 'license_plate_province') || '') as string;
+
       // First try to get from user object (from external API via AuthContext)
-      if (user.plate_number) {
+      if (plateNumber || user.plate_number) {
+        const containerTypesRaw = pickAny('container_types');
         const vehicleFromUser: VehicleData = {
           id: user.id,
-          plate_number: user.plate_number || '',
-          plate_province: user.plate_province || '',
-          vehicle_brand: user.vehicle_brand || '',
-          vehicle_color: user.vehicle_color || '',
-          vin: user.vin || '',
-          fuel_type: user.fuel_type || '',
-          load_capacity: user.load_capacity || 0,
-          vehicle_type: user.vehicle_type || '',
-          width: user.width,
-          length: user.length,
-          height: user.height,
-          has_trailer: user.has_trailer || false,
-          trailer_plate_number: user.trailer_plate_number,
-          trailer_plate_province: user.trailer_plate_province,
-          container_types: user.container_types || [],
+          plate_number: plateNumber || user.plate_number || '',
+          plate_province: plateProvince || user.plate_province || '',
+          vehicle_brand: (pick('vehicle_brand', 'brand', 'car_brand') || '') as string,
+          vehicle_color: (pick('vehicle_color', 'color') || '') as string,
+          vin: (pick('vin') || '') as string,
+          fuel_type: (pick('fuel_type') || '') as string,
+          load_capacity: Number(pickAny('load_capacity', 'weight_capacity') || 0) || 0,
+          vehicle_type: (pick('vehicle_type') || '') as string,
+          width: pickAny('width', 'dimensions_width') as number | undefined,
+          length: pickAny('length', 'dimensions_length') as number | undefined,
+          height: pickAny('height', 'dimensions_height') as number | undefined,
+          has_trailer: Boolean(pickAny('has_trailer')),
+          trailer_plate_number: pickAny('trailer_plate_number', 'trailer_license_plate') as string | undefined,
+          trailer_plate_province: pickAny('trailer_plate_province', 'trailer_province') as string | undefined,
+          container_types: Array.isArray(containerTypesRaw) ? (containerTypesRaw as string[]) : [],
         };
         setVehicleData(vehicleFromUser);
         
