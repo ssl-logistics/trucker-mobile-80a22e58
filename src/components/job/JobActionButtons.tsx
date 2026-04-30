@@ -12,9 +12,10 @@ interface JobActionButtonsProps {
   isPodCompleted?: boolean;
   checkinType?: 'container_pickup' | 'container_return';
   completedAt?: string | null;
+  jobData?: any;
 }
 
-export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt }: JobActionButtonsProps) {
+export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt, jobData }: JobActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -63,7 +64,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
 
             <button 
               className="flex flex-col items-center gap-1 text-primary"
-              onClick={() => navigate(`/job/${jobId}/add-expense`, { state: { returnPath: location.pathname } })}
+              onClick={() => navigate(`/job/${jobId}/add-expense`, { state: { returnPath: location.pathname, jobData } })}
             >
               <img src={expenseAddIcon} alt="" className="w-8 h-8" />
               <span className="text-xs font-medium">{t('jobActions.addExpense')}</span>

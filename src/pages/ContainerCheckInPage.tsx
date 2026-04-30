@@ -527,7 +527,7 @@ export default function ContainerCheckInPage() {
 
       <div className="px-4 py-4 space-y-4">
         {/* Action Buttons */}
-        <JobActionButtons jobId={job.id} orderNumber={job.order_code} />
+        <JobActionButtons jobId={job.id} orderNumber={job.order_code} jobData={job} />
 
         {/* Main Card */}
         <Card className="overflow-hidden border-0 shadow-md rounded-2xl">
