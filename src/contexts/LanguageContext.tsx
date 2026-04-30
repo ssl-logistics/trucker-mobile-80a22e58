@@ -4009,6 +4009,8 @@ const koTranslations: Record<string, string> = {
   'expense.repairContainer': '컨테이너 수리',
   'expense.overtime': '초과 근무',
   'expense.miscNoReceipt': '기타 (영수증 없음)',
+  'expense.diveKnockOut': '잠수/녹아웃 비용',
+  'expense.waste': '폐기물 비용',
   'expense.other': '기타',
   'expense.requiredExpenseMissing': '컨테이너 반납 확인 전에 필수 비용을 추가해주세요',
   'expense.missingTypes': '미입력: {types}',
