@@ -5677,6 +5677,8 @@ const zhTranslations: Record<string, string> = {
   'expense.repairContainer': '修柜费',
   'expense.overtime': '加班费',
   'expense.miscNoReceipt': '杂费（无收据）',
+  'expense.diveKnockOut': '潜水/敲出费',
+  'expense.waste': '垃圾费',
   'expense.other': '其他',
   'expense.requiredExpenseMissing': '请在确认还柜前添加必要费用',
   'expense.missingTypes': '缺少: {types}',
