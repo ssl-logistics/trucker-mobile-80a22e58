@@ -447,6 +447,15 @@ const SignIn = () => {
               console.log('[LIFF Login] 🚀 Button clicked');
               setIsLoggingIn(true);
               try {
+                if (Capacitor.isNativePlatform()) {
+                  console.log('[LINE Native Login] Opening LINE OAuth in native browser');
+                  await Browser.open({
+                    url: buildNativeLineOAuthUrl(),
+                    presentationStyle: 'popover',
+                  });
+                  return;
+                }
+
                 await initLiff();
                 console.log('[LIFF Login] init done. isLoggedIn =', liff.isLoggedIn(), 'isInClient =', liff.isInClient());
 
