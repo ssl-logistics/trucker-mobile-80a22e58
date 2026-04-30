@@ -229,6 +229,9 @@ export default function DomesticJobDetail({
   const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
   const [containerPickupConfirmed, setContainerPickupConfirmed] = useState(false);
   const [containerPickupAt, setContainerPickupAt] = useState<string | null>(null);
+  // Timestamp of the LATEST EIR (Equipment Interchange Receipt) scan — used as the
+  // anchor for the container-return deadline countdown on BL jobs.
+  const [latestEirAt, setLatestEirAt] = useState<string | null>(null);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, {checked_in_at: string | null;sop_completed_at: string | null;}>>({});
@@ -728,6 +731,24 @@ export default function DomesticJobDetail({
           setIsOcrVerified(true);
           setVerifiedLookupData(latestScan);
           console.log('OCR scan data loaded:', latestScan);
+
+          // Find the LATEST scan that actually has EIR photos — this is the
+          // anchor for the container-return deadline countdown.
+          const hasEir = (s: any) => {
+            const photos = s?.eir_photos;
+            if (Array.isArray(photos)) return photos.length > 0;
+            if (typeof photos === 'string') return photos.trim().length > 0;
+            return false;
+          };
+          const eirScans = scans.filter(hasEir);
+          if (eirScans.length > 0) {
+            // Pick the most recent by scanned_at / created_at / updated_at
+            const tsOf = (s: any) =>
+              new Date(s?.scanned_at || s?.created_at || s?.updated_at || 0).getTime();
+            const latestEir = eirScans.reduce((a: any, b: any) => (tsOf(b) > tsOf(a) ? b : a));
+            const ts = latestEir?.scanned_at || latestEir?.created_at || latestEir?.updated_at || null;
+            setLatestEirAt(ts);
+          }
         }
       } catch (err) {
         console.error('OCR scans fetch exception:', err);
@@ -1055,10 +1076,11 @@ export default function DomesticJobDetail({
           </button>
       }
 
-        {/* Container Return Deadline Banner (BL jobs only) */}
+        {/* Container Return Deadline Banner (BL jobs only).
+            Anchor: timestamp of the LATEST EIR scan; fallback to container pickup check-in. */}
         <ContainerReturnDeadlineBanner
-          show={!!job.bl_no && !!containerPickupAt && !containerReturnConfirmed}
-          pickupAt={containerPickupAt}
+          show={!!job.bl_no && !!(latestEirAt || containerPickupAt) && !containerReturnConfirmed}
+          pickupAt={latestEirAt || containerPickupAt}
           containerFreeDays={
             (job as any).container_free_days ??
             (job as any).containerFreeDays ??
