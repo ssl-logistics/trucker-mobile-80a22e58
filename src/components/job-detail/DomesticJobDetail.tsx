@@ -731,6 +731,24 @@ export default function DomesticJobDetail({
           setIsOcrVerified(true);
           setVerifiedLookupData(latestScan);
           console.log('OCR scan data loaded:', latestScan);
+
+          // Find the LATEST scan that actually has EIR photos — this is the
+          // anchor for the container-return deadline countdown.
+          const hasEir = (s: any) => {
+            const photos = s?.eir_photos;
+            if (Array.isArray(photos)) return photos.length > 0;
+            if (typeof photos === 'string') return photos.trim().length > 0;
+            return false;
+          };
+          const eirScans = scans.filter(hasEir);
+          if (eirScans.length > 0) {
+            // Pick the most recent by scanned_at / created_at / updated_at
+            const tsOf = (s: any) =>
+              new Date(s?.scanned_at || s?.created_at || s?.updated_at || 0).getTime();
+            const latestEir = eirScans.reduce((a: any, b: any) => (tsOf(b) > tsOf(a) ? b : a));
+            const ts = latestEir?.scanned_at || latestEir?.created_at || latestEir?.updated_at || null;
+            setLatestEirAt(ts);
+          }
         }
       } catch (err) {
         console.error('OCR scans fetch exception:', err);
