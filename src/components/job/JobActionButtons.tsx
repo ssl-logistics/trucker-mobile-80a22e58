@@ -12,9 +12,10 @@ interface JobActionButtonsProps {
   isPodCompleted?: boolean;
   checkinType?: 'container_pickup' | 'container_return';
   completedAt?: string | null;
+  jobData?: any;
 }
 
-export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt }: JobActionButtonsProps) {
+export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt, jobData }: JobActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
