@@ -246,20 +246,20 @@ export default function VehicleInfoPage() {
       const fallbackRegistrationUrl = getFirstApiUrl(apiSources, REGISTRATION_URL_KEYS);
       
       // If user has photos from external API, use those
-      const hasExternalPhotos = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url']) ||
-        getFirstApiUrl(apiSources, ['side_photo_url', 'side_image_url']) ||
-        getFirstApiUrl(apiSources, ['back_photo_url', 'rear_image_url', 'back_image_url']) ||
-        getFirstApiUrl(apiSources, ['plate_photo_url', 'license_plate_image_url']) ||
+      const hasExternalPhotos = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url', 'front_url', 'photo_front_url']) ||
+        getFirstApiUrl(apiSources, ['side_photo_url', 'side_image_url', 'left_photo_url', 'left_image_url', 'photo_side_url']) ||
+        getFirstApiUrl(apiSources, ['back_photo_url', 'rear_image_url', 'back_image_url', 'rear_photo_url', 'photo_back_url']) ||
+        getFirstApiUrl(apiSources, ['plate_photo_url', 'license_plate_image_url', 'license_plate_photo_url', 'plate_image_url', 'other_image_url']) ||
         getFirstApiUrl(apiSources, ['trailer_plate_photo_url', 'trailer_license_plate_image_url']) ||
         registrationUrls.length > 0 ||
         fallbackRegistrationUrl;
       
       if (hasExternalPhotos) {
         const externalPhotos: VehiclePhoto[] = [];
-        const frontPhotoUrl = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url']);
-        const sidePhotoUrl = getFirstApiUrl(apiSources, ['side_photo_url', 'side_image_url']);
-        const backPhotoUrl = getFirstApiUrl(apiSources, ['back_photo_url', 'rear_image_url', 'back_image_url']);
-        const platePhotoUrl = getFirstApiUrl(apiSources, ['plate_photo_url', 'license_plate_image_url']);
+        const frontPhotoUrl = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url', 'front_url', 'photo_front_url']);
+        const sidePhotoUrl = getFirstApiUrl(apiSources, ['side_photo_url', 'side_image_url', 'left_photo_url', 'left_image_url', 'photo_side_url']);
+        const backPhotoUrl = getFirstApiUrl(apiSources, ['back_photo_url', 'rear_image_url', 'back_image_url', 'rear_photo_url', 'photo_back_url']);
+        const platePhotoUrl = getFirstApiUrl(apiSources, ['plate_photo_url', 'license_plate_image_url', 'license_plate_photo_url', 'plate_image_url', 'other_image_url']);
         const trailerPlatePhotoUrl = getFirstApiUrl(apiSources, ['trailer_plate_photo_url', 'trailer_license_plate_image_url']);
 
         if (frontPhotoUrl) externalPhotos.push({ id: 'front', photo_type: 'front', photo_url: frontPhotoUrl });
