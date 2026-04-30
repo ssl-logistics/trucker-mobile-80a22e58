@@ -1059,6 +1059,12 @@ export default function DomesticJobDetail({
         <ContainerReturnDeadlineBanner
           show={!!job.bl_no && !!containerPickupAt && !containerReturnConfirmed}
           pickupAt={containerPickupAt}
+          containerFreeDays={
+            (job as any).container_free_days ??
+            (job as any).containerFreeDays ??
+            (job as any).free_days ??
+            null
+          }
         />
 
         {/* Route Info */}

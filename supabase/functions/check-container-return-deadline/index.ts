@@ -15,7 +15,7 @@ const EXTERNAL_API_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1'
 const EXTERNAL_API_KEY = Deno.env.get('EXTERNAL_API_KEY') || 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-const RETURN_WINDOW_HOURS = 48;
+const DEFAULT_RETURN_WINDOW_HOURS = 48; // fallback if container_free_days missing
 const WARN_BEFORE_HOURS = 24; // notify when <= 24h remaining
 
 Deno.serve(async (req) => {
@@ -71,7 +71,18 @@ Deno.serve(async (req) => {
       const pickupAt = new Date(pickup.checked_in_at || pickup.created_at).getTime();
       if (!pickupAt) continue;
 
-      const deadline = pickupAt + RETURN_WINDOW_HOURS * 3600 * 1000;
+      // Read container_free_days from the related job (set by office web).
+      const job = pickup.transport_orders || {};
+      const freeDaysRaw =
+        job.container_free_days ??
+        job.free_days ??
+        pickup.container_free_days;
+      const freeDays = Number(freeDaysRaw);
+      const windowHours = Number.isFinite(freeDays) && freeDays > 0
+        ? freeDays * 24
+        : DEFAULT_RETURN_WINDOW_HOURS;
+
+      const deadline = pickupAt + windowHours * 3600 * 1000;
       const hoursRemaining = (deadline - now) / 3600000;
 
       // Only notify when entering the warn window
@@ -108,10 +119,10 @@ Deno.serve(async (req) => {
         : '⏰ Container return deadline approaching';
       const descTh = overdue
         ? `งาน ${orderNumber}: เลยกำหนดคืนตู้เปล่ามาแล้ว ${hoursDisplay} ชั่วโมง กรุณาคืนตู้โดยด่วน`
-        : `งาน ${orderNumber}: ต้องคืนตู้เปล่าภายใน ${hoursDisplay} ชั่วโมง (ครบ 48 ชม. หลังรับตู้)`;
+        : `งาน ${orderNumber}: ต้องคืนตู้เปล่าภายใน ${hoursDisplay} ชั่วโมง (กำหนด ${windowHours} ชม. หลังรับตู้)`;
       const descEn = overdue
         ? `Job ${orderNumber}: container return is overdue by ${hoursDisplay}h. Please return ASAP.`
-        : `Job ${orderNumber}: please return the empty container within ${hoursDisplay}h (48h after pickup).`;
+        : `Job ${orderNumber}: please return the empty container within ${hoursDisplay}h (${windowHours}h after pickup).`;
 
       const { error: insertErr } = await supabase.from('notifications').insert({
         user_id: driverId,
