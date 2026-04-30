@@ -503,6 +503,7 @@ export default function DomesticJobDetail({
       setContainerReturnCheckedIn(false);
       setContainerReturnConfirmed(false);
       setContainerPickupConfirmed(false);
+      setContainerPickupAt(null);
       setDestinationCheckins({});
       setIsLoadingCheckinStatus(true);
     }
