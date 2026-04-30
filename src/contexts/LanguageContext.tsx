@@ -1133,6 +1133,8 @@ const thTranslations: Record<string, string> = {
   'container.confirm': 'ยืนยัน',
   'container.checkInSuccess': 'เช็คอินสำเร็จ',
   'container.checkInSuccessMessage': 'สถานะเปลี่ยนเป็น รอรับตู้เปล่า แล้ว',
+  'container.checkInLoadedSuccessMessage': 'เช็คอินรับตู้หนักสำเร็จแล้ว',
+  'container.checkInReturnSuccessMessage': 'เช็คอินถึงจุดคืนตู้แล้ว',
   'container.checkInError': 'ไม่สามารถเช็คอินได้',
   'container.error': 'เกิดข้อผิดพลาด',
   'container.loadError': 'ไม่สามารถโหลดข้อมูลงานได้',
