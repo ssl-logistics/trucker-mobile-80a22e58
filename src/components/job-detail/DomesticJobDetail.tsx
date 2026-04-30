@@ -1076,10 +1076,11 @@ export default function DomesticJobDetail({
           </button>
       }
 
-        {/* Container Return Deadline Banner (BL jobs only) */}
+        {/* Container Return Deadline Banner (BL jobs only).
+            Anchor: timestamp of the LATEST EIR scan; fallback to container pickup check-in. */}
         <ContainerReturnDeadlineBanner
-          show={!!job.bl_no && !!containerPickupAt && !containerReturnConfirmed}
-          pickupAt={containerPickupAt}
+          show={!!job.bl_no && !!(latestEirAt || containerPickupAt) && !containerReturnConfirmed}
+          pickupAt={latestEirAt || containerPickupAt}
           containerFreeDays={
             (job as any).container_free_days ??
             (job as any).containerFreeDays ??
