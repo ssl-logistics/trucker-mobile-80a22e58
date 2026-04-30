@@ -53,6 +53,7 @@ interface JobDetail {
   transport_type?: string;
   container_details: ContainerDetail[];
   container_return_location?: string;
+  closing_time?: string;
 }
 
 type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir';
@@ -290,6 +291,7 @@ const ContainerSOPPage = () => {
           transport_type: foundJob.transport_type || '',
           container_details: containerDetails,
           container_return_location: foundJob.container_return_location || foundJob.return_container_at || '',
+          closing_time: foundJob.closing_time || foundJob.closingTime || foundJob.closing_date || '',
         });
       } else {
         throw new Error('Job not found');
