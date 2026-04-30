@@ -3048,6 +3048,8 @@ const enTranslations: Record<string, string> = {
   'expense.repairContainer': 'Container Repair',
   'expense.overtime': 'Overtime',
   'expense.miscNoReceipt': 'Misc (No Receipt)',
+  'expense.diveKnockOut': 'Diving / Knock-out Fee',
+  'expense.waste': 'Waste Fee',
   'expense.other': 'Other',
   'expense.requiredExpenseMissing': 'Please add required expenses before confirming container return',
   'expense.missingTypes': 'Missing: {types}',
