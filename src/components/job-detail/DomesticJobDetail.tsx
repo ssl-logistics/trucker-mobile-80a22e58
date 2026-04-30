@@ -46,6 +46,7 @@ import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
 import statusIcon from '@/assets/status-icon.png';
 import checkInIcon from '@/assets/check-in-icon.png';
+import { ContainerReturnDeadlineBanner } from '@/components/job-detail/ContainerReturnDeadlineBanner';
 
 interface DriverCheckin {
   order_number: string;
@@ -227,6 +228,7 @@ export default function DomesticJobDetail({
   const [containerReturnCheckedIn, setContainerReturnCheckedIn] = useState(false);
   const [containerReturnConfirmed, setContainerReturnConfirmed] = useState(false);
   const [containerPickupConfirmed, setContainerPickupConfirmed] = useState(false);
+  const [containerPickupAt, setContainerPickupAt] = useState<string | null>(null);
   const [isLoadingCheckinStatus, setIsLoadingCheckinStatus] = useState(true);
   // Track check-in status for each destination by sequence number
   const [destinationCheckins, setDestinationCheckins] = useState<Record<number, {checked_in_at: string | null;sop_completed_at: string | null;}>>({});
@@ -502,6 +504,7 @@ export default function DomesticJobDetail({
       setContainerReturnCheckedIn(false);
       setContainerReturnConfirmed(false);
       setContainerPickupConfirmed(false);
+      setContainerPickupAt(null);
       setDestinationCheckins({});
       setIsLoadingCheckinStatus(true);
     }
@@ -563,6 +566,12 @@ export default function DomesticJobDetail({
       setContainerReturnCheckedIn(hasContainerReturnCheckin);
       setContainerReturnConfirmed(hasContainerReturnConfirmed);
       setContainerPickupConfirmed(hasContainerPickupConfirmed);
+
+      // Capture container pickup timestamp for return-deadline countdown (BL jobs)
+      const pickupRecord = checkins.find((c: DriverCheckin) =>
+        c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
+      ) as any;
+      setContainerPickupAt(pickupRecord?.checked_in_at || pickupRecord?.created_at || null);
 
       // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
       // Also support format: delivery with destination_sequence_number
@@ -1045,6 +1054,12 @@ export default function DomesticJobDetail({
             <span>{t('jobDetail.reportProblem')}</span>
           </button>
       }
+
+        {/* Container Return Deadline Banner (BL jobs only) */}
+        <ContainerReturnDeadlineBanner
+          show={!!job.bl_no && !!containerPickupAt && !containerReturnConfirmed}
+          pickupAt={containerPickupAt}
+        />
 
         {/* Route Info */}
         <div>
