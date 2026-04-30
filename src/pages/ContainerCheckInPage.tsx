@@ -457,9 +457,15 @@ export default function ContainerCheckInPage() {
         }
       }
 
+      // Choose toast message based on actual check-in context
+      const successMessageKey = isContainerReturn
+        ? 'container.checkInReturnSuccessMessage'
+        : job.bl_no
+        ? 'container.checkInLoadedSuccessMessage'
+        : 'container.checkInSuccessMessage';
       toast({
         title: t('container.checkInSuccess'),
-        description: t('container.checkInSuccessMessage')
+        description: t(successMessageKey)
       });
       setShowConfirmDialog(false);
       
