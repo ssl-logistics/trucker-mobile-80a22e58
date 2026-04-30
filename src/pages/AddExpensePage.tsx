@@ -1,5 +1,5 @@
 import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown } from "lucide-react";
 import confirmSuccessIcon from "@/assets/confirm-success-icon.png";
@@ -94,12 +94,54 @@ const AddExpensePage = () => {
     toll: "Toll Fee",
     parking: "Parking Fee",
     misc_no_receipt: "Misc (No Receipt)",
+    dive_knock_out: "Diving / Knock-out Fee",
+    waste: "Waste Fee",
     other: "Other",
   };
 
-  const expenseTypes = [
+  // Detect job type from location.state (passed by caller) — bl_no => BL, booking_no => Booking
+  const stateJob: any = location.state?.jobData || location.state?.job || null;
+  const [jobKind, setJobKind] = useState<'bl' | 'booking' | 'other'>(() => {
+    if (stateJob?.bl_no) return 'bl';
+    if (stateJob?.booking_no || stateJob?.booking_number) return 'booking';
+    return 'other';
+  });
+
+  // Fallback: fetch job to determine BL/Booking when not provided in state
+  useEffect(() => {
+    if (jobKind !== 'other' || !user || !jobId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [{ getFreelanceAcceptedJobs, getDriverAssignedJobs }, { data: roleData }] = await Promise.all([
+          import('@/lib/externalApi'),
+          supabase.from('user_roles').select('role').eq('user_id', user.id).single(),
+        ]);
+        const isFreelance = roleData?.role === 'freelance';
+        const driverType = isFreelance ? 'external' : 'internal';
+        const { data } = isFreelance
+          ? await getFreelanceAcceptedJobs(user.id)
+          : await getDriverAssignedJobs(user.id, driverType as 'internal' | 'external');
+        const jobs = Array.isArray(data?.data) ? data.data : data?.data ? [data.data] : [];
+        const matched = jobs.find((j: any) =>
+          j.id === jobId || j.order_number === jobId || j.order_code === jobId
+        );
+        if (!cancelled && matched) {
+          if (matched.bl_no) setJobKind('bl');
+          else if (matched.booking_no || matched.booking_number) setJobKind('booking');
+        }
+      } catch (e) {
+        console.warn('Could not detect job kind for expense filter:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, jobId, jobKind]);
+
+  const allExpenseTypes = [
     { value: "fuel", label: t('expense.fuel') },
     { value: "fuel_drop", label: t('expense.fuelDrop') },
+    { value: "dive_knock_out", label: t('expense.diveKnockOut') },
+    { value: "waste", label: t('expense.waste') },
     { value: "transport_fee", label: t('expense.transportFee') },
     { value: "labor", label: t('expense.labor') },
     { value: "toll", label: t('expense.tollFee') },
@@ -115,6 +157,15 @@ const AddExpensePage = () => {
     { value: "overtime", label: t('expense.overtime') },
     { value: "other", label: t('expense.other') },
   ];
+
+  // Filter dropdown by job kind
+  const blAllowed = ["fuel", "dive_knock_out", "return_container", "repair_container", "waste", "port_fee", "other"];
+  const bookingAllowed = ["fuel", "pickup_container", "port_fee", "other"];
+  const expenseTypes = jobKind === 'bl'
+    ? allExpenseTypes.filter(opt => blAllowed.includes(opt.value))
+    : jobKind === 'booking'
+      ? allExpenseTypes.filter(opt => bookingAllowed.includes(opt.value))
+      : allExpenseTypes;
   
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     { id: "1", type: undefined, customType: "", amount: "", receiptPhotos: [], showOCRDetails: false },
