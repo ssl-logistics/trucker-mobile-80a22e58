@@ -136,7 +136,7 @@ export default function VehicleInfoPage() {
     if (!photo) return null;
     const idx = photos.findIndex((p) => p.id === photo.id);
     const url = idx >= 0 ? presignedPhotoUrls[idx] : null;
-    return url || null;
+    return url || photo.photo_url || null;
   };
 
   const containerTypeOptions = [
@@ -672,15 +672,15 @@ export default function VehicleInfoPage() {
           {registrationPhotos.length > 0 ? (
             <div className={`grid gap-3 ${registrationPhotos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
               {registrationPhotos.map((_, index) => {
-                const presignedUrl = presignedRegistrationPhotos[index];
+                const displayUrl = presignedRegistrationPhotos[index] || registrationPhotos[index];
                 return (
                   <div 
                     key={`registration-${index}-${photoTimestamp}`}
                     className="relative bg-muted rounded-lg overflow-hidden aspect-video"
                   >
-                    {presignedUrl ? (
+                    {displayUrl ? (
                       <img 
-                        src={presignedUrl}
+                        src={displayUrl}
                         alt={`${t('alt.vehicleRegistration')} ${index + 1}`} 
                         className="w-full h-full object-cover"
                       />
