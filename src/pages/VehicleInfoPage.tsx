@@ -211,16 +211,16 @@ export default function VehicleInfoPage() {
         }
         
         // Support registration_photos array from API
-        if (user.registration_photos && Array.isArray(user.registration_photos) && user.registration_photos.length > 0) {
-          user.registration_photos.forEach((url: string, index: number) => {
+        if ((user as any).registration_photos && Array.isArray((user as any).registration_photos) && (user as any).registration_photos.length > 0) {
+          (user as any).registration_photos.forEach((url: string, index: number) => {
             externalPhotos.push({ id: `registration_${index}`, photo_type: 'registration', photo_url: url });
           });
-          setRegistrationPhotos(user.registration_photos);
-          setRegistrationPhoto(user.registration_photos[0]);
-        } else if (user.registration_photo_url) {
-          externalPhotos.push({ id: 'registration', photo_type: 'registration', photo_url: user.registration_photo_url });
-          setRegistrationPhoto(user.registration_photo_url);
-          setRegistrationPhotos([user.registration_photo_url]);
+          setRegistrationPhotos((user as any).registration_photos);
+          setRegistrationPhoto((user as any).registration_photos[0]);
+        } else if (fallbackRegistrationUrl) {
+          externalPhotos.push({ id: 'registration', photo_type: 'registration', photo_url: fallbackRegistrationUrl });
+          setRegistrationPhoto(fallbackRegistrationUrl);
+          setRegistrationPhotos([fallbackRegistrationUrl]);
         }
         setPhotos(externalPhotos);
         return;
