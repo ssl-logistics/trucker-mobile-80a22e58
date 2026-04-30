@@ -64,6 +64,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    // If no closing_time configured by office, skip silently.
+    if (!closingTime) {
+      return new Response(
+        JSON.stringify({ skipped: 'no closing_time configured' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -89,18 +97,17 @@ Deno.serve(async (req) => {
     const containerLabelEn = containerNumber ? ` (container ${containerNumber})` : '';
     const bookingLabel = bookingNo ? ` Booking ${bookingNo}` : '';
 
-    const hasClosing = !!closingTime;
-    const closingTh = hasClosing ? formatThaiDateTime(closingTime!) : '';
-    const closingEn = hasClosing ? formatEnDateTime(closingTime!) : '';
+    const closingTh = formatThaiDateTime(closingTime);
+    const closingEn = formatEnDateTime(closingTime);
 
     const titleTh = '⏰ กำหนดคืนตู้ลงท่า (Closing Date)';
     const titleEn = '⏰ CY Closing Date deadline';
-    const descTh = hasClosing
-      ? `งาน ${orderNumber}${bookingLabel}${containerLabel}: คุณต้องนำตู้คืนลงท่าให้เสร็จก่อน ${closingTh} ห้ามเกินวันและเวลาที่กำหนด`
-      : `งาน ${orderNumber}${bookingLabel}${containerLabel}: กรุณานำตู้คืนลงท่าให้ทันกำหนด Closing Date ห้ามเกินวันที่ระบบกำหนด`;
-    const descEn = hasClosing
-      ? `Job ${orderNumber}${bookingLabel ? ` Booking ${bookingNo}` : ''}${containerLabelEn}: please return the loaded container to the port before ${closingEn}. Do not exceed the closing time.`
-      : `Job ${orderNumber}${bookingLabel ? ` Booking ${bookingNo}` : ''}${containerLabelEn}: please return the loaded container to the port before the CY closing date. Do not exceed the deadline.`;
+    const descTh =
+      `งาน ${orderNumber}${bookingLabel}${containerLabel}: คุณต้องนำตู้คืนลงท่าให้เสร็จก่อน ${closingTh} ` +
+      `ห้ามเกินวันและเวลาที่กำหนด`;
+    const descEn =
+      `Job ${orderNumber}${bookingLabel ? ` Booking ${bookingNo}` : ''}${containerLabelEn}: ` +
+      `please return the loaded container to the port before ${closingEn}. Do not exceed the closing time.`;
 
     const { error: insertErr } = await supabase.from('notifications').insert({
       user_id: userId,
