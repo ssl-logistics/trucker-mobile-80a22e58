@@ -242,8 +242,17 @@ export default function VehicleInfoPage() {
 
     try {
       console.log('Loading vehicle photos for user:', user.id);
+      console.log('[VehicleInfo] user keys:', Object.keys(user || {}));
+      console.log('[VehicleInfo] user.vehicle:', (user as any)?.vehicle);
+      console.log('[VehicleInfo] flat photos:', {
+        front_photo_url: (user as any)?.front_photo_url,
+        side_photo_url: (user as any)?.side_photo_url,
+        back_photo_url: (user as any)?.back_photo_url,
+        plate_photo_url: (user as any)?.plate_photo_url,
+      });
 
       const apiSources = getVehicleApiSources(user);
+      console.log('[VehicleInfo] apiSources count:', apiSources.length);
       const registrationUrls = collectApiUrls(apiSources, REGISTRATION_ARRAY_KEYS);
       const fallbackRegistrationUrl = getFirstApiUrl(apiSources, REGISTRATION_URL_KEYS);
       
