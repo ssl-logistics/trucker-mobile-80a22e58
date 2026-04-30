@@ -47,7 +47,7 @@ interface VehiclePhoto {
 
 const vehicleBrands = ['Isuzu', 'Hino', 'Mitsubishi', 'Nissan', 'Mercedes-Benz', 'Volvo', 'Scania'];
 
-type VehicleApiRecord = Record<string, any>;
+type VehicleApiRecord = Record<string, unknown>;
 
 const REGISTRATION_URL_KEYS = [
   'registration_document_url',
