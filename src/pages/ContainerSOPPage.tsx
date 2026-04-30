@@ -867,6 +867,25 @@ const ContainerSOPPage = () => {
           };
           console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
           const { data: checkinData, error: checkinError } = await driverCheckin(checkinPayload);
+
+          // BL job: fire one-shot return deadline notification (push + in-app).
+          // Banner on the job page handles the live countdown.
+          if (!checkinError && isBLJob) {
+            const freeDays = Number((jobDetail as any)?.container_free_days);
+            if (Number.isFinite(freeDays) && freeDays > 0) {
+              supabase.functions
+                .invoke('notify-container-return-deadline', {
+                  body: {
+                    user_id: user.id,
+                    order_number: jobDetail!.order_code,
+                    container_number: finalContainerNumber,
+                    container_free_days: freeDays,
+                  },
+                })
+                .catch((e) => console.warn('[ContainerSOP] notify-container-return-deadline error:', e));
+            }
+          }
+
           if (checkinError) {
             const errLower = checkinError.toLowerCase();
             const isDuplicate = errLower.includes('duplicate') || errLower.includes('already') || errLower.includes('picked') || errLower.includes('ได้รับไปแล้ว');
