@@ -570,10 +570,11 @@ export default function DomesticJobDetail({
       setContainerReturnConfirmed(hasContainerReturnConfirmed);
       setContainerPickupConfirmed(hasContainerPickupConfirmed);
 
-      // Capture container pickup timestamp for return-deadline countdown (BL jobs)
-      const pickupRecord = checkins.find((c: DriverCheckin) =>
+      // Capture container pickup timestamp for return-deadline countdown.
+      // Prefer the earliest pickup checkin; fall back to the confirmed event.
+      const pickupRecord = (checkins.find((c: DriverCheckin) =>
         c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
-      ) as any;
+      ) as any) || (checkins.find((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed') as any);
       setContainerPickupAt(pickupRecord?.checked_in_at || pickupRecord?.created_at || null);
 
       // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
