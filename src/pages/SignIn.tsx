@@ -24,7 +24,7 @@ import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
 import { LineDebugModal } from "@/components/debug/LineDebugModal";
-import { initLiff, liffLogin, getLiffProfile, liff } from "@/lib/liff";
+import { initLiff, liffLogin, getLiffProfile, liff, LIFF_ID } from "@/lib/liff";
 
 const setLineDebugValue = (key: string, value: string) => {
   try {
@@ -32,6 +32,28 @@ const setLineDebugValue = (key: string, value: string) => {
   } catch {
     // ignore debug-only persistence failures
   }
+};
+const LINE_CHANNEL_ID = LIFF_ID.split('-')[0] || '2008888039';
+const LINE_NATIVE_REDIRECT_URI = 'https://mobile.the-trucker.com/auth/line/callback';
+
+const buildNativeLineOAuthUrl = () => {
+  const state = `thetroob_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  try {
+    localStorage.setItem('line_oauth_state', state);
+    sessionStorage.setItem('line_oauth_state', state);
+  } catch {
+    // storage is best-effort for native callback validation/debugging
+  }
+
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: LINE_CHANNEL_ID,
+    redirect_uri: LINE_NATIVE_REDIRECT_URI,
+    state,
+    scope: 'profile openid',
+  });
+
+  return `https://access.line.me/oauth2/v2.1/authorize?${params.toString()}`;
 };
 const languageOptions = [{
   code: 'en' as const,
@@ -425,6 +447,15 @@ const SignIn = () => {
               console.log('[LIFF Login] 🚀 Button clicked');
               setIsLoggingIn(true);
               try {
+                if (Capacitor.isNativePlatform()) {
+                  console.log('[LINE Native Login] Opening LINE OAuth in native browser');
+                  await Browser.open({
+                    url: buildNativeLineOAuthUrl(),
+                    presentationStyle: 'popover',
+                  });
+                  return;
+                }
+
                 await initLiff();
                 console.log('[LIFF Login] init done. isLoggedIn =', liff.isLoggedIn(), 'isInClient =', liff.isInClient());
 
