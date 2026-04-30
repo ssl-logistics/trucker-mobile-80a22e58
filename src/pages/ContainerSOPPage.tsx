@@ -1025,6 +1025,31 @@ const ContainerSOPPage = () => {
         console.warn(`[ContainerSOP] updateOrderStatus ${orderStatus} exception:`, statusErr);
       }
 
+      // Booking job: fire one-shot CY closing date notification (push + in-app)
+      // right after the driver confirms empty container pickup.
+      if (!isContainerReturn && isBookingJob) {
+        const closingTime = (jobDetail as any)?.closing_time
+          || (navState?.jobData as any)?.closing_time
+          || (navState?.jobData as any)?.closingTime
+          || (navState?.jobData as any)?.closing_date
+          || '';
+        if (closingTime) {
+          supabase.functions
+            .invoke('notify-booking-closing-date', {
+              body: {
+                user_id: user.id,
+                order_number: jobDetail!.order_code,
+                container_number: finalContainerNumber,
+                booking_no: jobDetail!.booking_no,
+                closing_time: closingTime,
+              },
+            })
+            .catch((e) => console.warn('[ContainerSOP] notify-booking-closing-date error:', e));
+        } else {
+          console.log('[ContainerSOP] Booking job has no closing_time, skipping notification');
+        }
+      }
+
       toast({
         title: t('containerSop.success'),
         description: t('containerSop.successMessage'),
