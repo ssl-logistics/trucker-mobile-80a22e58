@@ -161,10 +161,14 @@ const AddExpensePage = () => {
   // Filter dropdown by job kind
   const blAllowed = ["fuel", "dive_knock_out", "return_container", "repair_container", "waste", "port_fee", "other"];
   const bookingAllowed = ["fuel", "pickup_container", "port_fee", "other"];
+  const orderByList = (list: string[]) =>
+    list
+      .map(v => allExpenseTypes.find(opt => opt.value === v))
+      .filter((o): o is { value: string; label: string } => Boolean(o));
   const expenseTypes = jobKind === 'bl'
-    ? allExpenseTypes.filter(opt => blAllowed.includes(opt.value))
+    ? orderByList(blAllowed)
     : jobKind === 'booking'
-      ? allExpenseTypes.filter(opt => bookingAllowed.includes(opt.value))
+      ? orderByList(bookingAllowed)
       : allExpenseTypes;
   
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
