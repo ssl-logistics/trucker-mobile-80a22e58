@@ -241,36 +241,25 @@ export default function VehicleInfoPage() {
     if (!user) return;
 
     try {
-      console.log('Loading vehicle photos for user:', user.id);
-      console.log('[VehicleInfo] user keys:', Object.keys(user || {}));
-      console.log('[VehicleInfo] user.vehicle:', (user as any)?.vehicle);
-      console.log('[VehicleInfo] flat photos:', {
-        front_photo_url: (user as any)?.front_photo_url,
-        side_photo_url: (user as any)?.side_photo_url,
-        back_photo_url: (user as any)?.back_photo_url,
-        plate_photo_url: (user as any)?.plate_photo_url,
-      });
-
       const apiSources = getVehicleApiSources(user);
-      console.log('[VehicleInfo] apiSources count:', apiSources.length);
       const registrationUrls = collectApiUrls(apiSources, REGISTRATION_ARRAY_KEYS);
       const fallbackRegistrationUrl = getFirstApiUrl(apiSources, REGISTRATION_URL_KEYS);
       
       // If user has photos from external API, use those
-      const hasExternalPhotos = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url']) ||
-        getFirstApiUrl(apiSources, ['side_photo_url', 'side_image_url']) ||
-        getFirstApiUrl(apiSources, ['back_photo_url', 'rear_image_url', 'back_image_url']) ||
-        getFirstApiUrl(apiSources, ['plate_photo_url', 'license_plate_image_url']) ||
+      const hasExternalPhotos = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url', 'front_url', 'photo_front_url']) ||
+        getFirstApiUrl(apiSources, ['side_photo_url', 'side_image_url', 'left_photo_url', 'left_image_url', 'photo_side_url']) ||
+        getFirstApiUrl(apiSources, ['back_photo_url', 'rear_image_url', 'back_image_url', 'rear_photo_url', 'photo_back_url']) ||
+        getFirstApiUrl(apiSources, ['plate_photo_url', 'license_plate_image_url', 'license_plate_photo_url', 'plate_image_url', 'other_image_url']) ||
         getFirstApiUrl(apiSources, ['trailer_plate_photo_url', 'trailer_license_plate_image_url']) ||
         registrationUrls.length > 0 ||
         fallbackRegistrationUrl;
       
       if (hasExternalPhotos) {
         const externalPhotos: VehiclePhoto[] = [];
-        const frontPhotoUrl = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url']);
-        const sidePhotoUrl = getFirstApiUrl(apiSources, ['side_photo_url', 'side_image_url']);
-        const backPhotoUrl = getFirstApiUrl(apiSources, ['back_photo_url', 'rear_image_url', 'back_image_url']);
-        const platePhotoUrl = getFirstApiUrl(apiSources, ['plate_photo_url', 'license_plate_image_url']);
+        const frontPhotoUrl = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url', 'front_url', 'photo_front_url']);
+        const sidePhotoUrl = getFirstApiUrl(apiSources, ['side_photo_url', 'side_image_url', 'left_photo_url', 'left_image_url', 'photo_side_url']);
+        const backPhotoUrl = getFirstApiUrl(apiSources, ['back_photo_url', 'rear_image_url', 'back_image_url', 'rear_photo_url', 'photo_back_url']);
+        const platePhotoUrl = getFirstApiUrl(apiSources, ['plate_photo_url', 'license_plate_image_url', 'license_plate_photo_url', 'plate_image_url', 'other_image_url']);
         const trailerPlatePhotoUrl = getFirstApiUrl(apiSources, ['trailer_plate_photo_url', 'trailer_license_plate_image_url']);
 
         if (frontPhotoUrl) externalPhotos.push({ id: 'front', photo_type: 'front', photo_url: frontPhotoUrl });
@@ -494,10 +483,10 @@ export default function VehicleInfoPage() {
 
     const apiSources = getVehicleApiSources(user);
     const photoKeysByType: Record<string, string[]> = {
-      front: ['front_photo_url', 'front_image_url'],
-      side: ['side_photo_url', 'side_image_url'],
-      back: ['back_photo_url', 'rear_image_url', 'back_image_url'],
-      plate: ['plate_photo_url', 'license_plate_image_url'],
+      front: ['front_photo_url', 'front_image_url', 'front_url', 'photo_front_url'],
+      side: ['side_photo_url', 'side_image_url', 'left_photo_url', 'left_image_url', 'photo_side_url'],
+      back: ['back_photo_url', 'rear_image_url', 'back_image_url', 'rear_photo_url', 'photo_back_url'],
+      plate: ['plate_photo_url', 'license_plate_image_url', 'license_plate_photo_url', 'plate_image_url', 'other_image_url'],
       trailer_plate: ['trailer_plate_photo_url', 'trailer_license_plate_image_url'],
     };
     const fallbackUrl = getFirstApiUrl(apiSources, photoKeysByType[type] || []);
