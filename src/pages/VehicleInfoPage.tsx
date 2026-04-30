@@ -177,6 +177,7 @@ export default function VehicleInfoPage() {
 
       // Resolve registration photo URL from any known API field name
       const fallbackRegistrationUrl =
+        (user as any).registration_document_url ||
         (user as any).registration_photo_url ||
         (user as any).document_url ||
         (user as any).vehicle_registration_url ||
