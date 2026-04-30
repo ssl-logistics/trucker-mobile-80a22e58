@@ -427,7 +427,7 @@ export default function ContainerSummaryPage() {
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
         {/* Action Buttons */}
-        <JobActionButtons jobId={jobId!} orderNumber={jobId!} checkinType={checkinType as any} completedAt={sopData?.return_confirmed_at || sopData?.sop_completed_at} />
+        <JobActionButtons jobId={jobId!} orderNumber={jobId!} checkinType={checkinType as any} completedAt={sopData?.return_confirmed_at || sopData?.sop_completed_at} jobData={(location.state as any)?.jobData || (location.state as any)?.job} />
 
         {/* Container Pickup Evidence - only show when viewing pickup context */}
         {checkinType !== 'container_return' && (
