@@ -800,13 +800,68 @@ const ContainerSOPPage = () => {
       // Send driverCheckin for container return
       if (isContainerReturn) {
         try {
+          // Build deadline summary: anchor on latest EIR scan (fallback to container_pickup checkin)
+          let deadlineNote = '';
+          try {
+            const freeDays = Number((jobDetail as any)?.container_free_days) || 2;
+            let anchorMs: number | null = null;
+
+            // Prefer latest EIR scan timestamp
+            const { data: ocrData } = await getOcrContainerScans(
+              (jobDetail as any)?.container_number || undefined,
+              10,
+              jobDetail!.order_code,
+            );
+            const scans: any[] = (ocrData as any)?.data || [];
+            const eirScans = scans.filter((s) => {
+              const p = s?.eir_photos;
+              return Array.isArray(p) ? p.length > 0 : typeof p === 'string' && p.trim().length > 0;
+            });
+            if (eirScans.length > 0) {
+              const tsOf = (s: any) => new Date(s?.scanned_at || s?.created_at || s?.updated_at || 0).getTime();
+              anchorMs = eirScans.reduce((m, s) => Math.max(m, tsOf(s)), 0);
+            }
+
+            // Fallback to container_pickup checkin
+            if (!anchorMs) {
+              const { data: ciData } = await getDriverCheckins(user.id, driverType, jobDetail!.order_code);
+              const checkins: any[] = (ciData as any)?.data || [];
+              const pickup = checkins.find((c) => c.checkin_type === 'container_pickup')
+                || checkins.find((c) => c.checkin_type === 'container_pickup_confirmed');
+              if (pickup) anchorMs = new Date(pickup.checked_in_at || pickup.created_at).getTime();
+            }
+
+            if (anchorMs) {
+              const deadlineMs = anchorMs + freeDays * 24 * 3_600_000;
+              const nowMs = Date.now();
+              const diffMs = nowMs - deadlineMs;
+              const fmt = (ms: number) => {
+                const totalMin = Math.floor(Math.abs(ms) / 60000);
+                const d = Math.floor(totalMin / 1440);
+                const h = Math.floor((totalMin % 1440) / 60);
+                const m = totalMin % 60;
+                const parts = [];
+                if (d > 0) parts.push(`${d} วัน`);
+                if (h > 0) parts.push(`${h} ชม.`);
+                parts.push(`${m} นาที`);
+                return parts.join(' ');
+              };
+              const deadlineStr = new Date(deadlineMs).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+              deadlineNote = diffMs > 0
+                ? ` | กำหนดคืน: ${deadlineStr} (เลยกำหนด ${fmt(diffMs)})`
+                : ` | กำหนดคืน: ${deadlineStr} (เหลือ ${fmt(diffMs)})`;
+            }
+          } catch (deadlineErr) {
+            console.warn('[ContainerSOP] deadline calc failed (non-blocking):', deadlineErr);
+          }
+
           const returnYardNote = returnSlipYardName ? ` | ลานคืนตู้: ${returnSlipYardName}` : '';
           const checkinPayload: Parameters<typeof driverCheckin>[0] = {
             order_number: jobDetail!.order_code,
             driver_id: user.id,
             driver_type: driverType,
             checkin_type: 'container_return_confirmed',
-            notes: `ยืนยันคืนตู้สำเร็จ${returnYardNote}`,
+            notes: `ยืนยันคืนตู้สำเร็จ${returnYardNote}${deadlineNote}`,
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
             ...(returnSlipYardName && { return_yard_name: returnSlipYardName }),
@@ -820,6 +875,7 @@ const ContainerSOPPage = () => {
         } catch (checkinErr) {
           console.warn('[ContainerSOP] driverCheckin exception:', checkinErr);
         }
+
         
         // Save OCR scan with return_yard for container return
         if (returnSlipYardName) {
