@@ -570,10 +570,11 @@ export default function DomesticJobDetail({
       setContainerReturnConfirmed(hasContainerReturnConfirmed);
       setContainerPickupConfirmed(hasContainerPickupConfirmed);
 
-      // Capture container pickup timestamp for return-deadline countdown (BL jobs)
-      const pickupRecord = checkins.find((c: DriverCheckin) =>
+      // Capture container pickup timestamp for return-deadline countdown.
+      // Prefer the earliest pickup checkin; fall back to the confirmed event.
+      const pickupRecord = (checkins.find((c: DriverCheckin) =>
         c.checkin_type === 'container_pickup' || c.checkin_type === 'empty_container' || c.checkin_type === 'container'
-      ) as any;
+      ) as any) || (checkins.find((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed') as any);
       setContainerPickupAt(pickupRecord?.checked_in_at || pickupRecord?.created_at || null);
 
       // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
@@ -1076,16 +1077,22 @@ export default function DomesticJobDetail({
           </button>
       }
 
-        {/* Container Return Deadline Banner (BL jobs only).
-            Anchor: timestamp of the LATEST EIR scan; fallback to container pickup check-in. */}
+        {/* Container Return Deadline Banner — show whenever this is a container
+            job and the driver has picked up the container but not returned it.
+            Anchor: timestamp of the LATEST EIR scan; fallback to container pickup check-in.
+            Default to 2 days if office didn't fill `container_free_days`. */}
         <ContainerReturnDeadlineBanner
-          show={!!job.bl_no && !!(latestEirAt || containerPickupAt) && !containerReturnConfirmed}
+          show={
+            (!!job.bl_no || !!job.container_number || containerPickupConfirmed || emptyContainerCheckedIn) &&
+            !!(latestEirAt || containerPickupAt) &&
+            !containerReturnConfirmed
+          }
           pickupAt={latestEirAt || containerPickupAt}
           containerFreeDays={
             (job as any).container_free_days ??
             (job as any).containerFreeDays ??
             (job as any).free_days ??
-            null
+            2
           }
         />
 
