@@ -1076,16 +1076,22 @@ export default function DomesticJobDetail({
           </button>
       }
 
-        {/* Container Return Deadline Banner (BL jobs only).
-            Anchor: timestamp of the LATEST EIR scan; fallback to container pickup check-in. */}
+        {/* Container Return Deadline Banner — show whenever this is a container
+            job and the driver has picked up the container but not returned it.
+            Anchor: timestamp of the LATEST EIR scan; fallback to container pickup check-in.
+            Default to 2 days if office didn't fill `container_free_days`. */}
         <ContainerReturnDeadlineBanner
-          show={!!job.bl_no && !!(latestEirAt || containerPickupAt) && !containerReturnConfirmed}
+          show={
+            (!!job.bl_no || !!job.container_number || containerPickupConfirmed || emptyContainerCheckedIn) &&
+            !!(latestEirAt || containerPickupAt) &&
+            !containerReturnConfirmed
+          }
           pickupAt={latestEirAt || containerPickupAt}
           containerFreeDays={
             (job as any).container_free_days ??
             (job as any).containerFreeDays ??
             (job as any).free_days ??
-            null
+            2
           }
         />
 
