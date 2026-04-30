@@ -1054,6 +1054,12 @@ export default function DomesticJobDetail({
           </button>
       }
 
+        {/* Container Return Deadline Banner (BL jobs only) */}
+        <ContainerReturnDeadlineBanner
+          show={!!job.bl_no && !!containerPickupAt && !containerReturnConfirmed}
+          pickupAt={containerPickupAt}
+        />
+
         {/* Route Info */}
         <div>
           <div className="mb-3">
