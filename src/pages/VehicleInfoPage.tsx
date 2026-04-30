@@ -47,6 +47,66 @@ interface VehiclePhoto {
 
 const vehicleBrands = ['Isuzu', 'Hino', 'Mitsubishi', 'Nissan', 'Mercedes-Benz', 'Volvo', 'Scania'];
 
+type VehicleApiRecord = Record<string, any>;
+
+const REGISTRATION_URL_KEYS = [
+  'registration_document_url',
+  'document_url',
+  'registration_photo_url',
+  'vehicle_registration_url',
+  'registration_image_url',
+  'book_image_url',
+];
+
+const REGISTRATION_ARRAY_KEYS = ['registration_photos', 'registration_photo_urls', 'registration_document_urls'];
+const VEHICLE_SOURCE_KEYS = ['vehicle', 'truck', 'factory_truck', 'factory_trucks', 'logistics_truck', 'logistics_trucks', 'logistics_trailer', 'logistics_trailers'];
+
+const asRecord = (value: unknown): VehicleApiRecord | null => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  return value as VehicleApiRecord;
+};
+
+const getVehicleApiSources = (user: unknown): VehicleApiRecord[] => {
+  const root = asRecord(user);
+  if (!root) return [];
+
+  const sources = [root];
+  VEHICLE_SOURCE_KEYS.forEach((key) => {
+    const value = root[key];
+    const values = Array.isArray(value) ? value : [value];
+    values.forEach((item) => {
+      const record = asRecord(item);
+      if (record) sources.push(record);
+    });
+  });
+
+  return sources;
+};
+
+const getFirstApiUrl = (sources: VehicleApiRecord[], keys: string[]) => {
+  for (const source of sources) {
+    for (const key of keys) {
+      const value = source[key];
+      if (typeof value === 'string' && value.trim()) return value;
+    }
+  }
+  return null;
+};
+
+const collectApiUrls = (sources: VehicleApiRecord[], keys: string[]) => {
+  const urls: string[] = [];
+  sources.forEach((source) => {
+    keys.forEach((key) => {
+      const value = source[key];
+      const values = Array.isArray(value) ? value : [value];
+      values.forEach((item) => {
+        if (typeof item === 'string' && item.trim() && !urls.includes(item)) urls.push(item);
+      });
+    });
+  });
+  return urls;
+};
+
 export default function VehicleInfoPage() {
   const navigate = useNavigate();
   const { user, userType, refreshUser } = useAuth();
