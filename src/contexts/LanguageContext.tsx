@@ -2871,6 +2871,8 @@ const enTranslations: Record<string, string> = {
   'container.confirm': 'Confirm',
   'container.checkInSuccess': 'Check-in Successful',
   'container.checkInSuccessMessage': 'Status changed to waiting for empty container',
+  'container.checkInLoadedSuccessMessage': 'Checked in for loaded container pickup',
+  'container.checkInReturnSuccessMessage': 'Checked in at container return point',
   'container.checkInError': 'Unable to check in',
   'container.error': 'Error',
   'container.loadError': 'Unable to load job data',
