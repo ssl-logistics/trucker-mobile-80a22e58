@@ -119,10 +119,10 @@ Deno.serve(async (req) => {
         : '⏰ Container return deadline approaching';
       const descTh = overdue
         ? `งาน ${orderNumber}: เลยกำหนดคืนตู้เปล่ามาแล้ว ${hoursDisplay} ชั่วโมง กรุณาคืนตู้โดยด่วน`
-        : `งาน ${orderNumber}: ต้องคืนตู้เปล่าภายใน ${hoursDisplay} ชั่วโมง (ครบ 48 ชม. หลังรับตู้)`;
+        : `งาน ${orderNumber}: ต้องคืนตู้เปล่าภายใน ${hoursDisplay} ชั่วโมง (กำหนด ${windowHours} ชม. หลังรับตู้)`;
       const descEn = overdue
         ? `Job ${orderNumber}: container return is overdue by ${hoursDisplay}h. Please return ASAP.`
-        : `Job ${orderNumber}: please return the empty container within ${hoursDisplay}h (48h after pickup).`;
+        : `Job ${orderNumber}: please return the empty container within ${hoursDisplay}h (${windowHours}h after pickup).`;
 
       const { error: insertErr } = await supabase.from('notifications').insert({
         user_id: driverId,
