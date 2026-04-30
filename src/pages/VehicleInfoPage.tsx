@@ -130,12 +130,20 @@ export default function VehicleInfoPage() {
         setVehicleData(vehicleFromUser);
         
         // Also set registration photos from user (support both single and array)
-        if (user.registration_photos && Array.isArray(user.registration_photos) && user.registration_photos.length > 0) {
-          setRegistrationPhotos(user.registration_photos);
-          setRegistrationPhoto(user.registration_photos[0]); // First one as main
-        } else if (user.registration_photo_url) {
-          setRegistrationPhoto(user.registration_photo_url);
-          setRegistrationPhotos([user.registration_photo_url]);
+        const u = user as any;
+        const fallbackUrl =
+          u.registration_photo_url ||
+          u.document_url ||
+          u.vehicle_registration_url ||
+          u.registration_image_url ||
+          u.book_image_url ||
+          null;
+        if (u.registration_photos && Array.isArray(u.registration_photos) && u.registration_photos.length > 0) {
+          setRegistrationPhotos(u.registration_photos);
+          setRegistrationPhoto(u.registration_photos[0]); // First one as main
+        } else if (fallbackUrl) {
+          setRegistrationPhoto(fallbackUrl);
+          setRegistrationPhotos([fallbackUrl]);
         }
         setLoading(false);
         return;
@@ -165,10 +173,30 @@ export default function VehicleInfoPage() {
 
     try {
       console.log('Loading vehicle photos for user:', user.id);
+      console.log('[VehicleInfo] user keys:', Object.keys(user as any));
+      console.log('[VehicleInfo] registration fields:', {
+        registration_photos: (user as any).registration_photos,
+        registration_photo_url: (user as any).registration_photo_url,
+        document_url: (user as any).document_url,
+        vehicle_registration_url: (user as any).vehicle_registration_url,
+        registration_image_url: (user as any).registration_image_url,
+        book_image_url: (user as any).book_image_url,
+      });
+
+      // Resolve registration photo URL from any known API field name
+      const fallbackRegistrationUrl =
+        (user as any).registration_photo_url ||
+        (user as any).document_url ||
+        (user as any).vehicle_registration_url ||
+        (user as any).registration_image_url ||
+        (user as any).book_image_url ||
+        null;
       
       // If user has photos from external API, use those
       const hasExternalPhotos = user.front_photo_url || user.side_photo_url || user.back_photo_url || 
-        user.plate_photo_url || user.license_plate_image_url;
+        user.plate_photo_url || user.license_plate_image_url ||
+        ((user as any).registration_photos && (user as any).registration_photos.length > 0) ||
+        fallbackRegistrationUrl;
       
       if (hasExternalPhotos) {
         const externalPhotos: VehiclePhoto[] = [];
@@ -191,16 +219,16 @@ export default function VehicleInfoPage() {
         }
         
         // Support registration_photos array from API
-        if (user.registration_photos && Array.isArray(user.registration_photos) && user.registration_photos.length > 0) {
-          user.registration_photos.forEach((url: string, index: number) => {
+        if ((user as any).registration_photos && Array.isArray((user as any).registration_photos) && (user as any).registration_photos.length > 0) {
+          (user as any).registration_photos.forEach((url: string, index: number) => {
             externalPhotos.push({ id: `registration_${index}`, photo_type: 'registration', photo_url: url });
           });
-          setRegistrationPhotos(user.registration_photos);
-          setRegistrationPhoto(user.registration_photos[0]);
-        } else if (user.registration_photo_url) {
-          externalPhotos.push({ id: 'registration', photo_type: 'registration', photo_url: user.registration_photo_url });
-          setRegistrationPhoto(user.registration_photo_url);
-          setRegistrationPhotos([user.registration_photo_url]);
+          setRegistrationPhotos((user as any).registration_photos);
+          setRegistrationPhoto((user as any).registration_photos[0]);
+        } else if (fallbackRegistrationUrl) {
+          externalPhotos.push({ id: 'registration', photo_type: 'registration', photo_url: fallbackRegistrationUrl });
+          setRegistrationPhoto(fallbackRegistrationUrl);
+          setRegistrationPhotos([fallbackRegistrationUrl]);
         }
         setPhotos(externalPhotos);
         return;
