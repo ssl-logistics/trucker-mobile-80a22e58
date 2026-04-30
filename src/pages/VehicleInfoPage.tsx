@@ -207,7 +207,6 @@ export default function VehicleInfoPage() {
         setVehicleData(vehicleFromUser);
         
         // Also set registration photos from user/API vehicle objects
-        const apiSources = getVehicleApiSources(user);
         const registrationUrls = collectApiUrls(apiSources, REGISTRATION_ARRAY_KEYS);
         const fallbackUrl = getFirstApiUrl(apiSources, REGISTRATION_URL_KEYS);
         const resolvedRegistrationPhotos = registrationUrls.length > 0 ? registrationUrls : fallbackUrl ? [fallbackUrl] : [];
