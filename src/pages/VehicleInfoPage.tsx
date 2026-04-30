@@ -165,10 +165,30 @@ export default function VehicleInfoPage() {
 
     try {
       console.log('Loading vehicle photos for user:', user.id);
+      console.log('[VehicleInfo] user keys:', Object.keys(user as any));
+      console.log('[VehicleInfo] registration fields:', {
+        registration_photos: (user as any).registration_photos,
+        registration_photo_url: (user as any).registration_photo_url,
+        document_url: (user as any).document_url,
+        vehicle_registration_url: (user as any).vehicle_registration_url,
+        registration_image_url: (user as any).registration_image_url,
+        book_image_url: (user as any).book_image_url,
+      });
+
+      // Resolve registration photo URL from any known API field name
+      const fallbackRegistrationUrl =
+        (user as any).registration_photo_url ||
+        (user as any).document_url ||
+        (user as any).vehicle_registration_url ||
+        (user as any).registration_image_url ||
+        (user as any).book_image_url ||
+        null;
       
       // If user has photos from external API, use those
       const hasExternalPhotos = user.front_photo_url || user.side_photo_url || user.back_photo_url || 
-        user.plate_photo_url || user.license_plate_image_url;
+        user.plate_photo_url || user.license_plate_image_url ||
+        ((user as any).registration_photos && (user as any).registration_photos.length > 0) ||
+        fallbackRegistrationUrl;
       
       if (hasExternalPhotos) {
         const externalPhotos: VehiclePhoto[] = [];
