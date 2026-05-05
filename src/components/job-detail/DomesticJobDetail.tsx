@@ -1690,6 +1690,7 @@ export default function DomesticJobDetail({
                     setDragIdx(null);
                     setDragOverIdx(null);
                     dragItemRef.current = null;
+                    setLongPressIdx(null);
                   }}
                   onTouchStart={(e) => {
                     if (!canDrag) return;
