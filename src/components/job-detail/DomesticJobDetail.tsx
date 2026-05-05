@@ -1636,9 +1636,31 @@ export default function DomesticJobDetail({
                   key={dest.id}
                   ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}}
                   data-reorder-idx={index}
-                  draggable={canDrag}
+                  draggable={canDrag && isLongPressActive}
+                  onMouseDown={(e) => {
+                    if (!canDrag) return;
+                    // Only handle non-touch (mouse) — touch handled by onTouchStart
+                    if ((e as any).pointerType === 'touch') return;
+                    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+                    longPressTimerRef.current = setTimeout(() => {
+                      setLongPressIdx(index);
+                      if (navigator.vibrate) navigator.vibrate(50);
+                    }, 3000);
+                  }}
+                  onMouseUp={() => {
+                    if (longPressTimerRef.current && dragItemRef.current === null) {
+                      clearTimeout(longPressTimerRef.current);
+                      longPressTimerRef.current = null;
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (longPressTimerRef.current && dragItemRef.current === null) {
+                      clearTimeout(longPressTimerRef.current);
+                      longPressTimerRef.current = null;
+                    }
+                  }}
                   onDragStart={(e) => {
-                    if (!canDrag) { e.preventDefault(); return; }
+                    if (!canDrag || !isLongPressActive) { e.preventDefault(); return; }
                     setDragIdx(index);
                     dragItemRef.current = index;
                     e.dataTransfer.effectAllowed = 'move';
@@ -1668,6 +1690,7 @@ export default function DomesticJobDetail({
                     setDragIdx(null);
                     setDragOverIdx(null);
                     dragItemRef.current = null;
+                    setLongPressIdx(null);
                   }}
                   onTouchStart={(e) => {
                     if (!canDrag) return;
