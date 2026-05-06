@@ -63,6 +63,20 @@ function getApiKeyForEndpoint(endpoint: string): string {
   return API_KEYS.EXPRESS_RENT_API_KEY;
 }
 
+// In-flight GET dedupe + per-endpoint cooldown after 503/429
+const inflightGets = new Map<string, Promise<{ data: any; error: string | null }>>();
+const cooldownUntil = new Map<string, number>(); // key: endpoint -> epoch ms
+// ETag cache for HTTP caching (304 Not Modified)
+const etagCache = new Map<string, { etag: string; data: any }>();
+
+function parseRetryAfter(value: string | null): number {
+  if (!value) return 0;
+  const n = Number(value);
+  if (Number.isFinite(n)) return Math.max(0, n * 1000);
+  const t = Date.parse(value);
+  return Number.isFinite(t) ? Math.max(0, t - Date.now()) : 0;
+}
+
 // Helper function for external API calls
 export async function callExternalApi<T>(
   endpoint: string,
@@ -74,91 +88,145 @@ export async function callExternalApi<T>(
   } = {}
 ): Promise<{ data: T | null; error: string | null }> {
   const { method = 'GET', params, body, headers = {} } = options;
-  
-  try {
-    // Determine which base URL to use
-    const baseUrl = BIDDING_ENDPOINTS.includes(endpoint) ? BIDDING_API_URL : EXTERNAL_API_URL;
-    
-    let url = `${baseUrl}/${endpoint}`;
-    if (params) {
-      const searchParams = new URLSearchParams(params);
-      url += `?${searchParams.toString()}`;
+
+  // Determine URL
+  const baseUrl = BIDDING_ENDPOINTS.includes(endpoint) ? BIDDING_API_URL : EXTERNAL_API_URL;
+  let url = `${baseUrl}/${endpoint}`;
+  if (params) {
+    const searchParams = new URLSearchParams(params);
+    url += `?${searchParams.toString()}`;
+  }
+
+  // Per-endpoint cooldown — short-circuit while server is degraded
+  const cdUntil = cooldownUntil.get(endpoint) || 0;
+  if (method === 'GET' && Date.now() < cdUntil) {
+    const remaining = Math.round((cdUntil - Date.now()) / 1000);
+    console.warn(`[ExternalAPI] ${endpoint} in cooldown (${remaining}s left), skipping`);
+    return { data: null, error: `cooldown:${remaining}s` };
+  }
+
+  // GET request dedupe
+  if (method === 'GET') {
+    const existing = inflightGets.get(url);
+    if (existing) {
+      console.log(`[ExternalAPI] Dedupe in-flight GET ${endpoint}`);
+      return existing as Promise<{ data: T | null; error: string | null }>;
     }
-    
-    const apiKey = getApiKeyForEndpoint(endpoint);
-    
-    const fetchOptions: RequestInit = {
-      method,
-      headers: {
+  }
+
+  const exec = async (): Promise<{ data: T | null; error: string | null }> => {
+    try {
+      const apiKey = getApiKeyForEndpoint(endpoint);
+      const baseHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         ...headers,
-      },
-    };
-    
-    if (body && method !== 'GET') {
-      fetchOptions.body = JSON.stringify(body);
-    }
-    
-    console.log(`[ExternalAPI] ${method} ${endpoint}`, params || body || '');
-    
-    // Retry logic for transient network errors (5xx, including 503 from edge runtime cold-starts)
-    const MAX_RETRIES = 3;
-    let lastError: string = '';
-    
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        if (attempt > 0) {
-          // Exponential backoff: 800ms, 1600ms, 3200ms
-          const delay = 800 * Math.pow(2, attempt - 1);
-          console.log(`[ExternalAPI] Retry ${attempt}/${MAX_RETRIES} for ${endpoint} after ${delay}ms`);
-          await new Promise(r => setTimeout(r, delay));
-        }
-        
-        const response = await fetch(url, fetchOptions);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          // 503 from edge runtime is transient — log as warn instead of error to avoid runtime-error overlay
-          if (response.status === 503) {
-            console.warn(`[ExternalAPI] 503 transient (attempt ${attempt + 1}) on ${endpoint}`);
-          } else {
-            console.error(`[ExternalAPI] Error ${response.status}:`, errorText);
-          }
-          let errorMessage = `API Error: ${response.status}`;
-          try {
-            const errorJson = JSON.parse(errorText);
-            if (errorJson.message) errorMessage = errorJson.message;
-            else if (errorJson.error) errorMessage = errorJson.error;
-          } catch {}
-          // Don't retry on 4xx client errors
-          if (response.status >= 400 && response.status < 500) {
-            // Return parsed error body as data so callers can inspect details
-            let errorData: any = null;
-            try { errorData = JSON.parse(errorText); } catch {}
-            return { data: errorData as T, error: errorMessage };
-          }
-          lastError = errorMessage;
-          continue;
-        }
-        
-        const data = await response.json();
-        console.log(`[ExternalAPI] Success:`, endpoint, data?.data?.length || 'N/A', 'items');
-        
-        return { data, error: null };
-      } catch (err) {
-        lastError = err instanceof Error ? err.message : 'Unknown error';
-        console.error(`[ExternalAPI] Fetch error (attempt ${attempt}):`, lastError);
+      };
+      // Conditional GET via cached ETag
+      if (method === 'GET') {
+        const cached = etagCache.get(url);
+        if (cached?.etag) baseHeaders['If-None-Match'] = cached.etag;
       }
+
+      const fetchOptions: RequestInit = { method, headers: baseHeaders };
+      if (body && method !== 'GET') fetchOptions.body = JSON.stringify(body);
+
+      console.log(`[ExternalAPI] ${method} ${endpoint}`, params || body || '');
+
+      const MAX_RETRIES = 3;
+      let lastError = '';
+
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          if (attempt > 0) {
+            // Longer exponential backoff for transient errors
+            const delay = 1500 * Math.pow(2, attempt - 1); // 1.5s, 3s, 6s
+            console.log(`[ExternalAPI] Retry ${attempt}/${MAX_RETRIES} for ${endpoint} after ${delay}ms`);
+            await new Promise(r => setTimeout(r, delay));
+          }
+
+          const response = await fetch(url, fetchOptions);
+
+          // 304 — cache hit
+          if (response.status === 304 && method === 'GET') {
+            const cached = etagCache.get(url);
+            if (cached) {
+              console.log(`[ExternalAPI] 304 cache hit ${endpoint}`);
+              return { data: cached.data, error: null };
+            }
+          }
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            if (response.status === 503) {
+              console.warn(`[ExternalAPI] 503 transient (attempt ${attempt + 1}) on ${endpoint}`);
+            } else {
+              console.error(`[ExternalAPI] Error ${response.status}:`, errorText);
+            }
+            let errorMessage = `API Error: ${response.status}`;
+            try {
+              const errorJson = JSON.parse(errorText);
+              if (errorJson.message) errorMessage = errorJson.message;
+              else if (errorJson.error) errorMessage = errorJson.error;
+            } catch {}
+
+            // Honor Retry-After: stop retrying and apply cooldown
+            const retryAfterMs = parseRetryAfter(response.headers.get('Retry-After'));
+            if (response.status === 503 || response.status === 429) {
+              if (retryAfterMs > 0) {
+                // Cap cooldown at 5 minutes to recover sooner if server comes back
+                const cd = Math.min(retryAfterMs, 5 * 60 * 1000);
+                cooldownUntil.set(endpoint, Date.now() + cd);
+                console.warn(`[ExternalAPI] ${endpoint} cooldown for ${Math.round(cd / 1000)}s (Retry-After)`);
+                let errorData: any = null;
+                try { errorData = JSON.parse(errorText); } catch {}
+                return { data: errorData as T, error: errorMessage };
+              }
+            }
+
+            // Don't retry on 4xx client errors
+            if (response.status >= 400 && response.status < 500) {
+              let errorData: any = null;
+              try { errorData = JSON.parse(errorText); } catch {}
+              return { data: errorData as T, error: errorMessage };
+            }
+            lastError = errorMessage;
+            continue;
+          }
+
+          const data = await response.json();
+          // Cache ETag
+          if (method === 'GET') {
+            const etag = response.headers.get('ETag');
+            if (etag) etagCache.set(url, { etag, data });
+          }
+          console.log(`[ExternalAPI] Success:`, endpoint, data?.data?.length || 'N/A', 'items');
+          return { data, error: null };
+        } catch (err) {
+          lastError = err instanceof Error ? err.message : 'Unknown error';
+          console.error(`[ExternalAPI] Fetch error (attempt ${attempt}):`, lastError);
+        }
+      }
+
+      // All retries failed — apply short cooldown to back off
+      if (method === 'GET') {
+        cooldownUntil.set(endpoint, Date.now() + 30_000);
+      }
+      console.error(`[ExternalAPI] All retries exhausted for ${endpoint}`);
+      return { data: null, error: lastError };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error(`[ExternalAPI] Fetch error:`, errorMessage);
+      return { data: null, error: errorMessage };
     }
-    
-    console.error(`[ExternalAPI] All retries exhausted for ${endpoint}`);
-    return { data: null, error: lastError };
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    console.error(`[ExternalAPI] Fetch error:`, errorMessage);
-    return { data: null, error: errorMessage };
+  };
+
+  if (method === 'GET') {
+    const p = exec().finally(() => inflightGets.delete(url));
+    inflightGets.set(url, p);
+    return p as Promise<{ data: T | null; error: string | null }>;
   }
+  return exec();
 }
 
 // ==================== Auth APIs ====================
