@@ -397,14 +397,16 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       }
     };
 
-    // Increased from 2.5s to 12s to reduce 503s on the upstream call-signal edge function.
+    // DISABLED: call-signal polling temporarily disabled
+    return;
     const interval = setInterval(pollCallStatus, 12000);
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
-  // Poll for incoming call signals every 12 seconds (was 2.5s — caused 503s upstream)
+  // Poll for incoming call signals — DISABLED
   useEffect(() => {
     if (!currentUserId) return;
+    return; // call-signal polling disabled
 
     const pollCallSignal = async () => {
       // Only poll when idle
