@@ -417,25 +417,64 @@ const isValidName = (val: any): string => {
   };
 
   useEffect(() => {
-    if (user) {
-      console.log('🔄 Loading jobs with userType:', userType, 'isInternalDriver:', isInternalDriver, 'isExternalDriver:', isExternalDriver);
-      
-      const refreshJobs = (silent = false) => {
-        if (userType === 'internal_driver' || userType === 'external_driver') {
-          loadFactoryJobs(silent);
-        } else if (userType === 'freelance_driver') {
-          loadJobs();
-          loadFactoryJobs(silent);
-        }
-      };
+    if (!user) return;
+    console.log('🔄 Loading jobs with userType:', userType);
 
-      // Initial load (show loading UI)
-      refreshJobs(false);
+    const refreshJobs = (silent = false) => {
+      if (userType === 'internal_driver' || userType === 'external_driver') {
+        loadFactoryJobs(silent);
+      } else if (userType === 'freelance_driver') {
+        loadJobs();
+        loadFactoryJobs(silent);
+      }
+    };
 
-      // Auto-refresh every 30 seconds — silent (don't show loading UI to avoid flicker)
-      const intervalId = setInterval(() => refreshJobs(true), 30_000);
-      return () => clearInterval(intervalId);
-    }
+    // Initial load
+    refreshJobs(false);
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let lastActivityAt = Date.now();
+
+    const getInterval = () => {
+      if (typeof document !== 'undefined' && document.hidden) return 0;
+      if (Date.now() - lastActivityAt > 5 * 60_000) return 0;
+      const hasActive = (factoryJobs?.length || 0) > 0 || (jobs?.length || 0) > 0;
+      return hasActive ? 60_000 : 180_000;
+    };
+
+    const schedule = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      const delay = getInterval();
+      if (delay <= 0) return;
+      timeoutId = setTimeout(async () => {
+        await Promise.resolve(refreshJobs(true));
+        schedule();
+      }, delay);
+    };
+
+    const onActivity = () => { lastActivityAt = Date.now(); };
+    const onVisibility = () => {
+      if (!document.hidden) {
+        lastActivityAt = Date.now();
+        refreshJobs(true);
+        schedule();
+      } else if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    window.addEventListener('pointerdown', onActivity, { passive: true });
+    window.addEventListener('keydown', onActivity);
+    document.addEventListener('visibilitychange', onVisibility);
+    schedule();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('pointerdown', onActivity);
+      window.removeEventListener('keydown', onActivity);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [user, userType]);
 
   // Preload pages users are likely to navigate to from "งานสำหรับคุณ" section
