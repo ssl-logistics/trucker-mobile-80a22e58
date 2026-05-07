@@ -7,7 +7,7 @@ import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { Button } from '@/components/ui/button';
 import { getCallLogs, formatCallDuration, formatCallTime, formatCallDate, type CallLogEntry } from '@/utils/callLogs';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 export default function ChatListPage() {
   const { t } = useLanguage();
