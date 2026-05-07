@@ -265,6 +265,12 @@ const thTranslations: Record<string, string> = {
    'jobHistory.statusTransferred': 'โอนงานแล้ว',
    'jobHistory.statusDelivering': 'กำลังจัดส่ง',
    'jobHistory.statusAccepted': 'รับงานแล้ว',
+   'jobHistory.closeJob': 'ปิดงาน',
+   'jobHistory.closeJobTitle': 'ยืนยันปิดงาน',
+   'jobHistory.closeJobDesc': 'หาก CS ตรวจพบข้อผิดพลาดภายหลัง คุณจะต้องแนบเอกสารใหม่ ต้องการปิดงานนี้หรือไม่?',
+   'jobHistory.confirmClose': 'ปิดงาน',
+   'jobHistory.closedByDriver': 'ปิดงานโดยคนรถแล้ว',
+   'jobHistory.closedSuccess': 'ปิดงานเรียบร้อย',
   
   // Current Jobs Page
   'currentJobs.title': 'งานปัจจุบัน',
@@ -1846,6 +1852,12 @@ const enTranslations: Record<string, string> = {
    'jobHistory.statusTransferred': 'Transferred',
    'jobHistory.statusDelivering': 'In Delivery',
    'jobHistory.statusAccepted': 'Accepted',
+   'jobHistory.closeJob': 'Close Job',
+   'jobHistory.closeJobTitle': 'Confirm Close Job',
+   'jobHistory.closeJobDesc': 'If CS finds errors later, you will need to re-submit documents. Close this job?',
+   'jobHistory.confirmClose': 'Close Job',
+   'jobHistory.closedByDriver': 'Closed by driver',
+   'jobHistory.closedSuccess': 'Job closed successfully',
   
   // Current Jobs Page
   'currentJobs.title': 'Current Jobs',
@@ -3426,6 +3438,12 @@ const koTranslations: Record<string, string> = {
    'jobHistory.statusTransferred': '이관됨',
    'jobHistory.statusDelivering': '배송 중',
    'jobHistory.statusAccepted': '수락됨',
+   'jobHistory.closeJob': '작업 종료',
+   'jobHistory.closeJobTitle': '작업 종료 확인',
+   'jobHistory.closeJobDesc': 'CS가 나중에 오류를 발견하면 문서를 다시 제출해야 합니다. 이 작업을 종료하시겠습니까?',
+   'jobHistory.confirmClose': '작업 종료',
+   'jobHistory.closedByDriver': '기사가 종료함',
+   'jobHistory.closedSuccess': '작업이 종료되었습니다',
   
   // Current Jobs Page
   'currentJobs.title': '현재 작업',
@@ -5255,6 +5273,12 @@ const zhTranslations: Record<string, string> = {
    'jobHistory.statusTransferred': '已转移',
    'jobHistory.statusDelivering': '运输中',
    'jobHistory.statusAccepted': '已接受',
+   'jobHistory.closeJob': '关闭工作',
+   'jobHistory.closeJobTitle': '确认关闭工作',
+   'jobHistory.closeJobDesc': '如果客服稍后发现错误，您将需要重新提交文件。是否关闭此工作？',
+   'jobHistory.confirmClose': '关闭工作',
+   'jobHistory.closedByDriver': '司机已关闭',
+   'jobHistory.closedSuccess': '工作已成功关闭',
   
   // Validation Messages
   'validation.emailRequired': '请输入邮箱',
