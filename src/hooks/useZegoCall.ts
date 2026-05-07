@@ -77,12 +77,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     callStateRef.current = callState;
   }, [callState]);
 
-  // Fetch ZegoCloud token (cached for 30 minutes per user to avoid duplicate API calls)
+  // Fetch ZegoCloud token from external API (always fresh — Zego tokens can be unstable across room logouts)
   const fetchToken = useCallback(async (userId: string): Promise<{ token: string; appId: number } | null> => {
-    const cached = tokenCacheRef.current;
-    if (cached && cached.userId === userId && Date.now() - cached.fetchedAt < 30 * 60 * 1000) {
-      return { token: cached.token, appId: cached.appId };
-    }
     try {
       const { data, error } = await callExternalApi<{ token: string; appId: number }>('zegocloud-token', {
         method: 'GET',
@@ -92,7 +88,6 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
         console.error('[Zego] Token fetch error:', error);
         return null;
       }
-      tokenCacheRef.current = { token: data.token, appId: data.appId, userId, fetchedAt: Date.now() };
       return data;
     } catch (e) {
       console.error('[Zego] Token fetch exception:', e);
