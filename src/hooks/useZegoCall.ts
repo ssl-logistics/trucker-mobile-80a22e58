@@ -69,14 +69,20 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   const handledSignalIdsRef = useRef<Set<string>>(new Set());
   const callTypeRef = useRef<'incoming' | 'outgoing'>('outgoing');
   const callStartTimeRef = useRef<number | null>(null);
+  // Cache the ZegoCloud token to avoid double-fetch within the same call session
+  const tokenCacheRef = useRef<{ token: string; appId: number; userId: string; fetchedAt: number } | null>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
     callStateRef.current = callState;
   }, [callState]);
 
-  // Fetch ZegoCloud token from external API
+  // Fetch ZegoCloud token (cached for 30 minutes per user to avoid duplicate API calls)
   const fetchToken = useCallback(async (userId: string): Promise<{ token: string; appId: number } | null> => {
+    const cached = tokenCacheRef.current;
+    if (cached && cached.userId === userId && Date.now() - cached.fetchedAt < 30 * 60 * 1000) {
+      return { token: cached.token, appId: cached.appId };
+    }
     try {
       const { data, error } = await callExternalApi<{ token: string; appId: number }>('zegocloud-token', {
         method: 'GET',
@@ -86,6 +92,7 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
         console.error('[Zego] Token fetch error:', error);
         return null;
       }
+      tokenCacheRef.current = { token: data.token, appId: data.appId, userId, fetchedAt: Date.now() };
       return data;
     } catch (e) {
       console.error('[Zego] Token fetch exception:', e);
@@ -402,9 +409,9 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       }
     };
 
-    // Poll quickly so the mobile side hangs up promptly when the web peer ends the call
+    // ZegoCloud's roomStreamUpdate DELETE is primary; polling is fallback every 6s
     pollCallStatus();
-    const interval = setInterval(pollCallStatus, 3000);
+    const interval = setInterval(pollCallStatus, 6000);
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
@@ -420,8 +427,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
     let active = true;
     let timer: ReturnType<typeof setTimeout> | null = null;
-    let backoffMs = 20000; // start at 20s
-    const MIN_INTERVAL = 20000;   // 20s normal
+    let backoffMs = 30000; // start at 30s
+    const MIN_INTERVAL = 30000;   // 30s normal — push notifications are primary path
     const MAX_BACKOFF = 300000;   // cap at 5 minutes when endpoint is unhealthy
 
     const schedule = (ms: number) => {
