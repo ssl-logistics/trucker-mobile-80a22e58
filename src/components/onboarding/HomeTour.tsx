@@ -41,7 +41,7 @@ export const HomeTour = () => {
     {
       target: '[data-tour="chat-nav"]',
       title: "โทร 📞",
-      description: "โทรหาลูกค้าและผู้ประสานงานได้โดยตรง",
+      description: "รอรับสายจากบริษัทหรือโรงงานที่โทรเข้ามาหาคุณ",
       position: "top" as const,
     },
     {
@@ -75,7 +75,7 @@ export const HomeTour = () => {
     {
       target: '[data-tour="chat-nav"]',
       title: "โทร 📞",
-      description: "โทรหาผู้ประสานงานและบริษัท/โรงงานได้โดยตรง",
+      description: "รอรับสายจากบริษัทหรือโรงงานที่โทรเข้ามาหาคุณ",
       position: "top" as const,
     },
     {
