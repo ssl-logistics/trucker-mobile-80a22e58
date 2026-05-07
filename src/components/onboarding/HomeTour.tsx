@@ -40,8 +40,8 @@ export const HomeTour = () => {
     },
     {
       target: '[data-tour="chat-nav"]',
-      title: "แชท 💬",
-      description: "สื่อสารกับลูกค้าและผู้ประสานงานได้โดยตรง",
+      title: "โทร 📞",
+      description: "โทรหาลูกค้าและผู้ประสานงานได้โดยตรง",
       position: "top" as const,
     },
     {
@@ -74,8 +74,8 @@ export const HomeTour = () => {
     },
     {
       target: '[data-tour="chat-nav"]',
-      title: "แชท 💬",
-      description: "ติดต่อผู้ประสานงานและรับข้อความจากบริษัท/โรงงาน",
+      title: "โทร 📞",
+      description: "โทรหาผู้ประสานงานและบริษัท/โรงงานได้โดยตรง",
       position: "top" as const,
     },
     {
