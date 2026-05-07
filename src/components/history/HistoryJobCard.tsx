@@ -268,7 +268,7 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
           ) : (
             <Button
               variant="outline"
-              className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
               onClick={(e) => { e.stopPropagation(); setCloseOpen(true); }}
             >
               <CheckCircle2 className="w-4 h-4 mr-1" />
