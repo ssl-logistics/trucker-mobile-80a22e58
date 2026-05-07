@@ -401,9 +401,85 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
-  // Incoming call signals are delivered via push notifications, NOT polling.
-  // Do not poll /call-signal here — the endpoint should only be hit when a real call arrives.
+  // Poll for incoming call signals when idle (fallback until push notifications are reliable)
+  useEffect(() => {
+    if (!currentUserId) return;
+    // Only poll when idle — no active call
+    if (callState !== 'idle') return;
 
+    let active = true;
+
+    const pollIncoming = async () => {
+      if (!active) return;
+      // Skip when page is hidden (battery saver)
+      if (document.visibilityState === 'hidden') return;
+
+      try {
+        const params = new URLSearchParams({
+          driver_id: currentUserId,
+          driver_type: driverType,
+        });
+        const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal?${params}`, {
+          headers: CALL_SIGNAL_HEADERS,
+        });
+        if (!res.ok || !active) return;
+
+        const data = await res.json();
+        if (!data?.signal_id || !data?.room_id) return;
+
+        // Skip already-handled signals
+        if (handledSignalIdsRef.current.has(data.signal_id)) return;
+
+        console.log('[Zego] Incoming call signal via poll:', data.signal_id);
+        handledSignalIdsRef.current.add(data.signal_id);
+
+        const signal: CallSignal = {
+          id: data.signal_id,
+          signal_id: data.signal_id,
+          room_id: data.room_id,
+          caller_id: data.caller_id || data.caller_user_id,
+          caller_user_id: data.caller_user_id || data.caller_id,
+          caller_name: data.caller_name || 'Unknown',
+          caller_avatar: data.caller_avatar,
+          conversation_id: data.conversation_id,
+        };
+
+        callTypeRef.current = 'incoming';
+        setCallInfo({
+          peerId: signal.caller_user_id || signal.caller_id || '',
+          peerName: signal.caller_name,
+          peerAvatar: signal.caller_avatar,
+          conversationId: signal.conversation_id,
+          signalId: signal.signal_id,
+        });
+        setCallState('ringing');
+
+        // Vibrate on mobile if available
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      } catch {
+        // Silently ignore network errors
+      }
+    };
+
+    // Poll every 8 seconds — balanced between responsiveness and load
+    const interval = setInterval(pollIncoming, 8000);
+    // Also poll immediately on mount / state change
+    pollIncoming();
+
+    // Pause/resume on visibility change
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && active) {
+        pollIncoming();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [currentUserId, driverType, callState]);
 
   // Cleanup on unmount
   useEffect(() => {
