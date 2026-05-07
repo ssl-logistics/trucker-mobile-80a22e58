@@ -422,9 +422,17 @@ const AddExpensePage = () => {
         }
         
         // Send English expense type to API
-        const expenseType = expense.type === "other" 
-          ? expense.customType 
-          : expenseTypeEnglishMap[expense.type || ""] || expense.type;
+        let expenseType: string;
+        if (expense.type === "other") {
+          expenseType = expense.customType;
+        } else if (expense.type === "misc_no_receipt") {
+          const base = expenseTypeEnglishMap["misc_no_receipt"];
+          expenseType = expense.customType.trim()
+            ? `${base} (${expense.customType.trim()})`
+            : base;
+        } else {
+          expenseType = expenseTypeEnglishMap[expense.type || ""] || expense.type;
+        }
         const totalOCRAmount = getTotalOCRAmount(expense);
         
         // Build ocr_data object
