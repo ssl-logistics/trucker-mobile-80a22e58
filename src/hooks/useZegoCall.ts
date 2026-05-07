@@ -71,6 +71,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   const callStartTimeRef = useRef<number | null>(null);
   // Cache the ZegoCloud token to avoid double-fetch within the same call session
   const tokenCacheRef = useRef<{ token: string; appId: number; userId: string; fetchedAt: number } | null>(null);
+  // Keep remote audio elements alive (prevent GC which would stop playback)
+  const remoteAudiosRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
   // Keep ref in sync with state
   useEffect(() => {
