@@ -529,7 +529,7 @@ const AddExpensePage = () => {
                 value={expense.type}
                 onValueChange={(value) => {
                   handleExpenseChange(expense.id, "type", value);
-                  if (value !== "other") {
+                  if (value !== "other" && value !== "misc_no_receipt") {
                     handleExpenseChange(expense.id, "customType", "");
                   }
                 }}
@@ -551,7 +551,7 @@ const AddExpensePage = () => {
             </div>
 
             {/* Custom Type Input */}
-            {expense.type === "other" && (
+            {(expense.type === "other" || expense.type === "misc_no_receipt") && (
               <div className="space-y-2">
                 <Label htmlFor={`custom-type-${expense.id}`}>
                   {t('expense.customTypeName')} <span className="text-destructive">*</span>
