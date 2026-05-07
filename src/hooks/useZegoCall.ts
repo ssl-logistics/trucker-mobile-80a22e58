@@ -113,14 +113,30 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
         if (updateType === 'ADD') {
           for (const stream of streamList) {
             console.log('[Zego] New remote stream:', stream.streamID);
-            const remoteStream = await zg.startPlayingStream(stream.streamID);
-            const audio = new Audio();
-            audio.srcObject = remoteStream;
-            audio.autoplay = true;
-            audio.play().catch(console.warn);
+            try {
+              const remoteStream = await zg.startPlayingStream(stream.streamID);
+              const audio = document.createElement('audio');
+              audio.srcObject = remoteStream as MediaStream;
+              audio.autoplay = true;
+              (audio as any).playsInline = true;
+              audio.setAttribute('playsinline', 'true');
+              audio.muted = false;
+              audio.volume = 1.0;
+              document.body.appendChild(audio);
+              remoteAudiosRef.current.set(stream.streamID, audio);
+              try { await audio.play(); } catch (err) { console.warn('[Zego] audio.play() failed:', err); }
+              console.log('[Zego] Playing remote audio:', stream.streamID);
+            } catch (err) {
+              console.error('[Zego] startPlayingStream failed:', err);
+            }
           }
         } else if (updateType === 'DELETE') {
           console.log('[Zego] Remote stream removed — peer hung up');
+          for (const stream of streamList) {
+            try { zg.stopPlayingStream(stream.streamID); } catch {}
+            const a = remoteAudiosRef.current.get(stream.streamID);
+            if (a) { try { a.pause(); a.remove(); } catch {} remoteAudiosRef.current.delete(stream.streamID); }
+          }
           if (callStateRef.current === 'connected' || callStateRef.current === 'calling') {
             setCallState('ended');
             setTimeout(() => cleanup(), 2000);
