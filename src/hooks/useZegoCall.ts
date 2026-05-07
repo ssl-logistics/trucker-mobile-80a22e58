@@ -402,17 +402,32 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
   // Poll for incoming call signals when idle (fallback until push notifications are reliable)
+  // Tuned to be lightweight: 20s base interval, exponential backoff on 503/disabled,
+  // skipped when tab hidden, and uses adaptive timeout for handling maintenance windows.
   useEffect(() => {
     if (!currentUserId) return;
     // Only poll when idle — no active call
     if (callState !== 'idle') return;
 
     let active = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let backoffMs = 20000; // start at 20s
+    const MIN_INTERVAL = 20000;   // 20s normal
+    const MAX_BACKOFF = 300000;   // cap at 5 minutes when endpoint is unhealthy
+
+    const schedule = (ms: number) => {
+      if (!active) return;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(pollIncoming, ms);
+    };
 
     const pollIncoming = async () => {
       if (!active) return;
-      // Skip when page is hidden (battery saver)
-      if (document.visibilityState === 'hidden') return;
+      // Skip when page is hidden — saves DB load + battery
+      if (document.visibilityState === 'hidden') {
+        schedule(MIN_INTERVAL);
+        return;
+      }
 
       try {
         const params = new URLSearchParams({
@@ -422,13 +437,43 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
         const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal?${params}`, {
           headers: CALL_SIGNAL_HEADERS,
         });
-        if (!res.ok || !active) return;
 
-        const data = await res.json();
-        if (!data?.signal_id || !data?.room_id) return;
+        if (!active) return;
+
+        // Endpoint disabled / maintenance / rate-limited → exponential backoff
+        if (res.status === 503 || res.status === 429) {
+          backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF);
+          schedule(backoffMs);
+          return;
+        }
+
+        if (!res.ok) {
+          schedule(MIN_INTERVAL);
+          return;
+        }
+
+        const data = await res.json().catch(() => null);
+
+        // Server explicitly says it's off — back off hard
+        if (data?.disabled) {
+          backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF);
+          schedule(backoffMs);
+          return;
+        }
+
+        // Healthy response — reset backoff
+        backoffMs = MIN_INTERVAL;
+
+        if (!data?.signal_id || !data?.room_id) {
+          schedule(MIN_INTERVAL);
+          return;
+        }
 
         // Skip already-handled signals
-        if (handledSignalIdsRef.current.has(data.signal_id)) return;
+        if (handledSignalIdsRef.current.has(data.signal_id)) {
+          schedule(MIN_INTERVAL);
+          return;
+        }
 
         console.log('[Zego] Incoming call signal via poll:', data.signal_id);
         handledSignalIdsRef.current.add(data.signal_id);
@@ -454,29 +499,30 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
         });
         setCallState('ringing');
 
-        // Vibrate on mobile if available
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        // No need to schedule next poll — callState change will tear down this effect
       } catch {
-        // Silently ignore network errors
+        // Network error — keep normal interval, don't aggressively retry
+        schedule(MIN_INTERVAL);
       }
     };
 
-    // Poll every 8 seconds — balanced between responsiveness and load
-    const interval = setInterval(pollIncoming, 8000);
-    // Also poll immediately on mount / state change
-    pollIncoming();
+    // First poll after a short delay so we don't stampede on mount
+    schedule(2000);
 
-    // Pause/resume on visibility change
+    // Pause/resume on visibility change — only triggers ONE poll on resume
     const onVisibility = () => {
       if (document.visibilityState === 'visible' && active) {
-        pollIncoming();
+        // Reset backoff on resume so a returning user gets responsive polling
+        backoffMs = MIN_INTERVAL;
+        schedule(500);
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       active = false;
-      clearInterval(interval);
+      if (timer) clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [currentUserId, driverType, callState]);
