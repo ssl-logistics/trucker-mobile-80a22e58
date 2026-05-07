@@ -107,7 +107,10 @@ export default function ChatListPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 py-3 border-t border-border bg-background">
+              <div
+                className="flex items-center justify-center gap-3 py-3 border-t border-border bg-background"
+                style={{ marginBottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)' }}
+              >
                 <Button
                   variant="ghost"
                   size="sm"
