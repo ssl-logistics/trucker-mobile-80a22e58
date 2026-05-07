@@ -1757,8 +1757,11 @@ export default function DomesticJobDetail({
                   } ${isDragging ? 'opacity-60 scale-[0.98] shadow-lg' : ''} ${isDragTarget ? 'ring-2 ring-orange-400 ring-offset-1' : ''} ${isLongPressActive ? 'ring-2 ring-blue-400 bg-blue-50' : ''} ${isReorderMode && !isLongPressActive ? 'cursor-pointer hover:bg-orange-50' : ''} ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
                 >
                     <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
-                      <h3 className="font-medium text-xs text-white">
+                      <h3 className="font-medium text-xs text-white truncate">
                         {t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}
+                        {isReorderMode && (dest.district || dest.province) && (
+                          <span className="ml-2 font-normal opacity-90">· {dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || dest.district}</span>
+                        )}
                       </h3>
                       {isDestinationLocked ?
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
