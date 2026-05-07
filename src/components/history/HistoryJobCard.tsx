@@ -54,13 +54,46 @@ interface HistoryJobCardProps {
 
 export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: HistoryJobCardProps) {
   const { t, language } = useLanguage();
-  const { canViewPrice } = useUserRole();
+  const { canViewPrice, isInternalDriver, isExternalDriver, userRole } = useUserRole() as any;
   const isTransferred = !!job.is_transferred;
+  const isClosed = (job.status || '').toLowerCase() === 'closed';
+  const [closeOpen, setCloseOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [locallyClosed, setLocallyClosed] = useState(false);
   const isDomestic = !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic');
   // Multiple locations: has destinations array with items (same logic as JobCard)
   const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 0;
   // Single trip: no destinations array OR has destination fields directly
   const isSingleTrip = !isMultipleLocations;
+
+  const handleCloseJob = async () => {
+    setClosing(true);
+    try {
+      const { updateOrderStatus } = await import('@/lib/externalApi');
+      const userStr = localStorage.getItem('user');
+      const driverId = userStr ? (JSON.parse(userStr)?.id || JSON.parse(userStr)?.driver_id) : '';
+      const driverType: 'internal' | 'external' | 'freelance' =
+        isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+      const { error } = await updateOrderStatus({
+        order_id: job.id,
+        order_number: job.order_number,
+        status: 'closed',
+        driver_id: driverId,
+        driver_type: driverType,
+        notes: 'Driver self-closed from history',
+      });
+      const { toast } = await import('@/hooks/use-toast');
+      if (error) {
+        toast({ title: t('common.error') || 'เกิดข้อผิดพลาด', description: String(error), variant: 'destructive' });
+      } else {
+        toast({ title: t('jobHistory.closedSuccess') || 'ปิดงานเรียบร้อย' });
+        setLocallyClosed(true);
+      }
+    } finally {
+      setClosing(false);
+      setCloseOpen(false);
+    }
+  };
 
   // Format origin location - prioritize district, province format
   const getOriginLocation = () => {
