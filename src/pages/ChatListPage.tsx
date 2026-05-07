@@ -7,7 +7,7 @@ import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { Button } from '@/components/ui/button';
 import { getCallLogs, formatCallDuration, formatCallTime, formatCallDate, type CallLogEntry } from '@/utils/callLogs';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 export default function ChatListPage() {
   const { t } = useLanguage();
@@ -48,7 +48,7 @@ export default function ChatListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 overscroll-none">
+    <div className="h-screen bg-background flex flex-col overflow-hidden overscroll-none">
       {/* Header */}
       <div
         className="bg-[#DDEDFF] shadow-lg rounded-b-xl"
@@ -60,9 +60,9 @@ export default function ChatListPage() {
         </div>
       </div>
 
-      <PullToRefresh onRefresh={async () => { loadLogs(); }}>
+      <div className="flex-1 overflow-hidden flex flex-col">
         {callLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+          <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Phone className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -70,7 +70,7 @@ export default function ChatListPage() {
           </div>
         ) : (
           <>
-            <div className="divide-y divide-border">
+            <div className="flex-1 divide-y divide-border overflow-hidden">
               {pagedLogs.map((entry) => (
                 <div
                   key={entry.id}
@@ -107,7 +107,7 @@ export default function ChatListPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 py-4">
+              <div className="flex items-center justify-center gap-3 py-3 border-t border-border bg-background">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -131,7 +131,7 @@ export default function ChatListPage() {
             )}
           </>
         )}
-      </PullToRefresh>
+      </div>
 
       <BottomNavigation />
     </div>
