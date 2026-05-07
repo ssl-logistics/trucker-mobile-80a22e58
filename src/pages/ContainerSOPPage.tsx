@@ -1162,7 +1162,7 @@ const ContainerSOPPage = () => {
             <div className="flex-1">
               <div className="font-semibold text-green-900">{t('sop.checkInSuccess')}</div>
               <div className="text-sm text-green-700">
-                {formatDate(jobDetail.start_date, language)} | {formatTime(checkInTime)}
+                {formatDate(checkInTime, language)} | {formatTime(checkInTime)}
               </div>
             </div>
           </div>
