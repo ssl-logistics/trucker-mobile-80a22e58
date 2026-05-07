@@ -1759,6 +1759,7 @@ export default function DomesticJobDetail({
                         </span>
                     }
                     </div>
+                    {!isReorderMode && (
                     <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         <div className="flex items-start gap-2">
