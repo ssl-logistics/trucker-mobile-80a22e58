@@ -397,8 +397,6 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       }
     };
 
-    // DISABLED: call-signal polling temporarily disabled
-    return;
     const interval = setInterval(pollCallStatus, 12000);
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
@@ -406,7 +404,6 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   // Poll for incoming call signals — DISABLED
   useEffect(() => {
     if (!currentUserId) return;
-    return; // call-signal polling disabled
 
     const pollCallSignal = async () => {
       // Only poll when idle
