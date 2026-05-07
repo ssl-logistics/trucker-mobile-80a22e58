@@ -195,14 +195,14 @@ const SignIn = () => {
   });
   const rememberValue = watch("remember");
 
-  // Load saved credentials on mount
+  // Load saved email on mount (passwords are NEVER stored client-side for security)
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
-    const savedPassword = localStorage.getItem("rememberedPassword");
     const savedRemember = localStorage.getItem("rememberedUser");
-    if (savedRemember === "true" && savedEmail && savedPassword) {
+    // Clean up any legacy stored password from previous versions
+    localStorage.removeItem("rememberedPassword");
+    if (savedRemember === "true" && savedEmail) {
       setValue("email", savedEmail);
-      setValue("password", savedPassword);
       setValue("remember", true);
     }
   }, [setValue]);
