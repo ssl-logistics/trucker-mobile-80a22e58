@@ -323,7 +323,7 @@ const AddExpensePage = () => {
         });
         return false;
       }
-      if (expense.type === "other" && !expense.customType.trim()) {
+      if ((expense.type === "other" || expense.type === "misc_no_receipt") && !expense.customType.trim()) {
         toast({
           title: t('expense.fillAllFields'),
           description: t('expense.enterCustomType'),
