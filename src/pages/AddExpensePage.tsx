@@ -323,7 +323,7 @@ const AddExpensePage = () => {
         });
         return false;
       }
-      if (expense.type === "other" && !expense.customType.trim()) {
+      if ((expense.type === "other" || expense.type === "misc_no_receipt") && !expense.customType.trim()) {
         toast({
           title: t('expense.fillAllFields'),
           description: t('expense.enterCustomType'),
@@ -422,9 +422,17 @@ const AddExpensePage = () => {
         }
         
         // Send English expense type to API
-        const expenseType = expense.type === "other" 
-          ? expense.customType 
-          : expenseTypeEnglishMap[expense.type || ""] || expense.type;
+        let expenseType: string;
+        if (expense.type === "other") {
+          expenseType = expense.customType;
+        } else if (expense.type === "misc_no_receipt") {
+          const base = expenseTypeEnglishMap["misc_no_receipt"];
+          expenseType = expense.customType.trim()
+            ? `${base} (${expense.customType.trim()})`
+            : base;
+        } else {
+          expenseType = expenseTypeEnglishMap[expense.type || ""] || expense.type;
+        }
         const totalOCRAmount = getTotalOCRAmount(expense);
         
         // Build ocr_data object
@@ -521,7 +529,7 @@ const AddExpensePage = () => {
                 value={expense.type}
                 onValueChange={(value) => {
                   handleExpenseChange(expense.id, "type", value);
-                  if (value !== "other") {
+                  if (value !== "other" && value !== "misc_no_receipt") {
                     handleExpenseChange(expense.id, "customType", "");
                   }
                 }}
@@ -543,7 +551,7 @@ const AddExpensePage = () => {
             </div>
 
             {/* Custom Type Input */}
-            {expense.type === "other" && (
+            {(expense.type === "other" || expense.type === "misc_no_receipt") && (
               <div className="space-y-2">
                 <Label htmlFor={`custom-type-${expense.id}`}>
                   {t('expense.customTypeName')} <span className="text-destructive">*</span>

@@ -398,6 +398,19 @@ export default function JobExpensesPage() {
     const transKey = codeToTransKey[normalizedType];
     if (transKey) return t(transKey);
 
+    // Match "misc (no receipt) (custom note)" pattern in any language
+    const miscMatch = raw.match(/^(.+?)\s*\((.+)\)\s*$/);
+    if (miscMatch) {
+      const basePart = miscMatch[1].trim();
+      const suffix = miscMatch[2].trim();
+      const baseNorm = basePart.toLowerCase().replace(/\s+/g, '_');
+      const baseKey =
+        codeToTransKey[baseNorm] ||
+        labelToTransKey[basePart] ||
+        labelToTransKey[basePart.toLowerCase()];
+      if (baseKey) return `${t(baseKey)} (${suffix})`;
+    }
+
     // Try label-based match (API may return localized text)
     const labelKey = labelToTransKey[raw] || labelToTransKey[raw.toLowerCase()];
     if (labelKey) return t(labelKey);
