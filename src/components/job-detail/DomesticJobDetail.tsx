@@ -1622,6 +1622,7 @@ export default function DomesticJobDetail({
               const isDragging = dragIdx === index;
               const isDragTarget = dragOverIdx === index && dragIdx !== null && dragIdx !== index;
               const isLongPressActive = longPressIdx === index;
+              const isReorderMode = longPressIdx !== null || dragIdx !== null;
 
               const clearLongPress = () => {
                 if (longPressTimerRef.current) {
