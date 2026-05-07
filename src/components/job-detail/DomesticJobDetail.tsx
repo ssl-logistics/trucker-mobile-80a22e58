@@ -1886,6 +1886,7 @@ export default function DomesticJobDetail({
                         </Button>
                       </div>
                     </div>
+                    )}
                   </Card>);
 
             }) :
