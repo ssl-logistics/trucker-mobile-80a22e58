@@ -368,6 +368,8 @@ export default function JobExpensesPage() {
       'port fee': 'expense.portFee', 'overtime': 'expense.overtime',
       'toll fee': 'expense.tollFee', 'parking fee': 'expense.parkingFee',
       'other': 'expense.other',
+      'misc (no receipt)': 'expense.miscNoReceipt',
+      'misc no receipt': 'expense.miscNoReceipt',
       // Korean
       '연료비': 'expense.fuel', '연료비 (드롭)': 'expense.fuelDrop',
       '운송비': 'expense.transportFee', '인건비': 'expense.labor',
@@ -378,6 +380,7 @@ export default function JobExpensesPage() {
       '항만 통과료': 'expense.portFee', '초과 근무': 'expense.overtime',
       '통행료': 'expense.tollFee', '주차 요금': 'expense.parkingFee',
       '기타': 'expense.other',
+      '기타 (영수증 없음)': 'expense.miscNoReceipt',
       // Chinese
       '油费': 'expense.fuel', '油费（配送）': 'expense.fuelDrop',
       '运输费': 'expense.transportFee', '人工费': 'expense.labor',
@@ -388,6 +391,7 @@ export default function JobExpensesPage() {
       '港口通行费': 'expense.portFee', '加班费': 'expense.overtime',
       '过路费': 'expense.tollFee', '停车费': 'expense.parkingFee',
       '其他': 'expense.other',
+      '杂费（无收据）': 'expense.miscNoReceipt',
     };
 
     // Try code-based match first
