@@ -155,12 +155,13 @@ const AddExpensePage = () => {
     { value: "repair_container", label: t('expense.repairContainer') },
     { value: "port_fee", label: t('expense.portFee') },
     { value: "overtime", label: t('expense.overtime') },
+    { value: "misc_no_receipt", label: t('expense.miscNoReceipt') },
     { value: "other", label: t('expense.other') },
   ];
 
   // Filter dropdown by job kind
-  const blAllowed = ["fuel", "dive_knock_out", "return_container", "repair_container", "waste", "port_fee", "other"];
-  const bookingAllowed = ["fuel", "pickup_container", "port_fee", "other"];
+  const blAllowed = ["fuel", "dive_knock_out", "return_container", "repair_container", "waste", "port_fee", "misc_no_receipt", "other"];
+  const bookingAllowed = ["fuel", "pickup_container", "port_fee", "misc_no_receipt", "other"];
   const orderByList = (list: string[]) =>
     list
       .map(v => allExpenseTypes.find(opt => opt.value === v))
