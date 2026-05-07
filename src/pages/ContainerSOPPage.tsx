@@ -620,8 +620,21 @@ const ContainerSOPPage = () => {
           const raw = String(exp.expense_type || exp.expense_name || '');
           if (!raw.trim()) continue;
 
-          const normalized = normalizeExpenseType(raw);
+          // Strip trailing "(custom note)" suffix so labels like
+          // "misc_no_receipt (ค่าอาหาร)" still match the base type.
+          const stripSuffix = (s: string) => {
+            const trimmed = s.trim();
+            if (trimmed.endsWith(')')) {
+              const idx = trimmed.lastIndexOf('(');
+              if (idx > 0) return trimmed.slice(0, idx).trim();
+            }
+            return trimmed;
+          };
+          const baseRaw = stripSuffix(raw);
+
+          const normalized = normalizeExpenseType(baseRaw);
           existingTypes.add(normalized);
+          existingTypes.add(normalizeExpenseType(raw));
 
           const variationMap: Record<string, string> = {
             'ค่าคืนตู้': 'return_container',
@@ -635,7 +648,7 @@ const ContainerSOPPage = () => {
             'ค่าล่วงเวลา': 'misc_no_receipt',
           };
 
-          const mapped = variationMap[raw.trim()] || variationMap[normalized];
+          const mapped = variationMap[baseRaw] || variationMap[normalized];
           if (mapped) {
             existingTypes.add(mapped);
           }
