@@ -1752,9 +1752,10 @@ export default function DomesticJobDetail({
                       setLongPressIdx(null);
                     }
                   }}
+                  style={{ touchAction: isReorderMode ? 'none' : undefined }}
                   className={`overflow-hidden border-2 rounded-xl transition-all ${
                     isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'
-                  } ${isDragging ? 'opacity-60 scale-[0.98] shadow-lg' : ''} ${isDragTarget ? 'ring-2 ring-orange-400 ring-offset-1' : ''} ${isLongPressActive ? 'ring-2 ring-blue-400 bg-blue-50' : ''} ${isReorderMode && !isLongPressActive ? 'cursor-pointer hover:bg-orange-50' : ''} ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                  } ${isDragging ? 'opacity-80 shadow-2xl scale-[1.02] z-10' : ''} ${isDragTarget ? 'ring-2 ring-orange-400 ring-offset-1' : ''} ${isLongPressActive ? 'ring-2 ring-blue-400' : ''} ${isReorderMode && !isLongPressActive ? 'cursor-pointer hover:bg-orange-50' : ''} ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
                 >
                     <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
                       <h3 className="font-medium text-xs text-white truncate">
@@ -1772,7 +1773,7 @@ export default function DomesticJobDetail({
                         </span>
                     }
                     </div>
-                    {!isReorderMode && (
+                    {(!isReorderMode || isLongPressActive || isDragging) && (
                     <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         <div className="flex items-start gap-2">
