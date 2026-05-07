@@ -427,8 +427,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
     let active = true;
     let timer: ReturnType<typeof setTimeout> | null = null;
-    let backoffMs = 20000; // start at 20s
-    const MIN_INTERVAL = 20000;   // 20s normal
+    let backoffMs = 30000; // start at 30s
+    const MIN_INTERVAL = 30000;   // 30s normal — push notifications are primary path
     const MAX_BACKOFF = 300000;   // cap at 5 minutes when endpoint is unhealthy
 
     const schedule = (ms: number) => {
