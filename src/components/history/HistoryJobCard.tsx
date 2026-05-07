@@ -255,7 +255,51 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
             <span className="text-xs font-medium text-green-700">{t('jobHistory.statusCompleted')}</span>
           </div>
         )}
+
+        {/* Self-close button (drivers can close job without waiting for CS) */}
+        {!isTransferred && (
+          isClosed || locallyClosed ? (
+            <div className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-emerald-50 border border-emerald-200">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span className="text-xs font-medium text-emerald-700">
+                {t('jobHistory.closedByDriver') || 'ปิดงานโดยคนรถแล้ว'}
+              </span>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              onClick={(e) => { e.stopPropagation(); setCloseOpen(true); }}
+            >
+              <CheckCircle2 className="w-4 h-4 mr-1" />
+              {t('jobHistory.closeJob') || 'ปิดงาน'}
+            </Button>
+          )
+        )}
       </div>
+
+      <AlertDialog open={closeOpen} onOpenChange={setCloseOpen}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('jobHistory.closeJobTitle') || 'ยืนยันปิดงาน'}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('jobHistory.closeJobDesc') ||
+                'หาก CS ตรวจพบข้อผิดพลาดภายหลัง คุณจะต้องแนบเอกสารใหม่ ต้องการปิดงานนี้หรือไม่?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={closing}>{t('common.cancel') || 'ยกเลิก'}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={closing}
+              onClick={(e) => { e.preventDefault(); handleCloseJob(); }}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {closing ? (t('common.loading') || 'กำลังปิด...') : (t('jobHistory.confirmClose') || 'ปิดงาน')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </Card>
   );
 }
