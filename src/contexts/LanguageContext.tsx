@@ -5111,6 +5111,7 @@ const zhTranslations: Record<string, string> = {
   'home.company_employee': '公司员工',
   'home.factory_contractor': '工厂承包商',
   'home.company_contractor': '公司承包商',
+  'home.subcontractor_employee': '分包商/运输合作公司',
   'home.welcome': '欢迎',
   'home.available_jobs': '可用工作',
   'home.no_jobs': '暂无可用工作',
