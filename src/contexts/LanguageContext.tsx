@@ -3340,6 +3340,7 @@ const koTranslations: Record<string, string> = {
   'home.company_employee': '회사 직원',
   'home.factory_contractor': '공장 계약자',
   'home.company_contractor': '회사 계약자',
+  'home.subcontractor_employee': '하청업체/운송 협력사',
   'common.loading': '로딩 중...',
   'common.pleaseWait': '잠시만 기다려주세요...',
   'common.checking': '확인 중...',
