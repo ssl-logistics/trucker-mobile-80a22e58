@@ -394,15 +394,72 @@ export async function getDriverSop(
 
 // ==================== Job APIs ====================
 
+// ---- Coalesce concurrent get-driver-assigned-jobs calls ----
+// Merges concurrent requests for the same driver (within a short window) into a
+// single API call with the union of statuses, then filters client-side per caller.
+// This avoids 2-3x duplicate calls per polling cycle (e.g. Home + CurrentJobs +
+// JobDetail mounting at once with different status filters).
+type _AssignedJobsBatch = {
+  statuses: Set<string>;
+  limit: number;
+  promise: Promise<{ data: { data: any[] } | null; error: any }>;
+  resolve: (v: { data: { data: any[] } | null; error: any }) => void;
+  timer: ReturnType<typeof setTimeout> | null;
+};
+const _assignedJobsBatches = new Map<string, _AssignedJobsBatch>();
+const _ASSIGNED_JOBS_COALESCE_MS = 150; // small window to gather concurrent callers
+
 export async function getDriverAssignedJobs(driverId: string, driverType: 'internal' | 'external', limit = 50, status: string = 'in_progress') {
-  return callExternalApi<{ data: any[] }>('get-driver-assigned-jobs', {
-    params: {
-      driver_id: driverId,
-      driver_type: driverType,
-      status,
-      limit: String(limit),
-    },
-  });
+  const requestedStatuses = String(status || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  const key = `${driverType}:${driverId}`;
+
+  const existing = _assignedJobsBatches.get(key);
+  const batch: _AssignedJobsBatch = existing ?? (() => {
+    let resolveFn!: (v: { data: { data: any[] } | null; error: any }) => void;
+    const promise = new Promise<{ data: { data: any[] } | null; error: any }>(res => { resolveFn = res; });
+    const b: _AssignedJobsBatch = {
+      statuses: new Set(),
+      limit,
+      promise,
+      resolve: resolveFn,
+      timer: null,
+    };
+    _assignedJobsBatches.set(key, b);
+    return b;
+  })();
+
+  requestedStatuses.forEach(s => batch.statuses.add(s));
+  batch.limit = Math.max(batch.limit, limit);
+
+  if (batch.timer) clearTimeout(batch.timer);
+  batch.timer = setTimeout(async () => {
+    _assignedJobsBatches.delete(key);
+    const mergedStatus = Array.from(batch.statuses).join(',') || 'in_progress';
+    const result = await callExternalApi<{ data: any[] }>('get-driver-assigned-jobs', {
+      params: {
+        driver_id: driverId,
+        driver_type: driverType,
+        status: mergedStatus,
+        limit: String(batch.limit),
+      },
+    });
+    batch.resolve(result as any);
+  }, _ASSIGNED_JOBS_COALESCE_MS);
+
+  const merged = await batch.promise;
+  if (merged.error || !merged.data) return merged as any;
+
+  // Filter to only the statuses this caller asked for
+  const all = (merged.data as any)?.data || [];
+  const wanted = new Set(requestedStatuses);
+  const filtered = wanted.size === 0
+    ? all
+    : all.filter((j: any) => wanted.has(String(j?.status || '').trim()));
+
+  return { data: { ...(merged.data as any), data: filtered }, error: null } as any;
 }
 
 export async function getFactoryAssignedJobs(freelanceDriverId: string, limit = 50) {
