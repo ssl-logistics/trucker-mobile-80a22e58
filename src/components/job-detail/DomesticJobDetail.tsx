@@ -1642,10 +1642,10 @@ export default function DomesticJobDetail({
                     // Only handle non-touch (mouse) — touch handled by onTouchStart
                     if ((e as any).pointerType === 'touch') return;
                     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
-                    longPressTimerRef.current = setTimeout(() => {
-                      setLongPressIdx(index);
-                      if (navigator.vibrate) navigator.vibrate(50);
-                    }, 3000);
+                     longPressTimerRef.current = setTimeout(() => {
+                       setLongPressIdx(index);
+                       if (navigator.vibrate) navigator.vibrate(50);
+                     }, 600);
                   }}
                   onMouseUp={() => {
                     if (longPressTimerRef.current && dragItemRef.current === null) {
