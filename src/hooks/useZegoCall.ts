@@ -409,9 +409,9 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       }
     };
 
-    // Poll quickly so the mobile side hangs up promptly when the web peer ends the call
+    // ZegoCloud's roomStreamUpdate DELETE is primary; polling is fallback every 6s
     pollCallStatus();
-    const interval = setInterval(pollCallStatus, 3000);
+    const interval = setInterval(pollCallStatus, 6000);
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
