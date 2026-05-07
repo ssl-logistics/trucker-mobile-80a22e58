@@ -402,7 +402,9 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       }
     };
 
-    const interval = setInterval(pollCallStatus, 12000);
+    // Poll quickly so the mobile side hangs up promptly when the web peer ends the call
+    pollCallStatus();
+    const interval = setInterval(pollCallStatus, 3000);
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
