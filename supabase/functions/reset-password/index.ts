@@ -12,14 +12,30 @@ serve(async (req) => {
   }
 
   try {
-    const { phone, password } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const phone = typeof body?.phone === "string" ? body.phone.trim() : "";
+    const password = typeof body?.password === "string" ? body.password : "";
 
-    if (!phone || !password) {
+    // Server-side input validation
+    const phoneOk = /^(\+?\d{8,15})$/.test(phone.replace(/[\s-]/g, ""));
+    const passwordOk =
+      typeof password === "string" &&
+      password.length >= 8 &&
+      password.length <= 128 &&
+      /[A-Za-z]/.test(password) &&
+      /\d/.test(password);
+
+    if (!phoneOk || !passwordOk) {
       return new Response(
-        JSON.stringify({ success: false, error: "Phone and password are required" }),
+        JSON.stringify({
+          success: false,
+          error:
+            "Invalid input. Phone must be a valid number; password must be 8-128 chars and include letters and digits.",
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
+
 
     // Create Supabase admin client
     const supabaseAdmin = createClient(
