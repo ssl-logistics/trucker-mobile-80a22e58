@@ -413,6 +413,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     if (!currentUserId) return;
     // Only poll when idle — no active call
     if (callState !== 'idle') return;
+    // Endpoint already known to be disabled this session — don't even start
+    if (callSignalDisabled) return;
 
     let active = true;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -421,13 +423,13 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     const MAX_BACKOFF = 300000;   // cap at 5 minutes when endpoint is unhealthy
 
     const schedule = (ms: number) => {
-      if (!active) return;
+      if (!active || callSignalDisabled) return;
       if (timer) clearTimeout(timer);
       timer = setTimeout(pollIncoming, ms);
     };
 
     const pollIncoming = async () => {
-      if (!active) return;
+      if (!active || callSignalDisabled) return;
       // Skip when page is hidden — saves DB load + battery
       if (document.visibilityState === 'hidden') {
         schedule(MIN_INTERVAL);
@@ -445,8 +447,20 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
         if (!active) return;
 
-        // Endpoint disabled / maintenance / rate-limited → exponential backoff
-        if (res.status === 503 || res.status === 429) {
+        // Endpoint disabled (503) → check body; if explicitly disabled, kill polling for the session
+        if (res.status === 503) {
+          const body = await res.json().catch(() => null);
+          if (body?.disabled) {
+            console.warn('[Zego] /call-signal disabled by server — stopping polling for this session');
+            callSignalDisabled = true;
+            return;
+          }
+          backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF);
+          schedule(backoffMs);
+          return;
+        }
+
+        if (res.status === 429) {
           backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF);
           schedule(backoffMs);
           return;
@@ -459,10 +473,10 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
         const data = await res.json().catch(() => null);
 
-        // Server explicitly says it's off — back off hard
+        // Server explicitly says it's off — kill polling for the session
         if (data?.disabled) {
-          backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF);
-          schedule(backoffMs);
+          console.warn('[Zego] /call-signal reports disabled — stopping polling for this session');
+          callSignalDisabled = true;
           return;
         }
 
