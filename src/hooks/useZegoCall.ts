@@ -180,6 +180,17 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     if (!tokenData) return false;
 
     try {
+      // Pre-acquire mic permission so Zego's createStream doesn't fail silently on iOS/Capacitor
+      try {
+        const probe = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        // Stop probe tracks; Zego will request its own
+        probe.getTracks().forEach(t => t.stop());
+        console.log('[Zego] Mic permission granted');
+      } catch (permErr) {
+        console.error('[Zego] Mic permission denied:', permErr);
+        return false;
+      }
+
       await zg.loginRoom(roomId, tokenData.token, {
         userID: currentUserId,
         userName: currentUserId,
@@ -189,8 +200,16 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
 
       const localStream = await zg.createStream({ camera: { video: false, audio: true } });
       localStreamRef.current = localStream;
+
+      // Verify audio track is live and enabled
+      const audioTracks = (localStream as MediaStream).getAudioTracks?.() || [];
+      console.log('[Zego] Local audio tracks:', audioTracks.length, audioTracks.map(t => ({
+        label: t.label, enabled: t.enabled, muted: t.muted, readyState: t.readyState,
+      })));
+      audioTracks.forEach(t => { t.enabled = true; });
+
       await zg.startPublishingStream(`${currentUserId}_audio`, localStream);
-      console.log('[Zego] Publishing audio stream');
+      console.log('[Zego] Publishing audio stream as', `${currentUserId}_audio`);
 
       return true;
     } catch (e) {
