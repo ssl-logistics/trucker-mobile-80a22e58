@@ -179,6 +179,7 @@ const thTranslations: Record<string, string> = {
   'home.company_employee': 'พนักงานบริษัท',
   'home.factory_contractor': 'ผู้รับเหมาโรงงาน',
   'home.company_contractor': 'ผู้รับเหมาบริษัท',
+  'home.subcontractor_employee': 'ผู้รับเหมา/บริษัทขนส่งช่วง',
   'common.loading': 'กำลังโหลด...',
   'common.pleaseWait': 'รอสักครู่...',
   'common.checking': 'กำลังตรวจสอบ...',
