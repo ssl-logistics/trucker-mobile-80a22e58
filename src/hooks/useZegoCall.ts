@@ -16,6 +16,11 @@ const CALL_SIGNAL_HEADERS = {
   apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5Zmt3ZXd0ZXhueXNrYmtnc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1NjA0OTQsImV4cCI6MjA1NjEzNjQ5NH0.MOkMINVTOGzXENJn9OKU2kXqqDOzGKAl1el1b8RCzoI',
 } as const;
 
+// Module-level kill switch: once the endpoint reports disabled/maintenance,
+// stop polling for the rest of the session to avoid spamming 503s and
+// triggering the runtime-error overlay repeatedly.
+let callSignalDisabled = false;
+
 export type CallState = 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
 
 interface CallSignal {
