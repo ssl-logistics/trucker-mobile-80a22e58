@@ -401,59 +401,9 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
     return () => clearInterval(interval);
   }, [currentUserId, driverType, callState, callInfo?.signalId, cleanup]);
 
-  // Poll for incoming call signals — DISABLED
-  useEffect(() => {
-    if (!currentUserId) return;
+  // Incoming call signals are delivered via push notifications, NOT polling.
+  // Do not poll /call-signal here — the endpoint should only be hit when a real call arrives.
 
-    const pollCallSignal = async () => {
-      // Only poll when idle
-      if (callStateRef.current !== 'idle') return;
-
-      try {
-        const params = new URLSearchParams({ driver_id: currentUserId, driver_type: driverType });
-        const res = await fetch(`${CALL_SIGNAL_BASE_URL}/call-signal?${params}`, {
-          headers: CALL_SIGNAL_HEADERS,
-        });
-
-        if (!res.ok) return;
-
-        const result = await res.json() as { has_call: boolean; signal: CallSignal | null };
-        if (!result?.has_call || !result.signal) return;
-
-        const signal = result.signal;
-        const signalId = signal.signal_id || signal.id;
-        if (!signalId) return;
-        if (handledSignalIdsRef.current.has(signalId)) return;
-
-        console.log('[Zego] Incoming call signal:', signal);
-
-        currentRoomIdRef.current = signal.room_id;
-
-        setCallInfo({
-          peerId: signal.caller_id || signal.caller_user_id,
-          peerName: signal.caller_name || 'Unknown',
-          peerAvatar: signal.caller_avatar,
-          conversationId: signal.conversation_id,
-          signalId,
-        });
-        callTypeRef.current = 'incoming';
-        setCallState('ringing');
-      } catch {
-        // Silently ignore polling errors
-      }
-    };
-
-    pollCallSignal();
-    // Increased from 2.5s to 12s to reduce 503s on the upstream call-signal edge function.
-    pollingIntervalRef.current = setInterval(pollCallSignal, 12000);
-
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-    };
-  }, [currentUserId, driverType]);
 
   // Cleanup on unmount
   useEffect(() => {
