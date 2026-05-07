@@ -1760,6 +1760,7 @@ const enTranslations: Record<string, string> = {
   'home.company_employee': 'Company Employee',
   'home.factory_contractor': 'Factory Contractor',
   'home.company_contractor': 'Company Contractor',
+  'home.subcontractor_employee': 'Subcontractor / Subhaul Company',
   'common.loading': 'Loading...',
   'common.pleaseWait': 'Please wait...',
   'common.checking': 'Checking...',
