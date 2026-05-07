@@ -208,6 +208,13 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
       durationIntervalRef.current = null;
     }
 
+    // Stop & remove all remote audio elements
+    for (const [id, a] of remoteAudiosRef.current.entries()) {
+      try { zegoEngineRef.current?.stopPlayingStream(id); } catch {}
+      try { a.pause(); a.remove(); } catch {}
+    }
+    remoteAudiosRef.current.clear();
+
     if (zegoEngineRef.current && currentRoomIdRef.current) {
       try {
         if (localStreamRef.current) {
