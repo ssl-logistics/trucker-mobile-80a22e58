@@ -48,7 +48,7 @@ export default function ChatListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 overscroll-none">
+    <div className="h-screen bg-background flex flex-col overflow-hidden overscroll-none">
       {/* Header */}
       <div
         className="bg-[#DDEDFF] shadow-lg rounded-b-xl"
