@@ -69,6 +69,8 @@ export function useZegoCall(currentUserId: string | null, driverType: string = '
   const handledSignalIdsRef = useRef<Set<string>>(new Set());
   const callTypeRef = useRef<'incoming' | 'outgoing'>('outgoing');
   const callStartTimeRef = useRef<number | null>(null);
+  // Cache the ZegoCloud token to avoid double-fetch within the same call session
+  const tokenCacheRef = useRef<{ token: string; appId: number; userId: string; fetchedAt: number } | null>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
