@@ -1674,9 +1674,9 @@ export default function DomesticJobDetail({
                            el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                          });
                        });
-                     }, 600);
-                  }}
-                  onMouseUp={() => {
+                      }, 2000);
+                   }}
+                   onMouseUp={() => {
                     if (longPressTimerRef.current && dragItemRef.current === null) {
                       clearTimeout(longPressTimerRef.current);
                       longPressTimerRef.current = null;
