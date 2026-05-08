@@ -681,8 +681,9 @@ export default function CurrentJobsPage() {
             const inferredJobType = isInternationalJob(job)
               ? 'international'
               : (job.job_type || job.transport_category || undefined);
-            const mappedDestinations = Array.isArray(job.destinations) && job.destinations.length > 0
-              ? job.destinations.map((d: any, idx: number) => ({
+            const rawDests = extractCsvDestinations(job);
+            const mappedDestinations = rawDests.length > 0
+              ? rawDests.map((d: any, idx: number) => ({
                   ...d,
                   sequence: d.sequence_number || d.sequence || idx + 1,
                   location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
@@ -690,6 +691,9 @@ export default function CurrentJobsPage() {
                   products: Array.isArray(d.products) ? d.products : undefined,
                 }))
               : undefined;
+            const mappedProducts = Array.isArray(job.products)
+              ? job.products
+              : (rawDests.length > 0 ? rawDests.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined);
 
             return {
               ...job,
