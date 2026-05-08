@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Clock, CircleDot, MapPin, Calendar as CalendarIconLucide } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, CircleDot, MapPin, Calendar as CalendarIconLucide } from "lucide-react";
 import coinsIcon from '@/assets/coins-icon.png';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
