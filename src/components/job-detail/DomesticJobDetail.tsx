@@ -1777,6 +1777,7 @@ export default function DomesticJobDetail({
                     setLongPressIdx(null);
                   }}
                   onTouchCancel={clearLongPress}
+                  onContextMenu={(e) => { if (canDrag) e.preventDefault(); }}
                   onClick={() => {
                     // Tap-to-swap when in reorder mode: tap another card to swap with the selected one
                     if (isReorderMode && longPressIdx !== null && longPressIdx !== index && canDrag) {
@@ -1787,7 +1788,12 @@ export default function DomesticJobDetail({
                       setLongPressIdx(null);
                     }
                   }}
-                  style={{ touchAction: isReorderMode ? 'none' : undefined }}
+                  style={{
+                    touchAction: isReorderMode ? 'none' : undefined,
+                    WebkitUserSelect: canDrag ? 'none' : undefined,
+                    userSelect: canDrag ? 'none' : undefined,
+                    WebkitTouchCallout: canDrag ? 'none' : undefined,
+                  } as React.CSSProperties}
                   className={`overflow-hidden border-2 rounded-xl transition-all ${
                     isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'
                   } ${isDragging ? 'opacity-80 shadow-2xl scale-[1.02] z-10' : ''} ${isDragTarget ? 'ring-2 ring-orange-400 ring-offset-1' : ''} ${isLongPressActive ? 'ring-2 ring-blue-400' : ''} ${isReorderMode && !isLongPressActive ? 'cursor-pointer hover:bg-orange-50' : ''} ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
