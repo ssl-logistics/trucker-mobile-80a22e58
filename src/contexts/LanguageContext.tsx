@@ -5173,6 +5173,7 @@ const zhTranslations: Record<string, string> = {
   'job.goods_type': '产品类型',
   'job.goods_quantity': '数量',
   'job.goods': '总产品',
+  'job.moreProducts': '更多产品',
   'job.weight': '重量',
   'job.quantity': '数量',
   'job.deliveryDate': '交货日期',
