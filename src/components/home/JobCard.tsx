@@ -180,10 +180,10 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               </div>
             )}
             
-            {/* Destinations - show max 3, collapse rest */}
+            {/* Destinations - show max 2, collapse rest */}
             {Array.isArray(job.destinations) && job.destinations.length > 0 ? (
               <>
-                {job.destinations.slice(0, 3).map((dest, idx) => (
+                {job.destinations.slice(0, 2).map((dest, idx) => (
                   <div key={`dest-${idx}`} className="flex items-start gap-2 sm:gap-3">
                     <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
                     <div className="text-sm sm:text-base">
@@ -192,10 +192,10 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                     </div>
                   </div>
                 ))}
-                {job.destinations.length > 3 && (
+                {job.destinations.length > 2 && (
                   <div className="flex items-center gap-2 sm:gap-3 pl-6">
                     <span className="text-xs text-muted-foreground bg-muted rounded-full px-3 py-1">
-                      +{job.destinations.length - 3} {t('job.more_destinations')}
+                      +{job.destinations.length - 2} {t('job.more_destinations')}
                     </span>
                   </div>
                 )}
