@@ -697,9 +697,8 @@ export default function JobHistoryPage() {
           </Select>
 
           {/* Category filter */}
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2">
             {([
-              { key: 'all', label: t('jobHistory.allMonths') },
               { key: 'domestic', label: t('jobType.domestic') },
               { key: 'international', label: t('jobType.international') },
             ] as const).map(opt => (
