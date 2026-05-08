@@ -1072,7 +1072,11 @@ export default function CurrentJobsPage() {
                             <div className="font-medium">
                               {job.sender_province && job.sender_district 
                                 ? `${job.sender_district}, ${job.sender_province}` 
-                                : extractDistrictProvince(job.empty_pickup_address || job.sender_address) || job.sender_name || '-'}
+                                : (() => {
+                                    const addr = job.empty_pickup_address || job.sender_address;
+                                    const extracted = addr ? extractDistrictProvince(addr) : '';
+                                    return (extracted && extracted !== '-' ? extracted : null) || job.sender_name || '-';
+                                  })()}
                             </div>
                           </div>
                           <div className="text-xs">
