@@ -845,8 +845,15 @@ export default function DomesticJobDetail({
   }, [destinationCheckins, job.destinations]);
 
   const handleSwapRequest = (fromIdx: number, toIdx: number) => {
-    if (toIdx < 0 || toIdx >= displayDestinations.length) return;
-    if (fromIdx === toIdx) return;
+    console.log('[Reorder] handleSwapRequest called', { fromIdx, toIdx, total: displayDestinations.length });
+    if (toIdx < 0 || toIdx >= displayDestinations.length) {
+      console.warn('[Reorder] BLOCKED: toIdx out of range', { toIdx, len: displayDestinations.length });
+      return;
+    }
+    if (fromIdx === toIdx) {
+      console.warn('[Reorder] BLOCKED: fromIdx === toIdx', { fromIdx });
+      return;
+    }
     // Prevent swapping destinations that are already checked in
     const fromDest = displayDestinations[fromIdx];
     const toDest = displayDestinations[toIdx];
@@ -854,10 +861,13 @@ export default function DomesticJobDetail({
     const toCheckin = destCheckinById[toDest.id];
     const fromCheckedIn = !!(fromCheckin?.checked_in_at || fromDest.checked_in_at);
     const toCheckedIn = !!(toCheckin?.checked_in_at || toDest.checked_in_at);
+    console.log('[Reorder] checkin status', { fromId: fromDest.id, fromCheckedIn, toId: toDest.id, toCheckedIn });
     if (fromCheckedIn || toCheckedIn) {
+      console.warn('[Reorder] BLOCKED: one side already checked in');
       toast({ title: t('jobDetail.cannotReorder') || 'สลับไม่ได้', description: t('jobDetail.cannotReorderCheckedIn') || 'จุดส่งที่เช็คอินแล้วไม่สามารถสลับได้', variant: 'destructive' });
       return;
     }
+    console.log('[Reorder] -> performSwap');
     // Swap immediately without confirmation
     void performSwap(fromIdx, toIdx);
   };
@@ -933,19 +943,21 @@ export default function DomesticJobDetail({
 
     // Send reorder to API (fire-and-forget, localStorage is the primary persistence)
     try {
+      const payload = {
+        order_number: job.order_code,
+        destinations: resequenced.map(d => ({ id: d.id, sequence_number: d.sequence_number })),
+      };
+      console.log('[Reorder] invoking edge function reorder-destinations', payload);
       const { data, error } = await supabase.functions.invoke('reorder-destinations', {
-        body: {
-          order_number: job.order_code,
-          destinations: resequenced.map(d => ({ id: d.id, sequence_number: d.sequence_number })),
-        },
+        body: payload,
       });
       if (error) {
-        console.error('Reorder API error:', error);
+        console.error('[Reorder] API error:', error);
       } else {
-        console.log('Reorder API success:', data);
+        console.log('[Reorder] API success:', data);
       }
     } catch (e) {
-      console.error('Reorder API exception:', e);
+      console.error('[Reorder] API exception:', e);
     }
 
     // Update tracking waypoints if GPS tracking is active (direct external API call)
