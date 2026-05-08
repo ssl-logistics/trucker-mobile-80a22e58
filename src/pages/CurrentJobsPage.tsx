@@ -478,9 +478,26 @@ export default function CurrentJobsPage() {
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
               company_name: d.company_name || '',
-              products: Array.isArray(d.products) ? d.products : undefined,
+              products: Array.isArray(d.products) ? d.products.map((p: any) => ({
+                product_name: p.product_name || p.name || p.productName || p.goods_type || '-',
+                quantity: p.quantity ?? p.qty ?? p.product_quantity,
+                unit: p.unit || p.unit_qty || p.product_unit || '',
+                weight: p.weight ?? p.product_weight,
+                weight_unit: p.weight_unit || p.product_weight_unit || 'kg',
+              })) : undefined,
             })) : undefined,
-            products: Array.isArray(job.products) ? job.products : (Array.isArray(job.destinations) ? job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
+            products: (() => {
+              const normalize = (p: any) => ({
+                product_name: p.product_name || p.name || p.productName || p.goods_type || '-',
+                quantity: p.quantity ?? p.qty ?? p.product_quantity,
+                unit: p.unit || p.unit_qty || p.product_unit || '',
+                weight: p.weight ?? p.product_weight,
+                weight_unit: p.weight_unit || p.product_weight_unit || 'kg',
+              });
+              if (Array.isArray(job.products)) return job.products.map(normalize);
+              if (Array.isArray(job.destinations)) return job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products.map(normalize) : []);
+              return undefined;
+            })(),
            }));
 
            const dedupedMapped = dedupeJobs(mappedJobs);
