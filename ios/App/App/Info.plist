@@ -64,6 +64,10 @@
 	<string>This app needs permission to save photos to your photo library.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to your camera to take vehicle photos, expense receipts, and SOP check-in photos.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to your microphone for voice calls and voice commands to reorder delivery sequences.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app uses speech recognition to let you reorder delivery sequences by voice.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs your location to track deliveries and show nearby jobs.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
