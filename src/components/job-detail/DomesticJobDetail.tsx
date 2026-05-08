@@ -1691,6 +1691,10 @@ export default function DomesticJobDetail({
                   longPressTimerRef.current = null;
                 }
                 setLongPressIdx(null);
+                setDragIdx(null);
+                setDragOverIdx(null);
+                dragOverIdxRef.current = null;
+                dragItemRef.current = null;
               };
 
               return (
@@ -1769,7 +1773,7 @@ export default function DomesticJobDetail({
                   onTouchStart={(e) => {
                     if (!canDrag) return;
                     dragStartY.current = e.touches[0].clientY;
-                    // Start 3-second long-press timer to enable drag
+                    // Start long-press timer to enable drag
                     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
                      longPressTimerRef.current = setTimeout(() => {
                        setLongPressIdx(index);
@@ -1800,7 +1804,7 @@ export default function DomesticJobDetail({
                     // Drag in progress: detect target
                     const touch = e.touches[0];
                     const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
-                    const cardEl = elements.find(el => el.getAttribute('data-reorder-idx'));
+                    const cardEl = elements.map(el => el.closest('[data-reorder-idx]')).find(Boolean);
                     if (cardEl) {
                       const overIdx = parseInt(cardEl.getAttribute('data-reorder-idx')!, 10);
                       setDragOverIdx(overIdx);
