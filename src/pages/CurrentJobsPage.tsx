@@ -703,7 +703,7 @@ export default function CurrentJobsPage() {
               ...(job.bl_no || job.bl_number || job.bill_of_lading ? { bl_no: job.bl_no || job.bl_number || job.bill_of_lading } : {}),
               ...(job.booking_no || job.booking_number ? { booking_no: job.booking_no || job.booking_number } : {}),
               ...(mappedDestinations ? { destinations: mappedDestinations } : {}),
-              ...(Array.isArray(job.products) ? { products: job.products } : (Array.isArray(job.destinations) ? { products: job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) } : {})),
+              ...(mappedProducts ? { products: mappedProducts } : {}),
             };
           });
           
