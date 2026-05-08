@@ -1796,6 +1796,7 @@ export default function DomesticJobDetail({
                       }
                       return;
                     }
+                     e.preventDefault();
                     // Drag in progress: detect target
                     const touch = e.touches[0];
                     const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
@@ -1803,6 +1804,7 @@ export default function DomesticJobDetail({
                     if (cardEl) {
                       const overIdx = parseInt(cardEl.getAttribute('data-reorder-idx')!, 10);
                       setDragOverIdx(overIdx);
+                       dragOverIdxRef.current = overIdx;
                     }
                   }}
                   onTouchEnd={() => {
@@ -1812,12 +1814,14 @@ export default function DomesticJobDetail({
                     }
                     if (dragItemRef.current !== null) {
                       const fromIdx = dragItemRef.current;
-                      if (dragOverIdx !== null && fromIdx !== dragOverIdx) {
-                        handleSwapRequest(fromIdx, dragOverIdx);
+                       const toIdx = dragOverIdxRef.current;
+                       if (toIdx !== null && fromIdx !== toIdx) {
+                         handleSwapRequest(fromIdx, toIdx);
                       }
                     }
                     setDragIdx(null);
                     setDragOverIdx(null);
+                     dragOverIdxRef.current = null;
                     dragItemRef.current = null;
                     setLongPressIdx(null);
                   }}
