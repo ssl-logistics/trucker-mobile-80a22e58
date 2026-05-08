@@ -1329,5 +1329,75 @@ export default function CurrentJobsPage() {
           }
         }}
       />
+
+      {/* Goods detail modal */}
+      <Dialog open={!!goodsModalJob} onOpenChange={(o) => { if (!o) setGoodsModalJob(null); }}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              {t('job.goods')}
+            </DialogTitle>
+          </DialogHeader>
+          {goodsModalJob && (() => {
+            const dests = Array.isArray(goodsModalJob.destinations) ? goodsModalJob.destinations : [];
+            const hasDestProducts = dests.some((d: any) => Array.isArray(d.products) && d.products.length > 0);
+
+            const renderProduct = (p: any, idx: number) => {
+              const name = p.product_name || p.name || '-';
+              const weight = p.product_weight ?? p.weight;
+              const weightUnit = translateUnit(p.weight_unit || 'kg', language);
+              const qty = p.product_quantity ?? p.quantity;
+              const qtyUnit = translateUnit(p.quantity_unit || p.product_unit || p.unit || 'pcs', language);
+              return (
+                <div key={idx} className="bg-muted/40 rounded-lg p-3 text-sm space-y-1">
+                  <div><span className="text-muted-foreground">{t('job.goods')} {idx + 1} : </span><span className="font-medium">{name}</span></div>
+                  <div><span className="text-muted-foreground">{t('job.weight')} : </span><span>{weight ? `${Number(weight).toLocaleString()} ${weightUnit}` : '-'}</span></div>
+                  <div><span className="text-muted-foreground">{t('job.quantity')} : </span><span>{qty ? `${Number(qty).toLocaleString()} ${qtyUnit}` : '-'}</span></div>
+                </div>
+              );
+            };
+
+            if (hasDestProducts) {
+              return (
+                <div className="space-y-3">
+                  {dests.map((dest: any, dIdx: number) => {
+                    const products = Array.isArray(dest.products) ? dest.products : [];
+                    if (products.length === 0) return null;
+                    return (
+                      <div key={dIdx} className="space-y-2">
+                        <div className="flex items-center gap-1 text-sm font-semibold text-[#225795]">
+                          <MapPin className="w-4 h-4 text-red-500" />
+                          {t('job.destination')} #{dest.sequence_number || dest.sequence || dIdx + 1}
+                          {dest.company_name ? ` · ${dest.company_name}` : ''}
+                        </div>
+                        <div className="space-y-2 ml-5">
+                          {products.map((p: any, idx: number) => renderProduct(p, idx))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            if (Array.isArray(goodsModalJob.products) && goodsModalJob.products.length > 0) {
+              return (
+                <div className="space-y-2">
+                  {goodsModalJob.products.map((p: any, idx: number) => renderProduct(p, idx))}
+                </div>
+              );
+            }
+
+            return (
+              <div className="bg-muted/40 rounded-lg p-3 text-sm space-y-1">
+                <div><span className="text-muted-foreground">{t('job.goods')} : </span><span className="font-medium">{goodsModalJob.product_name || '-'}</span></div>
+                <div><span className="text-muted-foreground">{t('job.weight')} : </span><span>{goodsModalJob.product_weight ? `${goodsModalJob.product_weight.toLocaleString()} ${translateUnit('kg', language)}` : '-'}</span></div>
+                <div><span className="text-muted-foreground">{t('job.quantity')} : </span><span>{goodsModalJob.product_quantity ? `${goodsModalJob.product_quantity}${goodsModalJob.product_unit ? ` ${translateUnit(goodsModalJob.product_unit, language)}` : ''}` : '-'}</span></div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>;
 }
