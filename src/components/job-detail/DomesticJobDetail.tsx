@@ -911,6 +911,7 @@ export default function DomesticJobDetail({
     setLongPressIdx(null);
     setDragIdx(null);
     setDragOverIdx(null);
+    dragOverIdxRef.current = null;
     dragItemRef.current = null;
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
