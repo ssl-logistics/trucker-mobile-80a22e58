@@ -1739,9 +1739,13 @@ export default function DomesticJobDetail({
                     e.preventDefault();
                     e.dataTransfer.dropEffect = 'move';
                     setDragOverIdx(index);
+                     dragOverIdxRef.current = index;
                   }}
                   onDragLeave={() => {
-                    if (dragOverIdx === index) setDragOverIdx(null);
+                     if (dragOverIdx === index) {
+                       setDragOverIdx(null);
+                       dragOverIdxRef.current = null;
+                     }
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -1752,11 +1756,13 @@ export default function DomesticJobDetail({
                     }
                     setDragIdx(null);
                     setDragOverIdx(null);
+                     dragOverIdxRef.current = null;
                     dragItemRef.current = null;
                   }}
                   onDragEnd={() => {
                     setDragIdx(null);
                     setDragOverIdx(null);
+                     dragOverIdxRef.current = null;
                     dragItemRef.current = null;
                     setLongPressIdx(null);
                   }}
