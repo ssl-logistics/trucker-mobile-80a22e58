@@ -445,7 +445,7 @@ export default function JobHistoryPage() {
         .filter((job: any) => job.is_transferred || isJobFullyCompleted(job))
         .map((job: any) => ({ 
           ...job, 
-          status: job.is_transferred ? 'transferred' : "completed",
+          status: job.is_transferred ? 'transferred' : (String(job.status || '').toLowerCase() === 'closed' ? 'closed' : 'completed'),
           is_transferred: !!job.is_transferred,
           status_at_transfer: job.status_at_transfer || null,
           // Preserve origins/destinations arrays for multi-destination detection
