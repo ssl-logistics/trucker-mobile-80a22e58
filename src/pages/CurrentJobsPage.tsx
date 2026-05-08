@@ -1152,97 +1152,60 @@ export default function CurrentJobsPage() {
                     </div>
 
 
-                    {!job.bl_no && !job.booking_no && (
-                    <div className="rounded-lg p-3 space-y-2 text-xs bg-[#e6f8ff]">
-                      {(() => {
-                        const dests = Array.isArray(job.destinations) ? job.destinations : [];
-                        const hasDestProducts = dests.some((d: any) => Array.isArray(d.products) && d.products.length > 0);
+                    {!job.bl_no && !job.booking_no && (() => {
+                      const dests = Array.isArray(job.destinations) ? job.destinations : [];
+                      const hasDestProducts = dests.some((d: any) => Array.isArray(d.products) && d.products.length > 0);
 
-                        if (hasDestProducts) {
-                          return dests.map((dest: any, dIdx: number) => {
-                            const destProducts = Array.isArray(dest.products) ? dest.products : [];
-                            if (destProducts.length === 0) return null;
-                            return (
-                              <div key={dIdx} className={dIdx > 0 ? 'pt-2 border-t border-blue-200' : ''}>
-                                <div className="flex items-center gap-1 mb-1">
-                                  <MapPin className="w-3 h-3 text-red-500" />
-                                  <span className="font-semibold text-[#225795]">
-                                    {t('job.destination')} #{dest.sequence_number || dest.sequence || dIdx + 1}
-                                    {dest.company_name ? ` · ${dest.company_name}` : ''}
-                                  </span>
-                                </div>
-                                <div className="space-y-1 ml-4">
-                                  {destProducts.map((p: any, idx: number) => {
-                                    const name = p.product_name || p.name || '-';
-                                    const weight = p.product_weight ?? p.weight;
-                                    const weightUnit = translateUnit(p.weight_unit || 'kg', language);
-                                    const qty = p.product_quantity ?? p.quantity;
-                                    const qtyUnit = translateUnit(p.quantity_unit || p.product_unit || p.unit || 'pcs', language);
-                                    return (
-                                      <div key={idx}>
-                                        <div>
-                                          <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
-                                          <span className="font-medium">{name}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                                          <span>{weight ? `${Number(weight).toLocaleString()} ${weightUnit}` : '-'}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                                          <span>{qty ? `${Number(qty).toLocaleString()} ${qtyUnit}` : '-'}</span>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          });
-                        }
+                      // Collect all product names for chips display
+                      let allItems: string[] = [];
+                      if (hasDestProducts) {
+                        allItems = dests.flatMap((d: any) =>
+                          (Array.isArray(d.products) ? d.products : []).map((p: any) => p.product_name || p.name || '')
+                        ).filter(Boolean);
+                      } else if (Array.isArray(job.products) && job.products.length > 0) {
+                        allItems = job.products.map((p: any) => p.product_name || p.name || '').filter(Boolean);
+                      } else if (job.product_name) {
+                        allItems = String(job.product_name).split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
+                      }
 
-                        if (Array.isArray(job.products) && job.products.length > 0) {
-                          return job.products.map((product, idx) => {
-                            const weightUnitLabel = translateUnit(product.weight_unit || 'kg', language);
-                            const quantityUnitLabel = translateUnit(product.unit, language);
-                            return (
-                              <div key={product.product_name + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
-                                <div>
-                                  <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
-                                  <span className="font-medium">{product.product_name}</span>
-                                </div>
-                                <div>
-                                  <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                                  <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                                  <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
-                                </div>
-                              </div>
-                            );
-                          });
-                        }
+                      const maxShow = 3;
+                      const display = allItems.slice(0, maxShow);
+                      const remaining = allItems.length - maxShow;
 
-                        return (
-                          <>
-                            <div>
-                              <span className="text-[#375c7b]">{t('job.goods')} : </span>
-                              <span>{job.product_name || '-'}</span>
+                      return (
+                        <div className="rounded-lg p-3 text-xs bg-[#e6f8ff]">
+                          <div className="flex items-start gap-2">
+                            <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('job.goods')}</span>
+                            <div className="flex flex-wrap gap-1 items-center flex-1 min-w-0">
+                              {allItems.length > 0 && (
+                                <span className="inline-flex items-center justify-center bg-[#225795] text-white text-xs font-semibold px-2 py-0.5 rounded-full min-w-[24px]">
+                                  {allItems.length}
+                                </span>
+                              )}
+                              {display.length > 0 ? display.map((label, i) => (
+                                <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[140px]">
+                                  {label}
+                                </span>
+                              )) : <span className="text-muted-foreground">-</span>}
+                              {(remaining > 0 || (allItems.length > 0 && (hasDestProducts || (Array.isArray(job.products) && job.products.length > 0)))) && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setGoodsModalJob(job);
+                                  }}
+                                  className="inline-flex items-center gap-1 bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  {remaining > 0 ? `+${remaining}` : t('job.viewDetails')}
+                                </button>
+                              )}
                             </div>
-                            <div>
-                              <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                              <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit('kg', language)}` : '-'}</span>
-                            </div>
-                            <div>
-                              <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                              <span>{job.product_quantity ? `${job.product_quantity}${job.product_unit ? ` ${translateUnit(job.product_unit, language)}` : ''}` : '-'}</span>
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                    )}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     <Button
                       variant="outline"
