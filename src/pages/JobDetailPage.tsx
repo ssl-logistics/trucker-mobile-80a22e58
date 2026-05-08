@@ -448,6 +448,8 @@ export default function JobDetailPage() {
                   sop_completed_at: null,
                   goods_type: goodsType,
                   invoice_number: d.invoice_number || d.billDoc || null,
+                  latitude: d.latitude ?? null,
+                  longitude: d.longitude ?? null,
                   products: matchedProducts,
                 };
               });
