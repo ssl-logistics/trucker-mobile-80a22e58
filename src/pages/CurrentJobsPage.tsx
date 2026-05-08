@@ -1115,26 +1115,33 @@ export default function CurrentJobsPage() {
                     {!job.bl_no && !job.booking_no && (
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
                       {Array.isArray(job.products) && job.products.length > 0 ? (
-                        job.products.map((product, idx) => {
-                          const weightUnitLabel = translateUnit(product.weight_unit || 'kg', language);
-                          const quantityUnitLabel = translateUnit(product.unit, language);
-                          return (
-                            <div key={product.product_name + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
-                              <div>
-                                <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
-                                <span className="font-medium">{product.product_name}</span>
+                        <>
+                          {job.products.slice(0, 3).map((product, idx) => {
+                            const weightUnitLabel = translateUnit(product.weight_unit || 'kg', language);
+                            const quantityUnitLabel = translateUnit(product.unit, language);
+                            return (
+                              <div key={product.product_name + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
+                                <div>
+                                  <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
+                                  <span className="font-medium">{product.product_name}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#375B7B]">{t('job.weight')} : </span>
+                                  <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#375B7B]">{t('job.quantity')} : </span>
+                                  <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                                <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
-                              </div>
-                              <div>
-                                <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                                <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
-                              </div>
+                            );
+                          })}
+                          {job.products.length > 3 && (
+                            <div className="pt-1.5 border-t border-blue-200 text-center">
+                              <span className="text-[#375B7B] font-medium">+{job.products.length - 3} {t('job.moreProducts')}</span>
                             </div>
-                          );
-                        })
+                          )}
+                        </>
                       ) : (
                         <>
                           <div>
