@@ -653,6 +653,10 @@ export default function JobHistoryPage() {
 
   const filteredApplications = filterApplications(applications);
   const filteredCompletedJobs = filterCompletedJobs(completedJobs);
+
+  // Reset pagination when filters change
+  useEffect(() => { setDomesticPage(1); setIntlPage(1); }, [selectedMonth, completedJobs.length, applications.length]);
+
   return <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <header className="bg-[#DDEDFF] rounded-b-xl sticky top-0 z-10 page-header-safe">
