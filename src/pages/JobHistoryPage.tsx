@@ -254,7 +254,7 @@ export default function JobHistoryPage() {
             order_number: job.order_number,
             transport_type_id: job.transport_type_id,
             transport_mode: job.transport_mode,
-            status: job.is_transferred ? 'transferred' : 'completed',
+            status: job.is_transferred ? 'transferred' : (String(job.status || '').toLowerCase() === 'closed' ? 'closed' : 'completed'),
             sender_name: job.factory_name || job.sender_name,
             sender_address: job.sender_address || '',
             sender_province: job.sender_province || '',
@@ -445,7 +445,7 @@ export default function JobHistoryPage() {
         .filter((job: any) => job.is_transferred || isJobFullyCompleted(job))
         .map((job: any) => ({ 
           ...job, 
-          status: job.is_transferred ? 'transferred' : "completed",
+          status: job.is_transferred ? 'transferred' : (String(job.status || '').toLowerCase() === 'closed' ? 'closed' : 'completed'),
           is_transferred: !!job.is_transferred,
           status_at_transfer: job.status_at_transfer || null,
           // Preserve origins/destinations arrays for multi-destination detection
