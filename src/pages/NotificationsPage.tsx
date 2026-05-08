@@ -119,6 +119,13 @@ export default function NotificationsPage() {
     return isSameMonth(notifDate, selectedDate);
   });
 
+  // Reset to first page when filter changes
+  useEffect(() => { setCurrentPage(1); }, [viewMode, selectedDate, notifications.length]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredNotifications.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedNotifications = filteredNotifications.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
   const getLocalizedTitle = (notification: Notification) => {
     switch (language) {
       case 'en': return notification.title_en || notification.title_th;
