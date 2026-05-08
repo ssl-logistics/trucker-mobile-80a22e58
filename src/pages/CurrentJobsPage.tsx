@@ -474,6 +474,7 @@ export default function CurrentJobsPage() {
             lastCheckinTime: latestCheckinByTransportId[String(job.id)] || 0,
             // Multiple destinations support
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
+              ...d,
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
               company_name: d.company_name || '',
@@ -585,6 +586,7 @@ export default function CurrentJobsPage() {
             bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
             booking_no: job.booking_no || job.booking_number || null,
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
+              ...d,
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
               company_name: d.company_name || '',
@@ -647,6 +649,7 @@ export default function CurrentJobsPage() {
               : (job.job_type || job.transport_category || undefined);
             const mappedDestinations = Array.isArray(job.destinations) && job.destinations.length > 0
               ? job.destinations.map((d: any, idx: number) => ({
+                  ...d,
                   sequence: d.sequence_number || d.sequence || idx + 1,
                   location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
                   company_name: d.company_name || '',
