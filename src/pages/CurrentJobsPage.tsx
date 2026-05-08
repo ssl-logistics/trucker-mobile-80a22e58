@@ -99,7 +99,7 @@ interface AcceptedJob {
   created_at: string;
   updated_at: string;
   // Multiple destinations support
-  destinations?: Array<{ sequence: number; location: string; company_name?: string }>;
+  destinations?: Array<{ sequence: number; location: string; company_name?: string; products?: Array<{ product_name: string; quantity?: number; unit?: string; weight?: number; weight_unit?: string }> }>;
   // Products array for per-item display
   products?: Array<{
     product_name: string;
@@ -1114,50 +1114,85 @@ export default function CurrentJobsPage() {
 
                     {!job.bl_no && !job.booking_no && (
                     <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
-                      {Array.isArray(job.products) && job.products.length > 0 ? (
-                        <>
-                          {job.products.slice(0, 3).map((product, idx) => {
-                            const weightUnitLabel = translateUnit(product.weight_unit || 'kg', language);
-                            const quantityUnitLabel = translateUnit(product.unit, language);
-                            return (
-                              <div key={product.product_name + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
-                                <div>
-                                  <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
-                                  <span className="font-medium">{product.product_name}</span>
+                      {(() => {
+                        // Collect products from destination 1 & 2
+                        const productsToShow: Array<{
+                          product_name: string;
+                          quantity?: number;
+                          unit?: string;
+                          weight?: number;
+                          weight_unit?: string;
+                        }> = [];
+                        
+                        const dests = job.destinations;
+                        if (dests && dests.length > 0) {
+                          if (dests[0]?.products?.length) {
+                            productsToShow.push(dests[0].products[0]);
+                          }
+                          if (dests[1]?.products?.length) {
+                            productsToShow.push(dests[1].products[0]);
+                          }
+                        }
+                        
+                        // Fallback to flat products array
+                        if (productsToShow.length === 0 && Array.isArray(job.products) && job.products.length > 0) {
+                          productsToShow.push(...job.products.slice(0, 2));
+                        }
+                        
+                        // Count total products for "+N" display
+                        let totalProducts = 0;
+                        if (dests) {
+                          totalProducts = dests.reduce((sum, d) => sum + (d.products?.length || 0), 0);
+                        }
+                        if (totalProducts === 0 && Array.isArray(job.products)) {
+                          totalProducts = job.products.length;
+                        }
+                        
+                        return productsToShow.length > 0 ? (
+                          <>
+                            {productsToShow.map((product, idx) => {
+                              const weightUnitLabel = translateUnit(product.weight_unit || 'kg', language);
+                              const quantityUnitLabel = translateUnit(product.unit || '', language);
+                              return (
+                                <div key={(product.product_name || 'product') + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
+                                  <div>
+                                    <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
+                                    <span className="font-medium">{product.product_name || '-'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-[#375B7B]">{t('job.weight')} : </span>
+                                    <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-[#375B7B]">{t('job.quantity')} : </span>
+                                    <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                                  <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                                  <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
-                                </div>
+                              );
+                            })}
+                            {totalProducts > productsToShow.length && (
+                              <div className="pt-1.5 border-t border-blue-200 text-center">
+                                <span className="text-[#375B7B] font-medium">+{totalProducts - productsToShow.length} {t('job.moreProducts')}</span>
                               </div>
-                            );
-                          })}
-                          {job.products.length > 3 && (
-                            <div className="pt-1.5 border-t border-blue-200 text-center">
-                              <span className="text-[#375B7B] font-medium">+{job.products.length - 3} {t('job.moreProducts')}</span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <div>
+                              <span className="text-[#375c7b]">{t('job.goods')} : </span>
+                              <span>{job.product_name || '-'}</span>
                             </div>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <div>
-                            <span className="text-[#375c7b]">{t('job.goods')} : </span>
-                            <span>{job.product_name || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit('kg', language)}` : '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                            <span>{job.product_quantity ? `${job.product_quantity}${job.product_unit ? ` ${translateUnit(job.product_unit, language)}` : ''}` : '-'}</span>
-                          </div>
-                        </>
-                      )}
+                            <div>
+                              <span className="text-[#375B7B]">{t('job.weight')} : </span>
+                              <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit('kg', language)}` : '-'}</span>
+                            </div>
+                            <div>
+                              <span className="text-[#375B7B]">{t('job.quantity')} : </span>
+                              <span>{job.product_quantity ? `${job.product_quantity}${job.product_unit ? ` ${translateUnit(job.product_unit, language)}` : ''}` : '-'}</span>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                     )}
 
