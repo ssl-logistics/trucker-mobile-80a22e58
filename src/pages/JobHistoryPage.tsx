@@ -93,6 +93,7 @@ export default function JobHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'domestic' | 'international'>('all');
   const [domesticPage, setDomesticPage] = useState(1);
   const [intlPage, setIntlPage] = useState(1);
   const PAGE_SIZE = 5;
@@ -694,6 +695,27 @@ export default function JobHistoryPage() {
               <SelectItem value="11">{t('jobHistory.december')}</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Category filter */}
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {([
+              { key: 'all', label: t('jobHistory.allMonths') },
+              { key: 'domestic', label: t('jobType.domestic') },
+              { key: 'international', label: t('jobType.international') },
+            ] as const).map(opt => (
+              <button
+                key={opt.key}
+                onClick={() => { setCategoryFilter(opt.key); setDomesticPage(1); setIntlPage(1); }}
+                className={`py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  categoryFilter === opt.key
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <TabsContent value={activeTab} className="m-0">
@@ -705,7 +727,7 @@ export default function JobHistoryPage() {
             ) : (
               <>
                 {/* Domestic jobs section */}
-                {(() => {
+                {categoryFilter !== 'international' && (() => {
                   const domesticJobs = filteredCompletedJobs.filter(job => !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic'));
                   const domesticApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type !== 'international');
                   const total = domesticJobs.length + domesticApps.length;
@@ -791,7 +813,7 @@ export default function JobHistoryPage() {
                 })()}
 
                 {/* International jobs section */}
-                {(() => {
+                {categoryFilter !== 'domestic' && (() => {
                   const internationalJobs = filteredCompletedJobs.filter(job => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic')));
                   const internationalApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type === 'international');
                   const total = internationalJobs.length + internationalApps.length;
