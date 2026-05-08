@@ -319,7 +319,7 @@ export default function NotificationsPage() {
             <p className="text-sm">{t('notifications.noNotifications') || 'ไม่มีการแจ้งเตือน'}</p>
           </div>
         ) : (
-          filteredNotifications.map((notification) => {
+          pagedNotifications.map((notification) => {
             const { date, time } = formatNotificationDateTime(notification.created_at);
             const orderCode = notification.reference_id || extractOrderCodeFromDescription(notification);
             const isNonClickable = isLocationNotification(notification) || !orderCode;
