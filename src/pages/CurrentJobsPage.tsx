@@ -1156,31 +1156,25 @@ export default function CurrentJobsPage() {
                       const dests = Array.isArray(job.destinations) ? job.destinations : [];
                       const hasDestProducts = dests.some((d: any) => Array.isArray(d.products) && d.products.length > 0);
 
-                      // Collect all product names for chips display
-                      let allItems: string[] = [];
-                      if (hasDestProducts) {
-                        allItems = dests.flatMap((d: any) =>
-                          (Array.isArray(d.products) ? d.products : []).map((p: any) => p.product_name || p.name || '')
-                        ).filter(Boolean);
-                      } else if (Array.isArray(job.products) && job.products.length > 0) {
-                        allItems = job.products.map((p: any) => p.product_name || p.name || '').filter(Boolean);
-                      } else if (job.product_name) {
-                        allItems = String(job.product_name).split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
-                      }
-
-                      const maxShow = 3;
-                      const display = allItems.slice(0, maxShow);
-                      const remaining = allItems.length - maxShow;
-
-                      return (
-                        <div className="rounded-lg p-3 text-xs bg-[#e6f8ff]">
+                      const renderChipsRow = (items: string[], destIdx?: number, dest?: any) => {
+                        const maxShow = 3;
+                        const display = items.slice(0, maxShow);
+                        const remaining = items.length - maxShow;
+                        return (
                           <div className="flex items-start gap-2">
                             <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                            <span className="font-medium text-[#454545] min-w-[50px]">{t('job.goods')}</span>
+                            {typeof destIdx === 'number' ? (
+                              <span className="font-medium text-[#454545] flex items-center gap-1 shrink-0">
+                                <MapPin className="w-3 h-3 text-red-500" />
+                                #{dest?.sequence_number || dest?.sequence || destIdx + 1}
+                              </span>
+                            ) : (
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('job.goods')}</span>
+                            )}
                             <div className="flex flex-wrap gap-1 items-center flex-1 min-w-0">
-                              {allItems.length > 0 && (
+                              {items.length > 0 && (
                                 <span className="inline-flex items-center justify-center bg-[#225795] text-white text-xs font-semibold px-2 py-0.5 rounded-full min-w-[24px]">
-                                  {allItems.length}
+                                  {items.length}
                                 </span>
                               )}
                               {display.length > 0 ? display.map((label, i) => (
@@ -1188,7 +1182,7 @@ export default function CurrentJobsPage() {
                                   {label}
                                 </span>
                               )) : <span className="text-muted-foreground">-</span>}
-                              {(remaining > 0 || (allItems.length > 0 && (hasDestProducts || (Array.isArray(job.products) && job.products.length > 0)))) && (
+                              {remaining > 0 && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
@@ -1198,11 +1192,42 @@ export default function CurrentJobsPage() {
                                   className="inline-flex items-center gap-1 bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer"
                                 >
                                   <Eye className="w-3 h-3" />
-                                  {remaining > 0 ? `+${remaining}` : t('job.viewDetails')}
+                                  +{remaining}
                                 </button>
                               )}
                             </div>
                           </div>
+                        );
+                      };
+
+                      if (hasDestProducts) {
+                        return (
+                          <div className="rounded-lg p-3 text-xs bg-[#e6f8ff] space-y-2">
+                            {dests.map((dest: any, dIdx: number) => {
+                              const items = (Array.isArray(dest.products) ? dest.products : [])
+                                .map((p: any) => p.product_name || p.name || '')
+                                .filter(Boolean);
+                              if (items.length === 0) return null;
+                              return (
+                                <div key={dIdx} className={dIdx > 0 ? 'pt-2 border-t border-blue-200' : ''}>
+                                  {renderChipsRow(items, dIdx, dest)}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      }
+
+                      let allItems: string[] = [];
+                      if (Array.isArray(job.products) && job.products.length > 0) {
+                        allItems = job.products.map((p: any) => p.product_name || p.name || '').filter(Boolean);
+                      } else if (job.product_name) {
+                        allItems = String(job.product_name).split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
+                      }
+
+                      return (
+                        <div className="rounded-lg p-3 text-xs bg-[#e6f8ff]">
+                          {renderChipsRow(allItems)}
                         </div>
                       );
                     })()}
