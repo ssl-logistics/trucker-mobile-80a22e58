@@ -240,7 +240,7 @@ export default function DomesticJobDetail({
   const [activeDestIdx, setActiveDestIdx] = useState<number | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-  // Long-press to start drag (mobile): require 3s hold before drag is enabled
+  // Long-press to start drag (mobile)
   const [longPressIdx, setLongPressIdx] = useState<number | null>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStartY = useRef<number>(0);
