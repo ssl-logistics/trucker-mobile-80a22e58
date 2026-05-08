@@ -474,6 +474,7 @@ export default function CurrentJobsPage() {
             lastCheckinTime: latestCheckinByTransportId[String(job.id)] || 0,
             // Multiple destinations support
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
+              ...d,
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
               company_name: d.company_name || '',
