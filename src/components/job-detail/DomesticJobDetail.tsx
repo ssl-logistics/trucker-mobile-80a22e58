@@ -1646,6 +1646,12 @@ export default function DomesticJobDetail({
                      longPressTimerRef.current = setTimeout(() => {
                        setLongPressIdx(index);
                        if (navigator.vibrate) navigator.vibrate(50);
+                       requestAnimationFrame(() => {
+                         requestAnimationFrame(() => {
+                           const el = deliveryCardRefs.current.get(dest.id);
+                           el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                         });
+                       });
                      }, 600);
                   }}
                   onMouseUp={() => {
@@ -1704,6 +1710,13 @@ export default function DomesticJobDetail({
                        dragItemRef.current = index;
                        // Haptic feedback if available
                        if (navigator.vibrate) navigator.vibrate(50);
+                       // Scroll the active card into view since other cards collapse
+                       requestAnimationFrame(() => {
+                         requestAnimationFrame(() => {
+                           const el = deliveryCardRefs.current.get(dest.id);
+                           el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                         });
+                       });
                      }, 600);
                   }}
                   onTouchMove={(e) => {
