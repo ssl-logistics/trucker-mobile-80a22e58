@@ -649,6 +649,7 @@ export default function CurrentJobsPage() {
               : (job.job_type || job.transport_category || undefined);
             const mappedDestinations = Array.isArray(job.destinations) && job.destinations.length > 0
               ? job.destinations.map((d: any, idx: number) => ({
+                  ...d,
                   sequence: d.sequence_number || d.sequence || idx + 1,
                   location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
                   company_name: d.company_name || '',
