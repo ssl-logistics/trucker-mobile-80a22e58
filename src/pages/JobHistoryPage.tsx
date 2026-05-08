@@ -446,7 +446,12 @@ export default function JobHistoryPage() {
 
       // Filter jobs that have ALL destinations POD completed (verified by checkins) OR transferred
       const completedFromApi = allJobs
-        .filter((job: any) => job.is_transferred || isJobFullyCompleted(job))
+        .filter((job: any) => {
+          if (job.is_transferred) return true;
+          const statusLower = String(job.status || '').toLowerCase();
+          if (statusLower === 'completed' || statusLower === 'closed' || statusLower === 'container_returned') return true;
+          return isJobFullyCompleted(job);
+        })
         .map((job: any) => ({ 
           ...job, 
           status: job.is_transferred ? 'transferred' : (String(job.status || '').toLowerCase() === 'closed' ? 'closed' : 'completed'),
