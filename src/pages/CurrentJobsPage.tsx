@@ -33,7 +33,27 @@ import {
   getDriverCheckins,
   listTickets 
 } from '@/lib/externalApi';
-// Interface for accepted jobs from external API
+
+// Helper: extract destinations from csv_extra_data when API has not provided destinations[]
+const extractCsvDestinations = (job: any): any[] => {
+  if (Array.isArray(job?.destinations) && job.destinations.length > 0) return job.destinations;
+  const csv = typeof job?.csv_extra_data === 'string'
+    ? (() => { try { return JSON.parse(job.csv_extra_data); } catch { return null; } })()
+    : job?.csv_extra_data;
+  if (csv && Array.isArray(csv.destinations) && csv.destinations.length > 0) {
+    return csv.destinations.map((d: any, idx: number) => ({
+      id: d.id || `dest-${idx + 1}`,
+      sequence_number: d.sequence_number || idx + 1,
+      company_name: d.company_name || d.companyName || d.deliveryLocation || '',
+      contact_name: d.contact_name || d.contactName || '',
+      address: d.address || '',
+      products: Array.isArray(d.products) ? d.products : [],
+      invoice_number: d.invoice_number || d.billDoc || null,
+    }));
+  }
+  return [];
+};
+
 interface AcceptedJob {
   id: string;
   order_number: string;
@@ -99,7 +119,7 @@ interface AcceptedJob {
   created_at: string;
   updated_at: string;
   // Multiple destinations support
-  destinations?: Array<{ sequence: number; location: string; company_name?: string }>;
+  destinations?: Array<{ sequence: number; location: string; company_name?: string; products?: any[] }>;
   // Products array for per-item display
   products?: Array<{
     product_name: string;
@@ -472,15 +492,22 @@ export default function CurrentJobsPage() {
             created_at: job.created_at,
             updated_at: job.updated_at,
             lastCheckinTime: latestCheckinByTransportId[String(job.id)] || 0,
-            // Multiple destinations support
-            destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
-              ...d,
-              sequence: d.sequence_number || d.sequence || idx + 1,
-              location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || '',
-              products: Array.isArray(d.products) ? d.products : undefined,
-            })) : undefined,
-            products: Array.isArray(job.products) ? job.products : (Array.isArray(job.destinations) ? job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
+            // Multiple destinations support (with csv_extra_data fallback)
+            destinations: (() => {
+              const raw = extractCsvDestinations(job);
+              return raw.length > 0 ? raw.map((d: any, idx: number) => ({
+                ...d,
+                sequence: d.sequence_number || d.sequence || idx + 1,
+                location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
+                company_name: d.company_name || '',
+                products: Array.isArray(d.products) ? d.products : undefined,
+              })) : undefined;
+            })(),
+            products: (() => {
+              if (Array.isArray(job.products)) return job.products;
+              const raw = extractCsvDestinations(job);
+              return raw.length > 0 ? raw.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined;
+            })(),
            }));
 
            const dedupedMapped = dedupeJobs(mappedJobs);
@@ -585,14 +612,21 @@ export default function CurrentJobsPage() {
             job_type: isInternationalJob(job) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
             bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
             booking_no: job.booking_no || job.booking_number || null,
-            destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
-              ...d,
-              sequence: d.sequence_number || d.sequence || idx + 1,
-              location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || '',
-              products: Array.isArray(d.products) ? d.products : undefined,
-            })) : undefined,
-            products: Array.isArray(job.products) ? job.products : (Array.isArray(job.destinations) ? job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
+            destinations: (() => {
+              const raw = extractCsvDestinations(job);
+              return raw.length > 0 ? raw.map((d: any, idx: number) => ({
+                ...d,
+                sequence: d.sequence_number || d.sequence || idx + 1,
+                location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
+                company_name: d.company_name || '',
+                products: Array.isArray(d.products) ? d.products : undefined,
+              })) : undefined;
+            })(),
+            products: (() => {
+              if (Array.isArray(job.products)) return job.products;
+              const raw = extractCsvDestinations(job);
+              return raw.length > 0 ? raw.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined;
+            })(),
           }));
       } else {
         console.error('Error loading company accepted jobs:', companyJobsResult.error);
@@ -647,8 +681,9 @@ export default function CurrentJobsPage() {
             const inferredJobType = isInternationalJob(job)
               ? 'international'
               : (job.job_type || job.transport_category || undefined);
-            const mappedDestinations = Array.isArray(job.destinations) && job.destinations.length > 0
-              ? job.destinations.map((d: any, idx: number) => ({
+            const rawDests = extractCsvDestinations(job);
+            const mappedDestinations = rawDests.length > 0
+              ? rawDests.map((d: any, idx: number) => ({
                   ...d,
                   sequence: d.sequence_number || d.sequence || idx + 1,
                   location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
@@ -656,6 +691,9 @@ export default function CurrentJobsPage() {
                   products: Array.isArray(d.products) ? d.products : undefined,
                 }))
               : undefined;
+            const mappedProducts = Array.isArray(job.products)
+              ? job.products
+              : (rawDests.length > 0 ? rawDests.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined);
 
             return {
               ...job,
@@ -665,7 +703,7 @@ export default function CurrentJobsPage() {
               ...(job.bl_no || job.bl_number || job.bill_of_lading ? { bl_no: job.bl_no || job.bl_number || job.bill_of_lading } : {}),
               ...(job.booking_no || job.booking_number ? { booking_no: job.booking_no || job.booking_number } : {}),
               ...(mappedDestinations ? { destinations: mappedDestinations } : {}),
-              ...(Array.isArray(job.products) ? { products: job.products } : (Array.isArray(job.destinations) ? { products: job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) } : {})),
+              ...(mappedProducts ? { products: mappedProducts } : {}),
             };
           });
           
@@ -1113,44 +1151,94 @@ export default function CurrentJobsPage() {
 
 
                     {!job.bl_no && !job.booking_no && (
-                    <div className="rounded-lg p-3 space-y-1.5 text-xs bg-[#e6f8ff]">
-                      {Array.isArray(job.products) && job.products.length > 0 ? (
-                        job.products.map((product, idx) => {
-                          const weightUnitLabel = translateUnit(product.weight_unit || 'kg', language);
-                          const quantityUnitLabel = translateUnit(product.unit, language);
-                          return (
-                            <div key={product.product_name + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
-                              <div>
-                                <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
-                                <span className="font-medium">{product.product_name}</span>
+                    <div className="rounded-lg p-3 space-y-2 text-xs bg-[#e6f8ff]">
+                      {(() => {
+                        const dests = Array.isArray(job.destinations) ? job.destinations : [];
+                        const hasDestProducts = dests.some((d: any) => Array.isArray(d.products) && d.products.length > 0);
+
+                        if (hasDestProducts) {
+                          return dests.map((dest: any, dIdx: number) => {
+                            const destProducts = Array.isArray(dest.products) ? dest.products : [];
+                            if (destProducts.length === 0) return null;
+                            return (
+                              <div key={dIdx} className={dIdx > 0 ? 'pt-2 border-t border-blue-200' : ''}>
+                                <div className="flex items-center gap-1 mb-1">
+                                  <MapPin className="w-3 h-3 text-red-500" />
+                                  <span className="font-semibold text-[#225795]">
+                                    {t('job.destination')} #{dest.sequence_number || dest.sequence || dIdx + 1}
+                                    {dest.company_name ? ` · ${dest.company_name}` : ''}
+                                  </span>
+                                </div>
+                                <div className="space-y-1 ml-4">
+                                  {destProducts.map((p: any, idx: number) => {
+                                    const name = p.product_name || p.name || '-';
+                                    const weight = p.product_weight ?? p.weight;
+                                    const weightUnit = translateUnit(p.weight_unit || 'kg', language);
+                                    const qty = p.product_quantity ?? p.quantity;
+                                    const qtyUnit = translateUnit(p.quantity_unit || p.product_unit || p.unit || 'pcs', language);
+                                    return (
+                                      <div key={idx}>
+                                        <div>
+                                          <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
+                                          <span className="font-medium">{name}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-[#375B7B]">{t('job.weight')} : </span>
+                                          <span>{weight ? `${Number(weight).toLocaleString()} ${weightUnit}` : '-'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-[#375B7B]">{t('job.quantity')} : </span>
+                                          <span>{qty ? `${Number(qty).toLocaleString()} ${qtyUnit}` : '-'}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                                <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
+                            );
+                          });
+                        }
+
+                        if (Array.isArray(job.products) && job.products.length > 0) {
+                          return job.products.map((product, idx) => {
+                            const weightUnitLabel = translateUnit(product.weight_unit || 'kg', language);
+                            const quantityUnitLabel = translateUnit(product.unit, language);
+                            return (
+                              <div key={product.product_name + idx} className={idx > 0 ? 'pt-1.5 border-t border-blue-200' : ''}>
+                                <div>
+                                  <span className="text-[#375c7b]">{t('job.goods')} {idx + 1} : </span>
+                                  <span className="font-medium">{product.product_name}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#375B7B]">{t('job.weight')} : </span>
+                                  <span>{product.weight ? `${product.weight.toLocaleString()} ${weightUnitLabel}` : '-'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#375B7B]">{t('job.quantity')} : </span>
+                                  <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                                <span>{product.quantity ? `${product.quantity.toLocaleString()} ${quantityUnitLabel}` : '-'}</span>
-                              </div>
+                            );
+                          });
+                        }
+
+                        return (
+                          <>
+                            <div>
+                              <span className="text-[#375c7b]">{t('job.goods')} : </span>
+                              <span>{job.product_name || '-'}</span>
                             </div>
-                          );
-                        })
-                      ) : (
-                        <>
-                          <div>
-                            <span className="text-[#375c7b]">{t('job.goods')} : </span>
-                            <span>{job.product_name || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#375B7B]">{t('job.weight')} : </span>
-                            <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit('kg', language)}` : '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#375B7B]">{t('job.quantity')} : </span>
-                            <span>{job.product_quantity ? `${job.product_quantity}${job.product_unit ? ` ${translateUnit(job.product_unit, language)}` : ''}` : '-'}</span>
-                          </div>
-                        </>
-                      )}
+                            <div>
+                              <span className="text-[#375B7B]">{t('job.weight')} : </span>
+                              <span>{job.product_weight ? `${job.product_weight.toLocaleString()} ${translateUnit('kg', language)}` : '-'}</span>
+                            </div>
+                            <div>
+                              <span className="text-[#375B7B]">{t('job.quantity')} : </span>
+                              <span>{job.product_quantity ? `${job.product_quantity}${job.product_unit ? ` ${translateUnit(job.product_unit, language)}` : ''}` : '-'}</span>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                     )}
 
