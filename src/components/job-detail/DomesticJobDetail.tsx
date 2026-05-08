@@ -1833,6 +1833,7 @@ export default function DomesticJobDetail({
                       handleSwapRequest(longPressIdx, index);
                       setDragIdx(null);
                       setDragOverIdx(null);
+                       dragOverIdxRef.current = null;
                       dragItemRef.current = null;
                       setLongPressIdx(null);
                     }
