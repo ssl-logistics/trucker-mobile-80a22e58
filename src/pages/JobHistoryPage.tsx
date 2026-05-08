@@ -289,8 +289,63 @@ export default function JobHistoryPage() {
             status_at_transfer: job.status_at_transfer || null,
           }));
 
-        console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
-        setCompletedJobs(completedFromApi);
+        // Fallback: include completed jobs from checkins that the assigned-jobs API
+        // no longer returns (e.g., when status moved to completed and was excluded server-side).
+        const knownIds = new Set(completedFromApi.map(j => String(j.id)));
+        const checkinJobsMap = new Map<string, any>();
+        matchingCheckins.forEach((c: any) => {
+          const to = c.transport_orders;
+          if (!to || !to.id) return;
+          const tid = String(to.id);
+          if (knownIds.has(tid)) return;
+          const status = String(to.status || '').toLowerCase();
+          if (!['completed', 'closed', 'container_returned'].includes(status)) return;
+          const existing = checkinJobsMap.get(tid);
+          // Prefer latest checkin
+          if (!existing || new Date(c.checkin_time) > new Date(existing._latest)) {
+            checkinJobsMap.set(tid, { ...to, _latest: c.checkin_time });
+          }
+        });
+        const fallbackFromCheckins: CompletedJob[] = Array.from(checkinJobsMap.values()).map((to: any) => ({
+          id: to.id,
+          order_number: to.order_number,
+          transport_type_id: to.transport_type_id,
+          transport_mode: to.transport_mode,
+          status: 'completed',
+          sender_name: to.sender_name,
+          sender_address: to.sender_address || '',
+          sender_province: to.sender_province || '',
+          sender_district: to.sender_district || '',
+          sender_pickup_date: to.sender_pickup_date,
+          sender_pickup_time: to.sender_pickup_time || '00:00',
+          destination_name: to.destination_name || '',
+          destination_address: to.destination_address || '',
+          destination_province: to.destination_province || '',
+          destination_district: to.destination_district || '',
+          destination_delivery_date: to.destination_delivery_date,
+          destination_delivery_time: to.destination_delivery_time || '00:00',
+          destination_company_name: to.destination_company_name,
+          product_name: to.product_name,
+          product_weight: to.product_weight,
+          product_quantity: to.product_quantity,
+          product_unit: to.product_unit,
+          vehicle_type: to.vehicle_type,
+          transport_price: to.transport_price || 0,
+          created_at: to.created_at || to._latest,
+          updated_at: to.updated_at || to._latest,
+          origins: to.origins,
+          destinations: to.destinations,
+          job_type: to.job_type || 'domestic',
+          booking_no: to.booking_no || null,
+          bl_no: to.bl_no || null,
+          transport_category: to.transport_category || null,
+          is_transferred: !!to.is_transferred,
+          status_at_transfer: to.status_at_transfer || null,
+        }));
+
+        const combined = [...completedFromApi, ...fallbackFromCheckins];
+        console.log('Total completed jobs for internal/external driver:', completedFromApi.length, '+ fallback:', fallbackFromCheckins.length);
+        setCompletedJobs(combined);
         setLoading(false);
         return;
       }
