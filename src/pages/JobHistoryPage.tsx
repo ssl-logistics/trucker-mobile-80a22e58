@@ -93,6 +93,7 @@ export default function JobHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'domestic' | 'international'>('all');
   const [domesticPage, setDomesticPage] = useState(1);
   const [intlPage, setIntlPage] = useState(1);
   const PAGE_SIZE = 5;
