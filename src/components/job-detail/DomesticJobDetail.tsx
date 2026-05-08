@@ -868,6 +868,16 @@ export default function DomesticJobDetail({
       return;
     }
     console.log('[Reorder] -> performSwap');
+    // Always exit reorder mode after a swap is initiated, regardless of how it was triggered.
+    // Prevents UI from getting stuck with collapsed cards when swapping multiple times in a row.
+    setLongPressIdx(null);
+    setDragIdx(null);
+    setDragOverIdx(null);
+    dragItemRef.current = null;
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
     // Swap immediately without confirmation
     void performSwap(fromIdx, toIdx);
   };
