@@ -943,19 +943,21 @@ export default function DomesticJobDetail({
 
     // Send reorder to API (fire-and-forget, localStorage is the primary persistence)
     try {
+      const payload = {
+        order_number: job.order_code,
+        destinations: resequenced.map(d => ({ id: d.id, sequence_number: d.sequence_number })),
+      };
+      console.log('[Reorder] invoking edge function reorder-destinations', payload);
       const { data, error } = await supabase.functions.invoke('reorder-destinations', {
-        body: {
-          order_number: job.order_code,
-          destinations: resequenced.map(d => ({ id: d.id, sequence_number: d.sequence_number })),
-        },
+        body: payload,
       });
       if (error) {
-        console.error('Reorder API error:', error);
+        console.error('[Reorder] API error:', error);
       } else {
-        console.log('Reorder API success:', data);
+        console.log('[Reorder] API success:', data);
       }
     } catch (e) {
-      console.error('Reorder API exception:', e);
+      console.error('[Reorder] API exception:', e);
     }
 
     // Update tracking waypoints if GPS tracking is active (direct external API call)
