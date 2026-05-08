@@ -1777,6 +1777,7 @@ export default function DomesticJobDetail({
                     setLongPressIdx(null);
                   }}
                   onTouchCancel={clearLongPress}
+                  onContextMenu={(e) => { if (canDrag) e.preventDefault(); }}
                   onClick={() => {
                     // Tap-to-swap when in reorder mode: tap another card to swap with the selected one
                     if (isReorderMode && longPressIdx !== null && longPressIdx !== index && canDrag) {
