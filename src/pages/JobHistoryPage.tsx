@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Clock, CircleDot, MapPin, Calendar as CalendarIconLucide } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, CircleDot, MapPin, Calendar as CalendarIconLucide } from "lucide-react";
 import coinsIcon from '@/assets/coins-icon.png';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +93,9 @@ export default function JobHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
+  const [domesticPage, setDomesticPage] = useState(1);
+  const [intlPage, setIntlPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   useEffect(() => {
     if (user) {
@@ -650,6 +653,10 @@ export default function JobHistoryPage() {
 
   const filteredApplications = filterApplications(applications);
   const filteredCompletedJobs = filterCompletedJobs(completedJobs);
+
+  // Reset pagination when filters change
+  useEffect(() => { setDomesticPage(1); setIntlPage(1); }, [selectedMonth, completedJobs.length, applications.length]);
+
   return <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <header className="bg-[#DDEDFF] rounded-b-xl sticky top-0 z-10 page-header-safe">
@@ -701,7 +708,18 @@ export default function JobHistoryPage() {
                 {(() => {
                   const domesticJobs = filteredCompletedJobs.filter(job => !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic'));
                   const domesticApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type !== 'international');
-                  if (domesticJobs.length === 0 && domesticApps.length === 0) return null;
+                  const total = domesticJobs.length + domesticApps.length;
+                  if (total === 0) return null;
+                  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+                  const safePage = Math.min(domesticPage, totalPages);
+                  const start = (safePage - 1) * PAGE_SIZE;
+                  const end = start + PAGE_SIZE;
+                  // Build unified items list (jobs first, then apps)
+                  const items: Array<{ kind: 'job'; data: any } | { kind: 'app'; data: any }> = [
+                    ...domesticJobs.map(j => ({ kind: 'job' as const, data: j })),
+                    ...domesticApps.map(a => ({ kind: 'app' as const, data: a })),
+                  ];
+                  const pageItems = items.slice(start, end);
                   return (
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
@@ -709,24 +727,28 @@ export default function JobHistoryPage() {
                           {t('jobType.domestic')}
                         </span>
                       </div>
-                      {domesticJobs.map(job => (
-                        <HistoryJobCard 
-                          key={job.id}
-                          job={job}
-                          onClick={() => {
-                            if (job.isBidJob && job.ticket_number) {
-                              navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
-                            } else {
-                              navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
-                            }
-                          }}
-                          getTranslatedVehicleType={getTranslatedVehicleType}
-                        />
-                      ))}
-                      {domesticApps.map(app => {
+                      {pageItems.map(item => {
+                        if (item.kind === 'job') {
+                          const job = item.data;
+                          return (
+                            <HistoryJobCard
+                              key={job.id}
+                              job={job}
+                              onClick={() => {
+                                if (job.isBidJob && job.ticket_number) {
+                                  navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
+                                } else {
+                                  navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
+                                }
+                              }}
+                              getTranslatedVehicleType={getTranslatedVehicleType}
+                            />
+                          );
+                        }
+                        const app = item.data;
                         if (!app.jobs) return null;
                         return (
-                          <HistoryJobCard 
+                          <HistoryJobCard
                             key={app.id}
                             job={{
                               id: app.jobs.id,
@@ -743,6 +765,27 @@ export default function JobHistoryPage() {
                           />
                         );
                       })}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between pt-2">
+                          <button
+                            onClick={() => setDomesticPage(p => Math.max(1, p - 1))}
+                            disabled={safePage <= 1}
+                            className="p-2 rounded-full bg-white border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                            aria-label="Previous"
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <span className="text-sm text-gray-600">{safePage} / {totalPages}</span>
+                          <button
+                            onClick={() => setDomesticPage(p => Math.min(totalPages, p + 1))}
+                            disabled={safePage >= totalPages}
+                            className="p-2 rounded-full bg-white border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                            aria-label="Next"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -751,27 +794,46 @@ export default function JobHistoryPage() {
                 {(() => {
                   const internationalJobs = filteredCompletedJobs.filter(job => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic')));
                   const internationalApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type === 'international');
-                  if (internationalJobs.length === 0 && internationalApps.length === 0) return null;
+                  const total = internationalJobs.length + internationalApps.length;
+                  if (total === 0) return null;
+                  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+                  const safePage = Math.min(intlPage, totalPages);
+                  const start = (safePage - 1) * PAGE_SIZE;
+                  const end = start + PAGE_SIZE;
+                  const items: Array<{ kind: 'job'; data: any } | { kind: 'app'; data: any }> = [
+                    ...internationalJobs.map(j => ({ kind: 'job' as const, data: j })),
+                    ...internationalApps.map(a => ({ kind: 'app' as const, data: a })),
+                  ];
+                  const pageItems = items.slice(start, end);
                   return (
                     <div className="space-y-3 mt-4">
-                      {internationalJobs.map(job => (
-                        <HistoryJobCard 
-                          key={`intl-${job.id}`}
-                          job={job}
-                          onClick={() => {
-                            if (job.isBidJob && job.ticket_number) {
-                              navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
-                            } else {
-                              navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
-                            }
-                          }}
-                          getTranslatedVehicleType={getTranslatedVehicleType}
-                        />
-                      ))}
-                      {internationalApps.map(app => {
+                      <div className="flex items-center gap-2">
+                        <span className="inline-block px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-sm font-semibold">
+                          {t('jobType.international')}
+                        </span>
+                      </div>
+                      {pageItems.map(item => {
+                        if (item.kind === 'job') {
+                          const job = item.data;
+                          return (
+                            <HistoryJobCard
+                              key={`intl-${job.id}`}
+                              job={job}
+                              onClick={() => {
+                                if (job.isBidJob && job.ticket_number) {
+                                  navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
+                                } else {
+                                  navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
+                                }
+                              }}
+                              getTranslatedVehicleType={getTranslatedVehicleType}
+                            />
+                          );
+                        }
+                        const app = item.data;
                         if (!app.jobs) return null;
                         return (
-                          <HistoryJobCard 
+                          <HistoryJobCard
                             key={`intl-${app.id}`}
                             job={{
                               id: app.jobs.id,
@@ -788,6 +850,27 @@ export default function JobHistoryPage() {
                           />
                         );
                       })}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between pt-2">
+                          <button
+                            onClick={() => setIntlPage(p => Math.max(1, p - 1))}
+                            disabled={safePage <= 1}
+                            className="p-2 rounded-full bg-white border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                            aria-label="Previous"
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <span className="text-sm text-gray-600">{safePage} / {totalPages}</span>
+                          <button
+                            onClick={() => setIntlPage(p => Math.min(totalPages, p + 1))}
+                            disabled={safePage >= totalPages}
+                            className="p-2 rounded-full bg-white border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                            aria-label="Next"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
