@@ -42,6 +42,8 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const driverId = user?.id;
 
@@ -116,6 +118,13 @@ export default function NotificationsPage() {
     }
     return isSameMonth(notifDate, selectedDate);
   });
+
+  // Reset to first page when filter changes
+  useEffect(() => { setCurrentPage(1); }, [viewMode, selectedDate, notifications.length]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredNotifications.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedNotifications = filteredNotifications.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const getLocalizedTitle = (notification: Notification) => {
     switch (language) {
@@ -310,7 +319,7 @@ export default function NotificationsPage() {
             <p className="text-sm">{t('notifications.noNotifications') || 'ไม่มีการแจ้งเตือน'}</p>
           </div>
         ) : (
-          filteredNotifications.map((notification) => {
+          pagedNotifications.map((notification) => {
             const { date, time } = formatNotificationDateTime(notification.created_at);
             const orderCode = notification.reference_id || extractOrderCodeFromDescription(notification);
             const isNonClickable = isLocationNotification(notification) || !orderCode;
@@ -347,6 +356,31 @@ export default function NotificationsPage() {
               </button>
             );
           })
+        )}
+        {!loading && filteredNotifications.length > PAGE_SIZE && (
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-white">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              {t('common.previous') || 'ก่อนหน้า'}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {safePage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+            >
+              {t('common.next') || 'ถัดไป'}
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
         )}
       </div>
       </PullToRefresh>
