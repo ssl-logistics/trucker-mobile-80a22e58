@@ -259,10 +259,10 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
         {/* Self-close button (drivers can close job without waiting for CS) */}
         {!isTransferred && isDomestic && (
           isClosed || locallyClosed ? (
-            <div className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-emerald-50 border border-emerald-200">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs font-medium text-emerald-700">
-                {t('jobHistory.closedByDriver') || 'ปิดงานโดยคนรถแล้ว'}
+            <div className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 border border-gray-200">
+              <CheckCircle2 className="w-4 h-4 text-gray-400" />
+              <span className="text-xs font-medium text-gray-500">
+                {t('jobHistory.closedByDriver') || 'ปิดงานแล้ว'}
               </span>
             </div>
           ) : (
