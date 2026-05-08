@@ -33,7 +33,27 @@ import {
   getDriverCheckins,
   listTickets 
 } from '@/lib/externalApi';
-// Interface for accepted jobs from external API
+
+// Helper: extract destinations from csv_extra_data when API has not provided destinations[]
+const extractCsvDestinations = (job: any): any[] => {
+  if (Array.isArray(job?.destinations) && job.destinations.length > 0) return job.destinations;
+  const csv = typeof job?.csv_extra_data === 'string'
+    ? (() => { try { return JSON.parse(job.csv_extra_data); } catch { return null; } })()
+    : job?.csv_extra_data;
+  if (csv && Array.isArray(csv.destinations) && csv.destinations.length > 0) {
+    return csv.destinations.map((d: any, idx: number) => ({
+      id: d.id || `dest-${idx + 1}`,
+      sequence_number: d.sequence_number || idx + 1,
+      company_name: d.company_name || d.companyName || d.deliveryLocation || '',
+      contact_name: d.contact_name || d.contactName || '',
+      address: d.address || '',
+      products: Array.isArray(d.products) ? d.products : [],
+      invoice_number: d.invoice_number || d.billDoc || null,
+    }));
+  }
+  return [];
+};
+
 interface AcceptedJob {
   id: string;
   order_number: string;
