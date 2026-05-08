@@ -1856,7 +1856,7 @@ const enTranslations: Record<string, string> = {
    'jobHistory.closeJobTitle': 'Confirm Close Job',
    'jobHistory.closeJobDesc': 'If CS finds errors later, you will need to re-submit documents. Close this job?',
    'jobHistory.confirmClose': 'Close Job',
-   'jobHistory.closedByDriver': 'Closed by driver',
+   'jobHistory.closedByDriver': 'Closed',
    'jobHistory.closedSuccess': 'Job closed successfully',
   
   // Current Jobs Page
