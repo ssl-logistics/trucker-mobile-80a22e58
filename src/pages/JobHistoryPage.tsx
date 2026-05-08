@@ -728,7 +728,6 @@ export default function JobHistoryPage() {
               <>
                 {/* Domestic jobs section */}
                 {categoryFilter !== 'international' && (() => {
-                {(() => {
                   const domesticJobs = filteredCompletedJobs.filter(job => !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic'));
                   const domesticApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type !== 'international');
                   const total = domesticJobs.length + domesticApps.length;
