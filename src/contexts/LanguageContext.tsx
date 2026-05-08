@@ -269,7 +269,7 @@ const thTranslations: Record<string, string> = {
    'jobHistory.closeJobTitle': 'ยืนยันปิดงาน',
    'jobHistory.closeJobDesc': 'หาก CS ตรวจพบข้อผิดพลาดภายหลัง คุณจะต้องแนบเอกสารใหม่ ต้องการปิดงานนี้หรือไม่?',
    'jobHistory.confirmClose': 'ปิดงาน',
-   'jobHistory.closedByDriver': 'ปิดงานโดยคนรถแล้ว',
+   'jobHistory.closedByDriver': 'ปิดงานแล้ว',
    'jobHistory.closedSuccess': 'ปิดงานเรียบร้อย',
   
   // Current Jobs Page
@@ -1856,7 +1856,7 @@ const enTranslations: Record<string, string> = {
    'jobHistory.closeJobTitle': 'Confirm Close Job',
    'jobHistory.closeJobDesc': 'If CS finds errors later, you will need to re-submit documents. Close this job?',
    'jobHistory.confirmClose': 'Close Job',
-   'jobHistory.closedByDriver': 'Closed by driver',
+   'jobHistory.closedByDriver': 'Closed',
    'jobHistory.closedSuccess': 'Job closed successfully',
   
   // Current Jobs Page
