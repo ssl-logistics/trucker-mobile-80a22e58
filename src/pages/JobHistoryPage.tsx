@@ -93,7 +93,7 @@ export default function JobHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState<'all' | 'domestic' | 'international'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'domestic' | 'international'>('domestic');
   const [domesticPage, setDomesticPage] = useState(1);
   const [intlPage, setIntlPage] = useState(1);
   const PAGE_SIZE = 5;
@@ -697,9 +697,8 @@ export default function JobHistoryPage() {
           </Select>
 
           {/* Category filter */}
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2">
             {([
-              { key: 'all', label: t('jobHistory.allMonths') },
               { key: 'domestic', label: t('jobType.domestic') },
               { key: 'international', label: t('jobType.international') },
             ] as const).map(opt => (
