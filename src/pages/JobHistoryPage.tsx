@@ -749,7 +749,7 @@ export default function JobHistoryPage() {
 
                 {/* International jobs section */}
                 {(() => {
-                  const internationalJobs = filteredCompletedJobs.filter(job => !!(job.booking_no || job.bl_no || job.transport_category));
+                  const internationalJobs = filteredCompletedJobs.filter(job => !!(job.booking_no || job.bl_no || (job.transport_category && job.transport_category !== 'domestic')));
                   const internationalApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type === 'international');
                   if (internationalJobs.length === 0 && internationalApps.length === 0) return null;
                   return (
