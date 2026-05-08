@@ -240,11 +240,12 @@ export default function DomesticJobDetail({
   const [activeDestIdx, setActiveDestIdx] = useState<number | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-  // Long-press to start drag (mobile): require 3s hold before drag is enabled
+  // Long-press to start drag (mobile)
   const [longPressIdx, setLongPressIdx] = useState<number | null>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStartY = useRef<number>(0);
   const dragItemRef = useRef<number | null>(null);
+  const dragOverIdxRef = useRef<number | null>(null);
   const [showOcrDrawer, setShowOcrDrawer] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
@@ -258,6 +259,43 @@ export default function DomesticJobDetail({
   const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
   // Voice reorder state
   const [showVoiceMatch, setShowVoiceMatch] = useState<{ name: string; index: number } | null>(null);
+
+  useEffect(() => {
+    const isReorderLocked = longPressIdx !== null || dragIdx !== null;
+    if (!isReorderLocked) return;
+
+    const root = document.getElementById('root');
+    const previousRootOverflow = root?.style.overflowY;
+    const previousRootTouchAction = root?.style.touchAction;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyTouchAction = document.body.style.touchAction;
+
+    const preventPageDrag = (event: TouchEvent) => {
+      if (dragItemRef.current !== null && event.cancelable) {
+        event.preventDefault();
+      }
+    };
+
+    if (root) {
+      root.style.overflowY = 'hidden';
+      root.style.touchAction = 'none';
+      root.addEventListener('touchmove', preventPageDrag, { passive: false });
+    }
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.addEventListener('touchmove', preventPageDrag, { passive: false });
+
+    return () => {
+      if (root) {
+        root.style.overflowY = previousRootOverflow || '';
+        root.style.touchAction = previousRootTouchAction || '';
+        root.removeEventListener('touchmove', preventPageDrag);
+      }
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
+      document.removeEventListener('touchmove', preventPageDrag);
+    };
+  }, [longPressIdx, dragIdx]);
   // Container return slip OCR state
   const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
   const [isProcessingReturnSlipOcr, setIsProcessingReturnSlipOcr] = useState(false);
@@ -873,6 +911,7 @@ export default function DomesticJobDetail({
     setLongPressIdx(null);
     setDragIdx(null);
     setDragOverIdx(null);
+    dragOverIdxRef.current = null;
     dragItemRef.current = null;
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
@@ -1652,6 +1691,10 @@ export default function DomesticJobDetail({
                   longPressTimerRef.current = null;
                 }
                 setLongPressIdx(null);
+                setDragIdx(null);
+                setDragOverIdx(null);
+                dragOverIdxRef.current = null;
+                dragItemRef.current = null;
               };
 
               return (
@@ -1700,9 +1743,13 @@ export default function DomesticJobDetail({
                     e.preventDefault();
                     e.dataTransfer.dropEffect = 'move';
                     setDragOverIdx(index);
+                     dragOverIdxRef.current = index;
                   }}
                   onDragLeave={() => {
-                    if (dragOverIdx === index) setDragOverIdx(null);
+                     if (dragOverIdx === index) {
+                       setDragOverIdx(null);
+                       dragOverIdxRef.current = null;
+                     }
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -1713,18 +1760,20 @@ export default function DomesticJobDetail({
                     }
                     setDragIdx(null);
                     setDragOverIdx(null);
+                     dragOverIdxRef.current = null;
                     dragItemRef.current = null;
                   }}
                   onDragEnd={() => {
                     setDragIdx(null);
                     setDragOverIdx(null);
+                     dragOverIdxRef.current = null;
                     dragItemRef.current = null;
                     setLongPressIdx(null);
                   }}
                   onTouchStart={(e) => {
                     if (!canDrag) return;
                     dragStartY.current = e.touches[0].clientY;
-                    // Start 3-second long-press timer to enable drag
+                    // Start long-press timer to enable drag
                     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
                      longPressTimerRef.current = setTimeout(() => {
                        setLongPressIdx(index);
@@ -1751,13 +1800,15 @@ export default function DomesticJobDetail({
                       }
                       return;
                     }
+                     e.preventDefault();
                     // Drag in progress: detect target
                     const touch = e.touches[0];
                     const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
-                    const cardEl = elements.find(el => el.getAttribute('data-reorder-idx'));
+                    const cardEl = elements.map(el => el.closest('[data-reorder-idx]')).find(Boolean);
                     if (cardEl) {
                       const overIdx = parseInt(cardEl.getAttribute('data-reorder-idx')!, 10);
                       setDragOverIdx(overIdx);
+                       dragOverIdxRef.current = overIdx;
                     }
                   }}
                   onTouchEnd={() => {
@@ -1767,12 +1818,14 @@ export default function DomesticJobDetail({
                     }
                     if (dragItemRef.current !== null) {
                       const fromIdx = dragItemRef.current;
-                      if (dragOverIdx !== null && fromIdx !== dragOverIdx) {
-                        handleSwapRequest(fromIdx, dragOverIdx);
+                       const toIdx = dragOverIdxRef.current;
+                       if (toIdx !== null && fromIdx !== toIdx) {
+                         handleSwapRequest(fromIdx, toIdx);
                       }
                     }
                     setDragIdx(null);
                     setDragOverIdx(null);
+                     dragOverIdxRef.current = null;
                     dragItemRef.current = null;
                     setLongPressIdx(null);
                   }}
@@ -1784,6 +1837,7 @@ export default function DomesticJobDetail({
                       handleSwapRequest(longPressIdx, index);
                       setDragIdx(null);
                       setDragOverIdx(null);
+                       dragOverIdxRef.current = null;
                       dragItemRef.current = null;
                       setLongPressIdx(null);
                     }
