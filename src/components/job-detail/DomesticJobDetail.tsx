@@ -1739,8 +1739,8 @@ export default function DomesticJobDetail({
                            el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                          });
                        });
-                     }, 600);
-                  }}
+                      }, 2000);
+                   }}
                   onTouchMove={(e) => {
                     // If user moves significantly before 3s, cancel long-press (treat as scroll)
                     if (dragItemRef.current === null) {
