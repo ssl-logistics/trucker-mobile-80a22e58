@@ -99,7 +99,7 @@ interface AcceptedJob {
   created_at: string;
   updated_at: string;
   // Multiple destinations support
-  destinations?: Array<{ sequence: number; location: string; company_name?: string }>;
+  destinations?: Array<{ sequence: number; location: string; company_name?: string; products?: Array<{ product_name: string; quantity?: number; unit?: string; weight?: number; weight_unit?: string }> }>;
   // Products array for per-item display
   products?: Array<{
     product_name: string;
