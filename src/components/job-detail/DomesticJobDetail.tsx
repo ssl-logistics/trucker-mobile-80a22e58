@@ -1674,9 +1674,9 @@ export default function DomesticJobDetail({
                            el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                          });
                        });
-                     }, 600);
-                  }}
-                  onMouseUp={() => {
+                      }, 2000);
+                   }}
+                   onMouseUp={() => {
                     if (longPressTimerRef.current && dragItemRef.current === null) {
                       clearTimeout(longPressTimerRef.current);
                       longPressTimerRef.current = null;
@@ -1739,8 +1739,8 @@ export default function DomesticJobDetail({
                            el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                          });
                        });
-                     }, 600);
-                  }}
+                      }, 2000);
+                   }}
                   onTouchMove={(e) => {
                     // If user moves significantly before 3s, cancel long-press (treat as scroll)
                     if (dragItemRef.current === null) {
