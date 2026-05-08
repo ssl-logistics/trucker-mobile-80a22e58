@@ -168,6 +168,7 @@ export default function CurrentJobsPage() {
 
   // Accident evidence modal state — opened when tapping a job that requires evidence (transferred + accident)
   const [accidentJob, setAccidentJob] = useState<AcceptedJob | null>(null);
+  const [goodsModalJob, setGoodsModalJob] = useState<AcceptedJob | null>(null);
 
   const handleOpenJob = (job: AcceptedJob) => {
     const needsEvidence = !!(job as any).requires_accident_evidence;
