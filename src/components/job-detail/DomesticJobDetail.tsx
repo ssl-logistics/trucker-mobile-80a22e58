@@ -1646,6 +1646,12 @@ export default function DomesticJobDetail({
                      longPressTimerRef.current = setTimeout(() => {
                        setLongPressIdx(index);
                        if (navigator.vibrate) navigator.vibrate(50);
+                       requestAnimationFrame(() => {
+                         requestAnimationFrame(() => {
+                           const el = deliveryCardRefs.current.get(dest.id);
+                           el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                         });
+                       });
                      }, 600);
                   }}
                   onMouseUp={() => {
