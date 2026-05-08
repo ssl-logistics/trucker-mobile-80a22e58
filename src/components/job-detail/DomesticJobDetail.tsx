@@ -245,6 +245,7 @@ export default function DomesticJobDetail({
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStartY = useRef<number>(0);
   const dragItemRef = useRef<number | null>(null);
+  const dragOverIdxRef = useRef<number | null>(null);
   const [showOcrDrawer, setShowOcrDrawer] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [showOcrConfirmDialog, setShowOcrConfirmDialog] = useState(false);
@@ -258,6 +259,43 @@ export default function DomesticJobDetail({
   const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
   // Voice reorder state
   const [showVoiceMatch, setShowVoiceMatch] = useState<{ name: string; index: number } | null>(null);
+
+  useEffect(() => {
+    const isReorderLocked = longPressIdx !== null || dragIdx !== null;
+    if (!isReorderLocked) return;
+
+    const root = document.getElementById('root');
+    const previousRootOverflow = root?.style.overflowY;
+    const previousRootTouchAction = root?.style.touchAction;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyTouchAction = document.body.style.touchAction;
+
+    const preventPageDrag = (event: TouchEvent) => {
+      if (dragItemRef.current !== null && event.cancelable) {
+        event.preventDefault();
+      }
+    };
+
+    if (root) {
+      root.style.overflowY = 'hidden';
+      root.style.touchAction = 'none';
+      root.addEventListener('touchmove', preventPageDrag, { passive: false });
+    }
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.addEventListener('touchmove', preventPageDrag, { passive: false });
+
+    return () => {
+      if (root) {
+        root.style.overflowY = previousRootOverflow || '';
+        root.style.touchAction = previousRootTouchAction || '';
+        root.removeEventListener('touchmove', preventPageDrag);
+      }
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
+      document.removeEventListener('touchmove', preventPageDrag);
+    };
+  }, [longPressIdx, dragIdx]);
   // Container return slip OCR state
   const [showReturnSlipDrawer, setShowReturnSlipDrawer] = useState(false);
   const [isProcessingReturnSlipOcr, setIsProcessingReturnSlipOcr] = useState(false);
