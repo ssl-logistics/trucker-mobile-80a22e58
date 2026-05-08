@@ -306,9 +306,12 @@ export async function getDriverCheckins(
   driverId: string,
   driverType: 'internal' | 'external' | 'freelance',
   orderNumber = 'all',
-  options?: { allDrivers?: boolean }
+  options?: { allDrivers?: boolean; limit?: number }
 ) {
-  const params: Record<string, string> = { order_number: orderNumber };
+  const params: Record<string, string> = {
+    order_number: orderNumber,
+    limit: String(options?.limit ?? 1000),
+  };
 
   // When allDrivers=true, fetch all checkins for this order regardless of driver
   // (needed for job-transfer scenarios where previous drivers' PODs must be visible)
