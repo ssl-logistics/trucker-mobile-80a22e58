@@ -287,10 +287,10 @@ body::after {
   @apply 3xl:grid-cols-4;
 }
 
-/* Responsive two-column layout for forms */
-.form-grid-responsive {
-  @apply grid gap-4;
-  @apply grid-cols-1;
-  @apply md:grid-cols-2;
-  @apply lg:gap-6;
+/* Disable iOS text selection / copy callout on reorderable cards and their children */
+[data-reorder-idx],
+[data-reorder-idx] * {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
