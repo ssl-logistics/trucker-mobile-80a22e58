@@ -1659,7 +1659,7 @@ export default function DomesticJobDetail({
                   key={dest.id}
                   ref={(el) => {if (el) deliveryCardRefs.current.set(dest.id, el);else deliveryCardRefs.current.delete(dest.id);}}
                   data-reorder-idx={index}
-                  draggable={canDrag && isLongPressActive}
+                  draggable={canDrag && isLongPressActive && !('ontouchstart' in window)}
                   onMouseDown={(e) => {
                     if (!canDrag) return;
                     // Only handle non-touch (mouse) — touch handled by onTouchStart
@@ -1674,7 +1674,7 @@ export default function DomesticJobDetail({
                            el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                          });
                        });
-                      }, 2000);
+                      }, 500);
                    }}
                    onMouseUp={() => {
                     if (longPressTimerRef.current && dragItemRef.current === null) {
