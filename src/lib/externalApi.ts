@@ -310,7 +310,7 @@ export async function getDriverCheckins(
 ) {
   const params: Record<string, string> = {
     order_number: orderNumber,
-    limit: String(options?.limit ?? 1000),
+    limit: String(options?.limit ?? 10000),
   };
 
   // When allDrivers=true, fetch all checkins for this order regardless of driver
