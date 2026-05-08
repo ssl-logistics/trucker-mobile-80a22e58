@@ -357,6 +357,31 @@ export default function NotificationsPage() {
             );
           })
         )}
+        {!loading && filteredNotifications.length > PAGE_SIZE && (
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-white">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              {t('common.previous') || 'ก่อนหน้า'}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {safePage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+            >
+              {t('common.next') || 'ถัดไป'}
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        )}
       </div>
       </PullToRefresh>
     </div>
