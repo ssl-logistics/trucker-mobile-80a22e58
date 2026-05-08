@@ -492,15 +492,22 @@ export default function CurrentJobsPage() {
             created_at: job.created_at,
             updated_at: job.updated_at,
             lastCheckinTime: latestCheckinByTransportId[String(job.id)] || 0,
-            // Multiple destinations support
-            destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
-              ...d,
-              sequence: d.sequence_number || d.sequence || idx + 1,
-              location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
-              company_name: d.company_name || '',
-              products: Array.isArray(d.products) ? d.products : undefined,
-            })) : undefined,
-            products: Array.isArray(job.products) ? job.products : (Array.isArray(job.destinations) ? job.destinations.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined),
+            // Multiple destinations support (with csv_extra_data fallback)
+            destinations: (() => {
+              const raw = extractCsvDestinations(job);
+              return raw.length > 0 ? raw.map((d: any, idx: number) => ({
+                ...d,
+                sequence: d.sequence_number || d.sequence || idx + 1,
+                location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
+                company_name: d.company_name || '',
+                products: Array.isArray(d.products) ? d.products : undefined,
+              })) : undefined;
+            })(),
+            products: (() => {
+              if (Array.isArray(job.products)) return job.products;
+              const raw = extractCsvDestinations(job);
+              return raw.length > 0 ? raw.flatMap((d: any) => Array.isArray(d.products) ? d.products : []) : undefined;
+            })(),
            }));
 
            const dedupedMapped = dedupeJobs(mappedJobs);
