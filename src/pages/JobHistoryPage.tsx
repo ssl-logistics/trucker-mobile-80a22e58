@@ -699,7 +699,7 @@ export default function JobHistoryPage() {
               <>
                 {/* Domestic jobs section */}
                 {(() => {
-                  const domesticJobs = filteredCompletedJobs.filter(job => !job.booking_no && !job.bl_no && !job.transport_category);
+                  const domesticJobs = filteredCompletedJobs.filter(job => !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic'));
                   const domesticApps = filteredApplications.filter(app => app.jobs && app.jobs.job_type !== 'international');
                   if (domesticJobs.length === 0 && domesticApps.length === 0) return null;
                   return (
