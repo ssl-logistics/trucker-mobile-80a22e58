@@ -226,6 +226,10 @@ export default function JobHistoryPage() {
           .filter((job: any) => {
             // Always include transferred jobs in history
             if (job.is_transferred) return true;
+
+            // Trust backend status: completed/closed jobs go to history regardless of checkin records
+            const statusLower = String(job.status || '').toLowerCase();
+            if (statusLower === 'completed' || statusLower === 'closed' || statusLower === 'container_returned') return true;
             
             const transportId = String(job.id);
             const podCount = podCountByTransportId[transportId] || 0;
