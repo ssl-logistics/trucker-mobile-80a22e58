@@ -209,10 +209,12 @@ export default function ContainerCheckInPage() {
             transport_type: foundJob.transport_mode || null,
             job_type: foundJob.job_type || foundJob.transport_category || null,
             employer_name: foundJob.factory_name || foundJob.sender_name || null,
-            container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || null,
+            // For BL (inbound) jobs, empty pickup yard = container return port (same place).
+            // Fall back to container_return_* so the pickup card doesn't show sender's factory.
+            container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || (foundJob.bl_no ? foundJob.container_return_location : null) || null,
             container_checkpoint_code: foundJob.container_checkpoint_code || null,
-            container_checkpoint_latitude: foundJob.container_checkpoint_latitude || foundJob.empty_pickup_latitude || null,
-            container_checkpoint_longitude: foundJob.container_checkpoint_longitude || foundJob.empty_pickup_longitude || null,
+            container_checkpoint_latitude: foundJob.container_checkpoint_latitude || foundJob.empty_pickup_latitude || (foundJob.bl_no ? foundJob.container_return_latitude : null) || null,
+            container_checkpoint_longitude: foundJob.container_checkpoint_longitude || foundJob.empty_pickup_longitude || (foundJob.bl_no ? foundJob.container_return_longitude : null) || null,
             container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || foundJob.eta_time || foundJob.vessel_eta || foundJob.vessel_arrival_date || null,
             empty_container_date: foundJob.first_pickup_date || foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
             container_number: foundJob.container_number || null,
