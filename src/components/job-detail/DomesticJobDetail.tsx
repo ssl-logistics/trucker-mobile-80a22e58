@@ -1855,9 +1855,14 @@ export default function DomesticJobDetail({
                     <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
                       <h3 className="font-medium text-xs text-white truncate">
                         {t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}
-                        {isReorderMode && (dest.district || dest.province) && (
-                          <span className="ml-2 font-normal opacity-90">· {dest.district && dest.province ? `${dest.district}, ${dest.province}` : dest.province || dest.district}</span>
-                        )}
+                        {isReorderMode && (() => {
+                          const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'];
+                          const company = dest.company_name && !generic.includes(dest.company_name.trim()) ? dest.company_name : null;
+                          const contact = dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null;
+                          const locationLabel = dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || null);
+                          const label = company || contact || locationLabel;
+                          return label ? <span className="ml-2 font-normal opacity-90">· {label}</span> : null;
+                        })()}
                       </h3>
                       {isDestinationLocked ?
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
