@@ -1860,7 +1860,8 @@ export default function DomesticJobDetail({
                           const company = dest.company_name && !generic.includes(dest.company_name.trim()) ? dest.company_name : null;
                           const contact = dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null;
                           const locationLabel = dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || null);
-                          const label = company || contact || locationLabel;
+                          const rawLabel = company || contact || locationLabel;
+                          const label = rawLabel && rawLabel.length > 30 ? `${rawLabel.slice(0, 30)}...` : rawLabel;
                           return label ? <span className="ml-2 font-normal opacity-90">· {label}</span> : null;
                         })()}
                       </h3>
