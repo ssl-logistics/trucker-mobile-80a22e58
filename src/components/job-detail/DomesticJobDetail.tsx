@@ -1418,10 +1418,10 @@ export default function DomesticJobDetail({
                     {(() => {
                       const isBl = !!job.bl_no;
                       const j: any = job;
-                      const headline = job.container_checkpoint || (isBl ? (j.sender_name || j.sender_address) : null) || '-';
+                      const headline = job.container_checkpoint || (isBl ? (j.container_return_location || j.container_return_address) : null) || '-';
                       const dateValue = job.empty_pickup_date || job.empty_container_date || (isBl ? j.sender_pickup_date : null);
                       const timeValue = job.empty_pickup_time || (isBl ? j.sender_pickup_time : null);
-                      const addressValue = job.empty_pickup_address || (isBl ? j.sender_address : null);
+                      const addressValue = job.empty_pickup_address || (isBl ? (j.container_return_address || j.container_return_location) : null);
                       return (
                         <>
                           <p className="font-semibold text-sm text-[#225795] mb-2">{headline}</p>
