@@ -1415,21 +1415,35 @@ export default function DomesticJobDetail({
                     </span>
                   </div>
                   <div className="p-4 bg-white">
-                    <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_checkpoint || '-'}</p>
-
+                    {(() => {
+                      const isBl = !!job.bl_no;
+                      const headline = job.container_checkpoint || (isBl ? (job.sender_name || job.sender_address) : null) || '-';
+                      const dateValue = job.empty_pickup_date || job.empty_container_date || (isBl ? job.sender_pickup_date : null);
+                      const timeValue = job.empty_pickup_time || (isBl ? job.sender_pickup_time : null);
+                      const addressValue = job.empty_pickup_address || (isBl ? job.sender_address : null);
+                      return (
+                        <>
+                          <p className="font-semibold text-sm text-[#225795] mb-2">{headline}</p>
+                          <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                            <div className="flex items-start gap-2">
+                              <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
+                              <span>{dateValue ? formatDate(dateValue, language) : '-'}{timeValue ? ` ${timeValue}` : ''}</span>
+                            </div>
+                            {addressValue && (
+                              <div className="flex items-start gap-2">
+                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
+                                <span>{addressValue}</span>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
                     <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
-                      <div className="flex items-start gap-2">
-                        <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
-                        <span>{(job.empty_pickup_date || job.empty_container_date) ? formatDate(job.empty_pickup_date || job.empty_container_date || '', language) : '-'}{job.empty_pickup_time ? ` ${job.empty_pickup_time}` : ''}</span>
-                      </div>
-                      {job.empty_pickup_address && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
-                          <span>{job.empty_pickup_address}</span>
-                        </div>
-                      )}
+                      <div className="hidden" />
+
                       {job.empty_pickup_phone && (
                         <div className="flex items-start gap-2">
                           <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
