@@ -198,7 +198,32 @@ export default function DeliveryDetailPage() {
           const targetSequenceNumber = destinationId ? parseInt(destinationId, 10) : 1;
           
           // Check if job has multiple destinations
-          const destinationsArray = foundJob.destinations || [];
+          let destinationsArray = foundJob.destinations || [];
+          // For BL (inbound) jobs with empty destinations, synthesize cargo point
+          // from sender_* fields (place of receipt) so the delivery screen shows
+          // the correct cargo location instead of the parent order's destination.
+          if ((!destinationsArray || destinationsArray.length === 0) && foundJob.bl_no) {
+            const cargoName = foundJob.sender_name || foundJob.destination_name || null;
+            const cargoAddress = foundJob.sender_address || foundJob.destination_address || null;
+            const cargoProvince = foundJob.sender_province || foundJob.destination_province || null;
+            const cargoDistrict = foundJob.sender_district || foundJob.destination_district || null;
+            if (cargoName || cargoAddress || cargoProvince || cargoDistrict) {
+              destinationsArray = [{
+                id: `bl-cargo-${foundJob.id || jobId}`,
+                sequence_number: 1,
+                company_name: cargoName,
+                contact_name: foundJob.sender_contact_name || foundJob.destination_contact_name || null,
+                contact_phone: foundJob.sender_contact_phone || foundJob.destination_contact_phone || null,
+                address: cargoAddress,
+                province: cargoProvince,
+                district: cargoDistrict,
+                latitude: foundJob.sender_latitude ?? foundJob.destination_latitude ?? null,
+                longitude: foundJob.sender_longitude ?? foundJob.destination_longitude ?? null,
+                delivery_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date || null,
+                delivery_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time || null,
+              }];
+            }
+          }
           let targetDestination: any = null;
           const hasMultipleDestinations = destinationsArray.length > 0;
           
