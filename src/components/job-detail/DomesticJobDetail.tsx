@@ -270,22 +270,59 @@ export default function DomesticJobDetail({
     const previousBodyOverflow = document.body.style.overflow;
     const previousBodyTouchAction = document.body.style.touchAction;
 
+    // Auto-scroll near edges while dragging
+    let lastTouchY = 0;
+    let rafId: number | null = null;
+    const EDGE = 90; // px from top/bottom that triggers scroll
+    const MAX_SPEED = 18; // px per frame
+
+    const findScroller = (): HTMLElement | Window => {
+      // Find nearest scrollable ancestor; fallback to window
+      let el: HTMLElement | null = root;
+      while (el) {
+        const style = getComputedStyle(el);
+        if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
+          return el;
+        }
+        el = el.parentElement;
+      }
+      return window;
+    };
+    const scroller = findScroller();
+
+    const tick = () => {
+      if (dragItemRef.current === null) { rafId = null; return; }
+      const vh = window.innerHeight;
+      let dy = 0;
+      if (lastTouchY < EDGE) {
+        dy = -Math.ceil(((EDGE - lastTouchY) / EDGE) * MAX_SPEED);
+      } else if (lastTouchY > vh - EDGE) {
+        dy = Math.ceil(((lastTouchY - (vh - EDGE)) / EDGE) * MAX_SPEED);
+      }
+      if (dy !== 0) {
+        if (scroller === window) window.scrollBy(0, dy);
+        else (scroller as HTMLElement).scrollTop += dy;
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+
     const preventPageDrag = (event: TouchEvent) => {
-      if (dragItemRef.current !== null && event.cancelable) {
-        event.preventDefault();
+      if (dragItemRef.current !== null) {
+        if (event.touches[0]) lastTouchY = event.touches[0].clientY;
+        if (rafId === null) rafId = requestAnimationFrame(tick);
+        if (event.cancelable) event.preventDefault();
       }
     };
 
     if (root) {
-      root.style.overflowY = 'hidden';
       root.style.touchAction = 'none';
       root.addEventListener('touchmove', preventPageDrag, { passive: false });
     }
-    document.body.style.overflow = 'hidden';
     document.body.style.touchAction = 'none';
     document.addEventListener('touchmove', preventPageDrag, { passive: false });
 
     return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
       if (root) {
         root.style.overflowY = previousRootOverflow || '';
         root.style.touchAction = previousRootTouchAction || '';
