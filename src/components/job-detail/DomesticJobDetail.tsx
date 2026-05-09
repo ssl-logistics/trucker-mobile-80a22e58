@@ -1417,10 +1417,11 @@ export default function DomesticJobDetail({
                   <div className="p-4 bg-white">
                     {(() => {
                       const isBl = !!job.bl_no;
-                      const headline = job.container_checkpoint || (isBl ? (job.sender_name || job.sender_address) : null) || '-';
-                      const dateValue = job.empty_pickup_date || job.empty_container_date || (isBl ? job.sender_pickup_date : null);
-                      const timeValue = job.empty_pickup_time || (isBl ? job.sender_pickup_time : null);
-                      const addressValue = job.empty_pickup_address || (isBl ? job.sender_address : null);
+                      const j: any = job;
+                      const headline = job.container_checkpoint || (isBl ? (j.sender_name || j.sender_address) : null) || '-';
+                      const dateValue = job.empty_pickup_date || job.empty_container_date || (isBl ? j.sender_pickup_date : null);
+                      const timeValue = job.empty_pickup_time || (isBl ? j.sender_pickup_time : null);
+                      const addressValue = job.empty_pickup_address || (isBl ? j.sender_address : null);
                       return (
                         <>
                           <p className="font-semibold text-sm text-[#225795] mb-2">{headline}</p>
