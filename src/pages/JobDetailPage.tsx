@@ -417,6 +417,35 @@ export default function JobDetailPage() {
                   rawDests = csv.destinations;
                 }
               }
+              // For BL (inbound) jobs, fall back to sender_* / destination_* fields as the
+              // cargo delivery point (place of receipt) when destinations array is empty.
+              if (rawDests.length === 0 && foundJob.bl_no) {
+                const cargoName = foundJob.sender_name || foundJob.destination_name || null;
+                const cargoAddress = foundJob.sender_address || foundJob.destination_address || null;
+                const cargoProvince = foundJob.sender_province || foundJob.destination_province || null;
+                const cargoDistrict = foundJob.sender_district || foundJob.destination_district || null;
+                const cargoLat = foundJob.sender_latitude ?? foundJob.destination_latitude ?? null;
+                const cargoLng = foundJob.sender_longitude ?? foundJob.destination_longitude ?? null;
+                const cargoPhone = foundJob.sender_contact_phone || foundJob.destination_contact_phone || null;
+                const cargoContact = foundJob.sender_contact_name || foundJob.destination_contact_name || null;
+                if (cargoName || cargoAddress || cargoProvince || cargoDistrict) {
+                  rawDests = [{
+                    id: `bl-cargo-${foundJob.id || jobId}`,
+                    sequence_number: 1,
+                    company_name: cargoName,
+                    contact_name: cargoContact,
+                    contact_phone: cargoPhone,
+                    address: cargoAddress,
+                    province: cargoProvince,
+                    district: cargoDistrict,
+                    latitude: cargoLat,
+                    longitude: cargoLng,
+                    delivery_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date || null,
+                    delivery_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time || null,
+                    goods_type: foundJob.product_name || null,
+                  }];
+                }
+              }
               if (rawDests.length === 0) return undefined;
               return rawDests.map((d: any, idx: number) => {
                 const destId = d.id || `dest-${d.sequence_number || idx + 1}`;
