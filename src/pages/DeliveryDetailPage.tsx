@@ -18,6 +18,7 @@ import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAc
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
 import {
   Dialog,
   DialogContent,
@@ -134,6 +135,34 @@ export default function DeliveryDetailPage() {
   
   // GPS tracking hook
   const { stopTracking } = useGpsTracking();
+  const { takePhoto: nativeTakePhoto, selectFromGallery: nativeSelectFromGallery, isNative } = useNativeCamera();
+
+  const setPodFile = (file: File) => {
+    setPodPhoto(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setPodPhotoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleTakePhoto = async () => {
+    setPhotoSourceDrawerOpen(false);
+    if (isNative) {
+      const file = await nativeTakePhoto();
+      if (file) setPodFile(file);
+    } else {
+      cameraInputRef.current?.click();
+    }
+  };
+
+  const handleSelectGallery = async () => {
+    setPhotoSourceDrawerOpen(false);
+    if (isNative) {
+      const file = await nativeSelectFromGallery();
+      if (file) setPodFile(file);
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
   
   // Check-in status hook
   const { deliveryCheckedIn, saveCheckin } = useCheckinStatus(
@@ -1017,7 +1046,7 @@ export default function DeliveryDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full h-14 text-base justify-start gap-3"
-                    onClick={() => { setPhotoSourceDrawerOpen(false); setTimeout(() => cameraInputRef.current?.click(), 100); }}
+                    onClick={handleTakePhoto}
                   >
                     <Camera className="w-6 h-6" />
                     {t('deliverySop.takePhoto')}
@@ -1025,7 +1054,7 @@ export default function DeliveryDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full h-14 text-base justify-start gap-3"
-                    onClick={() => { setPhotoSourceDrawerOpen(false); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                    onClick={handleSelectGallery}
                   >
                     <Camera className="w-6 h-6" />
                     {t('deliverySop.selectFromGallery')}
