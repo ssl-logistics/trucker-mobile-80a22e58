@@ -145,21 +145,23 @@ export default function DeliveryDetailPage() {
   };
 
   const handleTakePhoto = async () => {
-    setPhotoSourceDrawerOpen(false);
     if (isNative) {
       const file = await nativeTakePhoto();
       if (file) setPodFile(file);
+      setPhotoSourceDrawerOpen(false);
     } else {
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
       cameraInputRef.current?.click();
     }
   };
 
   const handleSelectGallery = async () => {
-    setPhotoSourceDrawerOpen(false);
     if (isNative) {
       const file = await nativeSelectFromGallery();
       if (file) setPodFile(file);
+      setPhotoSourceDrawerOpen(false);
     } else {
+      if (fileInputRef.current) fileInputRef.current.value = '';
       fileInputRef.current?.click();
     }
   };
@@ -583,13 +585,10 @@ export default function DeliveryDetailPage() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPodPhoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPodPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setPodFile(file);
+      setPhotoSourceDrawerOpen(false);
     }
+    e.target.value = '';
   };
 
   const handlePodConfirm = async () => {
