@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import type { CameraPermissionState, CameraPermissionType } from '@capacitor/camera';
+import { toast } from '@/hooks/use-toast';
 
 interface UseNativeCameraOptions {
   quality?: number;
@@ -21,6 +23,30 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
   const { quality = 90 } = options;
   const isNative = Capacitor.isNativePlatform();
 
+  const isPermissionGranted = (state: CameraPermissionState) => state === 'granted' || state === 'limited';
+
+  const ensurePermissions = useCallback(async (permissions: CameraPermissionType[]): Promise<boolean> => {
+    if (!isNative) return true;
+
+    const current = await Camera.checkPermissions();
+    const needsRequest = permissions.some((permission) => !isPermissionGranted(current[permission]));
+    const finalStatus = needsRequest
+      ? await Camera.requestPermissions({ permissions })
+      : current;
+
+    const granted = permissions.every((permission) => isPermissionGranted(finalStatus[permission]));
+    if (!granted) {
+      toast({
+        title: 'ยังไม่ได้รับอนุญาต',
+        description: permissions.includes('camera')
+          ? 'กรุณาอนุญาตกล้องและรูปภาพในการตั้งค่าของเครื่อง แล้วลองอีกครั้ง'
+          : 'กรุณาอนุญาตเข้าถึงรูปภาพในการตั้งค่าของเครื่อง แล้วลองอีกครั้ง',
+        variant: 'destructive',
+      });
+    }
+    return granted;
+  }, [isNative]);
+
   const dataURLtoFile = useCallback(async (dataUrl: string, filename: string): Promise<File> => {
     const res = await fetch(dataUrl);
     const blob = await res.blob();
@@ -33,6 +59,9 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
     }
 
     try {
+      const hasPermission = await ensurePermissions(['camera', 'photos']);
+      if (!hasPermission) return null;
+
       const image = await Camera.getPhoto({
         quality,
         allowEditing: false,
@@ -48,9 +77,14 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
       return null;
     } catch (error) {
       console.error('Error taking photo:', error);
+      toast({
+        title: 'เปิดกล้องไม่สำเร็จ',
+        description: 'กรุณาตรวจสอบสิทธิ์กล้องของแอป แล้วลองอีกครั้ง',
+        variant: 'destructive',
+      });
       return null;
     }
-  }, [isNative, quality, dataURLtoFile]);
+  }, [isNative, quality, dataURLtoFile, ensurePermissions]);
 
   const selectFromGallery = useCallback(async (): Promise<File | null> => {
     if (!isNative) {
@@ -58,6 +92,9 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
     }
 
     try {
+      const hasPermission = await ensurePermissions(['photos']);
+      if (!hasPermission) return null;
+
       const image = await Camera.getPhoto({
         quality,
         allowEditing: false,
@@ -73,9 +110,14 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
       return null;
     } catch (error) {
       console.error('Error selecting from gallery:', error);
+      toast({
+        title: 'เปิดรูปภาพไม่สำเร็จ',
+        description: 'กรุณาตรวจสอบสิทธิ์รูปภาพของแอป แล้วลองอีกครั้ง',
+        variant: 'destructive',
+      });
       return null;
     }
-  }, [isNative, quality, dataURLtoFile]);
+  }, [isNative, quality, dataURLtoFile, ensurePermissions]);
 
   return {
     takePhoto,
