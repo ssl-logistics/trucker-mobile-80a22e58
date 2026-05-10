@@ -123,6 +123,8 @@ export default function DeliveryDetailPage() {
     date: string | null;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [photoSourceDrawerOpen, setPhotoSourceDrawerOpen] = useState(false);
   const [accidentEvidenceRequired, setAccidentEvidenceRequired] = useState(false);
   const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
   
