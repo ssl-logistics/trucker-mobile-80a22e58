@@ -18,6 +18,7 @@ import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAc
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
 import {
   Dialog,
   DialogContent,
