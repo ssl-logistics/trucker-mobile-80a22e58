@@ -1046,7 +1046,7 @@ export default function DeliveryDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full h-14 text-base justify-start gap-3"
-                    onClick={() => { setPhotoSourceDrawerOpen(false); setTimeout(() => cameraInputRef.current?.click(), 100); }}
+                    onClick={handleTakePhoto}
                   >
                     <Camera className="w-6 h-6" />
                     {t('deliverySop.takePhoto')}
@@ -1054,7 +1054,7 @@ export default function DeliveryDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full h-14 text-base justify-start gap-3"
-                    onClick={() => { setPhotoSourceDrawerOpen(false); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                    onClick={handleSelectGallery}
                   >
                     <Camera className="w-6 h-6" />
                     {t('deliverySop.selectFromGallery')}
