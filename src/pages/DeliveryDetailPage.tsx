@@ -123,6 +123,8 @@ export default function DeliveryDetailPage() {
     date: string | null;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [photoSourceDrawerOpen, setPhotoSourceDrawerOpen] = useState(false);
   const [accidentEvidenceRequired, setAccidentEvidenceRequired] = useState(false);
   const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
   
@@ -991,7 +993,7 @@ export default function DeliveryDetailPage() {
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
             <h3 className="font-semibold text-lg text-gray-800">{t('delivery.uploadDocument')}</h3>
             <div
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setPhotoSourceDrawerOpen(true)}
               className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 bg-gray-50"
             >
               {podPhotoPreview ? (
@@ -1004,8 +1006,40 @@ export default function DeliveryDetailPage() {
               )}
             </div>
             <input ref={fileInputRef} type="file" accept={ACCEPT_IMAGE_DOC} onChange={handlePhotoChange} className="hidden" />
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} className="hidden" />
 
-            {/* Payment method removed - sending null to API */}
+            <Drawer open={photoSourceDrawerOpen} onOpenChange={setPhotoSourceDrawerOpen}>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle className="text-center">{t('deliverySop.selectSource')}</DrawerTitle>
+                </DrawerHeader>
+                <div className="px-4 pb-4 space-y-3">
+                  <Button
+                    variant="outline"
+                    className="w-full h-14 text-base justify-start gap-3"
+                    onClick={() => { setPhotoSourceDrawerOpen(false); setTimeout(() => cameraInputRef.current?.click(), 100); }}
+                  >
+                    <Camera className="w-6 h-6" />
+                    {t('deliverySop.takePhoto')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-14 text-base justify-start gap-3"
+                    onClick={() => { setPhotoSourceDrawerOpen(false); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                  >
+                    <Camera className="w-6 h-6" />
+                    {t('deliverySop.selectFromGallery')}
+                  </Button>
+                </div>
+                <DrawerFooter>
+                  <DrawerClose asChild>
+                    <Button variant="outline" className="w-full h-12">{t('deliverySop.cancel')}</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+
           </div>
         )}
 
