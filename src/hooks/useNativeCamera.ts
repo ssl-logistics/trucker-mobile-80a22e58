@@ -59,7 +59,7 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
     }
 
     try {
-      const hasPermission = await ensurePermissions(['camera', 'photos']);
+      const hasPermission = await ensurePermissions(['camera']);
       if (!hasPermission) return null;
 
       const image = await Camera.getPhoto({
@@ -67,6 +67,7 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
+        saveToGallery: false,
         correctOrientation: true,
       });
 
@@ -75,11 +76,13 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
         return await dataURLtoFile(image.dataUrl, filename);
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error taking photo:', error);
+      const msg = String(error?.message || error || '');
+      if (/cancel/i.test(msg)) return null;
       toast({
         title: 'เปิดกล้องไม่สำเร็จ',
-        description: 'กรุณาตรวจสอบสิทธิ์กล้องของแอป แล้วลองอีกครั้ง',
+        description: msg || 'กรุณาตรวจสอบสิทธิ์กล้องของแอป แล้วลองอีกครั้ง',
         variant: 'destructive',
       });
       return null;
@@ -108,11 +111,13 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
         return await dataURLtoFile(image.dataUrl, filename);
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error selecting from gallery:', error);
+      const msg = String(error?.message || error || '');
+      if (/cancel/i.test(msg)) return null;
       toast({
         title: 'เปิดรูปภาพไม่สำเร็จ',
-        description: 'กรุณาตรวจสอบสิทธิ์รูปภาพของแอป แล้วลองอีกครั้ง',
+        description: msg || 'กรุณาตรวจสอบสิทธิ์รูปภาพของแอป แล้วลองอีกครั้ง',
         variant: 'destructive',
       });
       return null;
