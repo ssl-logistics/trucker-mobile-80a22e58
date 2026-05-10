@@ -59,7 +59,7 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
     }
 
     try {
-      const hasPermission = await ensurePermissions(['camera', 'photos']);
+      const hasPermission = await ensurePermissions(['camera']);
       if (!hasPermission) return null;
 
       const image = await Camera.getPhoto({
@@ -67,6 +67,7 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}): UseNative
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
+        saveToGallery: false,
         correctOrientation: true,
       });
 
