@@ -135,6 +135,34 @@ export default function DeliveryDetailPage() {
   
   // GPS tracking hook
   const { stopTracking } = useGpsTracking();
+  const { takePhoto: nativeTakePhoto, selectFromGallery: nativeSelectFromGallery, isNative } = useNativeCamera();
+
+  const setPodFile = (file: File) => {
+    setPodPhoto(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setPodPhotoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleTakePhoto = async () => {
+    setPhotoSourceDrawerOpen(false);
+    if (isNative) {
+      const file = await nativeTakePhoto();
+      if (file) setPodFile(file);
+    } else {
+      cameraInputRef.current?.click();
+    }
+  };
+
+  const handleSelectGallery = async () => {
+    setPhotoSourceDrawerOpen(false);
+    if (isNative) {
+      const file = await nativeSelectFromGallery();
+      if (file) setPodFile(file);
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
   
   // Check-in status hook
   const { deliveryCheckedIn, saveCheckin } = useCheckinStatus(
