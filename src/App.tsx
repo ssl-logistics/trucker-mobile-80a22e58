@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -59,19 +60,22 @@ function VersionBadge() {
   const location = useLocation();
   const isLoginPage = location.pathname === "/";
 
-  return (
+  const badge = (
     <div
-      className="fixed text-[10px] text-muted-foreground opacity-60 pointer-events-none select-none"
+      className="fixed text-[10px] text-muted-foreground pointer-events-none select-none"
       style={{
+        opacity: 0.25,
         bottom: isLoginPage ? 'calc(env(safe-area-inset-bottom, 0px) + 4px)' : undefined,
         top: isLoginPage ? undefined : 'calc(env(safe-area-inset-top, 0px) + 4px)',
         right: '8px',
-        zIndex: 50,
+        zIndex: 2147483647,
       }}
     >
       v1.5
     </div>
   );
+
+  return createPortal(badge, document.body);
 }
 const Register = lazyWithPreload(() => import("./pages/Register"));
 const ForgotPassword = lazyWithPreload(() => import("./pages/ForgotPassword"));
