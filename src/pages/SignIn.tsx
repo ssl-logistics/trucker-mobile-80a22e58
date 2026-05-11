@@ -138,7 +138,7 @@ const SignIn = () => {
   // Get app version from native app - immediate fallback for web
   useEffect(() => {
     // Set fallback immediately so version is always visible
-    setAppVersion("1.0.0");
+    setAppVersion("1.5");
 
     // Then try to get native version
     const getAppVersion = async () => {
