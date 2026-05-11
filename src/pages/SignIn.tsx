@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { lovable } from "@/integrations/lovable";
@@ -134,28 +133,6 @@ const SignIn = () => {
   const currentPlatform = Capacitor.getPlatform();
   const showAppleSignIn = currentPlatform !== 'android';
   console.log('[Apple Sign In] Platform:', currentPlatform, 'Show:', showAppleSignIn);
-
-  // Get app version from native app - immediate fallback for web
-  useEffect(() => {
-    // Set fallback immediately so version is always visible
-    setAppVersion("1.5");
-
-    // Then try to get native version
-    const getAppVersion = async () => {
-      try {
-        const info = await App.getInfo();
-        if (info?.version) {
-          setAppVersion(`${info.version}${info.build ? ` (${info.build})` : ''}`);
-        }
-      } catch {
-        // Keep fallback version
-      }
-    };
-
-    // Delay for iOS Capacitor initialization
-    const timer = setTimeout(getAppVersion, 300);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Auto-resume LIFF login after returning from LINE OAuth (external browser only)
   useEffect(() => {
