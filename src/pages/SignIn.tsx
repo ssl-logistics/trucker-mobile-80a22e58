@@ -127,7 +127,6 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string>("");
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [appVersion, setAppVersion] = useState<string>("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showLineDebug, setShowLineDebug] = useState(false);
   const currentPlatform = Capacitor.getPlatform();
