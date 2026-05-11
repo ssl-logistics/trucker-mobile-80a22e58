@@ -227,6 +227,17 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                {/* App Version Badge */}
+                <div
+                  className="fixed text-[10px] text-muted-foreground opacity-60 pointer-events-none select-none"
+                  style={{
+                    bottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)',
+                    right: '8px',
+                    zIndex: 50,
+                  }}
+                >
+                  v1.5
+                </div>
               </div>
               </CallProvider>
             </SwipeBackProvider>
