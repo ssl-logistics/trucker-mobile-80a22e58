@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
@@ -53,6 +53,26 @@ const PageLoader = () => (
 
 // Lazy load all pages with preload capability
 const StartPage = lazyWithPreload(() => import("./pages/StartPage"));
+
+// App version badge - position depends on route
+function VersionBadge() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/";
+
+  return (
+    <div
+      className="fixed text-[10px] text-muted-foreground opacity-60 pointer-events-none select-none"
+      style={{
+        bottom: isLoginPage ? 'calc(env(safe-area-inset-bottom, 0px) + 4px)' : undefined,
+        top: isLoginPage ? undefined : 'calc(env(safe-area-inset-top, 0px) + 4px)',
+        right: '8px',
+        zIndex: 50,
+      }}
+    >
+      v1.5
+    </div>
+  );
+}
 const Register = lazyWithPreload(() => import("./pages/Register"));
 const ForgotPassword = lazyWithPreload(() => import("./pages/ForgotPassword"));
 const CreateNewPassword = lazyWithPreload(() => import("./pages/CreateNewPassword"));
@@ -227,17 +247,7 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-                {/* App Version Badge */}
-                <div
-                  className="fixed text-[10px] text-muted-foreground opacity-60 pointer-events-none select-none"
-                  style={{
-                    bottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)',
-                    right: '8px',
-                    zIndex: 50,
-                  }}
-                >
-                  v1.5
-                </div>
+                <VersionBadge />
               </div>
               </CallProvider>
             </SwipeBackProvider>
