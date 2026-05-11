@@ -681,11 +681,6 @@ const SignIn = () => {
           </div>
         </form>
       </div>
-      
-      {/* App Version */}
-      <div className="absolute bottom-2 right-4 text-xs text-muted-foreground/60">
-        v{appVersion}
-      </div>
 
       <LineDebugModal open={showLineDebug} onClose={() => setShowLineDebug(false)} />
     </div>;
