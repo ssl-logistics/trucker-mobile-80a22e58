@@ -53,6 +53,26 @@ const PageLoader = () => (
 
 // Lazy load all pages with preload capability
 const StartPage = lazyWithPreload(() => import("./pages/StartPage"));
+
+// App version badge - position depends on route
+function VersionBadge() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/";
+
+  return (
+    <div
+      className="fixed text-[10px] text-muted-foreground opacity-60 pointer-events-none select-none"
+      style={{
+        bottom: isLoginPage ? 'calc(env(safe-area-inset-bottom, 0px) + 4px)' : undefined,
+        top: isLoginPage ? undefined : 'calc(env(safe-area-inset-top, 0px) + 4px)',
+        right: '8px',
+        zIndex: 50,
+      }}
+    >
+      v1.5
+    </div>
+  );
+}
 const Register = lazyWithPreload(() => import("./pages/Register"));
 const ForgotPassword = lazyWithPreload(() => import("./pages/ForgotPassword"));
 const CreateNewPassword = lazyWithPreload(() => import("./pages/CreateNewPassword"));
