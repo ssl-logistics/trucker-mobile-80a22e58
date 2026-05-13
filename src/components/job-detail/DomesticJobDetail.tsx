@@ -682,6 +682,10 @@ export default function DomesticJobDetail({
       ) as any) || (checkins.find((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed') as any);
       setContainerPickupAt(pickupRecord?.checked_in_at || pickupRecord?.created_at || null);
 
+      const statusLower = String((job as any)?.status || jobApplication?.status || '').toLowerCase();
+      const jobCompletedByStatus = ['completed', 'closed', 'container_returned'].includes(statusLower) || isFromHistory;
+      const completedFallbackTime = (job as any)?.updated_at || job.destination_date || job.start_date || new Date().toISOString();
+
       // Extract destination-specific check-ins (delivery_1, delivery_2, etc.)
       // Also support format: delivery with destination_sequence_number
       // FALLBACK: If checkin_type is plain "delivery" without sequence, assume sequence 1
@@ -746,6 +750,19 @@ export default function DomesticJobDetail({
           destCheckins[seqNum].checked_in_at = destCheckins[seqNum].sop_completed_at;
         }
       });
+
+      // History/completed orders can be returned by the job API without every POD
+      // check-in row (pagination/driver transfer). Trust completed/closed state there
+      // so the detail timeline does not show finished destinations as pending.
+      if (jobCompletedByStatus && (job.destinations || []).length > 0) {
+        (job.destinations || []).forEach((dest) => {
+          const seqNum = dest.sequence_number;
+          destCheckins[seqNum] = {
+            checked_in_at: destCheckins[seqNum]?.checked_in_at || dest.checked_in_at || dest.sop_completed_at || completedFallbackTime,
+            sop_completed_at: destCheckins[seqNum]?.sop_completed_at || dest.sop_completed_at || completedFallbackTime,
+          };
+        });
+      }
 
       console.log('Destination checkins extracted (with inferred):', destCheckins);
       setDestinationCheckins(destCheckins);
