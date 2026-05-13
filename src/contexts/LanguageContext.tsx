@@ -2722,7 +2722,7 @@ const enTranslations: Record<string, string> = {
   'delivery.makePayment': 'Make Payment',
   'delivery.confirmPod': 'Confirm POD',
   'delivery.confirmStatusTitle': 'Confirm Status',
-  'delivery.confirmCheckInMessage': 'Do you want to check in at "Delivery Point Chai Sugar"?',
+  'delivery.confirmCheckInMessage': 'Do you want to check in at "Delivery Point"?',
   'delivery.confirm': 'Confirm',
   'delivery.submitting': 'Submitting...',
   'delivery.paymentChannel': 'Payment Method',
