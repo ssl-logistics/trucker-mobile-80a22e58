@@ -15,6 +15,7 @@ import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates, updateOrderStatus } from '@/lib/externalApi';
+import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
