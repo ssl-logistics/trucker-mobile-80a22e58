@@ -456,6 +456,7 @@ export default function JobHistoryPage() {
           if (job.is_transferred) return true;
           const statusLower = String(job.status || '').toLowerCase();
           if (statusLower === 'completed' || statusLower === 'closed' || statusLower === 'container_returned') return true;
+          if (statusLower === 'delivered' && !isInternationalJob(job)) return true;
           return isJobFullyCompleted(job);
         })
         .map((job: any) => ({ 
