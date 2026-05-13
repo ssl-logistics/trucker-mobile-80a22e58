@@ -517,14 +517,17 @@ export default function JobDetailPage() {
           }
 
           // Create job application based on status from API
-          // Note: 'delivered' status means arrived at destination but NOT POD completed
-          // Only 'completed' status means POD is done
+          // Note: 'delivered' status means arrived at destination but NOT POD completed.
+          // completed/closed/container_returned means every required delivery step is already done.
+          const statusLower = String(foundJob.status || '').toLowerCase();
+          const isCompletedLikeStatus = ['completed', 'closed', 'container_returned'].includes(statusLower);
+          const completedAt = foundJob.updated_at || foundJob.destination_delivery_date || foundJob.sender_pickup_date || new Date().toISOString();
           const jobApplicationData: JobApplication = {
             checked_in_at: null,
             sop_completed_at: null,
-            job_started_at: foundJob.status === 'in_progress' ? new Date().toISOString() : null,
-            delivery_checked_in_at: foundJob.status === 'delivered' || foundJob.status === 'completed' ? new Date().toISOString() : null,
-            delivery_sop_completed_at: foundJob.status === 'completed' ? new Date().toISOString() : null,
+            job_started_at: statusLower === 'in_progress' ? new Date().toISOString() : null,
+            delivery_checked_in_at: statusLower === 'delivered' || isCompletedLikeStatus ? completedAt : null,
+            delivery_sop_completed_at: isCompletedLikeStatus ? completedAt : null,
             container_checked_in_at: null,
             container_sop_completed_at: null,
             status: foundJob.status,
