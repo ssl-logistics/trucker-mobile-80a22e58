@@ -523,8 +523,8 @@ export default function JobDetailPage() {
           const isCompletedLikeStatus = ['completed', 'closed', 'container_returned'].includes(statusLower);
           const completedAt = foundJob.updated_at || foundJob.destination_delivery_date || foundJob.sender_pickup_date || new Date().toISOString();
           const jobApplicationData: JobApplication = {
-            checked_in_at: null,
-            sop_completed_at: null,
+            checked_in_at: isCompletedLikeStatus ? completedAt : null,
+            sop_completed_at: isCompletedLikeStatus ? completedAt : null,
             job_started_at: statusLower === 'in_progress' ? new Date().toISOString() : null,
             delivery_checked_in_at: statusLower === 'delivered' || isCompletedLikeStatus ? completedAt : null,
             delivery_sop_completed_at: isCompletedLikeStatus ? completedAt : null,
