@@ -4087,7 +4087,7 @@ const koTranslations: Record<string, string> = {
   'delivery.call': '전화',
   'delivery.navigate': '길 찾기',
   'delivery.confirmStatusTitle': '상태 확인',
-  'delivery.confirmCheckInMessage': '체크인을 확인하시겠습니까?',
+  'delivery.confirmCheckInMessage': '"배송 지점"에서 체크인하시겠습니까?',
   'delivery.cancel': '취소',
   'delivery.confirm': '확인',
   'delivery.paymentError': '결제 처리 중 오류가 발생했습니다',
