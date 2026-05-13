@@ -905,6 +905,11 @@ export default function DeliveryDetailPage() {
         latitude: latitude,
         longitude: longitude
       });
+      addOptimisticCheckin({
+        orderNumber: job.order_code,
+        checkinType: 'delivery',
+        destinationSequenceNumber: isMultiDestination ? destination?.sequence_number : undefined,
+      });
 
       // Update destination coordinates if missing (fire-and-forget, non-blocking)
       const destHasNoCoords = destination && (!destination.latitude || !destination.longitude || destination.latitude === 0 || destination.longitude === 0);
