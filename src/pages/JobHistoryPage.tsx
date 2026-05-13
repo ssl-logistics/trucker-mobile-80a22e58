@@ -234,6 +234,8 @@ export default function JobHistoryPage() {
             // Trust backend status: completed/closed jobs go to history regardless of checkin records
             const statusLower = String(job.status || '').toLowerCase();
             if (statusLower === 'completed' || statusLower === 'closed' || statusLower === 'container_returned') return true;
+            // Domestic jobs marked 'delivered' by backend are awaiting close — show in history
+            if (statusLower === 'delivered' && !isInternationalJob(job)) return true;
             
             const transportId = String(job.id);
             const podCount = podCountByTransportId[transportId] || 0;
@@ -454,6 +456,7 @@ export default function JobHistoryPage() {
           if (job.is_transferred) return true;
           const statusLower = String(job.status || '').toLowerCase();
           if (statusLower === 'completed' || statusLower === 'closed' || statusLower === 'container_returned') return true;
+          if (statusLower === 'delivered' && !isInternationalJob(job)) return true;
           return isJobFullyCompleted(job);
         })
         .map((job: any) => ({ 
