@@ -32,7 +32,9 @@ import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { formatDate } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
-import { useNativeCamera } from '@/hooks/useNativeCamera';import { getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
+import { useNativeCamera } from '@/hooks/useNativeCamera';
+import { getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
+import { getOptimisticCheckins } from '@/utils/optimisticCheckins';
 import {
   Drawer,
   DrawerClose,
