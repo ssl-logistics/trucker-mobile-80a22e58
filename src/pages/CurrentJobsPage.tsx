@@ -233,8 +233,12 @@ export default function CurrentJobsPage() {
           let startedTransportIds = new Set<string>();
           // Track POD count per transport_order_id for multi-destination jobs
           const podCountByTransportId: Record<string, number> = {};
+          const allDriverPodCountByTransportId: Record<string, number> = {};
+          const allDriverPodCountByOrderNumber: Record<string, number> = {};
           // Track container return checkins for international jobs
            const containerReturnByTransportId: Set<string> = new Set();
+           const allDriverContainerReturnByTransportId: Set<string> = new Set();
+           const allDriverContainerReturnByOrderNumber: Set<string> = new Set();
            const latestCheckinByTransportId: Record<string, number> = {};
            let allCheckins: any[] = [];
           
@@ -299,6 +303,30 @@ export default function CurrentJobsPage() {
            const apiJobs = mergedApiJobs;
            console.log(`[CurrentJobsPage] Total API jobs returned: ${apiJobs.length}`);
            apiJobs.forEach(j => console.log(`  - Order: ${j.order_number}, Status: ${j.status}, ID: ${j.id}`));
+           const allDriverCheckinResults = await Promise.all(
+             apiJobs
+               .filter((job: any) => job?.order_number)
+               .map(async (job: any) => {
+                 const res = await getDriverCheckins(freelanceDriverId, driverType, job.order_number, { allDrivers: true }).catch(() => null);
+                 return { job, checkins: (res?.data as any)?.data || [] };
+               })
+           );
+
+           allDriverCheckinResults.forEach(({ job, checkins }) => {
+             checkins.forEach((c: any) => {
+               const transportId = c.transport_order_id ? String(c.transport_order_id) : String(job.id);
+               const orderNumber = c.transport_orders?.order_number || c.order_number || job.order_number || '';
+               if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')) {
+                 if (transportId) allDriverPodCountByTransportId[transportId] = (allDriverPodCountByTransportId[transportId] || 0) + 1;
+                 if (orderNumber) allDriverPodCountByOrderNumber[orderNumber] = (allDriverPodCountByOrderNumber[orderNumber] || 0) + 1;
+               }
+               if (c.checkin_type === 'container_return_confirmed') {
+                 if (transportId) allDriverContainerReturnByTransportId.add(transportId);
+                 if (orderNumber) allDriverContainerReturnByOrderNumber.add(orderNumber);
+               }
+             });
+           });
+           console.log('[CurrentJobsPage] All-driver POD counts:', { byTransportId: allDriverPodCountByTransportId, byOrderNumber: allDriverPodCountByOrderNumber });
            
            // Helper to detect international jobs
            const isInternationalJob = (job: any) => !!(job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_category && job.transport_category !== 'domestic') || (job.transport_mode && ['sea', 'air'].includes(job.transport_mode.toLowerCase())));
@@ -346,7 +374,11 @@ export default function CurrentJobsPage() {
               //   1) check-in records from API (podCountByTransportId)
               //   2) per-destination `checked_in_at`/`sop_completed_at` returned with the job
               //   3) optimistic cache (recent local check-ins not yet replicated)
-              const _apiPodCount = podCountByTransportId[transportId] || 0;
+              const _apiPodCount = Math.max(
+                podCountByTransportId[transportId] || 0,
+                allDriverPodCountByTransportId[transportId] || 0,
+                allDriverPodCountByOrderNumber[job.order_number] || 0
+              );
               const _destArray = Array.isArray(job.destinations) ? job.destinations : [];
               const _destPodCount = _destArray.filter((d: any) => d?.checked_in_at || d?.sop_completed_at || d?.delivery_confirmed_at).length;
               const _optimistic = getOptimisticCheckins(job.order_number || '');
@@ -399,7 +431,9 @@ export default function CurrentJobsPage() {
                       (c.transport_orders?.order_number && c.transport_orders.order_number === job.order_number);
                     return matchesDriver && matchesJob && c.checkin_type === 'container_return_confirmed';
                   });
-                const hasContainerReturnConfirmed = inSet || inCheckins;
+                const hasContainerReturnConfirmed = inSet || inCheckins ||
+                  allDriverContainerReturnByTransportId.has(transportId) ||
+                  allDriverContainerReturnByOrderNumber.has(job.order_number);
                 
                 console.log(`[CurrentJobsPage] International job ${job.order_number} (${transportId}): containerReturn=${hasContainerReturnConfirmed}`);
                 
