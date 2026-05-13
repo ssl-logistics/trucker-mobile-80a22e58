@@ -782,6 +782,48 @@ export default function DomesticJobDetail({
     void fetchStatuses(true);
   }, [fetchStatuses]);
 
+  // Re-fetch on tab focus / page becoming visible — covers the case where the user
+  // returns to job detail after performing a check-in / POD on a sub-page.
+  useEffect(() => {
+    if (!job.order_code) return;
+    const onFocus = () => void fetchStatuses(false);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void fetchStatuses(false);
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [job.order_code, fetchStatuses]);
+
+  // Burst-poll the External API for ~30s after any recent check-in/POD so the UI
+  // converges to real data quickly (the API has eventual consistency + 1000-row cap).
+  useEffect(() => {
+    if (!job.order_code) return;
+    const lastSavedAt = getLastCheckinSavedAt(job.order_code);
+    if (!lastSavedAt) return;
+    const elapsed = Date.now() - lastSavedAt;
+    if (elapsed > 60_000) return; // only when truly recent
+
+    let cancelled = false;
+    const startedAt = Date.now();
+    const tick = async () => {
+      if (cancelled) return;
+      await fetchStatuses(false);
+      if (Date.now() - startedAt < 30_000 && !cancelled) {
+        setTimeout(tick, 3000);
+      }
+    };
+    // First tick after 1s (lets the POST response propagate)
+    const t = setTimeout(tick, 1000);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [job.order_code, fetchStatuses]);
+
   // Keep BL evidence status in sync after external checkin changes (e.g. manual delete)
   useEffect(() => {
     if (!job.bl_no) return;
