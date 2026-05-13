@@ -238,10 +238,11 @@ export default function JobHistoryPage() {
             if (statusLower === 'delivered' && !isInternationalJob(job)) return true;
             
             const transportId = String(job.id);
-            const podCount = podCountByTransportId[transportId] || 0;
-            const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
-              ? job.destinations.length 
-              : 1;
+            const _apiPodCount = podCountByTransportId[transportId] || 0;
+            const _destArray = Array.isArray(job.destinations) ? job.destinations : [];
+            const _destPodCount = _destArray.filter((d: any) => d?.checked_in_at || d?.sop_completed_at || d?.delivery_confirmed_at).length;
+            const podCount = Math.max(_apiPodCount, _destPodCount);
+            const destinationCount = _destArray.length > 0 ? _destArray.length : 1;
             
             const allPodsCompleted = podCount >= destinationCount;
             

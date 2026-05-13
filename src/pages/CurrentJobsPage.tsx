@@ -24,6 +24,7 @@ import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { translateJobType, translateUnit } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
+import { getOptimisticCheckins } from '@/utils/optimisticCheckins';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { 
@@ -341,10 +342,17 @@ export default function CurrentJobsPage() {
 
               // Pre-compute POD progress so we can keep "completed/delivered" jobs that
               // still have pending PODs visible in current jobs (driver needs to finish them).
-              const _podCount = podCountByTransportId[transportId] || 0;
-              const _destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0
-                ? job.destinations.length
-                : 1;
+              // Count PODs from THREE sources to bridge the API 1000-row gap:
+              //   1) check-in records from API (podCountByTransportId)
+              //   2) per-destination `checked_in_at`/`sop_completed_at` returned with the job
+              //   3) optimistic cache (recent local check-ins not yet replicated)
+              const _apiPodCount = podCountByTransportId[transportId] || 0;
+              const _destArray = Array.isArray(job.destinations) ? job.destinations : [];
+              const _destPodCount = _destArray.filter((d: any) => d?.checked_in_at || d?.sop_completed_at || d?.delivery_confirmed_at).length;
+              const _optimistic = getOptimisticCheckins(job.order_number || '');
+              const _optPodCount = _optimistic.filter((c) => c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')).length;
+              const _podCount = Math.max(_apiPodCount, _destPodCount, _optPodCount);
+              const _destinationCount = _destArray.length > 0 ? _destArray.length : 1;
               const _allPodsDone = _podCount >= _destinationCount;
 
               // container_returned is always done (international flow)
@@ -369,13 +377,16 @@ export default function CurrentJobsPage() {
                 console.log(`[CurrentJobsPage] ➡️ Domestic job ${job.order_number} status='delivered' → excluding (move to history)`);
                 return false;
               }
-              
-              const podCount = podCountByTransportId[transportId] || 0;
-              const destinationCount = Array.isArray(job.destinations) && job.destinations.length > 0 
-                ? job.destinations.length 
-                : 1;
-              
-              const allPodsCompleted = podCount >= destinationCount;
+
+              // Domestic: if all PODs done (per any source), move to history regardless of status
+              if (!isInternationalJob(job) && _allPodsDone) {
+                console.log(`[CurrentJobsPage] ➡️ Domestic job ${job.order_number} all PODs ${_podCount}/${_destinationCount} → excluding (done)`);
+                return false;
+              }
+
+              const podCount = _podCount;
+              const destinationCount = _destinationCount;
+              const allPodsCompleted = _allPodsDone;
               
               if (isInternationalJob(job)) {
                 // International jobs: remove when container return is confirmed
