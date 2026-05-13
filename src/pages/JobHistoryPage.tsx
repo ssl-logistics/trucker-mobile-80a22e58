@@ -151,8 +151,11 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [inTransitResult, returningContainerResult, containerReturnedResult, completedResult, closedResult, checkinsRes] = await Promise.all([
+        const [acceptedResult, arrivedAtPickupResult, inTransitResult, deliveredResult, returningContainerResult, containerReturnedResult, completedResult, closedResult, checkinsRes] = await Promise.all([
+          getDriverAssignedJobs(driverId, driverType, 1000, 'accepted'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'arrived_at_pickup'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'in_transit'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'delivered'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'returning_container'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'container_returned'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'completed'),
@@ -161,7 +164,10 @@ export default function JobHistoryPage() {
         ]);
 
         const allJobsRaw = [
+          ...((acceptedResult.data as any)?.data || []),
+          ...((arrivedAtPickupResult.data as any)?.data || []),
           ...((inTransitResult.data as any)?.data || []),
+          ...((deliveredResult.data as any)?.data || []),
           ...((returningContainerResult.data as any)?.data || []),
           ...((containerReturnedResult.data as any)?.data || []),
           ...((completedResult.data as any)?.data || []),
@@ -172,7 +178,10 @@ export default function JobHistoryPage() {
         );
         
         console.log('[JobHistory] Fetched jobs count -',
+          'accepted:', ((acceptedResult.data as any)?.data || []).length,
+          'arrived_at_pickup:', ((arrivedAtPickupResult.data as any)?.data || []).length,
           'in_transit:', ((inTransitResult.data as any)?.data || []).length,
+          'delivered:', ((deliveredResult.data as any)?.data || []).length,
           'returning_container:', ((returningContainerResult.data as any)?.data || []).length,
           'container_returned:', ((containerReturnedResult.data as any)?.data || []).length,
           'completed:', ((completedResult.data as any)?.data || []).length,
@@ -197,7 +206,13 @@ export default function JobHistoryPage() {
         // Count PODs per transport_order_id for multi-destination jobs
         const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
         const podCountByTransportId: Record<string, number> = {};
+        const podCountByOrderNumber: Record<string, number> = {};
+        const allDriverPodCountByTransportId: Record<string, number> = {};
+        const allDriverPodCountByOrderNumber: Record<string, number> = {};
         const containerReturnConfirmedByTransportId: Set<string> = new Set();
+        const containerReturnConfirmedByOrderNumber: Set<string> = new Set();
+        const allDriverContainerReturnConfirmedByTransportId: Set<string> = new Set();
+        const allDriverContainerReturnConfirmedByOrderNumber: Set<string> = new Set();
         
         // Try matching with driverIdField first, fallback to driver_id
         const matchingCheckins = allCheckins.filter(
@@ -212,11 +227,44 @@ export default function JobHistoryPage() {
             const transportId = String(c.transport_order_id);
             if (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) {
               podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+              const orderNumber = c.transport_orders?.order_number || c.order_number || '';
+              if (orderNumber) podCountByOrderNumber[orderNumber] = (podCountByOrderNumber[orderNumber] || 0) + 1;
             }
             if (c.checkin_type === "container_return_confirmed") {
               containerReturnConfirmedByTransportId.add(transportId);
+              const orderNumber = c.transport_orders?.order_number || c.order_number || '';
+              if (orderNumber) containerReturnConfirmedByOrderNumber.add(orderNumber);
             }
           });
+
+        // In transfer / replacement-driver cases, PODs can be recorded by another driver.
+        // Fetch per-order checkins without driver scoping so history reflects the actual order completion.
+        const allDriverCheckinResults = await Promise.all(
+          allJobs
+            .filter((job: any) => job?.order_number)
+            .map(async (job: any) => {
+              const res = await getDriverCheckins(driverId, driverType, job.order_number, { allDrivers: true }).catch(() => null);
+              return { job, checkins: (res?.data as any)?.data || [] };
+            })
+        );
+
+        allDriverCheckinResults.forEach(({ job, checkins }) => {
+          checkins.forEach((c: any) => {
+            const transportId = c.transport_order_id ? String(c.transport_order_id) : '';
+            const explicitOrderNumber = c.transport_orders?.order_number || c.order_number || '';
+            const matchesJob = transportId === String(job.id) || explicitOrderNumber === job.order_number;
+            if (!matchesJob) return;
+            const orderNumber = explicitOrderNumber || job.order_number || '';
+            if (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) {
+              if (transportId) allDriverPodCountByTransportId[transportId] = (allDriverPodCountByTransportId[transportId] || 0) + 1;
+              if (orderNumber) allDriverPodCountByOrderNumber[orderNumber] = (allDriverPodCountByOrderNumber[orderNumber] || 0) + 1;
+            }
+            if (c.checkin_type === "container_return_confirmed") {
+              if (transportId) allDriverContainerReturnConfirmedByTransportId.add(transportId);
+              if (orderNumber) allDriverContainerReturnConfirmedByOrderNumber.add(orderNumber);
+            }
+          });
+        });
         
         console.log('POD counts by transport ID (history):', podCountByTransportId);
         console.log('Container return confirmed by transport ID:', [...containerReturnConfirmedByTransportId]);
@@ -238,7 +286,12 @@ export default function JobHistoryPage() {
             if (statusLower === 'delivered' && !isInternationalJob(job)) return true;
             
             const transportId = String(job.id);
-            const _apiPodCount = podCountByTransportId[transportId] || 0;
+            const _apiPodCount = Math.max(
+              podCountByTransportId[transportId] || 0,
+              podCountByOrderNumber[job.order_number] || 0,
+              allDriverPodCountByTransportId[transportId] || 0,
+              allDriverPodCountByOrderNumber[job.order_number] || 0
+            );
             const _destArray = Array.isArray(job.destinations) ? job.destinations : [];
             const _destPodCount = _destArray.filter((d: any) => d?.checked_in_at || d?.sop_completed_at || d?.delivery_confirmed_at).length;
             const podCount = Math.max(_apiPodCount, _destPodCount);
@@ -250,7 +303,10 @@ export default function JobHistoryPage() {
             // - Booking jobs: completed when container return is confirmed
             // - BL jobs: require all PODs + container return confirmed
             if (isInternationalJob(job)) {
-              const hasContainerReturnConfirmed = containerReturnConfirmedByTransportId.has(transportId);
+              const hasContainerReturnConfirmed = containerReturnConfirmedByTransportId.has(transportId) ||
+                containerReturnConfirmedByOrderNumber.has(job.order_number) ||
+                allDriverContainerReturnConfirmedByTransportId.has(transportId) ||
+                allDriverContainerReturnConfirmedByOrderNumber.has(job.order_number);
               const isBookingJob = !!job.booking_no && !job.bl_no;
               return isBookingJob
                 ? hasContainerReturnConfirmed
