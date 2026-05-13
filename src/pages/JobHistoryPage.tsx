@@ -197,7 +197,9 @@ export default function JobHistoryPage() {
         // Count PODs per transport_order_id for multi-destination jobs
         const driverIdField = isInternalDriver ? 'internal_driver_id' : 'external_driver_id';
         const podCountByTransportId: Record<string, number> = {};
+        const podCountByOrderNumber: Record<string, number> = {};
         const containerReturnConfirmedByTransportId: Set<string> = new Set();
+        const containerReturnConfirmedByOrderNumber: Set<string> = new Set();
         
         // Try matching with driverIdField first, fallback to driver_id
         const matchingCheckins = allCheckins.filter(
@@ -212,11 +214,41 @@ export default function JobHistoryPage() {
             const transportId = String(c.transport_order_id);
             if (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) {
               podCountByTransportId[transportId] = (podCountByTransportId[transportId] || 0) + 1;
+              const orderNumber = c.transport_orders?.order_number || c.order_number || '';
+              if (orderNumber) podCountByOrderNumber[orderNumber] = (podCountByOrderNumber[orderNumber] || 0) + 1;
             }
             if (c.checkin_type === "container_return_confirmed") {
               containerReturnConfirmedByTransportId.add(transportId);
+              const orderNumber = c.transport_orders?.order_number || c.order_number || '';
+              if (orderNumber) containerReturnConfirmedByOrderNumber.add(orderNumber);
             }
           });
+
+        // In transfer / replacement-driver cases, PODs can be recorded by another driver.
+        // Fetch per-order checkins without driver scoping so history reflects the actual order completion.
+        const allDriverCheckinResults = await Promise.all(
+          allJobs
+            .filter((job: any) => job?.order_number)
+            .map(async (job: any) => {
+              const res = await getDriverCheckins(driverId, driverType, job.order_number, { allDrivers: true }).catch(() => null);
+              return { job, checkins: (res?.data as any)?.data || [] };
+            })
+        );
+
+        allDriverCheckinResults.forEach(({ job, checkins }) => {
+          checkins.forEach((c: any) => {
+            const transportId = c.transport_order_id ? String(c.transport_order_id) : String(job.id);
+            const orderNumber = c.transport_orders?.order_number || c.order_number || job.order_number || '';
+            if (c.checkin_type === "delivery_confirmed" || c.checkin_type?.startsWith("delivery_confirmed_")) {
+              if (transportId) podCountByTransportId[transportId] = Math.max(podCountByTransportId[transportId] || 0, 0) + 1;
+              if (orderNumber) podCountByOrderNumber[orderNumber] = (podCountByOrderNumber[orderNumber] || 0) + 1;
+            }
+            if (c.checkin_type === "container_return_confirmed") {
+              if (transportId) containerReturnConfirmedByTransportId.add(transportId);
+              if (orderNumber) containerReturnConfirmedByOrderNumber.add(orderNumber);
+            }
+          });
+        });
         
         console.log('POD counts by transport ID (history):', podCountByTransportId);
         console.log('Container return confirmed by transport ID:', [...containerReturnConfirmedByTransportId]);
@@ -238,7 +270,7 @@ export default function JobHistoryPage() {
             if (statusLower === 'delivered' && !isInternationalJob(job)) return true;
             
             const transportId = String(job.id);
-            const _apiPodCount = podCountByTransportId[transportId] || 0;
+            const _apiPodCount = Math.max(podCountByTransportId[transportId] || 0, podCountByOrderNumber[job.order_number] || 0);
             const _destArray = Array.isArray(job.destinations) ? job.destinations : [];
             const _destPodCount = _destArray.filter((d: any) => d?.checked_in_at || d?.sop_completed_at || d?.delivery_confirmed_at).length;
             const podCount = Math.max(_apiPodCount, _destPodCount);
@@ -250,7 +282,8 @@ export default function JobHistoryPage() {
             // - Booking jobs: completed when container return is confirmed
             // - BL jobs: require all PODs + container return confirmed
             if (isInternationalJob(job)) {
-              const hasContainerReturnConfirmed = containerReturnConfirmedByTransportId.has(transportId);
+              const hasContainerReturnConfirmed = containerReturnConfirmedByTransportId.has(transportId) ||
+                containerReturnConfirmedByOrderNumber.has(job.order_number);
               const isBookingJob = !!job.booking_no && !job.bl_no;
               return isBookingJob
                 ? hasContainerReturnConfirmed
