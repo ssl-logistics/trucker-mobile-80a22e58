@@ -24,6 +24,7 @@ import { formatDate as formatThaiDate } from '@/lib/dateUtils';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { translateJobType, translateUnit } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
+import { getOptimisticCheckins } from '@/utils/optimisticCheckins';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { 
