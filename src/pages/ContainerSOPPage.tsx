@@ -945,6 +945,13 @@ const ContainerSOPPage = () => {
           console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
           const { data: checkinData, error: checkinError } = await driverCheckin(checkinPayload);
 
+          if (!checkinError) {
+            addOptimisticCheckin({
+              orderNumber: jobDetail!.order_code,
+              checkinType: 'container_pickup_confirmed',
+            });
+          }
+
           // BL job: fire one-shot return deadline notification (push + in-app).
           // Banner on the job page handles the live countdown.
           // Default to 2 days if container_free_days is not configured by office.
