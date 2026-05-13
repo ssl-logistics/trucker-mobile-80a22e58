@@ -1246,7 +1246,9 @@ export default function DeliveryDetailPage() {
             <img src={checkInIcon} alt="Check in" className="w-16 h-16" />
             <DialogTitle className="text-xl text-center">{t('delivery.confirmStatusTitle')}</DialogTitle>
             <DialogDescription className="text-center text-base">
-              {t('delivery.confirmCheckInMessage')}
+              {t('delivery.confirmCheckInMessage')
+                .replace(/"[^"]*"/, `"${displayCompanyName}"`)
+                .replace(/“[^”]*”/, `"${displayCompanyName}"`)}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:gap-3">
