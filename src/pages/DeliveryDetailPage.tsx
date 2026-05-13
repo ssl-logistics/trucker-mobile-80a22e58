@@ -698,6 +698,13 @@ export default function DeliveryDetailPage() {
       } else {
         podSubmitSuccess = true;
         console.log('✅ POD submitted to external API successfully:', podApiResponse);
+        // Optimistic cache so DomesticJobDetail reflects the POD even if the API
+        // pagination hides it on the next fetch.
+        addOptimisticCheckin({
+          orderNumber: job.order_code,
+          checkinType: 'delivery_confirmed',
+          destinationSequenceNumber: isMultiDestination ? destination?.sequence_number : undefined,
+        });
       }
     } catch (podApiError) {
       console.error('Error calling POD API:', podApiError);
