@@ -314,8 +314,11 @@ export default function CurrentJobsPage() {
 
            allDriverCheckinResults.forEach(({ job, checkins }) => {
              checkins.forEach((c: any) => {
-               const transportId = c.transport_order_id ? String(c.transport_order_id) : String(job.id);
-               const orderNumber = c.transport_orders?.order_number || c.order_number || job.order_number || '';
+               const transportId = c.transport_order_id ? String(c.transport_order_id) : '';
+               const explicitOrderNumber = c.transport_orders?.order_number || c.order_number || '';
+               const matchesJob = transportId === String(job.id) || explicitOrderNumber === job.order_number;
+               if (!matchesJob) return;
+               const orderNumber = explicitOrderNumber || job.order_number || '';
                if (c.checkin_type === 'delivery_confirmed' || c.checkin_type?.startsWith('delivery_confirmed_')) {
                  if (transportId) allDriverPodCountByTransportId[transportId] = (allDriverPodCountByTransportId[transportId] || 0) + 1;
                  if (orderNumber) allDriverPodCountByOrderNumber[orderNumber] = (allDriverPodCountByOrderNumber[orderNumber] || 0) + 1;
