@@ -34,7 +34,7 @@ import { formatDate } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
 import { getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
-import { getOptimisticCheckins } from '@/utils/optimisticCheckins';
+import { getOptimisticCheckins, getLastCheckinSavedAt } from '@/utils/optimisticCheckins';
 import {
   Drawer,
   DrawerClose,
