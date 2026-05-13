@@ -101,3 +101,16 @@ export function clearOptimisticCheckins(orderNumber: string) {
   const next = prune(readAll()).filter((r) => r.order_number !== orderNumber);
   writeAll(next);
 }
+
+/**
+ * Returns the most recent optimistic _savedAt timestamp for an order,
+ * or 0 if none. Used to trigger short burst-polling so the UI catches up
+ * with the External API as fast as possible after a check-in/POD.
+ */
+export function getLastCheckinSavedAt(orderNumber: string): number {
+  if (!orderNumber) return 0;
+  const records = prune(readAll()).filter((r) => r.order_number === orderNumber);
+  if (records.length === 0) return 0;
+  return Math.max(...records.map((r) => r._savedAt || 0));
+}
+
