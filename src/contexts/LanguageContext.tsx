@@ -1344,7 +1344,7 @@ const thTranslations: Record<string, string> = {
   'delivery.makePayment': 'ชำระเงิน',
   'delivery.confirmPod': 'ยืนยัน POD',
   'delivery.confirmStatusTitle': 'แจ้งเตือนการยืนยันสถานะ',
-  'delivery.confirmCheckInMessage': 'คุณต้องการเช็คอินที่ "จุดส่ง หวค.ชัยน้ำตาล" ใช่หรือไม่?',
+  'delivery.confirmCheckInMessage': 'คุณต้องการเช็คอินที่ "จุดส่ง" ใช่หรือไม่?',
   'delivery.confirm': 'ยืนยัน',
   'delivery.submitting': 'กำลังดำเนินการ...',
   'delivery.paymentChannel': 'ช่องทางชำระเงิน',
