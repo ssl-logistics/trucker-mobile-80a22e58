@@ -13,6 +13,7 @@ import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
 import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs } from '@/lib/externalApi';
+import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import {
   Dialog,
   DialogContent,
