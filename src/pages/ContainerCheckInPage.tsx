@@ -20,6 +20,7 @@ import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans, updateOrderStatus } from '@/lib/externalApi';
+import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 
 interface ContainerDetailItem {
   containerNo?: string;
@@ -396,6 +397,13 @@ export default function ContainerCheckInPage() {
         console.error('Check-in error:', checkinError);
         throw new Error('Check-in failed');
       }
+
+      // Optimistic cache so DomesticJobDetail reflects this immediately even if
+      // the external API pagination hides the new record on the next fetch.
+      addOptimisticCheckin({
+        orderNumber: job.order_code,
+        checkinType: isContainerReturn ? 'container_return' : 'container_pickup',
+      });
 
       // Send job status update — distinguish BL (loaded) vs Booking (empty)
       const isBLJobForStatus = !!job.bl_no;

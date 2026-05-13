@@ -15,6 +15,7 @@ import GoogleMap from "@/components/GoogleMap";
 import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates, updateOrderStatus } from '@/lib/externalApi';
+import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
@@ -697,6 +698,13 @@ export default function DeliveryDetailPage() {
       } else {
         podSubmitSuccess = true;
         console.log('✅ POD submitted to external API successfully:', podApiResponse);
+        // Optimistic cache so DomesticJobDetail reflects the POD even if the API
+        // pagination hides it on the next fetch.
+        addOptimisticCheckin({
+          orderNumber: job.order_code,
+          checkinType: 'delivery_confirmed',
+          destinationSequenceNumber: isMultiDestination ? destination?.sequence_number : undefined,
+        });
       }
     } catch (podApiError) {
       console.error('Error calling POD API:', podApiError);
@@ -896,6 +904,11 @@ export default function DeliveryDetailPage() {
         checked_in_at: new Date().toISOString(),
         latitude: latitude,
         longitude: longitude
+      });
+      addOptimisticCheckin({
+        orderNumber: job.order_code,
+        checkinType: 'delivery',
+        destinationSequenceNumber: isMultiDestination ? destination?.sequence_number : undefined,
       });
 
       // Update destination coordinates if missing (fire-and-forget, non-blocking)

@@ -18,6 +18,7 @@ import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
 import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateOrderStatus } from '@/lib/externalApi';
+import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -319,6 +320,10 @@ export default function PickupDetailPage() {
         checked_in_at: new Date().toISOString(),
         latitude: latitude,
         longitude: longitude
+      });
+      addOptimisticCheckin({
+        orderNumber: job.order_number || job.order_code,
+        checkinType: 'pickup',
       });
       
       toast({

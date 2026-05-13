@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer, driverCheckin, updateOrderStatus, getExpenses, getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
+import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -886,6 +887,11 @@ const ContainerSOPPage = () => {
           const { error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
             console.warn('[ContainerSOP] driverCheckin error (non-blocking):', checkinError);
+          } else {
+            addOptimisticCheckin({
+              orderNumber: jobDetail!.order_code,
+              checkinType: 'container_return_confirmed',
+            });
           }
         } catch (checkinErr) {
           console.warn('[ContainerSOP] driverCheckin exception:', checkinErr);
@@ -938,6 +944,13 @@ const ContainerSOPPage = () => {
           };
           console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
           const { data: checkinData, error: checkinError } = await driverCheckin(checkinPayload);
+
+          if (!checkinError) {
+            addOptimisticCheckin({
+              orderNumber: jobDetail!.order_code,
+              checkinType: 'container_pickup_confirmed',
+            });
+          }
 
           // BL job: fire one-shot return deadline notification (push + in-app).
           // Banner on the job page handles the live countdown.
