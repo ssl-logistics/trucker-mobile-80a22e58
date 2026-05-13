@@ -887,6 +887,11 @@ const ContainerSOPPage = () => {
           const { error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
             console.warn('[ContainerSOP] driverCheckin error (non-blocking):', checkinError);
+          } else {
+            addOptimisticCheckin({
+              orderNumber: jobDetail!.order_code,
+              checkinType: 'container_return_confirmed',
+            });
           }
         } catch (checkinErr) {
           console.warn('[ContainerSOP] driverCheckin exception:', checkinErr);
