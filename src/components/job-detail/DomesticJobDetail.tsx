@@ -595,11 +595,15 @@ export default function DomesticJobDetail({
       // Fetch check-in status
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
+      // Use allDrivers ONLY for transferred jobs (server ignores order_number filter
+      // when no driver_id is supplied → returns 1000-row cap of unrelated rows).
+      // For normal jobs, scope to this driver so the API filters server-side correctly.
+      const isTransferredJob = !!(job as any)?.is_transferred;
       const { data: checkinResult, error: checkinError } = await getDriverCheckins(
         userId,
         driverType,
         job.order_code,
-        { allDrivers: true } // Include checkins from previous drivers (job transfer scenarios)
+        isTransferredJob ? { allDrivers: true } : undefined
       );
 
       if (checkinError) {
@@ -608,8 +612,22 @@ export default function DomesticJobDetail({
 
       console.log('Fetched check-in status:', checkinResult);
 
-      const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
-      const apiCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
+      let allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
+      let apiCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
+
+      // Safety net: if driver-scoped fetch returned nothing (e.g. job was transferred
+      // but flag missing), retry with allDrivers so previous drivers' checkins surface.
+      if (!isTransferredJob && apiCheckins.length === 0) {
+        const retry = await getDriverCheckins(userId, driverType, job.order_code, { allDrivers: true });
+        const retryRaw = (retry.data as any)?.data || retry.data || [];
+        if (Array.isArray(retryRaw) && retryRaw.length > 0) {
+          apiCheckins = retryRaw.filter((c: any) =>
+            c.transport_orders?.order_number === job.order_code ||
+            c.order_number === job.order_code
+          );
+          console.log('[DomesticJobDetail] Fallback allDrivers fetch:', retryRaw.length, '→ filtered', apiCheckins.length);
+        }
+      }
 
       // Merge in optimistic check-ins for this order. The external API has a 1000-row
       // hard cap and may not return our just-saved record on the next fetch, so we
