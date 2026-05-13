@@ -609,8 +609,18 @@ export default function DomesticJobDetail({
       console.log('Fetched check-in status:', checkinResult);
 
       const allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
-      const allCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
-      console.log('All checkins from API:', allCheckins.length, 'items');
+      const apiCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
+
+      // Merge in optimistic check-ins for this order. The external API has a 1000-row
+      // hard cap and may not return our just-saved record on the next fetch, so we
+      // hydrate the UI from local cache (TTL 30 min) until the API catches up.
+      const optimistic = getOptimisticCheckins(job.order_code).map((o) => ({
+        ...o,
+        order_number: o.order_number,
+        transport_order_id: job.id,
+      }));
+      const allCheckins = [...apiCheckins, ...optimistic];
+      console.log('All checkins from API:', apiCheckins.length, 'items (+', optimistic.length, 'optimistic)');
       console.log('Current job.id (transport_order_id to match):', job.id);
 
       // Filter checkins for this specific order (any driver - supports driver swap scenarios)
