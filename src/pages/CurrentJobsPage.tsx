@@ -364,14 +364,10 @@ export default function CurrentJobsPage() {
                 return true;
               }
 
-              // Also exclude 'delivered' status for domestic jobs only when PODs are complete
+              // Domestic 'delivered' is authoritative completion (awaiting close) → move to history
               if (status === 'delivered' && !isInternationalJob(job)) {
-                if (_allPodsDone) {
-                  console.log(`[CurrentJobsPage] ➡️ Domestic job ${job.order_number} status='delivered' & PODs done → excluding`);
-                  return false;
-                }
-                console.log(`[CurrentJobsPage] ⚠️ Domestic job ${job.order_number} status='delivered' but PODs ${_podCount}/${_destinationCount} → keeping`);
-                return true;
+                console.log(`[CurrentJobsPage] ➡️ Domestic job ${job.order_number} status='delivered' → excluding (move to history)`);
+                return false;
               }
               
               const podCount = podCountByTransportId[transportId] || 0;
