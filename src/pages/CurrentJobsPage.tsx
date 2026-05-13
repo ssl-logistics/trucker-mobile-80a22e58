@@ -204,6 +204,7 @@ export default function CurrentJobsPage() {
            'at_container_return',
            'container_returned',
            'completed',
+            'closed',
          ];
          console.log(`[CurrentJobsPage] Calling API: getDriverAssignedJobs once with statuses=${wantedStatuses.join(',')}`);
          const [assignedResult, checkinsResult] = await Promise.all([
@@ -396,15 +397,12 @@ export default function CurrentJobsPage() {
                 return false;
               }
 
-              // For completed/closed: only exclude if all PODs are actually done.
-              // Otherwise keep visible so driver can continue submitting POD.
+               // Terminal backend statuses are authoritative. The check-in API can be capped
+               // or miss earlier destination POD rows, so completed/closed jobs must not stay
+               // stuck in Current Jobs just because POD counting is incomplete locally.
               if (['completed', 'closed'].includes(status)) {
-                if (_allPodsDone) {
-                  console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} status='${status}' & PODs ${_podCount}/${_destinationCount} → excluding (done)`);
-                  return false;
-                }
-                console.log(`[CurrentJobsPage] ⚠️ Job ${job.order_number} status='${status}' but PODs ${_podCount}/${_destinationCount} → keeping in current jobs`);
-                return true;
+                 console.log(`[CurrentJobsPage] ➡️ Job ${job.order_number} status='${status}' → excluding (done; PODs ${_podCount}/${_destinationCount})`);
+                 return false;
               }
 
               // Domestic 'delivered' is authoritative completion (awaiting close) → move to history
