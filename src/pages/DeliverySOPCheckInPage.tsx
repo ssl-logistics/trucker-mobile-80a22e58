@@ -280,6 +280,11 @@ export default function DeliverySOPCheckInPage() {
            console.warn('POD API error (non-blocking):', podError);
          } else {
            console.log('POD sent successfully for sequence:', sequenceNumber);
+           addOptimisticCheckin({
+             orderNumber: job.order_code,
+             checkinType: 'delivery_confirmed',
+             destinationSequenceNumber: sequenceNumber,
+           });
          }
        } catch (podApiError) {
          console.warn('POD submission error:', podApiError);
