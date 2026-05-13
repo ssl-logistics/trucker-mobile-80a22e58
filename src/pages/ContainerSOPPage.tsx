@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer, driverCheckin, updateOrderStatus, getExpenses, getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
+import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
