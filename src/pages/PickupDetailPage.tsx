@@ -321,6 +321,10 @@ export default function PickupDetailPage() {
         latitude: latitude,
         longitude: longitude
       });
+      addOptimisticCheckin({
+        orderNumber: job.order_number || job.order_code,
+        checkinType: 'pickup',
+      });
       
       toast({
         title: t('pickup.checkInSuccess'),
