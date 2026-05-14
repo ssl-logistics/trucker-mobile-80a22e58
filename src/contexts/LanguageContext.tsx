@@ -3022,6 +3022,8 @@ const enTranslations: Record<string, string> = {
   'vehicle.takePhoto': 'Take Photo',
   'vehicle.chooseFromGallery': 'Choose from Gallery',
   'vehicle.cancel': 'Cancel',
+  'vehicle.noPhotos': 'No photos yet',
+  'vehicle.photos': 'photos',
   
   // Add Expense Page
   'expense.title': 'Add Expense',
