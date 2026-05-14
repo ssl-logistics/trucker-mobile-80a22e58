@@ -1273,6 +1273,8 @@ const thTranslations: Record<string, string> = {
   'vehicle.takePhoto': 'ถ่ายภาพ',
   'vehicle.chooseFromGallery': 'เลือกจากแกลอรี่',
   'vehicle.cancel': 'ยกเลิก',
+  'vehicle.noPhotos': 'ยังไม่มีรูปภาพ',
+  'vehicle.photos': 'รูป',
   
   // Add Expense Page
   'expense.title': 'เพิ่มค่าใช้จ่าย',
@@ -3020,6 +3022,8 @@ const enTranslations: Record<string, string> = {
   'vehicle.takePhoto': 'Take Photo',
   'vehicle.chooseFromGallery': 'Choose from Gallery',
   'vehicle.cancel': 'Cancel',
+  'vehicle.noPhotos': 'No photos yet',
+  'vehicle.photos': 'photos',
   
   // Add Expense Page
   'expense.title': 'Add Expense',
@@ -4559,6 +4563,8 @@ const koTranslations: Record<string, string> = {
   'vehicle.platePhoto': '번호판 사진',
   'vehicle.selectPhoto': '사진 선택',
   'vehicle.takePhoto': '사진 촬영',
+  'vehicle.noPhotos': '사진 없음',
+  'vehicle.photos': '사진',
   'vehicle.chooseFromGallery': '갤러리에서 선택',
   'vehicle.loading': '로딩 중...',
   'vehicle.noData': '데이터 없음',
@@ -5009,6 +5015,8 @@ const zhTranslations: Record<string, string> = {
   'vehicle.takePhoto': '拍照',
   'vehicle.chooseFromGallery': '从相册选择',
   'vehicle.cancel': '取消',
+  'vehicle.noPhotos': '暂无照片',
+  'vehicle.photos': '张',
   
   // Account Page
   'account.title': '账户',

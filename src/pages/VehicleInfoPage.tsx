@@ -254,8 +254,6 @@ export default function VehicleInfoPage() {
         registrationUrls.length > 0 ||
         fallbackRegistrationUrl;
       
-      console.log('[VehicleInfo] apiSources keys:', apiSources.map(s => Object.keys(s).slice(0, 8)));
-      console.log('[VehicleInfo] hasExternalPhotos:', hasExternalPhotos);
       if (hasExternalPhotos) {
         const externalPhotos: VehiclePhoto[] = [];
         const frontPhotoUrl = getFirstApiUrl(apiSources, ['front_photo_url', 'front_image_url', 'front_url', 'photo_front_url']);
@@ -282,7 +280,6 @@ export default function VehicleInfoPage() {
           setRegistrationPhoto(fallbackRegistrationUrl);
           setRegistrationPhotos([fallbackRegistrationUrl]);
         }
-        console.log('[VehicleInfo] externalPhotos set:', externalPhotos);
         setPhotos(externalPhotos);
         return;
       }
