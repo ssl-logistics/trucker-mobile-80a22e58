@@ -1273,6 +1273,8 @@ const thTranslations: Record<string, string> = {
   'vehicle.takePhoto': 'ถ่ายภาพ',
   'vehicle.chooseFromGallery': 'เลือกจากแกลอรี่',
   'vehicle.cancel': 'ยกเลิก',
+  'vehicle.noPhotos': 'ยังไม่มีรูปภาพ',
+  'vehicle.photos': 'รูป',
   
   // Add Expense Page
   'expense.title': 'เพิ่มค่าใช้จ่าย',
