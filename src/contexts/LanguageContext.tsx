@@ -5015,6 +5015,8 @@ const zhTranslations: Record<string, string> = {
   'vehicle.takePhoto': '拍照',
   'vehicle.chooseFromGallery': '从相册选择',
   'vehicle.cancel': '取消',
+  'vehicle.noPhotos': '暂无照片',
+  'vehicle.photos': '张',
   
   // Account Page
   'account.title': '账户',
