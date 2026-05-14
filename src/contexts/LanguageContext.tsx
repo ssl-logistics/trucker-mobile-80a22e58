@@ -4563,6 +4563,8 @@ const koTranslations: Record<string, string> = {
   'vehicle.platePhoto': '번호판 사진',
   'vehicle.selectPhoto': '사진 선택',
   'vehicle.takePhoto': '사진 촬영',
+  'vehicle.noPhotos': '사진 없음',
+  'vehicle.photos': '사진',
   'vehicle.chooseFromGallery': '갤러리에서 선택',
   'vehicle.loading': '로딩 중...',
   'vehicle.noData': '데이터 없음',
