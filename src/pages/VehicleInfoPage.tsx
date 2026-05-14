@@ -280,7 +280,6 @@ export default function VehicleInfoPage() {
           setRegistrationPhoto(fallbackRegistrationUrl);
           setRegistrationPhotos([fallbackRegistrationUrl]);
         }
-        console.log('[VehicleInfo] externalPhotos set:', externalPhotos);
         setPhotos(externalPhotos);
         return;
       }
