@@ -1130,6 +1130,17 @@ export default function CurrentJobsPage() {
                             const isBookingJob = !!job.booking_no && !job.bl_no;
                             const intl = (job as any).international_details || {};
                             if (isBookingJob) {
+                              // DEBUG: log booking fields to find correct field name
+                              // eslint-disable-next-line no-console
+                              console.log('[BookingCard]', job.order_number, {
+                                root_keys: Object.keys(job).filter(k => /pickup|empty|cy|terminal|return|location|depot|port|yard/i.test(k)),
+                                intl_keys: Object.keys(intl),
+                                intl,
+                                pickup_location_name: (job as any).pickup_location_name,
+                                empty_pickup_location_name: (job as any).empty_pickup_location_name,
+                                empty_pickup_depot: (job as any).empty_pickup_depot,
+                                return_terminal_name: (job as any).return_terminal_name,
+                              });
                               const emptyAddrExtract = extractDistrictProvince((job as any).empty_pickup_address || '');
                               const returnAddrExtract = extractDistrictProvince((job as any).container_return_address || '');
                               const originName = (job as any).pickup_location_name
