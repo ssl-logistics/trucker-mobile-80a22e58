@@ -1651,65 +1651,82 @@ export default function DomesticJobDetail({
                     }
                     </div>
                     <div className={`p-4 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                      {job.origin_company_name &&
-                    <p className="font-semibold text-sm text-[#225795] mb-2">{job.origin_company_name}</p>
-                    }
-
-                      <div className="space-y-1.5 text-xs text-foreground mb-3">
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.origin_location || '-'}</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {(() => { const v = job.origin_contact_person; const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; return v && !generic.includes(v.trim()) ? v : '-'; })()}</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
-                        </div>
-                        {job.origin_goods_type && job.origin_goods_type !== '-' &&
-                      <div className="flex items-start gap-2">
-                            <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                            <div className="flex-1 flex flex-wrap items-center gap-1">
-                              <strong className="text-foreground mr-1">{t('jobDetail.goodsType')}:</strong>
-                              {(() => {
-                                const items = job.origin_goods_type!.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
-                                const display = items.slice(0, 3);
-                                const remaining = items.length - 3;
-                                return (
-                                  <>
-                                    {display.map((item, i) => (
-                                      <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[140px]">
-                                        {item}
-                                      </span>
-                                    ))}
-                                    {remaining > 0 && (
-                                      <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
-                                        +{remaining}
-                                      </span>
-                                    )}
-                                  </>
-                                );
-                              })()}
+                      {(() => {
+                        const intl = (job as any).international_details || {};
+                        const cargoName = (job as any).cargo_point_name || intl.cargo_point_name || intl.place_of_receipt_name;
+                        const cargoAddress = (job as any).cargo_point_address || intl.cargo_point_address || intl.place_of_receipt_address;
+                        const cargoProvince = (job as any).cargo_point_province || intl.cargo_point_province;
+                        const cargoDistrict = (job as any).cargo_point_district || intl.cargo_point_district;
+                        const cargoPhone = (job as any).cargo_point_phone || intl.cargo_point_phone;
+                        const companyName = job.origin_company_name || cargoName;
+                        const locationParts = [cargoAddress, cargoDistrict, cargoProvince].filter(Boolean).join(' ');
+                        const locationText = job.origin_location || locationParts || '-';
+                        const contactPersonRaw = job.origin_contact_person;
+                        const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'];
+                        const contactPerson = contactPersonRaw && !generic.includes(contactPersonRaw.trim()) ? contactPersonRaw : (cargoPhone || '-');
+                        return (
+                          <>
+                            {companyName &&
+                              <p className="font-semibold text-sm text-[#225795] mb-2">{companyName}</p>
+                            }
+                            <div className="space-y-1.5 text-xs text-foreground mb-3">
+                              <div className="flex items-start gap-2">
+                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {locationText}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {contactPerson}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
+                              </div>
+                              {job.origin_goods_type && job.origin_goods_type !== '-' &&
+                                <div className="flex items-start gap-2">
+                                  <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <div className="flex-1 flex flex-wrap items-center gap-1">
+                                    <strong className="text-foreground mr-1">{t('jobDetail.goodsType')}:</strong>
+                                    {(() => {
+                                      const items = job.origin_goods_type!.split(/[,，、\/]/).map(s => s.trim()).filter(Boolean);
+                                      const display = items.slice(0, 3);
+                                      const remaining = items.length - 3;
+                                      return (
+                                        <>
+                                          {display.map((item, i) => (
+                                            <span key={i} className="inline-block bg-blue-50 text-[#225795] text-xs px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[140px]">
+                                              {item}
+                                            </span>
+                                          ))}
+                                          {remaining > 0 && (
+                                            <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                                              +{remaining}
+                                            </span>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowGoodsModal(true)}
+                                    className="shrink-0 p-1 rounded-full hover:bg-muted transition-colors"
+                                    aria-label="ดูสินค้าทั้งหมด"
+                                  >
+                                    <Eye className="w-4 h-4 text-[#225795]" />
+                                  </button>
+                                </div>
+                              }
+                              {job.origin_remarks && job.origin_remarks !== '-' &&
+                                <div className="flex items-start gap-2">
+                                  <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span>{job.origin_remarks}</span>
+                                </div>
+                              }
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => setShowGoodsModal(true)}
-                              className="shrink-0 p-1 rounded-full hover:bg-muted transition-colors"
-                              aria-label="ดูสินค้าทั้งหมด"
-                            >
-                              <Eye className="w-4 h-4 text-[#225795]" />
-                            </button>
-                          </div>
-                      }
-                        {job.origin_remarks && job.origin_remarks !== '-' &&
-                      <div className="flex items-start gap-2">
-                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                            <span>{job.origin_remarks}</span>
-                          </div>
-                      }
-                      </div>
+                          </>
+                        );
+                      })()}
 
                       <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
                         {new URLSearchParams(location.search).get('from') !== 'history' &&
