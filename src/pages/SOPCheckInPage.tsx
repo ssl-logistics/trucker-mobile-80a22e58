@@ -576,60 +576,74 @@ export default function SOPCheckInPage() {
           </div>
         </Card>
 
-        {/* Product Photo Upload */}
+        {/* Product Photo Upload (up to 6) */}
         <div className="space-y-2">
           <Label className="text-base">
             {t('sop.uploadPhoto')} <span className="text-destructive">*</span>
+            <span className="ml-2 text-xs text-muted-foreground">({photoPreviews.length}/{MAX_PHOTOS})</span>
           </Label>
-          
-          <button
-            onClick={() => openPhotoDrawer('product')}
-            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card"
-          >
-            {photoPreview ? (
-              <img 
-                src={photoPreview} 
-                alt="Product Preview" 
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <>
-                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-                  <Camera className="w-7 h-7 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground text-center px-4" dangerouslySetInnerHTML={{ __html: `${t('sop.clickToTake')}<br />${t('sop.productPhoto')}` }} />
-              </>
+
+          <div className="grid grid-cols-3 gap-2">
+            {photoPreviews.map((src, i) => (
+              <div key={i} className="relative aspect-square">
+                <img src={src} alt={`Product ${i + 1}`} className="w-full h-full object-cover rounded-lg border" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoFiles(prev => prev.filter((_, idx) => idx !== i));
+                    setPhotoPreviews(prev => prev.filter((_, idx) => idx !== i));
+                  }}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            {photoPreviews.length < MAX_PHOTOS && (
+              <button
+                onClick={() => openPhotoDrawer('product')}
+                className="aspect-square border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-card"
+              >
+                <Camera className="w-6 h-6 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground">{t('sop.productPhoto')}</span>
+              </button>
             )}
-          </button>
+          </div>
         </div>
 
-        {/* Document Photo Upload */}
+        {/* Document Photo Upload (up to 6) */}
         <div className="space-y-2">
           <Label className="text-base">
             อัพโหลดรูปเอกสาร <span className="text-destructive">*</span>
+            <span className="ml-2 text-xs text-muted-foreground">({docPhotoPreviews.length}/{MAX_PHOTOS})</span>
           </Label>
-          
-          <button
-            onClick={() => openPhotoDrawer('document')}
-            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card"
-          >
-            {docPhotoPreview ? (
-              <img 
-                src={docPhotoPreview} 
-                alt="Document Preview" 
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <>
-                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-                  <ImageIcon className="w-7 h-7 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground text-center px-4">
-                  กดเพื่อถ่ายหรือเลือก<br />รูปเอกสาร
-                </p>
-              </>
+
+          <div className="grid grid-cols-3 gap-2">
+            {docPhotoPreviews.map((src, i) => (
+              <div key={i} className="relative aspect-square">
+                <img src={src} alt={`Document ${i + 1}`} className="w-full h-full object-cover rounded-lg border" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDocPhotoFiles(prev => prev.filter((_, idx) => idx !== i));
+                    setDocPhotoPreviews(prev => prev.filter((_, idx) => idx !== i));
+                  }}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            {docPhotoPreviews.length < MAX_PHOTOS && (
+              <button
+                onClick={() => openPhotoDrawer('document')}
+                className="aspect-square border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-card"
+              >
+                <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground">รูปเอกสาร</span>
+              </button>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Weight Slip Photos + OCR (Optional, Multiple) */}
