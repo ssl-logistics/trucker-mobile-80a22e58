@@ -212,10 +212,18 @@ export default function ContainerCheckInPage() {
             employer_name: foundJob.factory_name || foundJob.sender_name || null,
             // For BL (inbound) jobs, empty pickup yard = container return port (same place).
             // Fall back to container_return_* so the pickup card doesn't show sender's factory.
-            container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || (foundJob.bl_no ? foundJob.container_return_location : null) || null,
+            container_checkpoint:
+              foundJob.container_checkpoint ||
+              foundJob.pickup_location_name ||
+              foundJob.empty_pickup_depot ||
+              foundJob.international_details?.empty_pickup_depot ||
+              foundJob.international_details?.cy_empty_container ||
+              foundJob.international_details?.pickup_location_name ||
+              (foundJob.bl_no ? foundJob.container_return_location : null) ||
+              null,
             container_checkpoint_code: foundJob.container_checkpoint_code || null,
-            container_checkpoint_latitude: foundJob.container_checkpoint_latitude || foundJob.empty_pickup_latitude || (foundJob.bl_no ? foundJob.container_return_latitude : null) || null,
-            container_checkpoint_longitude: foundJob.container_checkpoint_longitude || foundJob.empty_pickup_longitude || (foundJob.bl_no ? foundJob.container_return_longitude : null) || null,
+            container_checkpoint_latitude: foundJob.container_checkpoint_latitude || foundJob.empty_pickup_latitude || foundJob.international_details?.empty_pickup_latitude || (foundJob.bl_no ? foundJob.container_return_latitude : null) || null,
+            container_checkpoint_longitude: foundJob.container_checkpoint_longitude || foundJob.empty_pickup_longitude || foundJob.international_details?.empty_pickup_longitude || (foundJob.bl_no ? foundJob.container_return_longitude : null) || null,
             container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || foundJob.eta_time || foundJob.vessel_eta || foundJob.vessel_arrival_date || null,
             empty_container_date: foundJob.first_pickup_date || foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
             container_number: foundJob.container_number || null,
