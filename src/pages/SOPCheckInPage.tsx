@@ -55,10 +55,11 @@ export default function SOPCheckInPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [isBidJob, setIsBidJob] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string>('');
-  const [docPhotoFile, setDocPhotoFile] = useState<File | null>(null);
-  const [docPhotoPreview, setDocPhotoPreview] = useState<string>('');
+  const MAX_PHOTOS = 6;
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [docPhotoFiles, setDocPhotoFiles] = useState<File[]>([]);
+  const [docPhotoPreviews, setDocPhotoPreviews] = useState<string[]>([]);
   const [weightSlips, setWeightSlips] = useState<Array<{
     file: File;
     preview: string;
@@ -138,7 +139,10 @@ export default function SOPCheckInPage() {
             setExistingSOP(pickupSOP);
             // If SOP already exists, show existing photos
             if (pickupSOP.product_images?.length > 0) {
-              setPhotoPreview(pickupSOP.product_images[0]);
+              setPhotoPreviews(pickupSOP.product_images);
+            }
+            if (pickupSOP.document_images?.length > 0) {
+              setDocPhotoPreviews(pickupSOP.document_images);
             }
           }
         }
@@ -291,75 +295,92 @@ export default function SOPCheckInPage() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
+    const isMulti = activePhotoType === 'product' || activePhotoType === 'document';
+    if (isMulti) input.multiple = true;
     if (source === 'camera') {
       input.capture = 'environment';
     }
-    
+
+    const readFile = (file: File) =>
+      new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
     input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        if (activePhotoType === 'product') {
-          setPhotoFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPhotoPreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        } else if (activePhotoType === 'document') {
-          setDocPhotoFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setDocPhotoPreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        } else if (activePhotoType === 'weightslip') {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const preview = reader.result as string;
-            const newIndex = activeWeightSlipIndex >= 0 ? activeWeightSlipIndex : weightSlips.length;
-            setWeightSlips(prev => {
-              const updated = [...prev];
-              if (activeWeightSlipIndex >= 0) {
-                updated[activeWeightSlipIndex] = { file, preview, ocrData: null };
-              } else {
-                updated.push({ file, preview, ocrData: null });
-              }
-              return updated;
-            });
-            // Run OCR
-            (async () => {
-              try {
-                const result = await extractFromImage(file, 'weight_slip');
-                if (result.success && result.data) {
-                  setWeightSlips(prev => {
-                    const updated = [...prev];
-                    if (updated[newIndex]) {
-                      updated[newIndex] = {
-                        ...updated[newIndex],
-                        ocrData: {
-                          weight_in: result.data?.weight_in ?? null,
-                          weight_out: result.data?.weight_out ?? null,
-                          net_weight: result.data?.net_weight ?? null,
-                        },
-                      };
-                    }
-                    return updated;
-                  });
-                  toast({ title: 'สแกนสำเร็จ', description: 'อ่านข้อมูลใบชั่งน้ำหนักเรียบร้อย' });
-                }
-              } catch (err) {
-                console.error('Weight slip OCR error:', err);
-              }
-            })();
-          };
-          reader.readAsDataURL(file);
+      const fileList = (e.target as HTMLInputElement).files;
+      if (!fileList || fileList.length === 0) return;
+      const files = Array.from(fileList);
+
+      if (activePhotoType === 'product') {
+        const remaining = MAX_PHOTOS - photoFiles.length;
+        if (remaining <= 0) {
+          toast({ title: 'ครบจำนวนสูงสุดแล้ว', description: `อัพโหลดได้สูงสุด ${MAX_PHOTOS} รูป`, variant: 'destructive' });
+          return;
         }
+        const selected = files.slice(0, remaining);
+        const previews = await Promise.all(selected.map(readFile));
+        setPhotoFiles(prev => [...prev, ...selected]);
+        setPhotoPreviews(prev => [...prev, ...previews]);
+      } else if (activePhotoType === 'document') {
+        const remaining = MAX_PHOTOS - docPhotoFiles.length;
+        if (remaining <= 0) {
+          toast({ title: 'ครบจำนวนสูงสุดแล้ว', description: `อัพโหลดได้สูงสุด ${MAX_PHOTOS} รูป`, variant: 'destructive' });
+          return;
+        }
+        const selected = files.slice(0, remaining);
+        const previews = await Promise.all(selected.map(readFile));
+        setDocPhotoFiles(prev => [...prev, ...selected]);
+        setDocPhotoPreviews(prev => [...prev, ...previews]);
+      } else if (activePhotoType === 'weightslip') {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const preview = reader.result as string;
+          const newIndex = activeWeightSlipIndex >= 0 ? activeWeightSlipIndex : weightSlips.length;
+          setWeightSlips(prev => {
+            const updated = [...prev];
+            if (activeWeightSlipIndex >= 0) {
+              updated[activeWeightSlipIndex] = { file, preview, ocrData: null };
+            } else {
+              updated.push({ file, preview, ocrData: null });
+            }
+            return updated;
+          });
+          (async () => {
+            try {
+              const result = await extractFromImage(file, 'weight_slip');
+              if (result.success && result.data) {
+                setWeightSlips(prev => {
+                  const updated = [...prev];
+                  if (updated[newIndex]) {
+                    updated[newIndex] = {
+                      ...updated[newIndex],
+                      ocrData: {
+                        weight_in: result.data?.weight_in ?? null,
+                        weight_out: result.data?.weight_out ?? null,
+                        net_weight: result.data?.net_weight ?? null,
+                      },
+                    };
+                  }
+                  return updated;
+                });
+                toast({ title: 'สแกนสำเร็จ', description: 'อ่านข้อมูลใบชั่งน้ำหนักเรียบร้อย' });
+              }
+            } catch (err) {
+              console.error('Weight slip OCR error:', err);
+            }
+          })();
+        };
+        reader.readAsDataURL(file);
       }
     };
-    
+
     input.click();
     setDrawerOpen(false);
   };
+
 
   const openPhotoDrawer = (type: 'product' | 'document' | 'weightslip', wsIndex?: number) => {
     setActivePhotoType(type);
@@ -368,7 +389,7 @@ export default function SOPCheckInPage() {
   };
 
   const handleConfirmClick = () => {
-    if (!photoFile || !docPhotoFile) {
+    if (photoFiles.length === 0 || docPhotoFiles.length === 0) {
       toast({
         title: t('sop.photoRequired'),
         description: 'กรุณาอัพโหลดรูปสินค้าและรูปเอกสารให้ครบ',
@@ -396,28 +417,31 @@ export default function SOPCheckInPage() {
   };
 
   const handleConfirmSOP = async () => {
-    if (!photoFile || !job || !user) return;
+    if (photoFiles.length === 0 || !job || !user) return;
 
     setUploading(true);
 
     try {
       // Upload all images in PARALLEL for speed
       const timestamp = Date.now();
-      
-      // Prepare all upload promises
-      const productFormData = new FormData();
-      productFormData.append('file', photoFile);
-      productFormData.append('folder', 'mobile/sop-photos');
-      productFormData.append('filename', `${user.id}-${job.order_code}-product-${timestamp}`);
-      const productUploadPromise = supabase.functions.invoke('upload-to-s3', { body: productFormData });
 
-      const docUploadPromise = docPhotoFile ? (() => {
-        const docFormData = new FormData();
-        docFormData.append('file', docPhotoFile);
-        docFormData.append('folder', 'mobile/sop-docs');
-        docFormData.append('filename', `${user.id}-${job.order_code}-doc-${timestamp}`);
-        return supabase.functions.invoke('upload-to-s3', { body: docFormData });
-      })() : Promise.resolve({ data: null, error: null });
+      // Product photos (up to 6)
+      const productUploadPromises = photoFiles.map((file, i) => {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('folder', 'mobile/sop-photos');
+        fd.append('filename', `${user.id}-${job.order_code}-product-${i}-${timestamp}`);
+        return supabase.functions.invoke('upload-to-s3', { body: fd });
+      });
+
+      // Document photos (up to 6)
+      const docUploadPromises = docPhotoFiles.map((file, i) => {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('folder', 'mobile/sop-docs');
+        fd.append('filename', `${user.id}-${job.order_code}-doc-${i}-${timestamp}`);
+        return supabase.functions.invoke('upload-to-s3', { body: fd });
+      });
 
       const weightSlipUploadPromises = weightSlips.map((ws, i) => {
         const wsFormData = new FormData();
@@ -428,18 +452,19 @@ export default function SOPCheckInPage() {
       });
 
       // Execute all uploads in parallel
-      const [productResult, docResult, ...weightSlipResults] = await Promise.all([
-        productUploadPromise,
-        docUploadPromise,
-        ...weightSlipUploadPromises,
-      ]);
+      const productResults = await Promise.all(productUploadPromises);
+      const docResults = await Promise.all(docUploadPromises);
+      const weightSlipResults = await Promise.all(weightSlipUploadPromises);
 
-      if (productResult.error || !productResult.data?.url) {
-        throw new Error('Failed to upload product image');
+      const productImageUrls = productResults
+        .filter(r => !r.error && r.data?.url)
+        .map(r => r.data.url);
+      if (productImageUrls.length === 0) {
+        throw new Error('Failed to upload product images');
       }
-
-      const productImageUrl = productResult.data.url;
-      const documentImageUrl = docResult.data?.url || null;
+      const documentImageUrls = docResults
+        .filter(r => !r.error && r.data?.url)
+        .map(r => r.data.url);
       const weightSlipImageUrls = weightSlipResults
         .filter(r => !r.error && r.data?.url)
         .map(r => r.data.url);
@@ -447,19 +472,14 @@ export default function SOPCheckInPage() {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Build document images array (without weight slip images)
-      const docImages = [
-        ...(documentImageUrl ? [documentImageUrl] : []),
-      ];
-
       // Call driver-sop API directly
       const sopBody: Record<string, unknown> = {
         order_number: job.order_code,
         driver_id: user.id,
         driver_type: driverType,
         sop_type: 'pickup',
-        product_images: [productImageUrl],
-        document_images: docImages,
+        product_images: productImageUrls,
+        document_images: documentImageUrls,
       };
 
       // Build weight_slips array with image_url per slip
@@ -556,60 +576,74 @@ export default function SOPCheckInPage() {
           </div>
         </Card>
 
-        {/* Product Photo Upload */}
+        {/* Product Photo Upload (up to 6) */}
         <div className="space-y-2">
           <Label className="text-base">
             {t('sop.uploadPhoto')} <span className="text-destructive">*</span>
+            <span className="ml-2 text-xs text-muted-foreground">({photoPreviews.length}/{MAX_PHOTOS})</span>
           </Label>
-          
-          <button
-            onClick={() => openPhotoDrawer('product')}
-            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card"
-          >
-            {photoPreview ? (
-              <img 
-                src={photoPreview} 
-                alt="Product Preview" 
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <>
-                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-                  <Camera className="w-7 h-7 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground text-center px-4" dangerouslySetInnerHTML={{ __html: `${t('sop.clickToTake')}<br />${t('sop.productPhoto')}` }} />
-              </>
+
+          <div className="grid grid-cols-3 gap-2">
+            {photoPreviews.map((src, i) => (
+              <div key={i} className="relative aspect-square">
+                <img src={src} alt={`Product ${i + 1}`} className="w-full h-full object-cover rounded-lg border" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoFiles(prev => prev.filter((_, idx) => idx !== i));
+                    setPhotoPreviews(prev => prev.filter((_, idx) => idx !== i));
+                  }}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            {photoPreviews.length < MAX_PHOTOS && (
+              <button
+                onClick={() => openPhotoDrawer('product')}
+                className="aspect-square border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-card"
+              >
+                <Camera className="w-6 h-6 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground">{t('sop.productPhoto')}</span>
+              </button>
             )}
-          </button>
+          </div>
         </div>
 
-        {/* Document Photo Upload */}
+        {/* Document Photo Upload (up to 6) */}
         <div className="space-y-2">
           <Label className="text-base">
             อัพโหลดรูปเอกสาร <span className="text-destructive">*</span>
+            <span className="ml-2 text-xs text-muted-foreground">({docPhotoPreviews.length}/{MAX_PHOTOS})</span>
           </Label>
-          
-          <button
-            onClick={() => openPhotoDrawer('document')}
-            className="w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors bg-card"
-          >
-            {docPhotoPreview ? (
-              <img 
-                src={docPhotoPreview} 
-                alt="Document Preview" 
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <>
-                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-                  <ImageIcon className="w-7 h-7 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground text-center px-4">
-                  กดเพื่อถ่ายหรือเลือก<br />รูปเอกสาร
-                </p>
-              </>
+
+          <div className="grid grid-cols-3 gap-2">
+            {docPhotoPreviews.map((src, i) => (
+              <div key={i} className="relative aspect-square">
+                <img src={src} alt={`Document ${i + 1}`} className="w-full h-full object-cover rounded-lg border" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDocPhotoFiles(prev => prev.filter((_, idx) => idx !== i));
+                    setDocPhotoPreviews(prev => prev.filter((_, idx) => idx !== i));
+                  }}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            {docPhotoPreviews.length < MAX_PHOTOS && (
+              <button
+                onClick={() => openPhotoDrawer('document')}
+                className="aspect-square border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-card"
+              >
+                <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground">รูปเอกสาร</span>
+              </button>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Weight Slip Photos + OCR (Optional, Multiple) */}
@@ -737,7 +771,7 @@ export default function SOPCheckInPage() {
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={uploading || !photoFile || !docPhotoFile || ocrExtracting || (weightSlips.length > 0 && weightSlips.some(ws => ws.ocrData === null))}
+          disabled={uploading || photoFiles.length === 0 || docPhotoFiles.length === 0 || ocrExtracting || (weightSlips.length > 0 && weightSlips.some(ws => ws.ocrData === null))}
         >
           {t('sop.confirmSOP')}
         </Button>
