@@ -1233,6 +1233,8 @@ const thTranslations: Record<string, string> = {
   'containerCheckin.alreadyCheckedInDesc': 'คุณได้เช็คอินจุดรับตู้เปล่าไปแล้ว กำลังไปหน้า SOP...',
   'containerCheckin.arrivalNote': 'ถึงจุดรับตู้เปล่าแล้ว',
   'containerCheckin.noLocationFound': 'ไม่พบข้อมูลสถานที่รับตู้เปล่า',
+  'containerCheckin.returnTitle': 'เช็คอินจุดคืนตู้',
+  'containerCheckin.returnArrivalNote': 'ถึงจุดคืนตู้แล้ว',
   
   // Vehicle Info Page
   'vehicle.title': 'ข้อมูลรถ',
@@ -2984,6 +2986,8 @@ const enTranslations: Record<string, string> = {
   'containerCheckin.alreadyCheckedInDesc': 'You have already checked in. Redirecting to SOP page...',
   'containerCheckin.arrivalNote': 'Arrived at empty container pickup',
   'containerCheckin.noLocationFound': 'Empty container pickup location not found',
+  'containerCheckin.returnTitle': 'Container Return Check-in',
+  'containerCheckin.returnArrivalNote': 'Arrived at container return location',
   // Vehicle Info Page
   'vehicle.title': 'Vehicle Information',
   'vehicle.dataTab': 'Vehicle Data',
@@ -4894,6 +4898,8 @@ const koTranslations: Record<string, string> = {
   'containerCheckin.alreadyCheckedInDesc': '이미 체크인했습니다. SOP 페이지로 이동합니다...',
   'containerCheckin.arrivalNote': '빈 컨테이너 픽업 지점 도착',
   'containerCheckin.noLocationFound': '빈 컨테이너 픽업 위치를 찾을 수 없습니다',
+  'containerCheckin.returnTitle': '컨테이너 반납 체크인',
+  'containerCheckin.returnArrivalNote': '컨테이너 반납 지점 도착',
   
   // App Update
   'app.newVersion': '새 버전이 있습니다! 업데이트하려면 확인을 클릭하세요',
@@ -5678,6 +5684,8 @@ const zhTranslations: Record<string, string> = {
   'containerCheckin.alreadyCheckedInDesc': '您已签到。正在跳转到 SOP 页面...',
   'containerCheckin.arrivalNote': '到达空集装箱取货点',
   'containerCheckin.noLocationFound': '未找到空集装箱取货位置',
+  'containerCheckin.returnTitle': '还柜签到',
+  'containerCheckin.returnArrivalNote': '已到达还柜地点',
   
   // Add Expense Page
   'expense.title': '添加费用',
