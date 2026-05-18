@@ -295,28 +295,95 @@ export default function SOPCheckInPage() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
+    const isMulti = activePhotoType === 'product' || activePhotoType === 'document';
+    if (isMulti) input.multiple = true;
     if (source === 'camera') {
       input.capture = 'environment';
     }
-    
+
+    const readFile = (file: File) =>
+      new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
     input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        if (activePhotoType === 'product') {
-          setPhotoFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPhotoPreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        } else if (activePhotoType === 'document') {
-          setDocPhotoFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setDocPhotoPreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        } else if (activePhotoType === 'weightslip') {
+      const fileList = (e.target as HTMLInputElement).files;
+      if (!fileList || fileList.length === 0) return;
+      const files = Array.from(fileList);
+
+      if (activePhotoType === 'product') {
+        const remaining = MAX_PHOTOS - photoFiles.length;
+        if (remaining <= 0) {
+          toast({ title: 'ครบจำนวนสูงสุดแล้ว', description: `อัพโหลดได้สูงสุด ${MAX_PHOTOS} รูป`, variant: 'destructive' });
+          return;
+        }
+        const selected = files.slice(0, remaining);
+        const previews = await Promise.all(selected.map(readFile));
+        setPhotoFiles(prev => [...prev, ...selected]);
+        setPhotoPreviews(prev => [...prev, ...previews]);
+      } else if (activePhotoType === 'document') {
+        const remaining = MAX_PHOTOS - docPhotoFiles.length;
+        if (remaining <= 0) {
+          toast({ title: 'ครบจำนวนสูงสุดแล้ว', description: `อัพโหลดได้สูงสุด ${MAX_PHOTOS} รูป`, variant: 'destructive' });
+          return;
+        }
+        const selected = files.slice(0, remaining);
+        const previews = await Promise.all(selected.map(readFile));
+        setDocPhotoFiles(prev => [...prev, ...selected]);
+        setDocPhotoPreviews(prev => [...prev, ...previews]);
+      } else if (activePhotoType === 'weightslip') {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const preview = reader.result as string;
+          const newIndex = activeWeightSlipIndex >= 0 ? activeWeightSlipIndex : weightSlips.length;
+          setWeightSlips(prev => {
+            const updated = [...prev];
+            if (activeWeightSlipIndex >= 0) {
+              updated[activeWeightSlipIndex] = { file, preview, ocrData: null };
+            } else {
+              updated.push({ file, preview, ocrData: null });
+            }
+            return updated;
+          });
+          (async () => {
+            try {
+              const result = await extractFromImage(file, 'weight_slip');
+              if (result.success && result.data) {
+                setWeightSlips(prev => {
+                  const updated = [...prev];
+                  if (updated[newIndex]) {
+                    updated[newIndex] = {
+                      ...updated[newIndex],
+                      ocrData: {
+                        weight_in: result.data?.weight_in ?? null,
+                        weight_out: result.data?.weight_out ?? null,
+                        net_weight: result.data?.net_weight ?? null,
+                      },
+                    };
+                  }
+                  return updated;
+                });
+                toast({ title: 'สแกนสำเร็จ', description: 'อ่านข้อมูลใบชั่งน้ำหนักเรียบร้อย' });
+              }
+            } catch (err) {
+              console.error('Weight slip OCR error:', err);
+            }
+          })();
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    input.click();
+    setDrawerOpen(false);
+  };
+
+  // Replaced inline weightslip branch above; keep block close consistent
+  const _legacyEndMarker = () => {
+    if (false) {
           const reader = new FileReader();
           reader.onloadend = () => {
             const preview = reader.result as string;
