@@ -55,10 +55,11 @@ export default function SOPCheckInPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [isBidJob, setIsBidJob] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string>('');
-  const [docPhotoFile, setDocPhotoFile] = useState<File | null>(null);
-  const [docPhotoPreview, setDocPhotoPreview] = useState<string>('');
+  const MAX_PHOTOS = 6;
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [docPhotoFiles, setDocPhotoFiles] = useState<File[]>([]);
+  const [docPhotoPreviews, setDocPhotoPreviews] = useState<string[]>([]);
   const [weightSlips, setWeightSlips] = useState<Array<{
     file: File;
     preview: string;
