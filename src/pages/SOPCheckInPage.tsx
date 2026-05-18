@@ -381,56 +381,6 @@ export default function SOPCheckInPage() {
     setDrawerOpen(false);
   };
 
-  // Replaced inline weightslip branch above; keep block close consistent
-  const _legacyEndMarker = () => {
-    if (false) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const preview = reader.result as string;
-            const newIndex = activeWeightSlipIndex >= 0 ? activeWeightSlipIndex : weightSlips.length;
-            setWeightSlips(prev => {
-              const updated = [...prev];
-              if (activeWeightSlipIndex >= 0) {
-                updated[activeWeightSlipIndex] = { file, preview, ocrData: null };
-              } else {
-                updated.push({ file, preview, ocrData: null });
-              }
-              return updated;
-            });
-            // Run OCR
-            (async () => {
-              try {
-                const result = await extractFromImage(file, 'weight_slip');
-                if (result.success && result.data) {
-                  setWeightSlips(prev => {
-                    const updated = [...prev];
-                    if (updated[newIndex]) {
-                      updated[newIndex] = {
-                        ...updated[newIndex],
-                        ocrData: {
-                          weight_in: result.data?.weight_in ?? null,
-                          weight_out: result.data?.weight_out ?? null,
-                          net_weight: result.data?.net_weight ?? null,
-                        },
-                      };
-                    }
-                    return updated;
-                  });
-                  toast({ title: 'สแกนสำเร็จ', description: 'อ่านข้อมูลใบชั่งน้ำหนักเรียบร้อย' });
-                }
-              } catch (err) {
-                console.error('Weight slip OCR error:', err);
-              }
-            })();
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-    };
-    
-    input.click();
-    setDrawerOpen(false);
-  };
 
   const openPhotoDrawer = (type: 'product' | 'document' | 'weightslip', wsIndex?: number) => {
     setActivePhotoType(type);
