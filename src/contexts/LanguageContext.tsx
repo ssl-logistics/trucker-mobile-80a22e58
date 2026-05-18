@@ -5684,6 +5684,8 @@ const zhTranslations: Record<string, string> = {
   'containerCheckin.alreadyCheckedInDesc': '您已签到。正在跳转到 SOP 页面...',
   'containerCheckin.arrivalNote': '到达空集装箱取货点',
   'containerCheckin.noLocationFound': '未找到空集装箱取货位置',
+  'containerCheckin.returnTitle': '还柜签到',
+  'containerCheckin.returnArrivalNote': '已到达还柜地点',
   
   // Add Expense Page
   'expense.title': '添加费用',
