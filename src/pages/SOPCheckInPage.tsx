@@ -139,7 +139,10 @@ export default function SOPCheckInPage() {
             setExistingSOP(pickupSOP);
             // If SOP already exists, show existing photos
             if (pickupSOP.product_images?.length > 0) {
-              setPhotoPreview(pickupSOP.product_images[0]);
+              setPhotoPreviews(pickupSOP.product_images);
+            }
+            if (pickupSOP.document_images?.length > 0) {
+              setDocPhotoPreviews(pickupSOP.document_images);
             }
           }
         }
