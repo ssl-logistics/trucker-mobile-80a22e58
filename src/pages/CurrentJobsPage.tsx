@@ -1126,26 +1126,58 @@ export default function CurrentJobsPage() {
                           <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
                         </div>
                         <div className="flex-1 space-y-2">
-                          <div className="text-xs">
-                            <div className="text-muted-foreground">{t('job.origin')}</div>
-                            <div className="font-medium">
-                              {job.sender_province && job.sender_district 
-                                ? `${job.sender_district}, ${job.sender_province}` 
-                                : (() => {
-                                    const addr = job.empty_pickup_address || job.sender_address;
-                                    const extracted = addr ? extractDistrictProvince(addr) : '';
-                                    return (extracted && extracted !== '-' ? extracted : null) || job.sender_name || '-';
-                                  })()}
-                            </div>
-                          </div>
-                          <div className="text-xs">
-                            <div className="text-muted-foreground">{t('job.destination')}</div>
-                            <div className="font-medium">
-                              {job.destination_province && job.destination_district 
-                                ? `${job.destination_district}, ${job.destination_province}` 
-                                : extractDistrictProvince(job.container_return_address || job.destination_address)}
-                            </div>
-                          </div>
+                          {(() => {
+                            const isBookingJob = !!job.booking_no && !job.bl_no;
+                            const intl = (job as any).international_details || {};
+                            if (isBookingJob) {
+                              const originName = (job as any).pickup_location_name
+                                || intl.cy_empty_container
+                                || intl.empty_pickup_depot
+                                || intl.pickup_location_name
+                                || extractDistrictProvince((job as any).empty_pickup_address || '')
+                                || '-';
+                              const destName = (job as any).return_terminal_name
+                                || (job as any).container_return_location
+                                || extractDistrictProvince((job as any).container_return_address || '')
+                                || '-';
+                              return (
+                                <>
+                                  <div className="text-xs">
+                                    <div className="text-muted-foreground">{t('job.origin')}</div>
+                                    <div className="font-medium">{originName}</div>
+                                  </div>
+                                  <div className="text-xs">
+                                    <div className="text-muted-foreground">{t('job.destination')}</div>
+                                    <div className="font-medium">{destName}</div>
+                                  </div>
+                                </>
+                              );
+                            }
+                            return (
+                              <>
+                                <div className="text-xs">
+                                  <div className="text-muted-foreground">{t('job.origin')}</div>
+                                  <div className="font-medium">
+                                    {job.sender_province && job.sender_district 
+                                      ? `${job.sender_district}, ${job.sender_province}` 
+                                      : (() => {
+                                          const addr = (job as any).empty_pickup_address || job.sender_address;
+                                          const extracted = addr ? extractDistrictProvince(addr) : '';
+                                          return (extracted && extracted !== '-' ? extracted : null) || job.sender_name || '-';
+                                        })()}
+                                  </div>
+                                </div>
+                                <div className="text-xs">
+                                  <div className="text-muted-foreground">{t('job.destination')}</div>
+                                  <div className="font-medium">
+                                    {job.destination_province && job.destination_district 
+                                      ? `${job.destination_district}, ${job.destination_province}` 
+                                      : extractDistrictProvince(job.container_return_address || job.destination_address)}
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                       
