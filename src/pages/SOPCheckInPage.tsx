@@ -389,7 +389,7 @@ export default function SOPCheckInPage() {
   };
 
   const handleConfirmClick = () => {
-    if (!photoFile || !docPhotoFile) {
+    if (photoFiles.length === 0 || docPhotoFiles.length === 0) {
       toast({
         title: t('sop.photoRequired'),
         description: 'กรุณาอัพโหลดรูปสินค้าและรูปเอกสารให้ครบ',
@@ -417,28 +417,31 @@ export default function SOPCheckInPage() {
   };
 
   const handleConfirmSOP = async () => {
-    if (!photoFile || !job || !user) return;
+    if (photoFiles.length === 0 || !job || !user) return;
 
     setUploading(true);
 
     try {
       // Upload all images in PARALLEL for speed
       const timestamp = Date.now();
-      
-      // Prepare all upload promises
-      const productFormData = new FormData();
-      productFormData.append('file', photoFile);
-      productFormData.append('folder', 'mobile/sop-photos');
-      productFormData.append('filename', `${user.id}-${job.order_code}-product-${timestamp}`);
-      const productUploadPromise = supabase.functions.invoke('upload-to-s3', { body: productFormData });
 
-      const docUploadPromise = docPhotoFile ? (() => {
-        const docFormData = new FormData();
-        docFormData.append('file', docPhotoFile);
-        docFormData.append('folder', 'mobile/sop-docs');
-        docFormData.append('filename', `${user.id}-${job.order_code}-doc-${timestamp}`);
-        return supabase.functions.invoke('upload-to-s3', { body: docFormData });
-      })() : Promise.resolve({ data: null, error: null });
+      // Product photos (up to 6)
+      const productUploadPromises = photoFiles.map((file, i) => {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('folder', 'mobile/sop-photos');
+        fd.append('filename', `${user.id}-${job.order_code}-product-${i}-${timestamp}`);
+        return supabase.functions.invoke('upload-to-s3', { body: fd });
+      });
+
+      // Document photos (up to 6)
+      const docUploadPromises = docPhotoFiles.map((file, i) => {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('folder', 'mobile/sop-docs');
+        fd.append('filename', `${user.id}-${job.order_code}-doc-${i}-${timestamp}`);
+        return supabase.functions.invoke('upload-to-s3', { body: fd });
+      });
 
       const weightSlipUploadPromises = weightSlips.map((ws, i) => {
         const wsFormData = new FormData();
@@ -449,18 +452,19 @@ export default function SOPCheckInPage() {
       });
 
       // Execute all uploads in parallel
-      const [productResult, docResult, ...weightSlipResults] = await Promise.all([
-        productUploadPromise,
-        docUploadPromise,
-        ...weightSlipUploadPromises,
-      ]);
+      const productResults = await Promise.all(productUploadPromises);
+      const docResults = await Promise.all(docUploadPromises);
+      const weightSlipResults = await Promise.all(weightSlipUploadPromises);
 
-      if (productResult.error || !productResult.data?.url) {
-        throw new Error('Failed to upload product image');
+      const productImageUrls = productResults
+        .filter(r => !r.error && r.data?.url)
+        .map(r => r.data.url);
+      if (productImageUrls.length === 0) {
+        throw new Error('Failed to upload product images');
       }
-
-      const productImageUrl = productResult.data.url;
-      const documentImageUrl = docResult.data?.url || null;
+      const documentImageUrls = docResults
+        .filter(r => !r.error && r.data?.url)
+        .map(r => r.data.url);
       const weightSlipImageUrls = weightSlipResults
         .filter(r => !r.error && r.data?.url)
         .map(r => r.data.url);
@@ -468,19 +472,14 @@ export default function SOPCheckInPage() {
       // Determine driver type
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Build document images array (without weight slip images)
-      const docImages = [
-        ...(documentImageUrl ? [documentImageUrl] : []),
-      ];
-
       // Call driver-sop API directly
       const sopBody: Record<string, unknown> = {
         order_number: job.order_code,
         driver_id: user.id,
         driver_type: driverType,
         sop_type: 'pickup',
-        product_images: [productImageUrl],
-        document_images: docImages,
+        product_images: productImageUrls,
+        document_images: documentImageUrls,
       };
 
       // Build weight_slips array with image_url per slip
