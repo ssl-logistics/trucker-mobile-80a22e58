@@ -32,8 +32,8 @@ interface WeightSlipItem {
 interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
-  sop_photo_url: string | null;
-  doc_photo_url: string | null;
+  sop_photo_urls: string[];
+  doc_photo_urls: string[];
   weight_slips: WeightSlipItem[];
   sop_driver_id: string | null;
 }
@@ -49,8 +49,10 @@ export default function PickupSummaryPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
-  const { url: docPhotoUrl } = usePresignedImageUrl(sopData?.doc_photo_url || null);
+  const sopPhotoOriginalUrls = sopData?.sop_photo_urls || [];
+  const docPhotoOriginalUrls = sopData?.doc_photo_urls || [];
+  const { urls: sopPhotoUrls } = usePresignedImageUrls(sopPhotoOriginalUrls);
+  const { urls: docPhotoUrls } = usePresignedImageUrls(docPhotoOriginalUrls);
   const weightSlipImageUrls = (sopData?.weight_slips || []).map(ws => ws.image_url || null);
   const { urls: weightSlipPresignedUrls } = usePresignedImageUrls(weightSlipImageUrls);
   const photoEditCompletedAt = sopData?.sop_completed_at || null;
@@ -143,19 +145,14 @@ export default function PickupSummaryPage() {
           : (sopData.sop_type === 'pickup' || sopData.status === 'pickup') ? sopData : null;
 
           if (pickupSOP) {
-            // Get the first product image as SOP photo
-            const productImages = pickupSOP.product_images || [];
-            const photoUrl = productImages.length > 0 ? productImages[0] : null;
-            
-            // Get the first document image
-            const documentImages = pickupSOP.document_images || [];
-            const docUrl = documentImages.length > 0 ? documentImages[0] : null;
+            const productImages: string[] = pickupSOP.product_images || [];
+            const documentImages: string[] = pickupSOP.document_images || [];
 
             setSopData({
               checked_in_at: checkedInAt || pickupSOP.checked_in_at || null,
               sop_completed_at: pickupSOP.recorded_at || pickupSOP.created_at || null,
-              sop_photo_url: photoUrl,
-              doc_photo_url: docUrl,
+              sop_photo_urls: productImages,
+              doc_photo_urls: documentImages,
               weight_slips: pickupSOP.weight_slips || [],
               sop_driver_id: pickupSOP.internal_driver_id || pickupSOP.external_driver_id || pickupSOP.freelance_driver_id || pickupSOP.driver_id || null,
             });
@@ -164,8 +161,8 @@ export default function PickupSummaryPage() {
           setSopData({
             checked_in_at: checkedInAt,
             sop_completed_at: null,
-            sop_photo_url: null,
-            doc_photo_url: null,
+            sop_photo_urls: [],
+            doc_photo_urls: [],
             weight_slips: [],
             sop_driver_id: null,
           });
@@ -175,8 +172,8 @@ export default function PickupSummaryPage() {
         setSopData({
           checked_in_at: checkedInAt,
           sop_completed_at: null,
-          sop_photo_url: null,
-          doc_photo_url: null,
+          sop_photo_urls: [],
+          doc_photo_urls: [],
           weight_slips: [],
           sop_driver_id: null,
         });
@@ -271,37 +268,49 @@ export default function PickupSummaryPage() {
             </div>
 
             {/* SOP Photos */}
-            {(sopPhotoUrl || docPhotoUrl) && (
+            {(sopPhotoUrls.some(Boolean) || docPhotoUrls.some(Boolean)) && (
               <div className="mt-4 space-y-3">
-                {sopPhotoUrl && (
+                {sopPhotoUrls.some(Boolean) && (
                   <div>
-                    <p className="text-sm font-medium text-green-800 mb-2">รูปสินค้า</p>
-                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                      <EditablePhoto
-                        src={sopPhotoUrl}
-                        alt="Product Photo"
-                        originalUrl={sopData?.sop_photo_url}
-                        folder="sop-photos"
-                        filenamePrefix={`${user?.id}-${jobId}-product-edit`}
-                        completedAt={photoEditCompletedAt}
-                        fromHistory={fromHistory} isOwnData={isOwnSopData} 
-                      />
+                    <p className="text-sm font-medium text-green-800 mb-2">
+                      รูปสินค้า ({sopPhotoOriginalUrls.length} รูป)
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {sopPhotoUrls.map((url, idx) => url && (
+                        <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                          <EditablePhoto
+                            src={url}
+                            alt={`Product Photo ${idx + 1}`}
+                            originalUrl={sopPhotoOriginalUrls[idx]}
+                            folder="sop-photos"
+                            filenamePrefix={`${user?.id}-${jobId}-product-${idx}-edit`}
+                            completedAt={photoEditCompletedAt}
+                            fromHistory={fromHistory} isOwnData={isOwnSopData}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
-                {docPhotoUrl && (
+                {docPhotoUrls.some(Boolean) && (
                   <div>
-                    <p className="text-sm font-medium text-green-800 mb-2">รูปเอกสาร</p>
-                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                      <EditablePhoto
-                        src={docPhotoUrl}
-                        alt="Document Photo"
-                        originalUrl={sopData?.doc_photo_url}
-                        folder="sop-photos"
-                        filenamePrefix={`${user?.id}-${jobId}-doc-edit`}
-                        completedAt={photoEditCompletedAt}
-                        fromHistory={fromHistory} isOwnData={isOwnSopData} 
-                      />
+                    <p className="text-sm font-medium text-green-800 mb-2">
+                      รูปเอกสาร ({docPhotoOriginalUrls.length} รูป)
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {docPhotoUrls.map((url, idx) => url && (
+                        <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                          <EditablePhoto
+                            src={url}
+                            alt={`Document Photo ${idx + 1}`}
+                            originalUrl={docPhotoOriginalUrls[idx]}
+                            folder="sop-photos"
+                            filenamePrefix={`${user?.id}-${jobId}-doc-${idx}-edit`}
+                            completedAt={photoEditCompletedAt}
+                            fromHistory={fromHistory} isOwnData={isOwnSopData}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
