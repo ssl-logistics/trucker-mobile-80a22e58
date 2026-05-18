@@ -771,7 +771,7 @@ export default function SOPCheckInPage() {
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={uploading || !photoFile || !docPhotoFile || ocrExtracting || (weightSlips.length > 0 && weightSlips.some(ws => ws.ocrData === null))}
+          disabled={uploading || photoFiles.length === 0 || docPhotoFiles.length === 0 || ocrExtracting || (weightSlips.length > 0 && weightSlips.some(ws => ws.ocrData === null))}
         >
           {t('sop.confirmSOP')}
         </Button>
