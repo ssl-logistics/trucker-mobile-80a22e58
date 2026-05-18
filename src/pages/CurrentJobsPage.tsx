@@ -1130,32 +1130,31 @@ export default function CurrentJobsPage() {
                             const isBookingJob = !!job.booking_no && !job.bl_no;
                             const intl = (job as any).international_details || {};
                             if (isBookingJob) {
-                              // DEBUG: log booking fields to find correct field name
-                              // eslint-disable-next-line no-console
-                              console.log('[BookingCard]', job.order_number, {
-                                root_keys: Object.keys(job).filter(k => /pickup|empty|cy|terminal|return|location|depot|port|yard/i.test(k)),
-                                intl_keys: Object.keys(intl),
-                                intl,
-                                pickup_location_name: (job as any).pickup_location_name,
-                                empty_pickup_location_name: (job as any).empty_pickup_location_name,
-                                empty_pickup_depot: (job as any).empty_pickup_depot,
-                                return_terminal_name: (job as any).return_terminal_name,
-                              });
-                              const emptyAddrExtract = extractDistrictProvince((job as any).empty_pickup_address || '');
-                              const returnAddrExtract = extractDistrictProvince((job as any).container_return_address || '');
-                              const originName = (job as any).pickup_location_name
-                                || intl.cy_empty_container
+                              const j: any = job;
+                              const emptyAddrExtract = extractDistrictProvince(j.empty_pickup_address || '');
+                              const returnAddrExtract = extractDistrictProvince(j.container_return_address || '');
+                              const originName = j.container_checkpoint
+                                || j.pickup_location_name
+                                || j.empty_pickup_depot
+                                || j.cy_empty_container
+                                || j.empty_pickup_location
+                                || j.empty_pickup_yard
+                                || j.cy_location
+                                || j.cy_name
+                                || j.yard_name
                                 || intl.empty_pickup_depot
+                                || intl.cy_empty_container
                                 || intl.pickup_location_name
-                                || (job as any).empty_pickup_location
-                                || (job as any).cy_yard_name
+                                || intl.empty_pickup_location
                                 || (emptyAddrExtract && emptyAddrExtract !== '-' ? emptyAddrExtract : null)
-                                || (job as any).empty_pickup_address
+                                || j.empty_pickup_address
                                 || '-';
-                              const destName = (job as any).return_terminal_name
-                                || (job as any).container_return_location
+                              const destName = j.return_terminal_name
+                                || j.container_return_location
+                                || intl.return_terminal_name
+                                || intl.container_return_location
                                 || (returnAddrExtract && returnAddrExtract !== '-' ? returnAddrExtract : null)
-                                || (job as any).container_return_address
+                                || j.container_return_address
                                 || '-';
                               return (
                                 <>
