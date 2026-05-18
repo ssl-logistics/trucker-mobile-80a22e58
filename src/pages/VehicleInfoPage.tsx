@@ -336,7 +336,7 @@ export default function VehicleInfoPage() {
     try {
       // Upload to S3 via edge function
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', await compressImage(file));
       formData.append('folder', 'vehicle-photos');
       formData.append('fileName', `${user.id}_${photoType}_${Date.now()}.${file.name.split('.').pop() || 'jpg'}`);
 
@@ -505,7 +505,7 @@ export default function VehicleInfoPage() {
     try {
       // Upload to S3 via edge function
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', await compressImage(file));
       formData.append('folder', 'driver-documents');
       formData.append('fileName', `${user.id}_registration_${Date.now()}.${file.name.split('.').pop() || 'jpg'}`);
 

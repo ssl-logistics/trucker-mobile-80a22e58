@@ -603,7 +603,7 @@ export default function DeliveryDetailPage() {
     // Upload photo to S3 if new one is selected
     if (podPhoto) {
       const formData = new FormData();
-      formData.append('file', podPhoto);
+      formData.append('file', await compressImage(podPhoto));
       formData.append('folder', 'mobile/pod-photos');
       formData.append('filename', `${user.id}-${job.order_code}-${Date.now()}`);
 

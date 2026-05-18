@@ -157,7 +157,7 @@ const Register = () => {
     try {
       // Create FormData for the file upload
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', await compressImage(file));
       formData.append('folder', bucket); // Use bucket as folder name in S3
       formData.append('fileName', `${path.replace(/\//g, '-')}-${Date.now()}.${file.name.split('.').pop() || 'jpg'}`);
 

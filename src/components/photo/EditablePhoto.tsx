@@ -93,7 +93,7 @@ export function EditablePhoto({
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', await compressImage(file));
 
       // Use originalUrl (raw S3 URL) to extract key for overwrite
       const urlForKey = originalUrl || src;

@@ -147,7 +147,7 @@ export default function ProfilePage() {
     try {
       // Upload to AWS S3 via edge function
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      formData.append('file', await compressImage(selectedFile));
       formData.append('folder', 'profile');
       formData.append('fileName', `${user.id}_${Date.now()}.${selectedFile.name.split('.').pop() || 'jpg'}`);
 
