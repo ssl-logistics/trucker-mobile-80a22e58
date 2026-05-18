@@ -268,37 +268,49 @@ export default function PickupSummaryPage() {
             </div>
 
             {/* SOP Photos */}
-            {(sopPhotoUrl || docPhotoUrl) && (
+            {(sopPhotoUrls.some(Boolean) || docPhotoUrls.some(Boolean)) && (
               <div className="mt-4 space-y-3">
-                {sopPhotoUrl && (
+                {sopPhotoUrls.some(Boolean) && (
                   <div>
-                    <p className="text-sm font-medium text-green-800 mb-2">รูปสินค้า</p>
-                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                      <EditablePhoto
-                        src={sopPhotoUrl}
-                        alt="Product Photo"
-                        originalUrl={sopData?.sop_photo_url}
-                        folder="sop-photos"
-                        filenamePrefix={`${user?.id}-${jobId}-product-edit`}
-                        completedAt={photoEditCompletedAt}
-                        fromHistory={fromHistory} isOwnData={isOwnSopData} 
-                      />
+                    <p className="text-sm font-medium text-green-800 mb-2">
+                      รูปสินค้า ({sopPhotoOriginalUrls.length} รูป)
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {sopPhotoUrls.map((url, idx) => url && (
+                        <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                          <EditablePhoto
+                            src={url}
+                            alt={`Product Photo ${idx + 1}`}
+                            originalUrl={sopPhotoOriginalUrls[idx]}
+                            folder="sop-photos"
+                            filenamePrefix={`${user?.id}-${jobId}-product-${idx}-edit`}
+                            completedAt={photoEditCompletedAt}
+                            fromHistory={fromHistory} isOwnData={isOwnSopData}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
-                {docPhotoUrl && (
+                {docPhotoUrls.some(Boolean) && (
                   <div>
-                    <p className="text-sm font-medium text-green-800 mb-2">รูปเอกสาร</p>
-                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                      <EditablePhoto
-                        src={docPhotoUrl}
-                        alt="Document Photo"
-                        originalUrl={sopData?.doc_photo_url}
-                        folder="sop-photos"
-                        filenamePrefix={`${user?.id}-${jobId}-doc-edit`}
-                        completedAt={photoEditCompletedAt}
-                        fromHistory={fromHistory} isOwnData={isOwnSopData} 
-                      />
+                    <p className="text-sm font-medium text-green-800 mb-2">
+                      รูปเอกสาร ({docPhotoOriginalUrls.length} รูป)
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {docPhotoUrls.map((url, idx) => url && (
+                        <div key={idx} className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                          <EditablePhoto
+                            src={url}
+                            alt={`Document Photo ${idx + 1}`}
+                            originalUrl={docPhotoOriginalUrls[idx]}
+                            folder="sop-photos"
+                            filenamePrefix={`${user?.id}-${jobId}-doc-${idx}-edit`}
+                            completedAt={photoEditCompletedAt}
+                            fromHistory={fromHistory} isOwnData={isOwnSopData}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
