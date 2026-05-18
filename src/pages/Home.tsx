@@ -613,12 +613,26 @@ const isValidName = (val: any): string => {
           }
         }
 
-        // Prepend sender_name to origin if available (same logic as factory jobs)
-        const originCompany = item.sender_name || item.sender_company_name || item.company_name || item.factory_name || '';
-        if (originCompany && originLocation && originLocation !== '-') {
-          originLocation = [originCompany, originLocation].filter(Boolean).join('\n');
-        } else if (originCompany && (!originLocation || originLocation === '-')) {
-          originLocation = originCompany;
+        // Booking job override: use pickup_location_name / return_terminal_name
+        const isBookingJob2 = !!(item.booking_no || item.booking_number) && !(item.bl_no || item.bill_of_lading || item.bl_number);
+        if (isBookingJob2) {
+          const intl2 = item.international_details || {};
+          originLocation = item.pickup_location_name
+            || intl2.cy_empty_container
+            || intl2.empty_pickup_depot
+            || intl2.pickup_location_name
+            || originLocation;
+          destinationLocation = item.return_terminal_name
+            || item.container_return_location
+            || destinationLocation;
+        } else {
+          // Prepend sender_name to origin if available (same logic as factory jobs)
+          const originCompany = item.sender_name || item.sender_company_name || item.company_name || item.factory_name || '';
+          if (originCompany && originLocation && originLocation !== '-') {
+            originLocation = [originCompany, originLocation].filter(Boolean).join('\n');
+          } else if (originCompany && (!originLocation || originLocation === '-')) {
+            originLocation = originCompany;
+          }
         }
         
         // Extract order code from title (format: "โพสต์หารถด่วน - OR20251203002")
