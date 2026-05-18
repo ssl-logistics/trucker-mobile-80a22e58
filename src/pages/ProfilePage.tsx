@@ -28,6 +28,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { toast } from '@/hooks/use-toast';
+import { compressImage } from '@/utils/imageCompression';
 
 interface LineUser {
   lineUserId: string;

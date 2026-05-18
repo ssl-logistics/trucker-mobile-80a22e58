@@ -19,6 +19,7 @@ import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
 import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { getTranslatedFuelType } from '@/utils/fuelTypeTranslation';
+import { compressImage } from '@/utils/imageCompression';
 
 interface VehicleData {
   id: string;

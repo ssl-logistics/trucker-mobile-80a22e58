@@ -31,6 +31,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
+import { compressImage } from '@/utils/imageCompression';
 
 interface JobDetail {
   id: string;

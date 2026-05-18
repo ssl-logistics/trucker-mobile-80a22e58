@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+import { compressImage } from '@/utils/imageCompression';
   Drawer,
   DrawerClose,
   DrawerContent,

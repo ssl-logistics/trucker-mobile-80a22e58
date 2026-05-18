@@ -13,6 +13,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
+import { compressImage } from '@/utils/imageCompression';
 
 interface EditablePhotoProps {
   src: string;
