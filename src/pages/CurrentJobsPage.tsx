@@ -1130,15 +1130,21 @@ export default function CurrentJobsPage() {
                             const isBookingJob = !!job.booking_no && !job.bl_no;
                             const intl = (job as any).international_details || {};
                             if (isBookingJob) {
+                              const emptyAddrExtract = extractDistrictProvince((job as any).empty_pickup_address || '');
+                              const returnAddrExtract = extractDistrictProvince((job as any).container_return_address || '');
                               const originName = (job as any).pickup_location_name
                                 || intl.cy_empty_container
                                 || intl.empty_pickup_depot
                                 || intl.pickup_location_name
-                                || extractDistrictProvince((job as any).empty_pickup_address || '')
+                                || (job as any).empty_pickup_location
+                                || (job as any).cy_yard_name
+                                || (emptyAddrExtract && emptyAddrExtract !== '-' ? emptyAddrExtract : null)
+                                || (job as any).empty_pickup_address
                                 || '-';
                               const destName = (job as any).return_terminal_name
                                 || (job as any).container_return_location
-                                || extractDistrictProvince((job as any).container_return_address || '')
+                                || (returnAddrExtract && returnAddrExtract !== '-' ? returnAddrExtract : null)
+                                || (job as any).container_return_address
                                 || '-';
                               return (
                                 <>
