@@ -2986,6 +2986,8 @@ const enTranslations: Record<string, string> = {
   'containerCheckin.alreadyCheckedInDesc': 'You have already checked in. Redirecting to SOP page...',
   'containerCheckin.arrivalNote': 'Arrived at empty container pickup',
   'containerCheckin.noLocationFound': 'Empty container pickup location not found',
+  'containerCheckin.returnTitle': 'Container Return Check-in',
+  'containerCheckin.returnArrivalNote': 'Arrived at container return location',
   // Vehicle Info Page
   'vehicle.title': 'Vehicle Information',
   'vehicle.dataTab': 'Vehicle Data',
