@@ -455,6 +455,7 @@ export default function CurrentJobsPage() {
           console.log(`[CurrentJobsPage] Final accepted jobs count: ${activeJobs.length}`);
           // Map to AcceptedJob format
           const mappedJobs: AcceptedJob[] = activeJobs.map((job: any) => ({
+            ...job,
             id: job.id,
             order_number: job.order_number,
             transport_type_id: job.transport_type_id,
@@ -782,6 +783,7 @@ export default function CurrentJobsPage() {
             return !!userAcceptedBid;
           })
           .map((ticket: any) => ({
+            ...ticket,
             id: ticket.id,
             order_number: ticket.ticket_number || ticket.order_code || ticket.post_code || ticket.ticket_code,
             transport_type_id: null,
