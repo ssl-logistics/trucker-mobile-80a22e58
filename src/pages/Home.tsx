@@ -92,7 +92,8 @@ export default function Home() {
 const isValidName = (val: any): string => {
   if (!val) return '';
   const s = String(val).trim();
-  if (!s || /^\d+$/.test(s) || s.length <= 2) return '';
+  const invalidNames = ['-', 'ไม่ระบุ', 'ไม่มีข้อมูล', 'n/a', 'na', 'null', 'undefined'];
+  if (!s || invalidNames.includes(s.toLowerCase()) || /^\d+$/.test(s) || s.length <= 2) return '';
   return s;
 };
 
@@ -387,7 +388,7 @@ const isValidName = (val: any): string => {
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
           destination_location: destinationLocation,
-          destination_company_name: item.destination_company_name || item.destination_name || null,
+          destination_company_name: isValidName(item.destination_company_name) || isValidName(item.destination_name) || null,
           price: item.transport_price || item.price || 0,
           start_date: item.sender_pickup_date || item.pickup_date || item.start_date || '',
           pickup_time: item.sender_pickup_time || item.pickup_time || item.start_time || '',
@@ -654,7 +655,7 @@ const isValidName = (val: any): string => {
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
           destination_location: destinationLocation,
-          destination_company_name: item.destination_company_name || item.destination_name || item.receiver_name || item.receiver_company_name || null,
+          destination_company_name: isValidName(item.destination_company_name) || isValidName(item.destination_name) || isValidName(item.receiver_name) || isValidName(item.receiver_company_name) || null,
           price: item.price || 0,
           start_date: item.pickup_date || item.start_date || item.period_start || '',
           pickup_time: item.pickup_time || item.start_time || '',
