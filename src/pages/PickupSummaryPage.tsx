@@ -32,8 +32,8 @@ interface WeightSlipItem {
 interface SOPData {
   checked_in_at: string | null;
   sop_completed_at: string | null;
-  sop_photo_url: string | null;
-  doc_photo_url: string | null;
+  sop_photo_urls: string[];
+  doc_photo_urls: string[];
   weight_slips: WeightSlipItem[];
   sop_driver_id: string | null;
 }
