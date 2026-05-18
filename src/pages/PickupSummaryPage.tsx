@@ -145,19 +145,14 @@ export default function PickupSummaryPage() {
           : (sopData.sop_type === 'pickup' || sopData.status === 'pickup') ? sopData : null;
 
           if (pickupSOP) {
-            // Get the first product image as SOP photo
-            const productImages = pickupSOP.product_images || [];
-            const photoUrl = productImages.length > 0 ? productImages[0] : null;
-            
-            // Get the first document image
-            const documentImages = pickupSOP.document_images || [];
-            const docUrl = documentImages.length > 0 ? documentImages[0] : null;
+            const productImages: string[] = pickupSOP.product_images || [];
+            const documentImages: string[] = pickupSOP.document_images || [];
 
             setSopData({
               checked_in_at: checkedInAt || pickupSOP.checked_in_at || null,
               sop_completed_at: pickupSOP.recorded_at || pickupSOP.created_at || null,
-              sop_photo_url: photoUrl,
-              doc_photo_url: docUrl,
+              sop_photo_urls: productImages,
+              doc_photo_urls: documentImages,
               weight_slips: pickupSOP.weight_slips || [],
               sop_driver_id: pickupSOP.internal_driver_id || pickupSOP.external_driver_id || pickupSOP.freelance_driver_id || pickupSOP.driver_id || null,
             });
@@ -166,8 +161,8 @@ export default function PickupSummaryPage() {
           setSopData({
             checked_in_at: checkedInAt,
             sop_completed_at: null,
-            sop_photo_url: null,
-            doc_photo_url: null,
+            sop_photo_urls: [],
+            doc_photo_urls: [],
             weight_slips: [],
             sop_driver_id: null,
           });
@@ -177,8 +172,8 @@ export default function PickupSummaryPage() {
         setSopData({
           checked_in_at: checkedInAt,
           sop_completed_at: null,
-          sop_photo_url: null,
-          doc_photo_url: null,
+          sop_photo_urls: [],
+          doc_photo_urls: [],
           weight_slips: [],
           sop_driver_id: null,
         });
