@@ -537,7 +537,7 @@ export default function ContainerCheckInPage() {
             <p className="text-xs opacity-80">
               {isContainerReturn 
                 ? (job.container_return_location || '-') 
-                : (job.container_checkpoint || job.origin_location || '-')}
+                : (job.container_checkpoint || '-')}
             </p>
           </div>
         </div>
