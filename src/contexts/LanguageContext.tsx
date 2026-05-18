@@ -1233,6 +1233,8 @@ const thTranslations: Record<string, string> = {
   'containerCheckin.alreadyCheckedInDesc': 'คุณได้เช็คอินจุดรับตู้เปล่าไปแล้ว กำลังไปหน้า SOP...',
   'containerCheckin.arrivalNote': 'ถึงจุดรับตู้เปล่าแล้ว',
   'containerCheckin.noLocationFound': 'ไม่พบข้อมูลสถานที่รับตู้เปล่า',
+  'containerCheckin.returnTitle': 'เช็คอินจุดคืนตู้',
+  'containerCheckin.returnArrivalNote': 'ถึงจุดคืนตู้แล้ว',
   
   // Vehicle Info Page
   'vehicle.title': 'ข้อมูลรถ',
