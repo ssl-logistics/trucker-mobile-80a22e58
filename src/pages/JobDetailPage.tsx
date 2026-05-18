@@ -370,13 +370,27 @@ export default function JobDetailPage() {
             start_time: foundJob.sender_pickup_time || foundJob.start_time || '',
             equipment_list: foundJob.vehicle_type || foundJob.equipment_list || null,
             safety_equipment: null,
-            container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || null,
+            container_checkpoint:
+              foundJob.container_checkpoint ||
+              foundJob.empty_pickup_depot ||
+              foundJob.cy_empty_container ||
+              foundJob.empty_pickup_location ||
+              foundJob.empty_pickup_yard ||
+              foundJob.cy_location ||
+              foundJob.cy_name ||
+              foundJob.yard_name ||
+              null,
             container_checkpoint_code: foundJob.container_checkpoint_code || null,
             empty_container_date: foundJob.first_pickup_date || foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
-            empty_pickup_address: foundJob.empty_pickup_address || null,
-            empty_pickup_phone: foundJob.empty_pickup_phone || null,
-            empty_pickup_date: foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
-            empty_pickup_time: foundJob.empty_pickup_time || foundJob.sender_pickup_time || null,
+            empty_pickup_address:
+              foundJob.empty_pickup_address ||
+              foundJob.cy_empty_container_address ||
+              foundJob.empty_pickup_location_address ||
+              foundJob.cy_address ||
+              null,
+            empty_pickup_phone: foundJob.empty_pickup_phone || foundJob.cy_phone || null,
+            empty_pickup_date: foundJob.empty_pickup_date || foundJob.first_pickup_date || foundJob.sender_pickup_date || null,
+            empty_pickup_time: foundJob.empty_pickup_time || foundJob.first_pickup_time || foundJob.sender_pickup_time || null,
             container_number: foundJob.container_number || null,
             container_number_2: foundJob.container_number_2 || null,
             seal_number: foundJob.seal_number || null,
