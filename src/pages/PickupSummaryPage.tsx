@@ -49,8 +49,10 @@ export default function PickupSummaryPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { url: sopPhotoUrl } = usePresignedImageUrl(sopData?.sop_photo_url || null);
-  const { url: docPhotoUrl } = usePresignedImageUrl(sopData?.doc_photo_url || null);
+  const sopPhotoOriginalUrls = sopData?.sop_photo_urls || [];
+  const docPhotoOriginalUrls = sopData?.doc_photo_urls || [];
+  const { urls: sopPhotoUrls } = usePresignedImageUrls(sopPhotoOriginalUrls);
+  const { urls: docPhotoUrls } = usePresignedImageUrls(docPhotoOriginalUrls);
   const weightSlipImageUrls = (sopData?.weight_slips || []).map(ws => ws.image_url || null);
   const { urls: weightSlipPresignedUrls } = usePresignedImageUrls(weightSlipImageUrls);
   const photoEditCompletedAt = sopData?.sop_completed_at || null;
