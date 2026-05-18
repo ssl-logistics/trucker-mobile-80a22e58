@@ -557,7 +557,7 @@ export default function ContainerCheckInPage() {
             <p className="text-base font-semibold text-[#225795]">
               {isContainerReturn 
                 ? (job.container_return_location || '-') 
-                : (job.container_checkpoint || job.origin_location || '-')}
+                : (job.container_checkpoint || '-')}
             </p>
           </div>
 
