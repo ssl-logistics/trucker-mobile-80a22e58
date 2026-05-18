@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+import { compressImage } from '@/utils/imageCompression';
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -695,7 +696,7 @@ const ContainerSOPPage = () => {
         const fileExt = file.name.split('.').pop();
         const fileName = `eir_${jobId}_${timestamp}_${i}.${fileExt}`;
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', await compressImage(file));
         formData.append('folder', 'container-photos');
         formData.append('fileName', fileName);
         return supabase.functions.invoke('upload-to-s3', { body: formData });
@@ -705,7 +706,7 @@ const ContainerSOPPage = () => {
       const blUploadPromises = (isBLJob && !isContainerReturn) 
         ? blContainerPhotoFiles.filter(Boolean).map((file, i) => {
             const aFormData = new FormData();
-            aFormData.append('file', file);
+            aFormData.append('file', await compressImage(file));
             aFormData.append('folder', 'container-photos');
             aFormData.append('fileName', `container_photo_${i}_${jobId}_${timestamp}.${file.name.split('.').pop() || 'jpg'}`);
             return supabase.functions.invoke('upload-to-s3', { body: aFormData });
@@ -715,7 +716,7 @@ const ContainerSOPPage = () => {
       // Prepare container & seal photo promises
       const containerUploadPromise = containerPhotoFile ? (() => {
         const cFormData = new FormData();
-        cFormData.append('file', containerPhotoFile);
+        cFormData.append('file', await compressImage(containerPhotoFile));
         cFormData.append('folder', 'container-photos');
         cFormData.append('fileName', `ocr_container_${jobId}_${timestamp}.${containerPhotoFile.name.split('.').pop() || 'jpg'}`);
         return supabase.functions.invoke('upload-to-s3', { body: cFormData });
@@ -723,7 +724,7 @@ const ContainerSOPPage = () => {
 
       const sealUploadPromise = sealPhotoFile ? (() => {
         const sFormData = new FormData();
-        sFormData.append('file', sealPhotoFile);
+        sFormData.append('file', await compressImage(sealPhotoFile));
         sFormData.append('folder', 'container-photos');
         sFormData.append('fileName', `ocr_seal_${jobId}_${timestamp}.${sealPhotoFile.name.split('.').pop() || 'jpg'}`);
         return supabase.functions.invoke('upload-to-s3', { body: sFormData });

@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/drawer";
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
+import { compressImage } from '@/utils/imageCompression';
 
 interface DestinationProduct {
   product_name: string;
@@ -602,7 +603,7 @@ export default function DeliveryDetailPage() {
     // Upload photo to S3 if new one is selected
     if (podPhoto) {
       const formData = new FormData();
-      formData.append('file', podPhoto);
+      formData.append('file', await compressImage(podPhoto));
       formData.append('folder', 'mobile/pod-photos');
       formData.append('filename', `${user.id}-${job.order_code}-${Date.now()}`);
 

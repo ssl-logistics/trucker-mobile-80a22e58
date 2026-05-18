@@ -15,6 +15,7 @@ import { useNativeCamera } from "@/hooks/useNativeCamera";
 import { supabase } from "@/integrations/supabase/client";
 import { submitAccidentEvidence } from "@/lib/externalApi";
 import {
+import { compressImage } from '@/utils/imageCompression';
   Drawer,
   DrawerContent,
   DrawerHeader,
@@ -118,7 +119,7 @@ export default function AccidentEvidenceModal({
     try {
       const folder = `accident-evidence/${orderNumber || orderId || "unknown"}`;
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", await compressImage(file));
       formData.append("folder", folder);
 
       const { data, error } = await supabase.functions.invoke("upload-to-s3", {

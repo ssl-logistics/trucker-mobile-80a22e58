@@ -31,6 +31,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
+import { compressImage } from '@/utils/imageCompression';
 
 interface JobDetail {
   id: string;
@@ -428,7 +429,7 @@ export default function SOPCheckInPage() {
       // Product photos (up to 6)
       const productUploadPromises = photoFiles.map((file, i) => {
         const fd = new FormData();
-        fd.append('file', file);
+        fd.append('file', await compressImage(file));
         fd.append('folder', 'mobile/sop-photos');
         fd.append('filename', `${user.id}-${job.order_code}-product-${i}-${timestamp}`);
         return supabase.functions.invoke('upload-to-s3', { body: fd });
@@ -437,7 +438,7 @@ export default function SOPCheckInPage() {
       // Document photos (up to 6)
       const docUploadPromises = docPhotoFiles.map((file, i) => {
         const fd = new FormData();
-        fd.append('file', file);
+        fd.append('file', await compressImage(file));
         fd.append('folder', 'mobile/sop-docs');
         fd.append('filename', `${user.id}-${job.order_code}-doc-${i}-${timestamp}`);
         return supabase.functions.invoke('upload-to-s3', { body: fd });
@@ -445,7 +446,7 @@ export default function SOPCheckInPage() {
 
       const weightSlipUploadPromises = weightSlips.map((ws, i) => {
         const wsFormData = new FormData();
-        wsFormData.append('file', ws.file);
+        wsFormData.append('file', await compressImage(ws.file));
         wsFormData.append('folder', 'mobile/sop-weightslip');
         wsFormData.append('filename', `${user.id}-${job.order_code}-weightslip-${i}-${timestamp}`);
         return supabase.functions.invoke('upload-to-s3', { body: wsFormData });
