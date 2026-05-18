@@ -1517,14 +1517,18 @@ export default function DomesticJobDetail({
                       const addressValue = job.empty_pickup_address || (isBl ? (j.container_return_address || j.container_return_location) : null);
                       return (
                         <>
-                          <p className="font-semibold text-sm text-[#225795] mb-2">{headline}</p>
                           <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.place') || 'สถานที่'}</span>
+                              <span className="font-semibold text-[#225795]">{headline}</span>
+                            </div>
                             <div className="flex items-start gap-2">
                               <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
                               <span>{dateValue ? formatDate(dateValue, language) : '-'}{timeValue ? ` ${timeValue}` : ''}</span>
                             </div>
-                            {addressValue && (
+                            {addressValue && addressValue !== headline && (
                               <div className="flex items-start gap-2">
                                 <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                                 <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
