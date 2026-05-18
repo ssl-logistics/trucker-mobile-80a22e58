@@ -4898,6 +4898,8 @@ const koTranslations: Record<string, string> = {
   'containerCheckin.alreadyCheckedInDesc': '이미 체크인했습니다. SOP 페이지로 이동합니다...',
   'containerCheckin.arrivalNote': '빈 컨테이너 픽업 지점 도착',
   'containerCheckin.noLocationFound': '빈 컨테이너 픽업 위치를 찾을 수 없습니다',
+  'containerCheckin.returnTitle': '컨테이너 반납 체크인',
+  'containerCheckin.returnArrivalNote': '컨테이너 반납 지점 도착',
   
   // App Update
   'app.newVersion': '새 버전이 있습니다! 업데이트하려면 확인을 클릭하세요',
