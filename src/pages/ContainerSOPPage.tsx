@@ -25,7 +25,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-import { compressImage } from '@/utils/imageCompression';
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -33,6 +32,7 @@ import { compressImage } from '@/utils/imageCompression';
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { compressImage } from '@/utils/imageCompression';
 
 interface ContainerDetail {
   containerNo?: string;
