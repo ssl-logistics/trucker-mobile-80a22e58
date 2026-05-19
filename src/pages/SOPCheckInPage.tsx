@@ -427,7 +427,7 @@ export default function SOPCheckInPage() {
       const timestamp = Date.now();
 
       // Product photos (up to 6)
-      const productUploadPromises = photoFiles.map((file, i) => {
+      const productUploadPromises = photoFiles.map(async (file, i) => {
         const fd = new FormData();
         fd.append('file', await compressImage(file));
         fd.append('folder', 'mobile/sop-photos');
@@ -436,7 +436,7 @@ export default function SOPCheckInPage() {
       });
 
       // Document photos (up to 6)
-      const docUploadPromises = docPhotoFiles.map((file, i) => {
+      const docUploadPromises = docPhotoFiles.map(async (file, i) => {
         const fd = new FormData();
         fd.append('file', await compressImage(file));
         fd.append('folder', 'mobile/sop-docs');
@@ -444,7 +444,7 @@ export default function SOPCheckInPage() {
         return supabase.functions.invoke('upload-to-s3', { body: fd });
       });
 
-      const weightSlipUploadPromises = weightSlips.map((ws, i) => {
+      const weightSlipUploadPromises = weightSlips.map(async (ws, i) => {
         const wsFormData = new FormData();
         wsFormData.append('file', await compressImage(ws.file));
         wsFormData.append('folder', 'mobile/sop-weightslip');
