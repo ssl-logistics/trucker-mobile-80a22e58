@@ -15,12 +15,12 @@ import { useNativeCamera } from "@/hooks/useNativeCamera";
 import { supabase } from "@/integrations/supabase/client";
 import { submitAccidentEvidence } from "@/lib/externalApi";
 import {
-import { compressImage } from '@/utils/imageCompression';
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { compressImage } from '@/utils/imageCompression';
 
 interface AccidentEvidenceModalProps {
   open: boolean;
