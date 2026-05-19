@@ -25,7 +25,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-import { compressImage } from '@/utils/imageCompression';
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -33,6 +32,7 @@ import { compressImage } from '@/utils/imageCompression';
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { compressImage } from '@/utils/imageCompression';
 
 interface ContainerDetail {
   containerNo?: string;
@@ -692,7 +692,7 @@ const ContainerSOPPage = () => {
       const timestamp = Date.now();
       
       // Prepare EIR upload promises
-      const eirUploadPromises = eirPhotoFiles.map((file, i) => {
+      const eirUploadPromises = eirPhotoFiles.map(async (file, i) => {
         const fileExt = file.name.split('.').pop();
         const fileName = `eir_${jobId}_${timestamp}_${i}.${fileExt}`;
         const formData = new FormData();
@@ -704,7 +704,7 @@ const ContainerSOPPage = () => {
 
       // Prepare BL container photo promises
       const blUploadPromises = (isBLJob && !isContainerReturn) 
-        ? blContainerPhotoFiles.filter(Boolean).map((file, i) => {
+        ? blContainerPhotoFiles.filter(Boolean).map(async (file, i) => {
             const aFormData = new FormData();
             aFormData.append('file', await compressImage(file));
             aFormData.append('folder', 'container-photos');
@@ -714,7 +714,7 @@ const ContainerSOPPage = () => {
         : [];
 
       // Prepare container & seal photo promises
-      const containerUploadPromise = containerPhotoFile ? (() => {
+      const containerUploadPromise = containerPhotoFile ? (async () => {
         const cFormData = new FormData();
         cFormData.append('file', await compressImage(containerPhotoFile));
         cFormData.append('folder', 'container-photos');
@@ -722,7 +722,7 @@ const ContainerSOPPage = () => {
         return supabase.functions.invoke('upload-to-s3', { body: cFormData });
       })() : Promise.resolve({ data: null, error: null });
 
-      const sealUploadPromise = sealPhotoFile ? (() => {
+      const sealUploadPromise = sealPhotoFile ? (async () => {
         const sFormData = new FormData();
         sFormData.append('file', await compressImage(sealPhotoFile));
         sFormData.append('folder', 'container-photos');
