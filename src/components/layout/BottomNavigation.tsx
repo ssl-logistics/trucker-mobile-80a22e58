@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, LayoutGrid, MessageCircle, Settings } from "lucide-react";
+import { Home, LayoutGrid, Phone, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useCall } from "@/components/call/CallProvider";
@@ -9,8 +9,6 @@ import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
 import DashboardIcon from "@/assets/dashboard-icon.svg";
 import DashboardIconActive from "@/assets/dashboard-icon-active.svg";
-import ChatIcon from "@/assets/chat-icon.svg";
-import ChatIconActive from "@/assets/chat-icon-active.svg";
 import SettingsIcon from "@/assets/settings-icon.svg";
 import SettingsIconActive from "@/assets/settings-icon-active.svg";
 
@@ -46,11 +44,9 @@ export function BottomNavigation() {
       showForFreelanceOnly: true,
     },
     {
-      icon: MessageCircle,
+      icon: Phone,
       label: t("nav.chat"),
       path: "/chat",
-      customIcon: ChatIcon,
-      customActiveIcon: ChatIconActive,
     },
     {
       icon: Settings,
