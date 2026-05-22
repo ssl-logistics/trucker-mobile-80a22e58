@@ -46,11 +46,9 @@ export function BottomNavigation() {
       showForFreelanceOnly: true,
     },
     {
-      icon: MessageCircle,
+      icon: Phone,
       label: t("nav.chat"),
       path: "/chat",
-      customIcon: ChatIcon,
-      customActiveIcon: ChatIconActive,
     },
     {
       icon: Settings,
