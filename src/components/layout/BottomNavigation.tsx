@@ -9,8 +9,6 @@ import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
 import DashboardIcon from "@/assets/dashboard-icon.svg";
 import DashboardIconActive from "@/assets/dashboard-icon-active.svg";
-import ChatIcon from "@/assets/chat-icon.svg";
-import ChatIconActive from "@/assets/chat-icon-active.svg";
 import SettingsIcon from "@/assets/settings-icon.svg";
 import SettingsIconActive from "@/assets/settings-icon-active.svg";
 
