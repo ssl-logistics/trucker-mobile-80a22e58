@@ -461,7 +461,9 @@ export default function CurrentJobsPage() {
             transport_type_id: job.transport_type_id,
             transport_mode: job.transport_mode,
             status: job.status,
-            sender_name: job.factory_name || job.sender_company_name || job.sender_name || job.company_name || job.employer_name || '',
+            sender_name: ((job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_mode && ['sea', 'air'].includes((job.transport_mode || '').toLowerCase())) || (job.transport_category && job.transport_category !== 'domestic'))
+              ? (job.assigned_company || job.assignedCompany || '')
+              : (job.factory_name || job.sender_company_name || job.sender_name || job.company_name || job.employer_name || '')),
             sender_address: job.sender_address || '',
             sender_latitude: job.sender_latitude,
             sender_longitude: job.sender_longitude,
@@ -789,7 +791,9 @@ export default function CurrentJobsPage() {
             transport_type_id: null,
             transport_mode: ticket.transport_type || ticket.post_type,
             status: ticket.status || 'accepted',
-            sender_name: ticket.customer?.company_name || ticket.creator?.company_name || ticket.creator?.full_name || ticket.company_name || ticket.employer_name || ticket.factory_name || '',
+            sender_name: (isInternationalJob(ticket)
+              ? (ticket.assigned_company || ticket.assignedCompany || '')
+              : (ticket.customer?.company_name || ticket.creator?.company_name || ticket.creator?.full_name || ticket.company_name || ticket.employer_name || ticket.factory_name || '')),
             sender_address: ticket.pickup_location?.address || ticket.sender_address || ticket.origin_address || '',
             sender_latitude: ticket.pickup_location?.latitude || ticket.origin_lat || null,
             sender_longitude: ticket.pickup_location?.longitude || ticket.origin_lng || null,
@@ -1129,35 +1133,14 @@ export default function CurrentJobsPage() {
                         </div>
                         <div className="flex-1 space-y-2">
                           {(() => {
-                            const isBookingJob = !!job.booking_no && !job.bl_no;
-                            const intl = (job as any).international_details || {};
-                            if (isBookingJob) {
-                              const j: any = job;
-                              const emptyAddrExtract = extractDistrictProvince(j.empty_pickup_address || '');
-                              const returnAddrExtract = extractDistrictProvince(j.container_return_address || '');
-                              const originName = j.container_checkpoint
-                                || j.pickup_location_name
-                                || j.empty_pickup_depot
-                                || j.cy_empty_container
-                                || j.empty_pickup_location
-                                || j.empty_pickup_yard
-                                || j.cy_location
-                                || j.cy_name
-                                || j.yard_name
-                                || intl.empty_pickup_depot
-                                || intl.cy_empty_container
-                                || intl.pickup_location_name
-                                || intl.empty_pickup_location
-                                || (emptyAddrExtract && emptyAddrExtract !== '-' ? emptyAddrExtract : null)
-                                || j.empty_pickup_address
-                                || '-';
-                              const destName = j.return_terminal_name
-                                || j.container_return_location
-                                || intl.return_terminal_name
-                                || intl.container_return_location
-                                || (returnAddrExtract && returnAddrExtract !== '-' ? returnAddrExtract : null)
-                                || j.container_return_address
-                                || '-';
+                            const j: any = job;
+                            const isIntl = j.job_type === 'international' || !!j.bl_no || !!j.booking_no;
+                            const intl = j.international_details || {};
+                            if (isIntl) {
+                              const originObj = j.origin || intl.origin || {};
+                              const returnObj = j.return_terminal || intl.return_terminal || {};
+                              const originName = originObj.name || '-';
+                              const destName = returnObj.location || returnObj.name || '-';
                               return (
                                 <>
                                   <div className="text-xs">
