@@ -278,16 +278,20 @@ export default function DeliveryDetailPage() {
           
           // Use target destination data if available, otherwise use job-level data
           const destData = targetDestination || foundJob;
-          const rawCargoPoint = foundJob.cargo_point || {};
+          const rawCargoPoint =
+            (targetDestination && (targetDestination as any).cargo_point) ||
+            foundJob.cargo_point ||
+            {};
+          const cpSource: any = targetDestination || foundJob;
           const cargoPoint = {
-            name: rawCargoPoint.name || foundJob.cargo_point_name || null,
-            address: rawCargoPoint.address ?? foundJob.cargo_point_address ?? null,
-            province: rawCargoPoint.province || foundJob.cargo_point_province || null,
-            district: rawCargoPoint.district || foundJob.cargo_point_district || null,
-            latitude: rawCargoPoint.latitude ?? foundJob.cargo_point_latitude ?? null,
-            longitude: rawCargoPoint.longitude ?? foundJob.cargo_point_longitude ?? null,
-            phone: rawCargoPoint.phone || foundJob.cargo_point_phone || null,
-            contact_name: rawCargoPoint.contact_name || foundJob.cargo_point_contact_name || null,
+            name: rawCargoPoint.name || cpSource.cargo_point_name || foundJob.cargo_point_name || null,
+            address: rawCargoPoint.address ?? cpSource.cargo_point_address ?? foundJob.cargo_point_address ?? null,
+            province: rawCargoPoint.province || cpSource.cargo_point_province || foundJob.cargo_point_province || null,
+            district: rawCargoPoint.district || cpSource.cargo_point_district || foundJob.cargo_point_district || null,
+            latitude: rawCargoPoint.latitude ?? cpSource.cargo_point_latitude ?? foundJob.cargo_point_latitude ?? null,
+            longitude: rawCargoPoint.longitude ?? cpSource.cargo_point_longitude ?? foundJob.cargo_point_longitude ?? null,
+            phone: rawCargoPoint.phone || cpSource.cargo_point_phone || foundJob.cargo_point_phone || null,
+            contact_name: rawCargoPoint.contact_name || cpSource.cargo_point_contact_name || foundJob.cargo_point_contact_name || null,
           };
           const hasCargoPoint = Boolean(
             cargoPoint.name ||
