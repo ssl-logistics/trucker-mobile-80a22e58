@@ -468,6 +468,28 @@ export default function ContainerSummaryPage() {
                       <span className="text-sm font-medium text-foreground">{ocrScanData.seal_no}</span>
                     </div>
                   )}
+                  {(ocrScanData.max_gross != null || ocrScanData.tare_weight != null || ocrScanData.net_weight != null) && (
+                    <div className="pt-2 mt-2 border-t border-border grid grid-cols-3 gap-2">
+                      <div>
+                        <div className="text-xs text-muted-foreground">MAX GROSS</div>
+                        <div className="text-sm font-medium text-foreground">
+                          {ocrScanData.max_gross != null ? `${Number(ocrScanData.max_gross).toLocaleString()} kg` : '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">TARE</div>
+                        <div className="text-sm font-medium text-foreground">
+                          {ocrScanData.tare_weight != null ? `${Number(ocrScanData.tare_weight).toLocaleString()} kg` : '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">NET</div>
+                        <div className="text-sm font-medium text-foreground">
+                          {ocrScanData.net_weight != null ? `${Number(ocrScanData.net_weight).toLocaleString()} kg` : '-'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
