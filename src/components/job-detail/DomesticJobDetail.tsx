@@ -1650,27 +1650,27 @@ export default function DomesticJobDetail({
                         </span>
                     }
                     </div>
-                    <div className={`p-4 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                    <div className={`p-5 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       {job.origin_company_name &&
                     <p className="font-semibold text-sm text-[#225795] mb-2">{job.origin_company_name}</p>
                     }
 
-                      <div className="space-y-1.5 text-xs text-foreground mb-3">
+                      <div className="space-y-2 text-sm text-foreground mb-3">
                         <div className="flex items-start gap-2">
-                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.origin_location || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
-                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {(() => { const v = job.origin_contact_person; const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; return v && !generic.includes(v.trim()) ? v : '-'; })()}</span>
                         </div>
                         <div className="flex items-start gap-2">
-                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
                         </div>
                         {job.origin_goods_type && job.origin_goods_type !== '-' &&
                       <div className="flex items-start gap-2">
-                            <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                             <Package className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <div className="flex-1 flex flex-wrap items-center gap-1">
                               <strong className="text-foreground mr-1">{t('jobDetail.goodsType')}:</strong>
                               {(() => {
@@ -1705,7 +1705,7 @@ export default function DomesticJobDetail({
                       }
                         {job.origin_remarks && job.origin_remarks !== '-' &&
                       <div className="flex items-start gap-2">
-                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                             <FileText className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <span>{job.origin_remarks}</span>
                           </div>
                       }
