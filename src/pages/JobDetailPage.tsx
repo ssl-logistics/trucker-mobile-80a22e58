@@ -562,6 +562,27 @@ export default function JobDetailPage() {
             if (cargoObj.latitude != null) mappedJob.destination_latitude = cargoObj.latitude;
             if (cargoObj.longitude != null) mappedJob.destination_longitude = cargoObj.longitude;
             if (cargoObj.phone) mappedJob.destination_contact_phone = cargoObj.phone;
+            if (cargoObj.name || cargoObj.address || cargoObj.district || cargoObj.province) {
+              mappedJob.destinations = [{
+                id: `cargo-point-${foundJob.id || jobId}`,
+                sequence_number: 1,
+                company_name: cargoObj.name || null,
+                contact_name: null,
+                contact_phone: cargoObj.phone || null,
+                address: cargoObj.address || null,
+                province: cargoObj.province || null,
+                district: cargoObj.district || null,
+                delivery_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date || null,
+                delivery_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time || null,
+                checked_in_at: null,
+                sop_completed_at: null,
+                goods_type: foundJob.product_name || null,
+                invoice_number: mappedJob.destination_bill_of_lading || null,
+                latitude: cargoObj.latitude ?? null,
+                longitude: cargoObj.longitude ?? null,
+                products: Array.isArray(foundJob.products) ? foundJob.products : undefined,
+              }];
+            }
 
             // จุดคืนตู้ (return_terminal)
             const returnName = returnObj.location || returnObj.name;
