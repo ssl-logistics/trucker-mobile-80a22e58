@@ -129,6 +129,9 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     container_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.container_photos))),
     eir_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.eir_photos))),
     driver_id: pickupRecords[0]?.internal_driver_id || pickupRecords[0]?.external_driver_id || pickupRecords[0]?.freelance_driver_id || pickupRecords[0]?.driver_id || null,
+    max_gross: pickupRecords.find((r) => r?.max_gross != null)?.max_gross ?? null,
+    tare_weight: pickupRecords.find((r) => r?.tare_weight != null)?.tare_weight ?? null,
+    net_weight: pickupRecords.find((r) => r?.net_weight != null)?.net_weight ?? null,
   };
 };
 
