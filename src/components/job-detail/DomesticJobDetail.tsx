@@ -1650,27 +1650,27 @@ export default function DomesticJobDetail({
                         </span>
                     }
                     </div>
-                    <div className={`p-4 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                    <div className={`p-5 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       {job.origin_company_name &&
                     <p className="font-semibold text-sm text-[#225795] mb-2">{job.origin_company_name}</p>
                     }
 
-                      <div className="space-y-1.5 text-xs text-foreground mb-3">
+                      <div className="space-y-2 text-sm text-foreground mb-3">
                         <div className="flex items-start gap-2">
-                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.origin_location || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
-                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {(() => { const v = job.origin_contact_person; const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; return v && !generic.includes(v.trim()) ? v : '-'; })()}</span>
                         </div>
                         <div className="flex items-start gap-2">
-                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
                         </div>
                         {job.origin_goods_type && job.origin_goods_type !== '-' &&
                       <div className="flex items-start gap-2">
-                            <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                             <Package className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <div className="flex-1 flex flex-wrap items-center gap-1">
                               <strong className="text-foreground mr-1">{t('jobDetail.goodsType')}:</strong>
                               {(() => {
@@ -1705,7 +1705,7 @@ export default function DomesticJobDetail({
                       }
                         {job.origin_remarks && job.origin_remarks !== '-' &&
                       <div className="flex items-start gap-2">
-                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                             <FileText className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <span>{job.origin_remarks}</span>
                           </div>
                       }
@@ -2024,8 +2024,8 @@ export default function DomesticJobDetail({
                     }
                     </div>
                     {(!isReorderMode || isLongPressActive || isDragging) && (
-                    <div className={`p-4 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                      <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                    <div className={`p-5 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                      <div className="space-y-2 text-sm text-muted-foreground mb-3">
                         {(() => {
                           const placeName = (dest as any).location_name || (dest as any).name;
                           const headline = placeName || (dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || (dest as any).address || '-'));
@@ -2034,13 +2034,13 @@ export default function DomesticJobDetail({
                           return (
                             <>
                               <div className="flex items-start gap-2">
-                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                 <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                                 <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
                                 <span className="font-semibold text-[#225795]">{headline}</span>
                               </div>
                               {addressValue && addressValue !== headline && (
                                 <div className="flex items-start gap-2">
-                                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                   <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                                   <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
                                   <span>{addressValue}</span>
                                 </div>
@@ -2049,12 +2049,12 @@ export default function DomesticJobDetail({
                           );
                         })()}
                         <div className="flex items-start gap-2">
-                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                           <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
                           <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
-                          <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                           <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
                           <span>{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const contact = dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null; return contact || '-'; })()}</span>
                         </div>
@@ -2331,7 +2331,7 @@ export default function DomesticJobDetail({
                     {!allDeliveriesCompleted ? t('jobDetail.waitingPreviousStep') : containerReturnConfirmed ? 'คืนตู้สำเร็จ' : containerReturnCheckedIn ? 'รอแนบเอกสาร' : t('jobDetail.waitingCheckIn')}
                   </span>
                 </div>
-                <div className={`p-4 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                <div className={`p-5 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                   {/* Show yard name - either from OCR or from job data */}
                   {returnSlipYardName && (
                     <div className="flex items-center gap-2 mb-2">
@@ -2388,7 +2388,7 @@ export default function DomesticJobDetail({
                     </div>
                   )}
 
-                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                  <div className="space-y-2 text-sm text-muted-foreground mb-3">
                     {(() => {
                       const locName = job.container_return_location;
                       const addr = job.container_return_address;
@@ -2397,13 +2397,13 @@ export default function DomesticJobDetail({
                       return (
                         <>
                           <div className="flex items-start gap-2">
-                            <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
+                             <MapPin className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
                             <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
                             <span className="font-semibold text-[#225795]">{headline}</span>
                           </div>
                           {showAddr && (
                             <div className="flex items-start gap-2">
-                              <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
+                              <MapPin className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
                               <span className="text-[#454545]">{addr}</span>
                             </div>
@@ -2412,12 +2412,12 @@ export default function DomesticJobDetail({
                       );
                     })()}
                     <div className="flex items-start gap-2">
-                      <Calendar className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                      <Calendar className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
                       <span className="text-[#454545]">{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                       <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ติดต่อ'}</span>
                       <span className="text-[#454545]">{job.container_return_phone || '-'}</span>
                     </div>
