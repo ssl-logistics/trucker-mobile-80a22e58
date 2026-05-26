@@ -420,19 +420,18 @@ export default function DeliveryDetailPage() {
           } else {
             // Single destination - create a default destination with sequence 1
             // Fall back to cargo_point when destination_* fields are missing
-            const cp = foundJob.cargo_point || {};
             setDestination({
               id: `dest-1`,
               job_id: foundJob.id,
               sequence_number: 1,
-              company_name: foundJob.destination_company_name || cp.name || null,
-              contact_name: foundJob.destination_contact_name || cp.contact_name || null,
-              contact_phone: foundJob.destination_contact_phone || cp.phone || null,
-              address: foundJob.destination_address || cp.address || null,
-              province: foundJob.destination_province || cp.province || null,
-              district: foundJob.destination_district || cp.district || null,
-              latitude: foundJob.destination_latitude ?? cp.latitude ?? null,
-              longitude: foundJob.destination_longitude ?? cp.longitude ?? null,
+              company_name: cargoPoint.name || foundJob.destination_company_name || null,
+              contact_name: cargoPoint.contact_name || foundJob.destination_contact_name || null,
+              contact_phone: cargoPoint.phone || foundJob.destination_contact_phone || null,
+              address: cargoPoint.address || foundJob.destination_address || null,
+              province: cargoPoint.province || foundJob.destination_province || null,
+              district: cargoPoint.district || foundJob.destination_district || null,
+              latitude: cargoPoint.latitude ?? foundJob.destination_latitude ?? null,
+              longitude: cargoPoint.longitude ?? foundJob.destination_longitude ?? null,
               delivery_date: foundJob.destination_delivery_date || null,
               delivery_time: foundJob.destination_delivery_time || null,
               notes: foundJob.remarks || null,
