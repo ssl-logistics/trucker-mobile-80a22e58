@@ -1334,7 +1334,7 @@ const thTranslations: Record<string, string> = {
   'expense.enterCustomType': 'กรุณาระบุประเภทค่าใช้จ่าย',
   
   // Delivery Detail Page - Additional Keys
-  'delivery.deliveryTo': 'ส่งของถึง',
+  'delivery.deliveryTo': 'ส่งสินค้า',
   'delivery.employerName': 'หวค.ชัยน้ำตาล',
   'delivery.podCompleted': 'POD สำเร็จ',
   'delivery.podPhoto': 'รูปใบส่งสินค้า',
