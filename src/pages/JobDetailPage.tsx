@@ -576,6 +576,7 @@ export default function JobDetailPage() {
                 district: cargoObj.district || null,
                 delivery_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date || null,
                 delivery_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time || null,
+                notes: null,
                 checked_in_at: null,
                 sop_completed_at: null,
                 goods_type: foundJob.product_name || null,
