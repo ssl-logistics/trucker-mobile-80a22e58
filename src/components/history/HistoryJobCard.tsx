@@ -145,35 +145,36 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
     return j.sender_address || '-';
   };
 
-  // Format destination location(s) - prefer cargo_point, then return_terminal
+  // Format destination location(s) - prefer return_terminal, then cargo_point
   const getDestinationLocations = () => {
     const j: any = job as any;
     const intl = j.international_details || {};
     if (!isDomestic) {
-      const cargo = formatPoint(j.cargo_point || intl.cargo_point);
-      if (cargo) return [{ location: cargo }];
       const ret = formatPoint(j.return_terminal || intl.return_terminal);
       if (ret) return [{ location: ret }];
+      const cargo = formatPoint(j.cargo_point || intl.cargo_point);
+      if (cargo) return [{ location: cargo }];
     }
     if (Array.isArray(j.destinations) && j.destinations.length > 0) {
       return j.destinations.map((dest: any) => {
-        const cargo = formatPoint(dest.cargo_point);
-        if (cargo) return { location: cargo };
         const ret = formatPoint(dest.return_terminal);
         if (ret) return { location: ret };
+        const cargo = formatPoint(dest.cargo_point);
+        if (cargo) return { location: cargo };
         return { location: formatPoint(dest) || '-' };
       });
     }
     // Top-level fallbacks for single-destination international jobs
-    const cargo = formatPoint(j.cargo_point);
-    if (cargo) return [{ location: cargo }];
     const ret = formatPoint(j.return_terminal);
     if (ret) return [{ location: ret }];
+    const cargo = formatPoint(j.cargo_point);
+    if (cargo) return [{ location: cargo }];
     const location = (j.destination_district || j.destination_province)
       ? [j.destination_district, j.destination_province].filter(Boolean).join(', ')
       : (j.destination_address || '-');
     return [{ location }];
   };
+
 
   const allDestinations = getDestinationLocations();
   const MAX_VISIBLE_DESTINATIONS = 2;
