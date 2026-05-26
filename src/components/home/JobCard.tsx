@@ -308,7 +308,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             {/* Route */}
             <div className="space-y-3">
               {/* Origins - show multiple if available */}
-              {Array.isArray(job.origins) && job.origins.length > 0 ? (
+              {!isInternational && Array.isArray(job.origins) && job.origins.length > 0 ? (
                 job.origins.map((origin, idx) => (
                   <div key={`modal-origin-${idx}`} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -341,7 +341,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               )}
               
               {/* Destinations - show multiple if available */}
-              {Array.isArray(job.destinations) && job.destinations.length > 0 ? (
+              {!isInternational && Array.isArray(job.destinations) && job.destinations.length > 0 ? (
               job.destinations.map((dest, idx) => (
                   <div key={`modal-dest-${idx}`} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
