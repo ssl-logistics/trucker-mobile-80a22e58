@@ -127,6 +127,13 @@ const ContainerSOPPage = () => {
   
   const [pendingContainerOcr, setPendingContainerOcr] = useState<string | null>(null);
   const [pendingSealOcr, setPendingSealOcr] = useState<string | null>(null);
+  // Container weight markings (MAX GROSS / TARE / NET) from CSC plate
+  const [pendingMaxGross, setPendingMaxGross] = useState<string>('');
+  const [pendingTareWeight, setPendingTareWeight] = useState<string>('');
+  const [pendingNetWeight, setPendingNetWeight] = useState<string>('');
+  const [ocrMaxGross, setOcrMaxGross] = useState<string>('');
+  const [ocrTareWeight, setOcrTareWeight] = useState<string>('');
+  const [ocrNetWeight, setOcrNetWeight] = useState<string>('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [ocrImageUrl, setOcrImageUrl] = useState<string | undefined>(undefined);
 
