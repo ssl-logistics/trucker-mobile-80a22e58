@@ -1300,6 +1300,41 @@ const ContainerSOPPage = () => {
                   placeholder="กรอกเลขตู้"
                 />
               </div>
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                <div className="bg-white rounded-lg p-2 border border-blue-200">
+                  <label className="text-[10px] text-muted-foreground block mb-1">MAX GROSS (kg)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={pendingMaxGross}
+                    onChange={(e) => setPendingMaxGross(e.target.value)}
+                    className="w-full px-1.5 py-1 border border-gray-300 rounded font-semibold text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="-"
+                  />
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-blue-200">
+                  <label className="text-[10px] text-muted-foreground block mb-1">TARE (kg)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={pendingTareWeight}
+                    onChange={(e) => setPendingTareWeight(e.target.value)}
+                    className="w-full px-1.5 py-1 border border-gray-300 rounded font-semibold text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="-"
+                  />
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-blue-200">
+                  <label className="text-[10px] text-muted-foreground block mb-1">NET (kg)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={pendingNetWeight}
+                    onChange={(e) => setPendingNetWeight(e.target.value)}
+                    className="w-full px-1.5 py-1 border border-gray-300 rounded font-semibold text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="-"
+                  />
+                </div>
+              </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => { setPendingContainerOcr(null); openPhotoDrawer('container'); }}>
                   ถ่ายใหม่
