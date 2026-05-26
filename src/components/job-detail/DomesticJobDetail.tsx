@@ -1523,11 +1523,6 @@ export default function DomesticJobDetail({
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location')}</span>
                               <span className="font-semibold text-[#225795]">{headline}</span>
                             </div>
-                            <div className="flex items-start gap-2">
-                              <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime')}</span>
-                              <span>{dateValue ? formatDate(dateValue, language) : '-'}{timeValue ? ` ${timeValue}` : ''}</span>
-                            </div>
                             {addressValue && addressValue !== headline && (
                               <div className="flex items-start gap-2">
                                 <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
@@ -1535,6 +1530,11 @@ export default function DomesticJobDetail({
                                 <span>{addressValue}</span>
                               </div>
                             )}
+                            <div className="flex items-start gap-2">
+                              <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime')}</span>
+                              <span>{dateValue ? formatDate(dateValue, language) : '-'}{timeValue ? ` ${timeValue}` : ''}</span>
+                            </div>
                           </div>
                         </>
                       );
@@ -2049,6 +2049,11 @@ export default function DomesticJobDetail({
                           );
                         })()}
                         <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
+                          <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
+                        </div>
+                        <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
                           <span>{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const contact = dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null; return contact || '-'; })()}</span>
@@ -2060,11 +2065,6 @@ export default function DomesticJobDetail({
                           <span>{dest.invoice_number}</span>
                         </div>
                         )}
-                        <div className="flex items-start gap-2">
-                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
-                          <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
-                        </div>
                         {(() => {
                           // Collect all product items for this destination
                           let allItems: { label: string }[] = [];
@@ -2391,11 +2391,28 @@ export default function DomesticJobDetail({
                   )}
 
                   <div className="space-y-1 text-sm mb-3">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
-                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
-                      <span className="text-[#454545]">{job.container_return_address || '-'}</span>
-                    </div>
+                    {(() => {
+                      const locName = job.container_return_location;
+                      const addr = job.container_return_address;
+                      const headline = locName || addr || '-';
+                      const showAddr = addr && addr !== headline;
+                      return (
+                        <>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
+                            <span className="font-semibold text-[#225795]">{headline}</span>
+                          </div>
+                          {showAddr && (
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
+                              <span className="text-[#454545]">{addr}</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3.5 h-3.5 text-[#225795] shrink-0" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
