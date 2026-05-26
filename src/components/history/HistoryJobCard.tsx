@@ -104,6 +104,19 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
     return p.address || p.location || p.name || '';
   };
 
+  // DEBUG: log job structure to diagnose origin display
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.log('[HistoryJobCard]', job.order_number, {
+      origin: (job as any).origin,
+      cargo_point: (job as any).cargo_point,
+      return_terminal: (job as any).return_terminal,
+      origins: (job as any).origins,
+      destinations: (job as any).destinations,
+    });
+  }
+
+
   // Format origin location - prefer top-level `origin`, then destinations[].origin
   const getOriginLocation = () => {
     const j: any = job as any;
