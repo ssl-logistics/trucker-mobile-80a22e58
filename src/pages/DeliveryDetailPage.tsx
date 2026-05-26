@@ -278,7 +278,25 @@ export default function DeliveryDetailPage() {
           
           // Use target destination data if available, otherwise use job-level data
           const destData = targetDestination || foundJob;
-          const cargoPoint = foundJob.cargo_point || {};
+          const rawCargoPoint = foundJob.cargo_point || {};
+          const cargoPoint = {
+            name: rawCargoPoint.name || foundJob.cargo_point_name || null,
+            address: rawCargoPoint.address ?? foundJob.cargo_point_address ?? null,
+            province: rawCargoPoint.province || foundJob.cargo_point_province || null,
+            district: rawCargoPoint.district || foundJob.cargo_point_district || null,
+            latitude: rawCargoPoint.latitude ?? foundJob.cargo_point_latitude ?? null,
+            longitude: rawCargoPoint.longitude ?? foundJob.cargo_point_longitude ?? null,
+            phone: rawCargoPoint.phone || foundJob.cargo_point_phone || null,
+            contact_name: rawCargoPoint.contact_name || foundJob.cargo_point_contact_name || null,
+          };
+          const hasCargoPoint = Boolean(
+            cargoPoint.name ||
+            cargoPoint.address ||
+            cargoPoint.province ||
+            cargoPoint.district ||
+            cargoPoint.latitude ||
+            cargoPoint.longitude
+          );
           
           // Map API response to JobDetail interface
           console.log('[DeliveryDetailPage] foundJob coordinate fields:', {
@@ -300,8 +318,8 @@ export default function DeliveryDetailPage() {
             start_time: destData.delivery_time || foundJob.destination_delivery_time || foundJob.sender_pickup_time,
             destination_latitude: cargoPoint.latitude ?? destData.latitude ?? foundJob.destination_latitude ?? foundJob.cargo_loading?.latitude ?? foundJob.container_return?.latitude ?? null,
             destination_longitude: cargoPoint.longitude ?? destData.longitude ?? foundJob.destination_longitude ?? foundJob.cargo_loading?.longitude ?? foundJob.container_return?.longitude ?? null,
-            destination_contact_person: cargoPoint.contact_name || destData.contact_name || foundJob.destination_contact_name,
-            destination_address: cargoPoint.address || destData.address || foundJob.destination_address,
+            destination_contact_person: hasCargoPoint ? cargoPoint.contact_name : (destData.contact_name || foundJob.destination_contact_name),
+            destination_address: hasCargoPoint ? cargoPoint.address : (destData.address || foundJob.destination_address),
             destination_goods_type: (() => {
               // v9: products nested inside destination
               const destNestedProducts = Array.isArray(targetDestination?.products) ? targetDestination.products : [];
@@ -403,14 +421,14 @@ export default function DeliveryDetailPage() {
               id: targetDestination.id || `dest-${targetSequenceNumber}`,
               job_id: foundJob.id,
               sequence_number: targetDestination.sequence_number || targetSequenceNumber,
-              company_name: targetDestination.company_name,
-              contact_name: targetDestination.contact_name,
-              contact_phone: targetDestination.contact_phone,
-              address: targetDestination.address,
-              province: targetDestination.province,
-              district: targetDestination.district,
-              latitude: targetDestination.latitude,
-              longitude: targetDestination.longitude,
+              company_name: hasCargoPoint ? cargoPoint.name : targetDestination.company_name,
+              contact_name: hasCargoPoint ? cargoPoint.contact_name : targetDestination.contact_name,
+              contact_phone: hasCargoPoint ? cargoPoint.phone : targetDestination.contact_phone,
+              address: hasCargoPoint ? cargoPoint.address : targetDestination.address,
+              province: hasCargoPoint ? cargoPoint.province : targetDestination.province,
+              district: hasCargoPoint ? cargoPoint.district : targetDestination.district,
+              latitude: hasCargoPoint ? cargoPoint.latitude : targetDestination.latitude,
+              longitude: hasCargoPoint ? cargoPoint.longitude : targetDestination.longitude,
               delivery_date: targetDestination.delivery_date,
               delivery_time: targetDestination.delivery_time,
               notes: targetDestination.notes,
