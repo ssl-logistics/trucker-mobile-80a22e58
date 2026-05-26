@@ -8,6 +8,9 @@ interface ContainerSealData {
   seal_number?: string | null;
   container_number_2?: string | null;
   seal_number_2?: string | null;
+  max_gross?: number | null;
+  tare_weight?: number | null;
+  net_weight?: number | null;
 }
 
 interface ExpenseData {
