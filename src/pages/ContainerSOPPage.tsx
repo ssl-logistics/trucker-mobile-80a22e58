@@ -574,6 +574,9 @@ const ContainerSOPPage = () => {
 
   const confirmContainerOcr = () => {
     setOcrContainerNumber(pendingContainerOcr);
+    setOcrMaxGross(pendingMaxGross);
+    setOcrTareWeight(pendingTareWeight);
+    setOcrNetWeight(pendingNetWeight);
     setIsContainerOcrDone(true);
     setPendingContainerOcr(null);
     toast({ title: 'ยืนยันเลขตู้สำเร็จ' });
