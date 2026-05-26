@@ -316,7 +316,7 @@ export default function DeliveryDetailPage() {
           const mappedJob: JobDetail = {
             id: foundJob.id || jobId,
             order_code: foundJob.order_number || foundJob.order_code || jobId,
-            employer_name: foundJob.factory_name || cargoPoint.name || destData.company_name || destData.destination_name || foundJob.destination_company_name,
+            employer_name: foundJob.factory_name || cargoPoint.name || destData.company_name || destData.destination_name || '',
             destination_location: `${cargoPoint.district || destData.district || foundJob.destination_district || ''}, ${cargoPoint.province || destData.province || foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
             start_date: destData.delivery_date || foundJob.destination_delivery_date || foundJob.sender_pickup_date,
             start_time: destData.delivery_time || foundJob.destination_delivery_time || foundJob.sender_pickup_time,
@@ -360,7 +360,7 @@ export default function DeliveryDetailPage() {
             })(),
             destination_remarks: destData.notes || foundJob.remarks,
             destination_time: destData.delivery_time || foundJob.destination_delivery_time,
-            destination_company_name: cargoPoint.name || destData.company_name || foundJob.destination_company_name || foundJob.destination_name,
+            destination_company_name: cargoPoint.name || '',
             price: foundJob.transport_price || 0,
             invoice_number: targetDestination?.invoice_number || destData.invoice_number || null,
             destination_products: (() => {
@@ -446,7 +446,7 @@ export default function DeliveryDetailPage() {
               id: `dest-1`,
               job_id: foundJob.id,
               sequence_number: 1,
-              company_name: cargoPoint.name || foundJob.destination_company_name || null,
+              company_name: cargoPoint.name || null,
               contact_name: cargoPoint.contact_name || foundJob.destination_contact_name || null,
               contact_phone: cargoPoint.phone || foundJob.destination_contact_phone || null,
               address: cargoPoint.address || foundJob.destination_address || null,
