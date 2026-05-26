@@ -1003,7 +1003,7 @@ export default function DeliveryDetailPage() {
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">{t('delivery.deliveryTo')} {displayLocation}</h1>
+          <h1 className="text-lg font-semibold">{t('delivery.deliveryTo')} {displayCompanyName || displayLocation}</h1>
           <div className="w-6" />
         </div>
       </header>
