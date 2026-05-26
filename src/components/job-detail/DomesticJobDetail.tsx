@@ -2411,13 +2411,13 @@ export default function DomesticJobDetail({
                         </>
                       );
                     })()}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-3.5 h-3.5 text-[#225795] shrink-0" />
+                    <div className="flex items-start gap-2">
+                      <Calendar className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
                       <span className="text-[#454545]">{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-[#225795] shrink-0" />
+                    <div className="flex items-start gap-2">
+                      <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ติดต่อ'}</span>
                       <span className="text-[#454545]">{job.container_return_phone || '-'}</span>
                     </div>
