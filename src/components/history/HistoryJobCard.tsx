@@ -13,6 +13,17 @@ import { formatDate } from '@/lib/dateUtils';
 import { translateJobType } from '@/utils/apiDataTranslations';
 import coinsIcon from '@/assets/coins-icon-2.png';
 
+type LocationPoint = {
+  name?: string | null;
+  address?: string | null;
+  location?: string | null;
+  province?: string | null;
+  district?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  phone?: string | null;
+};
+
 interface HistoryJob {
   id: string;
   order_number: string;
@@ -43,7 +54,13 @@ interface HistoryJob {
   transport_category?: string;
   // Support for multiple origins/destinations
   origins?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
-  destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
+  destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string; origin?: LocationPoint; cargo_point?: LocationPoint; return_terminal?: LocationPoint }>;
+  origin?: LocationPoint;
+  cargo_point?: LocationPoint;
+  return_terminal?: LocationPoint;
+  international_details?: { origin?: LocationPoint; cargo_point?: LocationPoint; return_terminal?: LocationPoint };
+  assigned_company?: string | null;
+  assignedCompany?: string | null;
 }
 
 interface HistoryJobCardProps {
@@ -61,6 +78,10 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
   const [closing, setClosing] = useState(false);
   const [locallyClosed, setLocallyClosed] = useState(false);
   const isDomestic = !job.booking_no && !job.bl_no && (!job.transport_category || job.transport_category === 'domestic');
+  const rawJob = job as any;
+  const employerName = !isDomestic
+    ? (rawJob.assigned_company || rawJob.assignedCompany || job.sender_name)
+    : job.sender_name;
   // Multiple locations: has destinations array with items (same logic as JobCard)
   const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 0;
   // Single trip: no destinations array OR has destination fields directly
@@ -104,24 +125,14 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
     return p.address || p.location || p.name || '';
   };
 
-  // DEBUG: log job structure to diagnose origin display
-  if (typeof window !== 'undefined') {
-    // eslint-disable-next-line no-console
-    console.log('[HistoryJobCard]', job.order_number, {
-      origin: (job as any).origin,
-      cargo_point: (job as any).cargo_point,
-      return_terminal: (job as any).return_terminal,
-      origins: (job as any).origins,
-      destinations: (job as any).destinations,
-    });
-  }
-
-
   // Format origin location - prefer top-level `origin`, then destinations[].origin
   const getOriginLocation = () => {
     const j: any = job as any;
+    const intl = j.international_details || {};
     const s1 = formatPoint(j.origin);
     if (s1) return s1;
+    const sIntl = formatPoint(intl.origin);
+    if (sIntl) return sIntl;
     if (Array.isArray(j.destinations) && j.destinations.length > 0) {
       const s = formatPoint(j.destinations[0]?.origin);
       if (s) return s;
@@ -139,6 +150,13 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
   // Format destination location(s) - prefer cargo_point, then return_terminal
   const getDestinationLocations = () => {
     const j: any = job as any;
+    const intl = j.international_details || {};
+    if (!isDomestic) {
+      const cargo = formatPoint(j.cargo_point || intl.cargo_point);
+      if (cargo) return [{ location: cargo }];
+      const ret = formatPoint(j.return_terminal || intl.return_terminal);
+      if (ret) return [{ location: ret }];
+    }
     if (Array.isArray(j.destinations) && j.destinations.length > 0) {
       return j.destinations.map((dest: any) => {
         const cargo = formatPoint(dest.cargo_point);
@@ -187,7 +205,7 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
         {/* Employer */}
         <div className="text-base">
           <span className="text-foreground/70">{t('job.employer')} : </span>
-          <span className="font-medium text-foreground">{job.sender_name}</span>
+          <span className="font-medium text-foreground">{employerName}</span>
         </div>
 
         {/* Job Type Badges */}
