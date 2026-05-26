@@ -461,7 +461,9 @@ export default function CurrentJobsPage() {
             transport_type_id: job.transport_type_id,
             transport_mode: job.transport_mode,
             status: job.status,
-            sender_name: job.factory_name || job.sender_company_name || job.sender_name || job.company_name || job.employer_name || '',
+            sender_name: ((job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_mode && ['sea', 'air'].includes((job.transport_mode || '').toLowerCase())) || (job.transport_category && job.transport_category !== 'domestic'))
+              ? (job.assigned_company || job.assignedCompany || '')
+              : (job.factory_name || job.sender_company_name || job.sender_name || job.company_name || job.employer_name || '')),
             sender_address: job.sender_address || '',
             sender_latitude: job.sender_latitude,
             sender_longitude: job.sender_longitude,
