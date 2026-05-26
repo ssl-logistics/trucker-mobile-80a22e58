@@ -127,6 +127,13 @@ const ContainerSOPPage = () => {
   
   const [pendingContainerOcr, setPendingContainerOcr] = useState<string | null>(null);
   const [pendingSealOcr, setPendingSealOcr] = useState<string | null>(null);
+  // Container weight markings (MAX GROSS / TARE / NET) from CSC plate
+  const [pendingMaxGross, setPendingMaxGross] = useState<string>('');
+  const [pendingTareWeight, setPendingTareWeight] = useState<string>('');
+  const [pendingNetWeight, setPendingNetWeight] = useState<string>('');
+  const [ocrMaxGross, setOcrMaxGross] = useState<string>('');
+  const [ocrTareWeight, setOcrTareWeight] = useState<string>('');
+  const [ocrNetWeight, setOcrNetWeight] = useState<string>('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [ocrImageUrl, setOcrImageUrl] = useState<string | undefined>(undefined);
 
@@ -516,12 +523,18 @@ const ContainerSOPPage = () => {
   const runContainerOcr = async (file: File) => {
     setIsProcessingContainerOcr(true);
     setPendingContainerOcr(null);
+    setPendingMaxGross('');
+    setPendingTareWeight('');
+    setPendingNetWeight('');
     setIsContainerOcrDone(false);
     try {
       toast({ title: 'กำลังอ่านเลขตู้...', description: 'รอสักครู่...' });
       const result = await extractFromImage(file, 'container_seal');
       if (result.success && result.data?.container_number) {
         setPendingContainerOcr(result.data.container_number);
+        if (result.data.max_gross != null) setPendingMaxGross(String(result.data.max_gross));
+        if (result.data.tare_weight != null) setPendingTareWeight(String(result.data.tare_weight));
+        if (result.data.net_weight != null) setPendingNetWeight(String(result.data.net_weight));
         toast({ title: 'อ่านเลขตู้สำเร็จ', description: `เลขตู้: ${result.data.container_number}` });
       } else {
         toast({ title: 'ไม่สามารถอ่านเลขตู้ได้', description: 'กรุณาถ่ายรูปใหม่หรือกรอกเอง', variant: "destructive" });
@@ -561,6 +574,9 @@ const ContainerSOPPage = () => {
 
   const confirmContainerOcr = () => {
     setOcrContainerNumber(pendingContainerOcr);
+    setOcrMaxGross(pendingMaxGross);
+    setOcrTareWeight(pendingTareWeight);
+    setOcrNetWeight(pendingNetWeight);
     setIsContainerOcrDone(true);
     setPendingContainerOcr(null);
     toast({ title: 'ยืนยันเลขตู้สำเร็จ' });
@@ -781,6 +797,9 @@ const ContainerSOPPage = () => {
             driver_id: user.id,
             driver_type: ocrDriverType,
             scanned_at: new Date().toISOString(),
+            max_gross: ocrMaxGross ? Number(ocrMaxGross) : undefined,
+            tare_weight: ocrTareWeight ? Number(ocrTareWeight) : undefined,
+            net_weight: ocrNetWeight ? Number(ocrNetWeight) : undefined,
           };
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
@@ -1283,6 +1302,41 @@ const ContainerSOPPage = () => {
                   className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
                   placeholder="กรอกเลขตู้"
                 />
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                <div className="bg-white rounded-lg p-2 border border-blue-200">
+                  <label className="text-[10px] text-muted-foreground block mb-1">MAX GROSS (kg)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={pendingMaxGross}
+                    onChange={(e) => setPendingMaxGross(e.target.value)}
+                    className="w-full px-1.5 py-1 border border-gray-300 rounded font-semibold text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="-"
+                  />
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-blue-200">
+                  <label className="text-[10px] text-muted-foreground block mb-1">TARE (kg)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={pendingTareWeight}
+                    onChange={(e) => setPendingTareWeight(e.target.value)}
+                    className="w-full px-1.5 py-1 border border-gray-300 rounded font-semibold text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="-"
+                  />
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-blue-200">
+                  <label className="text-[10px] text-muted-foreground block mb-1">NET (kg)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={pendingNetWeight}
+                    onChange={(e) => setPendingNetWeight(e.target.value)}
+                    className="w-full px-1.5 py-1 border border-gray-300 rounded font-semibold text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="-"
+                  />
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => { setPendingContainerOcr(null); openPhotoDrawer('container'); }}>

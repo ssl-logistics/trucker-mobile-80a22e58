@@ -52,22 +52,30 @@ serve(async (req) => {
     // Build prompt based on extraction type
     let prompt = '';
     if (extraction_type === 'container_seal') {
-      prompt = `Analyze this image and extract container and seal numbers.
-      
+      prompt = `Analyze this container photo and extract container info, seal numbers, and weight markings.
+
 Look for:
 1. Container number (format: 4 letters + 7 digits, e.g., MSCU1234567)
 2. Seal number (typically 6-10 characters/digits)
-3. There may be a second container and seal number if it's a dual container shipment
+3. Second container/seal if dual shipment
+4. Weight markings printed on the container door (CSC plate):
+   - MAX GROSS (or MAX. GROSS / MGW / GROSS WEIGHT) — maximum gross weight
+   - TARE (or TARE WEIGHT / TARE WT) — empty container weight
+   - NET (or NET WEIGHT / PAYLOAD / MAX C.W.) — maximum cargo weight
+   Values may be shown in KG and LB on the same line — extract the KG value only.
 
 Return ONLY a JSON object in this exact format (no markdown, no explanation):
 {
   "container_number": "extracted container number or null",
   "seal_number": "extracted seal number or null",
   "container_number_2": "second container number or null",
-  "seal_number_2": "second seal number or null"
+  "seal_number_2": "second seal number or null",
+  "max_gross": numeric_kg_value_or_null,
+  "tare_weight": numeric_kg_value_or_null,
+  "net_weight": numeric_kg_value_or_null
 }
 
-If you cannot find a value, use null. Be precise with the extraction.`;
+For weights: return numeric KG values only (no units, no commas). If you cannot find a value, use null.`;
     } else if (extraction_type === 'expense_amount') {
       prompt = `Analyze this receipt/bill/payment slip image and extract the total amount.
 
