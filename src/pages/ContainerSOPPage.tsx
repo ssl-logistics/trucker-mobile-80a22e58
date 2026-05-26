@@ -523,12 +523,18 @@ const ContainerSOPPage = () => {
   const runContainerOcr = async (file: File) => {
     setIsProcessingContainerOcr(true);
     setPendingContainerOcr(null);
+    setPendingMaxGross('');
+    setPendingTareWeight('');
+    setPendingNetWeight('');
     setIsContainerOcrDone(false);
     try {
       toast({ title: 'กำลังอ่านเลขตู้...', description: 'รอสักครู่...' });
       const result = await extractFromImage(file, 'container_seal');
       if (result.success && result.data?.container_number) {
         setPendingContainerOcr(result.data.container_number);
+        if (result.data.max_gross != null) setPendingMaxGross(String(result.data.max_gross));
+        if (result.data.tare_weight != null) setPendingTareWeight(String(result.data.tare_weight));
+        if (result.data.net_weight != null) setPendingNetWeight(String(result.data.net_weight));
         toast({ title: 'อ่านเลขตู้สำเร็จ', description: `เลขตู้: ${result.data.container_number}` });
       } else {
         toast({ title: 'ไม่สามารถอ่านเลขตู้ได้', description: 'กรุณาถ่ายรูปใหม่หรือกรอกเอง', variant: "destructive" });
