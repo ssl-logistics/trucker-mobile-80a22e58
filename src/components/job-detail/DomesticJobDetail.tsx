@@ -2388,7 +2388,7 @@ export default function DomesticJobDetail({
                     </div>
                   )}
 
-                  <div className="space-y-1 text-sm mb-3">
+                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                     {(() => {
                       const locName = job.container_return_location;
                       const addr = job.container_return_address;
