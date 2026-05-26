@@ -1029,7 +1029,7 @@ const thTranslations: Record<string, string> = {
   // Pickup Detail Page
   'pickup.title': 'จุดรับสินค้า',
   'pickup.contactName': 'ชื่อผู้ติดต่อ',
-  'pickup.routeNumber': 'เส้นทาง',
+  'pickup.routeNumber': 'สถานที่',
   'pickup.address': 'ที่อยู่',
   'pickup.map': 'แผนที่',
   'pickup.productType': 'ประเภทสินค้า',
@@ -1097,7 +1097,7 @@ const thTranslations: Record<string, string> = {
   'delivery.waybill': 'เอกสาร (ใบขนส่ง)',
   'delivery.podSuccess': 'POD สำเร็จ',
   'delivery.contactName': 'ชื่อผู้ติดต่อ',
-  'delivery.routeNumber': 'เส้นทาง',
+  'delivery.routeNumber': 'สถานที่',
   'delivery.address': 'ที่อยู่',
   'delivery.deliveryTime': 'เข้ารับสินค้า',
   'delivery.productType': 'สินค้า',
