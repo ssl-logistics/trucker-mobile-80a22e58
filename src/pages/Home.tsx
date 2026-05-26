@@ -344,10 +344,13 @@ const isValidName = (val: any): string => {
         
         if (isIntl) {
           const intl = item.international_details || {};
+          const originObj = item.origin || intl.origin || {};
+          const returnObj = item.return_terminal || intl.return_terminal || {};
           const emptyAddrExtract = extractDistrictProvince(item.empty_pickup_address || intl.empty_pickup_address || '');
-          const returnAddrExtract = extractDistrictProvince(item.container_return_address || intl.container_return_address || '');
+          const returnAddrExtract = extractDistrictProvince(item.container_return_address || intl.container_return_address || returnObj.address || '');
           // Origin = จุดรับตู้เปล่า (empty pickup depot/CY)
-          originLocation = intl.empty_pickup_depot
+          originLocation = originObj.name
+            || intl.empty_pickup_depot
             || item.empty_pickup_depot
             || item.pickup_location_name
             || intl.pickup_location_name
@@ -356,15 +359,19 @@ const isValidName = (val: any): string => {
             || intl.empty_pickup_location
             || item.empty_pickup_location
             || (emptyAddrExtract && emptyAddrExtract !== '-' ? emptyAddrExtract : '')
+            || originObj.address
             || intl.empty_pickup_address
             || item.empty_pickup_address
             || '';
           // Destination = จุดคืนตู้ (container return / return terminal)
-          destinationLocation = intl.container_return_location
+          destinationLocation = returnObj.location
+            || returnObj.name
+            || intl.container_return_location
             || item.container_return_location
             || item.return_terminal_name
             || intl.return_terminal_name
             || (returnAddrExtract && returnAddrExtract !== '-' ? returnAddrExtract : '')
+            || returnObj.address
             || intl.container_return_address
             || item.container_return_address
             || '';
