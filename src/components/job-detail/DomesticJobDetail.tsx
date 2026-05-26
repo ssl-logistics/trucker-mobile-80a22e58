@@ -2026,14 +2026,28 @@ export default function DomesticJobDetail({
                     {(!isReorderMode || isLongPressActive || isDragging) && (
                     <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
-                          <span>{(() => {
-                            const placeName = (dest as any).location_name || (dest as any).name;
-                            return placeName || (dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || (dest as any).address || '-'));
-                          })()}</span>
-                        </div>
+                        {(() => {
+                          const placeName = (dest as any).location_name || (dest as any).name;
+                          const headline = placeName || (dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || (dest as any).address || '-'));
+                          const addressParts = [(dest as any).address, dest.district, dest.province].filter(Boolean);
+                          const addressValue = addressParts.length > 0 ? addressParts.join(', ') : null;
+                          return (
+                            <>
+                              <div className="flex items-start gap-2">
+                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
+                                <span className="font-semibold text-[#225795]">{headline}</span>
+                              </div>
+                              {addressValue && addressValue !== headline && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
+                                  <span>{addressValue}</span>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                         <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
