@@ -2391,11 +2391,28 @@ export default function DomesticJobDetail({
                   )}
 
                   <div className="space-y-1 text-sm mb-3">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
-                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
-                      <span className="text-[#454545]">{job.container_return_address || '-'}</span>
-                    </div>
+                    {(() => {
+                      const locName = job.container_return_location;
+                      const addr = job.container_return_address;
+                      const headline = locName || addr || '-';
+                      const showAddr = addr && addr !== headline;
+                      return (
+                        <>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
+                            <span className="font-semibold text-[#225795]">{headline}</span>
+                          </div>
+                          {showAddr && (
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
+                              <span className="text-[#454545]">{addr}</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3.5 h-3.5 text-[#225795] shrink-0" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
