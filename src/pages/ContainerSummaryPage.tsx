@@ -49,6 +49,9 @@ interface OcrScanData {
   container_photos: string[];
   eir_photos: string[];
   driver_id: string | null;
+  max_gross?: number | string | null;
+  tare_weight?: number | string | null;
+  net_weight?: number | string | null;
 }
 
 const parseUrlArray = (raw: unknown): string[] => {
@@ -126,6 +129,9 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     container_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.container_photos))),
     eir_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.eir_photos))),
     driver_id: pickupRecords[0]?.internal_driver_id || pickupRecords[0]?.external_driver_id || pickupRecords[0]?.freelance_driver_id || pickupRecords[0]?.driver_id || null,
+    max_gross: pickupRecords.find((r) => r?.max_gross != null)?.max_gross ?? null,
+    tare_weight: pickupRecords.find((r) => r?.tare_weight != null)?.tare_weight ?? null,
+    net_weight: pickupRecords.find((r) => r?.net_weight != null)?.net_weight ?? null,
   };
 };
 
@@ -466,6 +472,28 @@ export default function ContainerSummaryPage() {
                       <Hash className="w-4 h-4 text-primary" />
                       <span className="text-sm text-muted-foreground">เลขซีล:</span>
                       <span className="text-sm font-medium text-foreground">{ocrScanData.seal_no}</span>
+                    </div>
+                  )}
+                  {(ocrScanData.max_gross != null || ocrScanData.tare_weight != null || ocrScanData.net_weight != null) && (
+                    <div className="pt-2 mt-2 border-t border-border grid grid-cols-3 gap-2">
+                      <div>
+                        <div className="text-xs text-muted-foreground">MAX GROSS</div>
+                        <div className="text-sm font-medium text-foreground">
+                          {ocrScanData.max_gross != null ? `${Number(ocrScanData.max_gross).toLocaleString()} kg` : '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">TARE</div>
+                        <div className="text-sm font-medium text-foreground">
+                          {ocrScanData.tare_weight != null ? `${Number(ocrScanData.tare_weight).toLocaleString()} kg` : '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">NET</div>
+                        <div className="text-sm font-medium text-foreground">
+                          {ocrScanData.net_weight != null ? `${Number(ocrScanData.net_weight).toLocaleString()} kg` : '-'}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
