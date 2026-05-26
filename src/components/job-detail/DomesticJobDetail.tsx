@@ -2030,7 +2030,7 @@ export default function DomesticJobDetail({
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
                           <span>{(() => {
-                            const placeName = (dest as any).location_name || (dest as any).name || dest.company_name;
+                            const placeName = (dest as any).location_name || (dest as any).name;
                             return placeName || (dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || (dest as any).address || '-'));
                           })()}</span>
                         </div>
