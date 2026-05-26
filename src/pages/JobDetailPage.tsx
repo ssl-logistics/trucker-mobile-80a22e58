@@ -526,7 +526,16 @@ export default function JobDetailPage() {
           };
 
           // International override: use origin / cargo_point / return_terminal / assigned_company
-          const isIntl = mappedJob.job_type === 'international';
+          const isIntl =
+            mappedJob.job_type === 'international' ||
+            String((foundJob as any).job_type || '').toLowerCase() === 'bl' ||
+            String((foundJob as any).job_type || '').toLowerCase() === 'booking' ||
+            String((foundJob as any).transport_category || '').toLowerCase() === 'international' ||
+            !!(foundJob as any).bl_no ||
+            !!(foundJob as any).booking_no ||
+            !!(foundJob as any).origin ||
+            !!(foundJob as any).cargo_point ||
+            !!(foundJob as any).return_terminal;
           if (isIntl) {
             const intl = (foundJob as any).international_details || {};
             const originObj = (foundJob as any).origin || intl.origin || {};
