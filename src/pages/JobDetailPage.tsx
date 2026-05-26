@@ -29,6 +29,8 @@ interface JobDestination {
   checked_in_at: string | null;
   sop_completed_at: string | null;
   goods_type: string | null;
+  invoice_number?: string | null;
+  products?: any[];
 }
 
 interface JobOrigin {
