@@ -316,14 +316,14 @@ export default function DeliveryDetailPage() {
           const mappedJob: JobDetail = {
             id: foundJob.id || jobId,
             order_code: foundJob.order_number || foundJob.order_code || jobId,
-            employer_name: foundJob.factory_name || cargoPoint.name || destData.company_name || destData.destination_name || '',
-            destination_location: `${cargoPoint.district || destData.district || foundJob.destination_district || ''}, ${cargoPoint.province || destData.province || foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
+            employer_name: foundJob.factory_name || cargoPoint.name || '',
+            destination_location: `${cargoPoint.district || ''}, ${cargoPoint.province || ''}`.replace(/^, |, $/g, ''),
             start_date: destData.delivery_date || foundJob.destination_delivery_date || foundJob.sender_pickup_date,
             start_time: destData.delivery_time || foundJob.destination_delivery_time || foundJob.sender_pickup_time,
             destination_latitude: cargoPoint.latitude ?? destData.latitude ?? foundJob.destination_latitude ?? foundJob.cargo_loading?.latitude ?? foundJob.container_return?.latitude ?? null,
             destination_longitude: cargoPoint.longitude ?? destData.longitude ?? foundJob.destination_longitude ?? foundJob.cargo_loading?.longitude ?? foundJob.container_return?.longitude ?? null,
-            destination_contact_person: hasCargoPoint ? cargoPoint.contact_name : (destData.contact_name || foundJob.destination_contact_name),
-            destination_address: hasCargoPoint ? cargoPoint.address : (destData.address || foundJob.destination_address),
+            destination_contact_person: cargoPoint.contact_name,
+            destination_address: cargoPoint.address,
             destination_goods_type: (() => {
               // v9: products nested inside destination
               const destNestedProducts = Array.isArray(targetDestination?.products) ? targetDestination.products : [];
