@@ -685,7 +685,7 @@ const isValidName = (val: any): string => {
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
           destination_location: destinationLocation,
-          destination_company_name: isValidName(item.destination_company_name) || isValidName(item.destination_name) || isValidName(item.receiver_name) || isValidName(item.receiver_company_name) || null,
+          destination_company_name: isIntlPost ? null : (isValidName(item.destination_company_name) || isValidName(item.destination_name) || isValidName(item.receiver_name) || isValidName(item.receiver_company_name) || null),
           price: item.price || 0,
           start_date: item.pickup_date || item.start_date || item.period_start || '',
           pickup_time: item.pickup_time || item.start_time || '',
