@@ -343,27 +343,31 @@ const isValidName = (val: any): string => {
         let destinationLocation: string;
         
         if (isIntl) {
-          const isBookingJob = !!(item.booking_no || item.booking_number) && !(item.bl_no || item.bill_of_lading || item.bl_number);
           const intl = item.international_details || {};
-          if (isBookingJob) {
-            originLocation = item.pickup_location_name
-              || intl.cy_empty_container
-              || intl.empty_pickup_depot
-              || intl.pickup_location_name
-              || (extractDistrictProvince(item.empty_pickup_address) !== '-' ? extractDistrictProvince(item.empty_pickup_address) : '')
-              || '';
-            destinationLocation = item.return_terminal_name
-              || item.container_return_location
-              || (extractDistrictProvince(item.container_return_address) !== '-' ? extractDistrictProvince(item.container_return_address) : '')
-              || '';
-          } else {
-            originLocation = extractDistrictProvince(item.empty_pickup_address) !== '-'
-              ? extractDistrictProvince(item.empty_pickup_address)
-              : [item.sender_district, item.sender_province].filter(Boolean).join(', ') || item.sender_address || '';
-            destinationLocation = extractDistrictProvince(item.container_return_address) !== '-'
-              ? extractDistrictProvince(item.container_return_address)
-              : [item.destination_district, item.destination_province].filter(Boolean).join(', ') || item.destination_address || '';
-          }
+          const emptyAddrExtract = extractDistrictProvince(item.empty_pickup_address || intl.empty_pickup_address || '');
+          const returnAddrExtract = extractDistrictProvince(item.container_return_address || intl.container_return_address || '');
+          // Origin = จุดรับตู้เปล่า (empty pickup depot/CY)
+          originLocation = intl.empty_pickup_depot
+            || item.empty_pickup_depot
+            || item.pickup_location_name
+            || intl.pickup_location_name
+            || intl.cy_empty_container
+            || item.cy_empty_container
+            || intl.empty_pickup_location
+            || item.empty_pickup_location
+            || (emptyAddrExtract && emptyAddrExtract !== '-' ? emptyAddrExtract : '')
+            || intl.empty_pickup_address
+            || item.empty_pickup_address
+            || '';
+          // Destination = จุดคืนตู้ (container return / return terminal)
+          destinationLocation = intl.container_return_location
+            || item.container_return_location
+            || item.return_terminal_name
+            || intl.return_terminal_name
+            || (returnAddrExtract && returnAddrExtract !== '-' ? returnAddrExtract : '')
+            || intl.container_return_address
+            || item.container_return_address
+            || '';
         } else {
           // Domestic: use origins array if available, fallback to sender fields
           const originCompany = (Array.isArray(item.origins) && item.origins.length > 0 ? item.origins[0].company_name : '') || item.sender_name || item.sender_company_name || '';
