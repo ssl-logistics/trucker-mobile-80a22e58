@@ -791,7 +791,9 @@ export default function CurrentJobsPage() {
             transport_type_id: null,
             transport_mode: ticket.transport_type || ticket.post_type,
             status: ticket.status || 'accepted',
-            sender_name: ticket.customer?.company_name || ticket.creator?.company_name || ticket.creator?.full_name || ticket.company_name || ticket.employer_name || ticket.factory_name || '',
+            sender_name: (isInternationalJob(ticket)
+              ? (ticket.assigned_company || ticket.assignedCompany || '')
+              : (ticket.customer?.company_name || ticket.creator?.company_name || ticket.creator?.full_name || ticket.company_name || ticket.employer_name || ticket.factory_name || '')),
             sender_address: ticket.pickup_location?.address || ticket.sender_address || ticket.origin_address || '',
             sender_latitude: ticket.pickup_location?.latitude || ticket.origin_lat || null,
             sender_longitude: ticket.pickup_location?.longitude || ticket.origin_lng || null,
