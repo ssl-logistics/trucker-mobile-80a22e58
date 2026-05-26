@@ -797,6 +797,9 @@ const ContainerSOPPage = () => {
             driver_id: user.id,
             driver_type: ocrDriverType,
             scanned_at: new Date().toISOString(),
+            max_gross: ocrMaxGross ? Number(ocrMaxGross) : undefined,
+            tare_weight: ocrTareWeight ? Number(ocrTareWeight) : undefined,
+            net_weight: ocrNetWeight ? Number(ocrNetWeight) : undefined,
           };
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
