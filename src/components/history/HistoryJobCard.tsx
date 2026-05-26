@@ -116,14 +116,12 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
     }
   };
 
-  // Helper: format a point object as "district, province" with fallbacks
+  // Helper: format a point object - prefer name, fallback to district/province/address
   const formatPoint = (p: any): string => {
     if (!p) return '';
-    if (p.district || p.province) {
-      return [p.district, p.province].filter(Boolean).join(', ');
-    }
-    return p.address || p.location || p.name || '';
+    return p.name || p.location || p.address || [p.district, p.province].filter(Boolean).join(', ');
   };
+
 
   // Format origin location - prefer top-level `origin`, then destinations[].origin
   const getOriginLocation = () => {
