@@ -219,25 +219,38 @@ export default function ContainerCheckInPage() {
               foundJob.international_details?.empty_pickup_depot ||
               foundJob.international_details?.cy_empty_container ||
               foundJob.international_details?.pickup_location_name ||
-              (foundJob.bl_no ? foundJob.container_return_location : null) ||
+              foundJob.origin?.name ||
+              (foundJob.bl_no ? (foundJob.container_return_location || foundJob.return_terminal?.name) : null) ||
               null,
             container_checkpoint_code: foundJob.container_checkpoint_code || null,
-            container_checkpoint_latitude: foundJob.container_checkpoint_latitude || foundJob.empty_pickup_latitude || foundJob.international_details?.empty_pickup_latitude || (foundJob.bl_no ? foundJob.container_return_latitude : null) || null,
-            container_checkpoint_longitude: foundJob.container_checkpoint_longitude || foundJob.empty_pickup_longitude || foundJob.international_details?.empty_pickup_longitude || (foundJob.bl_no ? foundJob.container_return_longitude : null) || null,
+            container_checkpoint_latitude:
+              foundJob.container_checkpoint_latitude ||
+              foundJob.empty_pickup_latitude ||
+              foundJob.international_details?.empty_pickup_latitude ||
+              foundJob.origin?.latitude ||
+              (foundJob.bl_no ? (foundJob.container_return_latitude || foundJob.return_terminal?.latitude) : null) ||
+              null,
+            container_checkpoint_longitude:
+              foundJob.container_checkpoint_longitude ||
+              foundJob.empty_pickup_longitude ||
+              foundJob.international_details?.empty_pickup_longitude ||
+              foundJob.origin?.longitude ||
+              (foundJob.bl_no ? (foundJob.container_return_longitude || foundJob.return_terminal?.longitude) : null) ||
+              null,
             container_checkpoint_time: foundJob.container_checkpoint_time || foundJob.eta_date || foundJob.eta_time || foundJob.vessel_eta || foundJob.vessel_arrival_date || null,
             empty_container_date: foundJob.first_pickup_date || foundJob.empty_container_date || foundJob.empty_pickup_date || foundJob.sender_pickup_date || null,
             container_number: foundJob.container_number || null,
             seal_number: foundJob.seal_number || null,
             container_number_2: foundJob.container_number_2 || null,
             seal_number_2: foundJob.seal_number_2 || null,
-            origin_location: foundJob.sender_address || `${foundJob.sender_district || ''}, ${foundJob.sender_province || ''}`.replace(/^, |, $/g, '') || null,
-            origin_company_name: foundJob.factory_name || foundJob.sender_name || null,
+            origin_location: foundJob.sender_address || foundJob.origin?.address || `${foundJob.sender_district || foundJob.origin?.district || ''}, ${foundJob.sender_province || foundJob.origin?.province || ''}`.replace(/^, |, $/g, '') || null,
+            origin_company_name: foundJob.factory_name || foundJob.sender_name || foundJob.origin?.name || null,
             equipment_list: foundJob.vehicle_type || foundJob.equipment_list || null,
-            container_return_location: foundJob.container_return_location || null,
-            container_return_address: foundJob.container_return_address || null,
-            container_return_latitude: foundJob.container_return_latitude || null,
-            container_return_longitude: foundJob.container_return_longitude || null,
-            container_return_phone: foundJob.container_return_phone || null,
+            container_return_location: foundJob.container_return_location || foundJob.return_terminal?.name || null,
+            container_return_address: foundJob.container_return_address || foundJob.return_terminal?.address || null,
+            container_return_latitude: foundJob.container_return_latitude || foundJob.return_terminal?.latitude || null,
+            container_return_longitude: foundJob.container_return_longitude || foundJob.return_terminal?.longitude || null,
+            container_return_phone: foundJob.container_return_phone || foundJob.return_terminal?.phone || null,
             container_details: (() => {
               let raw = foundJob.container_details;
               if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch { raw = []; } }
