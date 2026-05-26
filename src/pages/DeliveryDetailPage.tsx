@@ -278,6 +278,7 @@ export default function DeliveryDetailPage() {
           
           // Use target destination data if available, otherwise use job-level data
           const destData = targetDestination || foundJob;
+          const cargoPoint = foundJob.cargo_point || {};
           
           // Map API response to JobDetail interface
           console.log('[DeliveryDetailPage] foundJob coordinate fields:', {
@@ -293,14 +294,14 @@ export default function DeliveryDetailPage() {
           const mappedJob: JobDetail = {
             id: foundJob.id || jobId,
             order_code: foundJob.order_number || foundJob.order_code || jobId,
-            employer_name: foundJob.factory_name || destData.company_name || destData.destination_name || foundJob.destination_company_name || foundJob.cargo_point?.name,
-            destination_location: `${destData.district || foundJob.destination_district || foundJob.cargo_point?.district || ''}, ${destData.province || foundJob.destination_province || foundJob.cargo_point?.province || ''}`.replace(/^, |, $/g, ''),
+            employer_name: foundJob.factory_name || cargoPoint.name || destData.company_name || destData.destination_name || foundJob.destination_company_name,
+            destination_location: `${cargoPoint.district || destData.district || foundJob.destination_district || ''}, ${cargoPoint.province || destData.province || foundJob.destination_province || ''}`.replace(/^, |, $/g, ''),
             start_date: destData.delivery_date || foundJob.destination_delivery_date || foundJob.sender_pickup_date,
             start_time: destData.delivery_time || foundJob.destination_delivery_time || foundJob.sender_pickup_time,
-            destination_latitude: destData.latitude || foundJob.destination_latitude || foundJob.cargo_loading?.latitude || foundJob.container_return?.latitude || foundJob.cargo_point?.latitude || null,
-            destination_longitude: destData.longitude || foundJob.destination_longitude || foundJob.cargo_loading?.longitude || foundJob.container_return?.longitude || foundJob.cargo_point?.longitude || null,
-            destination_contact_person: destData.contact_name || foundJob.destination_contact_name || foundJob.cargo_point?.contact_name,
-            destination_address: destData.address || foundJob.destination_address || foundJob.cargo_point?.address,
+            destination_latitude: cargoPoint.latitude ?? destData.latitude ?? foundJob.destination_latitude ?? foundJob.cargo_loading?.latitude ?? foundJob.container_return?.latitude ?? null,
+            destination_longitude: cargoPoint.longitude ?? destData.longitude ?? foundJob.destination_longitude ?? foundJob.cargo_loading?.longitude ?? foundJob.container_return?.longitude ?? null,
+            destination_contact_person: cargoPoint.contact_name || destData.contact_name || foundJob.destination_contact_name,
+            destination_address: cargoPoint.address || destData.address || foundJob.destination_address,
             destination_goods_type: (() => {
               // v9: products nested inside destination
               const destNestedProducts = Array.isArray(targetDestination?.products) ? targetDestination.products : [];
@@ -337,7 +338,7 @@ export default function DeliveryDetailPage() {
             })(),
             destination_remarks: destData.notes || foundJob.remarks,
             destination_time: destData.delivery_time || foundJob.destination_delivery_time,
-            destination_company_name: destData.company_name || foundJob.destination_company_name || foundJob.destination_name || foundJob.cargo_point?.name,
+            destination_company_name: cargoPoint.name || destData.company_name || foundJob.destination_company_name || foundJob.destination_name,
             price: foundJob.transport_price || 0,
             invoice_number: targetDestination?.invoice_number || destData.invoice_number || null,
             destination_products: (() => {
