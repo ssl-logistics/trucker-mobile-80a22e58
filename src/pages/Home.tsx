@@ -346,35 +346,10 @@ const isValidName = (val: any): string => {
           const intl = item.international_details || {};
           const originObj = item.origin || intl.origin || {};
           const returnObj = item.return_terminal || intl.return_terminal || {};
-          const emptyAddrExtract = extractDistrictProvince(item.empty_pickup_address || intl.empty_pickup_address || '');
-          const returnAddrExtract = extractDistrictProvince(item.container_return_address || intl.container_return_address || returnObj.address || '');
-          // Origin = จุดรับตู้เปล่า (empty pickup depot/CY)
-          originLocation = originObj.name
-            || intl.empty_pickup_depot
-            || item.empty_pickup_depot
-            || item.pickup_location_name
-            || intl.pickup_location_name
-            || intl.cy_empty_container
-            || item.cy_empty_container
-            || intl.empty_pickup_location
-            || item.empty_pickup_location
-            || (emptyAddrExtract && emptyAddrExtract !== '-' ? emptyAddrExtract : '')
-            || originObj.address
-            || intl.empty_pickup_address
-            || item.empty_pickup_address
-            || '';
-          // Destination = จุดคืนตู้ (container return / return terminal)
-          destinationLocation = returnObj.location
-            || returnObj.name
-            || intl.container_return_location
-            || item.container_return_location
-            || item.return_terminal_name
-            || intl.return_terminal_name
-            || (returnAddrExtract && returnAddrExtract !== '-' ? returnAddrExtract : '')
-            || returnObj.address
-            || intl.container_return_address
-            || item.container_return_address
-            || '';
+          // Origin = จุดรับตู้เปล่า ใช้ origin.name เท่านั้น
+          originLocation = originObj.name || '';
+          // Destination = จุดคืนตู้ ใช้ return_terminal.location หรือ name เท่านั้น
+          destinationLocation = returnObj.location || returnObj.name || '';
         } else {
           // Domestic: use origins array if available, fallback to sender fields
           const originCompany = (Array.isArray(item.origins) && item.origins.length > 0 ? item.origins[0].company_name : '') || item.sender_name || item.sender_company_name || '';
