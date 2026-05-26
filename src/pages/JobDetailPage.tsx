@@ -525,6 +525,43 @@ export default function JobDetailPage() {
               : undefined,
           };
 
+          // International override: use origin / cargo_point / return_terminal / assigned_company
+          const isIntl = mappedJob.job_type === 'international';
+          if (isIntl) {
+            const intl = (foundJob as any).international_details || {};
+            const originObj = (foundJob as any).origin || intl.origin || {};
+            const cargoObj = (foundJob as any).cargo_point || intl.cargo_point || {};
+            const returnObj = (foundJob as any).return_terminal || intl.return_terminal || {};
+
+            // ผู้จ้าง
+            mappedJob.employer_name = (foundJob as any).assigned_company || (foundJob as any).assignedCompany || mappedJob.employer_name;
+
+            // จุดรับตู้ (origin)
+            if (originObj.name) mappedJob.container_checkpoint = originObj.name;
+            if (originObj.latitude != null) (mappedJob as any).origin_latitude = originObj.latitude;
+            if (originObj.longitude != null) (mappedJob as any).origin_longitude = originObj.longitude;
+            if (originObj.phone) mappedJob.origin_contact_phone = originObj.phone;
+
+            // จุดส่งสินค้า (cargo_point)
+            if (cargoObj.name) {
+              mappedJob.destination_company_name = cargoObj.name;
+              mappedJob.destination_location = cargoObj.name;
+            } else if (cargoObj.district || cargoObj.province) {
+              mappedJob.destination_location = [cargoObj.district, cargoObj.province].filter(Boolean).join(', ');
+            }
+            if (cargoObj.address) mappedJob.destination_address = cargoObj.address;
+            if (cargoObj.latitude != null) mappedJob.destination_latitude = cargoObj.latitude;
+            if (cargoObj.longitude != null) mappedJob.destination_longitude = cargoObj.longitude;
+            if (cargoObj.phone) mappedJob.destination_contact_phone = cargoObj.phone;
+
+            // จุดคืนตู้ (return_terminal)
+            const returnName = returnObj.location || returnObj.name;
+            if (returnName) mappedJob.container_return_location = returnName;
+            if (returnObj.address) mappedJob.container_return_address = returnObj.address;
+            if (returnObj.latitude != null) mappedJob.container_return_latitude = returnObj.latitude;
+            if (returnObj.longitude != null) mappedJob.container_return_longitude = returnObj.longitude;
+          }
+
           setJob(mappedJob);
 
           // Auto-open accident evidence modal if backend flagged this order
