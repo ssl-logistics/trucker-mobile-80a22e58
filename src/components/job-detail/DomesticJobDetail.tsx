@@ -1997,12 +1997,12 @@ export default function DomesticJobDetail({
                     userSelect: canDrag ? 'none' : undefined,
                     WebkitTouchCallout: canDrag ? 'none' : undefined,
                   } as React.CSSProperties}
-                  className={`overflow-hidden border-2 rounded-xl transition-all ${
+                  className={`overflow-hidden border-2 rounded-2xl transition-all ${
                     isPodCompleted ? 'border-green-500' : isPreviousCompleted ? 'border-teal-500' : 'border-gray-300'
                   } ${isDragging ? 'opacity-80 shadow-2xl scale-[1.02] z-10' : ''} ${isDragTarget ? 'ring-2 ring-orange-400 ring-offset-1' : ''} ${isLongPressActive ? 'ring-2 ring-blue-400' : ''} ${isReorderMode && !isLongPressActive ? 'cursor-pointer hover:bg-orange-50' : ''} ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
                 >
-                    <div className={`px-3 py-1.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
-                      <h3 className="font-medium text-xs text-white truncate">
+                    <div className={`px-4 py-2.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
+                      <h3 className="font-semibold text-sm text-white truncate">
                         {t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}
                         {isReorderMode && (() => {
                           const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'];
@@ -2024,7 +2024,7 @@ export default function DomesticJobDetail({
                     }
                     </div>
                     {(!isReorderMode || isLongPressActive || isDragging) && (
-                    <div className={`p-3 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                    <div className={`p-4 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
                         {(() => {
                           const placeName = (dest as any).location_name || (dest as any).name;
