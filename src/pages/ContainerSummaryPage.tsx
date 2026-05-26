@@ -49,6 +49,9 @@ interface OcrScanData {
   container_photos: string[];
   eir_photos: string[];
   driver_id: string | null;
+  max_gross?: number | string | null;
+  tare_weight?: number | string | null;
+  net_weight?: number | string | null;
 }
 
 const parseUrlArray = (raw: unknown): string[] => {
