@@ -75,7 +75,13 @@ interface CompletedJob {
   ticket_number?: string;
   // Support for multiple origins/destinations
   origins?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
-  destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string }>;
+  destinations?: Array<{ sequence: number; location?: string; address?: string; province?: string; district?: string; origin?: any; cargo_point?: any; return_terminal?: any }>;
+  origin?: any;
+  cargo_point?: any;
+  return_terminal?: any;
+  international_details?: any;
+  assigned_company?: string | null;
+  assignedCompany?: string | null;
   // Job type for domestic/international distinction
   job_type?: string;
   // Transferred job flags
@@ -346,6 +352,12 @@ export default function JobHistoryPage() {
             // Preserve origins/destinations arrays for multi-destination detection
             origins: job.origins,
             destinations: job.destinations,
+            origin: job.origin || job.international_details?.origin || null,
+            cargo_point: job.cargo_point || job.international_details?.cargo_point || null,
+            return_terminal: job.return_terminal || job.international_details?.return_terminal || null,
+            international_details: job.international_details || null,
+            assigned_company: job.assigned_company || job.assignedCompany || null,
+            assignedCompany: job.assignedCompany || job.assigned_company || null,
             job_type: job.job_type || 'domestic',
             // International job identifiers
             booking_no: job.booking_no || null,
@@ -524,6 +536,12 @@ export default function JobHistoryPage() {
           // Preserve origins/destinations arrays for multi-destination detection
           origins: job.origins,
           destinations: job.destinations,
+          origin: job.origin || job.international_details?.origin || null,
+          cargo_point: job.cargo_point || job.international_details?.cargo_point || null,
+          return_terminal: job.return_terminal || job.international_details?.return_terminal || null,
+          international_details: job.international_details || null,
+          assigned_company: job.assigned_company || job.assignedCompany || null,
+          assignedCompany: job.assignedCompany || job.assigned_company || null,
           job_type: job.job_type || 'domestic',
           // Preserve international job identifiers
           booking_no: job.booking_no || null,
