@@ -2333,15 +2333,13 @@ export default function DomesticJobDetail({
                 </div>
                 <div className={`p-4 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                   {/* Show yard name - either from OCR or from job data */}
-                  {returnSlipYardName ? (
+                  {returnSlipYardName && (
                     <div className="flex items-center gap-2 mb-2">
                       <Scan className="w-4 h-4 text-green-600 shrink-0" />
                       <p className="font-semibold text-sm text-green-700">{returnSlipYardName}</p>
                       <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">OCR</span>
                     </div>
-                  ) : job.container_return_location ? (
-                    <p className="font-semibold text-sm text-[#225795] mb-2">{job.container_return_location}</p>
-                  ) : null}
+                  )}
 
                   {/* Show OCR scan button when yard is not specified */}
                   {(!job.container_return_location || job.container_return_location === 'ดูลานที่หน้างาน' || job.container_return_location === '-') && !returnSlipYardName && !isFromHistory && (
