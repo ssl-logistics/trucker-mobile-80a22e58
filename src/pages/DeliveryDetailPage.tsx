@@ -337,7 +337,7 @@ export default function DeliveryDetailPage() {
             })(),
             destination_remarks: destData.notes || foundJob.remarks,
             destination_time: destData.delivery_time || foundJob.destination_delivery_time,
-            destination_company_name: destData.company_name || foundJob.destination_company_name || foundJob.destination_name,
+            destination_company_name: destData.company_name || foundJob.destination_company_name || foundJob.destination_name || foundJob.cargo_point?.name,
             price: foundJob.transport_price || 0,
             invoice_number: targetDestination?.invoice_number || destData.invoice_number || null,
             destination_products: (() => {
