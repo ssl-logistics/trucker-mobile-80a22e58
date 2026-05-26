@@ -23,6 +23,7 @@ interface JobDestination {
   district: string | null;
   latitude: number | null;
   longitude: number | null;
+  location_name?: string | null;
   delivery_date: string | null;
   delivery_time: string | null;
   notes: string | null;
@@ -574,6 +575,7 @@ export default function JobDetailPage() {
                 address: cargoObj.address || null,
                 province: cargoObj.province || null,
                 district: cargoObj.district || null,
+                location_name: cargoObj.name || null,
                 delivery_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date || null,
                 delivery_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time || null,
                 notes: null,
