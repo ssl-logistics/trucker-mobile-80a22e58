@@ -2331,7 +2331,7 @@ export default function DomesticJobDetail({
                     {!allDeliveriesCompleted ? t('jobDetail.waitingPreviousStep') : containerReturnConfirmed ? 'คืนตู้สำเร็จ' : containerReturnCheckedIn ? 'รอแนบเอกสาร' : t('jobDetail.waitingCheckIn')}
                   </span>
                 </div>
-                <div className={`p-4 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
+                <div className={`p-5 ${!allDeliveriesCompleted ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                   {/* Show yard name - either from OCR or from job data */}
                   {returnSlipYardName && (
                     <div className="flex items-center gap-2 mb-2">
@@ -2388,7 +2388,7 @@ export default function DomesticJobDetail({
                     </div>
                   )}
 
-                  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                  <div className="space-y-2 text-sm text-muted-foreground mb-3">
                     {(() => {
                       const locName = job.container_return_location;
                       const addr = job.container_return_address;
@@ -2397,13 +2397,13 @@ export default function DomesticJobDetail({
                       return (
                         <>
                           <div className="flex items-start gap-2">
-                            <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
+                             <MapPin className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
                             <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
                             <span className="font-semibold text-[#225795]">{headline}</span>
                           </div>
                           {showAddr && (
                             <div className="flex items-start gap-2">
-                              <MapPin className="w-3.5 h-3.5 text-[#225795] mt-0.5 shrink-0" />
+                              <MapPin className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
                               <span className="text-[#454545]">{addr}</span>
                             </div>
@@ -2412,12 +2412,12 @@ export default function DomesticJobDetail({
                       );
                     })()}
                     <div className="flex items-start gap-2">
-                      <Calendar className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                      <Calendar className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
                       <span className="text-[#454545]">{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                       <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ติดต่อ'}</span>
                       <span className="text-[#454545]">{job.container_return_phone || '-'}</span>
                     </div>
