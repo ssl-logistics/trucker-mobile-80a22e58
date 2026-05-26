@@ -2029,12 +2029,15 @@ export default function DomesticJobDetail({
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
-                          <span>{dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || (dest as any).address || '-')}</span>
+                          <span>{(() => {
+                            const placeName = (dest as any).location_name || (dest as any).name;
+                            return placeName || (dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || (dest as any).address || '-'));
+                          })()}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
-                          <span>{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const company = dest.company_name && !generic.includes(dest.company_name.trim()) ? dest.company_name : null; const contact = dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null; return company || contact || '-'; })()}</span>
+                          <span>{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const contact = dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null; return contact || '-'; })()}</span>
                         </div>
                         {dest.invoice_number && (
                         <div className="flex items-start gap-2">
