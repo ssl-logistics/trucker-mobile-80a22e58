@@ -95,38 +95,54 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
     }
   };
 
-  // Format origin location - prioritize district, province format
-  const getOriginLocation = () => {
-    if (Array.isArray(job.origins) && job.origins.length > 0) {
-      const origin = job.origins[0];
-      // Prefer district, province format
-      if (origin.district || origin.province) {
-        return [origin.district, origin.province].filter(Boolean).join(', ');
-      }
-      return origin.address || origin.location || '-';
+  // Helper: format a point object as "district, province" with fallbacks
+  const formatPoint = (p: any): string => {
+    if (!p) return '';
+    if (p.district || p.province) {
+      return [p.district, p.province].filter(Boolean).join(', ');
     }
-    // Fallback to job-level fields
-    if (job.sender_district || job.sender_province) {
-      return [job.sender_district, job.sender_province].filter(Boolean).join(', ');
-    }
-    // Fallback to sender_address for international jobs
-    if (job.sender_address) return job.sender_address;
-    return '-';
+    return p.address || p.location || p.name || '';
   };
 
-  // Format destination location(s) - prioritize district, province format
-  const getDestinationLocations = () => {
-    if (Array.isArray(job.destinations) && job.destinations.length > 0) {
-      return job.destinations.map(dest => ({
-        location: (dest.district || dest.province) 
-          ? [dest.district, dest.province].filter(Boolean).join(', ')
-          : (dest.address || dest.location || '-')
-      }));
+  // Format origin location - prefer top-level `origin`, then destinations[].origin
+  const getOriginLocation = () => {
+    const j: any = job as any;
+    const s1 = formatPoint(j.origin);
+    if (s1) return s1;
+    if (Array.isArray(j.destinations) && j.destinations.length > 0) {
+      const s = formatPoint(j.destinations[0]?.origin);
+      if (s) return s;
     }
-    // Fallback to job-level fields
-    const location = (job.destination_district || job.destination_province)
-      ? [job.destination_district, job.destination_province].filter(Boolean).join(', ')
-      : (job.destination_address || '-');
+    if (Array.isArray(j.origins) && j.origins.length > 0) {
+      const s = formatPoint(j.origins[0]);
+      if (s) return s;
+    }
+    if (j.sender_district || j.sender_province) {
+      return [j.sender_district, j.sender_province].filter(Boolean).join(', ');
+    }
+    return j.sender_address || '-';
+  };
+
+  // Format destination location(s) - prefer cargo_point, then return_terminal
+  const getDestinationLocations = () => {
+    const j: any = job as any;
+    if (Array.isArray(j.destinations) && j.destinations.length > 0) {
+      return j.destinations.map((dest: any) => {
+        const cargo = formatPoint(dest.cargo_point);
+        if (cargo) return { location: cargo };
+        const ret = formatPoint(dest.return_terminal);
+        if (ret) return { location: ret };
+        return { location: formatPoint(dest) || '-' };
+      });
+    }
+    // Top-level fallbacks for single-destination international jobs
+    const cargo = formatPoint(j.cargo_point);
+    if (cargo) return [{ location: cargo }];
+    const ret = formatPoint(j.return_terminal);
+    if (ret) return [{ location: ret }];
+    const location = (j.destination_district || j.destination_province)
+      ? [j.destination_district, j.destination_province].filter(Boolean).join(', ')
+      : (j.destination_address || '-');
     return [{ location }];
   };
 
