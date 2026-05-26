@@ -344,10 +344,13 @@ const isValidName = (val: any): string => {
         
         if (isIntl) {
           const intl = item.international_details || {};
+          const originObj = item.origin || intl.origin || {};
+          const returnObj = item.return_terminal || intl.return_terminal || {};
           const emptyAddrExtract = extractDistrictProvince(item.empty_pickup_address || intl.empty_pickup_address || '');
-          const returnAddrExtract = extractDistrictProvince(item.container_return_address || intl.container_return_address || '');
+          const returnAddrExtract = extractDistrictProvince(item.container_return_address || intl.container_return_address || returnObj.address || '');
           // Origin = จุดรับตู้เปล่า (empty pickup depot/CY)
-          originLocation = intl.empty_pickup_depot
+          originLocation = originObj.name
+            || intl.empty_pickup_depot
             || item.empty_pickup_depot
             || item.pickup_location_name
             || intl.pickup_location_name
@@ -356,15 +359,19 @@ const isValidName = (val: any): string => {
             || intl.empty_pickup_location
             || item.empty_pickup_location
             || (emptyAddrExtract && emptyAddrExtract !== '-' ? emptyAddrExtract : '')
+            || originObj.address
             || intl.empty_pickup_address
             || item.empty_pickup_address
             || '';
           // Destination = จุดคืนตู้ (container return / return terminal)
-          destinationLocation = intl.container_return_location
+          destinationLocation = returnObj.location
+            || returnObj.name
+            || intl.container_return_location
             || item.container_return_location
             || item.return_terminal_name
             || intl.return_terminal_name
             || (returnAddrExtract && returnAddrExtract !== '-' ? returnAddrExtract : '')
+            || returnObj.address
             || intl.container_return_address
             || item.container_return_address
             || '';
@@ -622,23 +629,30 @@ const isValidName = (val: any): string => {
         const isIntlPost = !!(item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) || item.job_type === 'international' || item.transport_category === 'international';
         if (isIntlPost) {
           const intl2 = item.international_details || {};
+          const originObj2 = item.origin || intl2.origin || {};
+          const returnObj2 = item.return_terminal || intl2.return_terminal || {};
           const emptyExtract2 = extractDistrictProvince(item.empty_pickup_address || intl2.empty_pickup_address || '');
-          const returnExtract2 = extractDistrictProvince(item.container_return_address || intl2.container_return_address || '');
-          originLocation = intl2.empty_pickup_depot
+          const returnExtract2 = extractDistrictProvince(item.container_return_address || intl2.container_return_address || returnObj2.address || '');
+          originLocation = originObj2.name
+            || intl2.empty_pickup_depot
             || item.empty_pickup_depot
             || item.pickup_location_name
             || intl2.pickup_location_name
             || intl2.cy_empty_container
             || item.cy_empty_container
             || (emptyExtract2 && emptyExtract2 !== '-' ? emptyExtract2 : '')
+            || originObj2.address
             || intl2.empty_pickup_address
             || item.empty_pickup_address
             || originLocation;
-          destinationLocation = intl2.container_return_location
+          destinationLocation = returnObj2.location
+            || returnObj2.name
+            || intl2.container_return_location
             || item.container_return_location
             || item.return_terminal_name
             || intl2.return_terminal_name
             || (returnExtract2 && returnExtract2 !== '-' ? returnExtract2 : '')
+            || returnObj2.address
             || intl2.container_return_address
             || item.container_return_address
             || destinationLocation;
