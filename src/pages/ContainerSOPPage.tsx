@@ -596,8 +596,8 @@ const ContainerSOPPage = () => {
       await runReturnSlipOcrFromEir(file);
     }
 
-    // Auto OCR for first EIR photo on pickup (loaded/empty) to verify BL/Booking
-    if (slot === 'eir' && !isContainerReturn && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no)) {
+    // Auto OCR for first EIR photo to verify BL/Booking + container (pickup & return)
+    if (slot === 'eir' && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no || containerNumber)) {
       await runEirBlOcr(file);
     }
   };
