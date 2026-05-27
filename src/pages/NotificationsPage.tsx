@@ -220,13 +220,13 @@ export default function NotificationsPage() {
         navigate('/home', { state: { openJobOrderCode: orderCode } });
         return;
       }
-      navigate(`/job/${orderCode}`);
+      navigate(`/job/${encodeURIComponent(orderCode)}`);
       return;
     }
 
     // Fallback: if we found an order code anywhere, navigate to job
     if (orderCode) {
-      navigate(`/job/${orderCode}`);
+      navigate(`/job/${encodeURIComponent(orderCode)}`);
       return;
     }
 

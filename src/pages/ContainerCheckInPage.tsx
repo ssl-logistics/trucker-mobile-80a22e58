@@ -281,7 +281,7 @@ export default function ContainerCheckInPage() {
         description: t('container.loadError'),
         variant: 'destructive'
       });
-      const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${jobId}` : `/job/${jobId}`;
+      const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(jobId)}` : `/job/${encodeURIComponent(jobId)}`;
       navigate(backRoute);
     } finally {
       setLoading(false);
@@ -343,7 +343,7 @@ export default function ContainerCheckInPage() {
           });
           // For container return, go back to job detail (no SOP needed, document attachment is on job detail)
           setTimeout(() => {
-            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${orderNumber}` : `/job/${orderNumber}`;
+            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(orderNumber)}` : `/job/${encodeURIComponent(orderNumber)}`;
             navigate(backRoute);
           }, 1500);
         }
@@ -361,7 +361,7 @@ export default function ContainerCheckInPage() {
             description: t('containerCheckin.alreadyCheckedInDesc'),
           });
           setTimeout(() => {
-            navigate(`/job/${orderNumber}/container-sop`, { state: { jobData: job, checkinType: isInbound ? 'loaded_container' : 'empty_container', isBidJob: (location.state as any)?.isBidJob } });
+            navigate(`/job/${encodeURIComponent(orderNumber)}/container-sop`, { state: { jobData: job, checkinType: isInbound ? 'loaded_container' : 'empty_container', isBidJob: (location.state as any)?.isBidJob } });
           }, 1500);
         }
       }
@@ -502,11 +502,11 @@ export default function ContainerCheckInPage() {
       
       if (isContainerReturn) {
         // After container return check-in, go directly to document attachment page
-        navigate(`/job/${job.order_code}/container-sop`, { 
+        navigate(`/job/${encodeURIComponent(job.order_code)}/container-sop`, { 
           state: { jobData: job, checkinType: 'container_return', isBidJob: (location.state as any)?.isBidJob } 
         });
       } else {
-        const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+        const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;
         navigate(backRoute, { state: { jobData: job } });
       }
     } catch (error) {
@@ -538,7 +538,7 @@ export default function ContainerCheckInPage() {
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-center relative">
           <button onClick={() => {
-            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;
             navigate(backRoute);
           }} className="absolute left-0 p-1">
             <ChevronLeft className="w-6 h-6" />

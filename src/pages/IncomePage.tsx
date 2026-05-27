@@ -311,9 +311,9 @@ export default function IncomePage() {
   const handleViewJobDetail = (income: IncomeJob) => {
     // Navigate to correct page based on job type
     if (income.isBidJob && income.ticketNumber) {
-      navigate(`/bid-job/${income.ticketNumber}`);
+      navigate(`/bid-job/${encodeURIComponent(income.ticketNumber)}`);
     } else {
-      navigate(`/job/${income.orderCode}/route-expenses`);
+      navigate(`/job/${encodeURIComponent(income.orderCode)}/route-expenses`);
     }
   };
 

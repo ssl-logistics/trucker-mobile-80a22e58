@@ -442,7 +442,7 @@ export default function JobExpensesPage() {
               if (window.history.length > 1) {
                 navigate(-1);
               } else {
-                navigate(`/job/${jobId}`, { replace: true });
+                navigate(`/job/${encodeURIComponent(jobId)}`, { replace: true });
               }
             }} 
             className="absolute left-0 p-1 hover:bg-white/10 rounded-full"

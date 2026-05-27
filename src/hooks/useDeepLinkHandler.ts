@@ -577,7 +577,7 @@ export const useDeepLinkHandler = () => {
         // Example: thetroob://job/123 -> navigate to /job/123
         if (path.startsWith("job/")) {
           const jobId = path.replace("job/", "");
-          navigate(`/job/${jobId}`, { replace: true });
+          navigate(`/job/${encodeURIComponent(jobId)}`, { replace: true });
           return;
         }
 
