@@ -1204,7 +1204,7 @@ const ContainerSOPPage = () => {
         // Container return completed = international job done, redirect to home
         navigate('/');
       } else {
-        const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${jobId}` : `/job/${jobId}`;
+        const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(jobId)}` : `/job/${encodeURIComponent(jobId)}`;
         navigate(backRoute);
       }
     } catch (error) {
@@ -1267,7 +1267,7 @@ const ContainerSOPPage = () => {
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <button onClick={() => {
-            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${jobId}` : `/job/${jobId}`;
+            const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(jobId)}` : `/job/${encodeURIComponent(jobId)}`;
             navigate(backRoute);
           }}>
             <ChevronLeft className="w-6 h-6" />
@@ -1880,7 +1880,7 @@ const ContainerSOPPage = () => {
             <Button
               onClick={() => {
                 setShowMissingExpenseDialog(false);
-                navigate(`/job/${jobId}/add-expense`, { 
+                navigate(`/job/${encodeURIComponent(jobId)}/add-expense`, { 
                   state: { 
                     jobData: navState?.jobData,
                     returnPath: location.pathname,

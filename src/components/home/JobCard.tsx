@@ -120,7 +120,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
   const handleGoToJobPage = () => {
     setDetailModalOpen(false);
-    navigate(`/job/${job.order_code}`);
+    navigate(`/job/${encodeURIComponent(job.order_code)}`);
   };
 
   return (

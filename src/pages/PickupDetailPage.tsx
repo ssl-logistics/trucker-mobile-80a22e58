@@ -77,7 +77,7 @@ export default function PickupDetailPage() {
         title: t('pickup.alreadyCheckedIn') || 'เช็คอินแล้ว',
         description: t('pickup.redirectingToJobDetail') || 'กำลังนำทางไปหน้ารายละเอียดงาน...',
       });
-      navigate(isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`);
+      navigate(isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`);
     }
   }, [checkinStatusLoading, pickupCheckedIn, job, isBidJob, navigate, t]);
   
@@ -331,7 +331,7 @@ export default function PickupDetailPage() {
         description: t('pickup.checkInSuccessMessage')
       });
       setShowConfirmDialog(false);
-      navigate(`/job/${job.order_code}/sop`, { state: { jobData: job, isBidJob } });
+      navigate(`/job/${encodeURIComponent(job.order_code)}/sop`, { state: { jobData: job, isBidJob } });
 
       // === Background tasks (non-blocking) ===
       (async () => {
@@ -452,7 +452,7 @@ export default function PickupDetailPage() {
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate(isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`)} className="p-1">
+          <button onClick={() => navigate(isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`)} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-semibold">{t('pickup.title')} {job.origin_company_name || ''}</h1>

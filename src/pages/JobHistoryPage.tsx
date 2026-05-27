@@ -835,9 +835,9 @@ export default function JobHistoryPage() {
                               job={job}
                               onClick={() => {
                                 if (job.isBidJob && job.ticket_number) {
-                                  navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
+                                  navigate(`/bid-job/${encodeURIComponent(job.ticket_number)}?from=history`, { state: { jobData: job } });
                                 } else {
-                                  navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
+                                  navigate(`/job/${encodeURIComponent(job.order_number)}?from=history`, { state: { jobData: job } });
                                 }
                               }}
                               getTranslatedVehicleType={getTranslatedVehicleType}
@@ -859,7 +859,7 @@ export default function JobHistoryPage() {
                               job_type: app.jobs.job_type,
                               status: app.status,
                             }}
-                            onClick={() => navigate(`/job/${app.jobs!.id}`)}
+                            onClick={() => navigate(`/job/${encodeURIComponent(app.jobs!.id)}`)}
                             getTranslatedVehicleType={getTranslatedVehicleType}
                           />
                         );
@@ -920,9 +920,9 @@ export default function JobHistoryPage() {
                               job={job}
                               onClick={() => {
                                 if (job.isBidJob && job.ticket_number) {
-                                  navigate(`/bid-job/${job.ticket_number}?from=history`, { state: { jobData: job } });
+                                  navigate(`/bid-job/${encodeURIComponent(job.ticket_number)}?from=history`, { state: { jobData: job } });
                                 } else {
-                                  navigate(`/job/${job.order_number}?from=history`, { state: { jobData: job } });
+                                  navigate(`/job/${encodeURIComponent(job.order_number)}?from=history`, { state: { jobData: job } });
                                 }
                               }}
                               getTranslatedVehicleType={getTranslatedVehicleType}
@@ -944,7 +944,7 @@ export default function JobHistoryPage() {
                               job_type: app.jobs.job_type,
                               status: app.status,
                             }}
-                            onClick={() => navigate(`/job/${app.jobs!.id}`)}
+                            onClick={() => navigate(`/job/${encodeURIComponent(app.jobs!.id)}`)}
                             getTranslatedVehicleType={getTranslatedVehicleType}
                           />
                         );
