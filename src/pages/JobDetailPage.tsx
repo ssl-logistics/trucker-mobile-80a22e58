@@ -561,13 +561,22 @@ export default function JobDetailPage() {
             if (originObj.longitude != null) (mappedJob as any).origin_longitude = originObj.longitude;
             if (originObj.phone) mappedJob.origin_contact_phone = originObj.phone;
 
-            // จุดส่งสินค้า (cargo_point) — สถานที่ = name, ที่อยู่ = province+district
+            // จุดส่งสินค้า/จุดรับสินค้า (cargo_point) — สถานที่ = name, ที่อยู่ = province+district
             mappedJob.destination_company_name = cargoObj.name || null;
             mappedJob.destination_location = cargoObj.name || null;
             mappedJob.destination_address = buildProvDist(cargoObj);
             if (cargoObj.latitude != null) mappedJob.destination_latitude = cargoObj.latitude;
             if (cargoObj.longitude != null) mappedJob.destination_longitude = cargoObj.longitude;
             if (cargoObj.phone) mappedJob.destination_contact_phone = cargoObj.phone;
+
+            // สำหรับงาน Booking (export): "จุดรับสินค้า" = cargo_point
+            // override origin_* ให้ใช้ cargo_point name/province+district
+            const isBooking = !!(foundJob as any).booking_no && !(foundJob as any).bl_no;
+            if (isBooking) {
+              mappedJob.origin_location = cargoObj.name || '-';
+              mappedJob.origin_address = buildProvDist(cargoObj);
+            }
+
             if (cargoObj.name || cargoObj.address || cargoObj.district || cargoObj.province) {
               mappedJob.destinations = [{
                 id: `cargo-point-${foundJob.id || jobId}`,
