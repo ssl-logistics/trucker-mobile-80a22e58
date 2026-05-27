@@ -175,6 +175,61 @@ const ContainerSOPPage = () => {
     }
   };
 
+  const normalizeRef = (s: string | null | undefined) =>
+    (s || '').toString().toUpperCase().replace(/[\s\-_./]/g, '');
+
+  const runEirBlOcr = async (file: File) => {
+    setIsProcessingEirBlOcr(true);
+    setEirBlOcrResult(null);
+    setEirBlMatchStatus(null);
+    try {
+      toast({ title: 'กำลังตรวจสอบเลข BL/Booking จาก EIR...', description: 'รอสักครู่...' });
+      const result = await extractFromImage(file, 'eir_document');
+      if (result.success && result.data) {
+        const bl = result.data.bl_no || null;
+        const bk = result.data.booking_no || null;
+        setEirBlOcrResult({ bl_no: bl, booking_no: bk });
+
+        const jobBl = normalizeRef(jobDetail?.bl_no);
+        const jobBk = normalizeRef(jobDetail?.booking_no);
+        const ocrBl = normalizeRef(bl);
+        const ocrBk = normalizeRef(bk);
+
+        let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
+        if (jobBl && ocrBl) {
+          status = ocrBl === jobBl ? 'match' : 'mismatch';
+        } else if (jobBk && ocrBk) {
+          status = ocrBk === jobBk ? 'match' : 'mismatch';
+        } else if (jobBl && ocrBk) {
+          // EIR sometimes shows booking even for BL jobs — partial compare
+          status = ocrBk.includes(jobBl) || jobBl.includes(ocrBk) ? 'match' : 'mismatch';
+        }
+        setEirBlMatchStatus(status);
+
+        if (status === 'match') {
+          toast({ title: 'ตรงกัน ✓', description: 'เลข BL/Booking ตรงกับงาน' });
+        } else if (status === 'mismatch') {
+          toast({
+            title: 'ไม่ตรงกัน!',
+            description: 'เลข BL/Booking จาก EIR ไม่ตรงกับงาน กรุณาตรวจสอบ',
+            variant: 'destructive',
+          });
+        } else {
+          toast({ title: 'ไม่พบเลข BL/Booking ใน EIR', description: 'กรุณาตรวจสอบด้วยตนเอง' });
+        }
+      } else {
+        setEirBlMatchStatus('not_found');
+        toast({ title: 'อ่าน EIR ไม่สำเร็จ', description: 'กรุณาตรวจสอบด้วยตนเอง' });
+      }
+    } catch (error) {
+      console.error('EIR BL/Booking OCR error:', error);
+      setEirBlMatchStatus('not_found');
+    } finally {
+      setIsProcessingEirBlOcr(false);
+    }
+  };
+
+
 
   useEffect(() => {
     if (jobId && user) {
