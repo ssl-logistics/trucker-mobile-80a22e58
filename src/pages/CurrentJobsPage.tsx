@@ -156,9 +156,9 @@ export default function CurrentJobsPage() {
       return;
     }
     if (job.isBidJob) {
-      navigate(`/bid-job/${job.order_number}`);
+      navigate(`/bid-job/${encodeURIComponent(job.order_number)}`);
     } else {
-      navigate(`/job/${job.order_number}`, { state: { job } });
+      navigate(`/job/${encodeURIComponent(job.order_number)}`, { state: { job } });
     }
   };
   useEffect(() => {
