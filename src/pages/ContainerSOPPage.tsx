@@ -1657,6 +1657,31 @@ const ContainerSOPPage = () => {
                   </div>
                 </Card>
               )}
+
+              {/* Container number match */}
+              {!isProcessingEirBlOcr && eirContainerMatchStatus === 'match' && (
+                <Card className="p-3 bg-green-50 border-green-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="font-semibold text-green-700 text-sm">เลขตู้ตรงกับงาน</span>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
+                  </div>
+                  <p className="text-xs text-green-800">ตู้: {eirBlOcrResult?.container_number}</p>
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && eirContainerMatchStatus === 'mismatch' && (
+                <Card className="p-3 bg-red-50 border-red-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <X className="w-4 h-4 text-red-600" />
+                    <span className="font-semibold text-red-700 text-sm">เลขตู้ไม่ตรงกัน!</span>
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">OCR</span>
+                  </div>
+                  <div className="text-xs text-red-800 space-y-0.5">
+                    <p>ตู้ตามงาน: <span className="font-semibold">{containerNumber || (jobDetail as any)?.container_number}</span></p>
+                    <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number}</span></p>
+                  </div>
+                </Card>
+              )}
             </>
           )}
 
