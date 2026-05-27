@@ -143,6 +143,22 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
   };
 };
 
+const getReturnOcrRefs = (records: any[]): { bl_no: string | null; booking_no: string | null } => {
+  const returnRecords = records.filter((record) =>
+    record?.scan_phase === 'return' || !!record?.return_yard
+  );
+  const firstMeaningfulValue = (values: unknown[]): string | null => {
+    for (const value of values) {
+      if (hasMeaningfulOcrValue(value)) return value;
+    }
+    return null;
+  };
+  return {
+    bl_no: firstMeaningfulValue(returnRecords.map((r) => r?.bl_no)),
+    booking_no: firstMeaningfulValue(returnRecords.map((r) => r?.booking_no)),
+  };
+};
+
 export default function ContainerSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
