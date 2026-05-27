@@ -200,13 +200,12 @@ const ContainerSOPPage = () => {
         const ocrBk = normalizeRef(bk);
 
         let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
-        if (jobBl && ocrBl) {
-          status = ocrBl === jobBl ? 'match' : 'mismatch';
-        } else if (jobBk && ocrBk) {
-          status = ocrBk === jobBk ? 'match' : 'mismatch';
-        } else if (jobBl && ocrBk) {
-          // EIR sometimes shows booking even for BL jobs — partial compare
-          status = ocrBk.includes(jobBl) || jobBl.includes(ocrBk) ? 'match' : 'mismatch';
+        if (jobBl) {
+          if (ocrBl) status = ocrBl === jobBl ? 'match' : 'mismatch';
+          else status = 'not_found';
+        } else if (jobBk) {
+          if (ocrBk) status = ocrBk === jobBk ? 'match' : 'mismatch';
+          else status = 'not_found';
         }
         setEirBlMatchStatus(status);
 
