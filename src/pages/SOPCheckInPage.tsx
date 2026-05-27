@@ -688,7 +688,7 @@ export default function SOPCheckInPage() {
                 onClick={() => openPhotoDrawer('weightslip', index)}
                 className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-card relative"
               >
-                {ocrExtracting && activeWeightSlipIndex === index && (
+                {(ws.ocrLoading || (ocrExtracting && activeWeightSlipIndex === index)) && (
                   <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg z-10">
                     <div className="flex flex-col items-center gap-2">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
