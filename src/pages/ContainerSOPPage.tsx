@@ -1571,24 +1571,28 @@ const ContainerSOPPage = () => {
                     {jobDetail?.booking_no && <p>Booking ตามงาน: <span className="font-semibold">{jobDetail.booking_no}</span></p>}
                   </div>
                   <div className="space-y-2 pt-1">
-                    <div>
-                      <label className="text-xs text-red-800 font-medium">BL ใน EIR (แก้ไขได้)</label>
-                      <Input
-                        value={eirBlOcrResult?.bl_no || ''}
-                        onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), bl_no: e.target.value }))}
-                        placeholder="กรอกเลข BL"
-                        className="h-9 mt-1 bg-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-red-800 font-medium">Booking ใน EIR (แก้ไขได้)</label>
-                      <Input
-                        value={eirBlOcrResult?.booking_no || ''}
-                        onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), booking_no: e.target.value }))}
-                        placeholder="กรอกเลข Booking"
-                        className="h-9 mt-1 bg-white"
-                      />
-                    </div>
+                    {eirBlOcrResult?.bl_no && (
+                      <div>
+                        <label className="text-xs text-red-800 font-medium">BL ใน EIR (แก้ไขได้)</label>
+                        <Input
+                          value={eirBlOcrResult.bl_no || ''}
+                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), bl_no: e.target.value }))}
+                          placeholder="กรอกเลข BL"
+                          className="h-9 mt-1 bg-white"
+                        />
+                      </div>
+                    )}
+                    {eirBlOcrResult?.booking_no && (
+                      <div>
+                        <label className="text-xs text-red-800 font-medium">Booking ใน EIR (แก้ไขได้)</label>
+                        <Input
+                          value={eirBlOcrResult.booking_no || ''}
+                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), booking_no: e.target.value }))}
+                          placeholder="กรอกเลข Booking"
+                          className="h-9 mt-1 bg-white"
+                        />
+                      </div>
+                    )}
                     <div className="flex gap-2 pt-1">
                       <Button
                         type="button"
