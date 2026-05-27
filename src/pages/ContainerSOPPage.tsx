@@ -1005,33 +1005,24 @@ const ContainerSOPPage = () => {
         }
 
         
-        // Save OCR scan with return_yard for container return
+        // Save OCR scan for container return (minimal payload)
         if (returnSlipYardName) {
           try {
             const returnScanPayload: Parameters<typeof submitOcrScan>[0] = {
               scan_phase: 'return',
-              order_number: jobId || undefined,
-              driver_id: user.id,
-              driver_type: driverType,
-              scanned_at: new Date().toISOString(),
-              return_yard: returnSlipYardName,
-              container_no: derivedContainerNumber || finalContainerNumber || 'N/A',
-              seal_no: derivedSealNumber || finalSealNumber || 'N/A',
-              eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
               bl_no: eirBlOcrResult?.bl_no || null,
-              booking_no: eirBlOcrResult?.booking_no || null,
-              container_number: eirBlOcrResult?.container_number || null,
+              eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
             };
 
-            console.log('[ContainerSOP] save-ocr-scan (return_yard only) payload:', returnScanPayload);
+            console.log('[ContainerSOP] save-ocr-scan (return) minimal payload:', returnScanPayload);
             const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
             if (returnOcrError) {
-              console.warn('[ContainerSOP] save-ocr-scan return_yard error (non-blocking):', returnOcrError);
+              console.warn('[ContainerSOP] save-ocr-scan return error (non-blocking):', returnOcrError);
             } else {
-              console.log('[ContainerSOP] return_yard saved successfully');
+              console.log('[ContainerSOP] return scan saved successfully');
             }
           } catch (returnOcrErr) {
-            console.warn('[ContainerSOP] save-ocr-scan return_yard exception:', returnOcrErr);
+            console.warn('[ContainerSOP] save-ocr-scan return exception:', returnOcrErr);
           }
         }
       } else {
