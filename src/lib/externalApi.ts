@@ -726,6 +726,7 @@ export async function submitOcrScan(body: {
   return_yard?: string;
   bl_no?: string | null;
   booking_no?: string | null;
+  container_number?: string | null;
 }) {
   return callExternalApi<{ success: boolean; data?: any }>('save-ocr-scan', {
     method: 'POST',
