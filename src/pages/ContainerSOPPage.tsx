@@ -866,8 +866,8 @@ const ContainerSOPPage = () => {
             max_gross: ocrMaxGross ? Number(ocrMaxGross) : undefined,
             tare_weight: ocrTareWeight ? Number(ocrTareWeight) : undefined,
             net_weight: ocrNetWeight ? Number(ocrNetWeight) : undefined,
-            bl_no: eirBlOcrResult?.bl_no || jobDetail?.bl_no || null,
-            booking_no: eirBlOcrResult?.booking_no || jobDetail?.booking_no || null,
+            bl_no: eirBlOcrResult?.bl_no || null,
+            booking_no: eirBlOcrResult?.booking_no || null,
           };
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
@@ -997,8 +997,8 @@ const ContainerSOPPage = () => {
               return_yard: returnSlipYardName,
               container_no: derivedContainerNumber || finalContainerNumber || 'N/A',
               seal_no: derivedSealNumber || finalSealNumber || 'N/A',
-              bl_no: eirBlOcrResult?.bl_no || jobDetail?.bl_no || null,
-              booking_no: eirBlOcrResult?.booking_no || jobDetail?.booking_no || null,
+              bl_no: eirBlOcrResult?.bl_no || null,
+              booking_no: eirBlOcrResult?.booking_no || null,
             };
             console.log('[ContainerSOP] save-ocr-scan (return_yard only) payload:', returnScanPayload);
             const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
