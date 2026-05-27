@@ -869,6 +869,7 @@ const ContainerSOPPage = () => {
         const ocrDriverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
           const scanPayload = {
+            scan_phase: 'pickup' as const,
             container_no: finalContainerNumber,
             seal_no: finalSealNumber || null,
             container_image_url: containerImageUrl || undefined,
@@ -886,6 +887,7 @@ const ContainerSOPPage = () => {
             booking_no: eirBlOcrResult?.booking_no || null,
             container_number: eirBlOcrResult?.container_number || null,
           };
+
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
 
