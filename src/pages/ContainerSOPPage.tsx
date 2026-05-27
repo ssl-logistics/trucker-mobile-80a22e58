@@ -1013,7 +1013,7 @@ const ContainerSOPPage = () => {
             const useBooking = !!ocrBooking || (!ocrBl && !!jobDetail?.booking_no);
             const returnScanPayload: Parameters<typeof submitOcrScan>[0] = {
               scan_phase: 'return',
-              order_number: jobDetail?.order_number || jobId || undefined,
+              order_number: jobDetail?.order_code || jobId || undefined,
               ...(useBooking
                 ? { booking_no: ocrBooking || jobDetail?.booking_no || null }
                 : { bl_no: ocrBl || jobDetail?.bl_no || null }),
