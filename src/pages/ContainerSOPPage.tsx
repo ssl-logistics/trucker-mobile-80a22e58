@@ -1008,9 +1008,12 @@ const ContainerSOPPage = () => {
         // Save OCR scan for container return (minimal payload)
         if (returnSlipYardName) {
           try {
+            const isBookingJob = !!jobDetail?.booking_no;
             const returnScanPayload: Parameters<typeof submitOcrScan>[0] = {
               scan_phase: 'return',
-              bl_no: eirBlOcrResult?.bl_no || null,
+              ...(isBookingJob
+                ? { booking_no: eirBlOcrResult?.booking_no || jobDetail?.booking_no || null }
+                : { bl_no: eirBlOcrResult?.bl_no || jobDetail?.bl_no || null }),
               eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
             };
 
