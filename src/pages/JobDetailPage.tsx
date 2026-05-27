@@ -545,23 +545,26 @@ export default function JobDetailPage() {
             const cargoObj = (foundJob as any).cargo_point || intl.cargo_point || {};
             const returnObj = (foundJob as any).return_terminal || intl.return_terminal || {};
 
+            // Helper: build "ที่อยู่" จาก province + district เท่านั้น (ไม่มี fallback)
+            const buildProvDist = (o: any): string | null => {
+              const parts = [o?.province, o?.district].filter(Boolean);
+              return parts.length > 0 ? parts.join(' ') : null;
+            };
+
             // ผู้จ้าง
             mappedJob.employer_name = (foundJob as any).assigned_company || (foundJob as any).assignedCompany || mappedJob.employer_name;
 
-            // จุดรับตู้ (origin)
-            if (originObj.name) mappedJob.container_checkpoint = originObj.name;
+            // จุดรับตู้ (origin) — สถานที่ = name, ที่อยู่ = province+district
+            mappedJob.container_checkpoint = originObj.name || null;
+            mappedJob.empty_pickup_address = buildProvDist(originObj);
             if (originObj.latitude != null) (mappedJob as any).origin_latitude = originObj.latitude;
             if (originObj.longitude != null) (mappedJob as any).origin_longitude = originObj.longitude;
             if (originObj.phone) mappedJob.origin_contact_phone = originObj.phone;
 
-            // จุดส่งสินค้า (cargo_point)
-            if (cargoObj.name) {
-              mappedJob.destination_company_name = cargoObj.name;
-              mappedJob.destination_location = cargoObj.name;
-            } else if (cargoObj.district || cargoObj.province) {
-              mappedJob.destination_location = [cargoObj.district, cargoObj.province].filter(Boolean).join(', ');
-            }
-            if (cargoObj.address) mappedJob.destination_address = cargoObj.address;
+            // จุดส่งสินค้า (cargo_point) — สถานที่ = name, ที่อยู่ = province+district
+            mappedJob.destination_company_name = cargoObj.name || null;
+            mappedJob.destination_location = cargoObj.name || null;
+            mappedJob.destination_address = buildProvDist(cargoObj);
             if (cargoObj.latitude != null) mappedJob.destination_latitude = cargoObj.latitude;
             if (cargoObj.longitude != null) mappedJob.destination_longitude = cargoObj.longitude;
             if (cargoObj.phone) mappedJob.destination_contact_phone = cargoObj.phone;
@@ -572,7 +575,7 @@ export default function JobDetailPage() {
                 company_name: cargoObj.name || null,
                 contact_name: null,
                 contact_phone: cargoObj.phone || null,
-                address: cargoObj.address || null,
+                address: buildProvDist(cargoObj),
                 province: cargoObj.province || null,
                 district: cargoObj.district || null,
                 location_name: cargoObj.name || null,
@@ -589,10 +592,9 @@ export default function JobDetailPage() {
               }];
             }
 
-            // จุดคืนตู้ (return_terminal)
-            const returnName = returnObj.location || returnObj.name;
-            if (returnName) mappedJob.container_return_location = returnName;
-            if (returnObj.address) mappedJob.container_return_address = returnObj.address;
+            // จุดคืนตู้ (return_terminal) — สถานที่ = name, ที่อยู่ = province+district
+            mappedJob.container_return_location = returnObj.name || null;
+            mappedJob.container_return_address = buildProvDist(returnObj);
             if (returnObj.latitude != null) mappedJob.container_return_latitude = returnObj.latitude;
             if (returnObj.longitude != null) mappedJob.container_return_longitude = returnObj.longitude;
           }
