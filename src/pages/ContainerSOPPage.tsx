@@ -184,13 +184,15 @@ const ContainerSOPPage = () => {
     setIsProcessingEirBlOcr(true);
     setEirBlOcrResult(null);
     setEirBlMatchStatus(null);
+    setEirContainerMatchStatus(null);
     try {
-      toast({ title: 'กำลังตรวจสอบเลข BL/Booking จาก EIR...', description: 'รอสักครู่...' });
+      toast({ title: 'กำลังตรวจสอบ EIR...', description: 'รอสักครู่...' });
       const result = await extractFromImage(file, 'eir_document');
       if (result.success && result.data) {
         const bl = result.data.bl_no || null;
         const bk = result.data.booking_no || null;
-        setEirBlOcrResult({ bl_no: bl, booking_no: bk });
+        const cn = (result.data as any).container_number || null;
+        setEirBlOcrResult({ bl_no: bl, booking_no: bk, container_number: cn });
 
         const jobBl = normalizeRef(jobDetail?.bl_no);
         const jobBk = normalizeRef(jobDetail?.booking_no);
@@ -208,24 +210,37 @@ const ContainerSOPPage = () => {
         }
         setEirBlMatchStatus(status);
 
-        if (status === 'match') {
-          toast({ title: 'ตรงกัน ✓', description: 'เลข BL/Booking ตรงกับงาน' });
-        } else if (status === 'mismatch') {
+        // Container number comparison (use verified container from check-in, fallback to jobDetail)
+        const expectedContainer = normalizeRef(containerNumber || (jobDetail as any)?.container_number);
+        const ocrCn = normalizeRef(cn);
+        let cStatus: 'match' | 'mismatch' | 'not_found' = 'not_found';
+        if (expectedContainer && ocrCn) {
+          cStatus = ocrCn === expectedContainer ? 'match' : 'mismatch';
+        }
+        setEirContainerMatchStatus(cStatus);
+
+        const blOk = status === 'match' || status === 'not_found';
+        const cOk = cStatus === 'match' || cStatus === 'not_found';
+        if (status === 'match' && cStatus === 'match') {
+          toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
+        } else if (!blOk || !cOk) {
           toast({
             title: 'ไม่ตรงกัน!',
-            description: 'เลข BL/Booking จาก EIR ไม่ตรงกับงาน กรุณาตรวจสอบ',
+            description: 'ข้อมูลใน EIR ไม่ตรงกับงาน กรุณาตรวจสอบ',
             variant: 'destructive',
           });
         } else {
-          toast({ title: 'ไม่พบเลข BL/Booking ใน EIR', description: 'กรุณาตรวจสอบด้วยตนเอง' });
+          toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
       } else {
         setEirBlMatchStatus('not_found');
+        setEirContainerMatchStatus('not_found');
         toast({ title: 'อ่าน EIR ไม่สำเร็จ', description: 'กรุณาตรวจสอบด้วยตนเอง' });
       }
     } catch (error) {
       console.error('EIR BL/Booking OCR error:', error);
       setEirBlMatchStatus('not_found');
+      setEirContainerMatchStatus('not_found');
     } finally {
       setIsProcessingEirBlOcr(false);
     }
