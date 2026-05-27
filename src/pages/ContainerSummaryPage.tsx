@@ -473,13 +473,6 @@ export default function ContainerSummaryPage() {
                       <span className="text-sm font-medium text-foreground">{ocrScanData.booking_no}</span>
                     </div>
                   )}
-                  {ocrScanData.bl_no && (
-                    <div className="flex items-center gap-2">
-                      <Hash className="w-4 h-4 text-primary" />
-                      <span className="text-sm text-muted-foreground">เลขที่ OCR BL:</span>
-                      <span className="text-sm font-medium text-foreground">{ocrScanData.bl_no}</span>
-                    </div>
-                  )}
                   {ocrScanData.container_no && (
                     <div className="flex items-center gap-2">
                       <Container className="w-4 h-4 text-primary" />
