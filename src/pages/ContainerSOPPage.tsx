@@ -1559,8 +1559,8 @@ const ContainerSOPPage = () => {
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirBlMatchStatus === 'mismatch' && (
-                <Card className="p-3 bg-red-50 border-red-300">
-                  <div className="flex items-center gap-2 mb-1">
+                <Card className="p-3 bg-red-50 border-red-300 space-y-2">
+                  <div className="flex items-center gap-2">
                     <X className="w-4 h-4 text-red-600" />
                     <span className="font-semibold text-red-700 text-sm">ไม่ตรงกัน! กรุณาตรวจสอบ</span>
                     <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">OCR</span>
@@ -1568,8 +1568,59 @@ const ContainerSOPPage = () => {
                   <div className="text-xs text-red-800 space-y-0.5">
                     {jobDetail?.bl_no && <p>BL ตามงาน: <span className="font-semibold">{jobDetail.bl_no}</span></p>}
                     {jobDetail?.booking_no && <p>Booking ตามงาน: <span className="font-semibold">{jobDetail.booking_no}</span></p>}
-                    {eirBlOcrResult?.bl_no && <p>BL ใน EIR: <span className="font-semibold">{eirBlOcrResult.bl_no}</span></p>}
-                    {eirBlOcrResult?.booking_no && <p>Booking ใน EIR: <span className="font-semibold">{eirBlOcrResult.booking_no}</span></p>}
+                  </div>
+                  <div className="space-y-2 pt-1">
+                    <div>
+                      <label className="text-xs text-red-800 font-medium">BL ใน EIR (แก้ไขได้)</label>
+                      <Input
+                        value={eirBlOcrResult?.bl_no || ''}
+                        onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), bl_no: e.target.value }))}
+                        placeholder="กรอกเลข BL"
+                        className="h-9 mt-1 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-red-800 font-medium">Booking ใน EIR (แก้ไขได้)</label>
+                      <Input
+                        value={eirBlOcrResult?.booking_no || ''}
+                        onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), booking_no: e.target.value }))}
+                        placeholder="กรอกเลข Booking"
+                        className="h-9 mt-1 bg-white"
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          const jobBl = normalizeRef(jobDetail?.bl_no);
+                          const jobBk = normalizeRef(jobDetail?.booking_no);
+                          const ocrBl = normalizeRef(eirBlOcrResult?.bl_no);
+                          const ocrBk = normalizeRef(eirBlOcrResult?.booking_no);
+                          let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
+                          if (jobBl && ocrBl) status = ocrBl === jobBl ? 'match' : 'mismatch';
+                          else if (jobBk && ocrBk) status = ocrBk === jobBk ? 'match' : 'mismatch';
+                          else if (jobBl && ocrBk) status = ocrBk.includes(jobBl) || jobBl.includes(ocrBk) ? 'match' : 'mismatch';
+                          setEirBlMatchStatus(status);
+                          if (status === 'match') toast({ title: 'ตรงกัน ✓' });
+                        }}
+                      >
+                        ตรวจสอบอีกครั้ง
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setEirBlMatchStatus(null);
+                          toast({ title: 'ยืนยันส่งข้อมูลแล้ว', description: 'สามารถดำเนินการต่อได้' });
+                        }}
+                      >
+                        ส่งข้อมูลต่อ
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               )}
