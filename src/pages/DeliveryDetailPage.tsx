@@ -792,7 +792,7 @@ export default function DeliveryDetailPage() {
     
     // Always navigate back to job detail page after POD
     // so the driver can see updated status and handle remaining destinations
-    const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
+    const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;
     navigate(backRoute, { state: { jobData: job } });
   };
 
