@@ -869,6 +869,7 @@ const ContainerSOPPage = () => {
         const ocrDriverType: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
         try {
           const scanPayload = {
+            scan_phase: 'pickup' as const,
             container_no: finalContainerNumber,
             seal_no: finalSealNumber || null,
             container_image_url: containerImageUrl || undefined,
@@ -886,6 +887,7 @@ const ContainerSOPPage = () => {
             booking_no: eirBlOcrResult?.booking_no || null,
             container_number: eirBlOcrResult?.container_number || null,
           };
+
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
 
@@ -1007,6 +1009,7 @@ const ContainerSOPPage = () => {
         if (returnSlipYardName) {
           try {
             const returnScanPayload: Parameters<typeof submitOcrScan>[0] = {
+              scan_phase: 'return',
               order_number: jobId || undefined,
               driver_id: user.id,
               driver_type: driverType,
@@ -1014,10 +1017,12 @@ const ContainerSOPPage = () => {
               return_yard: returnSlipYardName,
               container_no: derivedContainerNumber || finalContainerNumber || 'N/A',
               seal_no: derivedSealNumber || finalSealNumber || 'N/A',
+              eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
               bl_no: eirBlOcrResult?.bl_no || null,
               booking_no: eirBlOcrResult?.booking_no || null,
               container_number: eirBlOcrResult?.container_number || null,
             };
+
             console.log('[ContainerSOP] save-ocr-scan (return_yard only) payload:', returnScanPayload);
             const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
             if (returnOcrError) {
