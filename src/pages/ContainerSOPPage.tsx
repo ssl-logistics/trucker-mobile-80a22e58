@@ -866,8 +866,8 @@ const ContainerSOPPage = () => {
             max_gross: ocrMaxGross ? Number(ocrMaxGross) : undefined,
             tare_weight: ocrTareWeight ? Number(ocrTareWeight) : undefined,
             net_weight: ocrNetWeight ? Number(ocrNetWeight) : undefined,
-            bl_no: eirBlOcrResult?.bl_no || jobDetail?.bl_no || null,
-            booking_no: eirBlOcrResult?.booking_no || jobDetail?.booking_no || null,
+            bl_no: eirBlOcrResult?.bl_no || null,
+            booking_no: eirBlOcrResult?.booking_no || null,
           };
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
