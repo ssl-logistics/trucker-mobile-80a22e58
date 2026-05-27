@@ -1577,11 +1577,14 @@ const ContainerSOPPage = () => {
                     <span className="font-semibold text-green-700 text-sm">เลข BL/Booking ตรงกับงาน</span>
                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  {eirBlOcrResult?.bl_no && (
-                    <p className="text-xs text-green-800">BL: {eirBlOcrResult.bl_no}</p>
-                  )}
-                  {eirBlOcrResult?.booking_no && (
-                    <p className="text-xs text-green-800">Booking: {eirBlOcrResult.booking_no}</p>
+                  {isBLJob ? (
+                    eirBlOcrResult?.bl_no && (
+                      <p className="text-xs text-green-800">BL: {eirBlOcrResult.bl_no}</p>
+                    )
+                  ) : (
+                    eirBlOcrResult?.booking_no && (
+                      <p className="text-xs text-green-800">Booking: {eirBlOcrResult.booking_no}</p>
+                    )
                   )}
                 </Card>
               )}
