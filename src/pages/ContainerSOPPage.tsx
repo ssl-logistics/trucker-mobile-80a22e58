@@ -578,6 +578,11 @@ const ContainerSOPPage = () => {
     if (slot === 'eir' && isContainerReturn && isYardUnknown && !returnSlipYardName) {
       await runReturnSlipOcrFromEir(file);
     }
+
+    // Auto OCR for first EIR photo on pickup (loaded/empty) to verify BL/Booking
+    if (slot === 'eir' && !isContainerReturn && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no)) {
+      await runEirBlOcr(file);
+    }
   };
 
   const runContainerOcr = async (file: File) => {
