@@ -169,6 +169,7 @@ export default function ContainerSummaryPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [ocrScanData, setOcrScanData] = useState<OcrScanData | null>(null);
+  const [returnOcrRefs, setReturnOcrRefs] = useState<{ bl_no: string | null; booking_no: string | null }>({ bl_no: null, booking_no: null });
   const [loading, setLoading] = useState(true);
   const rawPickupPhotoUrls = sopData?.pickup_photo_urls || [];
   const rawPickupEirPhotoUrls = rawPickupPhotoUrls.filter(isEirDocumentUrl);
