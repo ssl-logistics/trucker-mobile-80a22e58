@@ -104,6 +104,8 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     return (
       hasMeaningfulOcrValue(record?.container_no) ||
       hasMeaningfulOcrValue(record?.seal_no) ||
+      hasMeaningfulOcrValue(record?.bl_no) ||
+      hasMeaningfulOcrValue(record?.booking_no) ||
       hasMeaningfulOcrValue(record?.container_image_url) ||
       hasMeaningfulOcrValue(record?.seal_image_url) ||
       containerPhotos.length > 0
