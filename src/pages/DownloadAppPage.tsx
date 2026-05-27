@@ -51,6 +51,7 @@ const DownloadAppPage: React.FC = () => {
   const [loadingApps, setLoadingApps] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [version, setVersion] = useState('1.8');
 
   useEffect(() => {
     checkAdmin();
