@@ -1532,6 +1532,58 @@ const ContainerSOPPage = () => {
             แนบรูปเอกสาร EIR ({eirPhotoFiles.length} รูป)
           </p>
 
+          {/* EIR BL/Booking verification result (pickup only) */}
+          {!isContainerReturn && (jobDetail?.bl_no || jobDetail?.booking_no) && (
+            <>
+              {isProcessingEirBlOcr && (
+                <Card className="p-3 bg-blue-50 border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <span className="text-sm text-blue-700">กำลังตรวจสอบเลข BL/Booking จาก EIR...</span>
+                  </div>
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && eirBlMatchStatus === 'match' && (
+                <Card className="p-3 bg-green-50 border-green-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="font-semibold text-green-700 text-sm">เลข BL/Booking ตรงกับงาน</span>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
+                  </div>
+                  {eirBlOcrResult?.bl_no && (
+                    <p className="text-xs text-green-800">BL: {eirBlOcrResult.bl_no}</p>
+                  )}
+                  {eirBlOcrResult?.booking_no && (
+                    <p className="text-xs text-green-800">Booking: {eirBlOcrResult.booking_no}</p>
+                  )}
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && eirBlMatchStatus === 'mismatch' && (
+                <Card className="p-3 bg-red-50 border-red-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <X className="w-4 h-4 text-red-600" />
+                    <span className="font-semibold text-red-700 text-sm">ไม่ตรงกัน! กรุณาตรวจสอบ</span>
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">OCR</span>
+                  </div>
+                  <div className="text-xs text-red-800 space-y-0.5">
+                    {jobDetail?.bl_no && <p>BL ตามงาน: <span className="font-semibold">{jobDetail.bl_no}</span></p>}
+                    {jobDetail?.booking_no && <p>Booking ตามงาน: <span className="font-semibold">{jobDetail.booking_no}</span></p>}
+                    {eirBlOcrResult?.bl_no && <p>BL ใน EIR: <span className="font-semibold">{eirBlOcrResult.bl_no}</span></p>}
+                    {eirBlOcrResult?.booking_no && <p>Booking ใน EIR: <span className="font-semibold">{eirBlOcrResult.booking_no}</span></p>}
+                  </div>
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && eirBlMatchStatus === 'not_found' && (
+                <Card className="p-3 bg-amber-50 border-amber-300">
+                  <div className="flex items-center gap-2">
+                    <Scan className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs text-amber-800">ไม่พบเลข BL/Booking ใน EIR กรุณาตรวจสอบด้วยตนเอง</span>
+                  </div>
+                </Card>
+              )}
+            </>
+          )}
+
         </div>
 
         {/* === OCR Return Slip Result (for unknown yard) === */}
