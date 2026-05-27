@@ -133,7 +133,8 @@ const DownloadAppPage: React.FC = () => {
 
     setUploading(true);
     try {
-      const fileName = `${selectedApp}/${selectedApp}-v${Date.now()}.apk`;
+      const cleanVersion = version.trim() || '1.0';
+      const fileName = `${selectedApp}/${selectedApp}-v${cleanVersion}-${Date.now()}.apk`;
       const { error } = await supabase.storage.from('apk-files').upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
@@ -147,6 +148,11 @@ const DownloadAppPage: React.FC = () => {
       setUploading(false);
       e.target.value = '';
     }
+  };
+
+  const extractVersion = (fileName: string): string | null => {
+    const match = fileName.match(/-v([\d.]+)-/);
+    return match ? match[1] : null;
   };
 
   const handleDelete = async (file: ApkFile) => {
