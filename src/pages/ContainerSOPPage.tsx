@@ -1018,10 +1018,9 @@ const ContainerSOPPage = () => {
             driver_id: user.id,
             driver_type: driverType,
             ...(containerNumber ? { container_no: containerNumber } : {}),
-            // Send BOTH bl_no and booking_no when OCR found them so backend
-            // can render whichever applies regardless of job type
-            ...(ocrBl ? { bl_no: ocrBl } : (jobDetail?.bl_no ? { bl_no: jobDetail.bl_no } : {})),
-            ...(ocrBooking ? { booking_no: ocrBooking } : (jobDetail?.booking_no ? { booking_no: jobDetail.booking_no } : {})),
+            // Send ONLY OCR-extracted values — no fallback to job's bl_no/booking_no
+            ...(ocrBl ? { bl_no: ocrBl } : {}),
+            ...(ocrBooking ? { booking_no: ocrBooking } : {}),
             ...(returnSlipYardName ? { return_yard: returnSlipYardName } : {}),
             eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
           };
