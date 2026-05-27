@@ -882,9 +882,11 @@ const ContainerSOPPage = () => {
             max_gross: ocrMaxGross ? Number(ocrMaxGross) : undefined,
             tare_weight: ocrTareWeight ? Number(ocrTareWeight) : undefined,
             net_weight: ocrNetWeight ? Number(ocrNetWeight) : undefined,
-            ...(isBLJob
-              ? { bl_no: eirBlOcrResult?.bl_no || jobDetail?.bl_no || null }
-              : { booking_no: eirBlOcrResult?.booking_no || jobDetail?.booking_no || null }),
+            // Send ONLY what OCR actually extracted from the EIR — never fall back
+            // to the order's bl_no/booking_no, so the summary card reflects the
+            // real document the driver scanned (not job metadata).
+            ...(eirBlOcrResult?.bl_no ? { bl_no: eirBlOcrResult.bl_no } : {}),
+            ...(eirBlOcrResult?.booking_no ? { booking_no: eirBlOcrResult.booking_no } : {}),
             container_number: eirBlOcrResult?.container_number || null,
           };
 
@@ -1016,10 +1018,9 @@ const ContainerSOPPage = () => {
             driver_id: user.id,
             driver_type: driverType,
             ...(containerNumber ? { container_no: containerNumber } : {}),
-            // Send BOTH bl_no and booking_no when OCR found them so backend
-            // can render whichever applies regardless of job type
-            ...(ocrBl ? { bl_no: ocrBl } : (jobDetail?.bl_no ? { bl_no: jobDetail.bl_no } : {})),
-            ...(ocrBooking ? { booking_no: ocrBooking } : (jobDetail?.booking_no ? { booking_no: jobDetail.booking_no } : {})),
+            // Send ONLY OCR-extracted values — no fallback to job's bl_no/booking_no
+            ...(ocrBl ? { bl_no: ocrBl } : {}),
+            ...(ocrBooking ? { booking_no: ocrBooking } : {}),
             ...(returnSlipYardName ? { return_yard: returnSlipYardName } : {}),
             eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
           };
