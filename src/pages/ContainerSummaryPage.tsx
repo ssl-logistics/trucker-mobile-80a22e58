@@ -623,20 +623,24 @@ export default function ContainerSummaryPage() {
           </Card>
         )}
 
-        {/* BL / Booking Reference */}
-        {checkinType === 'container_return' && (job?.bl_no || job?.booking_no) && (
-          <Card className="p-4 border-border">
-            <div className="flex items-center gap-2">
-              <Hash className="w-5 h-5 text-primary" />
-              <span className="text-sm text-muted-foreground">
-                {job?.booking_no ? 'เลขที่ Booking:' : 'เลขที่ BL:'}
-              </span>
-              <span className="text-sm font-semibold text-foreground">
-                {job?.booking_no || job?.bl_no}
-              </span>
-            </div>
-          </Card>
-        )}
+        {/* BL / Booking Reference (from return OCR; fallback to job) */}
+        {checkinType === 'container_return' && (() => {
+          const displayBooking = returnOcrRefs.booking_no || job?.booking_no || null;
+          const displayBl = returnOcrRefs.bl_no || job?.bl_no || null;
+          const value = displayBooking || displayBl;
+          if (!value) return null;
+          return (
+            <Card className="p-4 border-border">
+              <div className="flex items-center gap-2">
+                <Hash className="w-5 h-5 text-primary" />
+                <span className="text-sm text-muted-foreground">
+                  {displayBooking ? 'เลขที่ Booking:' : 'เลขที่ BL:'}
+                </span>
+                <span className="text-sm font-semibold text-foreground">{value}</span>
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Container Return Document Photos - only show in return context */}
         {checkinType === 'container_return' && returnPhotoUrls.length > 0 && (
