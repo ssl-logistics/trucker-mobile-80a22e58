@@ -469,7 +469,7 @@ export default function ContainerSummaryPage() {
                   {(ocrScanData.bl_no || ocrScanData.booking_no) && (
                     <div className="flex items-center gap-2">
                       <Hash className="w-4 h-4 text-primary" />
-                      <span className="text-sm text-muted-foreground">เลขที่ OCR ได้จากไฟล์ EIR (ตอนรับตู้):</span>
+                      <span className="text-sm text-muted-foreground">เลขที่ OCR ไฟล์ EIR (ตอนรับตู้):</span>
                       <span className="text-sm font-medium text-foreground">{ocrScanData.booking_no || ocrScanData.bl_no}</span>
                     </div>
                   )}
