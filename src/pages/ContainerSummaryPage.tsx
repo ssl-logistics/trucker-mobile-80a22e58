@@ -398,7 +398,9 @@ export default function ContainerSummaryPage() {
         const { data: ocrResult, error: ocrError } = await getOcrContainerScans(undefined, 10, jobId);
         if (!ocrError && ocrResult) {
           const ocrArr = (ocrResult as any)?.data || ocrResult || [];
-          setOcrScanData(Array.isArray(ocrArr) ? getPickupOcrData(ocrArr) : null);
+          const arr = Array.isArray(ocrArr) ? ocrArr : [];
+          setOcrScanData(getPickupOcrData(arr));
+          setReturnOcrRefs(getReturnOcrRefs(arr));
         }
       } catch (e) {
         console.warn('OCR scan data fetch failed:', e);
