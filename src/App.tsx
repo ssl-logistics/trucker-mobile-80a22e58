@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
@@ -76,6 +76,42 @@ function VersionBadge() {
   );
 
   return createPortal(badge, document.body);
+}
+
+const jobChildSegments = new Set([
+  'container-checkin',
+  'container-sop',
+  'container-summary',
+  'add-expense',
+  'expenses',
+  'pickup',
+  'sop',
+  'pickup-summary',
+  'delivery',
+  'delivery-sop',
+  'route-expenses',
+]);
+
+function RepairUnencodedJobRoute() {
+  const location = useLocation();
+  const parts = location.pathname.split('/').filter(Boolean);
+
+  if (parts[0] === 'job' && parts.length > 2) {
+    const rest = parts.slice(1);
+    const childIndex = rest.findIndex((part, index) => index > 0 && jobChildSegments.has(part));
+    const orderParts = childIndex === -1 ? rest : rest.slice(0, childIndex);
+    const suffixParts = childIndex === -1 ? [] : rest.slice(childIndex);
+    const orderNumber = orderParts.map((part) => decodeURIComponent(part)).join('/');
+    const suffix = suffixParts.length > 0 ? `/${suffixParts.join('/')}` : '';
+    return <Navigate to={`/job/${encodeURIComponent(orderNumber)}${suffix}${location.search}`} replace state={location.state} />;
+  }
+
+  if (parts[0] === 'bid-job' && parts.length > 2) {
+    const ticketNumber = parts.slice(1).map((part) => decodeURIComponent(part)).join('/');
+    return <Navigate to={`/bid-job/${encodeURIComponent(ticketNumber)}${location.search}`} replace state={location.state} />;
+  }
+
+  return <NotFound />;
 }
 const Register = lazyWithPreload(() => import("./pages/Register"));
 const ForgotPassword = lazyWithPreload(() => import("./pages/ForgotPassword"));
