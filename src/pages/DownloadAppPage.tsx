@@ -352,7 +352,17 @@ const DownloadAppPage: React.FC = () => {
                 อัปโหลด APK ใหม่ ({displayName})
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
+              <div>
+                <label className="text-xs text-muted-foreground font-medium mb-1 block">เวอร์ชัน</label>
+                <input
+                  type="text"
+                  value={version}
+                  onChange={(e) => setVersion(e.target.value)}
+                  placeholder="1.8"
+                  className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+                />
+              </div>
               <label className="block">
                 <input
                   type="file"
