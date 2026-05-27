@@ -200,7 +200,11 @@ const ContainerSOPPage = () => {
         const ocrBk = normalizeRef(bk);
 
         let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
-        if (jobBl) {
+        if (isContainerReturn) {
+          // ตอนคืนตู้: ไม่บังคับให้ตรงกัน เพราะ BL/Booking ใน EIR คืนอาจต่างจากตอนรับ
+          // ถือว่าผ่านเสมอถ้า OCR เจอข้อมูล
+          status = (ocrBl || ocrBk) ? 'match' : 'not_found';
+        } else if (jobBl) {
           if (ocrBl) status = ocrBl === jobBl ? 'match' : 'mismatch';
           else status = 'not_found';
         } else if (jobBk) {
