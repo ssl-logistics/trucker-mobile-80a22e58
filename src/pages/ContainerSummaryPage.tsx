@@ -134,6 +134,8 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     max_gross: pickupRecords.find((r) => r?.max_gross != null)?.max_gross ?? null,
     tare_weight: pickupRecords.find((r) => r?.tare_weight != null)?.tare_weight ?? null,
     net_weight: pickupRecords.find((r) => r?.net_weight != null)?.net_weight ?? null,
+    bl_no: firstMeaningfulValue(pickupRecords.map((record) => record?.bl_no)),
+    booking_no: firstMeaningfulValue(pickupRecords.map((record) => record?.booking_no)),
   };
 };
 
