@@ -19,6 +19,8 @@ interface JobDetail {
   container_checkpoint: string;
   start_date: string;
   start_time: string;
+  bl_no?: string | null;
+  booking_no?: string | null;
 }
 
 /** Extract driver ID from a checkin/SOP record regardless of driver type */
@@ -238,6 +240,8 @@ export default function ContainerSummaryPage() {
           container_checkpoint: foundJob.container_pickup_location || foundJob.container_checkpoint || foundJob.container_return_location || '',
           start_date: foundJob.sender_pickup_date || foundJob.start_date || '',
           start_time: foundJob.sender_pickup_time || foundJob.start_time || '',
+          bl_no: foundJob.bl_no || null,
+          booking_no: foundJob.booking_no || null,
         });
       }
 
@@ -596,6 +600,21 @@ export default function ContainerSummaryPage() {
                   {formatDateTime(sopData.return_checked_in_at, language)}
                 </div>
               </div>
+            </div>
+          </Card>
+        )}
+
+        {/* BL / Booking Reference */}
+        {checkinType === 'container_return' && (job?.bl_no || job?.booking_no) && (
+          <Card className="p-4 border-border">
+            <div className="flex items-center gap-2">
+              <Hash className="w-5 h-5 text-primary" />
+              <span className="text-sm text-muted-foreground">
+                {job?.booking_no ? 'เลขที่ Booking:' : 'เลขที่ BL:'}
+              </span>
+              <span className="text-sm font-semibold text-foreground">
+                {job?.booking_no || job?.bl_no}
+              </span>
             </div>
           </Card>
         )}
