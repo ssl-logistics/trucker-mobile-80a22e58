@@ -240,6 +240,8 @@ export default function ContainerSummaryPage() {
           container_checkpoint: foundJob.container_pickup_location || foundJob.container_checkpoint || foundJob.container_return_location || '',
           start_date: foundJob.sender_pickup_date || foundJob.start_date || '',
           start_time: foundJob.sender_pickup_time || foundJob.start_time || '',
+          bl_no: foundJob.bl_no || null,
+          booking_no: foundJob.booking_no || null,
         });
       }
 
