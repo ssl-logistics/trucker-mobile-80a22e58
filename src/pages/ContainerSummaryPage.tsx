@@ -623,10 +623,10 @@ export default function ContainerSummaryPage() {
           </Card>
         )}
 
-        {/* BL / Booking Reference (from return OCR; fallback to job) */}
+        {/* BL / Booking Reference (from return OCR only) */}
         {checkinType === 'container_return' && (() => {
-          const displayBooking = returnOcrRefs.booking_no || job?.booking_no || null;
-          const displayBl = returnOcrRefs.bl_no || job?.bl_no || null;
+          const displayBooking = returnOcrRefs.booking_no || null;
+          const displayBl = returnOcrRefs.bl_no || null;
           const value = displayBooking || displayBl;
           if (!value) return null;
           return (
