@@ -190,6 +190,29 @@ IMPORTANT:
 - For amount, return ONLY the numeric value (e.g., 500, not "500 บาท")
 - For account_number, remove all dashes and spaces (e.g., "7191014752" not "719-1-01475-2")
 - Be precise and extract from the DESTINATION/RECEIVER section, not the sender`;
+    } else if (extraction_type === 'eir_document') {
+      prompt = `Analyze this EIR (Equipment Interchange Receipt) / ใบรับตู้ document image.
+
+Your primary goal is to extract the BL number and/or Booking number printed on the EIR to verify that the driver received the correct container as ordered.
+
+Look for:
+1. BL Number (B/L No., Bill of Lading, เลขบีแอล) — typically alphanumeric (e.g., "MEDUXX1234567", "ONEYBKK12345678")
+2. Booking Number (Booking No., BKG No., เลขบุ๊คกิ้ง) — typically alphanumeric (e.g., "BKG12345678")
+3. Container number (4 letters + 7 digits) if present
+4. Seal number if present
+
+Return ONLY a JSON object in this exact format (no markdown, no explanation):
+{
+  "bl_no": "extracted BL number or null",
+  "booking_no": "extracted booking number or null",
+  "container_number": "extracted container number or null",
+  "seal_number": "extracted seal number or null"
+}
+
+IMPORTANT:
+- Return strings as-is (uppercase, no spaces or dashes)
+- If a field is not visible or unclear, use null
+- Do NOT confuse BL with Booking — only return what is explicitly labeled`;
     } else {
       prompt = `Extract all visible text from this image and return it as:
 {
