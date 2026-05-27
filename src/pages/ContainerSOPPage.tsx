@@ -149,6 +149,11 @@ const ContainerSOPPage = () => {
   const [showMissingExpenseDialog, setShowMissingExpenseDialog] = useState(false);
   const [missingExpenseTypes, setMissingExpenseTypes] = useState<string[]>([]);
 
+  // EIR BL/Booking verification (first EIR photo on pickup)
+  const [isProcessingEirBlOcr, setIsProcessingEirBlOcr] = useState(false);
+  const [eirBlOcrResult, setEirBlOcrResult] = useState<{ bl_no?: string | null; booking_no?: string | null } | null>(null);
+  const [eirBlMatchStatus, setEirBlMatchStatus] = useState<'match' | 'mismatch' | 'not_found' | null>(null);
+
   const runReturnSlipOcrFromEir = async (file: File) => {
     setIsProcessingReturnSlipOcr(true);
     try {
@@ -169,6 +174,61 @@ const ContainerSOPPage = () => {
       setIsProcessingReturnSlipOcr(false);
     }
   };
+
+  const normalizeRef = (s: string | null | undefined) =>
+    (s || '').toString().toUpperCase().replace(/[\s\-_./]/g, '');
+
+  const runEirBlOcr = async (file: File) => {
+    setIsProcessingEirBlOcr(true);
+    setEirBlOcrResult(null);
+    setEirBlMatchStatus(null);
+    try {
+      toast({ title: 'กำลังตรวจสอบเลข BL/Booking จาก EIR...', description: 'รอสักครู่...' });
+      const result = await extractFromImage(file, 'eir_document');
+      if (result.success && result.data) {
+        const bl = result.data.bl_no || null;
+        const bk = result.data.booking_no || null;
+        setEirBlOcrResult({ bl_no: bl, booking_no: bk });
+
+        const jobBl = normalizeRef(jobDetail?.bl_no);
+        const jobBk = normalizeRef(jobDetail?.booking_no);
+        const ocrBl = normalizeRef(bl);
+        const ocrBk = normalizeRef(bk);
+
+        let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
+        if (jobBl && ocrBl) {
+          status = ocrBl === jobBl ? 'match' : 'mismatch';
+        } else if (jobBk && ocrBk) {
+          status = ocrBk === jobBk ? 'match' : 'mismatch';
+        } else if (jobBl && ocrBk) {
+          // EIR sometimes shows booking even for BL jobs — partial compare
+          status = ocrBk.includes(jobBl) || jobBl.includes(ocrBk) ? 'match' : 'mismatch';
+        }
+        setEirBlMatchStatus(status);
+
+        if (status === 'match') {
+          toast({ title: 'ตรงกัน ✓', description: 'เลข BL/Booking ตรงกับงาน' });
+        } else if (status === 'mismatch') {
+          toast({
+            title: 'ไม่ตรงกัน!',
+            description: 'เลข BL/Booking จาก EIR ไม่ตรงกับงาน กรุณาตรวจสอบ',
+            variant: 'destructive',
+          });
+        } else {
+          toast({ title: 'ไม่พบเลข BL/Booking ใน EIR', description: 'กรุณาตรวจสอบด้วยตนเอง' });
+        }
+      } else {
+        setEirBlMatchStatus('not_found');
+        toast({ title: 'อ่าน EIR ไม่สำเร็จ', description: 'กรุณาตรวจสอบด้วยตนเอง' });
+      }
+    } catch (error) {
+      console.error('EIR BL/Booking OCR error:', error);
+      setEirBlMatchStatus('not_found');
+    } finally {
+      setIsProcessingEirBlOcr(false);
+    }
+  };
+
 
 
   useEffect(() => {
@@ -517,6 +577,11 @@ const ContainerSOPPage = () => {
     // Auto OCR for EIR photo during container return with unknown yard
     if (slot === 'eir' && isContainerReturn && isYardUnknown && !returnSlipYardName) {
       await runReturnSlipOcrFromEir(file);
+    }
+
+    // Auto OCR for first EIR photo on pickup (loaded/empty) to verify BL/Booking
+    if (slot === 'eir' && !isContainerReturn && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no)) {
+      await runEirBlOcr(file);
     }
   };
 
@@ -1466,6 +1531,58 @@ const ContainerSOPPage = () => {
           <p className="text-xs text-muted-foreground">
             แนบรูปเอกสาร EIR ({eirPhotoFiles.length} รูป)
           </p>
+
+          {/* EIR BL/Booking verification result (pickup only) */}
+          {!isContainerReturn && (jobDetail?.bl_no || jobDetail?.booking_no) && (
+            <>
+              {isProcessingEirBlOcr && (
+                <Card className="p-3 bg-blue-50 border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <span className="text-sm text-blue-700">กำลังตรวจสอบเลข BL/Booking จาก EIR...</span>
+                  </div>
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && eirBlMatchStatus === 'match' && (
+                <Card className="p-3 bg-green-50 border-green-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="font-semibold text-green-700 text-sm">เลข BL/Booking ตรงกับงาน</span>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
+                  </div>
+                  {eirBlOcrResult?.bl_no && (
+                    <p className="text-xs text-green-800">BL: {eirBlOcrResult.bl_no}</p>
+                  )}
+                  {eirBlOcrResult?.booking_no && (
+                    <p className="text-xs text-green-800">Booking: {eirBlOcrResult.booking_no}</p>
+                  )}
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && eirBlMatchStatus === 'mismatch' && (
+                <Card className="p-3 bg-red-50 border-red-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <X className="w-4 h-4 text-red-600" />
+                    <span className="font-semibold text-red-700 text-sm">ไม่ตรงกัน! กรุณาตรวจสอบ</span>
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">OCR</span>
+                  </div>
+                  <div className="text-xs text-red-800 space-y-0.5">
+                    {jobDetail?.bl_no && <p>BL ตามงาน: <span className="font-semibold">{jobDetail.bl_no}</span></p>}
+                    {jobDetail?.booking_no && <p>Booking ตามงาน: <span className="font-semibold">{jobDetail.booking_no}</span></p>}
+                    {eirBlOcrResult?.bl_no && <p>BL ใน EIR: <span className="font-semibold">{eirBlOcrResult.bl_no}</span></p>}
+                    {eirBlOcrResult?.booking_no && <p>Booking ใน EIR: <span className="font-semibold">{eirBlOcrResult.booking_no}</span></p>}
+                  </div>
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && eirBlMatchStatus === 'not_found' && (
+                <Card className="p-3 bg-amber-50 border-amber-300">
+                  <div className="flex items-center gap-2">
+                    <Scan className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs text-amber-800">ไม่พบเลข BL/Booking ใน EIR กรุณาตรวจสอบด้วยตนเอง</span>
+                  </div>
+                </Card>
+              )}
+            </>
+          )}
 
         </div>
 
