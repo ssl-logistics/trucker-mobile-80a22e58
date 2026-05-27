@@ -272,7 +272,7 @@ const DownloadAppPage: React.FC = () => {
           <p className="text-white/70">Android APK</p>
           {latestApk && (
             <p className="text-white/50 text-sm mt-1">
-              verions v{extractVersion(latestApk.name) || '1.8'}
+              verions v1.8
             </p>
           )}
         </div>
