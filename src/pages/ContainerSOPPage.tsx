@@ -1600,7 +1600,7 @@ const ContainerSOPPage = () => {
                       : jobDetail?.booking_no && <p>Booking ตามงาน: <span className="font-semibold">{jobDetail.booking_no}</span></p>}
                   </div>
                   <div className="space-y-2 pt-1">
-                    {isBLJob ? (
+                    {(eirBlOcrResult?.bl_no || (!eirBlOcrResult?.booking_no && isBLJob)) ? (
                       <div>
                         <label className="text-xs text-red-800 font-medium">BL ใน EIR (แก้ไขได้)</label>
                         <Input
