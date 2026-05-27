@@ -1005,32 +1005,34 @@ const ContainerSOPPage = () => {
         }
 
         
-        // Save OCR scan for container return (minimal payload)
-        if (returnSlipYardName) {
-          try {
-            const ocrBooking = eirBlOcrResult?.booking_no || null;
-            const ocrBl = eirBlOcrResult?.bl_no || null;
-            const useBooking = !!ocrBooking || (!ocrBl && !!jobDetail?.booking_no);
-            const returnScanPayload: Parameters<typeof submitOcrScan>[0] = {
-              scan_phase: 'return',
-              order_number: jobDetail?.order_code || jobId || undefined,
-              ...(useBooking
-                ? { booking_no: ocrBooking || jobDetail?.booking_no || null }
-                : { bl_no: ocrBl || jobDetail?.bl_no || null }),
-              ...(containerNumber ? { container_no: containerNumber } : {}),
-              eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
-            };
+        // Save OCR scan for container return — always send so backend evidence
+        // page shows BL/Booking (ตอนคืนตู้) card even when OCR didn't detect yard
+        try {
+          const ocrBl = eirBlOcrResult?.bl_no || null;
+          const ocrBooking = eirBlOcrResult?.booking_no || null;
+          const returnScanPayload: Parameters<typeof submitOcrScan>[0] = {
+            scan_phase: 'return',
+            order_number: jobDetail?.order_code || jobId || undefined,
+            driver_id: user.id,
+            driver_type: driverType,
+            ...(containerNumber ? { container_no: containerNumber } : {}),
+            // Send BOTH bl_no and booking_no when OCR found them so backend
+            // can render whichever applies regardless of job type
+            ...(ocrBl ? { bl_no: ocrBl } : (jobDetail?.bl_no ? { bl_no: jobDetail.bl_no } : {})),
+            ...(ocrBooking ? { booking_no: ocrBooking } : (jobDetail?.booking_no ? { booking_no: jobDetail.booking_no } : {})),
+            ...(returnSlipYardName ? { return_yard: returnSlipYardName } : {}),
+            eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
+          };
 
-            console.log('[ContainerSOP] save-ocr-scan (return) minimal payload:', returnScanPayload);
-            const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
-            if (returnOcrError) {
-              console.warn('[ContainerSOP] save-ocr-scan return error (non-blocking):', returnOcrError);
-            } else {
-              console.log('[ContainerSOP] return scan saved successfully');
-            }
-          } catch (returnOcrErr) {
-            console.warn('[ContainerSOP] save-ocr-scan return exception:', returnOcrErr);
+          console.log('[ContainerSOP] save-ocr-scan (return) payload:', returnScanPayload);
+          const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
+          if (returnOcrError) {
+            console.warn('[ContainerSOP] save-ocr-scan return error (non-blocking):', returnOcrError);
+          } else {
+            console.log('[ContainerSOP] return scan saved successfully');
           }
+        } catch (returnOcrErr) {
+          console.warn('[ContainerSOP] save-ocr-scan return exception:', returnOcrErr);
         }
       } else {
         // Send driverCheckin for loaded container pickup — only after OCR duplicate check passed
