@@ -884,6 +884,7 @@ const ContainerSOPPage = () => {
             net_weight: ocrNetWeight ? Number(ocrNetWeight) : undefined,
             bl_no: eirBlOcrResult?.bl_no || null,
             booking_no: eirBlOcrResult?.booking_no || null,
+            container_number: eirBlOcrResult?.container_number || null,
           };
 
           console.log('[ContainerSOP] save-ocr-scan payload:', scanPayload);
@@ -1015,6 +1016,7 @@ const ContainerSOPPage = () => {
               seal_no: derivedSealNumber || finalSealNumber || 'N/A',
               bl_no: eirBlOcrResult?.bl_no || null,
               booking_no: eirBlOcrResult?.booking_no || null,
+              container_number: eirBlOcrResult?.container_number || null,
             };
             console.log('[ContainerSOP] save-ocr-scan (return_yard only) payload:', returnScanPayload);
             const { error: returnOcrError } = await submitOcrScan(returnScanPayload);
