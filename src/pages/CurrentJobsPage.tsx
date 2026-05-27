@@ -1379,9 +1379,9 @@ export default function CurrentJobsPage() {
             j.id === job.id ? ({ ...j, requires_accident_evidence: false } as AcceptedJob) : j
           ));
           if (job.isBidJob) {
-            navigate(`/bid-job/${job.order_number}`);
+            navigate(`/bid-job/${encodeURIComponent(job.order_number)}`);
           } else {
-            navigate(`/job/${job.order_number}`, { state: { job: { ...job, requires_accident_evidence: false } } });
+            navigate(`/job/${encodeURIComponent(job.order_number)}`, { state: { job: { ...job, requires_accident_evidence: false } } });
           }
         }}
       />
