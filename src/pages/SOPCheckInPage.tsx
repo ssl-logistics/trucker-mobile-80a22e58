@@ -65,6 +65,7 @@ export default function SOPCheckInPage() {
     file: File;
     preview: string;
     ocrData: { weight_in?: number | null; weight_out?: number | null; net_weight?: number | null } | null;
+    ocrLoading?: boolean;
   }>>([]);
   const [activeWeightSlipIndex, setActiveWeightSlipIndex] = useState<number>(-1);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -343,9 +344,9 @@ export default function SOPCheckInPage() {
           setWeightSlips(prev => {
             const updated = [...prev];
             if (activeWeightSlipIndex >= 0) {
-              updated[activeWeightSlipIndex] = { file, preview, ocrData: null };
+              updated[activeWeightSlipIndex] = { file, preview, ocrData: null, ocrLoading: true };
             } else {
-              updated.push({ file, preview, ocrData: null });
+              updated.push({ file, preview, ocrData: null, ocrLoading: true });
             }
             return updated;
           });
@@ -363,14 +364,30 @@ export default function SOPCheckInPage() {
                         weight_out: result.data?.weight_out ?? null,
                         net_weight: result.data?.net_weight ?? null,
                       },
+                      ocrLoading: false,
                     };
                   }
                   return updated;
                 });
                 toast({ title: 'สแกนสำเร็จ', description: 'อ่านข้อมูลใบชั่งน้ำหนักเรียบร้อย' });
+              } else {
+                setWeightSlips(prev => {
+                  const updated = [...prev];
+                  if (updated[newIndex]) {
+                    updated[newIndex] = { ...updated[newIndex], ocrLoading: false };
+                  }
+                  return updated;
+                });
               }
             } catch (err) {
               console.error('Weight slip OCR error:', err);
+              setWeightSlips(prev => {
+                const updated = [...prev];
+                if (updated[newIndex]) {
+                  updated[newIndex] = { ...updated[newIndex], ocrLoading: false };
+                }
+                return updated;
+              });
             }
           })();
         };
@@ -671,7 +688,7 @@ export default function SOPCheckInPage() {
                 onClick={() => openPhotoDrawer('weightslip', index)}
                 className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-card relative"
               >
-                {ocrExtracting && activeWeightSlipIndex === index && (
+                {(ws.ocrLoading || (ocrExtracting && activeWeightSlipIndex === index)) && (
                   <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg z-10">
                     <div className="flex flex-col items-center gap-2">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
