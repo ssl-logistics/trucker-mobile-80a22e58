@@ -50,7 +50,7 @@ interface PaymentSlipData {
 
 interface OCRResult {
   success: boolean;
-  data?: ContainerSealData & ExpenseData & ExpenseDetailedData & PaymentSlipData & WeightSlipData & { raw_text?: string; yard_name?: string | null; return_date?: string | null };
+  data?: ContainerSealData & ExpenseData & ExpenseDetailedData & PaymentSlipData & WeightSlipData & { raw_text?: string; yard_name?: string | null; return_date?: string | null; bl_no?: string | null; booking_no?: string | null };
   error?: string;
 }
 
