@@ -143,6 +143,22 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
   };
 };
 
+const getReturnOcrRefs = (records: any[]): { bl_no: string | null; booking_no: string | null } => {
+  const returnRecords = records.filter((record) =>
+    record?.scan_phase === 'return' || !!record?.return_yard
+  );
+  const firstMeaningfulValue = (values: unknown[]): string | null => {
+    for (const value of values) {
+      if (hasMeaningfulOcrValue(value)) return value;
+    }
+    return null;
+  };
+  return {
+    bl_no: firstMeaningfulValue(returnRecords.map((r) => r?.bl_no)),
+    booking_no: firstMeaningfulValue(returnRecords.map((r) => r?.booking_no)),
+  };
+};
+
 export default function ContainerSummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -153,6 +169,7 @@ export default function ContainerSummaryPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [sopData, setSopData] = useState<SOPData | null>(null);
   const [ocrScanData, setOcrScanData] = useState<OcrScanData | null>(null);
+  const [returnOcrRefs, setReturnOcrRefs] = useState<{ bl_no: string | null; booking_no: string | null }>({ bl_no: null, booking_no: null });
   const [loading, setLoading] = useState(true);
   const rawPickupPhotoUrls = sopData?.pickup_photo_urls || [];
   const rawPickupEirPhotoUrls = rawPickupPhotoUrls.filter(isEirDocumentUrl);
@@ -381,7 +398,9 @@ export default function ContainerSummaryPage() {
         const { data: ocrResult, error: ocrError } = await getOcrContainerScans(undefined, 10, jobId);
         if (!ocrError && ocrResult) {
           const ocrArr = (ocrResult as any)?.data || ocrResult || [];
-          setOcrScanData(Array.isArray(ocrArr) ? getPickupOcrData(ocrArr) : null);
+          const arr = Array.isArray(ocrArr) ? ocrArr : [];
+          setOcrScanData(getPickupOcrData(arr));
+          setReturnOcrRefs(getReturnOcrRefs(arr));
         }
       } catch (e) {
         console.warn('OCR scan data fetch failed:', e);
@@ -604,20 +623,24 @@ export default function ContainerSummaryPage() {
           </Card>
         )}
 
-        {/* BL / Booking Reference */}
-        {checkinType === 'container_return' && (job?.bl_no || job?.booking_no) && (
-          <Card className="p-4 border-border">
-            <div className="flex items-center gap-2">
-              <Hash className="w-5 h-5 text-primary" />
-              <span className="text-sm text-muted-foreground">
-                {job?.booking_no ? 'เลขที่ Booking:' : 'เลขที่ BL:'}
-              </span>
-              <span className="text-sm font-semibold text-foreground">
-                {job?.booking_no || job?.bl_no}
-              </span>
-            </div>
-          </Card>
-        )}
+        {/* BL / Booking Reference (from return OCR; fallback to job) */}
+        {checkinType === 'container_return' && (() => {
+          const displayBooking = returnOcrRefs.booking_no || job?.booking_no || null;
+          const displayBl = returnOcrRefs.bl_no || job?.bl_no || null;
+          const value = displayBooking || displayBl;
+          if (!value) return null;
+          return (
+            <Card className="p-4 border-border">
+              <div className="flex items-center gap-2">
+                <Hash className="w-5 h-5 text-primary" />
+                <span className="text-sm text-muted-foreground">
+                  {displayBooking ? 'เลขที่ Booking:' : 'เลขที่ BL:'}
+                </span>
+                <span className="text-sm font-semibold text-foreground">{value}</span>
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Container Return Document Photos - only show in return context */}
         {checkinType === 'container_return' && returnPhotoUrls.length > 0 && (
