@@ -52,6 +52,8 @@ interface OcrScanData {
   max_gross?: number | string | null;
   tare_weight?: number | string | null;
   net_weight?: number | string | null;
+  bl_no?: string | null;
+  booking_no?: string | null;
 }
 
 const parseUrlArray = (raw: unknown): string[] => {
@@ -132,6 +134,8 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     max_gross: pickupRecords.find((r) => r?.max_gross != null)?.max_gross ?? null,
     tare_weight: pickupRecords.find((r) => r?.tare_weight != null)?.tare_weight ?? null,
     net_weight: pickupRecords.find((r) => r?.net_weight != null)?.net_weight ?? null,
+    bl_no: firstMeaningfulValue(pickupRecords.map((record) => record?.bl_no)),
+    booking_no: firstMeaningfulValue(pickupRecords.map((record) => record?.booking_no)),
   };
 };
 
@@ -456,10 +460,24 @@ export default function ContainerSummaryPage() {
             )}
 
             {/* Selected Container & Seal from BL */}
-            {ocrScanData && (ocrScanData.container_no || ocrScanData.seal_no) && (
+            {ocrScanData && (ocrScanData.container_no || ocrScanData.seal_no || ocrScanData.bl_no || ocrScanData.booking_no) && (
               <Card className="p-4 border-border">
                 <div className="text-sm font-semibold text-foreground mb-3">ข้อมูล OCR</div>
                 <div className="space-y-2">
+                  {ocrScanData.bl_no && (
+                    <div className="flex items-center gap-2">
+                      <Hash className="w-4 h-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">เลข BL:</span>
+                      <span className="text-sm font-medium text-foreground">{ocrScanData.bl_no}</span>
+                    </div>
+                  )}
+                  {ocrScanData.booking_no && (
+                    <div className="flex items-center gap-2">
+                      <Hash className="w-4 h-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">เลข Booking:</span>
+                      <span className="text-sm font-medium text-foreground">{ocrScanData.booking_no}</span>
+                    </div>
+                  )}
                   {ocrScanData.container_no && (
                     <div className="flex items-center gap-2">
                       <Container className="w-4 h-4 text-primary" />
