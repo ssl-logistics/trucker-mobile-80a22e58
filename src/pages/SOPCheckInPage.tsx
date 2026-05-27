@@ -65,6 +65,7 @@ export default function SOPCheckInPage() {
     file: File;
     preview: string;
     ocrData: { weight_in?: number | null; weight_out?: number | null; net_weight?: number | null } | null;
+    ocrLoading?: boolean;
   }>>([]);
   const [activeWeightSlipIndex, setActiveWeightSlipIndex] = useState<number>(-1);
   const [drawerOpen, setDrawerOpen] = useState(false);
