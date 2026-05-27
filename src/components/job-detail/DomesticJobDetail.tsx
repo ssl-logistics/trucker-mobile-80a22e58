@@ -1523,7 +1523,7 @@ export default function DomesticJobDetail({
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location')}</span>
                               <span className="font-semibold text-[#225795]">{headline}</span>
                             </div>
-                            {addressValue && addressValue !== headline && (
+                            {addressValue && (
                               <div className="flex items-start gap-2">
                                 <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                                 <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address')}</span>
