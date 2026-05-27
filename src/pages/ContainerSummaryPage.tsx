@@ -52,6 +52,8 @@ interface OcrScanData {
   max_gross?: number | string | null;
   tare_weight?: number | string | null;
   net_weight?: number | string | null;
+  bl_no?: string | null;
+  booking_no?: string | null;
 }
 
 const parseUrlArray = (raw: unknown): string[] => {
