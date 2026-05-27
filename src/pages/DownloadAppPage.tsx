@@ -51,6 +51,7 @@ const DownloadAppPage: React.FC = () => {
   const [loadingApps, setLoadingApps] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [version, setVersion] = useState('1.8');
 
   useEffect(() => {
     checkAdmin();
@@ -132,7 +133,8 @@ const DownloadAppPage: React.FC = () => {
 
     setUploading(true);
     try {
-      const fileName = `${selectedApp}/${selectedApp}-v${Date.now()}.apk`;
+      const cleanVersion = version.trim() || '1.0';
+      const fileName = `${selectedApp}/${selectedApp}-v${cleanVersion}-${Date.now()}.apk`;
       const { error } = await supabase.storage.from('apk-files').upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
@@ -146,6 +148,11 @@ const DownloadAppPage: React.FC = () => {
       setUploading(false);
       e.target.value = '';
     }
+  };
+
+  const extractVersion = (fileName: string): string | null => {
+    const match = fileName.match(/-v([\d.]+)-/);
+    return match ? match[1] : null;
   };
 
   const handleDelete = async (file: ApkFile) => {
@@ -263,6 +270,11 @@ const DownloadAppPage: React.FC = () => {
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">{displayName}</h1>
           <p className="text-white/70">Android APK</p>
+          {latestApk && (
+            <p className="text-white/50 text-sm mt-1">
+              เวอร์ชัน v{extractVersion(latestApk.name) || '1.0'}
+            </p>
+          )}
         </div>
 
         {/* Download Card */}
@@ -340,7 +352,17 @@ const DownloadAppPage: React.FC = () => {
                 อัปโหลด APK ใหม่ ({displayName})
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
+              <div>
+                <label className="text-xs text-muted-foreground font-medium mb-1 block">เวอร์ชัน</label>
+                <input
+                  type="text"
+                  value={version}
+                  onChange={(e) => setVersion(e.target.value)}
+                  placeholder="1.8"
+                  className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+                />
+              </div>
               <label className="block">
                 <input
                   type="file"
