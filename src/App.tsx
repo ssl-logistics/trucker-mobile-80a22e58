@@ -284,7 +284,7 @@ const App = () => (
                     <Route path="/download" element={<DownloadAppPage />} />
                     <Route path="/call" element={<ProtectedRoute><CallPage /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
+                    <Route path="*" element={<RepairUnencodedJobRoute />} />
                   </Routes>
                 </Suspense>
                 <VersionBadge />
