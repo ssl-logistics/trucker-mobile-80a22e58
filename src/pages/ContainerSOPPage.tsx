@@ -882,9 +882,11 @@ const ContainerSOPPage = () => {
             max_gross: ocrMaxGross ? Number(ocrMaxGross) : undefined,
             tare_weight: ocrTareWeight ? Number(ocrTareWeight) : undefined,
             net_weight: ocrNetWeight ? Number(ocrNetWeight) : undefined,
-            ...(isBLJob
-              ? { bl_no: eirBlOcrResult?.bl_no || jobDetail?.bl_no || null }
-              : { booking_no: eirBlOcrResult?.booking_no || jobDetail?.booking_no || null }),
+            // Send ONLY what OCR actually extracted from the EIR — never fall back
+            // to the order's bl_no/booking_no, so the summary card reflects the
+            // real document the driver scanned (not job metadata).
+            ...(eirBlOcrResult?.bl_no ? { bl_no: eirBlOcrResult.bl_no } : {}),
+            ...(eirBlOcrResult?.booking_no ? { booking_no: eirBlOcrResult.booking_no } : {}),
             container_number: eirBlOcrResult?.container_number || null,
           };
 
