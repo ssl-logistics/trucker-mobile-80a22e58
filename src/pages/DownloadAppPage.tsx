@@ -270,6 +270,11 @@ const DownloadAppPage: React.FC = () => {
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">{displayName}</h1>
           <p className="text-white/70">Android APK</p>
+          {latestApk && (
+            <p className="text-white/50 text-sm mt-1">
+              เวอร์ชัน v{extractVersion(latestApk.name) || '1.0'}
+            </p>
+          )}
         </div>
 
         {/* Download Card */}
