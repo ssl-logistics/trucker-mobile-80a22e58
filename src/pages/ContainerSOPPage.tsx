@@ -1658,10 +1658,66 @@ const ContainerSOPPage = () => {
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirBlMatchStatus === 'not_found' && (
-                <Card className="p-3 bg-amber-50 border-amber-300">
+                <Card className="p-3 bg-amber-50 border-amber-300 space-y-2">
                   <div className="flex items-center gap-2">
                     <Scan className="w-4 h-4 text-amber-600" />
-                    <span className="text-xs text-amber-800">ไม่พบเลข BL/Booking ใน EIR กรุณาตรวจสอบด้วยตนเอง</span>
+                    <span className="text-xs text-amber-800 font-medium">ไม่พบเลข BL/Booking ใน EIR กรุณากรอกด้วยตนเอง</span>
+                  </div>
+                  <div className="space-y-2 pt-1">
+                    {isBLJob ? (
+                      <div>
+                        <label className="text-xs text-amber-900 font-medium">BL ใน EIR (แก้ไขได้)</label>
+                        <Input
+                          value={eirBlOcrResult?.bl_no || ''}
+                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), bl_no: e.target.value }))}
+                          placeholder="กรอกเลข BL"
+                          className="h-9 mt-1 bg-white"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="text-xs text-amber-900 font-medium">Booking ใน EIR (แก้ไขได้)</label>
+                        <Input
+                          value={eirBlOcrResult?.booking_no || ''}
+                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), booking_no: e.target.value }))}
+                          placeholder="กรอกเลข Booking"
+                          className="h-9 mt-1 bg-white"
+                        />
+                      </div>
+                    )}
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          const jobBl = normalizeRef(jobDetail?.bl_no);
+                          const jobBk = normalizeRef(jobDetail?.booking_no);
+                          const ocrBl = normalizeRef(eirBlOcrResult?.bl_no);
+                          const ocrBk = normalizeRef(eirBlOcrResult?.booking_no);
+                          let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
+                          if (jobBl && ocrBl) status = ocrBl === jobBl ? 'match' : 'mismatch';
+                          else if (jobBk && ocrBk) status = ocrBk === jobBk ? 'match' : 'mismatch';
+                          else if (jobBl && ocrBk) status = ocrBk.includes(jobBl) || jobBl.includes(ocrBk) ? 'match' : 'mismatch';
+                          setEirBlMatchStatus(status);
+                          if (status === 'match') toast({ title: 'ตรงกัน ✓' });
+                        }}
+                      >
+                        ตรวจสอบอีกครั้ง
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setEirBlMatchStatus(null);
+                          toast({ title: 'ยืนยันส่งข้อมูลแล้ว', description: 'สามารถดำเนินการต่อได้' });
+                        }}
+                      >
+                        ส่งข้อมูลต่อ
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               )}
