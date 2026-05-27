@@ -149,6 +149,11 @@ const ContainerSOPPage = () => {
   const [showMissingExpenseDialog, setShowMissingExpenseDialog] = useState(false);
   const [missingExpenseTypes, setMissingExpenseTypes] = useState<string[]>([]);
 
+  // EIR BL/Booking verification (first EIR photo on pickup)
+  const [isProcessingEirBlOcr, setIsProcessingEirBlOcr] = useState(false);
+  const [eirBlOcrResult, setEirBlOcrResult] = useState<{ bl_no?: string | null; booking_no?: string | null } | null>(null);
+  const [eirBlMatchStatus, setEirBlMatchStatus] = useState<'match' | 'mismatch' | 'not_found' | null>(null);
+
   const runReturnSlipOcrFromEir = async (file: File) => {
     setIsProcessingReturnSlipOcr(true);
     try {
