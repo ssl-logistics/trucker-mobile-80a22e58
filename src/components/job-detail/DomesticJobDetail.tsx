@@ -1651,15 +1651,19 @@ export default function DomesticJobDetail({
                     }
                     </div>
                     <div className={`p-5 ${isPickupLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                      {job.origin_company_name &&
-                    <p className="font-semibold text-sm text-[#225795] mb-2">{job.origin_company_name}</p>
-                    }
-
                       <div className="space-y-2 text-sm text-foreground mb-3">
                         <div className="flex items-start gap-2">
                           <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.origin_location || '-'}</span>
+                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
+                          <span className="font-semibold text-[#225795]">{job.origin_location || '-'}</span>
                         </div>
+                        {job.origin_address && (
+                          <div className="flex items-start gap-2">
+                            <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
+                            <span>{job.origin_address}</span>
+                          </div>
+                        )}
                         <div className="flex items-start gap-2">
                           <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {(() => { const v = job.origin_contact_person; const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; return v && !generic.includes(v.trim()) ? v : '-'; })()}</span>
