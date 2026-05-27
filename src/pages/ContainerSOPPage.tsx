@@ -883,8 +883,9 @@ const ContainerSOPPage = () => {
             max_gross: ocrMaxGross ? Number(ocrMaxGross) : undefined,
             tare_weight: ocrTareWeight ? Number(ocrTareWeight) : undefined,
             net_weight: ocrNetWeight ? Number(ocrNetWeight) : undefined,
-            bl_no: eirBlOcrResult?.bl_no || null,
-            booking_no: eirBlOcrResult?.booking_no || null,
+            ...(isBLJob
+              ? { bl_no: eirBlOcrResult?.bl_no || jobDetail?.bl_no || null }
+              : { booking_no: eirBlOcrResult?.booking_no || jobDetail?.booking_no || null }),
             container_number: eirBlOcrResult?.container_number || null,
           };
 
@@ -1576,11 +1577,14 @@ const ContainerSOPPage = () => {
                     <span className="font-semibold text-green-700 text-sm">เลข BL/Booking ตรงกับงาน</span>
                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  {eirBlOcrResult?.bl_no && (
-                    <p className="text-xs text-green-800">BL: {eirBlOcrResult.bl_no}</p>
-                  )}
-                  {eirBlOcrResult?.booking_no && (
-                    <p className="text-xs text-green-800">Booking: {eirBlOcrResult.booking_no}</p>
+                  {isBLJob ? (
+                    eirBlOcrResult?.bl_no && (
+                      <p className="text-xs text-green-800">BL: {eirBlOcrResult.bl_no}</p>
+                    )
+                  ) : (
+                    eirBlOcrResult?.booking_no && (
+                      <p className="text-xs text-green-800">Booking: {eirBlOcrResult.booking_no}</p>
+                    )
                   )}
                 </Card>
               )}
@@ -1592,26 +1596,26 @@ const ContainerSOPPage = () => {
                     <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
                   <div className="text-xs text-red-800 space-y-0.5">
-                    {jobDetail?.bl_no && <p>BL ตามงาน: <span className="font-semibold">{jobDetail.bl_no}</span></p>}
-                    {jobDetail?.booking_no && <p>Booking ตามงาน: <span className="font-semibold">{jobDetail.booking_no}</span></p>}
+                    {isBLJob
+                      ? jobDetail?.bl_no && <p>BL ตามงาน: <span className="font-semibold">{jobDetail.bl_no}</span></p>
+                      : jobDetail?.booking_no && <p>Booking ตามงาน: <span className="font-semibold">{jobDetail.booking_no}</span></p>}
                   </div>
                   <div className="space-y-2 pt-1">
-                    {eirBlOcrResult?.bl_no && (
+                    {isBLJob ? (
                       <div>
                         <label className="text-xs text-red-800 font-medium">BL ใน EIR (แก้ไขได้)</label>
                         <Input
-                          value={eirBlOcrResult.bl_no || ''}
+                          value={eirBlOcrResult?.bl_no || ''}
                           onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), bl_no: e.target.value }))}
                           placeholder="กรอกเลข BL"
                           className="h-9 mt-1 bg-white"
                         />
                       </div>
-                    )}
-                    {eirBlOcrResult?.booking_no && (
+                    ) : (
                       <div>
                         <label className="text-xs text-red-800 font-medium">Booking ใน EIR (แก้ไขได้)</label>
                         <Input
-                          value={eirBlOcrResult.booking_no || ''}
+                          value={eirBlOcrResult?.booking_no || ''}
                           onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), booking_no: e.target.value }))}
                           placeholder="กรอกเลข Booking"
                           className="h-9 mt-1 bg-white"
