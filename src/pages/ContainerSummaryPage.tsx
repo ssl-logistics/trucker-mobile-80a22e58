@@ -466,18 +466,11 @@ export default function ContainerSummaryPage() {
               <Card className="p-4 border-border">
                 <div className="text-sm font-semibold text-foreground mb-3">ข้อมูล OCR</div>
                 <div className="space-y-2">
-                  {ocrScanData.bl_no && (
+                  {(ocrScanData.bl_no || ocrScanData.booking_no) && (
                     <div className="flex items-center gap-2">
                       <Hash className="w-4 h-4 text-primary" />
-                      <span className="text-sm text-muted-foreground">เลข BL:</span>
-                      <span className="text-sm font-medium text-foreground">{ocrScanData.bl_no}</span>
-                    </div>
-                  )}
-                  {ocrScanData.booking_no && (
-                    <div className="flex items-center gap-2">
-                      <Hash className="w-4 h-4 text-primary" />
-                      <span className="text-sm text-muted-foreground">เลข Booking:</span>
-                      <span className="text-sm font-medium text-foreground">{ocrScanData.booking_no}</span>
+                      <span className="text-sm text-muted-foreground">เลขที่ OCR ได้จากไฟล์ EIR:</span>
+                      <span className="text-sm font-medium text-foreground">{ocrScanData.booking_no || ocrScanData.bl_no}</span>
                     </div>
                   )}
                   {ocrScanData.container_no && (
