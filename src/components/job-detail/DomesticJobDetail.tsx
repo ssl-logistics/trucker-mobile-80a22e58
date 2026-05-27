@@ -1505,16 +1505,17 @@ export default function DomesticJobDetail({
                   </div>
                   <div className="p-4 bg-white">
                     {(() => {
-                      const isBl = !!job.bl_no;
+                      const isBl = !!job.bl_no || !!job.booking_no;
                       const j: any = job;
-                      const headline =
-                        job.container_checkpoint ||
-                        (isBl ? (j.container_return_location || j.container_return_address) : null) ||
-                        job.empty_pickup_address ||
-                        '-';
+                      // BL/Booking: ใช้ name เป็นสถานที่, province+district เป็นที่อยู่ (ไม่มี fallback)
+                      const headline = isBl
+                        ? (job.container_checkpoint || '-')
+                        : (job.container_checkpoint || job.empty_pickup_address || '-');
                       const dateValue = job.empty_pickup_date || job.empty_container_date || (isBl ? j.sender_pickup_date : null);
                       const timeValue = job.empty_pickup_time || (isBl ? j.sender_pickup_time : null);
-                      const addressValue = job.empty_pickup_address || (isBl ? (j.container_return_address || j.container_return_location) : null);
+                      const addressValue = isBl
+                        ? (job.empty_pickup_address || '-')
+                        : job.empty_pickup_address;
                       return (
                         <>
                           <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
@@ -1523,11 +1524,11 @@ export default function DomesticJobDetail({
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location')}</span>
                               <span className="font-semibold text-[#225795]">{headline}</span>
                             </div>
-                            {addressValue && (
+                            {(isBl || addressValue) && (
                               <div className="flex items-start gap-2">
                                 <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                                 <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address')}</span>
-                                <span>{addressValue}</span>
+                                <span>{addressValue || '-'}</span>
                               </div>
                             )}
                             <div className="flex items-start gap-2">
