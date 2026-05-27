@@ -19,6 +19,8 @@ interface JobDetail {
   container_checkpoint: string;
   start_date: string;
   start_time: string;
+  bl_no?: string | null;
+  booking_no?: string | null;
 }
 
 /** Extract driver ID from a checkin/SOP record regardless of driver type */
