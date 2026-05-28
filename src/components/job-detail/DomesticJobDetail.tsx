@@ -2282,6 +2282,18 @@ export default function DomesticJobDetail({
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                       </div>
+                      {!!job.bl_no && (job as any).vgm_cut_off && (
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span><strong className="text-foreground">VGM:</strong> {(job as any).vgm_cut_off}</span>
+                        </div>
+                      )}
+                      {!!job.bl_no && (job as any).closing_time && (
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span><strong className="text-foreground">Closing Time:</strong> {(job as any).closing_time}</span>
+                        </div>
+                      )}
                       {(job.destination_goods_type || job.origin_goods_type) && (
                         <div className="flex items-start gap-2">
                           <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
