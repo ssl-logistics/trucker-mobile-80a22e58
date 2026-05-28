@@ -62,12 +62,14 @@ interface JobDetail {
   origin_latitude: number | null;
   origin_longitude: number | null;
   origin_contact_phone: string | null;
+  origin_contact_name?: string | null;
   destination_location: string;
   destination_address: string | null;
   destination_company_name: string | null;
   destination_latitude: number | null;
   destination_longitude: number | null;
   destination_contact_phone: string | null;
+  destination_contact_name?: string | null;
   price: number;
   start_date: string;
   start_time: string;
