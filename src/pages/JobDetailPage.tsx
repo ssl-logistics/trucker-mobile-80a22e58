@@ -601,7 +601,8 @@ export default function JobDetailPage() {
                 latitude: cargoObj.latitude ?? null,
                 longitude: cargoObj.longitude ?? null,
                 products: Array.isArray(foundJob.products) ? foundJob.products : undefined,
-              }];
+                customer: cargoObj.customer || null,
+              } as any];
             }
 
             // จุดคืนตู้ (return_terminal) — สถานที่ = name, ที่อยู่ = province+district
