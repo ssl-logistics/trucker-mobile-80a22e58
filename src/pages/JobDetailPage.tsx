@@ -560,6 +560,7 @@ export default function JobDetailPage() {
             if (originObj.latitude != null) (mappedJob as any).origin_latitude = originObj.latitude;
             if (originObj.longitude != null) (mappedJob as any).origin_longitude = originObj.longitude;
             if (originObj.phone) mappedJob.origin_contact_phone = originObj.phone;
+            if (originObj.customer) (mappedJob as any).origin_customer = originObj.customer;
 
             // จุดส่งสินค้า/จุดรับสินค้า (cargo_point) — สถานที่ = name, ที่อยู่ = province+district
             mappedJob.destination_company_name = cargoObj.name || null;
@@ -568,6 +569,7 @@ export default function JobDetailPage() {
             if (cargoObj.latitude != null) mappedJob.destination_latitude = cargoObj.latitude;
             if (cargoObj.longitude != null) mappedJob.destination_longitude = cargoObj.longitude;
             if (cargoObj.phone) mappedJob.destination_contact_phone = cargoObj.phone;
+            if (cargoObj.customer) (mappedJob as any).cargo_point_customer = cargoObj.customer;
 
             // สำหรับงาน Booking (export): "จุดรับสินค้า" = cargo_point
             // override origin_* ให้ใช้ cargo_point name/province+district
@@ -575,6 +577,7 @@ export default function JobDetailPage() {
             if (isBooking) {
               mappedJob.origin_location = cargoObj.name || '-';
               mappedJob.origin_address = buildProvDist(cargoObj);
+              if (cargoObj.customer) (mappedJob as any).origin_customer = cargoObj.customer;
             }
 
             if (cargoObj.name || cargoObj.address || cargoObj.district || cargoObj.province) {
@@ -598,7 +601,8 @@ export default function JobDetailPage() {
                 latitude: cargoObj.latitude ?? null,
                 longitude: cargoObj.longitude ?? null,
                 products: Array.isArray(foundJob.products) ? foundJob.products : undefined,
-              }];
+                customer: cargoObj.customer || null,
+              } as any];
             }
 
             // จุดคืนตู้ (return_terminal) — สถานที่ = name, ที่อยู่ = province+district
