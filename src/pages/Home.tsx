@@ -352,15 +352,21 @@ const isValidName = (val: any): string => {
           destinationLocation = returnObj.location || returnObj.name || '';
         } else {
           // Domestic: use origins array if available, fallback to sender fields
-          const originCompany = (Array.isArray(item.origins) && item.origins.length > 0 ? item.origins[0].company_name : '') || item.sender_name || item.sender_company_name || '';
+          const originObjDom = (item.origin && typeof item.origin === 'object') ? item.origin : null;
+          const destObjDom = (item.destination && typeof item.destination === 'object') ? item.destination : null;
+          const originCompany = (Array.isArray(item.origins) && item.origins.length > 0 ? item.origins[0].company_name : '') || (originObjDom?.name) || item.sender_name || item.sender_company_name || '';
           const originDistrict = (Array.isArray(item.origins) && item.origins.length > 0
             ? [item.origins[0].district, item.origins[0].province].filter(Boolean).join(', ')
-            : '') || item.origin || 
-            [item.sender_district, item.sender_province].filter(Boolean).join(', ') || 
+            : '') ||
+            (originObjDom ? [originObjDom.district, originObjDom.province].filter(Boolean).join(', ') : '') ||
+            (typeof item.origin === 'string' ? item.origin : '') ||
+            [item.sender_district, item.sender_province].filter(Boolean).join(', ') ||
             item.from_location || '';
           originLocation = [originCompany, originDistrict].filter(Boolean).join('\n');
-          destinationLocation = item.destination || 
-            [item.destination_district, item.destination_province].filter(Boolean).join(', ') || 
+          destinationLocation =
+            (destObjDom ? ([destObjDom.name, [destObjDom.district, destObjDom.province].filter(Boolean).join(', ')].filter(Boolean).join('\n')) : '') ||
+            (typeof item.destination === 'string' ? item.destination : '') ||
+            [item.destination_district, item.destination_province].filter(Boolean).join(', ') ||
             item.to_location || '';
         }
         
