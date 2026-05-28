@@ -15,6 +15,7 @@ import { useNewJobPolling } from '@/hooks/useNewJobPolling';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { RejectFactoryJobDialog } from '@/components/home/RejectFactoryJobDialog';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { preloadablePages } from '@/App';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { HomeTour } from '@/components/onboarding/HomeTour';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
+import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 import { 
   getDriverAssignedJobs, 
   getFactoryAssignedJobs, 
@@ -102,6 +104,8 @@ const isValidName = (val: any): string => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [openJobOrderCode, setOpenJobOrderCode] = useState<string | null>(null);
+  const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
+  const [accidentStartJob, setAccidentStartJob] = useState<Job | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   // Category filter (multi-select). Empty = show all categories.
   type CategoryKey = 'bl' | 'booking' | 'multi' | 'single';
