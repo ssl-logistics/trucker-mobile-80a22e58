@@ -1190,7 +1190,7 @@ export default function DeliveryDetailPage() {
 
         <div className="border-b border-gray-200 pb-4">
           <div className="text-sm text-muted-foreground mb-1">{t('delivery.routeNumber')}</div>
-          <div className="text-base">{displayCompanyName || '-'}</div>
+          <div className="text-base">{displayAddress || '-'}</div>
         </div>
 
         <div className="border-b border-gray-200 pb-4">
