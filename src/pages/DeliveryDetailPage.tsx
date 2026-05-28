@@ -317,7 +317,7 @@ export default function DeliveryDetailPage() {
             id: foundJob.id || jobId,
             order_code: foundJob.order_number || foundJob.order_code || jobId,
             employer_name: foundJob.factory_name || cargoPoint.name || '',
-            destination_location: `${cargoPoint.district || ''}, ${cargoPoint.province || ''}`.replace(/^, |, $/g, ''),
+            destination_location: `${cargoPoint.province || ''}, ${cargoPoint.district || ''}`.replace(/^, |, $/g, ''),
             start_date: destData.delivery_date || foundJob.destination_delivery_date || foundJob.sender_pickup_date,
             start_time: destData.delivery_time || foundJob.destination_delivery_time || foundJob.sender_pickup_time,
             destination_latitude: cargoPoint.latitude ?? destData.latitude ?? foundJob.destination_latitude ?? foundJob.cargo_loading?.latitude ?? foundJob.container_return?.latitude ?? null,
@@ -1007,7 +1007,7 @@ export default function DeliveryDetailPage() {
     return contactClean || '-';
   })();
   const displayAddress = destination?.address || job?.destination_address || job?.destination_location || '-';
-  const displayLocation = destination ? `${destination.district || ''}, ${destination.province || ''}` : job?.destination_location || '-';
+  const displayLocation = destination ? `${destination.province || ''}, ${destination.district || ''}` : job?.destination_location || '-';
   const displayLatitude = destination?.latitude || job?.destination_latitude || null;
   const displayLongitude = destination?.longitude || job?.destination_longitude || null;
   const displayDeliveryDate = destination?.delivery_date || job?.start_date;
