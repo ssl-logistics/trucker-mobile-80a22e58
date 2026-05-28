@@ -167,11 +167,9 @@ export default function CurrentJobsPage() {
   const [accidentJob, setAccidentJob] = useState<AcceptedJob | null>(null);
 
   const handleOpenJob = (job: AcceptedJob) => {
-    const needsEvidence = !!(job as any).requires_accident_evidence;
-    if (needsEvidence) {
-      setAccidentJob(job);
-      return;
-    }
+    // Always navigate to the job detail page. The detail page auto-opens the
+    // AccidentEvidenceModal when `requires_accident_evidence` is true so the
+    // receiving driver uploads evidence in-context on the job they accepted.
     if (job.isBidJob) {
       navigate(`/bid-job/${encodeURIComponent(job.order_number)}`);
     } else {
