@@ -663,6 +663,22 @@ export default function JobDetailPage() {
             mappedJob.container_return_address = buildProvDist(returnObj);
             if (returnObj.latitude != null) mappedJob.container_return_latitude = returnObj.latitude;
             if (returnObj.longitude != null) mappedJob.container_return_longitude = returnObj.longitude;
+
+            // VGM cut-off and closing time (from API or international_details)
+            (mappedJob as any).vgm_cut_off =
+              (foundJob as any).vgm_cut_off ||
+              (foundJob as any).vgmCutOff ||
+              intl.vgm_cut_off ||
+              intl.vgmCutOff ||
+              null;
+            (mappedJob as any).closing_time =
+              (foundJob as any).closing_time ||
+              (foundJob as any).closingTime ||
+              (foundJob as any).closing_date ||
+              intl.closing_time ||
+              intl.closingTime ||
+              intl.closing_date ||
+              null;
           }
 
           setJob(mappedJob);
