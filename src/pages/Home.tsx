@@ -591,26 +591,11 @@ const isValidName = (val: any): string => {
           return true;
         })
         .map((item: any) => {
-        // Parse origin and destination from description (format: "ต้นทาง → ปลายทาง")
-        let originLocation = item.origin || item.from_location || '';
-        let destinationLocation = item.destination || item.to_location || '';
-        
-        // If origin/destination is empty or "-", try to parse from description
-        if ((!originLocation || originLocation === '-') && item.description) {
-          const parts = item.description.split('→').map((p: string) => p.trim());
-          if (parts.length >= 2) {
-            originLocation = parts[0] || '';
-            destinationLocation = parts[1] || '';
-          }
-        }
-        
-        // If destination is still empty, try parsing from description
-        if ((!destinationLocation || destinationLocation === '-') && item.description) {
-          const parts = item.description.split('→').map((p: string) => p.trim());
-          if (parts.length >= 2) {
-            destinationLocation = parts[1] || '';
-          }
-        }
+        const hasMultipleDest = Array.isArray(item.destinations) && item.destinations.length > 0;
+        const originObjPost = (item.origin && typeof item.origin === 'object') ? item.origin : null;
+        const destObjPost = (item.destination && typeof item.destination === 'object') ? item.destination : null;
+        let originLocation = '';
+        let destinationLocation = '';
 
         // International job override: use empty pickup depot / container return location
         const isIntlPost = !!(item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) || item.job_type === 'international' || item.transport_category === 'international';
@@ -618,11 +603,15 @@ const isValidName = (val: any): string => {
           const intl2 = item.international_details || {};
           const originObj2 = item.origin || intl2.origin || {};
           const returnObj2 = item.return_terminal || intl2.return_terminal || {};
-          // ใช้ชื่อจากคอลัมน์ origin/return_terminal เท่านั้น
           originLocation = originObj2.name || '';
           destinationLocation = returnObj2.location || returnObj2.name || '';
+        } else if (!hasMultipleDest) {
+          // Domestic single-trip: use origin.name and destination.name only (no fallback)
+          originLocation = originObjPost?.name || (typeof item.origin === 'string' ? item.origin : '') || '';
+          destinationLocation = destObjPost?.name || (typeof item.destination === 'string' ? item.destination : '') || '';
         } else {
-          // Prepend sender_name to origin if available (same logic as factory jobs)
+          // Multi-destination domestic: keep prior fallback behavior for origin
+          originLocation = (typeof item.origin === 'string' ? item.origin : '') || originObjPost?.name || item.from_location || '';
           const originCompany = item.sender_name || item.sender_company_name || item.company_name || item.factory_name || '';
           if (originCompany && originLocation && originLocation !== '-') {
             originLocation = [originCompany, originLocation].filter(Boolean).join('\n');
@@ -630,6 +619,7 @@ const isValidName = (val: any): string => {
             originLocation = originCompany;
           }
         }
+
         
         // Extract order code from title (format: "โพสต์หารถด่วน - OR20251203002")
         let orderCode = item.post_code || item.order_number || item.quote_number || '';
