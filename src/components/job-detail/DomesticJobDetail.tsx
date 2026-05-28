@@ -1715,6 +1715,16 @@ export default function DomesticJobDetail({
                             <span>{job.origin_remarks}</span>
                           </div>
                       }
+                        {(job as any).origin_customer && (
+                          <button
+                            type="button"
+                            onClick={() => setCustomerModalData((job as any).origin_customer)}
+                            className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-[#225795] underline underline-offset-2 hover:opacity-80"
+                          >
+                            <User className="w-3.5 h-3.5" />
+                            {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
+                          </button>
+                        )}
                       </div>
 
                       <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
