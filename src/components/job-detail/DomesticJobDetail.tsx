@@ -2238,12 +2238,10 @@ export default function DomesticJobDetail({
                         <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.location')}:</strong> {job.destination_location || '-'}</span>
                       </div>
-                      {(!!job.bl_no || !!job.booking_no) && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.address')}:</strong> {job.destination_address || '-'}</span>
-                        </div>
-                      )}
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span><strong className="text-foreground">{t('jobDetail.address')}:</strong> {job.destination_address || '-'}</span>
+                      </div>
                       <div className="flex items-start gap-2">
                         <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.destination_contact_person || '-'}</span>
