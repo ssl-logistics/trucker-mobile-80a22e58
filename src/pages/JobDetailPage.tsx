@@ -480,6 +480,19 @@ export default function JobDetailPage() {
                   rawDests = csv.destinations;
                 }
               }
+              const isIntlJob =
+                String(foundJob.job_type || '').toLowerCase() === 'bl' ||
+                String(foundJob.job_type || '').toLowerCase() === 'booking' ||
+                String(foundJob.job_type || '').toLowerCase() === 'international' ||
+                String(foundJob.transport_category || '').toLowerCase() === 'international' ||
+                !!foundJob.bl_no ||
+                !!foundJob.booking_no;
+              const hasSingleTripDestinationObject =
+                !isIntlJob &&
+                rawDests.length <= 1 &&
+                foundJob.destination &&
+                typeof foundJob.destination === 'object';
+              if (hasSingleTripDestinationObject) return undefined;
               // For BL (inbound) jobs, fall back to sender_* / destination_* fields as the
               // cargo delivery point (place of receipt) when destinations array is empty.
               if (rawDests.length === 0 && foundJob.bl_no) {
@@ -569,16 +582,16 @@ export default function JobDetailPage() {
           };
 
           // International override: use origin / cargo_point / return_terminal / assigned_company
+          const rawJobType = String((foundJob as any).job_type || '').toLowerCase();
+          const rawTransportCategory = String((foundJob as any).transport_category || '').toLowerCase();
           const isIntl =
             mappedJob.job_type === 'international' ||
-            String((foundJob as any).job_type || '').toLowerCase() === 'bl' ||
-            String((foundJob as any).job_type || '').toLowerCase() === 'booking' ||
-            String((foundJob as any).transport_category || '').toLowerCase() === 'international' ||
+            rawJobType === 'bl' ||
+            rawJobType === 'booking' ||
+            rawJobType === 'international' ||
+            rawTransportCategory === 'international' ||
             !!(foundJob as any).bl_no ||
-            !!(foundJob as any).booking_no ||
-            !!(foundJob as any).origin ||
-            !!(foundJob as any).cargo_point ||
-            !!(foundJob as any).return_terminal;
+            !!(foundJob as any).booking_no;
           if (isIntl) {
             const intl = (foundJob as any).international_details || {};
             const originObj = (foundJob as any).origin || intl.origin || {};
