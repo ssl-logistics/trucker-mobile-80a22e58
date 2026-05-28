@@ -360,7 +360,7 @@ export default function JobDetailPage() {
               if (o && (o.district || o.province)) return [o.district, o.province].filter(Boolean).join(', ');
               return foundJob.sender_address || (typeof foundJob.origin_location === 'string' ? foundJob.origin_location : '') || (typeof foundJob.origin_address === 'string' ? foundJob.origin_address : '') || '';
             })(),
-            origin_address: foundJob.sender_address || (typeof foundJob.origin_address === 'string' ? foundJob.origin_address : null) || (() => {
+            origin_address: (() => {
               const o = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
               return o ? [o.province, o.district].filter(Boolean).join(' ') || null : null;
             })(),
@@ -375,7 +375,7 @@ export default function JobDetailPage() {
               if (d && (d.district || d.province)) return [d.district, d.province].filter(Boolean).join(', ');
               return (typeof foundJob.destination_address === 'string' ? foundJob.destination_address : '') || (typeof foundJob.destination_location === 'string' ? foundJob.destination_location : '') || '';
             })(),
-            destination_address: (typeof foundJob.destination_address === 'string' ? foundJob.destination_address : null) || (() => {
+            destination_address: (() => {
               const d = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
               return d ? [d.province, d.district].filter(Boolean).join(' ') || null : null;
             })(),
