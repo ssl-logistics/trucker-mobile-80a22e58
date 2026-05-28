@@ -52,6 +52,8 @@ interface Job {
   employer_name: string;
   transport_type: string;
   transport_type_label?: string;
+  transport_mode?: string | null;
+  transport_category?: string | null;
   origin_location: string;
   destination_location: string;
   destination_company_name: string | null;
@@ -389,6 +391,8 @@ const isValidName = (val: any): string => {
 
           transport_type: item.transport_mode || item.send_mode || 'single',
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
+          transport_mode: item.transport_mode || null,
+          transport_category: item.transport_category || null,
           origin_location: originLocation,
           destination_location: destinationLocation,
           destination_company_name: isIntl ? null : (isValidName(item.destination_company_name) || isValidName(item.destination_name) || null),
