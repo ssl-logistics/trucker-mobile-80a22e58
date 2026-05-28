@@ -101,6 +101,8 @@ interface AcceptedJob {
   updated_at: string;
   // Multiple destinations support
   destinations?: Array<{ sequence: number; location: string; company_name?: string; products?: Array<{ product_name: string; quantity?: number; unit?: string; weight?: number; weight_unit?: string }> }>;
+  origin?: { name?: string | null; [key: string]: unknown } | null;
+  destination?: { name?: string | null; [key: string]: unknown } | null;
   // Products array for per-item display
   products?: Array<{
     product_name: string;
@@ -139,6 +141,22 @@ export default function CurrentJobsPage() {
   if (location.state?.justStartedOrder && !justStartedOrderRef.current) {
     justStartedOrderRef.current = location.state.justStartedOrder;
   }
+
+  const normalizeLocationObject = (value: unknown): { name?: string | null; [key: string]: unknown } | null => {
+    if (!value) return null;
+    if (typeof value === 'object') return value as { name?: string | null; [key: string]: unknown };
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const getApiLocationName = (value: unknown) => normalizeLocationObject(value)?.name || '-';
 
   // Filter states
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
@@ -513,6 +531,8 @@ export default function CurrentJobsPage() {
             // International job addresses
             empty_pickup_address: job.empty_pickup_address || null,
             container_return_address: job.container_return_address || null,
+             origin: normalizeLocationObject(job.origin),
+             destination: normalizeLocationObject(job.destination),
             remarks: job.remarks,
             created_at: job.created_at,
             updated_at: job.updated_at,
@@ -1154,33 +1174,15 @@ export default function CurrentJobsPage() {
                                 </>
                               );
                             }
-                            const originObj = (j.origin && typeof j.origin === 'object') ? j.origin : null;
-                            const destObj = (j.destination && typeof j.destination === 'object') ? j.destination : null;
                             return (
                               <>
                                 <div className="text-xs">
                                   <div className="text-muted-foreground">{t('job.origin')}</div>
-                                  <div className="font-medium">
-                                    {originObj
-                                      ? (originObj.name || '-')
-                                      : (job.sender_province && job.sender_district
-                                          ? `${job.sender_district}, ${job.sender_province}`
-                                          : (() => {
-                                              const addr = (job as any).empty_pickup_address || job.sender_address;
-                                              const extracted = addr ? extractDistrictProvince(addr) : '';
-                                              return (extracted && extracted !== '-' ? extracted : null) || job.sender_name || '-';
-                                            })())}
-                                  </div>
+                                  <div className="font-medium">{getApiLocationName(j.origin)}</div>
                                 </div>
                                 <div className="text-xs">
                                   <div className="text-muted-foreground">{t('job.destination')}</div>
-                                  <div className="font-medium">
-                                    {destObj
-                                      ? (destObj.name || '-')
-                                      : (job.destination_province && job.destination_district
-                                          ? `${job.destination_district}, ${job.destination_province}`
-                                          : extractDistrictProvince(job.container_return_address || job.destination_address))}
-                                  </div>
+                                  <div className="font-medium">{getApiLocationName(j.destination)}</div>
                                 </div>
                               </>
                             );
