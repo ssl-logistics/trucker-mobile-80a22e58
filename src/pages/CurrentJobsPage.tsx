@@ -1154,30 +1154,37 @@ export default function CurrentJobsPage() {
                                 </>
                               );
                             }
+                            const originObj = (j.origin && typeof j.origin === 'object') ? j.origin : null;
+                            const destObj = (j.destination && typeof j.destination === 'object') ? j.destination : null;
                             return (
                               <>
                                 <div className="text-xs">
                                   <div className="text-muted-foreground">{t('job.origin')}</div>
                                   <div className="font-medium">
-                                    {job.sender_province && job.sender_district 
-                                      ? `${job.sender_district}, ${job.sender_province}` 
-                                      : (() => {
-                                          const addr = (job as any).empty_pickup_address || job.sender_address;
-                                          const extracted = addr ? extractDistrictProvince(addr) : '';
-                                          return (extracted && extracted !== '-' ? extracted : null) || job.sender_name || '-';
-                                        })()}
+                                    {originObj
+                                      ? (originObj.name || '-')
+                                      : (job.sender_province && job.sender_district
+                                          ? `${job.sender_district}, ${job.sender_province}`
+                                          : (() => {
+                                              const addr = (job as any).empty_pickup_address || job.sender_address;
+                                              const extracted = addr ? extractDistrictProvince(addr) : '';
+                                              return (extracted && extracted !== '-' ? extracted : null) || job.sender_name || '-';
+                                            })())}
                                   </div>
                                 </div>
                                 <div className="text-xs">
                                   <div className="text-muted-foreground">{t('job.destination')}</div>
                                   <div className="font-medium">
-                                    {job.destination_province && job.destination_district 
-                                      ? `${job.destination_district}, ${job.destination_province}` 
-                                      : extractDistrictProvince(job.container_return_address || job.destination_address)}
+                                    {destObj
+                                      ? (destObj.name || '-')
+                                      : (job.destination_province && job.destination_district
+                                          ? `${job.destination_district}, ${job.destination_province}`
+                                          : extractDistrictProvince(job.container_return_address || job.destination_address))}
                                   </div>
                                 </div>
                               </>
                             );
+
                           })()}
                         </div>
                       </div>
