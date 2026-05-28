@@ -19,6 +19,8 @@ import checkInIcon from '@/assets/check-in-icon.png';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
 import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateOrderStatus } from '@/lib/externalApi';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
+import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -56,6 +58,7 @@ export default function PickupDetailPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
   const [sopPhotoUrl, setSopPhotoUrl] = useState<string | null>(null);
+  const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
   
   // Initialize GPS tracking hook
   const { startTracking } = useGpsTracking();
@@ -314,7 +317,13 @@ export default function PickupDetailPage() {
       });
 
       if (checkinError) {
-        console.error('Check-in error:', checkinError);
+        console.error('Check-in error:', checkinError, checkinResult);
+        const accidentInfo = getAccidentEvidenceInfo(checkinResult || checkinError, job);
+        if (accidentInfo) {
+          setAccidentOrderInfo(accidentInfo);
+          setShowConfirmDialog(false);
+          return;
+        }
         throw new Error('Check-in failed');
       }
 
@@ -573,5 +582,12 @@ export default function PickupDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AccidentEvidenceModal
+        open={!!accidentOrderInfo}
+        onOpenChange={(open) => { if (!open) setAccidentOrderInfo(null); }}
+        orderId={accidentOrderInfo?.id}
+        orderNumber={accidentOrderInfo?.order_number}
+        onSuccess={() => setAccidentOrderInfo(null)}
+      />
     </div>;
 }

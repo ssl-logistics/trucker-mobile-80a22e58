@@ -21,6 +21,8 @@ import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans, updateOrderStatus } from '@/lib/externalApi';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
+import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
+import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 
 interface ContainerDetailItem {
   containerNo?: string;
@@ -69,6 +71,7 @@ export default function ContainerCheckInPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
+  const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
   
   // Determine if this is a container return flow
   const navState = location.state as { jobData?: any; checkinType?: string } | null;
@@ -415,7 +418,13 @@ export default function ContainerCheckInPage() {
       });
 
       if (checkinError) {
-        console.error('Check-in error:', checkinError);
+        console.error('Check-in error:', checkinError, checkinResult);
+        const accidentInfo = getAccidentEvidenceInfo(checkinResult || checkinError, job);
+        if (accidentInfo) {
+          setAccidentOrderInfo(accidentInfo);
+          setShowConfirmDialog(false);
+          return;
+        }
         throw new Error('Check-in failed');
       }
 
@@ -766,6 +775,13 @@ export default function ContainerCheckInPage() {
 
       {/* Report Problem Drawer */}
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} />
+      <AccidentEvidenceModal
+        open={!!accidentOrderInfo}
+        onOpenChange={(open) => { if (!open) setAccidentOrderInfo(null); }}
+        orderId={accidentOrderInfo?.id}
+        orderNumber={accidentOrderInfo?.order_number}
+        onSuccess={() => setAccidentOrderInfo(null)}
+      />
     </div>
   );
 }

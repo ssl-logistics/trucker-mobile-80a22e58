@@ -17,6 +17,7 @@ import { sendJobStatus } from '@/lib/jobStatusService';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates, updateOrderStatus } from '@/lib/externalApi';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
+import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
@@ -724,6 +725,14 @@ export default function DeliveryDetailPage() {
       
       if (podError) {
         console.error('POD API error:', podError);
+        const accidentInfo = getAccidentEvidenceInfo(podResult || podError, job);
+        if (accidentInfo) {
+          setAccidentOrderInfo(accidentInfo);
+          setAccidentEvidenceRequired(true);
+          setShowPodConfirmDialog(false);
+          setIsSubmittingPod(false);
+          return;
+        }
         toast({
           title: "❌ ส่ง POD ไม่สำเร็จ",
           description: `API Error: ${podError}`,
@@ -864,15 +873,9 @@ export default function DeliveryDetailPage() {
 
       if (checkinError) {
         console.error('Check-in error:', checkinError, checkinResult);
-
-        const accidentError = (checkinResult as any)?.error_code === 'ACCIDENT_EVIDENCE_REQUIRED';
-        const accidentData = (checkinResult as any)?.data;
-
-        if (accidentError) {
-          setAccidentOrderInfo({
-            id: accidentData?.order_id || job.id,
-            order_number: accidentData?.order_number || job.order_code,
-          });
+        const accidentInfo = getAccidentEvidenceInfo(checkinResult || checkinError, job);
+        if (accidentInfo) {
+          setAccidentOrderInfo(accidentInfo);
           setAccidentEvidenceRequired(true);
           setShowConfirmDialog(false);
           return;
