@@ -174,29 +174,35 @@ export default function PickupDetailPage() {
             }
           }
           setIsBidJob(false);
+          const isIntlJob = !!(foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || foundJob.booking_no || foundJob.booking_number || ['bl', 'booking', 'international'].includes((foundJob.job_type || '').toLowerCase()) || (foundJob.transport_category || '').toLowerCase() === 'international');
+          const originObj = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
+          const useDomesticOrigin = !isIntlJob && originObj;
           const mappedJob: JobDetail = {
             id: foundJob.id,
             order_code: foundJob.order_number,
             order_number: foundJob.order_number,
             employer_name: foundJob.factory_name || foundJob.sender_name,
-            origin_location: (Array.isArray(foundJob.origins) && foundJob.origins.length > 0 ? (foundJob.origins[0].district && foundJob.origins[0].province ? `${foundJob.origins[0].district}, ${foundJob.origins[0].province}` : foundJob.origins[0].province || '') : '') || `${foundJob.sender_district || ''}, ${foundJob.sender_province || ''}`.replace(/^, |, $/g, ''),
+            origin_location: useDomesticOrigin
+              ? `${originObj.province || ''}, ${originObj.district || ''}`.replace(/^, |, $/g, '')
+              : (Array.isArray(foundJob.origins) && foundJob.origins.length > 0 ? (foundJob.origins[0].district && foundJob.origins[0].province ? `${foundJob.origins[0].province}, ${foundJob.origins[0].district}` : foundJob.origins[0].province || '') : '') || `${foundJob.sender_province || ''}, ${foundJob.sender_district || ''}`.replace(/^, |, $/g, ''),
             start_date: foundJob.sender_pickup_date,
             start_time: foundJob.sender_pickup_time,
-            origin_latitude: foundJob.sender_latitude ?? foundJob.empty_pickup_latitude ?? null,
-            origin_longitude: foundJob.sender_longitude ?? foundJob.empty_pickup_longitude ?? null,
+            origin_latitude: useDomesticOrigin ? (originObj.latitude ?? null) : (foundJob.sender_latitude ?? foundJob.empty_pickup_latitude ?? null),
+            origin_longitude: useDomesticOrigin ? (originObj.longitude ?? null) : (foundJob.sender_longitude ?? foundJob.empty_pickup_longitude ?? null),
             destination_latitude: foundJob.destination_latitude,
             destination_longitude: foundJob.destination_longitude,
-            origin_contact_person: foundJob.sender_contact_name,
-            origin_contact_role: foundJob.sender_contact_phone,
+            origin_contact_person: useDomesticOrigin ? (originObj.name || null) : foundJob.sender_contact_name,
+            origin_contact_role: useDomesticOrigin ? (originObj.phone || null) : foundJob.sender_contact_phone,
             origin_goods_type: foundJob.product_name,
             origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
             origin_remarks: foundJob.remarks,
-            origin_address: (Array.isArray(foundJob.origins) && foundJob.origins.length > 0 ? foundJob.origins[0].address : null) || foundJob.sender_address,
-            origin_company_name: foundJob.factory_name || foundJob.sender_name,
+            origin_address: useDomesticOrigin ? (originObj.address || null) : ((Array.isArray(foundJob.origins) && foundJob.origins.length > 0 ? foundJob.origins[0].address : null) || foundJob.sender_address),
+            origin_company_name: useDomesticOrigin ? (originObj.name || null) : (foundJob.factory_name || foundJob.sender_name),
             bl_no: foundJob.bl_no || foundJob.bl_number || foundJob.bill_of_lading || null,
             booking_no: foundJob.booking_no || foundJob.booking_number || null,
             transport_category: foundJob.transport_category || null,
           };
+
           setJob(mappedJob);
         } else {
           // Fallback: try to load as Bid job (ticket_number)
