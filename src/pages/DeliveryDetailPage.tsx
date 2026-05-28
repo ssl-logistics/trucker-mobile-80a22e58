@@ -441,19 +441,30 @@ export default function DeliveryDetailPage() {
             });
           } else {
             // Single destination - create a default destination with sequence 1
-            // Fall back to cargo_point when destination_* fields are missing
+            // For domestic single-trip jobs: use foundJob.destination object directly (no fallbacks for address/name)
+            // For international jobs: fall back to cargo_point / destination_* fields
+            const isIntlJob = !!(foundJob.bl_no || foundJob.booking_no)
+              || foundJob.job_type === 'bl' || foundJob.job_type === 'booking' || foundJob.job_type === 'international'
+              || foundJob.transport_category === 'international';
+            const destObj = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
             setDestination({
               id: `dest-1`,
               job_id: foundJob.id,
               sequence_number: 1,
-              company_name: cargoPoint.name || null,
-              contact_name: cargoPoint.contact_name || foundJob.destination_contact_name || null,
-              contact_phone: cargoPoint.phone || foundJob.destination_contact_phone || null,
-              address: cargoPoint.address || foundJob.destination_address || null,
-              province: cargoPoint.province || foundJob.destination_province || null,
-              district: cargoPoint.district || foundJob.destination_district || null,
-              latitude: cargoPoint.latitude ?? foundJob.destination_latitude ?? null,
-              longitude: cargoPoint.longitude ?? foundJob.destination_longitude ?? null,
+              company_name: (!isIntlJob && destObj) ? (destObj.name || null) : (cargoPoint.name || null),
+              contact_name: (!isIntlJob && destObj)
+                ? (destObj.name || null)
+                : (cargoPoint.contact_name || foundJob.destination_contact_name || null),
+              contact_phone: (!isIntlJob && destObj)
+                ? (destObj.phone || destObj.contact_phone || null)
+                : (cargoPoint.phone || foundJob.destination_contact_phone || null),
+              address: (!isIntlJob && destObj)
+                ? (destObj.address || null)
+                : (cargoPoint.address || foundJob.destination_address || null),
+              province: (!isIntlJob && destObj) ? (destObj.province || null) : (cargoPoint.province || foundJob.destination_province || null),
+              district: (!isIntlJob && destObj) ? (destObj.district || null) : (cargoPoint.district || foundJob.destination_district || null),
+              latitude: (!isIntlJob && destObj) ? (destObj.latitude ?? null) : (cargoPoint.latitude ?? foundJob.destination_latitude ?? null),
+              longitude: (!isIntlJob && destObj) ? (destObj.longitude ?? null) : (cargoPoint.longitude ?? foundJob.destination_longitude ?? null),
               delivery_date: foundJob.destination_delivery_date || null,
               delivery_time: foundJob.destination_delivery_time || null,
               notes: foundJob.remarks || null,
