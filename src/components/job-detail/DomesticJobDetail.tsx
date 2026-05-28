@@ -30,7 +30,7 @@ import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
-import { formatDate } from '@/lib/dateUtils';
+import { formatDate, formatDateTime } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
 import { getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
@@ -1677,13 +1677,13 @@ export default function DomesticJobDetail({
                         {!!job.booking_no && (job as any).vgm_cut_off && (
                           <div className="flex items-start gap-2">
                             <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                            <span><strong className="text-foreground">VGM:</strong> {(job as any).vgm_cut_off}</span>
+                            <span><strong className="text-foreground">VGM:</strong> {formatDateTime((job as any).vgm_cut_off, language)}</span>
                           </div>
                         )}
                         {!!job.booking_no && (job as any).closing_time && (
                           <div className="flex items-start gap-2">
                             <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                            <span><strong className="text-foreground">Closing Time:</strong> {(job as any).closing_time}</span>
+                            <span><strong className="text-foreground">Closing Time:</strong> {formatDateTime((job as any).closing_time, language)}</span>
                           </div>
                         )}
                         {job.origin_goods_type && job.origin_goods_type !== '-' &&
@@ -2093,14 +2093,14 @@ export default function DomesticJobDetail({
                           <div className="flex items-start gap-2">
                             <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <span className="font-medium text-[#454545] min-w-[50px]">VGM</span>
-                            <span>{(job as any).vgm_cut_off}</span>
+                            <span>{formatDateTime((job as any).vgm_cut_off, language)}</span>
                           </div>
                         )}
                         {!!job.bl_no && (job as any).closing_time && (
                           <div className="flex items-start gap-2">
                             <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <span className="font-medium text-[#454545] min-w-[50px]">Closing</span>
-                            <span>{(job as any).closing_time}</span>
+                            <span>{formatDateTime((job as any).closing_time, language)}</span>
                           </div>
                         )}
                         <div className="flex items-start gap-2">
@@ -2285,13 +2285,13 @@ export default function DomesticJobDetail({
                       {!!job.bl_no && (job as any).vgm_cut_off && (
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">VGM:</strong> {(job as any).vgm_cut_off}</span>
+                          <span><strong className="text-foreground">VGM:</strong> {formatDateTime((job as any).vgm_cut_off, language)}</span>
                         </div>
                       )}
                       {!!job.bl_no && (job as any).closing_time && (
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">Closing Time:</strong> {(job as any).closing_time}</span>
+                          <span><strong className="text-foreground">Closing Time:</strong> {formatDateTime((job as any).closing_time, language)}</span>
                         </div>
                       )}
                       {(job.destination_goods_type || job.origin_goods_type) && (
