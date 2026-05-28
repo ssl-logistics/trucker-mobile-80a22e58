@@ -356,31 +356,27 @@ export default function JobDetailPage() {
             transport_type: foundJob.transport_mode || foundJob.transport_type || 'เที่ยวเดียว',
             origin_location: (() => {
               const o = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
-              if (foundJob.sender_district && foundJob.sender_province) return `${foundJob.sender_district}, ${foundJob.sender_province}`;
-              if (o && (o.district || o.province)) return [o.district, o.province].filter(Boolean).join(', ');
-              return foundJob.sender_address || (typeof foundJob.origin_location === 'string' ? foundJob.origin_location : '') || (typeof foundJob.origin_address === 'string' ? foundJob.origin_address : '') || '';
+              return o?.address || null;
             })(),
             origin_address: (() => {
               const o = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
               return o ? [o.province, o.district].filter(Boolean).join(' ') || null : null;
             })(),
             origin_company_name: foundJob.sender_name || foundJob.origin_company_name || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.name : null) || null,
-            origin_contact_name: foundJob.sender_contact_name || foundJob.origin_contact_name || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.name : null) || null,
+            origin_contact_name: (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.name : null) || null,
             origin_latitude: foundJob.sender_latitude || foundJob.origin_latitude || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.latitude : null) || null,
             origin_longitude: foundJob.sender_longitude || foundJob.origin_longitude || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.longitude : null) || null,
             origin_contact_phone: foundJob.sender_contact_phone || foundJob.origin_contact_phone || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.phone : null) || null,
             destination_location: (() => {
               const d = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
-              if (foundJob.destination_district && foundJob.destination_province) return `${foundJob.destination_district}, ${foundJob.destination_province}`;
-              if (d && (d.district || d.province)) return [d.district, d.province].filter(Boolean).join(', ');
-              return (typeof foundJob.destination_address === 'string' ? foundJob.destination_address : '') || (typeof foundJob.destination_location === 'string' ? foundJob.destination_location : '') || '';
+              return d?.address || null;
             })(),
             destination_address: (() => {
               const d = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
               return d ? [d.province, d.district].filter(Boolean).join(' ') || null : null;
             })(),
             destination_company_name: foundJob.destination_company_name || foundJob.destination_name || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.name : null) || null,
-            destination_contact_name: foundJob.destination_contact_name || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.name : null) || null,
+            destination_contact_name: (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.name : null) || null,
             destination_latitude: foundJob.destination_latitude || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.latitude : null) || null,
             destination_longitude: foundJob.destination_longitude || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.longitude : null) || null,
             destination_contact_phone: foundJob.destination_contact_phone || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.phone : null) || null,
