@@ -1659,11 +1659,11 @@ export default function DomesticJobDetail({
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
                           <span className="font-semibold text-[#225795]">{job.origin_location || '-'}</span>
                         </div>
-                        {job.origin_address && (
+                        {(job.origin_address || !!job.booking_no) && (
                           <div className="flex items-start gap-2">
                             <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
-                            <span>{job.origin_address}</span>
+                            <span>{job.origin_address || '-'}</span>
                           </div>
                         )}
                         <div className="flex items-start gap-2">
@@ -1674,6 +1674,18 @@ export default function DomesticJobDetail({
                           <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
                         </div>
+                        {!!job.booking_no && (job as any).vgm_cut_off && (
+                          <div className="flex items-start gap-2">
+                            <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                            <span><strong className="text-foreground">VGM:</strong> {(job as any).vgm_cut_off}</span>
+                          </div>
+                        )}
+                        {!!job.booking_no && (job as any).closing_time && (
+                          <div className="flex items-start gap-2">
+                            <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                            <span><strong className="text-foreground">Closing Time:</strong> {(job as any).closing_time}</span>
+                          </div>
+                        )}
                         {job.origin_goods_type && job.origin_goods_type !== '-' &&
                       <div className="flex items-start gap-2">
                              <Package className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
@@ -2077,6 +2089,20 @@ export default function DomesticJobDetail({
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
                           <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
+                        {!!job.bl_no && (job as any).vgm_cut_off && (
+                          <div className="flex items-start gap-2">
+                            <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">VGM</span>
+                            <span>{(job as any).vgm_cut_off}</span>
+                          </div>
+                        )}
+                        {!!job.bl_no && (job as any).closing_time && (
+                          <div className="flex items-start gap-2">
+                            <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">Closing</span>
+                            <span>{(job as any).closing_time}</span>
+                          </div>
+                        )}
                         <div className="flex items-start gap-2">
                            <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
@@ -2256,6 +2282,18 @@ export default function DomesticJobDetail({
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                       </div>
+                      {!!job.bl_no && (job as any).vgm_cut_off && (
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span><strong className="text-foreground">VGM:</strong> {(job as any).vgm_cut_off}</span>
+                        </div>
+                      )}
+                      {!!job.bl_no && (job as any).closing_time && (
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                          <span><strong className="text-foreground">Closing Time:</strong> {(job as any).closing_time}</span>
+                        </div>
+                      )}
                       {(job.destination_goods_type || job.origin_goods_type) && (
                         <div className="flex items-start gap-2">
                           <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
