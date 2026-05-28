@@ -434,13 +434,23 @@ export default function JobDetailPage() {
             container_number_2: foundJob.container_number_2 || null,
             seal_number: foundJob.seal_number || null,
             seal_number_2: foundJob.seal_number_2 || null,
-            origin_contact_person: foundJob.sender_contact_name,
+            origin_contact_person: (() => {
+              const o = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
+              const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
+              if (!isIntl) return o?.name || null;
+              return foundJob.sender_contact_name || o?.name || null;
+            })(),
             origin_contact_role: null,
             origin_bill_of_lading: foundJob.bill_of_lading || null,
             origin_goods_type: foundJob.product_name,
             origin_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
             origin_remarks: foundJob.remarks,
-            destination_contact_person: foundJob.destination_contact_name,
+            destination_contact_person: (() => {
+              const d = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
+              const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
+              if (!isIntl) return d?.name || null;
+              return foundJob.destination_contact_name || d?.name || null;
+            })(),
             destination_bill_of_lading: foundJob.invoice_number || foundJob.destination_invoice_number || foundJob.inv_no || foundJob.destination_bill_of_lading || (typeof foundJob.csv_extra_data === 'object' && foundJob.csv_extra_data?.invoice_number) || (typeof foundJob.csv_extra_data === 'string' ? (() => { try { return JSON.parse(foundJob.csv_extra_data)?.invoice_number; } catch { return null; } })() : null) || null,
             destination_goods_type: foundJob.product_name,
             destination_goods_quantity: foundJob.product_quantity ? String(foundJob.product_quantity) : null,
