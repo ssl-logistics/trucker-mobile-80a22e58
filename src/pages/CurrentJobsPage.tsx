@@ -995,11 +995,15 @@ export default function CurrentJobsPage() {
       const query = searchQuery.toLowerCase();
       const orderNumber = job.order_number || '';
       const senderName = job.sender_name || '';
-      const matchesSearch = 
-        orderNumber.toLowerCase().includes(query) || 
-        senderName.toLowerCase().includes(query) || 
-        (job.destination_company_name && job.destination_company_name.toLowerCase().includes(query)) || 
-        (job.sender_province && job.sender_province.toLowerCase().includes(query)) || 
+      const blNo = (job as any).bl_no || (job as any).bl_number || (job as any).bill_of_lading || '';
+      const bookingNo = (job as any).booking_no || (job as any).booking_number || '';
+      const matchesSearch =
+        orderNumber.toLowerCase().includes(query) ||
+        senderName.toLowerCase().includes(query) ||
+        String(blNo).toLowerCase().includes(query) ||
+        String(bookingNo).toLowerCase().includes(query) ||
+        (job.destination_company_name && job.destination_company_name.toLowerCase().includes(query)) ||
+        (job.sender_province && job.sender_province.toLowerCase().includes(query)) ||
         (job.destination_province && job.destination_province.toLowerCase().includes(query)) ||
         (job.product_name && job.product_name.toLowerCase().includes(query));
       if (!matchesSearch) return false;
