@@ -972,6 +972,12 @@ const isValidName = (val: any): string => {
         
         if (!response.ok) {
           console.error(`[Home] API failed with status ${response.status}, error:`, result);
+          const accidentInfo = getAccidentEvidenceInfo(result, job);
+          if (accidentInfo) {
+            setAccidentStartJob(job);
+            setAccidentOrderInfo(accidentInfo);
+            return;
+          }
           throw new Error(result.error || 'Failed to update status');
         }
         
@@ -1420,6 +1426,24 @@ const isValidName = (val: any): string => {
         onConfirm={confirmFactoryJobRejection} 
         orderCode={selectedFactoryJob?.order_code || ''} 
         isLoading={isFactoryJobProcessing} 
+      />
+
+      <AccidentEvidenceModal
+        open={!!accidentOrderInfo}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAccidentOrderInfo(null);
+            setAccidentStartJob(null);
+          }
+        }}
+        orderId={accidentOrderInfo?.id}
+        orderNumber={accidentOrderInfo?.order_number}
+        onSuccess={() => {
+          const jobToStart = accidentStartJob;
+          setAccidentOrderInfo(null);
+          setAccidentStartJob(null);
+          if (jobToStart) void handleStartAssignedJob(jobToStart);
+        }}
       />
 
       {/* Filter Sheet (slides in from the right) */}
