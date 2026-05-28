@@ -2089,6 +2089,16 @@ export default function DomesticJobDetail({
                           <span>{dest.invoice_number}</span>
                         </div>
                         )}
+                        {(dest as any).customer && (
+                          <button
+                            type="button"
+                            onClick={() => setCustomerModalData((dest as any).customer)}
+                            className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-[#225795] underline underline-offset-2 hover:opacity-80"
+                          >
+                            <User className="w-3.5 h-3.5" />
+                            {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
+                          </button>
+                        )}
                         {(() => {
                           // Collect all product items for this destination
                           let allItems: { label: string }[] = [];
