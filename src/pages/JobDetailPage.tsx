@@ -480,6 +480,19 @@ export default function JobDetailPage() {
                   rawDests = csv.destinations;
                 }
               }
+              const isIntlJob =
+                String(foundJob.job_type || '').toLowerCase() === 'bl' ||
+                String(foundJob.job_type || '').toLowerCase() === 'booking' ||
+                String(foundJob.job_type || '').toLowerCase() === 'international' ||
+                String(foundJob.transport_category || '').toLowerCase() === 'international' ||
+                !!foundJob.bl_no ||
+                !!foundJob.booking_no;
+              const hasSingleTripDestinationObject =
+                !isIntlJob &&
+                rawDests.length <= 1 &&
+                foundJob.destination &&
+                typeof foundJob.destination === 'object';
+              if (hasSingleTripDestinationObject) return undefined;
               // For BL (inbound) jobs, fall back to sender_* / destination_* fields as the
               // cargo delivery point (place of receipt) when destinations array is empty.
               if (rawDests.length === 0 && foundJob.bl_no) {
