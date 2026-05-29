@@ -2257,6 +2257,7 @@ const enTranslations: Record<string, string> = {
   'jobDetail.cannotReorder': 'Cannot reorder',
   'jobDetail.cannotReorderCheckedIn': 'Checked-in delivery points cannot be reordered',
   'jobDetail.contactPerson': 'Contact Person',
+  'jobDetail.phone': 'Phone',
   'jobDetail.location': 'Location',
   'jobDetail.address': 'Address',
   'jobDetail.dateTime': 'Date/Time',
