@@ -2061,12 +2061,7 @@ export default function DomesticJobDetail({
                           const headline = isIntl
                             ? (placeName || '-')
                             : (placeName || (dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || (dest as any).address || '-')));
-                          const addressValue = isIntl
-                            ? ([dest.province, dest.district].filter(Boolean).join(' ') || '-')
-                            : ((() => {
-                                const parts = [(dest as any).address, dest.district, dest.province].filter(Boolean);
-                                return parts.length > 0 ? parts.join(', ') : null;
-                              })());
+                          const addressValue = (dest as any).address || null;
                           return (
                             <>
                               <div className="flex items-start gap-2">
