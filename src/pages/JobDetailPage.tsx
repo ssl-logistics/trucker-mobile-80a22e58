@@ -624,7 +624,7 @@ export default function JobDetailPage() {
 
             // จุดส่งสินค้า/จุดรับสินค้า (cargo_point) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
             mappedJob.destination_company_name = cargoObj.address || null;
-            mappedJob.destination_location = cargoObj.address || null;
+            mappedJob.destination_location = cargoObj.address || '';
             mappedJob.destination_address = buildProvDist(cargoObj);
             mappedJob.destination_contact_person = cargoObj.contact_name || null;
             (mappedJob as any).destination_contact_name = cargoObj.contact_name || null;
@@ -639,7 +639,7 @@ export default function JobDetailPage() {
             // override origin_* ให้ใช้ cargo_point name/province+district
             const isBooking = !!(foundJob as any).booking_no && !(foundJob as any).bl_no;
             if (isBooking) {
-              mappedJob.origin_location = cargoObj.address || null;
+              mappedJob.origin_location = cargoObj.address || '';
               mappedJob.origin_address = buildProvDist(cargoObj);
               mappedJob.origin_contact_person = cargoObj.contact_name || null;
               (mappedJob as any).origin_contact_name = cargoObj.contact_name || null;
