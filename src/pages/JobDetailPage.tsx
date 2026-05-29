@@ -636,7 +636,7 @@ export default function JobDetailPage() {
             if (cargoObj.customer) (mappedJob as any).cargo_point_customer = cargoObj.customer;
 
             // สำหรับงาน Booking (export): "จุดรับสินค้า" = cargo_point
-            // override origin_* ให้ใช้ cargo_point name/province+district
+            // override origin_* ให้ใช้ cargo_point field หลักโดยตรง
             const isBooking = !!(foundJob as any).booking_no && !(foundJob as any).bl_no;
             if (isBooking) {
               mappedJob.origin_location = cargoObj.address || '';
