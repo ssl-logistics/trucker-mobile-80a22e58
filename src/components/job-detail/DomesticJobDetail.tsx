@@ -2055,21 +2055,16 @@ export default function DomesticJobDetail({
                     <div className={`p-5 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-2 text-sm text-muted-foreground mb-3">
                         {(() => {
-                          const isIntl = !!job.bl_no || !!job.booking_no;
-                          const placeName = (dest as any).location_name || (dest as any).name || (dest as any).company_name;
-                          // BL/Booking: สถานที่ = name, ที่อยู่ = province+district (ไม่ซ้ำ)
-                          const headline = isIntl
-                            ? (placeName || '-')
-                            : (placeName || (dest.district && dest.province ? `${dest.district}, ${dest.province}` : (dest.province || dest.district || (dest as any).address || '-')));
+                          const placeName = (dest as any).name || null;
                           const addressValue = (dest as any).address || null;
                           return (
                             <>
                               <div className="flex items-start gap-2">
                                  <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'ที่อยู่'}</span>
-                                <span className="font-semibold text-[#225795]">{headline}</span>
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
+                                <span className="font-semibold text-[#225795]">{placeName || '-'}</span>
                               </div>
-                              {(isIntl || (addressValue && addressValue !== headline)) && (
+                              {addressValue && addressValue !== placeName && (
                                 <div className="flex items-start gap-2">
                                    <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                                   <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
