@@ -394,7 +394,7 @@ export default function JobDetailPage() {
               const d = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
               const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
               if (!isIntl) return d?.name || null;
-              return foundJob.destination_contact_name || d?.name || null;
+              return foundJob.destination_contact_name || null;
             })(),
             destination_latitude: foundJob.destination_latitude || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.latitude : null) || null,
             destination_longitude: foundJob.destination_longitude || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.longitude : null) || null,
