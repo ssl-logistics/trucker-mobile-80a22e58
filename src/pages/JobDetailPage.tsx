@@ -639,8 +639,8 @@ export default function JobDetailPage() {
                 id: `cargo-point-${foundJob.id || jobId}`,
                 sequence_number: 1,
                 company_name: cargoObj.name || null,
-                contact_name: null,
-                contact_phone: cargoObj.phone || null,
+                contact_name: cargoObj.customer?.contact_name || null,
+                contact_phone: cargoObj.customer?.contact_phone || cargoObj.phone || null,
                 address: buildProvDist(cargoObj),
                 province: cargoObj.province || null,
                 district: cargoObj.district || null,
@@ -658,6 +658,25 @@ export default function JobDetailPage() {
                 customer: cargoObj.customer || null,
               } as any];
             }
+
+            // จุดรับ/ส่ง contact person สำหรับ intl ใช้จาก cargo_point.customer (ถ้ามี)
+            const cargoCustomerContact = cargoObj.customer?.contact_name || null;
+            if (isBooking) {
+              // Booking: cargo_point = จุดรับสินค้า → origin contact = cargo customer
+              mappedJob.origin_contact_person = cargoCustomerContact;
+              (mappedJob as any).origin_contact_name = cargoCustomerContact;
+              mappedJob.destination_contact_person = null;
+              (mappedJob as any).destination_contact_name = null;
+            } else {
+              // BL: cargo_point = จุดส่งสินค้า → destination contact = cargo customer
+              mappedJob.origin_contact_person = null;
+              (mappedJob as any).origin_contact_name = null;
+              mappedJob.destination_contact_person = cargoCustomerContact;
+              (mappedJob as any).destination_contact_name = cargoCustomerContact;
+            }
+
+            // จุดคืนตู้ไม่มีผู้ติดต่อ
+            mappedJob.container_return_phone = null;
 
             // จุดคืนตู้ (return_terminal) — สถานที่ = name, ที่อยู่ = province+district
             mappedJob.container_return_location = returnObj.name || null;
