@@ -2053,7 +2053,7 @@ export default function DomesticJobDetail({
                     <div className={`p-5 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-2 text-sm text-muted-foreground mb-3">
                         {(() => {
-                          const placeName = dest.company_name || (dest as any).location_name || null;
+                          const placeName = isIntl ? (dest.company_name || null) : (dest.company_name || (dest as any).location_name || null);
                           const addressValue = [dest.province, dest.district].filter(Boolean).join(' ') || null;
                           const isIntl = !!job.bl_no || !!job.booking_no;
                           const dateTimeValue = isIntl ? ((dest as any).scheduled_datetime || null) : (dest.delivery_date || null);
@@ -2072,7 +2072,7 @@ export default function DomesticJobDetail({
                               <div className="flex items-start gap-2">
                                  <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                                 <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
-                                <span>{dateTimeValue ? formatDateTime(dateTimeValue, language) : '-'}</span>
+                                <span>{isIntl ? (dateTimeValue ? formatDateTime(dateTimeValue, language) : '-') : `${dateTimeValue ? formatDate(dateTimeValue, language) : '-'} | ${dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}`}</span>
                               </div>
                               <div className="flex items-start gap-2">
                                  <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
