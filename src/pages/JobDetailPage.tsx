@@ -683,6 +683,10 @@ export default function JobDetailPage() {
             mappedJob.container_return_address = buildProvDist(returnObj);
             if (returnObj.latitude != null) mappedJob.container_return_latitude = returnObj.latitude;
             if (returnObj.longitude != null) mappedJob.container_return_longitude = returnObj.longitude;
+            // วันที่คืนตู้ — ใช้ scheduled_datetime จาก return_terminal
+            mappedJob.container_return_date = returnObj.scheduled_datetime || returnObj.scheduled_date || null;
+
+
 
             // VGM cut-off and closing time (from API or international_details)
             (mappedJob as any).vgm_cut_off =
