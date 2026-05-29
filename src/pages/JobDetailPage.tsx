@@ -639,7 +639,7 @@ export default function JobDetailPage() {
             mappedJob.destination_address = buildProvDist(cargoObj);
             mappedJob.destination_contact_person = cargoObj.contact_name || null;
             (mappedJob as any).destination_contact_name = cargoObj.contact_name || null;
-            mappedJob.destination_date = cargoObj.scheduled_datetime || null;
+            mappedJob.destination_date = buildSchedDateTime(cargoObj);
             mappedJob.destination_time = null;
             if (cargoObj.latitude != null) mappedJob.destination_latitude = cargoObj.latitude;
             if (cargoObj.longitude != null) mappedJob.destination_longitude = cargoObj.longitude;
