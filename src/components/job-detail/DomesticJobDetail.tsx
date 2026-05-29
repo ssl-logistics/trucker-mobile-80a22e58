@@ -82,6 +82,7 @@ interface JobDestination {
   longitude: number | null;
   delivery_date: string | null;
   delivery_time: string | null;
+  scheduled_datetime?: string | null;
   notes: string | null;
   checked_in_at: string | null;
   sop_completed_at: string | null;
@@ -161,6 +162,7 @@ interface JobDetail {
   container_return_longitude?: number | null;
   container_return_phone?: string | null;
   container_return_date?: string | null;
+  container_return_contact_name?: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
