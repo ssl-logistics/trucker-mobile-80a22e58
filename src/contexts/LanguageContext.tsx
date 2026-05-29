@@ -628,7 +628,7 @@ const thTranslations: Record<string, string> = {
   'jobDetail.dragToSwap': 'กดลูกศรเพื่อสลับ',
   'jobDetail.cannotReorder': 'สลับไม่ได้',
   'jobDetail.cannotReorderCheckedIn': 'จุดส่งที่เช็คอินแล้วไม่สามารถสลับได้',
-  'jobDetail.contactPerson': 'ชื่อผู้ติดต่อ',
+  'jobDetail.contactPerson': 'โทร',
   'jobDetail.location': 'สถานที่',
   'jobDetail.address': 'ที่อยู่',
   'jobDetail.dateTime': 'วันเวลา',
