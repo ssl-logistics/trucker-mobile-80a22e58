@@ -2263,6 +2263,10 @@ export default function DomesticJobDetail({
                         <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.destination_contact_person || '-'}</span>
                       </div>
+                      <div className="flex items-start gap-2">
+                        <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span><strong className="text-foreground">{t('jobDetail.phone')}:</strong> {job.destination_contact_phone || '-'}</span>
+                      </div>
                       {job.destination_bill_of_lading && job.destination_bill_of_lading !== '-' && (
                         <div className="flex items-start gap-2">
                           <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
