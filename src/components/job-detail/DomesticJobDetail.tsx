@@ -2489,11 +2489,13 @@ export default function DomesticJobDetail({
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
                       <span className="text-[#454545]">{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
                     </div>
-                    <div className="flex items-start gap-2">
-                       <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ติดต่อ'}</span>
-                      <span className="text-[#454545]">{job.container_return_phone || '-'}</span>
-                    </div>
+                    {job.container_return_phone && (
+                      <div className="flex items-start gap-2">
+                         <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                        <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ติดต่อ'}</span>
+                        <span className="text-[#454545]">{job.container_return_phone}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>

@@ -371,7 +371,8 @@ export default function JobDetailPage() {
               const o = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
               const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
               if (!isIntl) return o?.name || null;
-              return foundJob.sender_contact_name || foundJob.origin_contact_name || o?.name || null;
+              // Intl: ไม่ fallback ไปชื่อสถานที่ ใช้เฉพาะ contact จริง
+              return foundJob.sender_contact_name || foundJob.origin_contact_name || null;
             })(),
             origin_latitude: foundJob.sender_latitude || foundJob.origin_latitude || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.latitude : null) || null,
             origin_longitude: foundJob.sender_longitude || foundJob.origin_longitude || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.longitude : null) || null,
@@ -393,7 +394,7 @@ export default function JobDetailPage() {
               const d = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
               const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
               if (!isIntl) return d?.name || null;
-              return foundJob.destination_contact_name || d?.name || null;
+              return foundJob.destination_contact_name || null;
             })(),
             destination_latitude: foundJob.destination_latitude || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.latitude : null) || null,
             destination_longitude: foundJob.destination_longitude || (foundJob.destination && typeof foundJob.destination === 'object' ? foundJob.destination.longitude : null) || null,
@@ -438,7 +439,7 @@ export default function JobDetailPage() {
               const o = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
               const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
               if (!isIntl) return o?.name || null;
-              return foundJob.sender_contact_name || o?.name || null;
+              return foundJob.sender_contact_name || null;
             })(),
             origin_contact_role: null,
             origin_bill_of_lading: foundJob.bill_of_lading || null,
@@ -449,7 +450,7 @@ export default function JobDetailPage() {
               const d = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
               const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
               if (!isIntl) return d?.name || null;
-              return foundJob.destination_contact_name || d?.name || null;
+              return foundJob.destination_contact_name || null;
             })(),
             destination_bill_of_lading: foundJob.invoice_number || foundJob.destination_invoice_number || foundJob.inv_no || foundJob.destination_bill_of_lading || (typeof foundJob.csv_extra_data === 'object' && foundJob.csv_extra_data?.invoice_number) || (typeof foundJob.csv_extra_data === 'string' ? (() => { try { return JSON.parse(foundJob.csv_extra_data)?.invoice_number; } catch { return null; } })() : null) || null,
             destination_goods_type: foundJob.product_name,
@@ -638,8 +639,8 @@ export default function JobDetailPage() {
                 id: `cargo-point-${foundJob.id || jobId}`,
                 sequence_number: 1,
                 company_name: cargoObj.name || null,
-                contact_name: null,
-                contact_phone: cargoObj.phone || null,
+                contact_name: cargoObj.customer?.contact_name || null,
+                contact_phone: cargoObj.customer?.contact_phone || cargoObj.phone || null,
                 address: buildProvDist(cargoObj),
                 province: cargoObj.province || null,
                 district: cargoObj.district || null,
@@ -657,6 +658,25 @@ export default function JobDetailPage() {
                 customer: cargoObj.customer || null,
               } as any];
             }
+
+            // จุดรับ/ส่ง contact person สำหรับ intl ใช้จาก cargo_point.customer (ถ้ามี)
+            const cargoCustomerContact = cargoObj.customer?.contact_name || null;
+            if (isBooking) {
+              // Booking: cargo_point = จุดรับสินค้า → origin contact = cargo customer
+              mappedJob.origin_contact_person = cargoCustomerContact;
+              (mappedJob as any).origin_contact_name = cargoCustomerContact;
+              mappedJob.destination_contact_person = null;
+              (mappedJob as any).destination_contact_name = null;
+            } else {
+              // BL: cargo_point = จุดส่งสินค้า → destination contact = cargo customer
+              mappedJob.origin_contact_person = null;
+              (mappedJob as any).origin_contact_name = null;
+              mappedJob.destination_contact_person = cargoCustomerContact;
+              (mappedJob as any).destination_contact_name = cargoCustomerContact;
+            }
+
+            // จุดคืนตู้ไม่มีผู้ติดต่อ
+            mappedJob.container_return_phone = null;
 
             // จุดคืนตู้ (return_terminal) — สถานที่ = name, ที่อยู่ = province+district
             mappedJob.container_return_location = returnObj.name || null;
