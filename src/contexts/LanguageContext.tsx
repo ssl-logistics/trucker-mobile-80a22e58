@@ -4625,6 +4625,7 @@ const koTranslations: Record<string, string> = {
   'jobDetail.cannotReorder': '순서 변경 불가',
   'jobDetail.cannotReorderCheckedIn': '체크인된 배송지는 순서를 변경할 수 없습니다',
   'jobDetail.contactPerson': '담당자 이름',
+  'jobDetail.phone': '전화번호',
   'jobDetail.location': '위치',
   'jobDetail.address': '주소',
   'jobDetail.dateTime': '날짜/시간',
