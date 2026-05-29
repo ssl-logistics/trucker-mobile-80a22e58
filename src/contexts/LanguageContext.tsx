@@ -5379,6 +5379,7 @@ const zhTranslations: Record<string, string> = {
   'jobDetail.cannotReorder': '无法调换',
   'jobDetail.cannotReorderCheckedIn': '已签到的送货点无法调换顺序',
   'jobDetail.contactPerson': '联系人姓名',
+  'jobDetail.phone': '电话',
   'jobDetail.location': '地点',
   'jobDetail.address': '地址',
   'jobDetail.dateTime': '日期/时间',
