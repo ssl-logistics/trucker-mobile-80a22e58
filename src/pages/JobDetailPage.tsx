@@ -610,11 +610,22 @@ export default function JobDetailPage() {
             // ผู้จ้าง
             mappedJob.employer_name = (foundJob as any).assigned_company || (foundJob as any).assignedCompany || mappedJob.employer_name;
 
+            // Helper: รวม scheduled_date + scheduled_time เป็น datetime ถ้าไม่มี scheduled_datetime
+            const buildSchedDateTime = (o: any): string | null => {
+              if (o?.scheduled_datetime) return o.scheduled_datetime;
+              if (o?.scheduled_date) {
+                const time = o.scheduled_time || '00:00:00';
+                return `${o.scheduled_date}T${time}`;
+              }
+              return null;
+            };
+
             // จุดรับตู้ (origin) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
             mappedJob.container_checkpoint = originObj.address || null;
             mappedJob.empty_pickup_address = buildProvDist(originObj);
-            mappedJob.empty_pickup_date = originObj.scheduled_datetime || null;
+            mappedJob.empty_pickup_date = buildSchedDateTime(originObj);
             mappedJob.empty_pickup_time = null;
+            mappedJob.empty_pickup_phone = originObj.phone || null;
             mappedJob.origin_contact_person = originObj.contact_name || null;
             (mappedJob as any).origin_contact_name = originObj.contact_name || null;
             if (originObj.latitude != null) (mappedJob as any).origin_latitude = originObj.latitude;
