@@ -1666,11 +1666,11 @@ export default function DomesticJobDetail({
                         )}
                         <div className="flex items-start gap-2">
                           <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {(() => { const v = job.origin_contact_person; const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; return v && !generic.includes(v.trim()) ? v : '-'; })()}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.origin_contact_person || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.booking_no ? (job.start_date ? formatDateTime(job.start_date, language) : '-') : `${formatDate(job.start_date, language)} | ${job.start_time ? job.start_time.substring(0, 5) : '-'}`}</span>
                         </div>
                         {!!job.booking_no && (job as any).vgm_cut_off && (
                           <div className="flex items-start gap-2">
