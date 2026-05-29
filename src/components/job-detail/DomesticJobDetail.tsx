@@ -2089,14 +2089,14 @@ export default function DomesticJobDetail({
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
                           <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
                         </div>
-                        {!!job.bl_no && (job as any).vgm_cut_off && (
+                        {(!!job.bl_no || !!job.booking_no) && (job as any).vgm_cut_off && (
                           <div className="flex items-start gap-2">
                             <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <span className="font-medium text-[#454545] min-w-[50px]">VGM</span>
                             <span>{formatDateTime((job as any).vgm_cut_off, language)}</span>
                           </div>
                         )}
-                        {!!job.bl_no && (job as any).closing_time && (
+                        {(!!job.bl_no || !!job.booking_no) && (job as any).closing_time && (
                           <div className="flex items-start gap-2">
                             <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                             <span className="font-medium text-[#454545] min-w-[50px]">Closing</span>
@@ -2282,13 +2282,13 @@ export default function DomesticJobDetail({
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
                       </div>
-                      {!!job.bl_no && (job as any).vgm_cut_off && (
+                      {(!!job.bl_no || !!job.booking_no) && (job as any).vgm_cut_off && (
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">VGM:</strong> {formatDateTime((job as any).vgm_cut_off, language)}</span>
                         </div>
                       )}
-                      {!!job.bl_no && (job as any).closing_time && (
+                      {(!!job.bl_no || !!job.booking_no) && (job as any).closing_time && (
                         <div className="flex items-start gap-2">
                           <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">Closing Time:</strong> {formatDateTime((job as any).closing_time, language)}</span>
