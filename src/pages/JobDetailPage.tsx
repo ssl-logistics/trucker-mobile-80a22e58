@@ -439,7 +439,7 @@ export default function JobDetailPage() {
               const o = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
               const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
               if (!isIntl) return o?.name || null;
-              return foundJob.sender_contact_name || o?.name || null;
+              return foundJob.sender_contact_name || null;
             })(),
             origin_contact_role: null,
             origin_bill_of_lading: foundJob.bill_of_lading || null,
@@ -450,7 +450,7 @@ export default function JobDetailPage() {
               const d = (foundJob.destination && typeof foundJob.destination === 'object') ? foundJob.destination : null;
               const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
               if (!isIntl) return d?.name || null;
-              return foundJob.destination_contact_name || d?.name || null;
+              return foundJob.destination_contact_name || null;
             })(),
             destination_bill_of_lading: foundJob.invoice_number || foundJob.destination_invoice_number || foundJob.inv_no || foundJob.destination_bill_of_lading || (typeof foundJob.csv_extra_data === 'object' && foundJob.csv_extra_data?.invoice_number) || (typeof foundJob.csv_extra_data === 'string' ? (() => { try { return JSON.parse(foundJob.csv_extra_data)?.invoice_number; } catch { return null; } })() : null) || null,
             destination_goods_type: foundJob.product_name,
