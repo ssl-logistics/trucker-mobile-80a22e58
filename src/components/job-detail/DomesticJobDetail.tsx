@@ -2053,9 +2053,9 @@ export default function DomesticJobDetail({
                     <div className={`p-5 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-2 text-sm text-muted-foreground mb-3">
                         {(() => {
+                          const isIntl = !!job.bl_no || !!job.booking_no;
                           const placeName = isIntl ? (dest.company_name || null) : (dest.company_name || (dest as any).location_name || null);
                           const addressValue = [dest.province, dest.district].filter(Boolean).join(' ') || null;
-                          const isIntl = !!job.bl_no || !!job.booking_no;
                           const dateTimeValue = isIntl ? ((dest as any).scheduled_datetime || null) : (dest.delivery_date || null);
                           return (
                             <>
