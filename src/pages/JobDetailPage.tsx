@@ -371,7 +371,8 @@ export default function JobDetailPage() {
               const o = (foundJob.origin && typeof foundJob.origin === 'object') ? foundJob.origin : null;
               const isIntl = !!(foundJob.booking_no || foundJob.bl_no);
               if (!isIntl) return o?.name || null;
-              return foundJob.sender_contact_name || foundJob.origin_contact_name || o?.name || null;
+              // Intl: ไม่ fallback ไปชื่อสถานที่ ใช้เฉพาะ contact จริง
+              return foundJob.sender_contact_name || foundJob.origin_contact_name || null;
             })(),
             origin_latitude: foundJob.sender_latitude || foundJob.origin_latitude || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.latitude : null) || null,
             origin_longitude: foundJob.sender_longitude || foundJob.origin_longitude || (foundJob.origin && typeof foundJob.origin === 'object' ? foundJob.origin.longitude : null) || null,
