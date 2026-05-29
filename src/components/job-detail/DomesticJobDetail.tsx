@@ -2485,7 +2485,7 @@ export default function DomesticJobDetail({
                     {job.container_return_phone && (
                       <div className="flex items-start gap-2">
                          <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                        <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ติดต่อ'}</span>
+                        <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.phone') || 'เบอร์โทร'}</span>
                         <span className="text-[#454545]">{job.container_return_phone}</span>
                       </div>
                     )}
