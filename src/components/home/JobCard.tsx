@@ -291,14 +291,14 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
       {/* Job Detail Modal */}
       <Dialog open={detailModalOpen} onOpenChange={handleModalClose}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto overflow-x-hidden">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[85vh] overflow-y-auto overflow-x-hidden px-4 sm:px-6">
           <DialogHeader>
             <DialogTitle className="text-center">
               {t('job.jobDetails')}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="py-4 space-y-4">
+          <div className="w-full min-w-0 py-4 space-y-4">
             {/* Order Code */}
             <div className="bg-primary/10 rounded-lg p-3 text-center">
               <p className="text-xs text-muted-foreground">{job.bl_no ? 'BL' : job.booking_no ? 'Booking' : t('job.orderCode')}</p>
@@ -387,7 +387,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             )}
 
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <div>
