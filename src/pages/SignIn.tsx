@@ -68,7 +68,7 @@ const languageOptions = [{
   flag: flagKo
 }, {
   code: 'zh' as const,
-  label: 'ZH',
+  label: 'ZH-CN',
   flag: flagCn
 }];
 
