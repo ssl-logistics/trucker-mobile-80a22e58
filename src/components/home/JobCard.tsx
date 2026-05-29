@@ -310,11 +310,11 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               {/* Origins - show multiple if available */}
               {!isInternational && Array.isArray(job.origins) && job.origins.length > 0 ? (
                 job.origins.map((origin, idx) => (
-                  <div key={`modal-origin-${idx}`} className="flex items-start gap-3">
+                  <div key={`modal-origin-${idx}`} className="flex items-start gap-3 bg-muted/50 rounded-lg p-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                       <MapPin className="w-4 h-4 text-green-600" />
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</p>
                       {origin.company_name && !['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'].includes(origin.company_name.trim()) && <p className="font-medium">{origin.company_name}</p>}
                       <p className={origin.company_name ? "text-xs text-muted-foreground" : "font-medium"}>{origin.address || origin.location}</p>
@@ -322,11 +322,11 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   </div>
                 ))
               ) : (
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 bg-muted/50 rounded-lg p-3">
                   <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-4 h-4 text-green-600" />
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground">{t('job.origin')}</p>
                     {job.origin_location.includes('\n') ? (
                       <>
@@ -343,11 +343,11 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               {/* Destinations - show multiple if available */}
               {!isInternational && Array.isArray(job.destinations) && job.destinations.length > 0 ? (
               job.destinations.map((dest, idx) => (
-                  <div key={`modal-dest-${idx}`} className="flex items-start gap-3">
+                  <div key={`modal-dest-${idx}`} className="flex items-start gap-3 bg-muted/50 rounded-lg p-3">
                     <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                       <MapPin className="w-4 h-4 text-red-600" />
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground">{t('job.destination')} #{idx + 1}</p>
                       <p className="font-medium">{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const name = dest.company_name && !generic.includes(dest.company_name.trim()) ? dest.company_name : (dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null); return name || dest.location || '-'; })()}</p>
                       <p className="text-xs text-muted-foreground">{dest.address || dest.location}</p>
@@ -357,11 +357,11 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   </div>
                 ))
               ) : (
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 bg-muted/50 rounded-lg p-3">
                   <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-4 h-4 text-red-600" />
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground">{t('job.destination')}</p>
                     {job.destination_company_name
                       && !['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'].includes(job.destination_company_name.trim())
