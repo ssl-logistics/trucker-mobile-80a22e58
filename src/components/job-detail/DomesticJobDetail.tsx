@@ -2055,7 +2055,8 @@ export default function DomesticJobDetail({
                         {(() => {
                           const placeName = dest.company_name || (dest as any).location_name || null;
                           const addressValue = [dest.province, dest.district].filter(Boolean).join(' ') || null;
-                          const dateTimeValue = (dest as any).scheduled_datetime || dest.delivery_date || null;
+                          const isIntl = !!job.bl_no || !!job.booking_no;
+                          const dateTimeValue = isIntl ? ((dest as any).scheduled_datetime || null) : (dest.delivery_date || null);
                           return (
                             <>
                               <div className="flex items-start gap-2">
