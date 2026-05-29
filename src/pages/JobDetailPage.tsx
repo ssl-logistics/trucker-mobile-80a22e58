@@ -654,7 +654,7 @@ export default function JobDetailPage() {
               mappedJob.origin_address = buildProvDist(cargoObj);
               mappedJob.origin_contact_person = cargoObj.contact_name || null;
               (mappedJob as any).origin_contact_name = cargoObj.contact_name || null;
-              mappedJob.start_date = cargoObj.scheduled_datetime || '';
+              mappedJob.start_date = buildSchedDateTime(cargoObj) || '';
               mappedJob.start_time = '';
               if (cargoObj.customer) (mappedJob as any).origin_customer = cargoObj.customer;
             }
@@ -670,8 +670,8 @@ export default function JobDetailPage() {
                 province: cargoObj.province || null,
                 district: cargoObj.district || null,
                     location_name: cargoObj.address || null,
-                    scheduled_datetime: cargoObj.scheduled_datetime || null,
-                    delivery_date: cargoObj.scheduled_datetime || null,
+                    scheduled_datetime: buildSchedDateTime(cargoObj),
+                    delivery_date: buildSchedDateTime(cargoObj),
                     delivery_time: null,
                 notes: null,
                 checked_in_at: null,
@@ -709,7 +709,7 @@ export default function JobDetailPage() {
             if (returnObj.latitude != null) mappedJob.container_return_latitude = returnObj.latitude;
             if (returnObj.longitude != null) mappedJob.container_return_longitude = returnObj.longitude;
             // วันที่คืนตู้ — ใช้ scheduled_datetime จาก return_terminal เท่านั้น
-            mappedJob.container_return_date = returnObj.scheduled_datetime || null;
+            mappedJob.container_return_date = buildSchedDateTime(returnObj);
 
 
 
