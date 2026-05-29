@@ -2453,9 +2453,9 @@ export default function DomesticJobDetail({
 
                   <div className="space-y-2 text-sm text-muted-foreground mb-3">
                     {(() => {
-                      // BL/Booking: สถานที่ = name, ที่อยู่ = province+district (ไม่มี fallback)
                       const headline = job.container_return_location || '-';
                       const addr = job.container_return_address || '-';
+                      const contactName = job.container_return_contact_name || null;
                       return (
                         <>
                           <div className="flex items-start gap-2">
@@ -2468,13 +2468,18 @@ export default function DomesticJobDetail({
                             <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
                             <span className="text-[#454545]">{addr}</span>
                           </div>
+                          <div className="flex items-start gap-2">
+                            <User className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
+                            <span className="text-[#454545]">{contactName || '-'}</span>
+                          </div>
                         </>
                       );
                     })()}
                     <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
-                      <span className="text-[#454545]">{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
+                      <span className="text-[#454545]">{job.container_return_date ? formatDateTime(job.container_return_date, language) : '-'}</span>
                     </div>
                     {job.container_return_phone && (
                       <div className="flex items-start gap-2">
