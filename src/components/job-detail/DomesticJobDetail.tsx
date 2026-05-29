@@ -2057,8 +2057,9 @@ export default function DomesticJobDetail({
                     <div className={`p-5 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-2 text-sm text-muted-foreground mb-3">
                         {(() => {
-                          const placeName = (dest as any).name || null;
-                          const addressValue = (dest as any).address || null;
+                          const placeName = dest.company_name || (dest as any).location_name || null;
+                          const addressValue = [dest.province, dest.district].filter(Boolean).join(' ') || null;
+                          const dateTimeValue = (dest as any).scheduled_datetime || dest.delivery_date || null;
                           return (
                             <>
                               <div className="flex items-start gap-2">
@@ -2066,6 +2067,26 @@ export default function DomesticJobDetail({
                                 <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
                                 <span className="font-semibold text-[#225795]">{placeName || '-'}</span>
                               </div>
+                              <div className="flex items-start gap-2">
+                                 <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
+                                <span>{addressValue || '-'}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                 <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
+                                <span>{dateTimeValue ? formatDateTime(dateTimeValue, language) : '-'}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                 <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
+                                <span>{dest.contact_name || '-'}</span>
+                              </div>
+                            </>
+                          );
+                        })()}
+                        {false && (
+                          <>
                               {addressValue && addressValue !== placeName && (
                                 <div className="flex items-start gap-2">
                                    <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
@@ -2074,8 +2095,7 @@ export default function DomesticJobDetail({
                                 </div>
                               )}
                             </>
-                          );
-                        })()}
+                        )}
                         <div className="flex items-start gap-2">
                            <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
