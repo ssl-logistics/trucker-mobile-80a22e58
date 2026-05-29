@@ -1535,21 +1535,15 @@ export default function DomesticJobDetail({
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
                               <span>{contactName || '-'}</span>
                             </div>
+                            <div className="flex items-start gap-2">
+                              <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.phone') || 'เบอร์โทร'}</span>
+                              <span>{job.empty_pickup_phone || '-'}</span>
+                            </div>
                           </div>
                         </>
                       );
                     })()}
-                    <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
-                      <div className="hidden" />
-
-                      {job.empty_pickup_phone && (
-                        <div className="flex items-start gap-2">
-                          <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ติดต่อ'}</span>
-                          <span>{job.empty_pickup_phone}</span>
-                        </div>
-                      )}
-                    </div>
 
                     {/* Container/Seal info - hide for BL (inbound) jobs */}
                     {!job.bl_no && (
@@ -1667,6 +1661,10 @@ export default function DomesticJobDetail({
                         <div className="flex items-start gap-2">
                           <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                           <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.origin_contact_person || '-'}</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                          <span><strong className="text-foreground">{t('jobDetail.phone')}:</strong> {job.origin_contact_phone || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
@@ -2079,6 +2077,11 @@ export default function DomesticJobDetail({
                                 <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
                                 <span>{dest.contact_name || '-'}</span>
                               </div>
+                              <div className="flex items-start gap-2">
+                                 <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.phone') || 'เบอร์โทร'}</span>
+                                <span>{dest.contact_phone || '-'}</span>
+                              </div>
                             </>
                           );
                         })()}
@@ -2259,6 +2262,10 @@ export default function DomesticJobDetail({
                       <div className="flex items-start gap-2">
                         <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.destination_contact_person || '-'}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span><strong className="text-foreground">{t('jobDetail.phone')}:</strong> {job.destination_contact_phone || '-'}</span>
                       </div>
                       {job.destination_bill_of_lading && job.destination_bill_of_lading !== '-' && (
                         <div className="flex items-start gap-2">
