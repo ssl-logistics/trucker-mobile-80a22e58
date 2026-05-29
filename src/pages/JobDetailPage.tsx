@@ -26,6 +26,7 @@ interface JobDestination {
   location_name?: string | null;
   delivery_date: string | null;
   delivery_time: string | null;
+  scheduled_datetime?: string | null;
   notes: string | null;
   checked_in_at: string | null;
   sop_completed_at: string | null;
@@ -114,6 +115,7 @@ interface JobDetail {
   container_return_longitude?: number | null;
   container_return_phone?: string | null;
   container_return_date?: string | null;
+  container_return_contact_name?: string | null;
 }
 
 interface JobApplication {
@@ -608,29 +610,41 @@ export default function JobDetailPage() {
             // ผู้จ้าง
             mappedJob.employer_name = (foundJob as any).assigned_company || (foundJob as any).assignedCompany || mappedJob.employer_name;
 
-            // จุดรับตู้ (origin) — สถานที่ = name, ที่อยู่ = province+district
-            mappedJob.container_checkpoint = originObj.name || null;
+            // จุดรับตู้ (origin) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
+            mappedJob.container_checkpoint = originObj.address || null;
             mappedJob.empty_pickup_address = buildProvDist(originObj);
+            mappedJob.empty_pickup_date = originObj.scheduled_datetime || null;
+            mappedJob.empty_pickup_time = null;
+            mappedJob.origin_contact_person = originObj.contact_name || null;
+            (mappedJob as any).origin_contact_name = originObj.contact_name || null;
             if (originObj.latitude != null) (mappedJob as any).origin_latitude = originObj.latitude;
             if (originObj.longitude != null) (mappedJob as any).origin_longitude = originObj.longitude;
             if (originObj.phone) mappedJob.origin_contact_phone = originObj.phone;
             if (originObj.customer) (mappedJob as any).origin_customer = originObj.customer;
 
-            // จุดส่งสินค้า/จุดรับสินค้า (cargo_point) — สถานที่ = name, ที่อยู่ = province+district
-            mappedJob.destination_company_name = cargoObj.name || null;
-            mappedJob.destination_location = cargoObj.name || null;
+            // จุดส่งสินค้า/จุดรับสินค้า (cargo_point) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
+            mappedJob.destination_company_name = cargoObj.address || null;
+            mappedJob.destination_location = cargoObj.address || '';
             mappedJob.destination_address = buildProvDist(cargoObj);
+            mappedJob.destination_contact_person = cargoObj.contact_name || null;
+            (mappedJob as any).destination_contact_name = cargoObj.contact_name || null;
+            mappedJob.destination_date = cargoObj.scheduled_datetime || null;
+            mappedJob.destination_time = null;
             if (cargoObj.latitude != null) mappedJob.destination_latitude = cargoObj.latitude;
             if (cargoObj.longitude != null) mappedJob.destination_longitude = cargoObj.longitude;
             if (cargoObj.phone) mappedJob.destination_contact_phone = cargoObj.phone;
             if (cargoObj.customer) (mappedJob as any).cargo_point_customer = cargoObj.customer;
 
             // สำหรับงาน Booking (export): "จุดรับสินค้า" = cargo_point
-            // override origin_* ให้ใช้ cargo_point name/province+district
+            // override origin_* ให้ใช้ cargo_point field หลักโดยตรง
             const isBooking = !!(foundJob as any).booking_no && !(foundJob as any).bl_no;
             if (isBooking) {
-              mappedJob.origin_location = cargoObj.name || '-';
+              mappedJob.origin_location = cargoObj.address || '';
               mappedJob.origin_address = buildProvDist(cargoObj);
+              mappedJob.origin_contact_person = cargoObj.contact_name || null;
+              (mappedJob as any).origin_contact_name = cargoObj.contact_name || null;
+              mappedJob.start_date = cargoObj.scheduled_datetime || '';
+              mappedJob.start_time = '';
               if (cargoObj.customer) (mappedJob as any).origin_customer = cargoObj.customer;
             }
 
@@ -638,15 +652,16 @@ export default function JobDetailPage() {
               mappedJob.destinations = [{
                 id: `cargo-point-${foundJob.id || jobId}`,
                 sequence_number: 1,
-                company_name: cargoObj.name || null,
-                contact_name: cargoObj.customer?.contact_name || null,
-                contact_phone: cargoObj.customer?.contact_phone || cargoObj.phone || null,
+                    company_name: cargoObj.address || null,
+                    contact_name: cargoObj.contact_name || null,
+                    contact_phone: cargoObj.phone || null,
                 address: buildProvDist(cargoObj),
                 province: cargoObj.province || null,
                 district: cargoObj.district || null,
-                location_name: cargoObj.name || null,
-                delivery_date: foundJob.destination_delivery_date || foundJob.sender_pickup_date || null,
-                delivery_time: foundJob.destination_delivery_time || foundJob.sender_pickup_time || null,
+                    location_name: cargoObj.address || null,
+                    scheduled_datetime: cargoObj.scheduled_datetime || null,
+                    delivery_date: cargoObj.scheduled_datetime || null,
+                    delivery_time: null,
                 notes: null,
                 checked_in_at: null,
                 sop_completed_at: null,
@@ -659,28 +674,27 @@ export default function JobDetailPage() {
               } as any];
             }
 
-            // จุดรับ/ส่ง contact person สำหรับ intl ใช้จาก cargo_point.customer (ถ้ามี)
-            const cargoCustomerContact = cargoObj.customer?.contact_name || null;
+            // จุดรับ/ส่ง contact person สำหรับ intl ใช้ contact_name จาก object หลักเท่านั้น
+            const cargoContact = cargoObj.contact_name || null;
             if (isBooking) {
-              // Booking: cargo_point = จุดรับสินค้า → origin contact = cargo customer
-              mappedJob.origin_contact_person = cargoCustomerContact;
-              (mappedJob as any).origin_contact_name = cargoCustomerContact;
+              // Booking: cargo_point = จุดรับสินค้า
+              mappedJob.origin_contact_person = cargoContact;
+              (mappedJob as any).origin_contact_name = cargoContact;
               mappedJob.destination_contact_person = null;
               (mappedJob as any).destination_contact_name = null;
             } else {
-              // BL: cargo_point = จุดส่งสินค้า → destination contact = cargo customer
-              mappedJob.origin_contact_person = null;
-              (mappedJob as any).origin_contact_name = null;
-              mappedJob.destination_contact_person = cargoCustomerContact;
-              (mappedJob as any).destination_contact_name = cargoCustomerContact;
+              // BL: cargo_point = จุดส่งสินค้า
+              mappedJob.origin_contact_person = originObj.contact_name || null;
+              (mappedJob as any).origin_contact_name = originObj.contact_name || null;
+              mappedJob.destination_contact_person = cargoContact;
+              (mappedJob as any).destination_contact_name = cargoContact;
             }
 
-            // จุดคืนตู้ไม่มีผู้ติดต่อ
-            mappedJob.container_return_phone = null;
-
-            // จุดคืนตู้ (return_terminal) — สถานที่ = name, ที่อยู่ = province+district
-            mappedJob.container_return_location = returnObj.name || null;
+            // จุดคืนตู้ (return_terminal) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
+            mappedJob.container_return_location = returnObj.address || null;
             mappedJob.container_return_address = buildProvDist(returnObj);
+            mappedJob.container_return_phone = returnObj.phone || null;
+            (mappedJob as any).container_return_contact_name = returnObj.contact_name || null;
             if (returnObj.latitude != null) mappedJob.container_return_latitude = returnObj.latitude;
             if (returnObj.longitude != null) mappedJob.container_return_longitude = returnObj.longitude;
             // วันที่คืนตู้ — ใช้ scheduled_datetime จาก return_terminal เท่านั้น

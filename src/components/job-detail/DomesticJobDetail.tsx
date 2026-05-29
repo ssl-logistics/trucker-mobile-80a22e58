@@ -82,6 +82,7 @@ interface JobDestination {
   longitude: number | null;
   delivery_date: string | null;
   delivery_time: string | null;
+  scheduled_datetime?: string | null;
   notes: string | null;
   checked_in_at: string | null;
   sop_completed_at: string | null;
@@ -161,6 +162,7 @@ interface JobDetail {
   container_return_longitude?: number | null;
   container_return_phone?: string | null;
   container_return_date?: string | null;
+  container_return_contact_name?: string | null;
 }
 interface JobApplication {
   checked_in_at: string | null;
@@ -1506,17 +1508,10 @@ export default function DomesticJobDetail({
                   </div>
                   <div className="p-4 bg-white">
                     {(() => {
-                      const isBl = !!job.bl_no || !!job.booking_no;
-                      const j: any = job;
-                      // BL/Booking: ใช้ name เป็นสถานที่, province+district เป็นที่อยู่ (ไม่มี fallback)
-                      const headline = isBl
-                        ? (job.container_checkpoint || '-')
-                        : (job.container_checkpoint || job.empty_pickup_address || '-');
-                      const dateValue = job.empty_pickup_date || job.empty_container_date || (isBl ? j.sender_pickup_date : null);
-                      const timeValue = job.empty_pickup_time || (isBl ? j.sender_pickup_time : null);
-                      const addressValue = isBl
-                        ? (job.empty_pickup_address || '-')
-                        : job.empty_pickup_address;
+                      const headline = job.container_checkpoint || '-';
+                      const addressValue = job.empty_pickup_address || '-';
+                      const dateTimeValue = job.empty_pickup_date || null;
+                      const contactName = job.origin_contact_person || null;
                       return (
                         <>
                           <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
@@ -1525,17 +1520,20 @@ export default function DomesticJobDetail({
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location')}</span>
                               <span className="font-semibold text-[#225795]">{headline}</span>
                             </div>
-                            {(isBl || addressValue) && (
-                              <div className="flex items-start gap-2">
-                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address')}</span>
-                                <span>{addressValue || '-'}</span>
-                              </div>
-                            )}
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address')}</span>
+                              <span>{addressValue}</span>
+                            </div>
                             <div className="flex items-start gap-2">
                               <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime')}</span>
-                              <span>{dateValue ? formatDate(dateValue, language) : '-'}{timeValue ? ` ${timeValue}` : ''}</span>
+                              <span>{dateTimeValue ? formatDateTime(dateTimeValue, language) : '-'}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
+                              <span>{contactName || '-'}</span>
                             </div>
                           </div>
                         </>
@@ -1668,11 +1666,11 @@ export default function DomesticJobDetail({
                         )}
                         <div className="flex items-start gap-2">
                           <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {(() => { const v = job.origin_contact_person; const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; return v && !generic.includes(v.trim()) ? v : '-'; })()}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.contactPerson')}:</strong> {job.origin_contact_person || '-'}</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {formatDate(job.start_date, language)} | {job.start_time ? job.start_time.substring(0, 5) : '-'}</span>
+                          <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.booking_no ? (job.start_date ? formatDateTime(job.start_date, language) : '-') : `${formatDate(job.start_date, language)} | ${job.start_time ? job.start_time.substring(0, 5) : '-'}`}</span>
                         </div>
                         {!!job.booking_no && (job as any).vgm_cut_off && (
                           <div className="flex items-start gap-2">
@@ -2055,8 +2053,10 @@ export default function DomesticJobDetail({
                     <div className={`p-5 ${isDestinationLocked ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
                       <div className="space-y-2 text-sm text-muted-foreground mb-3">
                         {(() => {
-                          const placeName = (dest as any).name || null;
-                          const addressValue = (dest as any).address || null;
+                          const isIntl = !!job.bl_no || !!job.booking_no;
+                          const placeName = isIntl ? (dest.company_name || null) : (dest.company_name || (dest as any).location_name || null);
+                          const addressValue = [dest.province, dest.district].filter(Boolean).join(' ') || null;
+                          const dateTimeValue = isIntl ? ((dest as any).scheduled_datetime || null) : (dest.delivery_date || null);
                           return (
                             <>
                               <div className="flex items-start gap-2">
@@ -2064,21 +2064,24 @@ export default function DomesticJobDetail({
                                 <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
                                 <span className="font-semibold text-[#225795]">{placeName || '-'}</span>
                               </div>
-                              {addressValue && addressValue !== placeName && (
-                                <div className="flex items-start gap-2">
-                                   <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                                  <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
-                                  <span>{addressValue}</span>
-                                </div>
-                              )}
+                              <div className="flex items-start gap-2">
+                                 <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
+                                <span>{addressValue || '-'}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                 <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
+                                <span>{isIntl ? (dateTimeValue ? formatDateTime(dateTimeValue, language) : '-') : `${dateTimeValue ? formatDate(dateTimeValue, language) : '-'} | ${dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}`}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                 <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
+                                <span>{dest.contact_name || '-'}</span>
+                              </div>
                             </>
                           );
                         })()}
-                        <div className="flex items-start gap-2">
-                           <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'เวลา'}</span>
-                          <span>{dest.delivery_date ? formatDate(dest.delivery_date, language) : '-'} | {dest.delivery_time ? dest.delivery_time.substring(0, 5) : '-'}</span>
-                        </div>
                         {(!!job.bl_no || !!job.booking_no) && (job as any).vgm_cut_off && (
                           <div className="flex items-start gap-2">
                             <Clock className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
@@ -2093,11 +2096,6 @@ export default function DomesticJobDetail({
                             <span>{formatDateTime((job as any).closing_time, language)}</span>
                           </div>
                         )}
-                        <div className="flex items-start gap-2">
-                           <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
-                          <span>{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const contact = dest.contact_name && !generic.includes(dest.contact_name.trim()) ? dest.contact_name : null; return contact || '-'; })()}</span>
-                        </div>
                         {dest.invoice_number && (
                         <div className="flex items-start gap-2">
                           <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
@@ -2456,9 +2454,9 @@ export default function DomesticJobDetail({
 
                   <div className="space-y-2 text-sm text-muted-foreground mb-3">
                     {(() => {
-                      // BL/Booking: สถานที่ = name, ที่อยู่ = province+district (ไม่มี fallback)
                       const headline = job.container_return_location || '-';
                       const addr = job.container_return_address || '-';
+                      const contactName = job.container_return_contact_name || null;
                       return (
                         <>
                           <div className="flex items-start gap-2">
@@ -2471,13 +2469,18 @@ export default function DomesticJobDetail({
                             <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
                             <span className="text-[#454545]">{addr}</span>
                           </div>
+                          <div className="flex items-start gap-2">
+                            <User className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
+                            <span className="text-[#454545]">{contactName || '-'}</span>
+                          </div>
                         </>
                       );
                     })()}
                     <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
                       <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime') || 'วันที่'}</span>
-                      <span className="text-[#454545]">{job.container_return_date ? formatDate(job.container_return_date, language) : '-'}</span>
+                      <span className="text-[#454545]">{job.container_return_date ? formatDateTime(job.container_return_date, language) : '-'}</span>
                     </div>
                     {job.container_return_phone && (
                       <div className="flex items-start gap-2">
