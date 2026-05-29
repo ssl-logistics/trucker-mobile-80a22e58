@@ -1508,17 +1508,10 @@ export default function DomesticJobDetail({
                   </div>
                   <div className="p-4 bg-white">
                     {(() => {
-                      const isBl = !!job.bl_no || !!job.booking_no;
-                      const j: any = job;
-                      // BL/Booking: ใช้ name เป็นสถานที่, province+district เป็นที่อยู่ (ไม่มี fallback)
-                      const headline = isBl
-                        ? (job.container_checkpoint || '-')
-                        : (job.container_checkpoint || job.empty_pickup_address || '-');
-                      const dateValue = job.empty_pickup_date || job.empty_container_date || (isBl ? j.sender_pickup_date : null);
-                      const timeValue = job.empty_pickup_time || (isBl ? j.sender_pickup_time : null);
-                      const addressValue = isBl
-                        ? (job.empty_pickup_address || '-')
-                        : job.empty_pickup_address;
+                      const headline = job.container_checkpoint || '-';
+                      const addressValue = job.empty_pickup_address || '-';
+                      const dateTimeValue = job.empty_pickup_date || null;
+                      const contactName = job.origin_contact_person || null;
                       return (
                         <>
                           <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
@@ -1537,7 +1530,12 @@ export default function DomesticJobDetail({
                             <div className="flex items-start gap-2">
                               <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime')}</span>
-                              <span>{dateValue ? formatDate(dateValue, language) : '-'}{timeValue ? ` ${timeValue}` : ''}</span>
+                              <span>{dateTimeValue ? formatDateTime(dateTimeValue, language) : '-'}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
+                              <span>{contactName || '-'}</span>
                             </div>
                           </div>
                         </>
