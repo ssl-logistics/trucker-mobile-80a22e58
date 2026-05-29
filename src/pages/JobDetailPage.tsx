@@ -683,8 +683,9 @@ export default function JobDetailPage() {
             mappedJob.container_return_address = buildProvDist(returnObj);
             if (returnObj.latitude != null) mappedJob.container_return_latitude = returnObj.latitude;
             if (returnObj.longitude != null) mappedJob.container_return_longitude = returnObj.longitude;
-            // วันที่คืนตู้ — ใช้ scheduled_datetime จาก return_terminal
-            mappedJob.container_return_date = returnObj.scheduled_datetime || returnObj.scheduled_date || null;
+            // วันที่คืนตู้ — ใช้ scheduled_datetime จาก return_terminal เท่านั้น
+            mappedJob.container_return_date = returnObj.scheduled_datetime || null;
+
 
 
 
