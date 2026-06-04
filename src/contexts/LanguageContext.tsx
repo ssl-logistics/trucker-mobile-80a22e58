@@ -2261,6 +2261,8 @@ const enTranslations: Record<string, string> = {
   'jobDetail.contactPerson': 'Contact Person',
   'jobDetail.phone': 'Phone',
   'jobDetail.location': 'Location',
+  'jobDetail.yardName': 'Yard Name',
+  'jobDetail.factoryName': 'Factory',
   'jobDetail.address': 'Address',
   'jobDetail.dateTime': 'Date/Time',
   'jobDetail.position': 'Position',
