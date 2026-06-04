@@ -631,6 +631,8 @@ const thTranslations: Record<string, string> = {
   'jobDetail.contactPerson': 'ชื่อผู้ติดต่อ',
   'jobDetail.phone': 'เบอร์โทร',
   'jobDetail.location': 'สถานที่',
+  'jobDetail.yardName': 'ชื่อลาน',
+  'jobDetail.factoryName': 'โรงงาน',
   'jobDetail.address': 'ที่อยู่',
   'jobDetail.dateTime': 'วันเวลา',
   'jobDetail.position': 'เส้นทาง',
