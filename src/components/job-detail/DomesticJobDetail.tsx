@@ -2480,6 +2480,13 @@ export default function DomesticJobDetail({
                       const contactName = job.container_return_contact_name || null;
                       return (
                         <>
+                          {(job as any).container_return_yard_name && (
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
+                              <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.yardName') || 'ชื่อลาน'}</span>
+                              <span className="font-semibold text-[#225795]">{(job as any).container_return_yard_name}</span>
+                            </div>
+                          )}
                           <div className="flex items-start gap-2">
                              <MapPin className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
                             <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location') || 'สถานที่'}</span>
