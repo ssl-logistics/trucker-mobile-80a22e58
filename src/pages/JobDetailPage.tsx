@@ -636,6 +636,7 @@ export default function JobDetailPage() {
 
             // จุดส่งสินค้า/จุดรับสินค้า (cargo_point) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
             mappedJob.destination_company_name = cargoObj.address || null;
+            (mappedJob as any).cargo_factory_name = cargoObj.name || null;
             mappedJob.destination_location = cargoObj.address || '';
             mappedJob.destination_address = buildProvDist(cargoObj);
             mappedJob.destination_contact_person = cargoObj.contact_name || null;
