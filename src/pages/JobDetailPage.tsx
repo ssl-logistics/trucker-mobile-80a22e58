@@ -622,6 +622,7 @@ export default function JobDetailPage() {
 
             // จุดรับตู้ (origin) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
             mappedJob.container_checkpoint = originObj.address || null;
+            (mappedJob as any).empty_pickup_yard_name = originObj.name || null;
             mappedJob.empty_pickup_address = buildProvDist(originObj);
             mappedJob.empty_pickup_date = buildSchedDateTime(originObj);
             mappedJob.empty_pickup_time = null;
