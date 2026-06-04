@@ -1515,6 +1515,13 @@ export default function DomesticJobDetail({
                       return (
                         <>
                           <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                            {(job as any).empty_pickup_yard_name && (
+                              <div className="flex items-start gap-2">
+                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.yardName') || 'ชื่อลาน'}</span>
+                                <span className="font-semibold text-[#225795]">{(job as any).empty_pickup_yard_name}</span>
+                              </div>
+                            )}
                             <div className="flex items-start gap-2">
                               <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.location')}</span>
