@@ -5387,6 +5387,8 @@ const zhTranslations: Record<string, string> = {
   'jobDetail.contactPerson': '联系人姓名',
   'jobDetail.phone': '电话',
   'jobDetail.location': '地点',
+  'jobDetail.yardName': '堆场名称',
+  'jobDetail.factoryName': '工厂',
   'jobDetail.address': '地址',
   'jobDetail.dateTime': '日期/时间',
   'jobDetail.position': '路线',
