@@ -4631,6 +4631,8 @@ const koTranslations: Record<string, string> = {
   'jobDetail.contactPerson': '담당자 이름',
   'jobDetail.phone': '전화번호',
   'jobDetail.location': '위치',
+  'jobDetail.yardName': '야드 이름',
+  'jobDetail.factoryName': '공장',
   'jobDetail.address': '주소',
   'jobDetail.dateTime': '날짜/시간',
   'jobDetail.position': '직위',
