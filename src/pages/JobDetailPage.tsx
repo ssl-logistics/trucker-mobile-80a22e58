@@ -684,6 +684,7 @@ export default function JobDetailPage() {
                 longitude: cargoObj.longitude ?? null,
                 products: Array.isArray(foundJob.products) ? foundJob.products : undefined,
                 customer: cargoObj.customer || null,
+                factory_name: cargoObj.name || null,
               } as any];
             }
 
