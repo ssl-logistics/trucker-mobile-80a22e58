@@ -1624,7 +1624,14 @@ const ContainerSOPPage = () => {
                       <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
                     ))}
                     {eirOcrReferenceRows.map((row) => (
-                      <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
+                      <div key={row.label} className="flex items-center gap-2">
+                        <label className="whitespace-nowrap">{row.label}:</label>
+                        <Input
+                          value={row.value || ''}
+                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), [row.field]: e.target.value }))}
+                          className="h-7 text-xs bg-white flex-1"
+                        />
+                      </div>
                     ))}
                   </div>
                   <Button
