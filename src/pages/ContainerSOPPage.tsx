@@ -214,13 +214,12 @@ const ContainerSOPPage = () => {
         const ocrBl = normalizeRef(bl);
         const ocrBk = normalizeRef(bk);
 
+        const jobRefs = [jobBl, jobBk].filter(Boolean);
+        const ocrRefs = [ocrBl, ocrBk].filter(Boolean);
+
         let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
-        if (jobBl) {
-          if (ocrBl) status = ocrBl === jobBl ? 'match' : 'mismatch';
-          else status = 'not_found';
-        } else if (jobBk) {
-          if (ocrBk) status = ocrBk === jobBk ? 'match' : 'mismatch';
-          else status = 'not_found';
+        if (ocrRefs.length > 0) {
+          status = jobRefs.length === 0 || ocrRefs.some(ref => jobRefs.includes(ref)) ? 'match' : 'mismatch';
         }
         setEirBlMatchStatus(status);
 
@@ -233,16 +232,10 @@ const ContainerSOPPage = () => {
         }
         setEirContainerMatchStatus(cStatus);
 
-        const blOk = status === 'match' || status === 'not_found';
-        const cOk = cStatus === 'match' || cStatus === 'not_found';
         if (status === 'match' && cStatus === 'match') {
           toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
-        } else if (!blOk || !cOk) {
-          toast({
-            title: 'ไม่ตรงกัน!',
-            description: 'ข้อมูลใน EIR ไม่ตรงกับงาน กรุณาตรวจสอบ',
-            variant: 'destructive',
-          });
+        } else if (status === 'mismatch' || cStatus === 'mismatch') {
+          toast({ title: 'อ่าน EIR สำเร็จ', description: 'ข้อมูลบางส่วนไม่ตรงกับงาน แต่สามารถตรวจสอบและยืนยันต่อได้' });
         } else {
           toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
