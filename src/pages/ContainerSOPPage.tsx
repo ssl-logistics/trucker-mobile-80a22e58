@@ -214,13 +214,12 @@ const ContainerSOPPage = () => {
         const ocrBl = normalizeRef(bl);
         const ocrBk = normalizeRef(bk);
 
+        const jobRefs = [jobBl, jobBk].filter(Boolean);
+        const ocrRefs = [ocrBl, ocrBk].filter(Boolean);
+
         let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
-        if (jobBl) {
-          if (ocrBl) status = ocrBl === jobBl ? 'match' : 'mismatch';
-          else status = 'not_found';
-        } else if (jobBk) {
-          if (ocrBk) status = ocrBk === jobBk ? 'match' : 'mismatch';
-          else status = 'not_found';
+        if (ocrRefs.length > 0) {
+          status = jobRefs.length === 0 || ocrRefs.some(ref => jobRefs.includes(ref)) ? 'match' : 'mismatch';
         }
         setEirBlMatchStatus(status);
 
@@ -233,16 +232,10 @@ const ContainerSOPPage = () => {
         }
         setEirContainerMatchStatus(cStatus);
 
-        const blOk = status === 'match' || status === 'not_found';
-        const cOk = cStatus === 'match' || cStatus === 'not_found';
         if (status === 'match' && cStatus === 'match') {
           toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
-        } else if (!blOk || !cOk) {
-          toast({
-            title: 'ไม่ตรงกัน!',
-            description: 'ข้อมูลใน EIR ไม่ตรงกับงาน กรุณาตรวจสอบ',
-            variant: 'destructive',
-          });
+        } else if (status === 'mismatch' || cStatus === 'mismatch') {
+          toast({ title: 'อ่าน EIR สำเร็จ', description: 'ข้อมูลบางส่วนไม่ตรงกับงาน แต่สามารถตรวจสอบและยืนยันต่อได้' });
         } else {
           toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
@@ -1276,6 +1269,14 @@ const ContainerSOPPage = () => {
   const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
   const yardReady = isContainerReturn && isYardUnknown ? !!returnSlipYardName : true;
   const isConfirmDisabled = uploading || !allPhotosReady || !ocrReady || !yardReady;
+  const eirJobReferenceRows = [
+    { label: 'BL ในงาน', value: jobDetail?.bl_no },
+    { label: 'Booking ในงาน', value: jobDetail?.booking_no },
+  ].filter((row) => Boolean(row.value));
+  const eirOcrReferenceRows = [
+    { label: 'BL จาก OCR', value: eirBlOcrResult?.bl_no },
+    { label: 'Booking จาก OCR', value: eirBlOcrResult?.booking_no },
+  ].filter((row) => Boolean(row.value));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
@@ -1588,77 +1589,54 @@ const ContainerSOPPage = () => {
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirBlMatchStatus === 'match' && (
-                <Card className="p-3 bg-green-50 border-green-300">
-                  <div className="flex items-center gap-2 mb-1">
+                <Card className="p-3 bg-green-50 border-green-300 space-y-2">
+                  <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="font-semibold text-green-700 text-sm">เลข BL/Booking ตรงกับงาน</span>
+                    <span className="font-semibold text-green-700 text-sm">อ่านเลขจาก EIR แล้ว</span>
                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  {isBLJob ? (
-                    eirBlOcrResult?.bl_no && (
-                      <p className="text-xs text-green-800">BL: {eirBlOcrResult.bl_no}</p>
-                    )
-                  ) : (
-                    eirBlOcrResult?.booking_no && (
-                      <p className="text-xs text-green-800">Booking: {eirBlOcrResult.booking_no}</p>
-                    )
-                  )}
+                  <div className="text-xs text-green-800 space-y-1">
+                    {eirJobReferenceRows.map((row) => (
+                      <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
+                    ))}
+                    {eirOcrReferenceRows.map((row) => (
+                      <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
+                    ))}
+                  </div>
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirBlMatchStatus === 'mismatch' && (
-                <Card className="p-3 bg-red-50 border-red-300 space-y-2">
+                <Card className="p-3 bg-amber-50 border-amber-300 space-y-2">
                   <div className="flex items-center gap-2">
-                    <X className="w-4 h-4 text-red-600" />
-                    <span className="font-semibold text-red-700 text-sm">ไม่ตรงกัน! กรุณาตรวจสอบ</span>
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">OCR</span>
+                    <Scan className="w-4 h-4 text-amber-600" />
+                    <span className="font-semibold text-amber-800 text-sm">OCR ได้เลข BL/Booking แล้ว (ยืนยันต่อได้)</span>
+                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  <div className="text-xs text-red-800 space-y-0.5">
-                    {isBLJob
-                      ? jobDetail?.bl_no && <p>BL ตามงาน: <span className="font-semibold">{jobDetail.bl_no}</span></p>
-                      : jobDetail?.booking_no && <p>Booking ตามงาน: <span className="font-semibold">{jobDetail.booking_no}</span></p>}
+                  <div className="text-xs text-amber-900 space-y-1">
+                    {eirJobReferenceRows.map((row) => (
+                      <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
+                    ))}
+                    {eirOcrReferenceRows.map((row) => (
+                      <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
+                    ))}
                   </div>
-                  <div className="space-y-2 pt-1">
-                    {(eirBlOcrResult?.bl_no || (!eirBlOcrResult?.booking_no && isBLJob)) ? (
-                      <div>
-                        <label className="text-xs text-red-800 font-medium">BL ใน EIR (แก้ไขได้)</label>
-                        <Input
-                          value={eirBlOcrResult?.bl_no || ''}
-                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), bl_no: e.target.value }))}
-                          placeholder="กรอกเลข BL"
-                          className="h-9 mt-1 bg-white"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="text-xs text-red-800 font-medium">Booking ใน EIR (แก้ไขได้)</label>
-                        <Input
-                          value={eirBlOcrResult?.booking_no || ''}
-                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), booking_no: e.target.value }))}
-                          placeholder="กรอกเลข Booking"
-                          className="h-9 mt-1 bg-white"
-                        />
-                      </div>
-                    )}
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        disabled={isProcessingEirBlOcr}
-                        onClick={async () => {
-                          const file = await getEirFileForOcr();
-                          if (file) {
-                            await runEirBlOcr(file);
-                          } else {
-                            toast({ title: 'ไม่พบรูป EIR', description: 'กรุณาถ่ายรูป EIR ก่อน', variant: 'destructive' });
-                          }
-                        }}
-                      >
-                        {isProcessingEirBlOcr ? 'กำลัง OCR...' : 'ตรวจสอบอีกครั้ง'}
-                      </Button>
-                    </div>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={isProcessingEirBlOcr}
+                    onClick={async () => {
+                      const file = await getEirFileForOcr();
+                      if (file) {
+                        await runEirBlOcr(file);
+                      } else {
+                        toast({ title: 'ไม่พบรูป EIR', description: 'กรุณาถ่ายรูป EIR ก่อน', variant: 'destructive' });
+                      }
+                    }}
+                  >
+                    {isProcessingEirBlOcr ? 'กำลัง OCR...' : 'ตรวจสอบอีกครั้ง'}
+                  </Button>
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirBlMatchStatus === 'not_found' && (
