@@ -1273,10 +1273,10 @@ const ContainerSOPPage = () => {
     { label: 'BL ในงาน', value: jobDetail?.bl_no },
     { label: 'Booking ในงาน', value: jobDetail?.booking_no },
   ].filter((row) => Boolean(row.value));
-  const eirOcrReferenceRows = [
-    { label: 'BL จาก OCR', value: eirBlOcrResult?.bl_no },
-    { label: 'Booking จาก OCR', value: eirBlOcrResult?.booking_no },
-  ].filter((row) => Boolean(row.value));
+  const eirOcrReferenceRows = ([
+    { label: 'BL จาก OCR', value: eirBlOcrResult?.bl_no, field: 'bl_no' as const },
+    { label: 'Booking จาก OCR', value: eirBlOcrResult?.booking_no, field: 'booking_no' as const },
+  ]).filter((row) => Boolean(row.value));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
