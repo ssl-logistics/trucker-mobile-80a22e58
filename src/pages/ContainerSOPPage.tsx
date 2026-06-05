@@ -1630,20 +1630,17 @@ const ContainerSOPPage = () => {
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        onClick={() => {
-                          const jobBl = normalizeRef(jobDetail?.bl_no);
-                          const jobBk = normalizeRef(jobDetail?.booking_no);
-                          const ocrBl = normalizeRef(eirBlOcrResult?.bl_no);
-                          const ocrBk = normalizeRef(eirBlOcrResult?.booking_no);
-                          let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
-                          if (jobBl && ocrBl) status = ocrBl === jobBl ? 'match' : 'mismatch';
-                          else if (jobBk && ocrBk) status = ocrBk === jobBk ? 'match' : 'mismatch';
-                          else if (jobBl && ocrBk) status = ocrBk.includes(jobBl) || jobBl.includes(ocrBk) ? 'match' : 'mismatch';
-                          setEirBlMatchStatus(status);
-                          if (status === 'match') toast({ title: 'ตรงกัน ✓' });
+                        disabled={isProcessingEirBlOcr}
+                        onClick={async () => {
+                          const file = isBLJob ? blEirPhotoFile : eirPhotoFiles[0];
+                          if (file) {
+                            await runEirBlOcr(file);
+                          } else {
+                            toast({ title: 'ไม่พบรูป EIR', description: 'กรุณาถ่ายรูป EIR ก่อน', variant: 'destructive' });
+                          }
                         }}
                       >
-                        ตรวจสอบอีกครั้ง
+                        {isProcessingEirBlOcr ? 'กำลัง OCR...' : 'ตรวจสอบอีกครั้ง'}
                       </Button>
                     </div>
                   </div>
