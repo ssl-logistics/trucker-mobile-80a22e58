@@ -180,6 +180,21 @@ const ContainerSOPPage = () => {
   const normalizeRef = (s: string | null | undefined) =>
     (s || '').toString().toUpperCase().replace(/[\s\-_./]/g, '');
 
+  const getEirFileForOcr = async (): Promise<File | null> => {
+    const file: File | null = isBLJob ? blEirPhotoFile : (eirPhotoFiles[0] || null);
+    if (file) return file;
+    const preview = isBLJob ? blEirPhotoPreview : (eirPhotoPreviews[0] || '');
+    if (!preview) return null;
+    try {
+      const res = await fetch(preview);
+      const blob = await res.blob();
+      return new File([blob], 'eir.jpg', { type: blob.type || 'image/jpeg' });
+    } catch (e) {
+      console.error('Failed to load EIR preview for OCR:', e);
+      return null;
+    }
+  };
+
   const runEirBlOcr = async (file: File) => {
     setIsProcessingEirBlOcr(true);
     setEirBlOcrResult(null);
@@ -1632,7 +1647,7 @@ const ContainerSOPPage = () => {
                         className="flex-1"
                         disabled={isProcessingEirBlOcr}
                         onClick={async () => {
-                          const file = isBLJob ? blEirPhotoFile : eirPhotoFiles[0];
+                          const file = await getEirFileForOcr();
                           if (file) {
                             await runEirBlOcr(file);
                           } else {
@@ -1682,7 +1697,7 @@ const ContainerSOPPage = () => {
                         className="flex-1"
                         disabled={isProcessingEirBlOcr}
                         onClick={async () => {
-                          const file = isBLJob ? blEirPhotoFile : eirPhotoFiles[0];
+                          const file = await getEirFileForOcr();
                           if (file) {
                             await runEirBlOcr(file);
                           } else {
