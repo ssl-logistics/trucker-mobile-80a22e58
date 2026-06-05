@@ -120,6 +120,15 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     return null;
   }
 
+  // Sort by created_at ascending so the earliest (pickup-time) scan wins
+  // over later (return-time) scans when fields like booking_no appear in both.
+  pickupRecords.sort((a, b) => {
+    const ta = new Date(a?.created_at || a?.createdAt || 0).getTime();
+    const tb = new Date(b?.created_at || b?.createdAt || 0).getTime();
+    return ta - tb;
+  });
+
+
   const firstMeaningfulValue = (values: unknown[]): string | null => {
     for (const value of values) {
       if (hasMeaningfulOcrValue(value)) {
