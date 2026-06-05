@@ -181,9 +181,9 @@ const ContainerSOPPage = () => {
     (s || '').toString().toUpperCase().replace(/[\s\-_./]/g, '');
 
   const getEirFileForOcr = async (): Promise<File | null> => {
-    const file: File | null = isBLJob ? blEirPhotoFile : (eirPhotoFiles[0] || null);
+    const file: File | null = eirPhotoFiles[0] || blEirPhotoFile || null;
     if (file) return file;
-    const preview = isBLJob ? blEirPhotoPreview : (eirPhotoPreviews[0] || '');
+    const preview = eirPhotoPreviews[0] || blEirPhotoPreview || '';
     if (!preview) return null;
     try {
       const res = await fetch(preview);
