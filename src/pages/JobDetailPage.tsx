@@ -623,6 +623,7 @@ export default function JobDetailPage() {
             // จุดรับตู้ (origin) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
             mappedJob.container_checkpoint = originObj.address || null;
             (mappedJob as any).empty_pickup_yard_name = originObj.name || null;
+            (mappedJob as any).empty_pickup_port = originObj.port_of_loading || null;
             mappedJob.empty_pickup_address = buildProvDist(originObj);
             mappedJob.empty_pickup_date = buildSchedDateTime(originObj);
             mappedJob.empty_pickup_time = null;
@@ -707,6 +708,7 @@ export default function JobDetailPage() {
             // จุดคืนตู้ (return_terminal) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
             mappedJob.container_return_location = returnObj.address || null;
             (mappedJob as any).container_return_yard_name = returnObj.name || null;
+            (mappedJob as any).container_return_port = returnObj.port_of_discharge || null;
             mappedJob.container_return_address = buildProvDist(returnObj);
             mappedJob.container_return_phone = returnObj.phone || null;
             (mappedJob as any).container_return_contact_name = returnObj.contact_name || null;
