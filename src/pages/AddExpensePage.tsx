@@ -776,8 +776,7 @@ const AddExpensePage = () => {
                 </Button>
               )}
             </div>
-
-            {/* Amount */}
+            )}
             <div className="space-y-2">
               <Label htmlFor={`amount-${expense.id}`}>
                 {t('expense.price')} <span className="text-destructive">*</span>
