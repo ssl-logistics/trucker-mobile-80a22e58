@@ -1647,7 +1647,7 @@ const ContainerSOPPage = () => {
                         className="flex-1"
                         disabled={isProcessingEirBlOcr}
                         onClick={async () => {
-                          const file = isBLJob ? blEirPhotoFile : eirPhotoFiles[0];
+                          const file = await getEirFileForOcr();
                           if (file) {
                             await runEirBlOcr(file);
                           } else {
@@ -1697,7 +1697,7 @@ const ContainerSOPPage = () => {
                         className="flex-1"
                         disabled={isProcessingEirBlOcr}
                         onClick={async () => {
-                          const file = isBLJob ? blEirPhotoFile : eirPhotoFiles[0];
+                          const file = await getEirFileForOcr();
                           if (file) {
                             await runEirBlOcr(file);
                           } else {
