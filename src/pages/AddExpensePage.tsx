@@ -566,7 +566,8 @@ const AddExpensePage = () => {
               </div>
             )}
 
-            {/* Receipt Photos - Multiple */}
+            {/* Receipt Photos - Multiple - hidden for misc_no_receipt */}
+            {expense.type !== "misc_no_receipt" && (
             <div className="space-y-2">
               <Label>
                 {t('expense.uploadReceipt')} <span className="text-destructive">*</span>
