@@ -1645,18 +1645,6 @@ const ContainerSOPPage = () => {
                       >
                         ตรวจสอบอีกครั้ง
                       </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="flex-1"
-                        disabled={isBLJob ? !eirBlOcrResult?.bl_no?.trim() : !eirBlOcrResult?.booking_no?.trim()}
-                        onClick={() => {
-                          setEirBlMatchStatus(null);
-                          toast({ title: 'ยืนยันส่งข้อมูลแล้ว', description: 'สามารถดำเนินการต่อได้' });
-                        }}
-                      >
-                        ส่งข้อมูลต่อ
-                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -1709,18 +1697,6 @@ const ContainerSOPPage = () => {
                         }}
                       >
                         ตรวจสอบอีกครั้ง
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="flex-1"
-                        disabled={isBLJob ? !eirBlOcrResult?.bl_no?.trim() : !eirBlOcrResult?.booking_no?.trim()}
-                        onClick={() => {
-                          setEirBlMatchStatus(null);
-                          toast({ title: 'ยืนยันส่งข้อมูลแล้ว', description: 'สามารถดำเนินการต่อได้' });
-                        }}
-                      >
-                        ส่งข้อมูลต่อ
                       </Button>
                     </div>
                   </div>
