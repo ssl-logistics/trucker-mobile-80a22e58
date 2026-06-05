@@ -1532,6 +1532,13 @@ export default function DomesticJobDetail({
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address')}</span>
                               <span>{addressValue}</span>
                             </div>
+                            {(job as any).empty_pickup_port && (
+                              <div className="flex items-start gap-2">
+                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.port') || 'ท่าเรือ'}</span>
+                                <span className="font-semibold text-[#225795]">{(job as any).empty_pickup_port}</span>
+                              </div>
+                            )}
                             <div className="flex items-start gap-2">
                               <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.dateTime')}</span>
