@@ -100,6 +100,8 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
   // Exclude return-yard records (container return step) — they carry N/A placeholders
   const pickupRecords = records.filter((record) => {
     if (record?.return_yard) return false;
+    if (record?.scan_phase === 'return') return false;
+
 
     const containerPhotos = parseUrlArray(record?.container_photos);
 
@@ -117,6 +119,15 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
   if (pickupRecords.length === 0) {
     return null;
   }
+
+  // Sort by created_at ascending so the earliest (pickup-time) scan wins
+  // over later (return-time) scans when fields like booking_no appear in both.
+  pickupRecords.sort((a, b) => {
+    const ta = new Date(a?.created_at || a?.createdAt || 0).getTime();
+    const tb = new Date(b?.created_at || b?.createdAt || 0).getTime();
+    return ta - tb;
+  });
+
 
   const firstMeaningfulValue = (values: unknown[]): string | null => {
     for (const value of values) {
