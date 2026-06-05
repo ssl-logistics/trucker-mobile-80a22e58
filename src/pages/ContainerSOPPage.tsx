@@ -782,88 +782,10 @@ const ContainerSOPPage = () => {
 
     // BL container return: check mandatory expenses
     if (isBLJob && isContainerReturn && user) {
-      setCheckingExpenses(true);
-      try {
-        const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-        const { data: expensesData } = await getExpenses(jobId || '', user.id, driverType);
-
-        const expenseList = Array.isArray(expensesData)
-          ? expensesData
-          : Array.isArray((expensesData as any)?.expenses)
-            ? (expensesData as any).expenses
-            : Array.isArray((expensesData as any)?.data?.expenses)
-              ? (expensesData as any).data.expenses
-              : [];
-
-        // Normalize expense types from API
-        const existingTypes = new Set<string>();
-        const normalizeExpenseType = (value: string) =>
-          value
-            .trim()
-            .toLowerCase()
-            .replace(/[()]/g, '')
-            .replace(/[^\wก-๙]+/g, '_')
-            .replace(/^_+|_+$/g, '');
-
-        for (const exp of expenseList) {
-          const raw = String(exp.expense_type || exp.expense_name || '');
-          if (!raw.trim()) continue;
-
-          // Strip trailing "(custom note)" suffix so labels like
-          // "misc_no_receipt (ค่าอาหาร)" still match the base type.
-          const stripSuffix = (s: string) => {
-            const trimmed = s.trim();
-            if (trimmed.endsWith(')')) {
-              const idx = trimmed.lastIndexOf('(');
-              if (idx > 0) return trimmed.slice(0, idx).trim();
-            }
-            return trimmed;
-          };
-          const baseRaw = stripSuffix(raw);
-
-          const normalized = normalizeExpenseType(baseRaw);
-          existingTypes.add(normalized);
-          existingTypes.add(normalizeExpenseType(raw));
-
-          const variationMap: Record<string, string> = {
-            'ค่าคืนตู้': 'return_container',
-            'ค่าผ่านท่า': 'port_fee',
-            'ค่าใช้จ่ายไม่มีใบเสร็จ': 'misc_no_receipt',
-            'container_return': 'return_container',
-            'return_container': 'return_container',
-            'port_fee': 'port_fee',
-            'misc_no_receipt': 'misc_no_receipt',
-            'overtime': 'misc_no_receipt',
-            'ค่าล่วงเวลา': 'misc_no_receipt',
-          };
-
-          const mapped = variationMap[baseRaw] || variationMap[normalized];
-          if (mapped) {
-            existingTypes.add(mapped);
-          }
-        }
-        
-        const requiredTypes = [
-          { key: 'return_container', label: t('expense.returnContainer') },
-          { key: 'port_fee', label: t('expense.portFee') },
-          { key: 'misc_no_receipt', label: t('expense.miscNoReceipt') },
-        ];
-        
-        const missing = requiredTypes.filter(rt => !existingTypes.has(rt.key));
-        
-        if (missing.length > 0) {
-          setMissingExpenseTypes(missing.map(m => m.label));
-          setShowMissingExpenseDialog(true);
-          setCheckingExpenses(false);
-          return;
-        }
-      } catch (err) {
-        console.warn('[ContainerSOP] Failed to check expenses:', err);
-        // If we can't check, still allow (non-blocking)
-      } finally {
-        setCheckingExpenses(false);
-      }
+      const missing = await checkMissingExpensesForReturn();
+      if (missing) return;
     }
+
 
     setShowConfirmDialog(true);
   };
