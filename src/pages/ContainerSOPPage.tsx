@@ -1273,10 +1273,10 @@ const ContainerSOPPage = () => {
     { label: 'BL ในงาน', value: jobDetail?.bl_no },
     { label: 'Booking ในงาน', value: jobDetail?.booking_no },
   ].filter((row) => Boolean(row.value));
-  const eirOcrReferenceRows = [
-    { label: 'BL จาก OCR', value: eirBlOcrResult?.bl_no },
-    { label: 'Booking จาก OCR', value: eirBlOcrResult?.booking_no },
-  ].filter((row) => Boolean(row.value));
+  const eirOcrReferenceRows = ([
+    { label: 'BL จาก OCR', value: eirBlOcrResult?.bl_no, field: 'bl_no' as const },
+    { label: 'Booking จาก OCR', value: eirBlOcrResult?.booking_no, field: 'booking_no' as const },
+  ]).filter((row) => Boolean(row.value));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
@@ -1600,7 +1600,14 @@ const ContainerSOPPage = () => {
                       <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
                     ))}
                     {eirOcrReferenceRows.map((row) => (
-                      <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
+                      <div key={row.label} className="flex items-center gap-2">
+                        <label className="whitespace-nowrap">{row.label}:</label>
+                        <Input
+                          value={row.value || ''}
+                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), [row.field]: e.target.value }))}
+                          className="h-7 text-xs bg-white flex-1"
+                        />
+                      </div>
                     ))}
                   </div>
                 </Card>
@@ -1617,7 +1624,14 @@ const ContainerSOPPage = () => {
                       <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
                     ))}
                     {eirOcrReferenceRows.map((row) => (
-                      <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
+                      <div key={row.label} className="flex items-center gap-2">
+                        <label className="whitespace-nowrap">{row.label}:</label>
+                        <Input
+                          value={row.value || ''}
+                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), [row.field]: e.target.value }))}
+                          className="h-7 text-xs bg-white flex-1"
+                        />
+                      </div>
                     ))}
                   </div>
                   <Button
