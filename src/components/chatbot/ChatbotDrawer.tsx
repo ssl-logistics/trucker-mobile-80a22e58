@@ -132,8 +132,9 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
     setIsLoading(true);
 
     try {
-      // Check cache first
-      const cachedAnswer = findCachedAnswer(userMessage.content, getCache());
+      // Check cache first (scoped per user type)
+      const roleScopedQuestion = `[${userType}] ${userMessage.content}`;
+      const cachedAnswer = findCachedAnswer(roleScopedQuestion, getCache());
       
       if (cachedAnswer) {
         // Use cached answer
