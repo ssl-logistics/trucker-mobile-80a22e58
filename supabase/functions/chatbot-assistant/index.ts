@@ -232,6 +232,7 @@ serve(async (req) => {
     const { messages, language, userType } = await req.json();
     const lang = language || 'th';
     const role = userType || 'freelance_driver';
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     
