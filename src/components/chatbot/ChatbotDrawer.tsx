@@ -156,6 +156,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
             .concat(userMessage)
             .map(m => ({ role: m.role, content: m.content })),
           language,
+          userType,
         },
       });
 
