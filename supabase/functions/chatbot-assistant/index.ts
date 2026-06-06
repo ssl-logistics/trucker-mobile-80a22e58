@@ -168,6 +168,10 @@ IMPORTANT: You MUST reply in English only.
 - Politely decline out-of-scope questions
 - Tailor answers to the user's role described below
 
+Job types (2 categories):
+1. Assigned Jobs - Jobs assigned directly by the company to the driver
+2. Bidding Jobs - Jobs open for bidding (FREELANCE DRIVERS ONLY). Always state that bidding jobs are exclusive to freelance drivers.
+
 Main features:
 1. Home - Recommended jobs
 2. Current Jobs - Active jobs
@@ -191,6 +195,10 @@ Be concise and friendly with some emojis.`;
 
 작업 흐름: 일자리 수락 → 픽업 체크인 → SOP 사진 → 운송 → 배달 체크인 → 완료
 
+일자리 종류 (2가지):
+1. 배정된 일자리 - 회사가 직접 배정한 일자리
+2. 입찰 일자리 - 입찰로 받는 일자리 (프리랜서 운전사 전용). 입찰 일자리는 반드시 프리랜서 전용임을 명시할 것.
+
 간결하고 친절하게 답변하세요.`;
   } else if (lang === 'zh') {
     base = `你是 The Trucker 应用的 AI 助手。
@@ -204,6 +212,10 @@ Be concise and friendly with some emojis.`;
 
 工作流程：接受工作 → 取货签到 → SOP 照片 → 运输 → 送货签到 → 完成
 
+工作类型（两种）：
+1. 分配工作 - 公司直接分配的工作
+2. 竞标工作 - 通过竞标获得的工作（仅限自由职业司机）。提及竞标工作时务必说明仅自由职业司机可用。
+
 回答简洁友好。`;
   } else {
     base = `คุณเป็นผู้ช่วย AI ของแอป The Trucker สำหรับคนขับรถบรรทุก
@@ -216,6 +228,11 @@ Be concise and friendly with some emojis.`;
 - ปรับคำตอบให้เหมาะกับบทบาทผู้ใช้ด้านล่าง
 
 ขั้นตอนการทำงาน: รับงาน → Check-in จุดรับ → ถ่ายรูป SOP → ขนส่ง → Check-in จุดส่ง → เสร็จสิ้น
+
+ประเภทงาน (มี 2 ประเภท):
+1. งานที่ได้รับมอบหมาย (Assigned Jobs) - งานที่บริษัทมอบหมายให้คนขับโดยตรง
+2. งานประมูล (Bidding Jobs) - งานที่เปิดให้ประมูล สำหรับ "คนขับฟรีแลนซ์ (Freelance)" เท่านั้น
+   ⚠️ ทุกครั้งที่พูดถึงงานประมูล ต้องระบุชัดเจนว่าเป็นงานสำหรับฟรีแลนซ์เท่านั้น
 
 ตอบสั้นกระชับ สุภาพ ใส่ emoji เล็กน้อย`;
   }
