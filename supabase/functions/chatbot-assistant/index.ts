@@ -276,7 +276,7 @@ serve(async (req) => {
     }
 
     // If no FAQ match, use AI but with strict scope
-    const systemPrompt = getSystemPrompt(lang);
+    const systemPrompt = getSystemPrompt(lang, role);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
