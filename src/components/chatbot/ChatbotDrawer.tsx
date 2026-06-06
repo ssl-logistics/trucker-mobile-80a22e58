@@ -168,7 +168,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
       const assistantContent = response.data?.content || t('chatbot.fallback');
       
       // Save to cache
-      saveToCache(userMessage.content, assistantContent);
+      saveToCache(roleScopedQuestion, assistantContent);
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
