@@ -23,6 +23,39 @@ function getLocalizedAnswer(faq: any, lang: string): string {
   return faq[col] || faq.answer;
 }
 
+// Ensure any mention of bidding jobs clarifies it's freelance-only
+function annotateBiddingFreelance(answer: string, lang: string): string {
+  if (!answer) return answer;
+  const lower = answer.toLowerCase();
+  const mentionsBidding =
+    lower.includes('bidding job') ||
+    lower.includes('งานประมูล') ||
+    lower.includes('ประมูลงาน') ||
+    lower.includes('竞标') ||
+    lower.includes('입찰');
+  if (!mentionsBidding) return answer;
+
+  const freelanceMarkers = ['freelance', 'ฟรีแลน', '프리랜', '自由职业'];
+  if (freelanceMarkers.some((m) => lower.includes(m.toLowerCase()))) return answer;
+
+  const inline =
+    lang === 'en'
+      ? ' (Freelance drivers only)'
+      : lang === 'ko'
+      ? ' (프리랜서 운전사 전용)'
+      : lang === 'zh'
+      ? '（仅限自由职业司机）'
+      : ' (สำหรับคนขับฟรีแลนซ์เท่านั้น)';
+
+  const lines = answer.split('\n');
+  const idx = lines.findIndex((l) => /bidding job|งานประมูล|竞标|입찰/i.test(l));
+  if (idx >= 0) {
+    lines[idx] = lines[idx].replace(/\s*$/, '') + inline;
+    return lines.join('\n');
+  }
+  return answer + '\n' + inline.trim();
+}
+
 // Check if user message matches any FAQ keywords
 function findMatchingFaq(userMessage: string, faqs: any[]): any | null {
   const lowerMessage = userMessage.toLowerCase().trim();
