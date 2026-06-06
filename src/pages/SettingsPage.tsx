@@ -441,7 +441,7 @@ export default function SettingsPage() {
         <Button
           onClick={() => setShowSignOutDialog(true)}
           variant="outline"
-          className="w-full border-destructive text-destructive hover:bg-destructive/10"
+          className="w-full !border-red-500 !bg-red-500 !text-white hover:!border-red-600 hover:!bg-red-600 hover:!text-white disabled:!bg-red-500 disabled:!text-white"
         >
           {t('settings.sign_out')}
         </Button>
@@ -465,7 +465,7 @@ export default function SettingsPage() {
             <AlertDialogAction 
               onClick={handleSignOut}
               disabled={isLoggingOut}
-              className="flex-1 m-0 !bg-red-500 !text-white hover:!bg-red-600"
+              className="flex-1 m-0 !bg-red-500 !text-white hover:!bg-red-600 disabled:!bg-red-500 disabled:!text-white"
             >
               {isLoggingOut ? (
                 <>
