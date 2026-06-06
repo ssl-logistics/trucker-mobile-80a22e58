@@ -22,8 +22,8 @@ interface CachedQA {
   timestamp: number;
 }
 
-const CACHE_KEY = "chatbot-qa-cache-v2";
-const LEGACY_CACHE_KEY = "chatbot-qa-cache";
+const CACHE_KEY = "chatbot-qa-cache-v3";
+const LEGACY_CACHE_KEY = "chatbot-qa-cache-v2";
 const SIMILARITY_THRESHOLD = 0.8;
 
 // Simple similarity check using Levenshtein-like approach
