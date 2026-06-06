@@ -95,6 +95,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const { userType } = useAuth();
 
   useEffect(() => {
     if (scrollRef.current) {
