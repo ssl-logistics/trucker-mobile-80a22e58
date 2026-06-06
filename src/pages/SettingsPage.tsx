@@ -245,6 +245,7 @@ export default function SettingsPage() {
       logout();
       toast({
         description: t('settings.logoutSuccess') || 'ออกจากระบบสำเร็จ',
+        className: '!bg-red-500 !text-white !border-red-500 [&>div]:!text-white',
       });
       navigate('/');
     }
