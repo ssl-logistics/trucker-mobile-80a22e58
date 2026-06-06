@@ -194,7 +194,7 @@ export function AppHeader({
                 await onSignOut?.();
               }} 
               disabled={isLoggingOut}
-              className="flex-1 m-0 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="flex-1 m-0 !bg-red-500 !text-white hover:!bg-red-600 disabled:!bg-red-500 disabled:!text-white"
             >
               {isLoggingOut ? (
                 <>
