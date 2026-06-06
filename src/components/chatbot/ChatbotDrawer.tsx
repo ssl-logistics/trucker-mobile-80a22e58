@@ -7,6 +7,7 @@ import { Send, Bot, User, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
   id: string;
@@ -94,6 +95,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const { userType } = useAuth();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -130,8 +132,9 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
     setIsLoading(true);
 
     try {
-      // Check cache first
-      const cachedAnswer = findCachedAnswer(userMessage.content, getCache());
+      // Check cache first (scoped per user type)
+      const roleScopedQuestion = `[${userType}] ${userMessage.content}`;
+      const cachedAnswer = findCachedAnswer(roleScopedQuestion, getCache());
       
       if (cachedAnswer) {
         // Use cached answer
@@ -154,6 +157,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
             .concat(userMessage)
             .map(m => ({ role: m.role, content: m.content })),
           language,
+          userType,
         },
       });
 
@@ -164,7 +168,7 @@ export function ChatbotDrawer({ open, onOpenChange }: ChatbotDrawerProps) {
       const assistantContent = response.data?.content || t('chatbot.fallback');
       
       // Save to cache
-      saveToCache(userMessage.content, assistantContent);
+      saveToCache(roleScopedQuestion, assistantContent);
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
