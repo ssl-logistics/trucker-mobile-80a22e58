@@ -316,7 +316,7 @@ serve(async (req) => {
         const matchedFaq = findMatchingFaq(userQuestion, faqs);
         if (matchedFaq) {
           console.log("FAQ matched:", matchedFaq.question);
-          const localizedAnswer = getLocalizedAnswer(matchedFaq, lang);
+          const localizedAnswer = annotateBiddingFreelance(getLocalizedAnswer(matchedFaq, lang), lang);
           return new Response(
             JSON.stringify({ content: localizedAnswer }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
