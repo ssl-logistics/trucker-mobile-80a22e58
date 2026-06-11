@@ -622,8 +622,28 @@ export default function ContainerSummaryPage() {
                 })()}
               </div>
             )}
+            {/* Trailer Plate Photos + Numbers (BL/Booking optional) */}
+            {trailerPlatePhotos.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">ทะเบียนหางลาก ({trailerPlatePhotos.length} รูป)</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {trailerPlatePhotos.map((url, idx) => (
+                    <div key={idx} className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                      <EditablePhoto src={url} alt={`Trailer Plate ${idx + 1}`} originalUrl={rawTrailerPlatePhotos[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-trailer-plate-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isOwnData={isOwnOcrData} />
+                      {trailerPlateNumbers[idx] && (
+                        <span className="absolute bottom-1 left-1 right-1 text-[11px] bg-green-600 text-white px-1.5 py-0.5 rounded text-center font-semibold truncate">
+                          {trailerPlateNumbers[idx]}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
+
+
 
         {/* Container Return Check-in Status - only show in return context */}
         {checkinType === 'container_return' && sopData?.return_checked_in_at && (
