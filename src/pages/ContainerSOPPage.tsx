@@ -122,6 +122,7 @@ const ContainerSOPPage = () => {
   const [trailerPlatePhotoFiles, setTrailerPlatePhotoFiles] = useState<File[]>([]);
   const [trailerPlatePhotoPreviews, setTrailerPlatePhotoPreviews] = useState<string[]>([]);
   const [trailerPlateOcrResults, setTrailerPlateOcrResults] = useState<(string | null)[]>([]);
+  const [pendingTrailerPlateOcr, setPendingTrailerPlateOcr] = useState<(string | null)[]>([]);
   const [activeTrailerPlateIndex, setActiveTrailerPlateIndex] = useState<number>(0);
   const [isProcessingTrailerPlateOcr, setIsProcessingTrailerPlateOcr] = useState(false);
   
