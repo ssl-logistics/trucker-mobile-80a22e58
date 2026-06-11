@@ -59,7 +59,7 @@ interface JobDetail {
   closing_time?: string;
 }
 
-type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir';
+type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir' | 'trailer_plate';
 type ActiveEirIndex = number | 'new';
 
 const ContainerSOPPage = () => {
