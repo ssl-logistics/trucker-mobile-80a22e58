@@ -89,7 +89,7 @@ const ContainerSOPPage = () => {
   const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
   const isBLJob = !!jobDetail?.bl_no;
   const isBookingJob = !!jobDetail?.booking_no;
-  const showTrailerPlateSection = isBLJob || isBookingJob;
+  const showTrailerPlateSection = (isBLJob || isBookingJob) && !isContainerReturn;
   const needsOCR = isEmptyContainer || isLoadedContainer;
   const needsApiVerify = isLoadedContainer;
   
