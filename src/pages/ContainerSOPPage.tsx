@@ -88,6 +88,8 @@ const ContainerSOPPage = () => {
   const isLoadedContainer = checkinTypeFromState === 'loaded_container' || (!isContainerReturn && checkinTypeFromState !== 'empty_container' && isInboundFromJobData);
   const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
   const isBLJob = !!jobDetail?.bl_no;
+  const isBookingJob = !!jobDetail?.booking_no;
+  const showTrailerPlateSection = isBLJob || isBookingJob;
   const needsOCR = isEmptyContainer || isLoadedContainer;
   const needsApiVerify = isLoadedContainer;
   
