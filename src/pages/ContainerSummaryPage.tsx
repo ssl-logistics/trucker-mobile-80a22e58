@@ -193,18 +193,22 @@ export default function ContainerSummaryPage() {
   const rawEirPhotos = ocrScanData?.eir_photos || [];
   const rawContainerImageUrl = ocrScanData?.container_image_url ? [ocrScanData.container_image_url] : [];
   const rawSealImageUrl = ocrScanData?.seal_image_url ? [ocrScanData.seal_image_url] : [];
+  const rawTrailerPlatePhotos = ocrScanData?.trailer_plate_photos || [];
+  const trailerPlateNumbers = ocrScanData?.trailer_plate_numbers || [];
   const { urls: presignedPickupEirPhotoUrls } = usePresignedImageUrls(rawPickupEirPhotoUrls);
   const { urls: presignedReturnPhotoUrls } = usePresignedImageUrls(rawReturnPhotoUrls);
   const { urls: presignedContainerPhotos } = usePresignedImageUrls(rawContainerPhotos);
   const { urls: presignedEirPhotos } = usePresignedImageUrls(rawEirPhotos);
   const { urls: presignedContainerImageUrl } = usePresignedImageUrls(rawContainerImageUrl);
   const { urls: presignedSealImageUrl } = usePresignedImageUrls(rawSealImageUrl);
+  const { urls: presignedTrailerPlatePhotos } = usePresignedImageUrls(rawTrailerPlatePhotos);
   const pickupEirPhotoUrls = presignedPickupEirPhotoUrls.filter((url): url is string => Boolean(url));
   const returnPhotoUrls = presignedReturnPhotoUrls.filter((url): url is string => Boolean(url));
   const containerPhotos = presignedContainerPhotos.filter((url): url is string => Boolean(url));
   const eirPhotos = presignedEirPhotos.filter((url): url is string => Boolean(url));
   const containerNumberPhoto = presignedContainerImageUrl.filter((url): url is string => Boolean(url))[0] || null;
   const sealNumberPhoto = presignedSealImageUrl.filter((url): url is string => Boolean(url))[0] || null;
+  const trailerPlatePhotos = presignedTrailerPlatePhotos.filter((url): url is string => Boolean(url));
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const isFromHistory = fromParam === 'history';
