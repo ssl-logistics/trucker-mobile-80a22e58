@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface OCRRequest {
   image_base64: string;
-  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'weight_slip' | 'container_return_slip' | 'eir_document' | 'general';
+  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'weight_slip' | 'container_return_slip' | 'eir_document' | 'trailer_plate' | 'general';
   expected_amount?: number;
   expected_account_number?: string;
 }
