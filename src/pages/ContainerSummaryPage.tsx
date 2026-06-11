@@ -50,6 +50,8 @@ interface OcrScanData {
   seal_image_url: string | null;
   container_photos: string[];
   eir_photos: string[];
+  trailer_plate_photos: string[];
+  trailer_plate_numbers: string[];
   driver_id: string | null;
   max_gross?: number | string | null;
   tare_weight?: number | string | null;
