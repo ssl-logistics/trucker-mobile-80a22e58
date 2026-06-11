@@ -921,8 +921,8 @@ const ContainerSOPPage = () => {
         return supabase.functions.invoke('upload-to-s3', { body: sFormData });
       })() : Promise.resolve({ data: null, error: null });
 
-      // Prepare trailer plate photo promises (BL only, optional)
-      const trailerPlateUploadPromises = isBLJob
+      // Prepare trailer plate photo promises (BL/Booking, optional)
+      const trailerPlateUploadPromises = showTrailerPlateSection
         ? trailerPlatePhotoFiles.filter(Boolean).map(async (file, i) => {
             const tFormData = new FormData();
             tFormData.append('file', await compressImage(file));
