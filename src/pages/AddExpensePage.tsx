@@ -25,12 +25,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
 import { cn } from "@/lib/utils";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 interface ExpenseLineItem {
   description: string;
