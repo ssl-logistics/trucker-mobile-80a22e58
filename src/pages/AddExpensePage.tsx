@@ -187,6 +187,11 @@ const AddExpensePage = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingOCRFields, setEditingOCRFields] = useState<Set<string>>(new Set());
+  const [photoDrawerOpen, setPhotoDrawerOpen] = useState(false);
+  const [currentExpenseIdForPhoto, setCurrentExpenseIdForPhoto] = useState<string | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
   const handleAddExpense = () => {
     const newExpense: ExpenseItem = {
