@@ -1,7 +1,7 @@
 import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown } from "lucide-react";
+import { ChevronLeft, Camera, Image, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown } from "lucide-react";
 import confirmSuccessIcon from "@/assets/confirm-success-icon.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,12 +25,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
 import { cn } from "@/lib/utils";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 interface ExpenseLineItem {
   description: string;
@@ -178,6 +187,11 @@ const AddExpensePage = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingOCRFields, setEditingOCRFields] = useState<Set<string>>(new Set());
+  const [photoDrawerOpen, setPhotoDrawerOpen] = useState(false);
+  const [currentExpenseIdForPhoto, setCurrentExpenseIdForPhoto] = useState<string | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
   const handleAddExpense = () => {
     const newExpense: ExpenseItem = {
@@ -206,49 +220,61 @@ const AddExpensePage = () => {
   const handlePhotoSelect = async (expenseId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const photoId = String(Date.now());
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newPhoto: ReceiptPhoto = {
-          id: photoId,
-          file,
-          preview: reader.result as string,
-          ocrAmount: null,
-          ocrDetailed: null,
-          ocrExtracting: true,
-        };
-        
-        setExpenses(prev => prev.map(exp => 
-          exp.id === expenseId 
+      await processPhotoFile(expenseId, file);
+    }
+  };
+
+  const processPhotoFile = async (expenseId: string, file: File) => {
+    const photoId = String(Date.now());
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const newPhoto: ReceiptPhoto = {
+        id: photoId,
+        file,
+        preview: reader.result as string,
+        ocrAmount: null,
+        ocrDetailed: null,
+        ocrExtracting: true,
+      };
+
+      setExpenses((prev) =>
+        prev.map((exp) =>
+          exp.id === expenseId
             ? { ...exp, receiptPhotos: [...exp.receiptPhotos, newPhoto] }
             : exp
-        ));
-      };
-      reader.readAsDataURL(file);
-      
-      // Run OCR extraction
-      const result = await extractFromImage(file, 'expense_detailed');
-      
-      setExpenses(prev => prev.map(exp => {
+        )
+      );
+    };
+    reader.readAsDataURL(file);
+
+    // Run OCR extraction
+    const result = await extractFromImage(file, 'expense_detailed');
+
+    setExpenses((prev) =>
+      prev.map((exp) => {
         if (exp.id === expenseId) {
-          const updatedPhotos = exp.receiptPhotos.map(photo => {
+          const updatedPhotos = exp.receiptPhotos.map((photo) => {
             if (photo.id === photoId) {
               if (result.success && result.data) {
                 const detailedData = result.data as OCRDetailedResult;
                 // Prioritize: grand_total > total > subtotal
-                const bestTotal = detailedData.grand_total ?? detailedData.total ?? detailedData.subtotal ?? null;
-                
+                const bestTotal =
+                  detailedData.grand_total ??
+                  detailedData.total ??
+                  detailedData.subtotal ??
+                  null;
+
                 if (bestTotal) {
                   toast({
-                    title: "OCR สำเร็จ",
+                    title: 'OCR สำเร็จ',
                     description: `พบยอด: ${bestTotal.toLocaleString()} บาท`,
                   });
                 }
-                
-                return { 
-                  ...photo, 
-                  ocrExtracting: false, 
+
+                return {
+                  ...photo,
+                  ocrExtracting: false,
                   ocrAmount: bestTotal,
                   ocrDetailed: detailedData,
                 };
@@ -257,20 +283,23 @@ const AddExpensePage = () => {
             }
             return photo;
           });
-          
+
           // Auto-calculate total from all OCR amounts
-          const totalOCR = updatedPhotos.reduce((sum, p) => sum + (p.ocrAmount || 0), 0);
-          
-          return { 
-            ...exp, 
+          const totalOCR = updatedPhotos.reduce(
+            (sum, p) => sum + (p.ocrAmount || 0),
+            0
+          );
+
+          return {
+            ...exp,
             receiptPhotos: updatedPhotos,
             amount: totalOCR > 0 ? String(totalOCR) : exp.amount,
             showOCRDetails: true,
           };
         }
         return exp;
-      }));
-    }
+      })
+    );
   };
 
   const handleRemovePhoto = (expenseId: string, photoId: string) => {
@@ -616,22 +645,39 @@ const AddExpensePage = () => {
                 {/* Add Photo Button */}
                 <div className="relative">
                   <input
+                    ref={cameraInputRef}
                     type="file"
                     accept={ACCEPT_IMAGE_DOC}
                     capture="environment"
-                    onChange={(e) => handlePhotoSelect(expense.id, e)}
                     className="hidden"
-                    id={`photo-${expense.id}`}
+                    onChange={(e) => {
+                      if (currentExpenseIdForPhoto) handlePhotoSelect(currentExpenseIdForPhoto, e);
+                      if (e.target) e.target.value = '';
+                    }}
                   />
-                  <label
-                    htmlFor={`photo-${expense.id}`}
-                    className="block cursor-pointer h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground/50 transition-colors"
+                  <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept={ACCEPT_IMAGE_DOC}
+                    className="hidden"
+                    onChange={(e) => {
+                      if (currentExpenseIdForPhoto) handlePhotoSelect(currentExpenseIdForPhoto, e);
+                      if (e.target) e.target.value = '';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentExpenseIdForPhoto(expense.id);
+                      setPhotoDrawerOpen(true);
+                    }}
+                    className="block cursor-pointer h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground/50 transition-colors w-full"
                   >
                     <Camera className="w-6 h-6 mb-1" />
                     <p className="text-xs">
                       {expense.receiptPhotos.length === 0 ? t('expense.clickToTake') : 'เพิ่มรูป'}
                     </p>
-                  </label>
+                  </button>
                 </div>
               </div>
               
@@ -866,6 +912,62 @@ const AddExpensePage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Photo Source Drawer */}
+      <Drawer open={photoDrawerOpen} onOpenChange={setPhotoDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">เพิ่มรูปภาพ</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
+            <button
+              onClick={() => {
+                if (isNative) {
+                  takePhoto().then((file) => {
+                    if (file && currentExpenseIdForPhoto) {
+                      processPhotoFile(currentExpenseIdForPhoto, file);
+                    }
+                    setPhotoDrawerOpen(false);
+                  });
+                } else {
+                  cameraInputRef.current?.click();
+                  setPhotoDrawerOpen(false);
+                }
+              }}
+              className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Camera className="w-6 h-6" />
+              <span className="text-base">ถ่ายรูป</span>
+            </button>
+            <button
+              onClick={() => {
+                if (isNative) {
+                  selectFromGallery().then((file) => {
+                    if (file && currentExpenseIdForPhoto) {
+                      processPhotoFile(currentExpenseIdForPhoto, file);
+                    }
+                    setPhotoDrawerOpen(false);
+                  });
+                } else {
+                  galleryInputRef.current?.click();
+                  setPhotoDrawerOpen(false);
+                }
+              }}
+              className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Image className="w-6 h-6" />
+              <span className="text-base">เลือกจากแกลเลอรี</span>
+            </button>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full rounded-xl h-12">
+                ยกเลิก
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
