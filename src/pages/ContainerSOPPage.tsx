@@ -659,6 +659,20 @@ const ContainerSOPPage = () => {
         // BL job: separate EIR document (independent state)
         setBlEirPhotoFile(file);
         setBlEirPhotoPreview(preview);
+      } else if (slot === 'trailer_plate') {
+        const idx = activeTrailerPlateIndex;
+        setTrailerPlatePhotoFiles(prev => {
+          if (idx >= prev.length) return [...prev, file];
+          const n = [...prev]; n[idx] = file; return n;
+        });
+        setTrailerPlatePhotoPreviews(prev => {
+          if (idx >= prev.length) return [...prev, preview];
+          const n = [...prev]; n[idx] = preview; return n;
+        });
+        setTrailerPlateOcrResults(prev => {
+          if (idx >= prev.length) return [...prev, null];
+          const n = [...prev]; n[idx] = null; return n;
+        });
       } else {
         // EIR: multiple photos support - use functional update to avoid stale closure
         const eirIdx = activeEirIndex;
