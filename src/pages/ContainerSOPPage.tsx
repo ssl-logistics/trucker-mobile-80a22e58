@@ -122,6 +122,7 @@ const ContainerSOPPage = () => {
   const [trailerPlatePhotoFiles, setTrailerPlatePhotoFiles] = useState<File[]>([]);
   const [trailerPlatePhotoPreviews, setTrailerPlatePhotoPreviews] = useState<string[]>([]);
   const [trailerPlateOcrResults, setTrailerPlateOcrResults] = useState<(string | null)[]>([]);
+  const [pendingTrailerPlateOcr, setPendingTrailerPlateOcr] = useState<(string | null)[]>([]);
   const [activeTrailerPlateIndex, setActiveTrailerPlateIndex] = useState<number>(0);
   const [isProcessingTrailerPlateOcr, setIsProcessingTrailerPlateOcr] = useState(false);
   
@@ -721,15 +722,24 @@ const ContainerSOPPage = () => {
     setIsProcessingTrailerPlateOcr(true);
     try {
       const result = await extractFromImage(file, 'trailer_plate' as any);
-      const plate = (result?.data as any)?.license_plate || (result?.data as any)?.plate_number || null;
+      const plate = (result?.data as any)?.license_plate || (result?.data as any)?.plate_number || '';
+      setPendingTrailerPlateOcr(prev => {
+        const n = [...prev];
+        while (n.length <= idx) n.push(null);
+        n[idx] = plate || '';
+        return n;
+      });
+      // Clear previously confirmed value for this index so user must re-confirm
       setTrailerPlateOcrResults(prev => {
         const n = [...prev];
         while (n.length <= idx) n.push(null);
-        n[idx] = plate;
+        n[idx] = null;
         return n;
       });
       if (plate) {
-        toast({ title: 'อ่านทะเบียนหางลากสำเร็จ', description: `ทะเบียน: ${plate}` });
+        toast({ title: 'อ่านทะเบียนหางลากสำเร็จ', description: `กรุณาตรวจสอบและกดยืนยัน` });
+      } else {
+        toast({ title: 'ไม่สามารถอ่านทะเบียนได้', description: 'กรุณากรอกเองแล้วกดยืนยัน', variant: 'destructive' });
       }
     } catch (error) {
       console.error('Trailer plate OCR error:', error);
@@ -737,6 +747,27 @@ const ContainerSOPPage = () => {
       setIsProcessingTrailerPlateOcr(false);
     }
   };
+
+  const confirmTrailerPlateOcr = (idx: number) => {
+    const value = (pendingTrailerPlateOcr[idx] || '').trim();
+    if (!value) {
+      toast({ title: 'กรุณากรอกเลขทะเบียน', variant: 'destructive' });
+      return;
+    }
+    setTrailerPlateOcrResults(prev => {
+      const n = [...prev];
+      while (n.length <= idx) n.push(null);
+      n[idx] = value;
+      return n;
+    });
+    setPendingTrailerPlateOcr(prev => {
+      const n = [...prev];
+      n[idx] = null;
+      return n;
+    });
+    toast({ title: 'ยืนยันทะเบียนสำเร็จ' });
+  };
+
 
   const runContainerOcr = async (file: File) => {
     setIsProcessingContainerOcr(true);
@@ -1829,14 +1860,15 @@ const ContainerSOPPage = () => {
                       setTrailerPlatePhotoFiles(prev => prev.filter((_, i) => i !== idx));
                       setTrailerPlatePhotoPreviews(prev => prev.filter((_, i) => i !== idx));
                       setTrailerPlateOcrResults(prev => prev.filter((_, i) => i !== idx));
+                      setPendingTrailerPlateOcr(prev => prev.filter((_, i) => i !== idx));
                     }}
                     className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
                   >
                     <X className="w-3 h-3" />
                   </button>
                   {trailerPlateOcrResults[idx] && (
-                    <span className="absolute bottom-1 left-1 right-1 text-[11px] bg-black/70 text-white px-1.5 py-0.5 rounded text-center font-semibold truncate">
-                      {trailerPlateOcrResults[idx]}
+                    <span className="absolute bottom-1 left-1 right-1 text-[11px] bg-green-600 text-white px-1.5 py-0.5 rounded text-center font-semibold truncate flex items-center justify-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> {trailerPlateOcrResults[idx]}
                     </span>
                   )}
                 </div>
@@ -1864,8 +1896,50 @@ const ContainerSOPPage = () => {
               </div>
             )}
 
+            {/* Pending OCR confirmation cards (one per photo awaiting confirm) */}
+            {pendingTrailerPlateOcr.map((pending, idx) => {
+              if (pending === null || pending === undefined) return null;
+              return (
+                <Card key={`pending-plate-${idx}`} className="p-3 bg-blue-50 border-blue-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">ทะเบียนหางลาก (รูปที่ {idx + 1})</Label>
+                  </div>
+                  <input
+                    type="text"
+                    value={pending}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setPendingTrailerPlateOcr(prev => {
+                        const n = [...prev];
+                        n[idx] = v;
+                        return n;
+                      });
+                    }}
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded font-semibold text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="กรอกเลขทะเบียน"
+                  />
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                      setPendingTrailerPlateOcr(prev => {
+                        const n = [...prev];
+                        n[idx] = null;
+                        return n;
+                      });
+                      setActiveTrailerPlateIndex(idx);
+                      openPhotoDrawer('trailer_plate', idx);
+                    }}>
+                      ถ่ายใหม่
+                    </Button>
+                    <Button size="sm" className="flex-1 bg-teal-600 hover:bg-teal-700" onClick={() => confirmTrailerPlateOcr(idx)}>
+                      ยืนยันทะเบียน
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+
             <p className="text-xs text-muted-foreground">
-              แนบรูปทะเบียนหางลาก ({trailerPlatePhotoFiles.length} รูป) — ระบบจะอ่านเลขทะเบียนให้อัตโนมัติ
+              แนบรูปทะเบียนหางลาก ({trailerPlatePhotoFiles.length} รูป) — ระบบจะอ่านเลขทะเบียนให้อัตโนมัติ แล้วกดยืนยัน
             </p>
           </div>
         )}
