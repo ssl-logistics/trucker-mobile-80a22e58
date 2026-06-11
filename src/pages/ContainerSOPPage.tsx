@@ -117,6 +117,13 @@ const ContainerSOPPage = () => {
   const [blContainerPhotoFiles, setBlContainerPhotoFiles] = useState<File[]>([]);
   const [blContainerPhotoPreviews, setBlContainerPhotoPreviews] = useState<string[]>([]);
   const [activeBlAngleIndex, setActiveBlAngleIndex] = useState<number>(0);
+
+  // Trailer license plate (BL/Booking jobs - optional, multi-photo with OCR)
+  const [trailerPlatePhotoFiles, setTrailerPlatePhotoFiles] = useState<File[]>([]);
+  const [trailerPlatePhotoPreviews, setTrailerPlatePhotoPreviews] = useState<string[]>([]);
+  const [trailerPlateOcrResults, setTrailerPlateOcrResults] = useState<(string | null)[]>([]);
+  const [activeTrailerPlateIndex, setActiveTrailerPlateIndex] = useState<number>(0);
+  const [isProcessingTrailerPlateOcr, setIsProcessingTrailerPlateOcr] = useState(false);
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
