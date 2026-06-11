@@ -1294,7 +1294,7 @@ const thTranslations: Record<string, string> = {
   'expense.typeRequired': '(ต้องกรอก)',
   'expense.price': 'ราคา',
   'expense.uploadReceipt': 'อัพโหลดรูปใบเสร็จ',
-  'expense.clickToTake': 'กดแล้วให้เลือกระหว่างแนบรูปกับถ่าย',
+  'expense.clickToTake': 'กดเพื่อถ่ายหรือเลือก',
   'expense.receiptPhoto': 'รูปภาพใบเสร็จ',
   'expense.addMore': 'เพิ่มค่าใช้จ่าย',
   'expense.submitButton': 'เพิ่มค่าใช้จ่าย',
