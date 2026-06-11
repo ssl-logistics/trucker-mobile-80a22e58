@@ -88,6 +88,8 @@ const ContainerSOPPage = () => {
   const isLoadedContainer = checkinTypeFromState === 'loaded_container' || (!isContainerReturn && checkinTypeFromState !== 'empty_container' && isInboundFromJobData);
   const isEmptyContainer = !isContainerReturn && !isLoadedContainer;
   const isBLJob = !!jobDetail?.bl_no;
+  const isBookingJob = !!jobDetail?.booking_no;
+  const showTrailerPlateSection = isBLJob || isBookingJob;
   const needsOCR = isEmptyContainer || isLoadedContainer;
   const needsApiVerify = isLoadedContainer;
   
@@ -919,8 +921,8 @@ const ContainerSOPPage = () => {
         return supabase.functions.invoke('upload-to-s3', { body: sFormData });
       })() : Promise.resolve({ data: null, error: null });
 
-      // Prepare trailer plate photo promises (BL only, optional)
-      const trailerPlateUploadPromises = isBLJob
+      // Prepare trailer plate photo promises (BL/Booking, optional)
+      const trailerPlateUploadPromises = showTrailerPlateSection
         ? trailerPlatePhotoFiles.filter(Boolean).map(async (file, i) => {
             const tFormData = new FormData();
             tFormData.append('file', await compressImage(file));
@@ -1836,7 +1838,7 @@ const ContainerSOPPage = () => {
         </div>
 
         {/* === Trailer License Plate Photos (BL/Booking only, optional, multi-photo with OCR) === */}
-        {isBLJob && (
+        {showTrailerPlateSection && (
           <div className="space-y-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">
