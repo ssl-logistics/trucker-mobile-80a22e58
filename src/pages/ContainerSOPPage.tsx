@@ -886,12 +886,24 @@ const ContainerSOPPage = () => {
         return supabase.functions.invoke('upload-to-s3', { body: sFormData });
       })() : Promise.resolve({ data: null, error: null });
 
+      // Prepare trailer plate photo promises (BL only, optional)
+      const trailerPlateUploadPromises = isBLJob
+        ? trailerPlatePhotoFiles.filter(Boolean).map(async (file, i) => {
+            const tFormData = new FormData();
+            tFormData.append('file', await compressImage(file));
+            tFormData.append('folder', 'container-photos');
+            tFormData.append('fileName', `trailer_plate_${i}_${jobId}_${timestamp}.${file.name.split('.').pop() || 'jpg'}`);
+            return supabase.functions.invoke('upload-to-s3', { body: tFormData });
+          })
+        : [];
+
       // Execute ALL uploads in parallel
-      const [eirResults, blResults, containerResult, sealResult] = await Promise.all([
+      const [eirResults, blResults, containerResult, sealResult, trailerPlateResults] = await Promise.all([
         Promise.all(eirUploadPromises),
         Promise.all(blUploadPromises),
         containerUploadPromise,
         sealUploadPromise,
+        Promise.all(trailerPlateUploadPromises),
       ]);
 
       // Process EIR results
