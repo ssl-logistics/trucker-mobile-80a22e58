@@ -722,7 +722,9 @@ const ContainerSOPPage = () => {
     setIsProcessingTrailerPlateOcr(true);
     try {
       const result = await extractFromImage(file, 'trailer_plate' as any);
-      const plate = (result?.data as any)?.license_plate || (result?.data as any)?.plate_number || '';
+      const plateRaw = (result?.data as any)?.license_plate || (result?.data as any)?.plate_number || '';
+      const province = (result?.data as any)?.province || '';
+      const plate = [plateRaw, province].filter(Boolean).join(' ').trim();
       setPendingTrailerPlateOcr(prev => {
         const n = [...prev];
         while (n.length <= idx) n.push(null);
