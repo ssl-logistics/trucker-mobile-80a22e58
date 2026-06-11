@@ -50,6 +50,8 @@ interface OcrScanData {
   seal_image_url: string | null;
   container_photos: string[];
   eir_photos: string[];
+  trailer_plate_photos: string[];
+  trailer_plate_numbers: string[];
   driver_id: string | null;
   max_gross?: number | string | null;
   tare_weight?: number | string | null;
@@ -145,6 +147,8 @@ const getPickupOcrData = (records: any[]): OcrScanData | null => {
     seal_image_url: firstMeaningfulValue(pickupRecords.map((record) => record?.seal_image_url)),
     container_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.container_photos))),
     eir_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.eir_photos))),
+    trailer_plate_photos: dedupeUrls(pickupRecords.flatMap((record) => parseUrlArray(record?.trailer_plate_photos))),
+    trailer_plate_numbers: pickupRecords.flatMap((record) => parseUrlArray(record?.trailer_plate_numbers)),
     driver_id: pickupRecords[0]?.internal_driver_id || pickupRecords[0]?.external_driver_id || pickupRecords[0]?.freelance_driver_id || pickupRecords[0]?.driver_id || null,
     max_gross: pickupRecords.find((r) => r?.max_gross != null)?.max_gross ?? null,
     tare_weight: pickupRecords.find((r) => r?.tare_weight != null)?.tare_weight ?? null,
@@ -189,18 +193,22 @@ export default function ContainerSummaryPage() {
   const rawEirPhotos = ocrScanData?.eir_photos || [];
   const rawContainerImageUrl = ocrScanData?.container_image_url ? [ocrScanData.container_image_url] : [];
   const rawSealImageUrl = ocrScanData?.seal_image_url ? [ocrScanData.seal_image_url] : [];
+  const rawTrailerPlatePhotos = ocrScanData?.trailer_plate_photos || [];
+  const trailerPlateNumbers = ocrScanData?.trailer_plate_numbers || [];
   const { urls: presignedPickupEirPhotoUrls } = usePresignedImageUrls(rawPickupEirPhotoUrls);
   const { urls: presignedReturnPhotoUrls } = usePresignedImageUrls(rawReturnPhotoUrls);
   const { urls: presignedContainerPhotos } = usePresignedImageUrls(rawContainerPhotos);
   const { urls: presignedEirPhotos } = usePresignedImageUrls(rawEirPhotos);
   const { urls: presignedContainerImageUrl } = usePresignedImageUrls(rawContainerImageUrl);
   const { urls: presignedSealImageUrl } = usePresignedImageUrls(rawSealImageUrl);
+  const { urls: presignedTrailerPlatePhotos } = usePresignedImageUrls(rawTrailerPlatePhotos);
   const pickupEirPhotoUrls = presignedPickupEirPhotoUrls.filter((url): url is string => Boolean(url));
   const returnPhotoUrls = presignedReturnPhotoUrls.filter((url): url is string => Boolean(url));
   const containerPhotos = presignedContainerPhotos.filter((url): url is string => Boolean(url));
   const eirPhotos = presignedEirPhotos.filter((url): url is string => Boolean(url));
   const containerNumberPhoto = presignedContainerImageUrl.filter((url): url is string => Boolean(url))[0] || null;
   const sealNumberPhoto = presignedSealImageUrl.filter((url): url is string => Boolean(url))[0] || null;
+  const trailerPlatePhotos = presignedTrailerPlatePhotos.filter((url): url is string => Boolean(url));
 
   const fromParam = new URLSearchParams(location.search).get('from');
   const isFromHistory = fromParam === 'history';
@@ -614,8 +622,28 @@ export default function ContainerSummaryPage() {
                 })()}
               </div>
             )}
+            {/* Trailer Plate Photos + Numbers (BL/Booking optional) */}
+            {trailerPlatePhotos.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">ทะเบียนหางลาก ({trailerPlatePhotos.length} รูป)</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {trailerPlatePhotos.map((url, idx) => (
+                    <div key={idx} className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                      <EditablePhoto src={url} alt={`Trailer Plate ${idx + 1}`} originalUrl={rawTrailerPlatePhotos[idx]} folder="container-photos" filenamePrefix={`${user?.id}-${jobId}-trailer-plate-${idx}-edit`} completedAt={photoEditCompletedAt} fromHistory={isFromHistory} isOwnData={isOwnOcrData} />
+                      {trailerPlateNumbers[idx] && (
+                        <span className="absolute bottom-1 left-1 right-1 text-[11px] bg-green-600 text-white px-1.5 py-0.5 rounded text-center font-semibold truncate">
+                          {trailerPlateNumbers[idx]}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
+
+
 
         {/* Container Return Check-in Status - only show in return context */}
         {checkinType === 'container_return' && sopData?.return_checked_in_at && (
