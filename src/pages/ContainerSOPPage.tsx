@@ -1838,7 +1838,7 @@ const ContainerSOPPage = () => {
         </div>
 
         {/* === Trailer License Plate Photos (BL/Booking only, optional, multi-photo with OCR) === */}
-        {isBLJob && (
+        {showTrailerPlateSection && (
           <div className="space-y-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">
