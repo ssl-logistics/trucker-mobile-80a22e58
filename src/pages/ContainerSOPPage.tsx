@@ -722,15 +722,24 @@ const ContainerSOPPage = () => {
     setIsProcessingTrailerPlateOcr(true);
     try {
       const result = await extractFromImage(file, 'trailer_plate' as any);
-      const plate = (result?.data as any)?.license_plate || (result?.data as any)?.plate_number || null;
+      const plate = (result?.data as any)?.license_plate || (result?.data as any)?.plate_number || '';
+      setPendingTrailerPlateOcr(prev => {
+        const n = [...prev];
+        while (n.length <= idx) n.push(null);
+        n[idx] = plate || '';
+        return n;
+      });
+      // Clear previously confirmed value for this index so user must re-confirm
       setTrailerPlateOcrResults(prev => {
         const n = [...prev];
         while (n.length <= idx) n.push(null);
-        n[idx] = plate;
+        n[idx] = null;
         return n;
       });
       if (plate) {
-        toast({ title: 'อ่านทะเบียนหางลากสำเร็จ', description: `ทะเบียน: ${plate}` });
+        toast({ title: 'อ่านทะเบียนหางลากสำเร็จ', description: `กรุณาตรวจสอบและกดยืนยัน` });
+      } else {
+        toast({ title: 'ไม่สามารถอ่านทะเบียนได้', description: 'กรุณากรอกเองแล้วกดยืนยัน', variant: 'destructive' });
       }
     } catch (error) {
       console.error('Trailer plate OCR error:', error);
@@ -738,6 +747,27 @@ const ContainerSOPPage = () => {
       setIsProcessingTrailerPlateOcr(false);
     }
   };
+
+  const confirmTrailerPlateOcr = (idx: number) => {
+    const value = (pendingTrailerPlateOcr[idx] || '').trim();
+    if (!value) {
+      toast({ title: 'กรุณากรอกเลขทะเบียน', variant: 'destructive' });
+      return;
+    }
+    setTrailerPlateOcrResults(prev => {
+      const n = [...prev];
+      while (n.length <= idx) n.push(null);
+      n[idx] = value;
+      return n;
+    });
+    setPendingTrailerPlateOcr(prev => {
+      const n = [...prev];
+      n[idx] = null;
+      return n;
+    });
+    toast({ title: 'ยืนยันทะเบียนสำเร็จ' });
+  };
+
 
   const runContainerOcr = async (file: File) => {
     setIsProcessingContainerOcr(true);
