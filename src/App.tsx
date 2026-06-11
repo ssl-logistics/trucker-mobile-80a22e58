@@ -281,7 +281,8 @@ const App = () => (
                     <Route path="/report-app-problem" element={<ProtectedRoute><ReportAppProblemPage /></ProtectedRoute>} />
                     <Route path="/api-test" element={<ProtectedRoute><ApiTestPage /></ProtectedRoute>} />
                     <Route path="/push-debug" element={<PushDebugPage />} />
-                    <Route path="/download" element={<DownloadAppPage />} />
+                    {/* Download app page temporarily disabled */}
+                    {/* <Route path="/download" element={<DownloadAppPage />} /> */}
                     <Route path="/call" element={<ProtectedRoute><CallPage /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<RepairUnencodedJobRoute />} />
