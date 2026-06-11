@@ -630,22 +630,39 @@ const AddExpensePage = () => {
                 {/* Add Photo Button */}
                 <div className="relative">
                   <input
+                    ref={cameraInputRef}
                     type="file"
                     accept={ACCEPT_IMAGE_DOC}
                     capture="environment"
-                    onChange={(e) => handlePhotoSelect(expense.id, e)}
                     className="hidden"
-                    id={`photo-${expense.id}`}
+                    onChange={(e) => {
+                      if (currentExpenseIdForPhoto) handlePhotoSelect(currentExpenseIdForPhoto, e);
+                      if (e.target) e.target.value = '';
+                    }}
                   />
-                  <label
-                    htmlFor={`photo-${expense.id}`}
-                    className="block cursor-pointer h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground/50 transition-colors"
+                  <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept={ACCEPT_IMAGE_DOC}
+                    className="hidden"
+                    onChange={(e) => {
+                      if (currentExpenseIdForPhoto) handlePhotoSelect(currentExpenseIdForPhoto, e);
+                      if (e.target) e.target.value = '';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentExpenseIdForPhoto(expense.id);
+                      setPhotoDrawerOpen(true);
+                    }}
+                    className="block cursor-pointer h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground/50 transition-colors w-full"
                   >
                     <Camera className="w-6 h-6 mb-1" />
                     <p className="text-xs">
                       {expense.receiptPhotos.length === 0 ? t('expense.clickToTake') : 'เพิ่มรูป'}
                     </p>
-                  </label>
+                  </button>
                 </div>
               </div>
               
