@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface OCRRequest {
   image_base64: string;
-  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'weight_slip' | 'container_return_slip' | 'eir_document' | 'general';
+  extraction_type: 'container_seal' | 'expense_amount' | 'expense_detailed' | 'payment_slip' | 'weight_slip' | 'container_return_slip' | 'eir_document' | 'trailer_plate' | 'general';
   expected_amount?: number;
   expected_account_number?: string;
 }
@@ -213,6 +213,23 @@ IMPORTANT:
 - Return strings as-is (uppercase, no spaces or dashes)
 - If a field is not visible or unclear, use null
 - Do NOT confuse BL with Booking — only return what is explicitly labeled`;
+    } else if (extraction_type === 'trailer_plate') {
+      prompt = `Analyze this photo of a Thai truck/trailer license plate and extract the license plate number.
+
+Thai trailer (หางลาก) plates typically contain:
+- 2 Thai letters or numbers + 1-4 digits + province name (e.g., "70-1234 ชลบุรี", "ษว 1234 กรุงเทพมหานคร")
+- Some trailers display the plate on the rear of the trailer chassis
+
+Return ONLY a JSON object in this exact format (no markdown, no explanation):
+{
+  "license_plate": "extracted plate number including letters and digits or null",
+  "province": "Thai province name if visible or null"
+}
+
+IMPORTANT:
+- Return the plate as a single string, preserving Thai characters and digits
+- Do NOT include the province inside license_plate
+- If unreadable, return null`;
     } else {
       prompt = `Extract all visible text from this image and return it as:
 {

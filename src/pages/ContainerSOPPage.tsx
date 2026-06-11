@@ -59,7 +59,7 @@ interface JobDetail {
   closing_time?: string;
 }
 
-type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir';
+type PhotoSlot = 'container' | 'seal' | 'eir' | 'bl_angle' | 'bl_eir' | 'trailer_plate';
 type ActiveEirIndex = number | 'new';
 
 const ContainerSOPPage = () => {
@@ -117,6 +117,13 @@ const ContainerSOPPage = () => {
   const [blContainerPhotoFiles, setBlContainerPhotoFiles] = useState<File[]>([]);
   const [blContainerPhotoPreviews, setBlContainerPhotoPreviews] = useState<string[]>([]);
   const [activeBlAngleIndex, setActiveBlAngleIndex] = useState<number>(0);
+
+  // Trailer license plate (BL/Booking jobs - optional, multi-photo with OCR)
+  const [trailerPlatePhotoFiles, setTrailerPlatePhotoFiles] = useState<File[]>([]);
+  const [trailerPlatePhotoPreviews, setTrailerPlatePhotoPreviews] = useState<string[]>([]);
+  const [trailerPlateOcrResults, setTrailerPlateOcrResults] = useState<(string | null)[]>([]);
+  const [activeTrailerPlateIndex, setActiveTrailerPlateIndex] = useState<number>(0);
+  const [isProcessingTrailerPlateOcr, setIsProcessingTrailerPlateOcr] = useState(false);
   
   // OCR state
   const [isProcessingContainerOcr, setIsProcessingContainerOcr] = useState(false);
@@ -652,6 +659,20 @@ const ContainerSOPPage = () => {
         // BL job: separate EIR document (independent state)
         setBlEirPhotoFile(file);
         setBlEirPhotoPreview(preview);
+      } else if (slot === 'trailer_plate') {
+        const idx = activeTrailerPlateIndex;
+        setTrailerPlatePhotoFiles(prev => {
+          if (idx >= prev.length) return [...prev, file];
+          const n = [...prev]; n[idx] = file; return n;
+        });
+        setTrailerPlatePhotoPreviews(prev => {
+          if (idx >= prev.length) return [...prev, preview];
+          const n = [...prev]; n[idx] = preview; return n;
+        });
+        setTrailerPlateOcrResults(prev => {
+          if (idx >= prev.length) return [...prev, null];
+          const n = [...prev]; n[idx] = null; return n;
+        });
       } else {
         // EIR: multiple photos support - use functional update to avoid stale closure
         const eirIdx = activeEirIndex;
@@ -688,6 +709,32 @@ const ContainerSOPPage = () => {
     // Auto OCR for first EIR photo to verify BL/Booking + container (pickup & return)
     if (slot === 'eir' && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no || containerNumber)) {
       await runEirBlOcr(file);
+    }
+
+    // Auto OCR for trailer plate photo (optional, runs in background)
+    if (slot === 'trailer_plate') {
+      await runTrailerPlateOcr(file, activeTrailerPlateIndex);
+    }
+  };
+
+  const runTrailerPlateOcr = async (file: File, idx: number) => {
+    setIsProcessingTrailerPlateOcr(true);
+    try {
+      const result = await extractFromImage(file, 'trailer_plate' as any);
+      const plate = (result?.data as any)?.license_plate || (result?.data as any)?.plate_number || null;
+      setTrailerPlateOcrResults(prev => {
+        const n = [...prev];
+        while (n.length <= idx) n.push(null);
+        n[idx] = plate;
+        return n;
+      });
+      if (plate) {
+        toast({ title: 'อ่านทะเบียนหางลากสำเร็จ', description: `ทะเบียน: ${plate}` });
+      }
+    } catch (error) {
+      console.error('Trailer plate OCR error:', error);
+    } finally {
+      setIsProcessingTrailerPlateOcr(false);
     }
   };
 
@@ -839,12 +886,24 @@ const ContainerSOPPage = () => {
         return supabase.functions.invoke('upload-to-s3', { body: sFormData });
       })() : Promise.resolve({ data: null, error: null });
 
+      // Prepare trailer plate photo promises (BL only, optional)
+      const trailerPlateUploadPromises = isBLJob
+        ? trailerPlatePhotoFiles.filter(Boolean).map(async (file, i) => {
+            const tFormData = new FormData();
+            tFormData.append('file', await compressImage(file));
+            tFormData.append('folder', 'container-photos');
+            tFormData.append('fileName', `trailer_plate_${i}_${jobId}_${timestamp}.${file.name.split('.').pop() || 'jpg'}`);
+            return supabase.functions.invoke('upload-to-s3', { body: tFormData });
+          })
+        : [];
+
       // Execute ALL uploads in parallel
-      const [eirResults, blResults, containerResult, sealResult] = await Promise.all([
+      const [eirResults, blResults, containerResult, sealResult, trailerPlateResults] = await Promise.all([
         Promise.all(eirUploadPromises),
         Promise.all(blUploadPromises),
         containerUploadPromise,
         sealUploadPromise,
+        Promise.all(trailerPlateUploadPromises),
       ]);
 
       // Process EIR results
@@ -861,6 +920,10 @@ const ContainerSOPPage = () => {
 
       // Process BL results
       const blAngleUrls = blResults.filter(r => !r.error && r.data?.url).map(r => r.data.url);
+
+      // Process trailer plate results (BL only, optional)
+      const trailerPlateUrls = trailerPlateResults.filter(r => !r.error && r.data?.url).map(r => r.data.url);
+      const trailerPlateNumbers = trailerPlateOcrResults.filter((n): n is string => !!n);
 
       // Process container/seal results
       const containerImageUrl = containerResult.data?.url || '';
@@ -887,6 +950,8 @@ const ContainerSOPPage = () => {
             seal_image_url: sealImageUrl || undefined,
             container_photos: blAngleUrls.length > 0 ? blAngleUrls : undefined,
             eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
+            trailer_plate_photos: trailerPlateUrls.length > 0 ? trailerPlateUrls : undefined,
+            trailer_plate_numbers: trailerPlateNumbers.length > 0 ? trailerPlateNumbers : undefined,
             order_number: jobId || undefined,
             driver_id: user.id,
             driver_type: ocrDriverType,
@@ -1736,6 +1801,75 @@ const ContainerSOPPage = () => {
           )}
 
         </div>
+
+        {/* === Trailer License Plate Photos (BL/Booking only, optional, multi-photo with OCR) === */}
+        {isBLJob && (
+          <div className="space-y-2">
+            <Label className="text-base flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">
+                {isContainerReturn ? '2' : '5'}
+              </span>
+              ถ่ายรูปทะเบียนหางลาก <span className="text-xs text-muted-foreground">(ไม่บังคับ)</span>
+            </Label>
+
+            <div className="grid grid-cols-2 gap-2">
+              {trailerPlatePhotoPreviews.map((preview, idx) => (
+                <div key={idx} className="relative">
+                  <button
+                    onClick={() => {
+                      setActiveTrailerPlateIndex(idx);
+                      openPhotoDrawer('trailer_plate', idx);
+                    }}
+                    className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden hover:border-primary/50 transition-colors bg-white"
+                  >
+                    <img src={preview} alt={`ทะเบียน ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTrailerPlatePhotoFiles(prev => prev.filter((_, i) => i !== idx));
+                      setTrailerPlatePhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                      setTrailerPlateOcrResults(prev => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  {trailerPlateOcrResults[idx] && (
+                    <span className="absolute bottom-1 left-1 right-1 text-[11px] bg-black/70 text-white px-1.5 py-0.5 rounded text-center font-semibold truncate">
+                      {trailerPlateOcrResults[idx]}
+                    </span>
+                  )}
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  setActiveTrailerPlateIndex(trailerPlatePhotoFiles.length);
+                  openPhotoDrawer('trailer_plate', trailerPlatePhotoFiles.length);
+                }}
+                className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+              >
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  {trailerPlatePhotoFiles.length === 0 ? <Camera className="w-5 h-5 text-muted-foreground" /> : <Plus className="w-5 h-5 text-muted-foreground" />}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {trailerPlatePhotoFiles.length === 0 ? 'กดเพื่อถ่ายรูปทะเบียน' : 'เพิ่มรูปทะเบียน'}
+                </p>
+              </button>
+            </div>
+
+            {isProcessingTrailerPlateOcr && (
+              <div className="flex items-center gap-2 text-xs text-blue-600">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>กำลังอ่านทะเบียน...</span>
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              แนบรูปทะเบียนหางลาก ({trailerPlatePhotoFiles.length} รูป) — ระบบจะอ่านเลขทะเบียนให้อัตโนมัติ
+            </p>
+          </div>
+        )}
+
 
         {/* === OCR Return Slip Result (for unknown yard) === */}
         {isContainerReturn && isYardUnknown && (
