@@ -921,6 +921,10 @@ const ContainerSOPPage = () => {
       // Process BL results
       const blAngleUrls = blResults.filter(r => !r.error && r.data?.url).map(r => r.data.url);
 
+      // Process trailer plate results (BL only, optional)
+      const trailerPlateUrls = trailerPlateResults.filter(r => !r.error && r.data?.url).map(r => r.data.url);
+      const trailerPlateNumbers = trailerPlateOcrResults.filter((n): n is string => !!n);
+
       // Process container/seal results
       const containerImageUrl = containerResult.data?.url || '';
       if (containerImageUrl) setOcrImageUrl(containerImageUrl);
