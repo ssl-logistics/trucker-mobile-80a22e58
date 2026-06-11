@@ -897,6 +897,194 @@ const AddExpensePage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Photo Source Drawer */}
+      <Drawer open={photoDrawerOpen} onOpenChange={setPhotoDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-center">เพิ่มรูปภาพ</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
+            <button
+              onClick={() => {
+                if (isNative) {
+                  takePhoto().then((file) => {
+                    if (file && currentExpenseIdForPhoto) {
+                      const photoId = String(Date.now());
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        const newPhoto: ReceiptPhoto = {
+                          id: photoId,
+                          file,
+                          preview: reader.result as string,
+                          ocrAmount: null,
+                          ocrDetailed: null,
+                          ocrExtracting: true,
+                        };
+                        setExpenses((prev) =>
+                          prev.map((exp) =>
+                            exp.id === currentExpenseIdForPhoto
+                              ? { ...exp, receiptPhotos: [...exp.receiptPhotos, newPhoto] }
+                              : exp
+                          )
+                        );
+                      };
+                      reader.readAsDataURL(file);
+                      extractFromImage(file, 'expense_detailed').then((result) => {
+                        setExpenses((prev) =>
+                          prev.map((exp) => {
+                            if (exp.id === currentExpenseIdForPhoto) {
+                              const updatedPhotos = exp.receiptPhotos.map((photo) => {
+                                if (photo.id === photoId) {
+                                  if (result.success && result.data) {
+                                    const detailedData = result.data as OCRDetailedResult;
+                                    const bestTotal =
+                                      detailedData.grand_total ??
+                                      detailedData.total ??
+                                      detailedData.subtotal ??
+                                      null;
+                                    if (bestTotal) {
+                                      toast({
+                                        title: 'OCR สำเร็จ',
+                                        description: `พบยอด: ${bestTotal.toLocaleString()} บาท`,
+                                      });
+                                    }
+                                    return {
+                                      ...photo,
+                                      ocrExtracting: false,
+                                      ocrAmount: bestTotal,
+                                      ocrDetailed: detailedData,
+                                    };
+                                  }
+                                  return { ...photo, ocrExtracting: false };
+                                }
+                                return photo;
+                              });
+                              const totalOCR = updatedPhotos.reduce(
+                                (sum, p) => sum + (p.ocrAmount || 0),
+                                0
+                              );
+                              return {
+                                ...exp,
+                                receiptPhotos: updatedPhotos,
+                                amount: totalOCR > 0 ? String(totalOCR) : exp.amount,
+                                showOCRDetails: true,
+                              };
+                            }
+                            return exp;
+                          })
+                        );
+                      });
+                      setPhotoDrawerOpen(false);
+                    } else {
+                      setPhotoDrawerOpen(false);
+                    }
+                  });
+                } else {
+                  cameraInputRef.current?.click();
+                  setPhotoDrawerOpen(false);
+                }
+              }}
+              className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Camera className="w-6 h-6" />
+              <span className="text-base">ถ่ายรูป</span>
+            </button>
+            <button
+              onClick={() => {
+                if (isNative) {
+                  selectFromGallery().then((file) => {
+                    if (file && currentExpenseIdForPhoto) {
+                      const photoId = String(Date.now());
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        const newPhoto: ReceiptPhoto = {
+                          id: photoId,
+                          file,
+                          preview: reader.result as string,
+                          ocrAmount: null,
+                          ocrDetailed: null,
+                          ocrExtracting: true,
+                        };
+                        setExpenses((prev) =>
+                          prev.map((exp) =>
+                            exp.id === currentExpenseIdForPhoto
+                              ? { ...exp, receiptPhotos: [...exp.receiptPhotos, newPhoto] }
+                              : exp
+                          )
+                        );
+                      };
+                      reader.readAsDataURL(file);
+                      extractFromImage(file, 'expense_detailed').then((result) => {
+                        setExpenses((prev) =>
+                          prev.map((exp) => {
+                            if (exp.id === currentExpenseIdForPhoto) {
+                              const updatedPhotos = exp.receiptPhotos.map((photo) => {
+                                if (photo.id === photoId) {
+                                  if (result.success && result.data) {
+                                    const detailedData = result.data as OCRDetailedResult;
+                                    const bestTotal =
+                                      detailedData.grand_total ??
+                                      detailedData.total ??
+                                      detailedData.subtotal ??
+                                      null;
+                                    if (bestTotal) {
+                                      toast({
+                                        title: 'OCR สำเร็จ',
+                                        description: `พบยอด: ${bestTotal.toLocaleString()} บาท`,
+                                      });
+                                    }
+                                    return {
+                                      ...photo,
+                                      ocrExtracting: false,
+                                      ocrAmount: bestTotal,
+                                      ocrDetailed: detailedData,
+                                    };
+                                  }
+                                  return { ...photo, ocrExtracting: false };
+                                }
+                                return photo;
+                              });
+                              const totalOCR = updatedPhotos.reduce(
+                                (sum, p) => sum + (p.ocrAmount || 0),
+                                0
+                              );
+                              return {
+                                ...exp,
+                                receiptPhotos: updatedPhotos,
+                                amount: totalOCR > 0 ? String(totalOCR) : exp.amount,
+                                showOCRDetails: true,
+                              };
+                            }
+                            return exp;
+                          })
+                        );
+                      });
+                      setPhotoDrawerOpen(false);
+                    } else {
+                      setPhotoDrawerOpen(false);
+                    }
+                  });
+                } else {
+                  galleryInputRef.current?.click();
+                  setPhotoDrawerOpen(false);
+                }
+              }}
+              className="w-full flex items-center gap-4 p-4 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Image className="w-6 h-6" />
+              <span className="text-base">เลือกจากแกลเลอรี</span>
+            </button>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full rounded-xl h-12">
+                ยกเลิก
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
