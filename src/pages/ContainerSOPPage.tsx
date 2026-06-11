@@ -710,6 +710,32 @@ const ContainerSOPPage = () => {
     if (slot === 'eir' && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no || containerNumber)) {
       await runEirBlOcr(file);
     }
+
+    // Auto OCR for trailer plate photo (optional, runs in background)
+    if (slot === 'trailer_plate') {
+      await runTrailerPlateOcr(file, activeTrailerPlateIndex);
+    }
+  };
+
+  const runTrailerPlateOcr = async (file: File, idx: number) => {
+    setIsProcessingTrailerPlateOcr(true);
+    try {
+      const result = await extractFromImage(file, 'trailer_plate' as any);
+      const plate = (result?.data as any)?.license_plate || (result?.data as any)?.plate_number || null;
+      setTrailerPlateOcrResults(prev => {
+        const n = [...prev];
+        while (n.length <= idx) n.push(null);
+        n[idx] = plate;
+        return n;
+      });
+      if (plate) {
+        toast({ title: 'อ่านทะเบียนหางลากสำเร็จ', description: `ทะเบียน: ${plate}` });
+      }
+    } catch (error) {
+      console.error('Trailer plate OCR error:', error);
+    } finally {
+      setIsProcessingTrailerPlateOcr(false);
+    }
   };
 
   const runContainerOcr = async (file: File) => {
