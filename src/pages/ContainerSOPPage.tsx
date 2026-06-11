@@ -1784,6 +1784,75 @@ const ContainerSOPPage = () => {
 
         </div>
 
+        {/* === Trailer License Plate Photos (BL/Booking only, optional, multi-photo with OCR) === */}
+        {isBLJob && (
+          <div className="space-y-2">
+            <Label className="text-base flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">
+                {isContainerReturn ? '2' : '5'}
+              </span>
+              ถ่ายรูปทะเบียนหางลาก <span className="text-xs text-muted-foreground">(ไม่บังคับ)</span>
+            </Label>
+
+            <div className="grid grid-cols-2 gap-2">
+              {trailerPlatePhotoPreviews.map((preview, idx) => (
+                <div key={idx} className="relative">
+                  <button
+                    onClick={() => {
+                      setActiveTrailerPlateIndex(idx);
+                      openPhotoDrawer('trailer_plate', idx);
+                    }}
+                    className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden hover:border-primary/50 transition-colors bg-white"
+                  >
+                    <img src={preview} alt={`ทะเบียน ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTrailerPlatePhotoFiles(prev => prev.filter((_, i) => i !== idx));
+                      setTrailerPlatePhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                      setTrailerPlateOcrResults(prev => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  {trailerPlateOcrResults[idx] && (
+                    <span className="absolute bottom-1 left-1 right-1 text-[11px] bg-black/70 text-white px-1.5 py-0.5 rounded text-center font-semibold truncate">
+                      {trailerPlateOcrResults[idx]}
+                    </span>
+                  )}
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  setActiveTrailerPlateIndex(trailerPlatePhotoFiles.length);
+                  openPhotoDrawer('trailer_plate', trailerPlatePhotoFiles.length);
+                }}
+                className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors bg-white"
+              >
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  {trailerPlatePhotoFiles.length === 0 ? <Camera className="w-5 h-5 text-muted-foreground" /> : <Plus className="w-5 h-5 text-muted-foreground" />}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {trailerPlatePhotoFiles.length === 0 ? 'กดเพื่อถ่ายรูปทะเบียน' : 'เพิ่มรูปทะเบียน'}
+                </p>
+              </button>
+            </div>
+
+            {isProcessingTrailerPlateOcr && (
+              <div className="flex items-center gap-2 text-xs text-blue-600">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>กำลังอ่านทะเบียน...</span>
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              แนบรูปทะเบียนหางลาก ({trailerPlatePhotoFiles.length} รูป) — ระบบจะอ่านเลขทะเบียนให้อัตโนมัติ
+            </p>
+          </div>
+        )}
+
+
         {/* === OCR Return Slip Result (for unknown yard) === */}
         {isContainerReturn && isYardUnknown && (
           <div className="space-y-2">
