@@ -950,6 +950,8 @@ const ContainerSOPPage = () => {
             seal_image_url: sealImageUrl || undefined,
             container_photos: blAngleUrls.length > 0 ? blAngleUrls : undefined,
             eir_photos: eirUrls.length > 0 ? eirUrls : undefined,
+            trailer_plate_photos: trailerPlateUrls.length > 0 ? trailerPlateUrls : undefined,
+            trailer_plate_numbers: trailerPlateNumbers.length > 0 ? trailerPlateNumbers : undefined,
             order_number: jobId || undefined,
             driver_id: user.id,
             driver_type: ocrDriverType,
