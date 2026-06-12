@@ -630,7 +630,7 @@ export default function JobExpensesPage() {
           </div>
           <AlertDialogFooter className="flex-row gap-0 border-t border-border p-0 sm:justify-stretch">
             <AlertDialogCancel
-              className="flex-1 m-0 h-12 rounded-none border-0 bg-transparent hover:bg-muted text-muted-foreground font-medium"
+              className="flex-1 m-0 h-12 rounded-none border-0 bg-transparent hover:bg-muted text-muted-foreground hover:text-muted-foreground font-medium"
               onClick={() => setExpenseToDelete(null)}
             >
               {t('common.cancel')}
@@ -671,7 +671,7 @@ export default function JobExpensesPage() {
           </div>
           <AlertDialogFooter className="flex-row gap-0 border-t border-border p-0 sm:justify-stretch">
             <AlertDialogCancel
-              className="flex-1 m-0 h-12 rounded-none border-0 bg-transparent hover:bg-muted text-muted-foreground font-medium"
+              className="flex-1 m-0 h-12 rounded-none border-0 bg-transparent hover:bg-muted text-muted-foreground hover:text-muted-foreground font-medium"
               onClick={() => setPhotoToDelete(null)}
             >
               {t('common.cancel')}
