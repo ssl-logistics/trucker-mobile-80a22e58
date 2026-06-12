@@ -5,6 +5,16 @@ import { ChevronLeft, Camera, Coins, Loader2, Plus, ImagePlus, Trash2 } from 'lu
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
@@ -37,6 +47,12 @@ export default function JobExpensesPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
+
+  // Delete confirmation dialog state
+  const [deleteExpenseDialogOpen, setDeleteExpenseDialogOpen] = useState(false);
+  const [deletePhotoDialogOpen, setDeletePhotoDialogOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
+  const [photoToDelete, setPhotoToDelete] = useState<{ expenseId: string; imgIndex: number } | null>(null);
 
   useEffect(() => {
     loadExpenses();
@@ -481,9 +497,8 @@ export default function JobExpensesPage() {
                   <button
                     className="p-1.5 rounded-full text-destructive hover:bg-destructive/10 disabled:opacity-50"
                     onClick={() => {
-                      if (confirm(t('expenses.deleteExpenseConfirm'))) {
-                        handleDeleteExpense(expense.id);
-                      }
+                      setExpenseToDelete(expense.id);
+                      setDeleteExpenseDialogOpen(true);
                     }}
                     disabled={uploadingExpenseId === expense.id}
                   >
@@ -523,9 +538,8 @@ export default function JobExpensesPage() {
                           className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-md z-10 hover:bg-destructive/90"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm(t('expenses.deletePhotoConfirm'))) {
-                              handleDeletePhoto(expense.id, imgIndex);
-                            }
+                            setPhotoToDelete({ expenseId: expense.id, imgIndex });
+                            setDeletePhotoDialogOpen(true);
                           }}
                           disabled={uploadingExpenseId === expense.id}
                         >
@@ -600,6 +614,72 @@ export default function JobExpensesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Expense Confirmation Dialog */}
+      <AlertDialog open={deleteExpenseDialogOpen} onOpenChange={setDeleteExpenseDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('expenses.deleteExpenseConfirm')}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row justify-center gap-8 mt-4 sm:justify-center">
+            <AlertDialogCancel
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-muted-foreground font-medium text-sm"
+              onClick={() => setExpenseToDelete(null)}
+            >
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-destructive font-semibold text-sm underline"
+              onClick={() => {
+                if (expenseToDelete) {
+                  handleDeleteExpense(expenseToDelete);
+                }
+                setExpenseToDelete(null);
+              }}
+              disabled={uploadingExpenseId !== null}
+            >
+              {uploadingExpenseId === expenseToDelete ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                t('common.confirm')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Photo Confirmation Dialog */}
+      <AlertDialog open={deletePhotoDialogOpen} onOpenChange={setDeletePhotoDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('expenses.deletePhotoConfirm')}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row justify-center gap-8 mt-4 sm:justify-center">
+            <AlertDialogCancel
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-muted-foreground font-medium text-sm"
+              onClick={() => setPhotoToDelete(null)}
+            >
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-destructive font-semibold text-sm underline"
+              onClick={() => {
+                if (photoToDelete) {
+                  handleDeletePhoto(photoToDelete.expenseId, photoToDelete.imgIndex);
+                }
+                setPhotoToDelete(null);
+              }}
+              disabled={uploadingExpenseId !== null}
+            >
+              {uploadingExpenseId === photoToDelete?.expenseId ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                t('common.confirm')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
