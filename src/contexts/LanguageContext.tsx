@@ -3568,6 +3568,8 @@ const koTranslations: Record<string, string> = {
   'common.cancel': '취소',
   'common.confirm': '확인',
   'common.paid': '지불됨',
+  'common.success': '성공',
+  'common.error': '오류',
 
   // Income Page
   'income.title': '내 수입',
