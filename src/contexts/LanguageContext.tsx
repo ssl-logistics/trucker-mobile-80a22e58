@@ -1966,6 +1966,8 @@ const enTranslations: Record<string, string> = {
   'common.cancel': 'Cancel',
   'common.confirm': 'Confirm',
   'common.paid': 'Paid',
+  'common.success': 'Success',
+  'common.error': 'Error',
 
   // Income Page
   'income.title': 'My Income',
