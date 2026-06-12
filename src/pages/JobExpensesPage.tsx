@@ -497,9 +497,8 @@ export default function JobExpensesPage() {
                   <button
                     className="p-1.5 rounded-full text-destructive hover:bg-destructive/10 disabled:opacity-50"
                     onClick={() => {
-                      if (confirm(t('expenses.deleteExpenseConfirm'))) {
-                        handleDeleteExpense(expense.id);
-                      }
+                      setExpenseToDelete(expense.id);
+                      setDeleteExpenseDialogOpen(true);
                     }}
                     disabled={uploadingExpenseId === expense.id}
                   >
