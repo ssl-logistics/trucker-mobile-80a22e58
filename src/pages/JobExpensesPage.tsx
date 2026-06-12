@@ -538,9 +538,8 @@ export default function JobExpensesPage() {
                           className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-md z-10 hover:bg-destructive/90"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm(t('expenses.deletePhotoConfirm'))) {
-                              handleDeletePhoto(expense.id, imgIndex);
-                            }
+                            setPhotoToDelete({ expenseId: expense.id, imgIndex });
+                            setDeletePhotoDialogOpen(true);
                           }}
                           disabled={uploadingExpenseId === expense.id}
                         >
