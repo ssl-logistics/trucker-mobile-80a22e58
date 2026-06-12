@@ -363,6 +363,8 @@ const thTranslations: Record<string, string> = {
   'common.cancel': 'ยกเลิก',
   'common.confirm': 'ยืนยัน',
   'common.paid': 'ชำระแล้ว',
+  'common.success': 'สำเร็จ',
+  'common.error': 'เกิดข้อผิดพลาด',
 
   // Income Page
   'income.title': 'รายได้ของฉัน',
@@ -1964,6 +1966,8 @@ const enTranslations: Record<string, string> = {
   'common.cancel': 'Cancel',
   'common.confirm': 'Confirm',
   'common.paid': 'Paid',
+  'common.success': 'Success',
+  'common.error': 'Error',
 
   // Income Page
   'income.title': 'My Income',
@@ -3564,6 +3568,8 @@ const koTranslations: Record<string, string> = {
   'common.cancel': '취소',
   'common.confirm': '확인',
   'common.paid': '지불됨',
+  'common.success': '성공',
+  'common.error': '오류',
 
   // Income Page
   'income.title': '내 수입',
