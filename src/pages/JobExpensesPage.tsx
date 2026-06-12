@@ -614,6 +614,72 @@ export default function JobExpensesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Expense Confirmation Dialog */}
+      <AlertDialog open={deleteExpenseDialogOpen} onOpenChange={setDeleteExpenseDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('expenses.deleteExpenseConfirm')}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row justify-center gap-8 mt-4 sm:justify-center">
+            <AlertDialogCancel
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-muted-foreground font-medium text-sm"
+              onClick={() => setExpenseToDelete(null)}
+            >
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-destructive font-semibold text-sm underline"
+              onClick={() => {
+                if (expenseToDelete) {
+                  handleDeleteExpense(expenseToDelete);
+                }
+                setExpenseToDelete(null);
+              }}
+              disabled={uploadingExpenseId !== null}
+            >
+              {uploadingExpenseId === expenseToDelete ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                t('common.confirm')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Photo Confirmation Dialog */}
+      <AlertDialog open={deletePhotoDialogOpen} onOpenChange={setDeletePhotoDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('expenses.deletePhotoConfirm')}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row justify-center gap-8 mt-4 sm:justify-center">
+            <AlertDialogCancel
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-muted-foreground font-medium text-sm"
+              onClick={() => setPhotoToDelete(null)}
+            >
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-destructive font-semibold text-sm underline"
+              onClick={() => {
+                if (photoToDelete) {
+                  handleDeletePhoto(photoToDelete.expenseId, photoToDelete.imgIndex);
+                }
+                setPhotoToDelete(null);
+              }}
+              disabled={uploadingExpenseId !== null}
+            >
+              {uploadingExpenseId === photoToDelete?.expenseId ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                t('common.confirm')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
