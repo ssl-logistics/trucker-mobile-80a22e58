@@ -617,19 +617,27 @@ export default function JobExpensesPage() {
 
       {/* Delete Expense Confirmation Dialog */}
       <AlertDialog open={deleteExpenseDialogOpen} onOpenChange={setDeleteExpenseDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('expenses.deleteExpenseConfirm')}</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row justify-center gap-8 mt-4 sm:justify-center">
+        <AlertDialogContent className="max-w-[340px] rounded-2xl p-0 overflow-hidden border-0 shadow-2xl gap-0">
+          <div className="flex flex-col items-center px-6 pt-7 pb-5">
+            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <Trash2 className="w-7 h-7 text-destructive" />
+            </div>
+            <AlertDialogHeader className="space-y-1 text-center sm:text-center">
+              <AlertDialogTitle className="text-lg font-semibold text-center">
+                {t('expenses.deleteExpenseConfirm')}
+              </AlertDialogTitle>
+            </AlertDialogHeader>
+          </div>
+          <AlertDialogFooter className="flex-row gap-0 border-t border-border p-0 sm:justify-stretch">
             <AlertDialogCancel
-              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-muted-foreground font-medium text-sm"
+              className="flex-1 m-0 h-12 rounded-none border-0 bg-transparent hover:bg-muted text-muted-foreground font-medium"
               onClick={() => setExpenseToDelete(null)}
             >
               {t('common.cancel')}
             </AlertDialogCancel>
+            <div className="w-px bg-border" />
             <AlertDialogAction
-              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-destructive font-semibold text-sm underline"
+              className="flex-1 m-0 h-12 rounded-none border-0 bg-transparent hover:bg-destructive/10 text-destructive font-semibold"
               onClick={() => {
                 if (expenseToDelete) {
                   handleDeleteExpense(expenseToDelete);
@@ -650,19 +658,27 @@ export default function JobExpensesPage() {
 
       {/* Delete Photo Confirmation Dialog */}
       <AlertDialog open={deletePhotoDialogOpen} onOpenChange={setDeletePhotoDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('expenses.deletePhotoConfirm')}</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row justify-center gap-8 mt-4 sm:justify-center">
+        <AlertDialogContent className="max-w-[340px] rounded-2xl p-0 overflow-hidden border-0 shadow-2xl gap-0">
+          <div className="flex flex-col items-center px-6 pt-7 pb-5">
+            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <Trash2 className="w-7 h-7 text-destructive" />
+            </div>
+            <AlertDialogHeader className="space-y-1 text-center sm:text-center">
+              <AlertDialogTitle className="text-lg font-semibold text-center">
+                {t('expenses.deletePhotoConfirm')}
+              </AlertDialogTitle>
+            </AlertDialogHeader>
+          </div>
+          <AlertDialogFooter className="flex-row gap-0 border-t border-border p-0 sm:justify-stretch">
             <AlertDialogCancel
-              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-muted-foreground font-medium text-sm"
+              className="flex-1 m-0 h-12 rounded-none border-0 bg-transparent hover:bg-muted text-muted-foreground font-medium"
               onClick={() => setPhotoToDelete(null)}
             >
               {t('common.cancel')}
             </AlertDialogCancel>
+            <div className="w-px bg-border" />
             <AlertDialogAction
-              className="p-0 m-0 h-auto bg-transparent border-0 hover:bg-transparent text-destructive font-semibold text-sm underline"
+              className="flex-1 m-0 h-12 rounded-none border-0 bg-transparent hover:bg-destructive/10 text-destructive font-semibold"
               onClick={() => {
                 if (photoToDelete) {
                   handleDeletePhoto(photoToDelete.expenseId, photoToDelete.imgIndex);
