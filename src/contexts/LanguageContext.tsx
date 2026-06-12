@@ -363,6 +363,8 @@ const thTranslations: Record<string, string> = {
   'common.cancel': 'ยกเลิก',
   'common.confirm': 'ยืนยัน',
   'common.paid': 'ชำระแล้ว',
+  'common.success': 'สำเร็จ',
+  'common.error': 'เกิดข้อผิดพลาด',
 
   // Income Page
   'income.title': 'รายได้ของฉัน',
