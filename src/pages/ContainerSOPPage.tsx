@@ -479,10 +479,13 @@ const ContainerSOPPage = () => {
     }
   };
 
-  // Check whether required expenses are missing (BL container return).
+  // Check whether required expenses are missing before container return doc submission.
+  // BL (inbound) return: requires ค่าคืนตู้
+  // Booking (outbound) return: requires ค่ารับตู้ + ค่าผ่านท่า
   // Returns true if missing (and opens the dialog), false otherwise.
   const checkMissingExpensesForReturn = async (): Promise<boolean> => {
-    if (!(isBLJob && isContainerReturn && user)) return false;
+    if (!isContainerReturn || !user) return false;
+    if (!isBLJob && !isBookingJob) return false;
     setCheckingExpenses(true);
     try {
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
@@ -524,23 +527,26 @@ const ContainerSOPPage = () => {
         const variationMap: Record<string, string> = {
           'ค่าคืนตู้': 'return_container',
           'ค่าผ่านท่า': 'port_fee',
-          'ค่าใช้จ่ายไม่มีใบเสร็จ': 'misc_no_receipt',
+          'ค่ารับตู้': 'pickup_container',
+          'ค่ารับตู้เปล่า': 'pickup_container',
+          'ค่ารับตู้มีสินค้า': 'pickup_container',
           'container_return': 'return_container',
           'return_container': 'return_container',
           'port_fee': 'port_fee',
-          'misc_no_receipt': 'misc_no_receipt',
-          'overtime': 'misc_no_receipt',
-          'ค่าล่วงเวลา': 'misc_no_receipt',
+          'pickup_container': 'pickup_container',
+          'pickup_empty_container': 'pickup_container',
+          'pickup_loaded_container': 'pickup_container',
         };
         const mapped = variationMap[baseRaw] || variationMap[normalized];
         if (mapped) existingTypes.add(mapped);
       }
 
-      const requiredTypes = [
-        { key: 'return_container', label: t('expense.returnContainer') },
-        { key: 'port_fee', label: t('expense.portFee') },
-        { key: 'misc_no_receipt', label: t('expense.miscNoReceipt') },
-      ];
+      const requiredTypes = isBLJob
+        ? [{ key: 'return_container', label: t('expense.returnContainer') }]
+        : [
+            { key: 'pickup_container', label: t('expense.pickupContainer') },
+            { key: 'port_fee', label: t('expense.portFee') },
+          ];
       const missing = requiredTypes.filter(rt => !existingTypes.has(rt.key));
       if (missing.length > 0) {
         setMissingExpenseTypes(missing.map(m => m.label));
@@ -557,11 +563,12 @@ const ContainerSOPPage = () => {
   };
 
   const openPhotoDrawer = async (slot: PhotoSlot, eirIndex: number = 0) => {
-    // Block EIR upload on BL container return until required expenses are filled
-    if (slot === 'eir' && isBLJob && isContainerReturn) {
+    // Block EIR upload on container return until required expenses are filled
+    if (slot === 'eir' && isContainerReturn && (isBLJob || isBookingJob)) {
       const missing = await checkMissingExpensesForReturn();
       if (missing) return;
     }
+
     setActivePhotoSlot(slot);
     setActiveEirIndex(eirIndex);
     setShowPhotoDrawer(true);
