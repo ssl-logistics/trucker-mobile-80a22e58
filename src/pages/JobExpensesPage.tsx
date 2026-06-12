@@ -48,6 +48,12 @@ export default function JobExpensesPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
+  // Delete confirmation dialog state
+  const [deleteExpenseDialogOpen, setDeleteExpenseDialogOpen] = useState(false);
+  const [deletePhotoDialogOpen, setDeletePhotoDialogOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
+  const [photoToDelete, setPhotoToDelete] = useState<{ expenseId: string; imgIndex: number } | null>(null);
+
   useEffect(() => {
     loadExpenses();
   }, [jobId, user]);
