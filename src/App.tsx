@@ -71,7 +71,7 @@ function VersionBadge() {
         zIndex: 2147483647,
       }}
     >
-      v2.1
+      v2.2
     </div>
   );
 
