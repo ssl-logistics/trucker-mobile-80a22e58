@@ -213,7 +213,10 @@ export default function CurrentJobsPage() {
          const wantedStatuses = [
            'accepted',
            'arrived_at_pickup',
+           'pickup_checked_in',
            'in_transit',
+           'delivery_checked_in',
+           'delivery_sop_completed',
            'delivered',
            'returning_container',
            'at_container_return',
@@ -358,11 +361,15 @@ export default function CurrentJobsPage() {
               const isDelivered = status === 'delivered';
               const isArrivedAtPickup = status === 'arrived_at_pickup';
               const isReturningContainer = status === 'returning_container';
+              const isAtContainerReturn = status === 'at_container_return';
+              const isPickupCheckedIn = status === 'pickup_checked_in';
+              const isDeliveryCheckedIn = status === 'delivery_checked_in';
+              const isDeliverySopCompleted = status === 'delivery_sop_completed';
               // Include 'accepted' or 'arrived_at_pickup' status for BL/Booking (international) jobs
               const isAcceptedInternational = status === 'accepted' && isInternationalJob(job);
-              const shouldInclude = hasCheckIn || isInTransit || isDelivered || isArrivedAtPickup || isReturningContainer || isAcceptedInternational;
+              const shouldInclude = hasCheckIn || isInTransit || isDelivered || isArrivedAtPickup || isReturningContainer || isAtContainerReturn || isPickupCheckedIn || isDeliveryCheckedIn || isDeliverySopCompleted || isAcceptedInternational;
               if (shouldInclude) {
-                console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}, isArrivedAtPickup=${isArrivedAtPickup}, isReturningContainer=${isReturningContainer}, isAcceptedIntl=${isAcceptedInternational}`);
+                console.log(`[CurrentJobsPage] ✅ Including job ${job.order_number}: status='${status}', hasCheckIn=${hasCheckIn}, isInTransit=${isInTransit}, isArrivedAtPickup=${isArrivedAtPickup}, isReturningContainer=${isReturningContainer}, isAtContainerReturn=${isAtContainerReturn}, isPickupCheckedIn=${isPickupCheckedIn}, isDeliveryCheckedIn=${isDeliveryCheckedIn}, isDeliverySopCompleted=${isDeliverySopCompleted}, isAcceptedIntl=${isAcceptedInternational}`);
               }
               return shouldInclude;
            });
