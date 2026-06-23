@@ -213,7 +213,10 @@ export default function CurrentJobsPage() {
          const wantedStatuses = [
            'accepted',
            'arrived_at_pickup',
+           'pickup_checked_in',
            'in_transit',
+           'delivery_checked_in',
+           'delivery_sop_completed',
            'delivered',
            'returning_container',
            'at_container_return',
