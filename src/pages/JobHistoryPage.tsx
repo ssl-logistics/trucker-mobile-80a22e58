@@ -157,12 +157,16 @@ export default function JobHistoryPage() {
       if (isInternalDriver || isExternalDriver) {
         const driverType = isInternalDriver ? 'internal' : 'external';
         
-        const [acceptedResult, arrivedAtPickupResult, inTransitResult, deliveredResult, returningContainerResult, containerReturnedResult, completedResult, closedResult, checkinsRes] = await Promise.all([
+        const [acceptedResult, arrivedAtPickupResult, pickupCheckedInResult, inTransitResult, deliveryCheckedInResult, deliverySopCompletedResult, deliveredResult, returningContainerResult, atContainerReturnResult, containerReturnedResult, completedResult, closedResult, checkinsRes] = await Promise.all([
           getDriverAssignedJobs(driverId, driverType, 1000, 'accepted'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'arrived_at_pickup'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'pickup_checked_in'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'in_transit'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'delivery_checked_in'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'delivery_sop_completed'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'delivered'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'returning_container'),
+          getDriverAssignedJobs(driverId, driverType, 1000, 'at_container_return'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'container_returned'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'completed'),
           getDriverAssignedJobs(driverId, driverType, 1000, 'closed'),
@@ -172,9 +176,13 @@ export default function JobHistoryPage() {
         const allJobsRaw = [
           ...((acceptedResult.data as any)?.data || []),
           ...((arrivedAtPickupResult.data as any)?.data || []),
+          ...((pickupCheckedInResult.data as any)?.data || []),
           ...((inTransitResult.data as any)?.data || []),
+          ...((deliveryCheckedInResult.data as any)?.data || []),
+          ...((deliverySopCompletedResult.data as any)?.data || []),
           ...((deliveredResult.data as any)?.data || []),
           ...((returningContainerResult.data as any)?.data || []),
+          ...((atContainerReturnResult.data as any)?.data || []),
           ...((containerReturnedResult.data as any)?.data || []),
           ...((completedResult.data as any)?.data || []),
           ...((closedResult.data as any)?.data || []),
@@ -186,9 +194,13 @@ export default function JobHistoryPage() {
         console.log('[JobHistory] Fetched jobs count -',
           'accepted:', ((acceptedResult.data as any)?.data || []).length,
           'arrived_at_pickup:', ((arrivedAtPickupResult.data as any)?.data || []).length,
+          'pickup_checked_in:', ((pickupCheckedInResult.data as any)?.data || []).length,
           'in_transit:', ((inTransitResult.data as any)?.data || []).length,
+          'delivery_checked_in:', ((deliveryCheckedInResult.data as any)?.data || []).length,
+          'delivery_sop_completed:', ((deliverySopCompletedResult.data as any)?.data || []).length,
           'delivered:', ((deliveredResult.data as any)?.data || []).length,
           'returning_container:', ((returningContainerResult.data as any)?.data || []).length,
+          'at_container_return:', ((atContainerReturnResult.data as any)?.data || []).length,
           'container_returned:', ((containerReturnedResult.data as any)?.data || []).length,
           'completed:', ((completedResult.data as any)?.data || []).length,
           'closed:', ((closedResult.data as any)?.data || []).length,
