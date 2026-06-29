@@ -330,8 +330,8 @@ export default function VehicleInfoPage() {
     console.log('Starting photo upload for type:', photoType);
     setIsUploading(true);
 
-    // Check if user is internal or external driver (not freelance)
-    const isExternalOrInternalDriver = userType === 'internal_driver' || userType === 'external_driver';
+    // All driver types (freelance/internal/external) use the same update API
+    const isExternalOrInternalDriver = true;
 
     try {
       // Upload to S3 via edge function
@@ -499,8 +499,8 @@ export default function VehicleInfoPage() {
 
     setIsUploading(true);
 
-    // Check if user is internal or external driver (not freelance)
-    const isExternalOrInternalDriver = userType === 'internal_driver' || userType === 'external_driver';
+    // All driver types (freelance/internal/external) use the same update API
+    const isExternalOrInternalDriver = true;
 
     try {
       // Upload to S3 via edge function
