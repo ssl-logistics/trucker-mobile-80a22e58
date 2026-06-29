@@ -81,6 +81,14 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     }
   });
 
+  // Manually register price fields (fully controlled, written only via setValue)
+  useEffect(() => {
+    register("priceRangeMin");
+    register("priceRangeMax");
+  }, [register]);
+
+
+
   // Auto-scroll to first error
   useEffect(() => {
     if (Object.keys(errors).length > 0 || (showPhotoError && !profilePhotoFile)) {
@@ -430,12 +438,11 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
             <Input
               placeholder={t('generalInfo.priceMin')}
               inputMode="numeric"
-              {...register("priceRangeMin")}
+              name="priceRangeMin"
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
-                setValue("priceRangeMin", raw, { shouldDirty: true });
+                setValue("priceRangeMin", raw, { shouldDirty: true, shouldValidate: true });
                 setPriceRangeError("");
-                setTimeout(() => trigger(["priceRangeMin"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMin"))}
               className={cn("text-right", (errors.priceRangeMin || priceRangeError) ? "border-destructive" : "")}
@@ -444,12 +451,11 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
             <Input
               placeholder={t('generalInfo.priceMax')}
               inputMode="numeric"
-              {...register("priceRangeMax")}
+              name="priceRangeMax"
               onChange={(e) => {
                 const raw = normalizeNumericString(e.target.value);
-                setValue("priceRangeMax", raw, { shouldDirty: true });
+                setValue("priceRangeMax", raw, { shouldDirty: true, shouldValidate: true });
                 setPriceRangeError("");
-                setTimeout(() => trigger(["priceRangeMax"]), 0);
               }}
               value={formatNumericDisplay(watch("priceRangeMax"))}
               className={cn("text-right", (errors.priceRangeMax || priceRangeError) ? "border-destructive" : "")}
