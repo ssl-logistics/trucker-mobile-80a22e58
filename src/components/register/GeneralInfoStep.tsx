@@ -81,6 +81,14 @@ const GeneralInfoStep = ({ data, onNext }: GeneralInfoStepProps) => {
     }
   });
 
+  // Manually register price fields (fully controlled, written only via setValue)
+  useEffect(() => {
+    register("priceRangeMin");
+    register("priceRangeMax");
+  }, [register]);
+
+
+
   // Auto-scroll to first error
   useEffect(() => {
     if (Object.keys(errors).length > 0 || (showPhotoError && !profilePhotoFile)) {
