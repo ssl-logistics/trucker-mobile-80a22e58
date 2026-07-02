@@ -119,6 +119,15 @@ interface JobDetail {
   container_return_phone?: string | null;
   container_return_date?: string | null;
   container_return_contact_name?: string | null;
+  product_name?: string | null;
+  product_quantity?: number | null;
+  product_unit?: string | null;
+  product_weight?: number | null;
+  product_weight_unit?: string | null;
+  goods_weight?: number | null;
+  goods_unit?: string | null;
+  weight?: number | null;
+  weight_unit?: string | null;
 }
 
 interface JobApplication {
