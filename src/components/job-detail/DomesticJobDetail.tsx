@@ -2203,16 +2203,63 @@ export default function DomesticJobDetail({
                           <span>{dest.invoice_number}</span>
                         </div>
                         )}
-                        {(dest as any).customer && (
-                          <button
-                            type="button"
-                            onClick={() => setCustomerModalData((dest as any).customer)}
-                            className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-[#225795] underline underline-offset-2 hover:opacity-80"
-                          >
-                            <User className="w-3.5 h-3.5" />
-                            {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
-                          </button>
-                        )}
+                        {(dest as any).customer && (() => {
+                          const c: any = (dest as any).customer;
+                          const addressLine = [c.province, c.district].filter(Boolean).join(' ');
+                          return (
+                            <div className="mt-2 rounded-lg border border-[#225795]/20 bg-[#225795]/5 p-2.5 space-y-1.5 text-xs">
+                              <div className="flex items-center gap-1.5 font-medium text-[#225795]">
+                                <User className="w-3.5 h-3.5" />
+                                {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
+                              </div>
+                              {c.customer_name && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-medium text-[#454545] min-w-[80px]">{t('jobDetail.customerName') || 'ชื่อลูกค้า'}</span>
+                                  <span className="font-semibold text-[#225795] flex-1">{c.customer_name}</span>
+                                </div>
+                              )}
+                              {c.tax_id && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-medium text-[#454545] min-w-[80px]">{t('jobDetail.taxId') || 'เลขผู้เสียภาษี'}</span>
+                                  <span className="flex-1">{c.tax_id}</span>
+                                </div>
+                              )}
+                              {c.address && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{c.address}</span>
+                                </div>
+                              )}
+                              {addressLine && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{addressLine}</span>
+                                </div>
+                              )}
+                              {c.contact_name && (
+                                <div className="flex items-start gap-2">
+                                  <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{c.contact_name}</span>
+                                </div>
+                              )}
+                              {c.contact_phone && (
+                                <div className="flex items-start gap-2">
+                                  <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <a href={`tel:${c.contact_phone}`} className="text-[#225795] underline flex-1">{c.contact_phone}</a>
+                                </div>
+                              )}
+                              {c.notes && (
+                                <div className="flex items-start gap-2 pt-1.5 border-t border-[#225795]/15">
+                                  <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <div className="flex-1">
+                                    <div className="font-medium text-[#454545] mb-0.5">{t('jobDetail.note') || 'หมายเหตุ'}</div>
+                                    <div className="text-muted-foreground">{c.notes}</div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                         {(() => {
                           // Collect all product items for this destination
                           let allItems: { label: string }[] = [];
