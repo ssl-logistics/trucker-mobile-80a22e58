@@ -167,6 +167,11 @@ interface AcceptedJobAPI {
   product_weight_value: number | null;
   product_quantity: number | null;
   product_unit: string | null;
+  product_weight_unit?: string | null;
+  goods_weight?: number | null;
+  goods_unit?: string | null;
+  weight?: number | null;
+  weight_unit?: string | null;
   vehicle_type: string | null;
   vehicle_category: string | null;
   transport_price: number;
