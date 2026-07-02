@@ -1,15 +1,13 @@
-## แก้ให้ Container Size + Agent แสดงเฉพาะงานต่างประเทศ
+## แสดงข้อมูลลูกค้า inline (ไม่ต้องกดเปิด modal)
 
-ตอนนี้โค้ดที่ `src/components/job-detail/DomesticJobDetail.tsx` (บรรทัด 1557–1582) แสดงแถว **ขนาดตู้** และ **Agent** โดย**ไม่มีเงื่อนไข** ทำให้งานในประเทศก็โชว์ด้วย
+### ปัจจุบัน
+ที่ `src/components/job-detail/DomesticJobDetail.tsx` บรรทัด 1769–1778 มีปุ่ม "ข้อมูลลูกค้า" ที่ต้องกดเพื่อเปิด Dialog แสดงชื่อลูกค้า / เลขผู้เสียภาษี / ที่อยู่ / ผู้ติดต่อ / เบอร์ / หมายเหตุ
 
 ### สิ่งที่จะแก้
-- ห่อบล็อก container size + Agent ด้วยเงื่อนไข "งานต่างประเทศ" เท่านั้น
-- เกณฑ์ตรวจว่าเป็นงานต่างประเทศ ใช้แพทเทิร์นเดียวกับที่โปรเจกต์ใช้อยู่ (BL / Booking):
-  - `!!job.bl_no || !!job.booking_no` (หรือ helper `isInternationalJob` ถ้ามี)
-- ถ้าไม่ใช่งานต่างประเทศ → ไม่แสดงทั้ง 2 แถว (กลับไปเป็นเหมือนเดิมก่อนหน้าที่เพิ่ม)
-- งานในประเทศทั้งหมดคงพฤติกรรมเดิม ไม่มีผลกระทบส่วนอื่น
+- แทนที่ปุ่มด้วยบล็อกแสดงข้อมูลลูกค้า inline ใต้จุดรับ ใช้ layout เดียวกับ row อื่นๆ ในการ์ด (icon + label + value ขนาด text-sm/xs)
+- แสดงเฉพาะฟิลด์ที่มีค่า: `customer_name`, `tax_id`, `address`, `province/district`, `contact_name`, `contact_phone` (คลิกโทรได้), `notes`
+- ลบปุ่ม + state `customerModalData` + Dialog ที่ไม่ใช้แล้ว (บรรทัด 2786–2839 และ useState บรรทัด 264)
+- คงเงื่อนไข render เดิม: แสดงเมื่อ `job.origin_customer` มีค่า
 
 ### ไฟล์ที่แตะ
-- `src/components/job-detail/DomesticJobDetail.tsx` — เพิ่ม guard `isInternational` รอบบล็อก IIFE ที่ render container size + Agent
-
-ไม่แก้ `JobDetailPage.tsx` (การ map `container_size` / `agent` เข้า object ยังเก็บไว้ได้ ไม่กระทบ UI งานในประเทศ)
+- `src/components/job-detail/DomesticJobDetail.tsx` เท่านั้น
