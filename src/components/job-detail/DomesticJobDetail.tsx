@@ -261,7 +261,7 @@ export default function DomesticJobDetail({
   const [verifiedLookupData, setVerifiedLookupData] = useState<any>(null);
   const [showGoodsModal, setShowGoodsModal] = useState(false);
   const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
-  const [customerModalData, setCustomerModalData] = useState<any>(null);
+  
   // Voice reorder state
   const [showVoiceMatch, setShowVoiceMatch] = useState<{ name: string; index: number } | null>(null);
 
