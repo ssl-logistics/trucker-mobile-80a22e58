@@ -1,39 +1,35 @@
+## เป้าหมาย
+เพิ่มการแสดงขนาดตู้ (`container_size`) ในหน้ารายละเอียดงานต่างประเทศ (International Job) โดยแสดงในส่วน **จุดรับตู้เปล่า (Empty Container Pickup Card)** ใต้ข้อมูลเบอร์โทร และรองรับการแปลภาษาตามที่ผู้ใช้เลือก
 
+## ขอบเขต
+- แก้ไขเฉพาะการแสดงผล UI 1 จุดเท่านั้น
+- ไม่แก้ไข logic อื่น ไม่แก้ไข API / mapping / interface
+- ใช้ pattern `(job as any).container_size` ตามที่มีอยู่แล้วใน `DomesticJobDetail.tsx` (เช่น `empty_pickup_yard_name`, `empty_pickup_port`)
 
-# ย้าย Proximity Alert ให้ทำงานทุกหน้า
+## ขั้นตอน
 
-## ปัญหาปัจจุบัน
-`useProximityAlert()` ถูกเรียกใช้เฉพาะใน `Home.tsx` เท่านั้น เมื่อคนขับเปลี่ยนไปหน้าอื่น (เช่น หน้ารายละเอียดงาน, แชท, ตั้งค่า) Hook จะถูก unmount และหยุดตรวจสอบระยะทาง ทั้งที่ระบบ GPS Tracking ยังส่งพิกัดอยู่ตลอด
+### 1. เพิ่ม Translation Key
+ใน `src/contexts/LanguageContext.tsx` (หรือไฟล์ translation ที่ใช้) เพิ่ม key `jobDetail.containerSize` ใน object ทั้ง 4 ภาษา:
+- **th**: `ขนาดตู้`
+- **en**: `Container Size`
+- **ko**: `컨테이너 크기`
+- **zh**: `货柜尺寸`
 
-## วิธีแก้ไข
-ย้าย `useProximityAlert()` ออกจาก `Home.tsx` ไปไว้ใน component ระดับบนสุดที่ mount ตลอดเวลา
+### 2. เพิ่ม UI ในหน้างาน
+ใน `src/components/job-detail/DomesticJobDetail.tsx` บรรทัด ~1557 (ในส่วน `space-y-1.5 text-xs text-muted-foreground` ของ Empty Container Pickup Card) เพิ่ม div แสดงข้อมูลใต้แถวเบอร์โทร:
 
-### ขั้นตอน
+```tsx
+{(job as any).container_size && (
+  <div className="flex items-start gap-2">
+    <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+    <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerSize')}</span>
+    <span className="font-semibold text-[#225795]">{(job as any).container_size}</span>
+  </div>
+)}
+```
 
-**1. สร้าง Global Hook Component**
-สร้าง component ใหม่ เช่น `GlobalProximityAlert` ที่เรียก `useProximityAlert()` และ render เป็น `null` (ไม่แสดง UI)
+เงื่อนไขแสดง: เฉพาะงานต่างประเทศ (`job.job_type === 'international'`) และมีค่า `container_size` เท่านั้น
 
-**2. เพิ่มใน App.tsx**
-วาง `GlobalProximityAlert` ไว้ภายใน `AuthProvider` และ `Routes` เพื่อให้:
-- มี access ถึง user context
-- ทำงานตลอดไม่ว่าจะอยู่หน้าไหน
-
-**3. ลบ useProximityAlert ออกจาก Home.tsx**
-เอา import และ call ของ `useProximityAlert()` ออกจาก `Home.tsx` เพื่อไม่ให้ทำงานซ้ำซ้อน
-
-## ผลลัพธ์
-- ระบบตรวจสอบระยะทางจะทำงานตลอดเวลาที่แอปเปิดอยู่ ไม่ว่าคนขับจะอยู่หน้าไหน
-- Push Notification จะถูกส่งไปยังมือถือ (Android/iOS) เมื่อใกล้จุดรับ/ส่งแม้คนขับไม่ได้อยู่หน้า Home
-
-## ข้อจำกัดที่ยังมีอยู่
-- หากคนขับปิดแอปทั้งหมด (kill app) ระบบจะหยุดตรวจสอบ เพราะ Capacitor ไม่รองรับ Background Location โดยตรง (ต้องใช้ native plugin เพิ่ม)
-
----
-
-### รายละเอียดทางเทคนิค
-
-**ไฟล์ที่แก้ไข:**
-
-1. **`src/App.tsx`** - เพิ่ม component ที่เรียก `useProximityAlert()` ไว้ภายใน Router/AuthProvider
-2. **`src/pages/Home.tsx`** - ลบ import และ call ของ `useProximityAlert()`
-
+## ไฟล์ที่แก้ไข
+- `src/contexts/LanguageContext.tsx` — เพิ่ม translation key
+- `src/components/job-detail/DomesticJobDetail.tsx` — เพิ่ม UI element 1 จุด
