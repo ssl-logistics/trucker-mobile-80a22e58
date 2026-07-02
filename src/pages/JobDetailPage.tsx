@@ -85,6 +85,7 @@ interface JobDetail {
   empty_pickup_date?: string | null;
   empty_pickup_time?: string | null;
   container_number: string | null;
+  container_size?: string | null;
   container_number_2: string | null;
   seal_number: string | null;
   seal_number_2: string | null;
