@@ -2971,9 +2971,21 @@ export default function DomesticJobDetail({
                   {job.origin_company_name && (
                     <p className="text-sm font-medium text-foreground ml-6">{job.origin_company_name}</p>
                   )}
-                  {job.products && job.products.length > 0 ? (
+                  {(() => {
+                    const j: any = job;
+                    let productsArr: any[] = job.products && job.products.length > 0 ? job.products : [];
+                    if (productsArr.length === 0 && (j.product_name || j.product_weight || j.product_quantity || j.goods_weight)) {
+                      productsArr = [{
+                        product_name: j.product_name,
+                        product_quantity: j.product_quantity,
+                        product_weight: j.product_weight ?? j.goods_weight ?? j.weight,
+                        product_unit: j.product_unit || j.goods_unit,
+                        weight_unit: j.product_weight_unit || j.weight_unit || 'kg',
+                      }];
+                    }
+                    return productsArr.length > 0 ? (
                     <div className="space-y-2 ml-6">
-                      {job.products.map((product, idx) => {
+                      {productsArr.map((product, idx) => {
                         const name = product.product_name || product.name || '-';
                         const weight = product.product_weight || product.weight;
                         const weightUnit = translateUnit(product.weight_unit || 'kg', language);
@@ -2982,7 +2994,7 @@ export default function DomesticJobDetail({
                         return (
                           <div key={idx} className="border rounded-lg p-3 bg-muted/30 space-y-1">
                             <p className="text-sm font-semibold text-foreground">
-                              {t('jobDetail.goodsType') || 'สินค้า'} {job.products!.length > 1 ? idx + 1 : ''}: {name}
+                              {t('jobDetail.goodsType') || 'สินค้า'} {productsArr.length > 1 ? idx + 1 : ''}: {name}
                             </p>
                             <div className="flex gap-4 text-xs text-muted-foreground">
                               <span>{t('jobDetail.weight') || 'น้ำหนัก'}: {weight ? `${weight} ${weightUnit}` : '-'}</span>
@@ -3010,7 +3022,8 @@ export default function DomesticJobDetail({
                         <p className="text-sm text-muted-foreground">{t('common.noData') || 'ไม่มีข้อมูล'}</p>
                       )}
                     </div>
-                  )}
+                  );
+                  })()}
                 </>
               );
             })()}
