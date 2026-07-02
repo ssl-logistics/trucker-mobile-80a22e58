@@ -261,7 +261,7 @@ export default function DomesticJobDetail({
   const [verifiedLookupData, setVerifiedLookupData] = useState<any>(null);
   const [showGoodsModal, setShowGoodsModal] = useState(false);
   const [goodsModalDestIndex, setGoodsModalDestIndex] = useState<number | null>(null);
-  const [customerModalData, setCustomerModalData] = useState<any>(null);
+  
   // Voice reorder state
   const [showVoiceMatch, setShowVoiceMatch] = useState<{ name: string; index: number } | null>(null);
 
@@ -1766,16 +1766,63 @@ export default function DomesticJobDetail({
                             <span>{job.origin_remarks}</span>
                           </div>
                       }
-                        {(job as any).origin_customer && (
-                          <button
-                            type="button"
-                            onClick={() => setCustomerModalData((job as any).origin_customer)}
-                            className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-[#225795] underline underline-offset-2 hover:opacity-80"
-                          >
-                            <User className="w-3.5 h-3.5" />
-                            {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
-                          </button>
-                        )}
+                        {(job as any).origin_customer && (() => {
+                          const c: any = (job as any).origin_customer;
+                          const addressLine = [c.province, c.district].filter(Boolean).join(' ');
+                          return (
+                            <div className="mt-2 rounded-lg border border-[#225795]/20 bg-[#225795]/5 p-2.5 space-y-1.5 text-xs">
+                              <div className="flex items-center gap-1.5 font-medium text-[#225795]">
+                                <User className="w-3.5 h-3.5" />
+                                {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
+                              </div>
+                              {c.customer_name && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-medium text-[#454545] min-w-[80px]">{t('jobDetail.customerName') || 'ชื่อลูกค้า'}</span>
+                                  <span className="font-semibold text-[#225795] flex-1">{c.customer_name}</span>
+                                </div>
+                              )}
+                              {c.tax_id && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-medium text-[#454545] min-w-[80px]">{t('jobDetail.taxId') || 'เลขผู้เสียภาษี'}</span>
+                                  <span className="flex-1">{c.tax_id}</span>
+                                </div>
+                              )}
+                              {c.address && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{c.address}</span>
+                                </div>
+                              )}
+                              {addressLine && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{addressLine}</span>
+                                </div>
+                              )}
+                              {c.contact_name && (
+                                <div className="flex items-start gap-2">
+                                  <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{c.contact_name}</span>
+                                </div>
+                              )}
+                              {c.contact_phone && (
+                                <div className="flex items-start gap-2">
+                                  <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <a href={`tel:${c.contact_phone}`} className="text-[#225795] underline flex-1">{c.contact_phone}</a>
+                                </div>
+                              )}
+                              {c.notes && (
+                                <div className="flex items-start gap-2 pt-1.5 border-t border-[#225795]/15">
+                                  <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <div className="flex-1">
+                                    <div className="font-medium text-[#454545] mb-0.5">{t('jobDetail.note') || 'หมายเหตุ'}</div>
+                                    <div className="text-muted-foreground">{c.notes}</div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
@@ -2156,16 +2203,63 @@ export default function DomesticJobDetail({
                           <span>{dest.invoice_number}</span>
                         </div>
                         )}
-                        {(dest as any).customer && (
-                          <button
-                            type="button"
-                            onClick={() => setCustomerModalData((dest as any).customer)}
-                            className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-[#225795] underline underline-offset-2 hover:opacity-80"
-                          >
-                            <User className="w-3.5 h-3.5" />
-                            {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
-                          </button>
-                        )}
+                        {(dest as any).customer && (() => {
+                          const c: any = (dest as any).customer;
+                          const addressLine = [c.province, c.district].filter(Boolean).join(' ');
+                          return (
+                            <div className="mt-2 rounded-lg border border-[#225795]/20 bg-[#225795]/5 p-2.5 space-y-1.5 text-xs">
+                              <div className="flex items-center gap-1.5 font-medium text-[#225795]">
+                                <User className="w-3.5 h-3.5" />
+                                {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
+                              </div>
+                              {c.customer_name && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-medium text-[#454545] min-w-[80px]">{t('jobDetail.customerName') || 'ชื่อลูกค้า'}</span>
+                                  <span className="font-semibold text-[#225795] flex-1">{c.customer_name}</span>
+                                </div>
+                              )}
+                              {c.tax_id && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-medium text-[#454545] min-w-[80px]">{t('jobDetail.taxId') || 'เลขผู้เสียภาษี'}</span>
+                                  <span className="flex-1">{c.tax_id}</span>
+                                </div>
+                              )}
+                              {c.address && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{c.address}</span>
+                                </div>
+                              )}
+                              {addressLine && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{addressLine}</span>
+                                </div>
+                              )}
+                              {c.contact_name && (
+                                <div className="flex items-start gap-2">
+                                  <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="flex-1">{c.contact_name}</span>
+                                </div>
+                              )}
+                              {c.contact_phone && (
+                                <div className="flex items-start gap-2">
+                                  <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <a href={`tel:${c.contact_phone}`} className="text-[#225795] underline flex-1">{c.contact_phone}</a>
+                                </div>
+                              )}
+                              {c.notes && (
+                                <div className="flex items-start gap-2 pt-1.5 border-t border-[#225795]/15">
+                                  <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <div className="flex-1">
+                                    <div className="font-medium text-[#454545] mb-0.5">{t('jobDetail.note') || 'หมายเหตุ'}</div>
+                                    <div className="text-muted-foreground">{c.notes}</div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                         {(() => {
                           // Collect all product items for this destination
                           let allItems: { label: string }[] = [];
@@ -2783,60 +2877,7 @@ export default function DomesticJobDetail({
 
       {/* Swap is now instant via drag-and-drop — no confirmation dialog */}
 
-      {/* Customer Info Modal */}
-      <Dialog open={!!customerModalData} onOpenChange={(o) => !o && setCustomerModalData(null)}>
-        <DialogContent className="max-w-sm mx-auto max-h-[80vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-[#225795]">
-              <User className="w-5 h-5" />
-              {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
-            </DialogTitle>
-          </DialogHeader>
-          {customerModalData && (
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="font-medium text-[#454545] min-w-[90px]">{t('jobDetail.customerName') || 'ชื่อลูกค้า'}</span>
-                <span className="font-semibold text-[#225795] flex-1">{customerModalData.customer_name || '-'}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="font-medium text-[#454545] min-w-[90px]">{t('jobDetail.taxId') || 'เลขผู้เสียภาษี'}</span>
-                <span className="flex-1">{customerModalData.tax_id || '-'}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                <span className="font-medium text-[#454545] min-w-[70px]">{t('jobDetail.location') || 'สถานที่'}</span>
-                <span className="flex-1">{customerModalData.address || '-'}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                <span className="font-medium text-[#454545] min-w-[70px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
-                <span className="flex-1">{[customerModalData.province, customerModalData.district].filter(Boolean).join(' ') || '-'}</span>
-              </div>
-              {customerModalData.contact_name && (
-                <div className="flex items-start gap-2">
-                  <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                  <span className="flex-1">{customerModalData.contact_name}</span>
-                </div>
-              )}
-              {customerModalData.contact_phone && (
-                <div className="flex items-start gap-2">
-                  <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                  <a href={`tel:${customerModalData.contact_phone}`} className="text-[#225795] underline flex-1">{customerModalData.contact_phone}</a>
-                </div>
-              )}
-              {customerModalData.notes && (
-                <div className="flex items-start gap-2 pt-2 border-t">
-                  <FileText className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                  <div className="flex-1">
-                    <div className="font-medium text-[#454545] mb-0.5">{t('jobDetail.note') || 'หมายเหตุ'}</div>
-                    <div className="text-muted-foreground">{customerModalData.notes}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Customer Info now shown inline under pickup point */}
 
       {/* Goods Detail Modal */}
       <Dialog open={showGoodsModal} onOpenChange={setShowGoodsModal}>
