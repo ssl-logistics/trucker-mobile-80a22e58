@@ -1562,15 +1562,25 @@ export default function DomesticJobDetail({
                                 j.origin?.container_sizes?.[0] ||
                                 j.containers?.[0]?.container_type ||
                                 null;
-                              if (!containerSize) return null;
+                              const agent = j.agent;
                               return (
-                                <div className="flex items-start gap-2">
-                                  <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                                  <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerSize')}</span>
-                                  <span className="font-semibold text-[#225795]">{containerSize}</span>
-                                </div>
+                                <>
+                                  {containerSize && (
+                                    <div className="flex items-start gap-2">
+                                      <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerSize')}</span>
+                                      <span className="font-semibold text-[#225795]">{containerSize}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-start gap-2">
+                                    <User className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                    <span className="font-medium text-[#454545] min-w-[50px]">Agent</span>
+                                    <span>{agent || '-'}</span>
+                                  </div>
+                                </>
                               );
                             })()}
+
                           </div>
                         </>
                       );
