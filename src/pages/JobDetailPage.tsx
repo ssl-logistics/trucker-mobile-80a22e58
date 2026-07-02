@@ -436,6 +436,8 @@ export default function JobDetailPage() {
             empty_pickup_time: foundJob.empty_pickup_time || foundJob.first_pickup_time || foundJob.sender_pickup_time || null,
             container_number: foundJob.container_number || null,
             container_size: foundJob.container_size || foundJob.origin?.container_size || foundJob.origin?.container_sizes?.[0] || foundJob.containers?.[0]?.container_type || null,
+            agent: foundJob.agent || null,
+
             container_number_2: foundJob.container_number_2 || null,
             seal_number: foundJob.seal_number || null,
             seal_number_2: foundJob.seal_number_2 || null,
