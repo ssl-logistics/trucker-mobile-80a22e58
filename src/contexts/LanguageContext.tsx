@@ -2309,6 +2309,7 @@ const enTranslations: Record<string, string> = {
   'jobDetail.containerTypeQty': 'Container Type & Qty',
   'jobDetail.containerDate': 'Container Date',
   'jobDetail.containerNumber': 'Container No.',
+  'jobDetail.containerSize': 'Container Size',
   'jobDetail.sealNumber': 'Seal Number',
   'jobDetail.loadingPoint': 'Loading Point',
   'jobDetail.unloadingPoint': 'Unloading Point',
