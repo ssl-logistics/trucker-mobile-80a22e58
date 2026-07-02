@@ -1278,12 +1278,11 @@ export default function DomesticJobDetail({
             !containerReturnConfirmed
           }
           pickupAt={latestEirAt || containerPickupAt}
-          containerFreeDays={
-            (job as any).container_free_days ??
-            (job as any).containerFreeDays ??
-            (job as any).free_days ??
-            2
-          }
+          containerFreeDays={(() => {
+            const raw = (job as any).container_free_days ?? (job as any).containerFreeDays ?? (job as any).free_days;
+            const num = Number(raw);
+            return Number.isFinite(num) && num > 0 ? num : 2;
+          })()}
         />
 
         {/* Route Info */}
