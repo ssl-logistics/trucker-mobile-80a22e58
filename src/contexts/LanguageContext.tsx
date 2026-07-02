@@ -675,6 +675,7 @@ const thTranslations: Record<string, string> = {
   'jobDetail.containerTypeQty': 'จำนวนและชนิดตู้',
   'jobDetail.containerDate': 'วันคนเทนเนอร์',
   'jobDetail.containerNumber': 'เลขตู้',
+  'jobDetail.containerSize': 'ขนาดตู้',
   'jobDetail.sealNumber': 'เลขซีล',
   'jobDetail.loadingPoint': 'จุดรับสินค้า',
   'jobDetail.unloadingPoint': 'จุดส่งสินค้า',
