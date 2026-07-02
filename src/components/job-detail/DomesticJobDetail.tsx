@@ -2438,9 +2438,21 @@ export default function DomesticJobDetail({
                           <span>
                             <strong className="text-foreground">{t('jobDetail.goodsType') || 'สินค้า'}:</strong>{' '}
                             {(() => {
+                              const j: any = job;
                               // Show from products array if available
-                              if (job.products && job.products.length > 0) {
-                                return job.products.map((p, i) => {
+                              let productsArr: any[] = job.products && job.products.length > 0 ? job.products : [];
+                              // Fallback: synthesize a virtual product from top-level fields (international jobs)
+                              if (productsArr.length === 0 && (j.product_name || j.product_weight || j.product_quantity || j.goods_weight)) {
+                                productsArr = [{
+                                  product_name: j.product_name,
+                                  product_quantity: j.product_quantity,
+                                  product_weight: j.product_weight ?? j.goods_weight ?? j.weight,
+                                  product_unit: j.product_unit || j.goods_unit,
+                                  weight_unit: j.product_weight_unit || j.weight_unit || 'kg',
+                                }];
+                              }
+                              if (productsArr.length > 0) {
+                                return productsArr.map((p, i) => {
                                   const name = p.product_name || p.name || '-';
                                   const qty = p.product_quantity || p.quantity;
                                   const weight = p.product_weight || p.weight;
