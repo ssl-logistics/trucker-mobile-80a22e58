@@ -5441,6 +5441,7 @@ const zhTranslations: Record<string, string> = {
   'jobDetail.containerTypeQty': '集装箱类型及数量',
   'jobDetail.containerDate': '集装箱日期',
   'jobDetail.containerNumber': '箱号',
+  'jobDetail.containerSize': '货柜尺寸',
   'jobDetail.sealNumber': '封条号',
   'jobDetail.loadingPoint': '装货点',
   'jobDetail.unloadingPoint': '卸货点',
