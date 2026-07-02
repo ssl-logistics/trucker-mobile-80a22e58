@@ -1554,13 +1554,23 @@ export default function DomesticJobDetail({
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.phone') || 'เบอร์โทร'}</span>
                               <span>{job.empty_pickup_phone || '-'}</span>
                             </div>
-                            {(job as any).container_size && (
-                              <div className="flex items-start gap-2">
-                                <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerSize')}</span>
-                                <span className="font-semibold text-[#225795]">{(job as any).container_size}</span>
-                              </div>
-                            )}
+                            {(() => {
+                              const j: any = job;
+                              const containerSize =
+                                j.container_size ||
+                                j.origin?.container_size ||
+                                j.origin?.container_sizes?.[0] ||
+                                j.containers?.[0]?.container_type ||
+                                null;
+                              if (!containerSize) return null;
+                              return (
+                                <div className="flex items-start gap-2">
+                                  <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                  <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerSize')}</span>
+                                  <span className="font-semibold text-[#225795]">{containerSize}</span>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </>
                       );
