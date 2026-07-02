@@ -1554,6 +1554,13 @@ export default function DomesticJobDetail({
                               <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.phone') || 'เบอร์โทร'}</span>
                               <span>{job.empty_pickup_phone || '-'}</span>
                             </div>
+                            {(job as any).container_size && (
+                              <div className="flex items-start gap-2">
+                                <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                                <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerSize')}</span>
+                                <span className="font-semibold text-[#225795]">{(job as any).container_size}</span>
+                              </div>
+                            )}
                           </div>
                         </>
                       );
