@@ -1,35 +1,48 @@
-## เป้าหมาย
-เพิ่มการแสดงขนาดตู้ (`container_size`) ในหน้ารายละเอียดงานต่างประเทศ (International Job) โดยแสดงในส่วน **จุดรับตู้เปล่า (Empty Container Pickup Card)** ใต้ข้อมูลเบอร์โทร และรองรับการแปลภาษาตามที่ผู้ใช้เลือก
+## ปัญหา
 
-## ขอบเขต
-- แก้ไขเฉพาะการแสดงผล UI 1 จุดเท่านั้น
-- ไม่แก้ไข logic อื่น ไม่แก้ไข API / mapping / interface
-- ใช้ pattern `(job as any).container_size` ตามที่มีอยู่แล้วใน `DomesticJobDetail.tsx` (เช่น `empty_pickup_yard_name`, `empty_pickup_port`)
+ขนาดตู้ที่เพิ่มไปในการ์ด **"จุดรับตู้เปล่า"** (`DomesticJobDetail.tsx` บรรทัด 1557–1563) อ่านจาก `(job as any).container_size` — แต่ API จริงเก็บค่าไว้ **nested** ไม่ใช่ที่ root:
 
-## ขั้นตอน
-
-### 1. เพิ่ม Translation Key
-ใน `src/contexts/LanguageContext.tsx` (หรือไฟล์ translation ที่ใช้) เพิ่ม key `jobDetail.containerSize` ใน object ทั้ง 4 ภาษา:
-- **th**: `ขนาดตู้`
-- **en**: `Container Size`
-- **ko**: `컨테이너 크기`
-- **zh**: `货柜尺寸`
-
-### 2. เพิ่ม UI ในหน้างาน
-ใน `src/components/job-detail/DomesticJobDetail.tsx` บรรทัด ~1557 (ในส่วน `space-y-1.5 text-xs text-muted-foreground` ของ Empty Container Pickup Card) เพิ่ม div แสดงข้อมูลใต้แถวเบอร์โทร:
-
-```tsx
-{(job as any).container_size && (
-  <div className="flex items-start gap-2">
-    <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-    <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerSize')}</span>
-    <span className="font-semibold text-[#225795]">{(job as any).container_size}</span>
-  </div>
-)}
+```
+job.origin.container_size          = "40HC"   ← ตัวหลัก
+job.origin.container_sizes[0]      = "40HC"   ← array fallback
+job.containers[0].container_type   = "40HC"   ← fallback สุดท้าย
 ```
 
-เงื่อนไขแสดง: เฉพาะงานต่างประเทศ (`job.job_type === 'international'`) และมีค่า `container_size` เท่านั้น
+เลยไม่มีค่ามาแสดง
 
-## ไฟล์ที่แก้ไข
-- `src/contexts/LanguageContext.tsx` — เพิ่ม translation key
-- `src/components/job-detail/DomesticJobDetail.tsx` — เพิ่ม UI element 1 จุด
+## สิ่งที่จะแก้
+
+ไฟล์เดียว: `src/components/job-detail/DomesticJobDetail.tsx` บรรทัด 1557–1563
+
+เปลี่ยน expression ให้ resolve จาก 3 แหล่งตามลำดับ:
+
+```tsx
+{(() => {
+  const j: any = job;
+  const containerSize =
+    j.container_size ||
+    j.origin?.container_size ||
+    j.origin?.container_sizes?.[0] ||
+    j.containers?.[0]?.container_type ||
+    null;
+  if (!containerSize) return null;
+  return (
+    <div className="flex items-start gap-2">
+      <Package className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+      <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.containerSize')}</span>
+      <span className="font-semibold text-[#225795]">{containerSize}</span>
+    </div>
+  );
+})()}
+```
+
+## ที่ไม่แตะ
+
+- ไม่แก้ที่การ์ดอื่น (จุดรับสินค้า / จุดส่ง / จุดคืนตู้)
+- ไม่แก้ interface `Job` / mapping กลาง / translation
+- ไม่แตะฝั่ง API
+- ไม่บั๊มพ์เวอร์ชั่น
+
+## หลังแก้จะได้อะไร
+
+การ์ด "จุดรับตู้เปล่า" ของงาน OR20260619036/01 จะโชว์บรรทัด **ขนาดตู้: 40HC** ใต้เบอร์โทร ตามที่ต้องการ
