@@ -119,6 +119,15 @@ interface JobDetail {
   container_return_phone?: string | null;
   container_return_date?: string | null;
   container_return_contact_name?: string | null;
+  product_name?: string | null;
+  product_quantity?: number | null;
+  product_unit?: string | null;
+  product_weight?: number | null;
+  product_weight_unit?: string | null;
+  goods_weight?: number | null;
+  goods_unit?: string | null;
+  weight?: number | null;
+  weight_unit?: string | null;
 }
 
 interface JobApplication {
@@ -439,6 +448,15 @@ export default function JobDetailPage() {
             container_number: foundJob.container_number || null,
             container_size: foundJob.container_size || foundJob.origin?.container_size || foundJob.origin?.container_sizes?.[0] || foundJob.containers?.[0]?.container_type || null,
             agent: foundJob.agent || null,
+            product_name: foundJob.product_name ?? null,
+            product_quantity: foundJob.product_quantity ?? null,
+            product_unit: foundJob.product_unit ?? null,
+            product_weight: foundJob.product_weight ?? foundJob.product_weight_value ?? null,
+            product_weight_unit: foundJob.product_weight_unit ?? null,
+            goods_weight: foundJob.goods_weight ?? null,
+            goods_unit: foundJob.goods_unit ?? null,
+            weight: foundJob.weight ?? null,
+            weight_unit: foundJob.weight_unit ?? null,
 
             container_number_2: foundJob.container_number_2 || null,
             seal_number: foundJob.seal_number || null,
