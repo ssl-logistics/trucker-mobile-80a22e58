@@ -4184,6 +4184,7 @@ const koTranslations: Record<string, string> = {
   'jobDetail.containerTypeQty': '컨테이너 종류 및 수량',
   'jobDetail.containerDate': '컨테이너 날짜',
   'jobDetail.containerNumber': '컨테이너 번호',
+  'jobDetail.containerSize': '컨테이너 크기',
   'jobDetail.sealNumber': '봉인 번호',
   'jobDetail.loadedContainerPickup': '적재 컨테이너 픽업',
   'jobDetail.returnAddress': '주소',
