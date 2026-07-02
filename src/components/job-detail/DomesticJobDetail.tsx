@@ -1556,6 +1556,8 @@ export default function DomesticJobDetail({
                             </div>
                             {(() => {
                               const j: any = job;
+                              const isInternational = !!j.bl_no || !!j.booking_no;
+                              if (!isInternational) return null;
                               const containerSize =
                                 j.container_size ||
                                 j.origin?.container_size ||
