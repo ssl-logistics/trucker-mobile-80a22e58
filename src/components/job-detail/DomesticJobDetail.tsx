@@ -2830,60 +2830,7 @@ export default function DomesticJobDetail({
 
       {/* Swap is now instant via drag-and-drop — no confirmation dialog */}
 
-      {/* Customer Info Modal */}
-      <Dialog open={!!customerModalData} onOpenChange={(o) => !o && setCustomerModalData(null)}>
-        <DialogContent className="max-w-sm mx-auto max-h-[80vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-[#225795]">
-              <User className="w-5 h-5" />
-              {t('jobDetail.customerInfo') || 'ข้อมูลลูกค้า'}
-            </DialogTitle>
-          </DialogHeader>
-          {customerModalData && (
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="font-medium text-[#454545] min-w-[90px]">{t('jobDetail.customerName') || 'ชื่อลูกค้า'}</span>
-                <span className="font-semibold text-[#225795] flex-1">{customerModalData.customer_name || '-'}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="font-medium text-[#454545] min-w-[90px]">{t('jobDetail.taxId') || 'เลขผู้เสียภาษี'}</span>
-                <span className="flex-1">{customerModalData.tax_id || '-'}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                <span className="font-medium text-[#454545] min-w-[70px]">{t('jobDetail.location') || 'สถานที่'}</span>
-                <span className="flex-1">{customerModalData.address || '-'}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                <span className="font-medium text-[#454545] min-w-[70px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
-                <span className="flex-1">{[customerModalData.province, customerModalData.district].filter(Boolean).join(' ') || '-'}</span>
-              </div>
-              {customerModalData.contact_name && (
-                <div className="flex items-start gap-2">
-                  <User className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                  <span className="flex-1">{customerModalData.contact_name}</span>
-                </div>
-              )}
-              {customerModalData.contact_phone && (
-                <div className="flex items-start gap-2">
-                  <Phone className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                  <a href={`tel:${customerModalData.contact_phone}`} className="text-[#225795] underline flex-1">{customerModalData.contact_phone}</a>
-                </div>
-              )}
-              {customerModalData.notes && (
-                <div className="flex items-start gap-2 pt-2 border-t">
-                  <FileText className="w-4 h-4 mt-0.5 shrink-0 text-[#225795]" />
-                  <div className="flex-1">
-                    <div className="font-medium text-[#454545] mb-0.5">{t('jobDetail.note') || 'หมายเหตุ'}</div>
-                    <div className="text-muted-foreground">{customerModalData.notes}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Customer Info now shown inline under pickup point */}
 
       {/* Goods Detail Modal */}
       <Dialog open={showGoodsModal} onOpenChange={setShowGoodsModal}>
