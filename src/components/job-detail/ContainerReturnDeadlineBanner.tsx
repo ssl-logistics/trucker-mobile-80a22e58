@@ -8,32 +8,43 @@ interface Props {
   pickupAt: string | null;
   /** Free days allowed for container return, set by office web. */
   containerFreeDays: number | null | undefined;
+  /** Absolute deadline (e.g. Booking closing_time). When provided, overrides pickupAt + freeDays. */
+  deadlineAt?: string | null;
 }
 
 /**
- * Banner shown on BL (international) jobs after the driver checks in to pick
- * up the container. Counts down to the deadline based on `container_free_days`
- * (configured by office). Updates every 1 second.
+ * Banner shown on container jobs after the driver picks up the container.
+ * - BL (inbound): counts down from pickup + `container_free_days`.
+ * - Booking (outbound): counts down to absolute `deadlineAt` (closing_time).
+ * Updates every 1 second.
  */
-export function ContainerReturnDeadlineBanner({ show, pickupAt, containerFreeDays }: Props) {
+export function ContainerReturnDeadlineBanner({ show, pickupAt, containerFreeDays, deadlineAt }: Props) {
   const { language } = useLanguage();
   const [now, setNow] = useState(() => Date.now());
 
   const days = Number(containerFreeDays);
   const hasValidDays = Number.isFinite(days) && days > 0;
+  const deadlineFromAbsolute = deadlineAt ? new Date(deadlineAt).getTime() : NaN;
+  const hasAbsoluteDeadline = Number.isFinite(deadlineFromAbsolute) && deadlineFromAbsolute > 0;
+
+  const canRender = show && (hasAbsoluteDeadline || (!!pickupAt && hasValidDays));
 
   useEffect(() => {
-    if (!show || !pickupAt || !hasValidDays) return;
+    if (!canRender) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [show, pickupAt, hasValidDays]);
+  }, [canRender]);
 
-  if (!show || !pickupAt || !hasValidDays) return null;
+  if (!canRender) return null;
 
-  const pickupMs = new Date(pickupAt).getTime();
-  if (!pickupMs) return null;
-
-  const deadlineMs = pickupMs + days * 24 * 3_600_000;
+  let deadlineMs: number;
+  if (hasAbsoluteDeadline) {
+    deadlineMs = deadlineFromAbsolute;
+  } else {
+    const pickupMs = new Date(pickupAt!).getTime();
+    if (!pickupMs) return null;
+    deadlineMs = pickupMs + days * 24 * 3_600_000;
+  }
   const remainingMs = deadlineMs - now;
   const overdue = remainingMs <= 0;
 
