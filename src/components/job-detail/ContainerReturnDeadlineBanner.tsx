@@ -55,9 +55,10 @@ export function ContainerReturnDeadlineBanner({ show, pickupAt, containerFreeDay
   const dMinutes = Math.floor((totalSeconds % 3600) / 60);
   const dSeconds = totalSeconds % 60;
 
-  const urgent = !overdue && remainingMs <= 24 * 3_600_000;
+  const critical = !overdue && remainingMs <= 6 * 3_600_000;
+  const urgent = !overdue && !critical && remainingMs <= 24 * 3_600_000;
 
-  const tone = overdue
+  const tone = overdue || critical
     ? 'border-destructive/40 bg-destructive/10 text-destructive'
     : urgent
     ? 'border-orange-300 bg-orange-50 text-orange-700'
