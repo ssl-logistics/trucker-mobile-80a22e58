@@ -133,7 +133,7 @@ export default function AccountPage() {
       });
 
       await Promise.all(AUTH_KEYS.map(key => removeAuthItem(key)));
-      navigate('/sign-in', { replace: true });
+      window.location.replace('/');
     } catch (error: any) {
       console.error('Delete account error:', error);
       toast({
