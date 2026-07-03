@@ -1274,7 +1274,7 @@ export default function DomesticJobDetail({
         <ContainerReturnDeadlineBanner
           show={
             (!!job.bl_no || !!job.container_number || containerPickupConfirmed || emptyContainerCheckedIn) &&
-            !!(latestEirAt || containerPickupAt) &&
+            !!(latestEirAt || containerPickupAt || (job as any).booking_no) &&
             !containerReturnConfirmed
           }
           pickupAt={latestEirAt || containerPickupAt}
@@ -1283,7 +1283,13 @@ export default function DomesticJobDetail({
             const num = Number(raw);
             return Number.isFinite(num) && num > 0 ? num : 2;
           })()}
+          deadlineAt={
+            (job as any).booking_no
+              ? ((job as any).closing_time ?? (job as any).closingTime ?? (job as any).closing_date ?? null)
+              : null
+          }
         />
+
 
         {/* Route Info */}
         <div>
