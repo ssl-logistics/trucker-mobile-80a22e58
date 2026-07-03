@@ -63,11 +63,17 @@ export function ContainerReturnDeadlineBanner({ show, pickupAt, containerFreeDay
     ? 'border-orange-300 bg-orange-50 text-orange-700'
     : 'border-blue-200 bg-blue-50 text-blue-700';
 
+  const deadlineDate = new Date(deadlineMs);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const deadlineText = `${deadlineDate.getFullYear()}-${pad(deadlineDate.getMonth() + 1)}-${pad(deadlineDate.getDate())} ${pad(deadlineDate.getHours())}:${pad(deadlineDate.getMinutes())}`;
+
   const labels = {
     th: {
       title: overdue ? 'เลยกำหนดคืนตู้คอนเทนเนอร์' : 'กำหนดคืนตู้คอนเทนเนอร์',
       subtitle: overdue
         ? 'กรุณาคืนตู้เปล่าโดยด่วน'
+        : hasAbsoluteDeadline
+        ? `ต้องคืนตู้เปล่าภายใน ${deadlineText} (Closing Time)`
         : `ต้องคืนตู้เปล่าภายใน ${days} วันหลังรับตู้`,
       remaining: 'เหลือเวลา',
       overdueLabel: 'เลยกำหนด',
@@ -80,6 +86,8 @@ export function ContainerReturnDeadlineBanner({ show, pickupAt, containerFreeDay
       title: overdue ? 'Container return overdue' : 'Container return deadline',
       subtitle: overdue
         ? 'Please return the empty container ASAP'
+        : hasAbsoluteDeadline
+        ? `Empty container must be returned by ${deadlineText} (Closing Time)`
         : `Empty container must be returned within ${days} day(s) of pickup`,
       remaining: 'Remaining',
       overdueLabel: 'Overdue by',
