@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { verifyAppSecret } from "../_shared/appAuth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-app-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+// Cap request body size to prevent API-quota abuse via oversized images.
+const MAX_IMAGE_BASE64_LENGTH = 8 * 1024 * 1024; // ~6MB image after decode
 
 interface OCRRequest {
   image_base64: string;
