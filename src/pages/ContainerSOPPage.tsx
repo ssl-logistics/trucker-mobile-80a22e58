@@ -244,8 +244,10 @@ const ContainerSOPPage = () => {
 
         if (status === 'match' && cStatus === 'match') {
           toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
-        } else if (status === 'mismatch' || cStatus === 'mismatch') {
-          toast({ title: 'อ่าน EIR สำเร็จ', description: 'ข้อมูลบางส่วนไม่ตรงกับงาน แต่สามารถตรวจสอบและยืนยันต่อได้' });
+        } else if (status === 'mismatch') {
+          toast({ title: 'เลข BL/Booking ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกงานหรือไม่', variant: 'destructive' });
+        } else if (cStatus === 'mismatch') {
+          toast({ title: 'อ่าน EIR สำเร็จ', description: 'เลขตู้ไม่ตรงกับงาน แต่ยืนยันต่อได้' });
         } else {
           toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
@@ -866,6 +868,27 @@ const ContainerSOPPage = () => {
     }
     if (eirPhotoFiles.length === 0) {
       toast({ title: 'กรุณาถ่ายรูป EIR', variant: "destructive" });
+      return;
+    }
+
+    // 🔒 Lock: block confirm when EIR's BL/Booking does NOT match this job.
+    // OCR still running → force wait.
+    if (isProcessingEirBlOcr) {
+      toast({
+        title: 'กำลังตรวจสอบ EIR...',
+        description: 'กรุณารอสักครู่ก่อนกดยืนยัน',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (eirBlMatchStatus === 'mismatch') {
+      const jobRef = jobDetail?.bl_no || jobDetail?.booking_no || '-';
+      const ocrRef = eirBlOcrResult?.bl_no || eirBlOcrResult?.booking_no || '-';
+      toast({
+        title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน',
+        description: `งานนี้: ${jobRef} | อ่านจาก EIR: ${ocrRef} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกงานหรือไม่`,
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -1724,13 +1747,13 @@ const ContainerSOPPage = () => {
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirBlMatchStatus === 'mismatch' && (
-                <Card className="p-3 bg-amber-50 border-amber-300 space-y-2">
+                <Card className="p-3 bg-red-50 border-red-400 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Scan className="w-4 h-4 text-amber-600" />
-                    <span className="font-semibold text-amber-800 text-sm">OCR ได้เลข BL/Booking แล้ว (ยืนยันต่อได้)</span>
-                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">OCR</span>
+                    <Scan className="w-4 h-4 text-red-600" />
+                    <span className="font-semibold text-red-800 text-sm">เลข BL/Booking ใน EIR ไม่ตรงกับงานนี้ — ไม่สามารถยืนยันได้</span>
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  <div className="text-xs text-amber-900 space-y-1">
+                  <div className="text-xs text-red-900 space-y-1">
                     {eirJobReferenceRows.map((row) => (
                       <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
                     ))}
