@@ -218,7 +218,7 @@ const ContainerSOPPage = () => {
     );
 
   const getExpectedContainerForEir = (override?: string | null) =>
-    normalizeRef(override) || getAssignedContainerForEir() || normalizeRef(ocrContainerNumber);
+    normalizeRef(override) || getAssignedContainerForEir();
 
   const showEirBlockingToast = (
     refStatus: EirMatchStatus | null,
@@ -1535,7 +1535,17 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
-  const isConfirmDisabled = uploading || checkingExpenses;
+  const currentEirCheck = eirBlOcrResult
+    ? evaluateEirMatches(eirBlOcrResult)
+    : { refStatus: eirBlMatchStatus, containerStatus: eirContainerMatchStatus };
+  const isEirBlockingConfirm = eirPhotoFiles.length > 0 && (
+    isProcessingEirBlOcr ||
+    currentEirCheck.refStatus === 'mismatch' ||
+    currentEirCheck.refStatus === 'not_found' ||
+    currentEirCheck.containerStatus === 'mismatch' ||
+    currentEirCheck.containerStatus === 'not_found'
+  );
+  const isConfirmDisabled = uploading || checkingExpenses || isEirBlockingConfirm;
   const eirJobReferenceRows = [
     { label: 'BL ในงาน', value: jobDetail?.bl_no },
     { label: 'Booking ในงาน', value: jobDetail?.booking_no },
@@ -2182,7 +2192,7 @@ const ContainerSOPPage = () => {
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
           onClick={handleConfirmClick}
-          disabled={isConfirmDisabled || checkingExpenses}
+          disabled={isConfirmDisabled}
         >
           {checkingExpenses ? t('common.loading') : uploading ? t('sop.saving') : confirmButtonText}
         </Button>
@@ -2207,7 +2217,7 @@ const ContainerSOPPage = () => {
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
               className="flex-1 h-11"
-              disabled={uploading}
+              disabled={uploading || isEirBlockingConfirm}
             >
               {t('sop.cancel')}
             </Button>
