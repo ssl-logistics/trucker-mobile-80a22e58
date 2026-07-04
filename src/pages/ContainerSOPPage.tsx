@@ -909,6 +909,10 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmClick = async () => {
+    let effectiveEirResult = eirBlOcrResult;
+    let effectiveRefStatus = eirBlMatchStatus;
+    let effectiveContainerStatus = eirContainerMatchStatus;
+
     if (eirPhotoFiles.length === 0) {
       toast({ title: 'กรุณาถ่ายรูป EIR ก่อน', description: 'ต้องตรวจเลขตู้จากใบ EIR ก่อนถ่ายรูปตู้และยืนยัน', variant: "destructive" });
       return;
@@ -937,7 +941,7 @@ const ContainerSOPPage = () => {
         return;
       }
     }
-    if (!eirBlOcrResult) {
+    if (!effectiveEirResult) {
       const file = await getEirFileForOcr();
       if (!file) {
         toast({ title: 'ไม่พบรูป EIR', description: 'กรุณาถ่ายรูป EIR ก่อน', variant: 'destructive' });
@@ -945,12 +949,19 @@ const ContainerSOPPage = () => {
       }
       const checked = await runEirBlOcr(file);
       if (!checked) return;
+      effectiveEirResult = checked.result;
+      effectiveRefStatus = checked.refStatus;
+      effectiveContainerStatus = checked.containerStatus;
+    } else {
+      const checked = evaluateEirMatches(effectiveEirResult);
+      effectiveRefStatus = checked.refStatus;
+      effectiveContainerStatus = checked.containerStatus;
     }
 
     // 🔒 Lock: block confirm when EIR's BL/Booking or container number is missing/mismatched.
-    if (eirBlMatchStatus === 'mismatch') {
+    if (effectiveRefStatus === 'mismatch') {
       const jobRef = jobDetail?.bl_no || jobDetail?.booking_no || '-';
-      const ocrRef = eirBlOcrResult?.bl_no || eirBlOcrResult?.booking_no || '-';
+      const ocrRef = effectiveEirResult?.bl_no || effectiveEirResult?.booking_no || '-';
       toast({
         title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน',
         description: `งานนี้: ${jobRef} | อ่านจาก EIR: ${ocrRef} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกงานหรือไม่`,
@@ -958,7 +969,7 @@ const ContainerSOPPage = () => {
       });
       return;
     }
-    if (eirBlMatchStatus === 'not_found' && (jobDetail?.bl_no || jobDetail?.booking_no)) {
+    if (effectiveRefStatus === 'not_found' && (jobDetail?.bl_no || jobDetail?.booking_no)) {
       toast({
         title: 'ไม่พบเลข BL/Booking ใน EIR',
         description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลข BL หรือ Booking ชัดเจนก่อนยืนยัน',
@@ -966,9 +977,9 @@ const ContainerSOPPage = () => {
       });
       return;
     }
-    if (eirContainerMatchStatus === 'mismatch') {
+    if (effectiveContainerStatus === 'mismatch') {
       const jobCn = ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number || '-';
-      const ocrCn = eirBlOcrResult?.container_number || '-';
+      const ocrCn = effectiveEirResult?.container_number || '-';
       toast({
         title: 'เลขตู้ใน EIR ไม่ตรงกับงาน',
         description: `ตู้ที่ยืนยัน: ${jobCn} | อ่านจาก EIR: ${ocrCn} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกตู้หรือไม่`,
@@ -976,7 +987,7 @@ const ContainerSOPPage = () => {
       });
       return;
     }
-    if (eirContainerMatchStatus !== 'match') {
+    if (effectiveContainerStatus !== 'match') {
       toast({
         title: 'ไม่พบเลขตู้ใน EIR',
         description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลขตู้ชัดเจน ระบบต้องเทียบเลขตู้จาก EIR ก่อนยืนยัน',
@@ -1491,12 +1502,6 @@ const ContainerSOPPage = () => {
         ? 'ยืนยันรับตู้เปล่า' 
         : t('containerSop.confirmButton');
 
-  const blAnglePhotosReady = isBLJob && !isContainerReturn ? blContainerPhotoFiles.length > 0 : true;
-   const allPhotosReady = isContainerReturn 
-    ? eirPhotoFiles.length > 0 
-    : (containerPhotoFile && sealPhotoFile && eirPhotoFiles.length > 0 && blAnglePhotosReady);
-  const ocrReady = needsOCR ? (isContainerOcrDone && isSealOcrDone) : true;
-  const yardReady = isContainerReturn && isYardUnknown ? !!returnSlipYardName : true;
   const isConfirmDisabled = uploading || checkingExpenses;
   const eirJobReferenceRows = [
     { label: 'BL ในงาน', value: jobDetail?.bl_no },
@@ -1544,7 +1549,7 @@ const ContainerSOPPage = () => {
         {isBLJob && !isContainerReturn && (
           <div className="space-y-2 order-2">
             <Label className="text-base flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">2</span>
               ถ่ายรูปตู้ / รูปรถ <span className="text-red-500">*</span>
             </Label>
             <div className="grid grid-cols-3 gap-2">
@@ -1553,8 +1558,7 @@ const ContainerSOPPage = () => {
                   <button
                     onClick={() => {
                       setActiveBlAngleIndex(idx);
-                      setActivePhotoSlot('bl_angle');
-                      setShowPhotoDrawer(true);
+                      openPhotoDrawer('bl_angle');
                     }}
                     className="w-full h-28 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white overflow-hidden"
                   >
@@ -1576,8 +1580,7 @@ const ContainerSOPPage = () => {
               <button
                 onClick={() => {
                   setActiveBlAngleIndex(blContainerPhotoFiles.length);
-                  setActivePhotoSlot('bl_angle');
-                  setShowPhotoDrawer(true);
+                  openPhotoDrawer('bl_angle');
                 }}
                 className="w-full h-28 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors bg-white"
               >
@@ -1597,7 +1600,7 @@ const ContainerSOPPage = () => {
         {!isContainerReturn && (
         <div className="space-y-2 order-3">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '2' : '1'}</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '3' : '2'}</span>
             ถ่ายรูปเลขตู้ (Container No.) <span className="text-red-500">*</span>
           </Label>
           
@@ -1695,7 +1698,7 @@ const ContainerSOPPage = () => {
         {!isContainerReturn && (
         <div className="space-y-2 order-4">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '3' : '2'}</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '4' : '3'}</span>
             ถ่ายรูปเลขซีล (Seal No.) <span className="text-red-500">*</span>
           </Label>
           
