@@ -1727,7 +1727,7 @@ const ContainerSOPPage = () => {
           </p>
 
           {/* EIR BL/Booking verification result (pickup only) */}
-          {(jobDetail?.bl_no || jobDetail?.booking_no || containerNumber) && (
+          {(jobDetail?.bl_no || jobDetail?.booking_no || containerNumber || ocrContainerNumber) && (
             <>
               {isProcessingEirBlOcr && (
                 <Card className="p-3 bg-blue-50 border-blue-200">
