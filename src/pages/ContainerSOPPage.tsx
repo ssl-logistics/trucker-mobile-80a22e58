@@ -208,8 +208,65 @@ const ContainerSOPPage = () => {
     return match ? match[0].replace(/[\s\-]/g, '') : null;
   };
 
+  const getAssignedContainerForEir = () =>
+    normalizeRef(
+      containerNumber ||
+      jobDetail?.container_number ||
+      jobDetail?.container_details?.find((detail) => detail?.containerNo)?.containerNo ||
+      (jobDetail as any)?.container_no ||
+      (jobDetail as any)?.containerNo
+    );
+
   const getExpectedContainerForEir = (override?: string | null) =>
-    normalizeRef(override || ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number);
+    normalizeRef(override) || getAssignedContainerForEir() || normalizeRef(ocrContainerNumber);
+
+  const showEirBlockingToast = (
+    refStatus: EirMatchStatus | null,
+    containerStatus: EirMatchStatus | null,
+    result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null } | null,
+  ) => {
+    if (refStatus === 'mismatch') {
+      const jobRef = jobDetail?.bl_no || jobDetail?.booking_no || '-';
+      const ocrRef = result?.bl_no || result?.booking_no || '-';
+      toast({
+        title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน',
+        description: `งานนี้: ${jobRef} | อ่านจาก EIR: ${ocrRef} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกงานหรือไม่`,
+        variant: 'destructive',
+      });
+      return true;
+    }
+
+    if (refStatus === 'not_found' && (jobDetail?.bl_no || jobDetail?.booking_no)) {
+      toast({
+        title: 'ไม่พบเลข BL/Booking ใน EIR',
+        description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลข BL หรือ Booking ชัดเจนก่อนยืนยัน',
+        variant: 'destructive',
+      });
+      return true;
+    }
+
+    if (containerStatus === 'mismatch') {
+      const expectedCn = getExpectedContainerForEir();
+      const ocrCn = result?.container_number || '-';
+      toast({
+        title: 'เลขตู้ใน EIR ไม่ตรงกับงาน',
+        description: `ตู้ที่ต้องตรงกับงาน: ${expectedCn || '-'} | อ่านจาก EIR: ${ocrCn} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกตู้หรือไม่`,
+        variant: 'destructive',
+      });
+      return true;
+    }
+
+    if (containerStatus !== 'match') {
+      toast({
+        title: 'ไม่พบเลขตู้ใน EIR',
+        description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลขตู้ชัดเจน ระบบต้องเทียบเลขตู้จาก EIR ก่อนยืนยัน',
+        variant: 'destructive',
+      });
+      return true;
+    }
+
+    return false;
+  };
 
   const evaluateEirMatches = (
     result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null } | null,
@@ -929,20 +986,6 @@ const ContainerSOPPage = () => {
       return;
     }
 
-    if (needsOCR && !isContainerOcrDone) {
-      toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
-      return;
-    }
-    if (needsOCR && !isSealOcrDone) {
-      toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
-      return;
-    }
-    if (isBLJob && !isContainerReturn) {
-      if (blContainerPhotoFiles.length === 0) {
-        toast({ title: 'กรุณาถ่ายรูปตู้อย่างน้อย 1 รูป', variant: "destructive" });
-        return;
-      }
-    }
     if (!effectiveEirResult) {
       const file = await getEirFileForOcr();
       if (!file) {
@@ -960,45 +1003,24 @@ const ContainerSOPPage = () => {
       effectiveContainerStatus = checked.containerStatus;
     }
 
-    // 🔒 Lock: block confirm when EIR's BL/Booking or container number is missing/mismatched.
-    if (effectiveRefStatus === 'mismatch') {
-      const jobRef = jobDetail?.bl_no || jobDetail?.booking_no || '-';
-      const ocrRef = effectiveEirResult?.bl_no || effectiveEirResult?.booking_no || '-';
-      toast({
-        title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน',
-        description: `งานนี้: ${jobRef} | อ่านจาก EIR: ${ocrRef} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกงานหรือไม่`,
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (effectiveRefStatus === 'not_found' && (jobDetail?.bl_no || jobDetail?.booking_no)) {
-      toast({
-        title: 'ไม่พบเลข BL/Booking ใน EIR',
-        description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลข BL หรือ Booking ชัดเจนก่อนยืนยัน',
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (effectiveContainerStatus === 'mismatch') {
-      const jobCn = ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number || '-';
-      const ocrCn = effectiveEirResult?.container_number || '-';
-      toast({
-        title: 'เลขตู้ใน EIR ไม่ตรงกับงาน',
-        description: `ตู้ที่ยืนยัน: ${jobCn} | อ่านจาก EIR: ${ocrCn} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกตู้หรือไม่`,
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (effectiveContainerStatus !== 'match') {
-      toast({
-        title: 'ไม่พบเลขตู้ใน EIR',
-        description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลขตู้ชัดเจน ระบบต้องเทียบเลขตู้จาก EIR ก่อนยืนยัน',
-        variant: 'destructive',
-      });
+    if (showEirBlockingToast(effectiveRefStatus, effectiveContainerStatus, effectiveEirResult)) {
       return;
     }
 
-
+    if (needsOCR && !isContainerOcrDone) {
+      toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
+      return;
+    }
+    if (needsOCR && !isSealOcrDone) {
+      toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
+      return;
+    }
+    if (isBLJob && !isContainerReturn) {
+      if (blContainerPhotoFiles.length === 0) {
+        toast({ title: 'กรุณาถ่ายรูปตู้อย่างน้อย 1 รูป', variant: "destructive" });
+        return;
+      }
+    }
 
     // BL container return: check mandatory expenses
     if (isBLJob && isContainerReturn && user) {
@@ -1011,6 +1033,15 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmSOP = async () => {
+    const checkedEir = eirBlOcrResult
+      ? evaluateEirMatches(eirBlOcrResult)
+      : { refStatus: eirBlMatchStatus, containerStatus: eirContainerMatchStatus };
+
+    if (!eirBlOcrResult || showEirBlockingToast(checkedEir.refStatus, checkedEir.containerStatus, eirBlOcrResult)) {
+      setShowConfirmDialog(false);
+      return;
+    }
+
     const primaryEirFile = eirPhotoFiles[0];
     if (!primaryEirFile || !jobId || !user) return;
 
@@ -1950,7 +1981,7 @@ const ContainerSOPPage = () => {
                     <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
                   <div className="text-xs text-red-900 space-y-0.5">
-                    <p>ตู้ที่ยืนยัน: <span className="font-semibold">{ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number}</span></p>
+                    <p>เลขตู้ในงาน: <span className="font-semibold">{getAssignedContainerForEir() || '-'}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number}</span></p>
                   </div>
                 </Card>
@@ -1966,7 +1997,7 @@ const ContainerSOPPage = () => {
                     </span>
                   </div>
                   <div className={`text-xs space-y-0.5 ${getExpectedContainerForEir() ? 'text-red-900' : 'text-amber-900'}`}>
-                    <p>ตู้ที่ยืนยัน: <span className="font-semibold">{ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number || '-'}</span></p>
+                    <p>เลขตู้ในงาน: <span className="font-semibold">{getAssignedContainerForEir() || '-'}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number || '-'}</span></p>
                   </div>
                 </Card>
