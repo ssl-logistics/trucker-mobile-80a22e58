@@ -101,6 +101,11 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const authError = verifyAppSecret(req);
+  if (authError) {
+    return new Response(await authError.text(), { status: authError.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+
   try {
     const { userId, effectiveTimeInSeconds = 3600 } = await req.json();
 
