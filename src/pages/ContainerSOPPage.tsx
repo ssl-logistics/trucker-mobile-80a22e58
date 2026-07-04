@@ -869,6 +869,27 @@ const ContainerSOPPage = () => {
       return;
     }
 
+    // 🔒 Lock: block confirm when EIR's BL/Booking does NOT match this job.
+    // OCR still running → force wait.
+    if (isProcessingEirBlOcr) {
+      toast({
+        title: 'กำลังตรวจสอบ EIR...',
+        description: 'กรุณารอสักครู่ก่อนกดยืนยัน',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (eirBlMatchStatus === 'mismatch') {
+      const jobRef = jobDetail?.bl_no || jobDetail?.booking_no || '-';
+      const ocrRef = eirBlOcrResult?.bl_no || eirBlOcrResult?.booking_no || '-';
+      toast({
+        title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน',
+        description: `งานนี้: ${jobRef} | อ่านจาก EIR: ${ocrRef} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกงานหรือไม่`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // BL container return: check mandatory expenses
     if (isBLJob && isContainerReturn && user) {
       const missing = await checkMissingExpensesForReturn();
