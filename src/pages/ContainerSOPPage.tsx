@@ -895,15 +895,16 @@ const ContainerSOPPage = () => {
       return;
     }
     if (eirContainerMatchStatus === 'mismatch') {
-      const jobCn = containerNumber || (jobDetail as any)?.container_number || '-';
+      const jobCn = ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number || '-';
       const ocrCn = eirBlOcrResult?.container_number || '-';
       toast({
         title: 'เลขตู้ใน EIR ไม่ตรงกับงาน',
-        description: `ตู้ตามงาน: ${jobCn} | อ่านจาก EIR: ${ocrCn} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกตู้หรือไม่`,
+        description: `ตู้ที่ยืนยัน: ${jobCn} | อ่านจาก EIR: ${ocrCn} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกตู้หรือไม่`,
         variant: 'destructive',
       });
       return;
     }
+
 
 
     // BL container return: check mandatory expenses
