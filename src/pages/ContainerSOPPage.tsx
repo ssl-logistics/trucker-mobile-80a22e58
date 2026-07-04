@@ -290,7 +290,8 @@ const ContainerSOPPage = () => {
 
     const expectedContainer = getExpectedContainerForEir(expectedContainerOverride);
     const ocrCn = normalizeRef(result?.container_number);
-    let containerStatus: EirMatchStatus = 'not_found';
+    // If the job has no assigned container number, skip container comparison (treat as match)
+    let containerStatus: EirMatchStatus = !expectedContainer ? 'match' : 'not_found';
     if (expectedContainer && ocrCn) {
       containerStatus = ocrCn === expectedContainer ? 'match' : 'mismatch';
     }
