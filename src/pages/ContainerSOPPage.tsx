@@ -722,7 +722,7 @@ const ContainerSOPPage = () => {
     }
 
     // Auto OCR for first EIR photo to verify BL/Booking + container (pickup & return)
-    if (slot === 'eir' && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no || containerNumber)) {
+    if (slot === 'eir' && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no || containerNumber || ocrContainerNumber)) {
       await runEirBlOcr(file);
     }
 
