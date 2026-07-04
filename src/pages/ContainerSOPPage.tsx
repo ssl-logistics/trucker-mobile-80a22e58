@@ -986,20 +986,6 @@ const ContainerSOPPage = () => {
       return;
     }
 
-    if (needsOCR && !isContainerOcrDone) {
-      toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
-      return;
-    }
-    if (needsOCR && !isSealOcrDone) {
-      toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
-      return;
-    }
-    if (isBLJob && !isContainerReturn) {
-      if (blContainerPhotoFiles.length === 0) {
-        toast({ title: 'กรุณาถ่ายรูปตู้อย่างน้อย 1 รูป', variant: "destructive" });
-        return;
-      }
-    }
     if (!effectiveEirResult) {
       const file = await getEirFileForOcr();
       if (!file) {
@@ -1017,45 +1003,24 @@ const ContainerSOPPage = () => {
       effectiveContainerStatus = checked.containerStatus;
     }
 
-    // 🔒 Lock: block confirm when EIR's BL/Booking or container number is missing/mismatched.
-    if (effectiveRefStatus === 'mismatch') {
-      const jobRef = jobDetail?.bl_no || jobDetail?.booking_no || '-';
-      const ocrRef = effectiveEirResult?.bl_no || effectiveEirResult?.booking_no || '-';
-      toast({
-        title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน',
-        description: `งานนี้: ${jobRef} | อ่านจาก EIR: ${ocrRef} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกงานหรือไม่`,
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (effectiveRefStatus === 'not_found' && (jobDetail?.bl_no || jobDetail?.booking_no)) {
-      toast({
-        title: 'ไม่พบเลข BL/Booking ใน EIR',
-        description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลข BL หรือ Booking ชัดเจนก่อนยืนยัน',
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (effectiveContainerStatus === 'mismatch') {
-      const jobCn = ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number || '-';
-      const ocrCn = effectiveEirResult?.container_number || '-';
-      toast({
-        title: 'เลขตู้ใน EIR ไม่ตรงกับงาน',
-        description: `ตู้ที่ยืนยัน: ${jobCn} | อ่านจาก EIR: ${ocrCn} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกตู้หรือไม่`,
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (effectiveContainerStatus !== 'match') {
-      toast({
-        title: 'ไม่พบเลขตู้ใน EIR',
-        description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลขตู้ชัดเจน ระบบต้องเทียบเลขตู้จาก EIR ก่อนยืนยัน',
-        variant: 'destructive',
-      });
+    if (showEirBlockingToast(effectiveRefStatus, effectiveContainerStatus, effectiveEirResult)) {
       return;
     }
 
-
+    if (needsOCR && !isContainerOcrDone) {
+      toast({ title: 'กรุณาถ่ายรูปเลขตู้และยืนยัน', variant: "destructive" });
+      return;
+    }
+    if (needsOCR && !isSealOcrDone) {
+      toast({ title: 'กรุณาถ่ายรูปเลขซีลและยืนยัน', variant: "destructive" });
+      return;
+    }
+    if (isBLJob && !isContainerReturn) {
+      if (blContainerPhotoFiles.length === 0) {
+        toast({ title: 'กรุณาถ่ายรูปตู้อย่างน้อย 1 รูป', variant: "destructive" });
+        return;
+      }
+    }
 
     // BL container return: check mandatory expenses
     if (isBLJob && isContainerReturn && user) {
