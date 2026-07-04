@@ -209,24 +209,27 @@ IMPORTANT:
     } else if (extraction_type === 'eir_document') {
       prompt = `Analyze this EIR (Equipment Interchange Receipt) / ใบรับตู้ document image.
 
-Your primary goal is to extract the BL number and/or Booking number printed on the EIR to verify that the driver received the correct container as ordered.
+Your primary goal is to extract the container number printed on the EIR, plus the BL number and/or Booking number, to verify that the driver received the correct container as ordered.
 
 Look for:
 1. BL Number (B/L No., Bill of Lading, เลขบีแอล) — typically alphanumeric (e.g., "MEDUXX1234567", "ONEYBKK12345678")
 2. Booking Number (Booking No., BKG No., เลขบุ๊คกิ้ง) — typically alphanumeric (e.g., "BKG12345678")
-3. Container number (4 letters + 7 digits) if present
+3. Container number / Cntr No. / Container No. / Equipment No. / เลขตู้ — format is exactly 4 letters + 7 digits (e.g., TEMU1234567). This is mandatory if visible anywhere on the EIR.
 4. Seal number if present
+5. Raw visible text around the container/BL/Booking area
 
 Return ONLY a JSON object in this exact format (no markdown, no explanation):
 {
   "bl_no": "extracted BL number or null",
   "booking_no": "extracted booking number or null",
   "container_number": "extracted container number or null",
-  "seal_number": "extracted seal number or null"
+  "seal_number": "extracted seal number or null",
+  "raw_text": "visible text from the EIR relevant to BL/Booking/container, or null"
 }
 
 IMPORTANT:
-- Return strings as-is (uppercase, no spaces or dashes)
+- Return strings uppercase with no spaces or dashes
+- For container_number, never return a truck plate, tax ID, phone number, EIR number, or booking/BL number; it must match 4 letters followed by 7 digits.
 - If a field is not visible or unclear, use null
 - Do NOT confuse BL with Booking — only return what is explicitly labeled`;
     } else if (extraction_type === 'trailer_plate') {
