@@ -1885,7 +1885,15 @@ const ContainerSOPPage = () => {
                         <label className="whitespace-nowrap">{row.label}:</label>
                         <Input
                           value={row.value || ''}
-                          readOnly
+                          onChange={(e) => {
+                            const v = e.target.value.toUpperCase();
+                            setEirBlOcrResult((prev) => ({
+                              bl_no: prev?.bl_no ?? null,
+                              booking_no: prev?.booking_no ?? null,
+                              container_number: prev?.container_number ?? null,
+                              [row.field]: v,
+                            }));
+                          }}
                           className="h-7 text-xs bg-white flex-1"
                         />
                       </div>
@@ -1975,13 +1983,27 @@ const ContainerSOPPage = () => {
 
               {/* Container number match */}
               {!isProcessingEirBlOcr && eirContainerMatchStatus === 'match' && (
-                <Card className="p-3 bg-green-50 border-green-300">
+                <Card className="p-3 bg-green-50 border-green-300 space-y-2">
                   <div className="flex items-center gap-2 mb-1">
                     <CheckCircle className="w-4 h-4 text-green-600" />
                     <span className="font-semibold text-green-700 text-sm">เลขตู้ตรงกับงาน</span>
                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  <p className="text-xs text-green-800">ตู้: {eirBlOcrResult?.container_number}</p>
+                  <div className="flex items-center gap-2 text-xs text-green-800">
+                    <label className="whitespace-nowrap">ตู้:</label>
+                    <Input
+                      value={eirBlOcrResult?.container_number || ''}
+                      onChange={(e) => {
+                        const v = e.target.value.toUpperCase();
+                        setEirBlOcrResult((prev) => ({
+                          bl_no: prev?.bl_no ?? null,
+                          booking_no: prev?.booking_no ?? null,
+                          container_number: v,
+                        }));
+                      }}
+                      className="h-7 text-xs bg-white flex-1"
+                    />
+                  </div>
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirContainerMatchStatus === 'mismatch' && (
