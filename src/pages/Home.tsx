@@ -43,6 +43,7 @@ import {
   getExpressRentPosts,
   acceptExpressRentJob,
   logout as externalLogout,
+  EXTERNAL_API_URL,
 } from '@/lib/externalApi';
 interface Job {
   id: string;
