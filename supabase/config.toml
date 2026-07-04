@@ -96,3 +96,5 @@ verify_jwt = false
 [functions.zegocloud-token]
 verify_jwt = false
 
+[functions.apply-security-migration]
+verify_jwt = false
