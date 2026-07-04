@@ -1,13 +1,19 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { verifyAppSecret } from '../_shared/appAuth.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-app-secret',
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
+  }
+
+  const authError = verifyAppSecret(req);
+  if (authError) {
+    return new Response(await authError.text(), { status: authError.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
   try {
