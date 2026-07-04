@@ -1862,18 +1862,19 @@ const ContainerSOPPage = () => {
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirContainerMatchStatus === 'mismatch' && (
-                <Card className="p-3 bg-red-50 border-red-300">
+                <Card className="p-3 bg-red-50 border-red-400">
                   <div className="flex items-center gap-2 mb-1">
                     <X className="w-4 h-4 text-red-600" />
-                    <span className="font-semibold text-red-700 text-sm">เลขตู้ไม่ตรงกัน!</span>
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">OCR</span>
+                    <span className="font-semibold text-red-800 text-sm">เลขตู้ใน EIR ไม่ตรงกับงานนี้ — ไม่สามารถยืนยันได้</span>
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  <div className="text-xs text-red-800 space-y-0.5">
+                  <div className="text-xs text-red-900 space-y-0.5">
                     <p>ตู้ตามงาน: <span className="font-semibold">{containerNumber || (jobDetail as any)?.container_number}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number}</span></p>
                   </div>
                 </Card>
               )}
+
             </>
           )}
 
