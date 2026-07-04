@@ -1745,13 +1745,13 @@ const ContainerSOPPage = () => {
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirBlMatchStatus === 'mismatch' && (
-                <Card className="p-3 bg-amber-50 border-amber-300 space-y-2">
+                <Card className="p-3 bg-red-50 border-red-400 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Scan className="w-4 h-4 text-amber-600" />
-                    <span className="font-semibold text-amber-800 text-sm">OCR ได้เลข BL/Booking แล้ว (ยืนยันต่อได้)</span>
-                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">OCR</span>
+                    <Scan className="w-4 h-4 text-red-600" />
+                    <span className="font-semibold text-red-800 text-sm">เลข BL/Booking ใน EIR ไม่ตรงกับงานนี้ — ไม่สามารถยืนยันได้</span>
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  <div className="text-xs text-amber-900 space-y-1">
+                  <div className="text-xs text-red-900 space-y-1">
                     {eirJobReferenceRows.map((row) => (
                       <p key={row.label}>{row.label}: <span className="font-semibold">{row.value}</span></p>
                     ))}
