@@ -39,6 +39,7 @@ serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
 
   const authError = verifyAppSecret(req);
   if (authError) {
