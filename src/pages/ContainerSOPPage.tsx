@@ -190,6 +190,57 @@ const ContainerSOPPage = () => {
   const normalizeRef = (s: string | null | undefined) =>
     (s || '').toString().toUpperCase().replace(/[\s\-_./]/g, '');
 
+  type EirMatchStatus = 'match' | 'mismatch' | 'not_found';
+
+  const extractContainerNumberFromOcrData = (data: any): string | null => {
+    const directValue =
+      data?.container_number ||
+      data?.container_no ||
+      data?.containerNo ||
+      data?.cntr_no ||
+      data?.cntrNo ||
+      data?.container;
+
+    if (directValue) return String(directValue);
+
+    const rawText = String(data?.raw_text || '');
+    const match = rawText.toUpperCase().match(/[A-Z]{4}[\s\-]?\d[\s\-]?\d[\s\-]?\d[\s\-]?\d[\s\-]?\d[\s\-]?\d[\s\-]?\d/);
+    return match ? match[0].replace(/[\s\-]/g, '') : null;
+  };
+
+  const getExpectedContainerForEir = (override?: string | null) =>
+    normalizeRef(override || ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number);
+
+  const evaluateEirMatches = (
+    result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null } | null,
+    expectedContainerOverride?: string | null,
+  ): { refStatus: EirMatchStatus; containerStatus: EirMatchStatus } => {
+    const jobBl = normalizeRef(jobDetail?.bl_no);
+    const jobBk = normalizeRef(jobDetail?.booking_no);
+    const ocrBl = normalizeRef(result?.bl_no);
+    const ocrBk = normalizeRef(result?.booking_no);
+
+    const jobRefs = [jobBl, jobBk].filter(Boolean);
+    const ocrRefs = [ocrBl, ocrBk].filter(Boolean);
+
+    let refStatus: EirMatchStatus = 'match';
+    if (jobRefs.length > 0) {
+      refStatus = 'not_found';
+      if (ocrRefs.length > 0) {
+        refStatus = ocrRefs.some(ref => jobRefs.includes(ref)) ? 'match' : 'mismatch';
+      }
+    }
+
+    const expectedContainer = getExpectedContainerForEir(expectedContainerOverride);
+    const ocrCn = normalizeRef(result?.container_number);
+    let containerStatus: EirMatchStatus = 'not_found';
+    if (expectedContainer && ocrCn) {
+      containerStatus = ocrCn === expectedContainer ? 'match' : 'mismatch';
+    }
+
+    return { refStatus, containerStatus };
+  };
+
   const getEirFileForOcr = async (): Promise<File | null> => {
     const file: File | null = eirPhotoFiles[0] || blEirPhotoFile || null;
     if (file) return file;
@@ -205,7 +256,7 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const runEirBlOcr = async (file: File) => {
+  const runEirBlOcr = async (file: File): Promise<{ refStatus: EirMatchStatus; containerStatus: EirMatchStatus; result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null } } | null> => {
     setIsProcessingEirBlOcr(true);
     setEirBlOcrResult(null);
     setEirBlMatchStatus(null);
@@ -216,53 +267,40 @@ const ContainerSOPPage = () => {
       if (result.success && result.data) {
         const bl = result.data.bl_no || null;
         const bk = result.data.booking_no || null;
-        const cn = (result.data as any).container_number || null;
-        setEirBlOcrResult({ bl_no: bl, booking_no: bk, container_number: cn });
+        const cn = extractContainerNumberFromOcrData(result.data);
+        const ocrResult = { bl_no: bl, booking_no: bk, container_number: cn };
+        const { refStatus, containerStatus } = evaluateEirMatches(ocrResult);
 
-        const jobBl = normalizeRef(jobDetail?.bl_no);
-        const jobBk = normalizeRef(jobDetail?.booking_no);
-        const ocrBl = normalizeRef(bl);
-        const ocrBk = normalizeRef(bk);
-
-        const jobRefs = [jobBl, jobBk].filter(Boolean);
-        const ocrRefs = [ocrBl, ocrBk].filter(Boolean);
-
-        let status: 'match' | 'mismatch' | 'not_found' = 'not_found';
-        if (ocrRefs.length > 0) {
-          status = jobRefs.length === 0 || ocrRefs.some(ref => jobRefs.includes(ref)) ? 'match' : 'mismatch';
-        }
-        setEirBlMatchStatus(status);
-
-        // Container number comparison (prefer the container OCR result from step 2,
-        // then navState verified value, then job's container number)
-        const expectedContainer = normalizeRef(ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number);
-        const ocrCn = normalizeRef(cn);
-        let cStatus: 'match' | 'mismatch' | 'not_found' = 'not_found';
-        if (expectedContainer && ocrCn) {
-          cStatus = ocrCn === expectedContainer ? 'match' : 'mismatch';
-        }
-        setEirContainerMatchStatus(cStatus);
+        setEirBlOcrResult(ocrResult);
+        setEirBlMatchStatus(refStatus);
+        setEirContainerMatchStatus(containerStatus);
 
 
-        if (status === 'match' && cStatus === 'match') {
+        if (refStatus === 'match' && containerStatus === 'match') {
           toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
-        } else if (status === 'mismatch') {
+        } else if (refStatus === 'mismatch') {
           toast({ title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกงานหรือไม่', variant: 'destructive' });
-        } else if (cStatus === 'mismatch') {
+        } else if (containerStatus === 'mismatch') {
           toast({ title: 'เลขตู้ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกตู้หรือไม่', variant: 'destructive' });
+        } else if (containerStatus === 'not_found') {
+          toast({ title: 'ไม่พบเลขตู้ใน EIR', description: 'ต้องอ่านเลขตู้จากใบ EIR ให้ได้ก่อนยืนยัน', variant: 'destructive' });
         } else {
           toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
 
+        return { refStatus, containerStatus, result: ocrResult };
+
       } else {
         setEirBlMatchStatus('not_found');
         setEirContainerMatchStatus('not_found');
-        toast({ title: 'อ่าน EIR ไม่สำเร็จ', description: 'กรุณาตรวจสอบด้วยตนเอง' });
+        toast({ title: 'อ่าน EIR ไม่สำเร็จ', description: 'กรุณาถ่าย EIR ใหม่ ระบบต้องอ่านเลขตู้จาก EIR ก่อนยืนยัน', variant: 'destructive' });
+        return null;
       }
     } catch (error) {
       console.error('EIR BL/Booking OCR error:', error);
       setEirBlMatchStatus('not_found');
       setEirContainerMatchStatus('not_found');
+      return null;
     } finally {
       setIsProcessingEirBlOcr(false);
     }
@@ -275,6 +313,13 @@ const ContainerSOPPage = () => {
       loadJobDetail();
     }
   }, [jobId, user]);
+
+  useEffect(() => {
+    if (!eirBlOcrResult) return;
+    const { refStatus, containerStatus } = evaluateEirMatches(eirBlOcrResult);
+    setEirBlMatchStatus(refStatus);
+    setEirContainerMatchStatus(containerStatus);
+  }, [eirBlOcrResult, ocrContainerNumber, containerNumber, jobDetail?.bl_no, jobDetail?.booking_no, jobDetail?.container_number]);
 
   const loadJobDetail = async () => {
     try {
