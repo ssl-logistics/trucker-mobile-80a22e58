@@ -282,8 +282,10 @@ const ContainerSOPPage = () => {
           toast({ title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกงานหรือไม่', variant: 'destructive' });
         } else if (containerStatus === 'mismatch') {
           toast({ title: 'เลขตู้ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกตู้หรือไม่', variant: 'destructive' });
-        } else if (containerStatus === 'not_found') {
+        } else if (containerStatus === 'not_found' && !cn) {
           toast({ title: 'ไม่พบเลขตู้ใน EIR', description: 'ต้องอ่านเลขตู้จากใบ EIR ให้ได้ก่อนยืนยัน', variant: 'destructive' });
+        } else if (containerStatus === 'not_found') {
+          toast({ title: 'อ่านเลขตู้จาก EIR แล้ว', description: `เลขตู้ใน EIR: ${cn} — กรุณาถ่ายรูปเลขตู้เพื่อเทียบอีกครั้ง` });
         } else {
           toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
@@ -1810,7 +1812,7 @@ const ContainerSOPPage = () => {
           </p>
 
           {/* EIR BL/Booking verification result (pickup only) */}
-          {(jobDetail?.bl_no || jobDetail?.booking_no || containerNumber || ocrContainerNumber) && (
+          {(eirPhotoFiles.length > 0 || isProcessingEirBlOcr || eirBlOcrResult) && (
             <>
               {isProcessingEirBlOcr && (
                 <Card className="p-3 bg-blue-50 border-blue-200">
@@ -1836,7 +1838,7 @@ const ContainerSOPPage = () => {
                         <label className="whitespace-nowrap">{row.label}:</label>
                         <Input
                           value={row.value || ''}
-                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), [row.field]: e.target.value }))}
+                          readOnly
                           className="h-7 text-xs bg-white flex-1"
                         />
                       </div>
@@ -1860,7 +1862,7 @@ const ContainerSOPPage = () => {
                         <label className="whitespace-nowrap">{row.label}:</label>
                         <Input
                           value={row.value || ''}
-                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), [row.field]: e.target.value }))}
+                          readOnly
                           className="h-7 text-xs bg-white flex-1"
                         />
                       </div>
@@ -1889,30 +1891,10 @@ const ContainerSOPPage = () => {
                 <Card className="p-3 bg-amber-50 border-amber-300 space-y-2">
                   <div className="flex items-center gap-2">
                     <Scan className="w-4 h-4 text-amber-600" />
-                    <span className="text-xs text-amber-800 font-medium">ไม่พบเลข BL/Booking ใน EIR กรุณากรอกด้วยตนเอง</span>
+                    <span className="text-xs text-amber-800 font-medium">ไม่พบเลข BL/Booking ใน EIR — ต้องถ่ายใหม่ให้เห็นเลขชัดเจน</span>
                   </div>
                   <div className="space-y-2 pt-1">
-                    {isBLJob ? (
-                      <div>
-                        <label className="text-xs text-amber-900 font-medium">BL ใน EIR (แก้ไขได้)</label>
-                        <Input
-                          value={eirBlOcrResult?.bl_no || ''}
-                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), bl_no: e.target.value }))}
-                          placeholder="กรอกเลข BL"
-                          className="h-9 mt-1 bg-white"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="text-xs text-amber-900 font-medium">Booking ใน EIR (แก้ไขได้)</label>
-                        <Input
-                          value={eirBlOcrResult?.booking_no || ''}
-                          onChange={(e) => setEirBlOcrResult(prev => ({ ...(prev || {}), booking_no: e.target.value }))}
-                          placeholder="กรอกเลข Booking"
-                          className="h-9 mt-1 bg-white"
-                        />
-                      </div>
-                    )}
+                    <p className="text-xs text-amber-900">ระบบไม่ให้แก้เลขจาก EIR ด้วยมือ กรุณาถ่ายรูป EIR ใหม่หรือกดตรวจสอบอีกครั้ง</p>
                     <div className="flex gap-2 pt-1">
                       <Button
                         type="button"
@@ -1957,6 +1939,22 @@ const ContainerSOPPage = () => {
                   <div className="text-xs text-red-900 space-y-0.5">
                     <p>ตู้ที่ยืนยัน: <span className="font-semibold">{ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number}</span></p>
+                  </div>
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && eirContainerMatchStatus === 'not_found' && (
+                <Card className={`p-3 ${getExpectedContainerForEir() ? 'bg-red-50 border-red-400' : 'bg-amber-50 border-amber-300'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Scan className={`w-4 h-4 ${getExpectedContainerForEir() ? 'text-red-600' : 'text-amber-600'}`} />
+                    <span className={`font-semibold text-sm ${getExpectedContainerForEir() ? 'text-red-800' : 'text-amber-800'}`}>
+                      {eirBlOcrResult?.container_number
+                        ? 'อ่านเลขตู้จาก EIR แล้ว — รอเทียบกับรูปเลขตู้'
+                        : 'ไม่พบเลขตู้ใน EIR — ไม่สามารถยืนยันได้'}
+                    </span>
+                  </div>
+                  <div className={`text-xs space-y-0.5 ${getExpectedContainerForEir() ? 'text-red-900' : 'text-amber-900'}`}>
+                    <p>ตู้ที่ยืนยัน: <span className="font-semibold">{ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number || '-'}</span></p>
+                    <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number || '-'}</span></p>
                   </div>
                 </Card>
               )}
