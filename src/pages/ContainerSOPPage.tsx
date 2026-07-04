@@ -1867,7 +1867,15 @@ const ContainerSOPPage = () => {
                         <label className="whitespace-nowrap">{row.label}:</label>
                         <Input
                           value={row.value || ''}
-                          readOnly
+                          onChange={(e) => {
+                            const v = e.target.value.toUpperCase();
+                            setEirBlOcrResult((prev) => ({
+                              bl_no: prev?.bl_no ?? null,
+                              booking_no: prev?.booking_no ?? null,
+                              container_number: prev?.container_number ?? null,
+                              [row.field]: v,
+                            }));
+                          }}
                           className="h-7 text-xs bg-white flex-1"
                         />
                       </div>
@@ -1899,7 +1907,7 @@ const ContainerSOPPage = () => {
                     <span className="text-xs text-amber-800 font-medium">ไม่พบเลข BL/Booking ใน EIR — ต้องถ่ายใหม่ให้เห็นเลขชัดเจน</span>
                   </div>
                   <div className="space-y-2 pt-1">
-                    <p className="text-xs text-amber-900">ระบบไม่ให้แก้เลขจาก EIR ด้วยมือ กรุณาถ่ายรูป EIR ใหม่หรือกดตรวจสอบอีกครั้ง</p>
+                    <p className="text-xs text-amber-900">แก้ไขเลขที่อ่านได้ด้านบน หรือถ่ายรูป EIR ใหม่ แล้วกดตรวจสอบอีกครั้ง</p>
                     <div className="flex gap-2 pt-1">
                       <Button
                         type="button"
