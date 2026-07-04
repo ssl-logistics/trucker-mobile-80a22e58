@@ -2,8 +2,27 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.77.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-app-secret',
 };
+
+// Only accept requests that carry either the service-role bearer (internal
+// edge-function invocations) or the mobile app's shared secret. Blocks
+// arbitrary internet callers from sending push notifications.
+function verifyPushCaller(req: Request): Response | null {
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const appSecret = Deno.env.get('APP_EDGE_SHARED_SECRET');
+  const authHeader = req.headers.get('authorization') || '';
+  const bearer = authHeader.toLowerCase().startsWith('bearer ')
+    ? authHeader.slice(7).trim()
+    : '';
+  if (serviceKey && bearer === serviceKey) return null;
+  const appHeader = req.headers.get('x-app-secret');
+  if (appSecret && appHeader && appHeader === appSecret) return null;
+  return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    status: 401,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
 
 interface NotificationPayload {
   user_id?: string;
