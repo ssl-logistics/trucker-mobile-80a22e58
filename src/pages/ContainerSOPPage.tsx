@@ -1772,7 +1772,7 @@ const ContainerSOPPage = () => {
                 <button
                   onClick={() => {
                     setActiveEirIndex(idx);
-                    openPhotoDrawer('eir');
+                    openPhotoDrawer('eir', idx);
                   }}
                   className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden hover:border-primary/50 transition-colors bg-white"
                 >
@@ -1783,6 +1783,11 @@ const ContainerSOPPage = () => {
                     const newFiles = eirPhotoFiles.filter((_, i) => i !== idx);
                     setEirPhotoFiles(newFiles);
                     setEirPhotoPreviews(prev => prev.filter((_, i) => i !== idx));
+                    if (idx === 0 || newFiles.length === 0) {
+                      setEirBlOcrResult(null);
+                      setEirBlMatchStatus(null);
+                      setEirContainerMatchStatus(null);
+                    }
                   }}
                   className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
                 >
