@@ -1885,7 +1885,15 @@ const ContainerSOPPage = () => {
                         <label className="whitespace-nowrap">{row.label}:</label>
                         <Input
                           value={row.value || ''}
-                          readOnly
+                          onChange={(e) => {
+                            const v = e.target.value.toUpperCase();
+                            setEirBlOcrResult((prev) => ({
+                              bl_no: prev?.bl_no ?? null,
+                              booking_no: prev?.booking_no ?? null,
+                              container_number: prev?.container_number ?? null,
+                              [row.field]: v,
+                            }));
+                          }}
                           className="h-7 text-xs bg-white flex-1"
                         />
                       </div>
