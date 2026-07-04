@@ -43,6 +43,7 @@ import {
   getExpressRentPosts,
   acceptExpressRentJob,
   logout as externalLogout,
+  EXTERNAL_API_URL,
 } from '@/lib/externalApi';
 interface Job {
   id: string;
@@ -953,7 +954,7 @@ const isValidName = (val: any): string => {
         // Update the order status via the external API
         console.log(`[Home] Calling update-order-status API with status: '${orderStatus}' (isInternational: ${isInternationalJob})`);
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-order-status`,
+          `${EXTERNAL_API_URL}/update-order-status`,
           {
             method: 'POST',
             headers: {
