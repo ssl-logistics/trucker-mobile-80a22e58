@@ -257,6 +257,15 @@ const ContainerSOPPage = () => {
     }
 
     if (containerStatus !== 'match') {
+      if (needsOCR && result?.container_number && !isContainerOcrDone) {
+        toast({
+          title: 'รอเลขตู้จากรูปตู้',
+          description: 'ระบบอ่านเลขตู้จาก EIR แล้ว กรุณาอัปโหลด/ยืนยัน OCR รูปเลขตู้ก่อนยืนยันงาน',
+          variant: 'destructive',
+        });
+        return true;
+      }
+
       toast({
         title: 'ไม่พบเลขตู้ใน EIR',
         description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลขตู้ชัดเจน ระบบต้องเทียบเลขตู้จาก EIR ก่อนยืนยัน',
