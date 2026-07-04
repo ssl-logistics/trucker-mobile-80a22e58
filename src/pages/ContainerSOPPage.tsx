@@ -1872,7 +1872,7 @@ const ContainerSOPPage = () => {
                     <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
                   <div className="text-xs text-red-900 space-y-0.5">
-                    <p>ตู้ตามงาน: <span className="font-semibold">{containerNumber || (jobDetail as any)?.container_number}</span></p>
+                    <p>ตู้ที่ยืนยัน: <span className="font-semibold">{ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number}</span></p>
                   </div>
                 </Card>
