@@ -245,12 +245,13 @@ const ContainerSOPPage = () => {
         if (status === 'match' && cStatus === 'match') {
           toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
         } else if (status === 'mismatch') {
-          toast({ title: 'เลข BL/Booking ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกงานหรือไม่', variant: 'destructive' });
+          toast({ title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกงานหรือไม่', variant: 'destructive' });
         } else if (cStatus === 'mismatch') {
-          toast({ title: 'อ่าน EIR สำเร็จ', description: 'เลขตู้ไม่ตรงกับงาน แต่ยืนยันต่อได้' });
+          toast({ title: 'เลขตู้ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกตู้หรือไม่', variant: 'destructive' });
         } else {
           toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
+
       } else {
         setEirBlMatchStatus('not_found');
         setEirContainerMatchStatus('not_found');
