@@ -89,7 +89,7 @@
     "vite-plugin-pwa": "^1.1.0",
     "vitest": "^4.1.9",
     "workbox-window": "^7.4.0",
-    "zego-express-engine-webrtc": "^3.12.0",
+    "zego-express-engine-webrtc": "3.12.220",
     "zod": "^3.25.76"
   },
   "devDependencies": {
