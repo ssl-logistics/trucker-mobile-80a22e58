@@ -233,14 +233,16 @@ const ContainerSOPPage = () => {
         }
         setEirBlMatchStatus(status);
 
-        // Container number comparison (use verified container from check-in, fallback to jobDetail)
-        const expectedContainer = normalizeRef(containerNumber || (jobDetail as any)?.container_number);
+        // Container number comparison (prefer the container OCR result from step 2,
+        // then navState verified value, then job's container number)
+        const expectedContainer = normalizeRef(ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number);
         const ocrCn = normalizeRef(cn);
         let cStatus: 'match' | 'mismatch' | 'not_found' = 'not_found';
         if (expectedContainer && ocrCn) {
           cStatus = ocrCn === expectedContainer ? 'match' : 'mismatch';
         }
         setEirContainerMatchStatus(cStatus);
+
 
         if (status === 'match' && cStatus === 'match') {
           toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
