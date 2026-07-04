@@ -39,6 +39,10 @@ serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+
+  const authError = verifyAppSecret(req);
+  if (authError) {
+    return new Response(await authError.text(), { status: authError.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
   try {
@@ -51,6 +55,13 @@ serve(async (req) => {
 
     if (!image_base64) {
       throw new Error('image_base64 is required');
+    }
+
+    if (typeof image_base64 === 'string' && image_base64.length > MAX_IMAGE_BASE64_LENGTH) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Image too large' }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Build prompt based on extraction type
