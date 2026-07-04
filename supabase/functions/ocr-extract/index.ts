@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { verifyAppSecret } from "../_shared/appAuth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-app-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+// Cap request body size to prevent API-quota abuse via oversized images.
+const MAX_IMAGE_BASE64_LENGTH = 8 * 1024 * 1024; // ~6MB image after decode
 
 interface OCRRequest {
   image_base64: string;
@@ -37,6 +41,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const authError = verifyAppSecret(req);
+  if (authError) {
+    return new Response(await authError.text(), { status: authError.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+
   try {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -47,6 +56,13 @@ serve(async (req) => {
 
     if (!image_base64) {
       throw new Error('image_base64 is required');
+    }
+
+    if (typeof image_base64 === 'string' && image_base64.length > MAX_IMAGE_BASE64_LENGTH) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Image too large' }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Build prompt based on extraction type

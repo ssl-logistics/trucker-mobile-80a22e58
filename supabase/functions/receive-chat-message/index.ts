@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.77.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
 };
 
 interface IncomingMessage {
@@ -60,6 +60,30 @@ Deno.serve(async (req) => {
 
     const payload: IncomingMessage = await req.json();
     console.log('Received message payload:', payload);
+
+    // Authenticate the caller against the external_chat_config table.
+    // The source project must present a valid x-api-key matching the
+    // api_key column for its project_id, otherwise reject the request.
+    const apiKey = req.headers.get('x-api-key');
+    const sourceProjectId = payload?.source_project?.id;
+    if (!apiKey || !sourceProjectId) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing x-api-key or source_project.id' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { data: cfg, error: cfgErr } = await supabase
+      .from('external_chat_config')
+      .select('id, api_key, is_active')
+      .eq('project_id', sourceProjectId)
+      .maybeSingle();
+    if (cfgErr || !cfg || cfg.is_active === false || !cfg.api_key || cfg.api_key !== apiKey) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid external project credentials' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
 
     // Validate required fields
     if (!payload.chat_id || !payload.message || !payload.source_project) {

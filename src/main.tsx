@@ -4,6 +4,32 @@ import "./index.css";
 import { registerSW } from "virtual:pwa-register";
 import { supabase } from "./integrations/supabase/client";
 
+// Attach shared app secret header to all requests to Supabase Edge Functions.
+// This provides a bundled-app identifier that edge functions verify, blocking
+// unauthenticated internet callers that don't ship the mobile app bundle.
+(function installEdgeFunctionAuthHeader() {
+  const APP_SECRET = import.meta.env.VITE_APP_EDGE_SHARED_SECRET as string | undefined;
+  if (!APP_SECRET) return;
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    try {
+      const url = typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : (input as Request).url;
+      if (url.includes("/functions/v1/")) {
+        const headers = new Headers(init?.headers || (typeof input !== "string" && !(input instanceof URL) ? (input as Request).headers : undefined));
+        if (!headers.has("x-app-secret")) headers.set("x-app-secret", APP_SECRET);
+        return originalFetch(input, { ...(init || {}), headers });
+      }
+    } catch {
+      // fall through
+    }
+    return originalFetch(input, init);
+  };
+})();
+
 // Intercept OAuth tokens from URL hash before HashRouter consumes them.
 // After Apple OAuth redirect, tokens may appear as:
 //   /#access_token=...&refresh_token=...&token_type=bearer...

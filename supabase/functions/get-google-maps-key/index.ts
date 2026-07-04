@@ -1,13 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { verifyAppSecret } from "../_shared/appAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-secret",
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  const authError = verifyAppSecret(req);
+  if (authError) {
+    return new Response(await authError.text(), { status: authError.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   try {
