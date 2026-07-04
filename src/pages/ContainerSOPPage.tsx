@@ -245,12 +245,13 @@ const ContainerSOPPage = () => {
         if (status === 'match' && cStatus === 'match') {
           toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
         } else if (status === 'mismatch') {
-          toast({ title: 'เลข BL/Booking ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกงานหรือไม่', variant: 'destructive' });
+          toast({ title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกงานหรือไม่', variant: 'destructive' });
         } else if (cStatus === 'mismatch') {
-          toast({ title: 'อ่าน EIR สำเร็จ', description: 'เลขตู้ไม่ตรงกับงาน แต่ยืนยันต่อได้' });
+          toast({ title: 'เลขตู้ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกตู้หรือไม่', variant: 'destructive' });
         } else {
           toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
+
       } else {
         setEirBlMatchStatus('not_found');
         setEirContainerMatchStatus('not_found');
@@ -891,6 +892,17 @@ const ContainerSOPPage = () => {
       });
       return;
     }
+    if (eirContainerMatchStatus === 'mismatch') {
+      const jobCn = containerNumber || (jobDetail as any)?.container_number || '-';
+      const ocrCn = eirBlOcrResult?.container_number || '-';
+      toast({
+        title: 'เลขตู้ใน EIR ไม่ตรงกับงาน',
+        description: `ตู้ตามงาน: ${jobCn} | อ่านจาก EIR: ${ocrCn} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกตู้หรือไม่`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
 
     // BL container return: check mandatory expenses
     if (isBLJob && isContainerReturn && user) {
@@ -1850,18 +1862,19 @@ const ContainerSOPPage = () => {
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirContainerMatchStatus === 'mismatch' && (
-                <Card className="p-3 bg-red-50 border-red-300">
+                <Card className="p-3 bg-red-50 border-red-400">
                   <div className="flex items-center gap-2 mb-1">
                     <X className="w-4 h-4 text-red-600" />
-                    <span className="font-semibold text-red-700 text-sm">เลขตู้ไม่ตรงกัน!</span>
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">OCR</span>
+                    <span className="font-semibold text-red-800 text-sm">เลขตู้ใน EIR ไม่ตรงกับงานนี้ — ไม่สามารถยืนยันได้</span>
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
-                  <div className="text-xs text-red-800 space-y-0.5">
+                  <div className="text-xs text-red-900 space-y-0.5">
                     <p>ตู้ตามงาน: <span className="font-semibold">{containerNumber || (jobDetail as any)?.container_number}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number}</span></p>
                   </div>
                 </Card>
               )}
+
             </>
           )}
 
