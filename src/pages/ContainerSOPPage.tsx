@@ -952,12 +952,22 @@ const ContainerSOPPage = () => {
   };
 
   const confirmContainerOcr = () => {
-    setOcrContainerNumber(pendingContainerOcr);
+    const confirmed = pendingContainerOcr;
+    setOcrContainerNumber(confirmed);
     setOcrMaxGross(pendingMaxGross);
     setOcrTareWeight(pendingTareWeight);
     setOcrNetWeight(pendingNetWeight);
     setIsContainerOcrDone(true);
     setPendingContainerOcr(null);
+    // Sync confirmed container number into the EIR result card above so the
+    // "ตู้:" field reflects the value the driver just confirmed.
+    if (confirmed) {
+      setEirBlOcrResult((prev) => ({
+        bl_no: prev?.bl_no ?? null,
+        booking_no: prev?.booking_no ?? null,
+        container_number: confirmed,
+      }));
+    }
     toast({ title: 'ยืนยันเลขตู้สำเร็จ' });
   };
 
