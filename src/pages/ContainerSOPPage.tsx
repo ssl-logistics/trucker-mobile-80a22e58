@@ -1033,6 +1033,15 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmSOP = async () => {
+    const checkedEir = eirBlOcrResult
+      ? evaluateEirMatches(eirBlOcrResult)
+      : { refStatus: eirBlMatchStatus, containerStatus: eirContainerMatchStatus };
+
+    if (!eirBlOcrResult || showEirBlockingToast(checkedEir.refStatus, checkedEir.containerStatus, eirBlOcrResult)) {
+      setShowConfirmDialog(false);
+      return;
+    }
+
     const primaryEirFile = eirPhotoFiles[0];
     if (!primaryEirFile || !jobId || !user) return;
 
