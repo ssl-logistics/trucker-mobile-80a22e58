@@ -2217,14 +2217,14 @@ const ContainerSOPPage = () => {
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
               className="flex-1 h-11"
-              disabled={uploading || isEirBlockingConfirm}
+              disabled={uploading}
             >
               {t('sop.cancel')}
             </Button>
             <Button
               onClick={handleConfirmSOP}
               className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
-              disabled={uploading}
+              disabled={uploading || isEirBlockingConfirm}
             >
               {uploading ? t('sop.saving') : t('sop.confirm')}
             </Button>
