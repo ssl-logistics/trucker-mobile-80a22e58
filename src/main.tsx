@@ -9,7 +9,9 @@ import { supabase } from "./integrations/supabase/client";
 // unauthenticated internet callers that don't ship the mobile app bundle.
 (function installEdgeFunctionAuthHeader() {
   const APP_SECRET = import.meta.env.VITE_APP_EDGE_SHARED_SECRET as string | undefined;
-  if (!APP_SECRET) return;
+  const OWN_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  if (!APP_SECRET || !OWN_SUPABASE_URL) return;
+  const ownFunctionsPrefix = `${OWN_SUPABASE_URL.replace(/\/$/, "")}/functions/v1/`;
   const originalFetch = window.fetch.bind(window);
   window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
     try {
@@ -18,7 +20,10 @@ import { supabase } from "./integrations/supabase/client";
         : input instanceof URL
           ? input.toString()
           : (input as Request).url;
-      if (url.includes("/functions/v1/")) {
+      // Only attach the app secret to OUR own Supabase edge functions.
+      // External Supabase projects (e.g. TMS) don't allow this header via CORS
+      // and would fail preflight with "Failed to fetch".
+      if (url.startsWith(ownFunctionsPrefix)) {
         const headers = new Headers(init?.headers || (typeof input !== "string" && !(input instanceof URL) ? (input as Request).headers : undefined));
         if (!headers.has("x-app-secret")) headers.set("x-app-secret", APP_SECRET);
         return originalFetch(input, { ...(init || {}), headers });
