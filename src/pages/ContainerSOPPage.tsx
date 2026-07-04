@@ -218,7 +218,7 @@ const ContainerSOPPage = () => {
     );
 
   const getExpectedContainerForEir = (override?: string | null) =>
-    normalizeRef(override) || getAssignedContainerForEir();
+    normalizeRef(override) || (needsOCR && isContainerOcrDone ? normalizeRef(ocrContainerNumber) : '') || getAssignedContainerForEir();
 
   const showEirBlockingToast = (
     refStatus: EirMatchStatus | null,
@@ -290,7 +290,12 @@ const ContainerSOPPage = () => {
 
     const expectedContainer = getExpectedContainerForEir(expectedContainerOverride);
     const ocrCn = normalizeRef(result?.container_number);
-    // If the job has no assigned container number, skip container comparison (treat as match)
+
+    if (needsOCR && !isContainerOcrDone) {
+      return { refStatus, containerStatus: 'not_found' };
+    }
+
+    // If the job has no assigned/confirmed container number, skip container comparison (treat as match)
     let containerStatus: EirMatchStatus = !expectedContainer ? 'match' : 'not_found';
     if (expectedContainer && ocrCn) {
       containerStatus = ocrCn === expectedContainer ? 'match' : 'mismatch';
@@ -959,15 +964,6 @@ const ContainerSOPPage = () => {
     setOcrNetWeight(pendingNetWeight);
     setIsContainerOcrDone(true);
     setPendingContainerOcr(null);
-    // Sync confirmed container number into the EIR result card above so the
-    // "ตู้:" field reflects the value the driver just confirmed.
-    if (confirmed) {
-      setEirBlOcrResult((prev) => ({
-        bl_no: prev?.bl_no ?? null,
-        booking_no: prev?.booking_no ?? null,
-        container_number: confirmed,
-      }));
-    }
     toast({ title: 'ยืนยันเลขตู้สำเร็จ' });
   };
 
@@ -1557,6 +1553,7 @@ const ContainerSOPPage = () => {
     currentEirCheck.containerStatus === 'not_found'
   );
   const isConfirmDisabled = uploading || checkingExpenses || isEirBlockingConfirm;
+  const isWaitingForContainerPhotoOcr = needsOCR && Boolean(eirBlOcrResult?.container_number) && !isContainerOcrDone;
   const eirJobReferenceRows = [
     { label: 'BL ในงาน', value: jobDetail?.bl_no },
     { label: 'Booking ในงาน', value: jobDetail?.booking_no },
@@ -1694,7 +1691,7 @@ const ContainerSOPPage = () => {
                 <input
                   type="text"
                   value={pendingContainerOcr}
-                  onChange={(e) => setPendingContainerOcr(e.target.value)}
+                    onChange={(e) => setPendingContainerOcr(e.target.value.toUpperCase())}
                   className="w-full px-2 py-1 border border-gray-300 rounded font-bold text-base focus:outline-none focus:border-blue-500"
                   placeholder="กรอกเลขตู้"
                 />
@@ -2024,23 +2021,25 @@ const ContainerSOPPage = () => {
                     <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">OCR</span>
                   </div>
                   <div className="text-xs text-red-900 space-y-0.5">
-                    <p>เลขตู้ในงาน: <span className="font-semibold">{getAssignedContainerForEir() || '-'}</span></p>
+                    <p>{isContainerOcrDone ? 'ตู้จากรูปตู้' : 'เลขตู้ในงาน'}: <span className="font-semibold">{(isContainerOcrDone ? ocrContainerNumber : getAssignedContainerForEir()) || '-'}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number}</span></p>
                   </div>
                 </Card>
               )}
               {!isProcessingEirBlOcr && eirContainerMatchStatus === 'not_found' && (
-                <Card className={`p-3 ${getExpectedContainerForEir() ? 'bg-red-50 border-red-400' : 'bg-amber-50 border-amber-300'}`}>
+                <Card className={`p-3 ${getExpectedContainerForEir() && !isWaitingForContainerPhotoOcr ? 'bg-red-50 border-red-400' : 'bg-amber-50 border-amber-300'}`}>
                   <div className="flex items-center gap-2 mb-1">
-                    <Scan className={`w-4 h-4 ${getExpectedContainerForEir() ? 'text-red-600' : 'text-amber-600'}`} />
-                    <span className={`font-semibold text-sm ${getExpectedContainerForEir() ? 'text-red-800' : 'text-amber-800'}`}>
-                      {eirBlOcrResult?.container_number
+                    <Scan className={`w-4 h-4 ${getExpectedContainerForEir() && !isWaitingForContainerPhotoOcr ? 'text-red-600' : 'text-amber-600'}`} />
+                    <span className={`font-semibold text-sm ${getExpectedContainerForEir() && !isWaitingForContainerPhotoOcr ? 'text-red-800' : 'text-amber-800'}`}>
+                      {isWaitingForContainerPhotoOcr
+                        ? 'อ่านเลขตู้จาก EIR แล้ว — รอเลขตู้จากรูปตู้'
+                        : eirBlOcrResult?.container_number
                         ? 'อ่านเลขตู้จาก EIR แล้ว — รอเทียบกับรูปเลขตู้'
                         : 'ไม่พบเลขตู้ใน EIR — ไม่สามารถยืนยันได้'}
                     </span>
                   </div>
-                  <div className={`text-xs space-y-0.5 ${getExpectedContainerForEir() ? 'text-red-900' : 'text-amber-900'}`}>
-                    <p>เลขตู้ในงาน: <span className="font-semibold">{getAssignedContainerForEir() || '-'}</span></p>
+                  <div className={`text-xs space-y-0.5 ${getExpectedContainerForEir() && !isWaitingForContainerPhotoOcr ? 'text-red-900' : 'text-amber-900'}`}>
+                    <p>{isContainerOcrDone ? 'ตู้จากรูปตู้' : 'ตู้จากรูปตู้'}: <span className="font-semibold">{isContainerOcrDone ? (ocrContainerNumber || '-') : 'รออัปโหลด/ยืนยัน'}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number || '-'}</span></p>
                   </div>
                 </Card>
