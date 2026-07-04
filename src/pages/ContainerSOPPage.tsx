@@ -1523,7 +1523,7 @@ const ContainerSOPPage = () => {
         </div>
       </header>
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-6 flex flex-col gap-6">
         <JobActionButtons jobId={jobId} orderNumber={jobId} jobData={navState?.jobData} />
 
         <Card className="p-4 bg-green-50 border-green-200">
@@ -1542,7 +1542,7 @@ const ContainerSOPPage = () => {
 
         {/* === BL Job: Flexible container/truck photos === */}
         {isBLJob && !isContainerReturn && (
-          <div className="space-y-2">
+          <div className="space-y-2 order-2">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
               ถ่ายรูปตู้ / รูปรถ <span className="text-red-500">*</span>
@@ -1595,7 +1595,7 @@ const ContainerSOPPage = () => {
 
         {/* === Photo: Container Number - Hide for container return === */}
         {!isContainerReturn && (
-        <div className="space-y-2">
+        <div className="space-y-2 order-3">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '2' : '1'}</span>
             ถ่ายรูปเลขตู้ (Container No.) <span className="text-red-500">*</span>
@@ -1693,7 +1693,7 @@ const ContainerSOPPage = () => {
 
         {/* === Photo: Seal Number - Hide for container return === */}
         {!isContainerReturn && (
-        <div className="space-y-2">
+        <div className="space-y-2 order-4">
           <Label className="text-base flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isBLJob ? '3' : '2'}</span>
             ถ่ายรูปเลขซีล (Seal No.) <span className="text-red-500">*</span>
@@ -1755,9 +1755,9 @@ const ContainerSOPPage = () => {
         )}
 
         {/* === Photo: EIR Document (no OCR) - Multiple photos === */}
-        <div className="space-y-2">
+        <div className="space-y-2 order-1">
           <Label className="text-base flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">{isContainerReturn ? '1' : isBLJob ? '4' : '3'}</span>
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">1</span>
             ถ่ายรูปเอกสาร EIR <span className="text-red-500">*</span>
           </Label>
           
@@ -1965,7 +1965,7 @@ const ContainerSOPPage = () => {
 
         {/* === Trailer License Plate Photos (BL/Booking only, optional, multi-photo with OCR) === */}
         {showTrailerPlateSection && (
-          <div className="space-y-2">
+          <div className="space-y-2 order-5">
             <Label className="text-base flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#225795] text-white text-xs font-bold">
                 {isContainerReturn ? '2' : '5'}
@@ -2077,7 +2077,7 @@ const ContainerSOPPage = () => {
 
         {/* === OCR Return Slip Result (for unknown yard) === */}
         {isContainerReturn && isYardUnknown && (
-          <div className="space-y-2">
+          <div className="space-y-2 order-6">
             {returnSlipYardName ? (
               <Card className="p-3 bg-green-50 border-green-300">
                 <div className="flex items-center gap-2 mb-1">
