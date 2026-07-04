@@ -114,6 +114,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const authError = verifyAppSecret(req);
+  if (authError) {
+    return new Response(await authError.text(), { status: authError.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+
   try {
     if (req.method !== 'PUT') {
       return new Response(
