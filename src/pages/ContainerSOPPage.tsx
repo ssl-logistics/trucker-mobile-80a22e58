@@ -208,8 +208,65 @@ const ContainerSOPPage = () => {
     return match ? match[0].replace(/[\s\-]/g, '') : null;
   };
 
+  const getAssignedContainerForEir = () =>
+    normalizeRef(
+      containerNumber ||
+      jobDetail?.container_number ||
+      jobDetail?.container_details?.find((detail) => detail?.containerNo)?.containerNo ||
+      (jobDetail as any)?.container_no ||
+      (jobDetail as any)?.containerNo
+    );
+
   const getExpectedContainerForEir = (override?: string | null) =>
-    normalizeRef(override || ocrContainerNumber || containerNumber || (jobDetail as any)?.container_number);
+    normalizeRef(override) || getAssignedContainerForEir() || normalizeRef(ocrContainerNumber);
+
+  const showEirBlockingToast = (
+    refStatus: EirMatchStatus | null,
+    containerStatus: EirMatchStatus | null,
+    result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null } | null,
+  ) => {
+    if (refStatus === 'mismatch') {
+      const jobRef = jobDetail?.bl_no || jobDetail?.booking_no || '-';
+      const ocrRef = result?.bl_no || result?.booking_no || '-';
+      toast({
+        title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน',
+        description: `งานนี้: ${jobRef} | อ่านจาก EIR: ${ocrRef} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกงานหรือไม่`,
+        variant: 'destructive',
+      });
+      return true;
+    }
+
+    if (refStatus === 'not_found' && (jobDetail?.bl_no || jobDetail?.booking_no)) {
+      toast({
+        title: 'ไม่พบเลข BL/Booking ใน EIR',
+        description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลข BL หรือ Booking ชัดเจนก่อนยืนยัน',
+        variant: 'destructive',
+      });
+      return true;
+    }
+
+    if (containerStatus === 'mismatch') {
+      const expectedCn = getExpectedContainerForEir();
+      const ocrCn = result?.container_number || '-';
+      toast({
+        title: 'เลขตู้ใน EIR ไม่ตรงกับงาน',
+        description: `ตู้ที่ต้องตรงกับงาน: ${expectedCn || '-'} | อ่านจาก EIR: ${ocrCn} — กรุณาตรวจสอบว่าถ่ายรูป EIR ถูกตู้หรือไม่`,
+        variant: 'destructive',
+      });
+      return true;
+    }
+
+    if (containerStatus !== 'match') {
+      toast({
+        title: 'ไม่พบเลขตู้ใน EIR',
+        description: 'กรุณาถ่ายรูป EIR ใหม่ให้เห็นเลขตู้ชัดเจน ระบบต้องเทียบเลขตู้จาก EIR ก่อนยืนยัน',
+        variant: 'destructive',
+      });
+      return true;
+    }
+
+    return false;
+  };
 
   const evaluateEirMatches = (
     result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null } | null,
