@@ -384,7 +384,7 @@ const ContainerSOPPage = () => {
     const { refStatus, containerStatus } = evaluateEirMatches(eirBlOcrResult);
     setEirBlMatchStatus(refStatus);
     setEirContainerMatchStatus(containerStatus);
-  }, [eirBlOcrResult, ocrContainerNumber, containerNumber, jobDetail?.bl_no, jobDetail?.booking_no, jobDetail?.container_number]);
+  }, [eirBlOcrResult, ocrContainerNumber, isContainerOcrDone, containerNumber, jobDetail?.bl_no, jobDetail?.booking_no, jobDetail?.container_number]);
 
   const loadJobDetail = async () => {
     try {
@@ -911,6 +911,9 @@ const ContainerSOPPage = () => {
     setPendingTareWeight('');
     setPendingNetWeight('');
     setIsContainerOcrDone(false);
+    if (eirBlOcrResult?.container_number) {
+      setEirContainerMatchStatus('not_found');
+    }
     try {
       toast({ title: 'กำลังอ่านเลขตู้...', description: 'รอสักครู่...' });
       const result = await extractFromImage(file, 'container_seal');
@@ -2039,7 +2042,7 @@ const ContainerSOPPage = () => {
                     </span>
                   </div>
                   <div className={`text-xs space-y-0.5 ${getExpectedContainerForEir() && !isWaitingForContainerPhotoOcr ? 'text-red-900' : 'text-amber-900'}`}>
-                    <p>{isContainerOcrDone ? 'ตู้จากรูปตู้' : 'ตู้จากรูปตู้'}: <span className="font-semibold">{isContainerOcrDone ? (ocrContainerNumber || '-') : 'รออัปโหลด/ยืนยัน'}</span></p>
+                    <p>ตู้จากรูปตู้: <span className="font-semibold">{isContainerOcrDone ? (ocrContainerNumber || '-') : 'รออัปโหลด/ยืนยัน'}</span></p>
                     <p>ตู้ใน EIR: <span className="font-semibold">{eirBlOcrResult?.container_number || '-'}</span></p>
                   </div>
                 </Card>
