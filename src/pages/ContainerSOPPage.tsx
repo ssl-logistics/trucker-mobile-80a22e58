@@ -613,6 +613,15 @@ const ContainerSOPPage = () => {
   };
 
   const openPhotoDrawer = async (slot: PhotoSlot, eirIndex: number = 0) => {
+    if (!isContainerReturn && slot !== 'eir' && eirPhotoFiles.length === 0) {
+      toast({
+        title: 'กรุณาถ่ายรูป EIR ก่อน',
+        description: 'ต้องอ่านเลขตู้จากใบ EIR ก่อนถ่ายรูปตู้/ซีล',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // Block EIR upload on container return until required expenses are filled
     if (slot === 'eir' && isContainerReturn && (isBLJob || isBookingJob)) {
       const missing = await checkMissingExpensesForReturn();
@@ -767,7 +776,7 @@ const ContainerSOPPage = () => {
     }
 
     // Auto OCR for first EIR photo to verify BL/Booking + container (pickup & return)
-    if (slot === 'eir' && activeEirIndex === 0 && (jobDetail?.bl_no || jobDetail?.booking_no || containerNumber || ocrContainerNumber)) {
+    if (slot === 'eir' && activeEirIndex === 0) {
       await runEirBlOcr(file);
     }
 
