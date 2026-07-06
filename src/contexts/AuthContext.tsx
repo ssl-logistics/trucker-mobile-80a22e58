@@ -80,7 +80,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthTransitioning, setIsAuthTransitioning] = useState(false);
   const [authTransitionMessage, setAuthTransitionMessage] = useState('');
 
-  const loadUserFromStorage = async () => {
+  const loadUserFromStorage = async (options?: { preserveExistingUser?: boolean }) => {
+    const preserveExistingUser = options?.preserveExistingUser === true;
     setLoading(true);
 
     const safeJsonParse = <T,>(value: string): T | null => {
