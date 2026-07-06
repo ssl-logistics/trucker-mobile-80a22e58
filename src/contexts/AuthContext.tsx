@@ -401,6 +401,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const applyDriverSession = (driver: DriverData, nextUserType = 'freelance_driver', nextRole?: string, nextEmployerType?: string | null) => {
     setUser(driver);
+    setLoading(false);
     setUserType(nextUserType);
     setEmployerType(nextEmployerType || null);
 

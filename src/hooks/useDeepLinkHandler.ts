@@ -126,7 +126,9 @@ export const useDeepLinkHandler = () => {
       setAuthItem("auth_user_type", "freelance_driver"),
       setAuthItem("user_role", "freelance"),
     ]);
-    window.dispatchEvent(new Event("auth_driver_updated"));
+    window.dispatchEvent(new CustomEvent("auth_driver_updated", {
+      detail: { driver, userType: "freelance_driver", role: "freelance" },
+    }));
   };
 
   useEffect(() => {

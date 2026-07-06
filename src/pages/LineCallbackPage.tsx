@@ -241,7 +241,9 @@ const LineCallbackPage = () => {
             title: 'เข้าสู่ระบบสำเร็จ',
             description: `ยินดีต้อนรับ ${liffData.user.displayName}`,
           });
-          window.dispatchEvent(new Event('auth_driver_updated'));
+          window.dispatchEvent(new CustomEvent('auth_driver_updated', {
+            detail: { driver: lineDriver, userType: 'freelance_driver', role: 'freelance' },
+          }));
           navigate('/home', { replace: true });
           return;
         } catch (liffErr: any) {

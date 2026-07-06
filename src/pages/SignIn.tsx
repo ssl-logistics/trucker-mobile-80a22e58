@@ -489,7 +489,9 @@ const SignIn = () => {
 
                 try { sessionStorage.removeItem('liff_pending_login'); } catch {}
 
-                window.dispatchEvent(new Event('auth_driver_updated'));
+                window.dispatchEvent(new CustomEvent('auth_driver_updated', {
+                  detail: { driver: lineDriver, userType: 'freelance_driver', role: 'freelance' },
+                }));
 
                 toast({
                   title: 'เข้าสู่ระบบสำเร็จ',
