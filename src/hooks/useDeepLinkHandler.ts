@@ -380,7 +380,7 @@ export const useDeepLinkHandler = () => {
                   title: "เกิดข้อผิดพลาด",
                   description: "ไม่สามารถยืนยันตัวตน Apple ได้: " + exchangeError.message,
                 });
-                navigate("/", { replace: true });
+              if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
                 return;
               }
 
@@ -391,7 +391,7 @@ export const useDeepLinkHandler = () => {
                   title: "เกิดข้อผิดพลาด",
                   description: "ไม่พบข้อมูลผู้ใช้จาก Apple",
                 });
-                navigate("/", { replace: true });
+                if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
                 return;
               }
 
@@ -419,12 +419,13 @@ export const useDeepLinkHandler = () => {
                 setAuthItem("user_role", "freelance"),
               ]);
 
+              try { sessionStorage.setItem(APPLE_HANDLED_KEY, "1"); } catch { /* ignore */ }
               window.dispatchEvent(new Event("auth_driver_updated"));
               toast({
                 title: "เข้าสู่ระบบสำเร็จ",
                 description: `ยินดีต้อนรับ ${appleDriver.full_name}`,
               });
-              navigate("/home", { replace: true });
+              if (shouldRedirectToHomeAfterAuth()) navigate("/home", { replace: true });
               return;
             } catch (err) {
               console.error("[DeepLink] ❌ Apple code flow error:", err);
@@ -433,7 +434,7 @@ export const useDeepLinkHandler = () => {
                 title: "เกิดข้อผิดพลาด",
                 description: "ไม่สามารถเข้าสู่ระบบ Apple ได้",
               });
-              navigate("/", { replace: true });
+              if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
               return;
             }
           }
