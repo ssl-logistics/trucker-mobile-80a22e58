@@ -1981,25 +1981,31 @@ const ContainerSOPPage = () => {
                       {eirJobReferenceRows.map((row) => (
                         <p key={row.label}>{row.label} (ในงาน): <span className="font-semibold">{row.value}</span></p>
                       ))}
-                      {eirOcrReferenceRows.map((row) => (
-                        <div key={row.label} className="flex items-center gap-2">
-                          <label className="whitespace-nowrap">{row.label}:</label>
-                          <Input
-                            value={row.value || ''}
-                            placeholder="กรอกเลขเอง"
-                            onChange={(e) => {
-                              const v = e.target.value.toUpperCase();
-                              setEirBlOcrResult((prev) => ({
-                                bl_no: prev?.bl_no ?? null,
-                                booking_no: prev?.booking_no ?? null,
-                                container_number: prev?.container_number ?? null,
-                                [row.field]: v,
-                              }));
-                            }}
-                            className="h-7 text-xs bg-white flex-1"
-                          />
-                        </div>
-                      ))}
+                      {([
+                        { label: 'BL จาก OCR', field: 'bl_no' as const, jobValue: jobDetail?.bl_no },
+                        { label: 'Booking จาก OCR', field: 'booking_no' as const, jobValue: jobDetail?.booking_no },
+                      ])
+                        .filter((row) => Boolean(row.jobValue))
+                        .map((row) => (
+                          <div key={row.label} className="flex items-center gap-2">
+                            <label className="whitespace-nowrap">{row.label}:</label>
+                            <Input
+                              value={(eirBlOcrResult?.[row.field] as string | null | undefined) || ''}
+                              placeholder="กรอกเลขเอง"
+                              onChange={(e) => {
+                                const v = e.target.value.toUpperCase();
+                                setEirBlOcrResult((prev) => ({
+                                  bl_no: prev?.bl_no ?? null,
+                                  booking_no: prev?.booking_no ?? null,
+                                  container_number: prev?.container_number ?? null,
+                                  [row.field]: v,
+                                }));
+                              }}
+                              className="h-7 text-xs bg-white flex-1"
+                            />
+                          </div>
+                        ))}
+
                     </div>
                     <div className="flex gap-2 pt-1">
                       <Button
