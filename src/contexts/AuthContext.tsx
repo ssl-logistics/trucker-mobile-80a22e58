@@ -399,6 +399,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const applyDriverSession = (driver: DriverData, nextUserType = 'freelance_driver', nextRole?: string, nextEmployerType?: string | null) => {
+    setUser(driver);
+    setUserType(nextUserType);
+    setEmployerType(nextEmployerType || null);
+
+    if (nextRole) {
+      setRole(nextRole);
+      return;
+    }
+
+    if (nextUserType === 'company') {
+      setRole('company');
+    } else if (nextUserType === 'factory') {
+      setRole('factory');
+    } else {
+      setRole('freelance');
+    }
+  };
+
   useEffect(() => {
     void loadUserFromStorage();
 
@@ -428,7 +447,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     // Same-tab support: manually dispatched event after login
-    const handleAuthUpdated = () => {
+    const handleAuthUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        driver?: DriverData;
+        userType?: string;
+        role?: string;
+        employerType?: string | null;
+      }>).detail;
+
+      if (detail?.driver?.id) {
+        applyDriverSession(detail.driver, detail.userType || 'freelance_driver', detail.role, detail.employerType);
+      }
+
       void loadUserFromStorage({ preserveExistingUser: true });
     };
 
