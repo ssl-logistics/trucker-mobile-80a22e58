@@ -1,55 +1,40 @@
-# แผน: แก้ไขการแสดงน้ำหนักงานต่างประเทศ (BL/Booking)
+## Problem
+After Apple ID sign-in (first time), tapping any bottom nav (Chat / Bidding / Settings / Dashboard) yanks the user back to the home page. Only fully killing and reopening the app clears the loop.
 
-## ปัญหา
-งาน `OR20260619036/02` (Booking) API ส่ง:
-- `products: []` (ว่าง)
-- `destinations: []` (ว่าง)
-- แต่มีข้อมูลที่ top-level: `product_name: "ทดสอบ"`, `product_quantity: 1`, `product_weight: 50`, `product_weight_unit: "kg"`, `goods_weight: 50`
+## Root cause
+`src/hooks/useDeepLinkHandler.ts` re-processes the Apple auth deep link every time the app comes to the foreground:
 
-โค้ดปัจจุบันใน `DomesticJobDetail.tsx` วน `job.products[]` ก่อน ถ้าว่างจะ fallback ไปที่ `origin_goods_type` (text) ซึ่ง**ไม่มีน้ำหนัก** → แสดง `-`
+1. `App.addListener("appStateChange", …)` calls `checkLaunchUrl()` on every foreground event.
+2. On iOS, `App.getLaunchUrl()` keeps returning the original `thetroob://apple-auth-callback?access_token=…&refresh_token=…` URL until the app process is killed.
+3. Even a very brief backgrounding (which happens when a native tab/route transition briefly loses focus, or when Capacitor's WebView refocuses) fires `appStateChange`, so the callback handler runs again.
+4. Inside the callback branch, every path ends with `navigate("/home", { replace: true })` on success and `navigate("/", { replace: true })` on failure. Since the tokens have already been consumed, the second run of `supabase.auth.setSession(...)` fails and hits the error branch, or the success branch fires again — either way the router is force-pushed away from whatever page the user just tapped.
+5. `lastHandledUrl` inside the effect closure is meant to dedupe, but it does NOT survive across the retry paths inside `handleDeepLink` (the guard lives in `handleUrlOnce`, and `appUrlOpen` uses `handleDeepLink` directly). It also does not persist across effect re-runs.
 
-## จุดที่จะแก้
+This exactly matches the reported symptoms: bounces to "หน้าแรก", and only a hard app-kill clears it (because that finally drops iOS's cached launch URL).
 
-**ไฟล์เดียว:** `src/components/job-detail/DomesticJobDetail.tsx`
+## Fix
+Make the Apple auth callback single-shot per install/session and stop force-navigating when there is nothing to do.
 
-3 จุดที่วน `products[]`:
-1. บรรทัด ~2442 — แถวสรุปสินค้าในการ์ด Destination (`goodsType` inline)
-2. บรรทัด ~2962 — Modal สินค้าจุดรับ (Pickup goods modal)
-3. บรรทัด ~2911 — Loop `destinations` (ใช้ `dest.products`)
+Edits, all in `src/hooks/useDeepLinkHandler.ts`:
 
-## วิธีแก้ (Minimal, ไม่กระทบในประเทศ)
+1. Add a persistent guard for the callback URL:
+   - When the `apple-auth-callback` branch is entered, compute a stable key from the URL (or just the path + first N chars of the access token) and check `sessionStorage.getItem("apple_auth_handled")`.
+   - If already set, short-circuit: close the in-app browser if open, do NOT call `setSession` again, and do NOT call `navigate(...)`. Just `return`.
+   - On successful handling, write the marker to `sessionStorage` AND set an in-memory ref so we don't depend only on storage.
 
-เพิ่ม helper เดียว: ถ้า `job.products` เป็น array ว่าง **และ** top-level มี `product_name`/`product_weight`/`product_quantity` → สังเคราะห์เป็น virtual product 1 ตัว:
+2. Harden `lastHandledUrl`:
+   - Promote it from a closure-local `let` to a `useRef` so it survives effect re-runs.
+   - Apply the dedupe inside `handleDeepLink` itself (not only in `handleUrlOnce`) so the `appUrlOpen` listener also benefits.
 
-```ts
-const effectiveProducts = (job.products && job.products.length > 0)
-  ? job.products
-  : (job.product_name || job.product_weight || job.product_quantity)
-    ? [{
-        product_name: job.product_name,
-        product_quantity: job.product_quantity,
-        product_weight: job.product_weight ?? job.goods_weight ?? job.weight,
-        product_unit: job.product_unit,
-        weight_unit: job.product_weight_unit || job.weight_unit || 'kg',
-      }]
-    : [];
-```
+3. Stop unconditional redirects on the re-entry path:
+   - In the success branch, only `navigate("/home", { replace: true })` when the current `location.pathname` is `/` or `/auth/...`. If the user is already inside the app, just persist auth + toast and stay put.
+   - In the error branch of `apple-auth-callback`, do not `navigate("/")` if the app already has a valid stored `auth_driver` (check `getAuthItem("auth_driver")` before redirecting). This prevents a stale token error from logging the user out of a working session.
 
-แล้วเปลี่ยน 2 จุด (บรรทัด 2442, 2962) ให้ใช้ `effectiveProducts` แทน `job.products` โดยตรง
+4. Same treatment for the `code` sub-branch (lines ~343–416) since it has the same navigate pattern.
 
-## ผลกระทบต่องานในประเทศ
+No other files need to change. `AuthContext`, `ProtectedRoute`, `StartPage`, `SignIn`, and `BottomNavigation` all behave correctly once the deep-link handler stops replaying the callback.
 
-**ไม่มีผลกระทบ** ในเคสปกติ เพราะ:
-- งานในประเทศส่ง `products[]` มาเต็ม → ยัง render จาก `job.products` เหมือนเดิม
-- Fallback จะทำงาน**เฉพาะกรณี** `products[]` ว่าง + top-level มีค่า ซึ่งเดิมจะแสดง `-` อยู่แล้ว → ตอนนี้แสดงข้อมูลแทน (ดีขึ้น ไม่แย่ลง)
-- ไม่แตะ logic international detection, ไม่แตะ modal destination (บรรทัด 3024) เพราะเป็น per-destination
-
-## Type update
-เพิ่ม field ที่หายในอินเทอร์เฟส `DomesticJob` (บรรทัด ~149): `product_name?`, `product_quantity?`, `product_unit?`, `product_weight?`, `product_weight_unit?`, `goods_weight?`, `weight?`, `weight_unit?` (บางตัวมีแล้ว เช็คแล้วเติมที่ขาด)
-
-## ไม่แตะ
-- API layer, JobDetailPage mapping — top-level fields ผ่านเข้ามาอยู่แล้วผ่าน spread
-- ContainerSOPPage, JobCard — ไม่เกี่ยว
-
-## เวอร์ชั่น
-ยังไม่ bump ถ้าไม่บอก
+## Verification
+- Manual: sign in with Apple, tap Chat/Settings/Dashboard/Bidding immediately after — should stay on the tapped screen. Background/foreground the app several times — should stay on the tapped screen.
+- Check console: `[DeepLink] 🍎 Apple auth callback detected` must appear at most once per install session; subsequent foregrounds should log a "skipped, already handled" line.
+- Ensure normal LINE flow is untouched (guard is scoped to `apple-auth-callback` path only).
