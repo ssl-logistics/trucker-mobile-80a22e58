@@ -680,9 +680,21 @@ export const useDeepLinkHandler = () => {
     // Custom Tab stripped the deep-link path).
     const browserFinishedListener = Browser.addListener("browserFinished", async () => {
       console.log("[DeepLink] 🌐 browserFinished — checking Supabase bridge...");
+      // Show overlay immediately so the user doesn't see the sign-in page flash
+      // while we wait for the bridge write + code exchange.
+      const savedState =
+        localStorage.getItem("line_oauth_state") || sessionStorage.getItem("line_oauth_state");
+      const looksLikeLineFlow = savedState?.startsWith("thetroob_");
+      if (looksLikeLineFlow) {
+        setAuthTransitioning(true, "กำลังเข้าสู่ระบบ LINE...");
+      }
       // Give the callback page a moment to write to Supabase before we query.
       await new Promise((resolve) => window.setTimeout(resolve, 900));
-      await fetchAndProcessBridgeCode();
+      const handled = await fetchAndProcessBridgeCode();
+      if (looksLikeLineFlow && !handled) {
+        // Nothing to process — drop the overlay so the sign-in page is usable.
+        setAuthTransitioning(false);
+      }
     });
 
     void checkLaunchUrl("initial-launch");
