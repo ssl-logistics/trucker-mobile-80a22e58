@@ -105,6 +105,12 @@
 
     <script>
       (function () {
+        // Supabase project (Data API) — used to bridge the LINE code back to the app
+        // in case Android intent:// hand-off doesn't work. The app polls this
+        // table when its in-app browser closes and completes login from there.
+        var SUPABASE_URL = 'https://yhzurkotubkkaokhtmsb.supabase.co';
+        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloenVya290dWJra2Fva2h0bXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3ODk1NTMsImV4cCI6MjA3NzM2NTU1M30.jBgmzgXtDJNBk2YxIIgOH5Ret74Lo-u5Nzkzci98F_Q';
+
         var debugEl = document.getElementById('debug');
         function log(msg) {
           try { console.log('[LINE Callback HTML] ' + msg); } catch (e) {}
@@ -141,6 +147,30 @@
             .replace(/=+$/g, '');
         }
 
+        // ── Bridge write: persist code+state so the app can pick it up on
+        // browserFinished (needed for Android where intent:// often fails). ──
+        var bridgePromise = null;
+        if (code && state) {
+          try {
+            bridgePromise = fetch(SUPABASE_URL + '/rest/v1/line_pending_auth', {
+              method: 'POST',
+              headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal,resolution=merge-duplicates'
+              },
+              body: JSON.stringify({ state: state, code: code })
+            }).then(function (r) {
+              log('Bridge write: ' + r.status);
+            }).catch(function (err) {
+              log('Bridge write failed: ' + err.message);
+            });
+          } catch (err) {
+            log('Bridge fetch threw: ' + err.message);
+          }
+        }
+
         var payload = {};
         if (code) payload.code = code;
         if (state) payload.state = state;
@@ -159,60 +189,50 @@
 
         var deepLink = isAndroid ? intentUrl : payloadScheme;
         log('Deep link: ' + deepLink.substring(0, 120));
-        log('Payload scheme: ' + payloadScheme.substring(0, 120));
-        log('Intent link: ' + intentUrl.substring(0, 120));
-        log('Search preserved: ' + (search ? 'YES (' + search.length + ' chars)' : 'NO'));
 
         var openBtn = document.getElementById('openAppBtn');
         var webBtn = document.getElementById('webFallback');
+        var pEl = document.querySelector('p');
 
         openBtn.href = deepLink;
         openBtn.addEventListener('click', function (e) {
           log('User tapped open-app button');
           if (!isAndroid) return;
           e.preventDefault();
-          try { window.location.href = intentUrl; } catch (err) { log('Intent click failed: ' + err.message); }
+          // Try custom scheme first — with the bridge write in place the app
+          // no longer needs the payload, so a plain scheme is enough to wake it.
+          try { window.location.href = payloadScheme; } catch (err) { log('Scheme click failed: ' + err.message); }
           setTimeout(function () {
             if (document.visibilityState === 'visible') {
-              log('Intent did not open app, trying custom scheme');
-              try { window.location.href = payloadScheme; } catch (err) { log('Scheme click failed: ' + err.message); }
+              log('Scheme did not open app, trying intent URL');
+              try { window.location.href = intentUrl; } catch (err) { log('Intent click failed: ' + err.message); }
             }
           }, 650);
         });
         webBtn.href = window.location.origin + '/#/auth/line/callback' + search;
 
-        // Track if user has interacted (helps with iOS Safari restrictions)
-        var hasUserGesture = false;
-        ['touchstart', 'click', 'keydown'].forEach(function (ev) {
-          window.addEventListener(ev, function () { hasUserGesture = true; }, { once: true, passive: true });
-        });
-
-        // On Android: try auto-redirect immediately (Chrome handles intent:// well)
-        // On iOS: do NOT auto-redirect (Safari blocks custom schemes without user gesture)
-        //         Wait for user to tap the big button.
-        if (isAndroid) {
-          setTimeout(function () {
-            log('Android auto-redirect to intent URL');
-            try {
-              window.location.href = deepLink;
-            } catch (e) {
-              log('Auto deep link failed: ' + e.message);
-            }
-          }, 500);
-        } else if (isIOS) {
-          // iOS: try one auto-attempt after a short delay (some in-app browsers allow it)
-          // but rely primarily on the user tapping the button.
-          setTimeout(function () {
-            log('iOS auto-attempt deep link');
-            try {
-              window.location.href = deepLink;
-            } catch (e) {
-              log('Auto deep link blocked: ' + e.message);
-            }
-          }, 800);
+        // Update copy once the bridge write settles: user can just close the tab.
+        function markBridgeReady() {
+          if (pEl) {
+            pEl.innerHTML = 'ปิดหน้านี้เพื่อกลับเข้าแอป The Trucker<br>หรือกดปุ่มด้านล่าง';
+          }
+        }
+        if (bridgePromise) {
+          bridgePromise.then(markBridgeReady, markBridgeReady);
         }
 
-        // iOS keeps the default <a href> navigation because Safari requires the user gesture.
+        // Auto-attempt deep link (Android/iOS) — best-effort, harmless if blocked.
+        if (isAndroid) {
+          setTimeout(function () {
+            log('Android auto-attempt scheme');
+            try { window.location.href = payloadScheme; } catch (e) { log('Auto scheme failed: ' + e.message); }
+          }, 500);
+        } else if (isIOS) {
+          setTimeout(function () {
+            log('iOS auto-attempt deep link');
+            try { window.location.href = deepLink; } catch (e) { log('Auto deep link blocked: ' + e.message); }
+          }, 800);
+        }
       })();
     </script>
   </body>
