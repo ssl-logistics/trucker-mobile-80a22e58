@@ -389,7 +389,7 @@ export const useDeepLinkHandler = () => {
                   title: "เกิดข้อผิดพลาด",
                   description: "ไม่สามารถยืนยันตัวตน Apple ได้: " + exchangeError.message,
                 });
-              if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
+                if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
                 return;
               }
 
