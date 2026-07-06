@@ -414,7 +414,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-        void loadUserFromStorage();
+        // Preserve existing user on transient reloads to avoid bouncing back
+        // to SignIn if storage/session lookups temporarily fail after Apple/Google login.
+        void loadUserFromStorage({ preserveExistingUser: true });
       }
     });
 
