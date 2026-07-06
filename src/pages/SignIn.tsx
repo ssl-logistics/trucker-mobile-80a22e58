@@ -112,7 +112,8 @@ const SignIn = () => {
   } = useToast();
   const {
     isAuthenticated,
-    userType
+    userType,
+    setAuthTransitioning
   } = useAuth();
   const loginSchema = z.object({
     email: z.string().min(1, {
@@ -425,6 +426,7 @@ const SignIn = () => {
               try {
                 if (Capacitor.isNativePlatform()) {
                   console.log('[LINE Native Login] Opening LINE OAuth in native browser');
+                  setAuthTransitioning(true, 'กำลังเข้าสู่ระบบ LINE...');
                   await Browser.open({
                     url: buildNativeLineOAuthUrl(),
                     presentationStyle: 'popover',
@@ -463,63 +465,33 @@ const SignIn = () => {
 
                 console.log('[LIFF Login] ✅ line-auth returned:', data?.user?.lineUserId);
 
-                // Auto-create account in internal DB
-                const { data: accountData } = await supabase.functions.invoke('create-account', {
-                  body: {
-                    authProvider: 'line',
-                    lineUserId: data.user.lineUserId,
-                    firstName: data.user.displayName?.split(' ')[0] || 'LINE',
-                    lastName: data.user.displayName?.split(' ').slice(1).join(' ') || 'User',
-                    phone: '0000000000',
-                    email: '',
-                    avatarUrl: data.user.pictureUrl || '',
-                  },
-                });
-
-                const driverUserId = accountData?.userId || data.user.lineUserId;
-
-                // Register driver in external TMS (non-blocking)
-                let tmsData: any = null;
-                try {
-                  const { data: registerData } = await supabase.functions.invoke('register-driver', {
-                    body: {
-                      authProvider: 'line',
-                      authUserId: driverUserId,
-                      firstName: data.user.displayName?.split(' ')[0] || 'LINE',
-                      lastName: data.user.displayName?.split(' ').slice(1).join(' ') || 'User',
-                    },
-                  });
-                  tmsData = registerData?.data || registerData;
-                } catch (e) {
-                  console.warn('[LIFF Login] register-driver non-blocking error:', e);
-                }
-
                 // Persist auth data
                 await setAuthItem('line_user', JSON.stringify(data.user));
                 await setAuthItem('auth_login_type', 'line');
 
-                const tmsFullName = tmsData
-                  ? `${tmsData.firstName || ''} ${tmsData.lastName || ''}`.trim()
-                  : '';
-
                 const lineDriver: Record<string, any> = {
-                  ...(tmsData && typeof tmsData === 'object' ? tmsData : {}),
-                  id: tmsData?.id || driverUserId,
-                  full_name: tmsFullName || data.user.displayName,
-                  avatar_url: data.user.pictureUrl || tmsData?.avatar_url || null,
-                  phone_number: tmsData?.phone || '',
-                  email: tmsData?.email || '',
-                  username: tmsData?.driverCode || '',
+                  id: data.user.lineUserId,
+                  full_name: data.user.displayName,
+                  first_name: data.user.displayName?.split(' ')[0] || '',
+                  last_name: data.user.displayName?.split(' ').slice(1).join(' ') || '',
+                  avatar_url: data.user.pictureUrl || null,
+                  phone_number: '',
+                  email: '',
+                  username: '',
                   loginType: 'line',
                   lineUser: data.user,
                 };
 
                 await setAuthItem('auth_driver', JSON.stringify(lineDriver));
-                await setAuthItem('auth_driver_id', driverUserId);
+                await setAuthItem('auth_driver_id', data.user.lineUserId);
+                await setAuthItem('auth_user_type', 'freelance_driver');
+                await setAuthItem('user_role', 'freelance');
 
                 try { sessionStorage.removeItem('liff_pending_login'); } catch {}
 
-                window.dispatchEvent(new Event('auth_driver_updated'));
+                window.dispatchEvent(new CustomEvent('auth_driver_updated', {
+                  detail: { driver: lineDriver, userType: 'freelance_driver', role: 'freelance' },
+                }));
 
                 toast({
                   title: 'เข้าสู่ระบบสำเร็จ',
@@ -529,6 +501,56 @@ const SignIn = () => {
                 const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
                 sessionStorage.removeItem('auth_redirect_after_login');
                 navigate(redirectPath && redirectPath !== '/' ? redirectPath : '/home', { replace: true });
+
+                // Link/create account and hydrate full driver profile in the background.
+                void (async () => {
+                  let driverUserId = data.user.lineUserId;
+                  try {
+                    const { data: accountData } = await supabase.functions.invoke('create-account', {
+                      body: {
+                        authProvider: 'line',
+                        lineUserId: data.user.lineUserId,
+                        firstName: data.user.displayName?.split(' ')[0] || 'LINE',
+                        lastName: data.user.displayName?.split(' ').slice(1).join(' ') || 'User',
+                        phone: '0000000000',
+                        email: '',
+                        avatarUrl: data.user.pictureUrl || '',
+                      },
+                    });
+                    driverUserId = accountData?.userId || driverUserId;
+                  } catch (e) {
+                    console.warn('[LIFF Login] create-account non-blocking error:', e);
+                  }
+
+                  try {
+                    const { data: registerData } = await supabase.functions.invoke('register-driver', {
+                      body: {
+                        authProvider: 'line',
+                        authUserId: driverUserId,
+                        firstName: data.user.displayName?.split(' ')[0] || 'LINE',
+                        lastName: data.user.displayName?.split(' ').slice(1).join(' ') || 'User',
+                      },
+                    });
+                    const tmsData = registerData?.data || registerData;
+                    const tmsFullName = tmsData
+                      ? `${tmsData.firstName || ''} ${tmsData.lastName || ''}`.trim()
+                      : '';
+                    const syncedDriver: Record<string, any> = {
+                      ...(tmsData && typeof tmsData === 'object' ? tmsData : {}),
+                      ...lineDriver,
+                      id: tmsData?.id || driverUserId,
+                      full_name: tmsFullName || lineDriver.full_name,
+                      phone_number: tmsData?.phone || '',
+                      email: tmsData?.email || '',
+                      username: tmsData?.driverCode || '',
+                    };
+                    await setAuthItem('auth_driver', JSON.stringify(syncedDriver));
+                    await setAuthItem('auth_driver_id', syncedDriver.id);
+                    window.dispatchEvent(new Event('auth_driver_updated'));
+                  } catch (e) {
+                    console.warn('[LIFF Login] register-driver non-blocking error:', e);
+                  }
+                })();
               } catch (err: any) {
                 console.error('[LIFF Login] ❌ Error:', err);
                 toast({
@@ -538,6 +560,9 @@ const SignIn = () => {
                 });
               } finally {
                 setIsLoggingIn(false);
+                if (!Capacitor.isNativePlatform()) {
+                  setAuthTransitioning(false);
+                }
               }
             }}
             disabled={isLoggingIn}

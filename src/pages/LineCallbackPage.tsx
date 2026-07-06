@@ -235,13 +235,17 @@ const LineCallbackPage = () => {
           };
           await setAuthItem('auth_driver', JSON.stringify(lineDriver));
           await setAuthItem('auth_driver_id', driverUserId);
+          await setAuthItem('auth_user_type', 'freelance_driver');
+          await setAuthItem('user_role', 'freelance');
 
           setStatus('success');
           toast({
             title: 'เข้าสู่ระบบสำเร็จ',
             description: `ยินดีต้อนรับ ${liffData.user.displayName}`,
           });
-          window.dispatchEvent(new Event('auth_driver_updated'));
+          window.dispatchEvent(new CustomEvent('auth_driver_updated', {
+            detail: { driver: lineDriver, userType: 'freelance_driver', role: 'freelance' },
+          }));
           navigate('/home', { replace: true });
           return;
         } catch (liffErr: any) {
@@ -362,6 +366,8 @@ const LineCallbackPage = () => {
         }
 
         // Normal flow (running inside Capacitor or web)
+        let lineDriverForAuth: Record<string, any> | null = null;
+
         // Auto-create account in database if not exists
         console.log('[LINE Callback] 📝 Creating/linking account via create-account...');
         try {
@@ -454,9 +460,12 @@ const LineCallbackPage = () => {
             loginType: 'line',
             lineUser: data.user,
           };
+          lineDriverForAuth = lineDriver;
           
           await setAuthItem('auth_driver', JSON.stringify(lineDriver));
           await setAuthItem('auth_driver_id', driverUserId);
+          await setAuthItem('auth_user_type', 'freelance_driver');
+          await setAuthItem('user_role', 'freelance');
           console.log('[LINE Callback] ✅ Auth data saved, driverId:', driverUserId);
 
         } catch (accountErr) {
@@ -476,7 +485,11 @@ const LineCallbackPage = () => {
             loginType: 'line',
             lineUser: data.user,
           };
+          lineDriverForAuth = lineDriver;
           await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+          await setAuthItem('auth_driver_id', data.user.lineUserId);
+          await setAuthItem('auth_user_type', 'freelance_driver');
+          await setAuthItem('user_role', 'freelance');
         }
 
         // ✅ Login complete — navigate directly into the app (no confirmation modal)
@@ -490,7 +503,13 @@ const LineCallbackPage = () => {
         console.log('[LINE Callback] 🎉 LOGIN COMPLETE — navigating into app');
 
         // Dispatch auth event so AuthContext picks up the new session
-        window.dispatchEvent(new Event('auth_driver_updated'));
+        if (lineDriverForAuth) {
+          window.dispatchEvent(new CustomEvent('auth_driver_updated', {
+            detail: { driver: lineDriverForAuth, userType: 'freelance_driver', role: 'freelance' },
+          }));
+        } else {
+          window.dispatchEvent(new Event('auth_driver_updated'));
+        }
 
         // Navigate to saved redirect path or home
         const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
