@@ -6,6 +6,7 @@ import { getAuthItem, setAuthItem } from "@/utils/authStorage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback";
 const APPLE_HANDLED_KEY = "apple_auth_handled";
