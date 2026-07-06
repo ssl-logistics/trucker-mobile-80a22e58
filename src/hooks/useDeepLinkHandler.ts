@@ -6,6 +6,7 @@ import { getAuthItem, setAuthItem } from "@/utils/authStorage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback";
 const APPLE_HANDLED_KEY = "apple_auth_handled";
@@ -115,6 +116,7 @@ interface LineUserData {
 export const useDeepLinkHandler = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setAuthTransitioning } = useAuth();
 
   const persistDriverSession = async (driver: Record<string, any>, loginType: string) => {
     await Promise.all([
@@ -140,6 +142,7 @@ export const useDeepLinkHandler = () => {
         return;
       }
       lineCodeProcessed = true;
+      setAuthTransitioning(true, "กำลังเข้าสู่ระบบ LINE...");
       // Allow a retry after 30 s in case the first attempt fails hard.
       const resetTimer = window.setTimeout(() => {
         lineCodeProcessed = false;
@@ -253,6 +256,8 @@ export const useDeepLinkHandler = () => {
         console.error("[DeepLink] ❌ processLineCode error:", err);
         lineCodeProcessed = false;
         clearTimeout(resetTimer);
+      } finally {
+        setAuthTransitioning(false);
       }
     };
     // ─────────────────────────────────────────────────────────────────────────
@@ -332,6 +337,7 @@ export const useDeepLinkHandler = () => {
         // thetroob://line-callback?code=xxx&state=yyy
         if (path === "line-callback" || path.startsWith("line-callback/payload/")) {
           console.log("[DeepLink] 🔐 LINE callback detected");
+          setAuthTransitioning(true, "กำลังเข้าสู่ระบบ LINE...");
           const { params, code, state, source: callbackParamSource } = extractLineCallbackParams(url, path);
           setDebugValue("line_last_callback_url", event.url);
           setDebugValue("line_last_callback_params", JSON.stringify(params));
@@ -358,6 +364,7 @@ export const useDeepLinkHandler = () => {
             "line_last_deep_link_error",
             "LINE callback reached app without code/state. Callback page is likely stale or query params were stripped before app launch.",
           );
+          setAuthTransitioning(false);
         }
 
         // Handle Apple auth callback (from Safari redirect with tokens)
@@ -675,9 +682,21 @@ export const useDeepLinkHandler = () => {
     // Custom Tab stripped the deep-link path).
     const browserFinishedListener = Browser.addListener("browserFinished", async () => {
       console.log("[DeepLink] 🌐 browserFinished — checking Supabase bridge...");
+      // Show overlay immediately so the user doesn't see the sign-in page flash
+      // while we wait for the bridge write + code exchange.
+      const savedState =
+        localStorage.getItem("line_oauth_state") || sessionStorage.getItem("line_oauth_state");
+      const looksLikeLineFlow = savedState?.startsWith("thetroob_");
+      if (looksLikeLineFlow) {
+        setAuthTransitioning(true, "กำลังเข้าสู่ระบบ LINE...");
+      }
       // Give the callback page a moment to write to Supabase before we query.
       await new Promise((resolve) => window.setTimeout(resolve, 900));
-      await fetchAndProcessBridgeCode();
+      const handled = await fetchAndProcessBridgeCode();
+      if (looksLikeLineFlow && !handled) {
+        // Nothing to process — drop the overlay so the sign-in page is usable.
+        setAuthTransitioning(false);
+      }
     });
 
     void checkLaunchUrl("initial-launch");
