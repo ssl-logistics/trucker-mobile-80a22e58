@@ -80,7 +80,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthTransitioning, setIsAuthTransitioning] = useState(false);
   const [authTransitionMessage, setAuthTransitionMessage] = useState('');
 
-  const loadUserFromStorage = async () => {
+  const loadUserFromStorage = async (options?: { preserveExistingUser?: boolean }) => {
+    const preserveExistingUser = options?.preserveExistingUser === true;
     setLoading(true);
 
     const safeJsonParse = <T,>(value: string): T | null => {
@@ -253,17 +254,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
 
         // Not authenticated (we require a valid stored auth_driver)
+        if (preserveExistingUser) {
+          console.warn('[Auth] loadUserFromStorage found no valid data — preserving existing user');
+        } else {
+          setUser(null);
+          setRole('freelance');
+          setUserType('freelance_driver');
+          setEmployerType(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user from storage:', error);
+      if (!preserveExistingUser) {
         setUser(null);
         setRole('freelance');
         setUserType('freelance_driver');
         setEmployerType(null);
       }
-    } catch (error) {
-      console.error('Error loading user from storage:', error);
-      setUser(null);
-      setRole('freelance');
-      setUserType('freelance_driver');
-      setEmployerType(null);
     } finally {
       setLoading(false);
     }
@@ -407,20 +414,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-        void loadUserFromStorage();
+        // Preserve existing user on transient reloads to avoid bouncing back
+        // to SignIn if storage/session lookups temporarily fail after Apple/Google login.
+        void loadUserFromStorage({ preserveExistingUser: true });
       }
     });
 
     // Listen for storage changes (multi-tab support)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'auth_driver' || e.key === 'user_role' || e.key === 'auth_user_type') {
-        void loadUserFromStorage();
+        void loadUserFromStorage({ preserveExistingUser: true });
       }
     };
 
     // Same-tab support: manually dispatched event after login
     const handleAuthUpdated = () => {
-      void loadUserFromStorage();
+      void loadUserFromStorage({ preserveExistingUser: true });
     };
 
     window.addEventListener('storage', handleStorageChange);
