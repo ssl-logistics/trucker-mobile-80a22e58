@@ -256,6 +256,8 @@ export const useDeepLinkHandler = () => {
         console.error("[DeepLink] ❌ processLineCode error:", err);
         lineCodeProcessed = false;
         clearTimeout(resetTimer);
+      } finally {
+        setAuthTransitioning(false);
       }
     };
     // ─────────────────────────────────────────────────────────────────────────
