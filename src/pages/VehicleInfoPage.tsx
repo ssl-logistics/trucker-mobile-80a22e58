@@ -889,8 +889,8 @@ export default function VehicleInfoPage() {
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.containerTypes')}</Label>
                 <p className="text-base font-medium mt-1">
-                  {displayVehicleData.container_types && vehicleData.container_types.length > 0
-                    ? vehicleData.container_types
+                  {displayVehicleData.container_types && displayVehicleData.container_types.length > 0
+                    ? displayVehicleData.container_types
                         .map((type) => containerTypeOptions.find((opt) => opt.value === type)?.label || type)
                         .join(', ')
                     : t('vehicle.notSpecified')}
