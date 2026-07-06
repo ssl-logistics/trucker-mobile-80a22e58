@@ -254,17 +254,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
 
         // Not authenticated (we require a valid stored auth_driver)
+        if (preserveExistingUser) {
+          console.warn('[Auth] loadUserFromStorage found no valid data — preserving existing user');
+        } else {
+          setUser(null);
+          setRole('freelance');
+          setUserType('freelance_driver');
+          setEmployerType(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user from storage:', error);
+      if (!preserveExistingUser) {
         setUser(null);
         setRole('freelance');
         setUserType('freelance_driver');
         setEmployerType(null);
       }
-    } catch (error) {
-      console.error('Error loading user from storage:', error);
-      setUser(null);
-      setRole('freelance');
-      setUserType('freelance_driver');
-      setEmployerType(null);
     } finally {
       setLoading(false);
     }
