@@ -2,12 +2,34 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
-import { setAuthItem } from "@/utils/authStorage";
+import { getAuthItem, setAuthItem } from "@/utils/authStorage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
 
 const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback";
+const APPLE_HANDLED_KEY = "apple_auth_handled";
+
+// Only redirect to /home when the user is on the sign-in / auth landing routes.
+// If they are already inside the app, don't yank them back.
+const shouldRedirectToHomeAfterAuth = () => {
+  const hash = window.location.hash || "";
+  const path = hash.startsWith("#") ? hash.slice(1).split("?")[0] : window.location.pathname;
+  return path === "/" || path === "" || path.startsWith("/auth/");
+};
+
+// Only redirect to "/" on auth failure if there is no valid stored driver.
+// Prevents a stale/reused deep-link from logging out a working session.
+const shouldRedirectToSignInOnError = async () => {
+  try {
+    const driverData = await getAuthItem("auth_driver");
+    if (!driverData || driverData === "null") return true;
+    const parsed = JSON.parse(driverData);
+    return !(parsed && typeof parsed.id === "string" && parsed.id.length > 0);
+  } catch {
+    return true;
+  }
+};
 
 const setDebugValue = (key: string, value: string) => {
   try {
