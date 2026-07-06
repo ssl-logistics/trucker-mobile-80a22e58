@@ -423,13 +423,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Listen for storage changes (multi-tab support)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'auth_driver' || e.key === 'user_role' || e.key === 'auth_user_type') {
-        void loadUserFromStorage();
+        void loadUserFromStorage({ preserveExistingUser: true });
       }
     };
 
     // Same-tab support: manually dispatched event after login
     const handleAuthUpdated = () => {
-      void loadUserFromStorage();
+      void loadUserFromStorage({ preserveExistingUser: true });
     };
 
     window.addEventListener('storage', handleStorageChange);
