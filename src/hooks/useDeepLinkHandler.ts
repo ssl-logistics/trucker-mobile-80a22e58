@@ -142,6 +142,7 @@ export const useDeepLinkHandler = () => {
         return;
       }
       lineCodeProcessed = true;
+      setAuthTransitioning(true, "กำลังเข้าสู่ระบบ LINE...");
       // Allow a retry after 30 s in case the first attempt fails hard.
       const resetTimer = window.setTimeout(() => {
         lineCodeProcessed = false;
