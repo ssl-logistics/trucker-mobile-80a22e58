@@ -2,12 +2,34 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
-import { setAuthItem } from "@/utils/authStorage";
+import { getAuthItem, setAuthItem } from "@/utils/authStorage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
 
 const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback";
+const APPLE_HANDLED_KEY = "apple_auth_handled";
+
+// Only redirect to /home when the user is on the sign-in / auth landing routes.
+// If they are already inside the app, don't yank them back.
+const shouldRedirectToHomeAfterAuth = () => {
+  const hash = window.location.hash || "";
+  const path = hash.startsWith("#") ? hash.slice(1).split("?")[0] : window.location.pathname;
+  return path === "/" || path === "" || path.startsWith("/auth/");
+};
+
+// Only redirect to "/" on auth failure if there is no valid stored driver.
+// Prevents a stale/reused deep-link from logging out a working session.
+const shouldRedirectToSignInOnError = async () => {
+  try {
+    const driverData = await getAuthItem("auth_driver");
+    if (!driverData || driverData === "null") return true;
+    const parsed = JSON.parse(driverData);
+    return !(parsed && typeof parsed.id === "string" && parsed.id.length > 0);
+  } catch {
+    return true;
+  }
+};
 
 const setDebugValue = (key: string, value: string) => {
   try {
@@ -341,10 +363,19 @@ export const useDeepLinkHandler = () => {
         // Handle Apple auth callback (from Safari redirect with tokens)
         // thetroob://apple-auth-callback?access_token=xxx&refresh_token=xxx
         if (path === "apple-auth-callback") {
+          // Guard against re-processing on every appStateChange / launch URL replay.
+          // iOS keeps returning the same callback URL until the app process is killed,
+          // and tokens are single-use → replays fail and force-navigate away.
+          if (sessionStorage.getItem(APPLE_HANDLED_KEY) === "1") {
+            console.log("[DeepLink] 🍎 Apple auth callback already handled — skipping replay");
+            try { await Browser.close(); } catch { /* ignore */ }
+            return;
+          }
           console.log("[DeepLink] 🍎 Apple auth callback detected");
           const code = url.searchParams.get("code");
           const accessToken = url.searchParams.get("access_token");
           const refreshToken = url.searchParams.get("refresh_token");
+
 
           if (code) {
             try {
@@ -358,7 +389,7 @@ export const useDeepLinkHandler = () => {
                   title: "เกิดข้อผิดพลาด",
                   description: "ไม่สามารถยืนยันตัวตน Apple ได้: " + exchangeError.message,
                 });
-                navigate("/", { replace: true });
+                if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
                 return;
               }
 
@@ -369,7 +400,7 @@ export const useDeepLinkHandler = () => {
                   title: "เกิดข้อผิดพลาด",
                   description: "ไม่พบข้อมูลผู้ใช้จาก Apple",
                 });
-                navigate("/", { replace: true });
+                if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
                 return;
               }
 
@@ -397,12 +428,13 @@ export const useDeepLinkHandler = () => {
                 setAuthItem("user_role", "freelance"),
               ]);
 
+              try { sessionStorage.setItem(APPLE_HANDLED_KEY, "1"); } catch { /* ignore */ }
               window.dispatchEvent(new Event("auth_driver_updated"));
               toast({
                 title: "เข้าสู่ระบบสำเร็จ",
                 description: `ยินดีต้อนรับ ${appleDriver.full_name}`,
               });
-              navigate("/home", { replace: true });
+              if (shouldRedirectToHomeAfterAuth()) navigate("/home", { replace: true });
               return;
             } catch (err) {
               console.error("[DeepLink] ❌ Apple code flow error:", err);
@@ -411,7 +443,7 @@ export const useDeepLinkHandler = () => {
                 title: "เกิดข้อผิดพลาด",
                 description: "ไม่สามารถเข้าสู่ระบบ Apple ได้",
               });
-              navigate("/", { replace: true });
+              if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
               return;
             }
           }
@@ -442,7 +474,7 @@ export const useDeepLinkHandler = () => {
                     title: "เกิดข้อผิดพลาด",
                     description: "ไม่สามารถเข้าสู่ระบบ Apple ได้: " + sessionError.message,
                   });
-                  navigate("/", { replace: true });
+                  if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
                   return;
                 }
 
@@ -460,7 +492,7 @@ export const useDeepLinkHandler = () => {
                     title: "เกิดข้อผิดพลาด",
                     description: "ไม่สามารถยืนยันตัวตน Apple ได้",
                   });
-                  navigate("/", { replace: true });
+                  if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
                   return;
                 }
 
@@ -473,7 +505,7 @@ export const useDeepLinkHandler = () => {
                   title: "เกิดข้อผิดพลาด",
                   description: "ไม่พบข้อมูลผู้ใช้จาก Apple",
                 });
-                navigate("/", { replace: true });
+                if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
                 return;
               }
 
@@ -504,6 +536,7 @@ export const useDeepLinkHandler = () => {
                 setAuthItem("user_role", "freelance"),
               ]);
 
+              try { sessionStorage.setItem(APPLE_HANDLED_KEY, "1"); } catch { /* ignore */ }
               // Dispatch auth event
               window.dispatchEvent(new Event("auth_driver_updated"));
 
@@ -512,7 +545,7 @@ export const useDeepLinkHandler = () => {
                 description: `ยินดีต้อนรับ ${appleDriver.full_name}`,
               });
 
-              navigate("/home", { replace: true });
+              if (shouldRedirectToHomeAfterAuth()) navigate("/home", { replace: true });
               return;
             } catch (err) {
               console.error("[DeepLink] ❌ Apple auth error:", err);
@@ -521,7 +554,7 @@ export const useDeepLinkHandler = () => {
                 title: "เกิดข้อผิดพลาด",
                 description: "ไม่สามารถเข้าสู่ระบบ Apple ได้",
               });
-              navigate("/", { replace: true });
+              if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
               return;
             }
           } else {
@@ -531,7 +564,7 @@ export const useDeepLinkHandler = () => {
               title: "เกิดข้อผิดพลาด",
               description: "ไม่ได้รับ code หรือ token จาก Apple",
             });
-            navigate("/", { replace: true });
+            if (await shouldRedirectToSignInOnError()) navigate("/", { replace: true });
             return;
           }
         }
