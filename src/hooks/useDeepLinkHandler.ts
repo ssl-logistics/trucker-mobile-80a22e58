@@ -364,6 +364,7 @@ export const useDeepLinkHandler = () => {
             "line_last_deep_link_error",
             "LINE callback reached app without code/state. Callback page is likely stale or query params were stripped before app launch.",
           );
+          setAuthTransitioning(false);
         }
 
         // Handle Apple auth callback (from Safari redirect with tokens)
