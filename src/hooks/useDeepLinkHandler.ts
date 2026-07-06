@@ -363,10 +363,19 @@ export const useDeepLinkHandler = () => {
         // Handle Apple auth callback (from Safari redirect with tokens)
         // thetroob://apple-auth-callback?access_token=xxx&refresh_token=xxx
         if (path === "apple-auth-callback") {
+          // Guard against re-processing on every appStateChange / launch URL replay.
+          // iOS keeps returning the same callback URL until the app process is killed,
+          // and tokens are single-use → replays fail and force-navigate away.
+          if (sessionStorage.getItem(APPLE_HANDLED_KEY) === "1") {
+            console.log("[DeepLink] 🍎 Apple auth callback already handled — skipping replay");
+            try { await Browser.close(); } catch { /* ignore */ }
+            return;
+          }
           console.log("[DeepLink] 🍎 Apple auth callback detected");
           const code = url.searchParams.get("code");
           const accessToken = url.searchParams.get("access_token");
           const refreshToken = url.searchParams.get("refresh_token");
+
 
           if (code) {
             try {
