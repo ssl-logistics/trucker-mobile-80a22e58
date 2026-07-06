@@ -868,7 +868,7 @@ export default function VehicleInfoPage() {
               <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">{t('vehicle.dimensions')}</Label>
                 <p className="text-base font-medium mt-1">
-                  {displayVehicleData.width && vehicleData.length && vehicleData.height
+                  {displayVehicleData.width && displayVehicleData.length && displayVehicleData.height
                     ? `${t('vehicle.width')} ${displayVehicleData.width} ${t('vehicle.length')} ${displayVehicleData.length} ${t('vehicle.height')} ${displayVehicleData.height} ${t('vehicle.meter')}`
                     : t('vehicle.notSpecified')}
                 </p>
