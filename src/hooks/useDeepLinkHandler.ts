@@ -337,6 +337,7 @@ export const useDeepLinkHandler = () => {
         // thetroob://line-callback?code=xxx&state=yyy
         if (path === "line-callback" || path.startsWith("line-callback/payload/")) {
           console.log("[DeepLink] 🔐 LINE callback detected");
+          setAuthTransitioning(true, "กำลังเข้าสู่ระบบ LINE...");
           const { params, code, state, source: callbackParamSource } = extractLineCallbackParams(url, path);
           setDebugValue("line_last_callback_url", event.url);
           setDebugValue("line_last_callback_params", JSON.stringify(params));
