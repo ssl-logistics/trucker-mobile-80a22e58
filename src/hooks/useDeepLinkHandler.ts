@@ -116,6 +116,7 @@ interface LineUserData {
 export const useDeepLinkHandler = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setAuthTransitioning } = useAuth();
 
   const persistDriverSession = async (driver: Record<string, any>, loginType: string) => {
     await Promise.all([
