@@ -169,78 +169,22 @@ export const useDeepLinkHandler = () => {
 
         console.log("[DeepLink] ✅ LINE user data received:", data.user.displayName);
 
-        // Auto-create account in database
-        let driverUserId = data.user.lineUserId;
-        try {
-          const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
-            body: {
-              authProvider: "line",
-              lineUserId: data.user.lineUserId,
-              firstName: data.user.displayName?.split(" ")[0] || "LINE",
-              lastName: data.user.displayName?.split(" ").slice(1).join(" ") || "User",
-              phone: "0000000000",
-              email: "",
-              avatarUrl: data.user.pictureUrl || "",
-            },
-          });
-          if (!accountError && accountData?.userId) {
-            driverUserId = accountData.userId;
-            console.log("[DeepLink] ✅ Account created/found:", driverUserId);
-          }
-        } catch (e) {
-          console.warn("[DeepLink] ⚠️ Account creation failed (non-blocking):", e);
-        }
-
-        // Register driver in external TMS
-        let registeredPhone = "";
-        let registeredEmail = "";
-        let registeredFirstName = "";
-        let registeredLastName = "";
-        try {
-          const registerBody: Record<string, string> = {
-            authProvider: "line",
-            authUserId: driverUserId,
-          };
-          if (data.user.displayName) {
-            const nameParts = data.user.displayName.split(" ");
-            registerBody.firstName = nameParts[0] || "LINE";
-            registerBody.lastName = nameParts.slice(1).join(" ") || "User";
-          }
-          const { data: regData, error: regError } = await supabase.functions.invoke("register-driver", {
-            body: registerBody,
-          });
-          if (regError) {
-            console.warn("[DeepLink] ⚠️ External registration warning:", regError.message);
-          } else {
-            console.log("[DeepLink] ✅ External TMS registration:", regData);
-          }
-          const regDriverData = regData?.data || regData;
-          registeredPhone = regDriverData?.phone || "";
-          registeredEmail = regDriverData?.email || "";
-          registeredFirstName = regDriverData?.firstName || "";
-          registeredLastName = regDriverData?.lastName || "";
-        } catch (regErr) {
-          console.warn("[DeepLink] ⚠️ External registration failed (non-blocking):", regErr);
-        }
-
-        await setAuthItem("line_user", JSON.stringify(data.user));
-        await setAuthItem("auth_login_type", "line");
-
-        const lineDriver: Record<string, any> = {
-          id: driverUserId,
+        const initialLineDriver: Record<string, any> = {
+          id: data.user.lineUserId,
           full_name: data.user.displayName,
-          first_name: registeredFirstName || data.user.displayName?.split(" ")[0] || "",
-          last_name: registeredLastName || data.user.displayName?.split(" ").slice(1).join(" ") || "",
-          phone: registeredPhone,
-          phone_number: registeredPhone,
-          email: registeredEmail || "",
+          first_name: data.user.displayName?.split(" ")[0] || "",
+          last_name: data.user.displayName?.split(" ").slice(1).join(" ") || "",
+          phone: "",
+          phone_number: "",
+          email: "",
           avatar_url: data.user.pictureUrl || null,
           loginType: "line",
           lineUser: data.user,
         };
-        console.log("[DeepLink] ✅ Auth data saved, driverId:", driverUserId);
 
-        await persistDriverSession(lineDriver, "line");
+        await setAuthItem("line_user", JSON.stringify(data.user));
+        await persistDriverSession(initialLineDriver, "line");
+        console.log("[DeepLink] ✅ Initial LINE auth saved, entering app immediately");
 
         // Clear saved state after successful auth
         localStorage.removeItem("line_oauth_state");
@@ -252,6 +196,67 @@ export const useDeepLinkHandler = () => {
         });
 
         navigate("/home", { replace: true });
+
+        // Slow account linking / external profile sync must not block entry to the app.
+        void (async () => {
+          let driverUserId = data.user.lineUserId;
+          try {
+            const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
+              body: {
+                authProvider: "line",
+                lineUserId: data.user.lineUserId,
+                firstName: data.user.displayName?.split(" ")[0] || "LINE",
+                lastName: data.user.displayName?.split(" ").slice(1).join(" ") || "User",
+                phone: "0000000000",
+                email: "",
+                avatarUrl: data.user.pictureUrl || "",
+              },
+            });
+            if (!accountError && accountData?.userId) {
+              driverUserId = accountData.userId;
+              console.log("[DeepLink] ✅ Account created/found:", driverUserId);
+            }
+          } catch (e) {
+            console.warn("[DeepLink] ⚠️ Account creation failed (non-blocking):", e);
+          }
+
+          try {
+            const registerBody: Record<string, string> = {
+              authProvider: "line",
+              authUserId: driverUserId,
+            };
+            if (data.user.displayName) {
+              const nameParts = data.user.displayName.split(" ");
+              registerBody.firstName = nameParts[0] || "LINE";
+              registerBody.lastName = nameParts.slice(1).join(" ") || "User";
+            }
+            const { data: regData, error: regError } = await supabase.functions.invoke("register-driver", {
+              body: registerBody,
+            });
+            if (regError) {
+              console.warn("[DeepLink] ⚠️ External registration warning:", regError.message);
+              return;
+            }
+
+            const regDriverData = regData?.data || regData;
+            const syncedDriver: Record<string, any> = {
+              ...(regDriverData && typeof regDriverData === "object" ? regDriverData : {}),
+              ...initialLineDriver,
+              id: regDriverData?.id || driverUserId,
+              first_name: regDriverData?.firstName || initialLineDriver.first_name,
+              last_name: regDriverData?.lastName || initialLineDriver.last_name,
+              phone: regDriverData?.phone || "",
+              phone_number: regDriverData?.phone || "",
+              email: regDriverData?.email || "",
+              username: regDriverData?.driverCode || "",
+            };
+
+            await persistDriverSession(syncedDriver, "line");
+            console.log("[DeepLink] ✅ LINE profile synced in background");
+          } catch (regErr) {
+            console.warn("[DeepLink] ⚠️ External registration failed (non-blocking):", regErr);
+          }
+        })();
       } catch (err) {
         console.error("[DeepLink] ❌ processLineCode error:", err);
         lineCodeProcessed = false;
