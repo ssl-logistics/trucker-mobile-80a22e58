@@ -73,7 +73,14 @@ export default function AccountPage() {
         const shouldFallbackToLocal = isDriverNotFoundError(error, data);
         if (error && !shouldFallbackToLocal) {
           throw new Error(error);
-        }
+      }
+
+      // Always persist to our own backend so LINE/OAuth users don't lose data on re-login
+      await saveDriverBank(user.id, {
+        bank_name: bankName.trim(),
+        account_number: bankAccountNumber.trim(),
+        account_name: bankAccountName.trim() || user.full_name || '',
+      });
       }
 
       // Update local auth_driver with new bank info
