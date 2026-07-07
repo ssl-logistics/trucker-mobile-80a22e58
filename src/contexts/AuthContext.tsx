@@ -10,6 +10,7 @@ import {
   handleFirstRunAfterInstall,
 } from '@/utils/authStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchDriverProfileData, mergeDriverExtras } from '@/lib/driverProfileData';
 
 interface LineUser {
   lineUserId: string;
