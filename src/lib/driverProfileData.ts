@@ -10,6 +10,9 @@ const HEADERS = {
   Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
 };
 
+const isLineUserId = (id?: string | null): id is string => !!id && /^U[a-z0-9]{20,}$/i.test(id);
+const LINE_USER_ID_KEY = "line_user_id_map";
+
 export interface DriverBankData {
   bank_name?: string | null;
   account_name?: string | null;
@@ -36,13 +39,96 @@ export interface DriverVehicleData {
 
 const isUuid = (id?: string | null): id is string => !!id && UUID_RE.test(id);
 
+const readLineUserIdMap = (): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(LINE_USER_ID_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeLineUserIdMap = (map: Record<string, string>) => {
+  try {
+    localStorage.setItem(LINE_USER_ID_KEY, JSON.stringify(map));
+  } catch {
+    // ignore
+  }
+};
+
+export const rememberLineUserDriverId = (lineUserId?: string | null, driverId?: string | null) => {
+  if (!isLineUserId(lineUserId) || !isUuid(driverId)) return;
+  const map = readLineUserIdMap();
+  map[lineUserId] = driverId;
+  writeLineUserIdMap(map);
+};
+
+export const getRememberedLineDriverId = (lineUserId?: string | null) => {
+  if (!isLineUserId(lineUserId)) return null;
+  const driverId = readLineUserIdMap()[lineUserId];
+  return isUuid(driverId) ? driverId : null;
+};
+
+export const resolvePersistedDriverId = (driverId?: string | null, lineUserId?: string | null) => {
+  if (isUuid(driverId)) return driverId;
+  return getRememberedLineDriverId(lineUserId || driverId) || null;
+};
+
+const getStoredLineUser = (): Record<string, any> | null => {
+  try {
+    const raw = localStorage.getItem("line_user");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+export const ensurePersistedDriverId = async (driverId?: string | null, lineUserId?: string | null) => {
+  const resolvedDriverId = resolvePersistedDriverId(driverId, lineUserId);
+  if (resolvedDriverId) return resolvedDriverId;
+
+  const candidateLineUserId = isLineUserId(lineUserId) ? lineUserId : isLineUserId(driverId) ? driverId : null;
+  if (!candidateLineUserId) return null;
+
+  const lineUser = getStoredLineUser();
+  const displayName = typeof lineUser?.displayName === "string" ? lineUser.displayName : "LINE User";
+
+  try {
+    const { data, error } = await supabase.functions.invoke("create-account", {
+      body: {
+        authProvider: "line",
+        lineUserId: candidateLineUserId,
+        firstName: displayName.split(" ")[0] || "LINE",
+        lastName: displayName.split(" ").slice(1).join(" ") || "User",
+        phone: "0000000000",
+        email: typeof lineUser?.email === "string" ? lineUser.email : "",
+        avatarUrl: typeof lineUser?.pictureUrl === "string" ? lineUser.pictureUrl : "",
+      },
+    });
+
+    if (!error && isUuid(data?.userId)) {
+      rememberLineUserDriverId(candidateLineUserId, data.userId);
+      return data.userId;
+    }
+  } catch (e) {
+    console.warn("[driver-profile-data] LINE driver id resolve failed:", e);
+  }
+
+  return null;
+};
+
 export async function fetchDriverProfileData(driverId?: string | null): Promise<{
   bank: Record<string, any> | null;
   vehicle: Record<string, any> | null;
 } | null> {
-  if (!isUuid(driverId)) return null;
+  const resolvedDriverId = await ensurePersistedDriverId(driverId);
+  if (!resolvedDriverId) return null;
   try {
-    const res = await fetch(`${FN_URL}?driver_id=${driverId}`, { headers: HEADERS });
+    const res = await fetch(`${FN_URL}?driver_id=${resolvedDriverId}`, { headers: HEADERS });
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
@@ -55,12 +141,13 @@ export async function saveDriverBank(
   driverId: string | null | undefined,
   bank: DriverBankData,
 ): Promise<boolean> {
-  if (!isUuid(driverId)) return false;
+  const resolvedDriverId = await ensurePersistedDriverId(driverId);
+  if (!resolvedDriverId) return false;
   try {
     const res = await fetch(FN_URL, {
       method: "PUT",
       headers: HEADERS,
-      body: JSON.stringify({ driver_id: driverId, bank }),
+      body: JSON.stringify({ driver_id: resolvedDriverId, bank }),
     });
     return res.ok;
   } catch (e) {
@@ -73,12 +160,13 @@ export async function saveDriverVehicle(
   driverId: string | null | undefined,
   vehicle: DriverVehicleData,
 ): Promise<boolean> {
-  if (!isUuid(driverId)) return false;
+  const resolvedDriverId = await ensurePersistedDriverId(driverId);
+  if (!resolvedDriverId) return false;
   try {
     const res = await fetch(FN_URL, {
       method: "PUT",
       headers: HEADERS,
-      body: JSON.stringify({ driver_id: driverId, vehicle }),
+      body: JSON.stringify({ driver_id: resolvedDriverId, vehicle }),
     });
     return res.ok;
   } catch (e) {

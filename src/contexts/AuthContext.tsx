@@ -342,7 +342,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             };
 
             // Merge our own persisted bank + vehicle data (survives TMS gaps for LINE users)
-            const extras = await fetchDriverProfileData(tmsData.id);
+            const extras = await fetchDriverProfileData((currentDriver as any).cloud_driver_id || tmsData.id);
             const finalDriver = mergeDriverExtras(updatedDriver, extras);
 
             await setAuthItem('auth_driver', JSON.stringify(finalDriver));

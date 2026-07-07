@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { autoRegisterOAuthUser } from "@/utils/oauthAutoRegister";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchDriverProfileData, mergeDriverExtras, rememberLineUserDriverId } from "@/lib/driverProfileData";
 
 const LINE_REDIRECT_URI = "https://mobile.the-trucker.com/auth/line/callback";
 const APPLE_HANDLED_KEY = "apple_auth_handled";
@@ -216,6 +217,7 @@ export const useDeepLinkHandler = () => {
             });
             if (!accountError && accountData?.userId) {
               driverUserId = accountData.userId;
+              rememberLineUserDriverId(data.user.lineUserId, driverUserId);
               console.log("[DeepLink] ✅ Account created/found:", driverUserId);
             }
           } catch (e) {
@@ -245,6 +247,7 @@ export const useDeepLinkHandler = () => {
               ...(regDriverData && typeof regDriverData === "object" ? regDriverData : {}),
               ...initialLineDriver,
               id: regDriverData?.id || driverUserId,
+              cloud_driver_id: driverUserId,
               first_name: regDriverData?.firstName || initialLineDriver.first_name,
               last_name: regDriverData?.lastName || initialLineDriver.last_name,
               phone: regDriverData?.phone || "",
@@ -253,7 +256,8 @@ export const useDeepLinkHandler = () => {
               username: regDriverData?.driverCode || "",
             };
 
-            await persistDriverSession(syncedDriver, "line");
+            const extras = await fetchDriverProfileData(driverUserId);
+            await persistDriverSession(mergeDriverExtras(syncedDriver, extras), "line");
             console.log("[DeepLink] ✅ LINE profile synced in background");
           } catch (regErr) {
             console.warn("[DeepLink] ⚠️ External registration failed (non-blocking):", regErr);

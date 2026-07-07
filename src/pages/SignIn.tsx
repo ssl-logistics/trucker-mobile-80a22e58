@@ -24,6 +24,7 @@ import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
 import { LineDebugModal } from "@/components/debug/LineDebugModal";
 import { initLiff, liffLogin, getLiffProfile, liff, LIFF_ID } from "@/lib/liff";
+import { fetchDriverProfileData, mergeDriverExtras, rememberLineUserDriverId } from "@/lib/driverProfileData";
 
 const setLineDebugValue = (key: string, value: string) => {
   try {
@@ -518,6 +519,7 @@ const SignIn = () => {
                       },
                     });
                     driverUserId = accountData?.userId || driverUserId;
+                    rememberLineUserDriverId(data.user.lineUserId, driverUserId);
                   } catch (e) {
                     console.warn('[LIFF Login] create-account non-blocking error:', e);
                   }
@@ -539,14 +541,19 @@ const SignIn = () => {
                       ...(tmsData && typeof tmsData === 'object' ? tmsData : {}),
                       ...lineDriver,
                       id: tmsData?.id || driverUserId,
+                      cloud_driver_id: driverUserId,
                       full_name: tmsFullName || lineDriver.full_name,
                       phone_number: tmsData?.phone || '',
                       email: tmsData?.email || '',
                       username: tmsData?.driverCode || '',
                     };
-                    await setAuthItem('auth_driver', JSON.stringify(syncedDriver));
+                    const extras = await fetchDriverProfileData(driverUserId);
+                    const finalDriver = mergeDriverExtras(syncedDriver, extras);
+                    await setAuthItem('auth_driver', JSON.stringify(finalDriver));
                     await setAuthItem('auth_driver_id', syncedDriver.id);
-                    window.dispatchEvent(new Event('auth_driver_updated'));
+                    window.dispatchEvent(new CustomEvent('auth_driver_updated', {
+                      detail: { driver: finalDriver, userType: 'freelance_driver', role: 'freelance' },
+                    }));
                   } catch (e) {
                     console.warn('[LIFF Login] register-driver non-blocking error:', e);
                   }
