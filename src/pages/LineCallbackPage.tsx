@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
+import { fetchDriverProfileData, mergeDriverExtras } from '@/lib/driverProfileData';
 import { Loader2 } from 'lucide-react';
 import { initLiff, liff } from '@/lib/liff';
 
