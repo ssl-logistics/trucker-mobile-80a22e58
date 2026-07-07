@@ -15,6 +15,7 @@ import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { GlobalProximityAlert } from "@/components/GlobalProximityAlert";
 import { CallProvider } from "@/components/call/CallProvider";
 import { Loader2 } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Preloadable lazy import helper with auto-reload on stale chunk errors.
 // After a deploy, old chunk hashes (e.g. ContainerSummaryPage-XXXX.js) stop existing.
@@ -522,7 +523,9 @@ const App = () => (
                         path="/vehicle-info"
                         element={
                           <ProtectedRoute>
-                            <VehicleInfoPage />
+                            <ErrorBoundary>
+                              <VehicleInfoPage />
+                            </ErrorBoundary>
                           </ProtectedRoute>
                         }
                       />

@@ -39,15 +39,15 @@ export default function AccountPage() {
   const [isSavingBank, setIsSavingBank] = useState(false);
   const [bankLoaded, setBankLoaded] = useState(false);
 
-  // Load existing bank info from auth_driver (external API data)
+  // Load existing bank info from auth_driver (external API data) — only once per user
   useEffect(() => {
     if (!isFreelanceDriver || !user) return;
-    
+    if (bankLoaded) return; // prevent reset after save-triggered user updates
     setBankName(user.bank_name || '');
     setBankAccountNumber(user.bank_account_number || user.account_number || '');
     setBankAccountName(user.bank_account_name || user.account_name || user.full_name || '');
     setBankLoaded(true);
-  }, [isFreelanceDriver, user]);
+  }, [isFreelanceDriver, user, bankLoaded]);
 
   const handleSaveBank = async () => {
     if (!user?.id || !bankName.trim() || !bankAccountNumber.trim()) return;
