@@ -187,7 +187,7 @@ export default function EditVehicleFieldPage() {
 
   const handleSave = async () => {
     if (!user) return;
-    const persistedDriverId = (user as any).cloud_driver_id || (user as any).app_user_id || user.id;
+    const persistedDriverId = (user as any).cloud_driver_id || (user as any).app_user_id || user.lineUser?.lineUserId || user.id;
 
     setLoading(true);
     try {
