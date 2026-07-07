@@ -220,30 +220,86 @@ export default function EditVehicleFieldPage() {
             break;
         }
 
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify(updatePayload),
-          }
-        );
+        // 1) Try TMS update (may fail for LINE-only users; that's OK)
+        let tmsData: any = null;
+        let tmsOk = false;
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify(updatePayload),
+            }
+          );
 
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data?.message || data?.error || t('editVehicle.saveError'));
+          tmsData = await response.json().catch(() => ({}));
+          tmsOk = response.ok;
+
+          // If TMS failed for a non-driver-not-found reason, surface the error
+          if (!response.ok && !isDriverNotFoundError(tmsData?.error, tmsData)) {
+            throw new Error(tmsData?.message || tmsData?.error || t('editVehicle.saveError'));
+          }
+        } catch (tmsErr: any) {
+          // Only rethrow if it's not a driver-not-found scenario
+          if (!isDriverNotFoundError(tmsErr?.message, tmsData)) {
+            throw tmsErr;
+          }
+          console.warn('[EditVehicle] TMS driver not found, saving locally only');
         }
+
+        // 2) Always persist to our own backend keyed by driver_id
+        const vehiclePatch: DriverVehicleData = {};
+        switch (field) {
+          case 'plate_number':
+          case 'plate_province':
+          case 'vehicle_brand':
+          case 'vehicle_color':
+          case 'vin':
+          case 'vehicle_type':
+          case 'fuel_type':
+            (vehiclePatch as any)[field] = value;
+            break;
+          case 'load_capacity':
+            vehiclePatch.load_capacity = value ? parseFloat(value) : null;
+            break;
+          case 'dimensions':
+            vehiclePatch.width = dimensions.width ? parseFloat(dimensions.width) : null;
+            vehiclePatch.length = dimensions.length ? parseFloat(dimensions.length) : null;
+            vehiclePatch.height = dimensions.height ? parseFloat(dimensions.height) : null;
+            break;
+          case 'container_types':
+            vehiclePatch.container_types = containerTypes;
+            break;
+        }
+        await saveDriverVehicle(user.id, vehiclePatch);
 
         toast({
           title: t('editVehicle.saveSuccess'),
           description: t('editVehicle.saveSuccessMessage'),
         });
 
-        await refreshUser();
+        if (tmsOk) {
+          await refreshUser();
+        } else {
+          // Merge locally so UI reflects new values without wiping other TMS fields
+          const { getAuthItem, setAuthItem } = await import('@/utils/authStorage');
+          const stored = await getAuthItem('auth_driver');
+          if (stored) {
+            try {
+              const driverObj = JSON.parse(stored);
+              Object.assign(driverObj, vehiclePatch);
+              await setAuthItem('auth_driver', JSON.stringify(driverObj));
+              window.dispatchEvent(new CustomEvent('auth_driver_updated', {
+                detail: { driver: driverObj, userType: userType || 'freelance_driver' },
+              }));
+            } catch {}
+          }
+        }
         navigate('/vehicle-info');
         return;
       }
