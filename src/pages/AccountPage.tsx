@@ -77,6 +77,7 @@ export default function AccountPage() {
 
       // Update local auth_driver with new bank info
       const storedDriver = await getAuthItem('auth_driver');
+      let mergedDriver: any = null;
       if (storedDriver) {
         try {
           const driverObj = JSON.parse(storedDriver);
@@ -85,12 +86,34 @@ export default function AccountPage() {
           driverObj.bank_account_name = bankAccountName.trim() || user.full_name || '';
           driverObj.account_number = bankAccountNumber.trim();
           driverObj.account_name = bankAccountName.trim() || user.full_name || '';
+          mergedDriver = driverObj;
           await setAuthItem('auth_driver', JSON.stringify(driverObj));
-          window.dispatchEvent(new Event('auth_driver_updated'));
         } catch {}
       }
 
-      await refreshUser();
+      // Fallback: merge onto current user if storage read failed
+      if (!mergedDriver) {
+        mergedDriver = {
+          ...(user as any),
+          bank_name: bankName.trim(),
+          bank_account_number: bankAccountNumber.trim(),
+          bank_account_name: bankAccountName.trim() || user.full_name || '',
+          account_number: bankAccountNumber.trim(),
+          account_name: bankAccountName.trim() || user.full_name || '',
+        };
+        await setAuthItem('auth_driver', JSON.stringify(mergedDriver));
+      }
+
+      // Dispatch with driver payload so AuthContext updates user state immediately
+      // (do NOT call refreshUser: for LINE it re-fetches TMS which may not return bank fields
+      // and would overwrite the values we just saved locally)
+      window.dispatchEvent(new CustomEvent('auth_driver_updated', {
+        detail: {
+          driver: mergedDriver,
+          userType: userType || 'freelance_driver',
+        },
+      }));
+
       toast({
         title: t('account.bank_save_success'),
       });
