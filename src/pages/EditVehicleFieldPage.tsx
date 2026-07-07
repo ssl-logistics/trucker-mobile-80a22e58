@@ -245,11 +245,8 @@ export default function EditVehicleFieldPage() {
             throw new Error(tmsData?.message || tmsData?.error || t('editVehicle.saveError'));
           }
         } catch (tmsErr: any) {
-          // Only rethrow if it's not a driver-not-found scenario
-          if (!isDriverNotFoundError(tmsErr?.message, tmsData)) {
-            throw tmsErr;
-          }
-          console.warn('[EditVehicle] TMS driver not found, saving locally only');
+          // Network / TMS errors are non-fatal — we still persist to our own backend.
+          console.warn('[EditVehicle] TMS update failed (non-fatal):', tmsErr?.message);
         }
 
         // 2) Always persist to our own backend keyed by driver_id
