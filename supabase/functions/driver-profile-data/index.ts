@@ -17,6 +17,21 @@ const json = (body: unknown, status = 200) =>
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const vehicleInsertDefaults = (driverId: string) => ({
+  driver_id: driverId,
+  plate_number: "",
+  plate_province: "",
+  vehicle_brand: "",
+  vehicle_color: "",
+  vin: "",
+  fuel_type: "",
+  load_capacity: 0,
+  vehicle_type: "",
+  has_trailer: false,
+  container_types: [],
+  updated_at: new Date().toISOString(),
+});
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -100,7 +115,7 @@ serve(async (req) => {
         } else {
           ({ data, error } = await supabase
             .from("vehicles")
-            .insert(row)
+            .insert({ ...vehicleInsertDefaults(driverId), ...row })
             .select()
             .maybeSingle());
         }
