@@ -67,6 +67,28 @@ const asRecord = (value: unknown): VehicleApiRecord | null => {
   return value as VehicleApiRecord;
 };
 
+// Coerce any API value to a safe string for rendering (prevents "Objects are not valid as React child" crashes)
+const toDisplayString = (value: unknown, fallback = ''): string => {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'object') {
+    const rec = value as Record<string, unknown>;
+    for (const k of ['name', 'label', 'value', 'title', 'text', 'display_name', 'th', 'en']) {
+      const v = rec[k];
+      if (typeof v === 'string' && v.trim()) return v;
+    }
+    try { return JSON.stringify(value); } catch { return fallback; }
+  }
+  return fallback;
+};
+
+const toDisplayNumber = (value: unknown): number | undefined => {
+  if (value === null || value === undefined || value === '') return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+};
+
 const getVehicleApiSources = (user: unknown): VehicleApiRecord[] => {
   const root = asRecord(user);
   if (!root) return [];
