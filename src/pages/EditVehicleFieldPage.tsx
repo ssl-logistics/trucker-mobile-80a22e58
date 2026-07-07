@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { locations } from '@/data/locations';
+import { saveDriverVehicle, type DriverVehicleData } from '@/lib/driverProfileData';
+import { isDriverNotFoundError } from '@/utils/oauthDriverSync';
 
 const vehicleBrands = [
   { value: 'isuzu', label: 'Isuzu' },
