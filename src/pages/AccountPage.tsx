@@ -58,30 +58,32 @@ export default function AccountPage() {
       const isOAuthUser = isOAuthLoginType(user.loginType);
       const shouldSyncExternal = !isOAuthUser || user.loginType === 'line';
 
-      // LINE still attempts external sync, but OAuth users can gracefully fallback to local-only
+      // LINE still attempts external sync, but OAuth users can gracefully fallback to local-only.
+      // Any TMS error (network or "driver not found") is non-fatal — we persist to our own backend below.
       if (shouldSyncExternal) {
-        const driverType = getDriverTypeFromUserType(userType || 'freelance_driver');
-        
-        const { data, error } = await updateFreelanceDriver({
-          driver_id: user.id,
-          driver_type: driverType,
-          bank_name: bankName.trim(),
-          account_number: bankAccountNumber.trim(),
-          account_name: bankAccountName.trim() || user.full_name || '',
-        });
-
-        const shouldFallbackToLocal = isDriverNotFoundError(error, data);
-        if (error && !shouldFallbackToLocal) {
-          throw new Error(error);
+        try {
+          const driverType = getDriverTypeFromUserType(userType || 'freelance_driver');
+          const { data, error } = await updateFreelanceDriver({
+            driver_id: user.id,
+            driver_type: driverType,
+            bank_name: bankName.trim(),
+            account_number: bankAccountNumber.trim(),
+            account_name: bankAccountName.trim() || user.full_name || '',
+          });
+          if (error && !isDriverNotFoundError(error, data)) {
+            console.warn('[Bank] TMS update non-fatal error:', error);
+          }
+        } catch (tmsErr: any) {
+          console.warn('[Bank] TMS update failed (non-fatal):', tmsErr?.message);
+        }
       }
 
-      // Always persist to our own backend so LINE/OAuth users don't lose data on re-login
+      // Always persist to our own backend so data survives logout/login
       await saveDriverBank(user.id, {
         bank_name: bankName.trim(),
         account_number: bankAccountNumber.trim(),
         account_name: bankAccountName.trim() || user.full_name || '',
       });
-      }
 
       // Update local auth_driver with new bank info
       const storedDriver = await getAuthItem('auth_driver');
