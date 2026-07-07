@@ -187,6 +187,7 @@ export default function EditVehicleFieldPage() {
 
   const handleSave = async () => {
     if (!user) return;
+    const persistedDriverId = (user as any).cloud_driver_id || (user as any).app_user_id || user.id;
 
     setLoading(true);
     try {
@@ -273,7 +274,7 @@ export default function EditVehicleFieldPage() {
             vehiclePatch.container_types = containerTypes;
             break;
         }
-        const backendOk = await saveDriverVehicle(user.id, vehiclePatch);
+        const backendOk = await saveDriverVehicle(persistedDriverId, vehiclePatch);
 
         if (!tmsOk && !backendOk) {
           throw new Error(t('editVehicle.saveError'));
