@@ -273,7 +273,11 @@ export default function EditVehicleFieldPage() {
             vehiclePatch.container_types = containerTypes;
             break;
         }
-        await saveDriverVehicle(user.id, vehiclePatch);
+        const backendOk = await saveDriverVehicle(user.id, vehiclePatch);
+
+        if (!tmsOk && !backendOk) {
+          throw new Error(t('editVehicle.saveError'));
+        }
 
         toast({
           title: t('editVehicle.saveSuccess'),
