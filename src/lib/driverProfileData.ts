@@ -76,11 +76,56 @@ export const resolvePersistedDriverId = (driverId?: string | null, lineUserId?: 
   return getRememberedLineDriverId(lineUserId || driverId) || null;
 };
 
+const getStoredLineUser = (): Record<string, any> | null => {
+  try {
+    const raw = localStorage.getItem("line_user");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+export const ensurePersistedDriverId = async (driverId?: string | null, lineUserId?: string | null) => {
+  const resolvedDriverId = resolvePersistedDriverId(driverId, lineUserId);
+  if (resolvedDriverId) return resolvedDriverId;
+
+  const candidateLineUserId = isLineUserId(lineUserId) ? lineUserId : isLineUserId(driverId) ? driverId : null;
+  if (!candidateLineUserId) return null;
+
+  const lineUser = getStoredLineUser();
+  const displayName = typeof lineUser?.displayName === "string" ? lineUser.displayName : "LINE User";
+
+  try {
+    const { data, error } = await supabase.functions.invoke("create-account", {
+      body: {
+        authProvider: "line",
+        lineUserId: candidateLineUserId,
+        firstName: displayName.split(" ")[0] || "LINE",
+        lastName: displayName.split(" ").slice(1).join(" ") || "User",
+        phone: "0000000000",
+        email: typeof lineUser?.email === "string" ? lineUser.email : "",
+        avatarUrl: typeof lineUser?.pictureUrl === "string" ? lineUser.pictureUrl : "",
+      },
+    });
+
+    if (!error && isUuid(data?.userId)) {
+      rememberLineUserDriverId(candidateLineUserId, data.userId);
+      return data.userId;
+    }
+  } catch (e) {
+    console.warn("[driver-profile-data] LINE driver id resolve failed:", e);
+  }
+
+  return null;
+};
+
 export async function fetchDriverProfileData(driverId?: string | null): Promise<{
   bank: Record<string, any> | null;
   vehicle: Record<string, any> | null;
 } | null> {
-  const resolvedDriverId = resolvePersistedDriverId(driverId);
+  const resolvedDriverId = await ensurePersistedDriverId(driverId);
   if (!resolvedDriverId) return null;
   try {
     const res = await fetch(`${FN_URL}?driver_id=${resolvedDriverId}`, { headers: HEADERS });
@@ -96,7 +141,7 @@ export async function saveDriverBank(
   driverId: string | null | undefined,
   bank: DriverBankData,
 ): Promise<boolean> {
-  const resolvedDriverId = resolvePersistedDriverId(driverId);
+  const resolvedDriverId = await ensurePersistedDriverId(driverId);
   if (!resolvedDriverId) return false;
   try {
     const res = await fetch(FN_URL, {
@@ -115,7 +160,7 @@ export async function saveDriverVehicle(
   driverId: string | null | undefined,
   vehicle: DriverVehicleData,
 ): Promise<boolean> {
-  const resolvedDriverId = resolvePersistedDriverId(driverId);
+  const resolvedDriverId = await ensurePersistedDriverId(driverId);
   if (!resolvedDriverId) return false;
   try {
     const res = await fetch(FN_URL, {
