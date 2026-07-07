@@ -209,23 +209,26 @@ export default function VehicleInfoPage() {
       // First try to get from user object (from external API via AuthContext)
       if (plateNumber || user.plate_number) {
         const containerTypesRaw = pickAny('container_types');
+        const containerTypesArr = Array.isArray(containerTypesRaw)
+          ? (containerTypesRaw as unknown[]).map((v) => toDisplayString(v)).filter(Boolean)
+          : [];
         const vehicleFromUser: VehicleData = {
-          id: user.id,
-          plate_number: plateNumber || user.plate_number || '',
-          plate_province: plateProvince || user.plate_province || '',
-          vehicle_brand: (pick('vehicle_brand', 'brand', 'car_brand') || '') as string,
-          vehicle_color: (pick('vehicle_color', 'color') || '') as string,
-          vin: (pick('vin') || '') as string,
-          fuel_type: (pick('fuel_type') || '') as string,
-          load_capacity: Number(pickAny('load_capacity', 'weight_capacity') || 0) || 0,
-          vehicle_type: (pick('vehicle_type') || '') as string,
-          width: pickAny('width', 'dimensions_width') as number | undefined,
-          length: pickAny('length', 'dimensions_length') as number | undefined,
-          height: pickAny('height', 'dimensions_height') as number | undefined,
+          id: toDisplayString(user.id),
+          plate_number: toDisplayString(plateNumber || user.plate_number, ''),
+          plate_province: toDisplayString(plateProvince || user.plate_province, ''),
+          vehicle_brand: toDisplayString(pick('vehicle_brand', 'brand', 'car_brand') || pickAny('vehicle_brand', 'brand', 'car_brand'), ''),
+          vehicle_color: toDisplayString(pick('vehicle_color', 'color') || pickAny('vehicle_color', 'color'), ''),
+          vin: toDisplayString(pick('vin') || pickAny('vin'), ''),
+          fuel_type: toDisplayString(pick('fuel_type') || pickAny('fuel_type'), ''),
+          load_capacity: toDisplayNumber(pickAny('load_capacity', 'weight_capacity')) ?? 0,
+          vehicle_type: toDisplayString(pick('vehicle_type') || pickAny('vehicle_type'), ''),
+          width: toDisplayNumber(pickAny('width', 'dimensions_width')),
+          length: toDisplayNumber(pickAny('length', 'dimensions_length')),
+          height: toDisplayNumber(pickAny('height', 'dimensions_height')),
           has_trailer: Boolean(pickAny('has_trailer')),
-          trailer_plate_number: pickAny('trailer_plate_number', 'trailer_license_plate') as string | undefined,
-          trailer_plate_province: pickAny('trailer_plate_province', 'trailer_province') as string | undefined,
-          container_types: Array.isArray(containerTypesRaw) ? (containerTypesRaw as string[]) : [],
+          trailer_plate_number: toDisplayString(pickAny('trailer_plate_number', 'trailer_license_plate')) || undefined,
+          trailer_plate_province: toDisplayString(pickAny('trailer_plate_province', 'trailer_province')) || undefined,
+          container_types: containerTypesArr,
         };
         setVehicleData(vehicleFromUser);
         
