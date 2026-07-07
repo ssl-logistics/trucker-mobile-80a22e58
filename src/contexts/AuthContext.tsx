@@ -10,6 +10,7 @@ import {
   handleFirstRunAfterInstall,
 } from '@/utils/authStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchDriverProfileData, mergeDriverExtras } from '@/lib/driverProfileData';
 
 interface LineUser {
   lineUserId: string;
@@ -340,9 +341,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               ...(tmsData.bank_account_name && { bank_account_name: tmsData.bank_account_name }),
             };
 
-            await setAuthItem('auth_driver', JSON.stringify(updatedDriver));
+            // Merge our own persisted bank + vehicle data (survives TMS gaps for LINE users)
+            const extras = await fetchDriverProfileData(tmsData.id);
+            const finalDriver = mergeDriverExtras(updatedDriver, extras);
+
+            await setAuthItem('auth_driver', JSON.stringify(finalDriver));
             await setAuthItem('auth_driver_id', tmsData.id);
-            setUser(updatedDriver);
+            setUser(finalDriver);
             window.dispatchEvent(new Event('auth_driver_updated'));
             return;
           }

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
+import { fetchDriverProfileData, mergeDriverExtras } from '@/lib/driverProfileData';
 import { Loader2 } from 'lucide-react';
 import { initLiff, liff } from '@/lib/liff';
 
@@ -460,9 +461,13 @@ const LineCallbackPage = () => {
             loginType: 'line',
             lineUser: data.user,
           };
-          lineDriverForAuth = lineDriver;
-          
-          await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+
+          // Merge our own persisted bank + vehicle data on top
+          const extras = await fetchDriverProfileData(lineDriver.id);
+          const finalDriver = mergeDriverExtras(lineDriver, extras);
+          lineDriverForAuth = finalDriver;
+
+          await setAuthItem('auth_driver', JSON.stringify(finalDriver));
           await setAuthItem('auth_driver_id', driverUserId);
           await setAuthItem('auth_user_type', 'freelance_driver');
           await setAuthItem('user_role', 'freelance');

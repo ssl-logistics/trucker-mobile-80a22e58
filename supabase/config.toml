@@ -96,3 +96,8 @@ verify_jwt = false
 [functions.zegocloud-token]
 verify_jwt = false
 
+[functions.driver-profile-data]
+verify_jwt = false
+
+
+
