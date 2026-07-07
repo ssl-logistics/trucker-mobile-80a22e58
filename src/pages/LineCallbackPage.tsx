@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { setAuthItem } from '@/utils/authStorage';
-import { fetchDriverProfileData, mergeDriverExtras } from '@/lib/driverProfileData';
+import { fetchDriverProfileData, mergeDriverExtras, rememberLineUserDriverId } from '@/lib/driverProfileData';
 import { Loader2 } from 'lucide-react';
 import { initLiff, liff } from '@/lib/liff';
 
@@ -223,18 +223,22 @@ const LineCallbackPage = () => {
               },
             });
             if (accountData?.userId) driverUserId = accountData.userId;
+            rememberLineUserDriverId(liffData.user.lineUserId, driverUserId);
           } catch (e) {
             console.warn('[LINE Callback] LIFF create-account non-blocking error:', e);
           }
 
           const lineDriver = {
             id: driverUserId,
+            cloud_driver_id: driverUserId,
             full_name: liffData.user.displayName,
             avatar_url: liffData.user.pictureUrl || null,
             loginType: 'line',
             lineUser: liffData.user,
           };
-          await setAuthItem('auth_driver', JSON.stringify(lineDriver));
+          const extras = await fetchDriverProfileData(driverUserId);
+          const finalLineDriver = mergeDriverExtras(lineDriver, extras);
+          await setAuthItem('auth_driver', JSON.stringify(finalLineDriver));
           await setAuthItem('auth_driver_id', driverUserId);
           await setAuthItem('auth_user_type', 'freelance_driver');
           await setAuthItem('user_role', 'freelance');
@@ -245,7 +249,7 @@ const LineCallbackPage = () => {
             description: `ยินดีต้อนรับ ${liffData.user.displayName}`,
           });
           window.dispatchEvent(new CustomEvent('auth_driver_updated', {
-            detail: { driver: lineDriver, userType: 'freelance_driver', role: 'freelance' },
+            detail: { driver: finalLineDriver, userType: 'freelance_driver', role: 'freelance' },
           }));
           navigate('/home', { replace: true });
           return;
@@ -394,6 +398,7 @@ const LineCallbackPage = () => {
 
           // Use the Supabase userId if available, otherwise fall back to LINE userId
           const driverUserId = accountData?.userId || data.user.lineUserId;
+          rememberLineUserDriverId(data.user.lineUserId, driverUserId);
 
           // Register driver in external TMS (minimal body for LINE OAuth)
           console.log('[LINE Callback] 📝 Registering driver in external TMS...');
@@ -453,6 +458,7 @@ const LineCallbackPage = () => {
             ...(tmsData && typeof tmsData === 'object' ? tmsData : {}),
             // Override with correct app-level fields
             id: tmsData?.id || driverUserId,
+            cloud_driver_id: driverUserId,
             full_name: tmsFullName || data.user.displayName,
             avatar_url: data.user.pictureUrl || tmsData?.avatar_url || null,
             phone_number: tmsData?.phone || '',
@@ -463,7 +469,7 @@ const LineCallbackPage = () => {
           };
 
           // Merge our own persisted bank + vehicle data on top
-          const extras = await fetchDriverProfileData(lineDriver.id);
+          const extras = await fetchDriverProfileData(driverUserId);
           const finalDriver = mergeDriverExtras(lineDriver, extras);
           lineDriverForAuth = finalDriver;
 
