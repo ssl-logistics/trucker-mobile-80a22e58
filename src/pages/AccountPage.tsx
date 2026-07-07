@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { AUTH_KEYS, removeAuthItem, setAuthItem, getAuthItem } from '@/utils/authStorage';
 import { updateFreelanceDriver } from '@/lib/externalApi';
+import { saveDriverBank } from '@/lib/driverProfileData';
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
 import { isDriverNotFoundError, isOAuthLoginType } from '@/utils/oauthDriverSync';
 import {
