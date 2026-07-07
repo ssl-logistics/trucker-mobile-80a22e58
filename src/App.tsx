@@ -523,7 +523,9 @@ const App = () => (
                         path="/vehicle-info"
                         element={
                           <ProtectedRoute>
-                            <VehicleInfoPage />
+                            <ErrorBoundary>
+                              <VehicleInfoPage />
+                            </ErrorBoundary>
                           </ProtectedRoute>
                         }
                       />
