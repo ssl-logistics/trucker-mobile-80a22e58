@@ -170,7 +170,7 @@ const AddExpensePage = () => {
 
   // Filter dropdown by job kind
   const blAllowed = ["fuel", "dive_knock_out", "return_container", "repair_container", "waste", "port_fee", "misc_no_receipt", "other"];
-  const bookingAllowed = blAllowed;
+  const bookingAllowed = ["fuel", "pickup_container", "port_fee", "misc_no_receipt", "other"];
   const orderByList = (list: string[]) =>
     list
       .map(v => allExpenseTypes.find(opt => opt.value === v))
