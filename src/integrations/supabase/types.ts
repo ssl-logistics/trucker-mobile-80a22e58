@@ -241,6 +241,54 @@ export type Database = {
         }
         Relationships: []
       }
+      edge_function_audit_logs: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          duration_ms: number | null
+          error_message: string | null
+          external_request_payload: Json | null
+          function_name: string
+          id: string
+          order_number: string | null
+          request_payload: Json | null
+          response_body: Json | null
+          response_status: number | null
+          room_code: string | null
+          success: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          external_request_payload?: Json | null
+          function_name: string
+          id?: string
+          order_number?: string | null
+          request_payload?: Json | null
+          response_body?: Json | null
+          response_status?: number | null
+          room_code?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          external_request_payload?: Json | null
+          function_name?: string
+          id?: string
+          order_number?: string | null
+          request_payload?: Json | null
+          response_body?: Json | null
+          response_status?: number | null
+          room_code?: string | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
