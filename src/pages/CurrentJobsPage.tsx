@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide } from 'lucide-react';
 import coinsIcon from '@/assets/coins-icon.png';
 import { supabase } from '@/integrations/supabase/client';
+import { createTrackingRoom } from '@/lib/trackingRoomClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -944,12 +945,10 @@ export default function CurrentJobsPage() {
 
           console.log(`[Tracking] Creating tracking room for bid job ${orderNum}:`, trackingBody);
 
-          const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
-            body: trackingBody,
-          });
+          const trackingResponse = await createTrackingRoom(trackingBody, 'current-jobs-bid');
 
-          if (trackingResponse.error) {
-            console.error(`[Tracking] Error creating room for ${orderNum}:`, trackingResponse.error);
+          if (!trackingResponse.ok) {
+            console.error(`[Tracking] Error creating room for ${orderNum}:`, trackingResponse.status, trackingResponse.error, trackingResponse.data);
           } else {
             const roomCode = trackingResponse.data?.room?.room_code;
             if (roomCode) {

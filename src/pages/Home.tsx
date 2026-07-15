@@ -3,6 +3,7 @@ import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Loader2, SlidersHorizontal, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { createTrackingRoom } from '@/lib/trackingRoomClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -881,16 +882,13 @@ const isValidName = (val: any): string => {
           trackingBody.waypoints = waypoints;
         }
         console.log('📍 create-tracking-room body:', JSON.stringify(trackingBody, null, 2));
-        
-        const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
-          body: trackingBody
-        });
 
-        if (trackingResponse.error) {
-          console.error('Error creating tracking room:', trackingResponse.error);
+        const trackingResponse = await createTrackingRoom(trackingBody, 'home-freelance-accept');
+
+        if (!trackingResponse.ok) {
+          console.error('Error creating tracking room:', trackingResponse.status, trackingResponse.error, trackingResponse.data);
         } else {
           console.log('Tracking room created:', trackingResponse.data);
-          // Save room_code to localStorage for later use (check-in, tracking)
           if (trackingResponse.data?.room?.room_code) {
             localStorage.setItem(`room_code_${selectedJob.order_code}`, trackingResponse.data.room.room_code);
             console.log('Saved room_code:', trackingResponse.data.room.room_code);
@@ -1050,15 +1048,15 @@ const isValidName = (val: any): string => {
               trackingBody.waypoints = waypoints;
             }
             
-            const trackingResponse = await supabase.functions.invoke('create-tracking-room', {
-              body: trackingBody
-            });
+            const trackingResponse = await createTrackingRoom(trackingBody, 'home-staff-accept');
 
-            if (!trackingResponse.error && trackingResponse.data?.room?.room_code) {
+            if (trackingResponse.ok && trackingResponse.data?.room?.room_code) {
               const roomCode = trackingResponse.data.room.room_code;
               localStorage.setItem(`room_code_${job.order_code}`, roomCode);
               startTracking(roomCode, job.order_code);
               console.log('[Staff] Tracking started in background:', roomCode);
+            } else if (!trackingResponse.ok) {
+              console.error('[Staff] create-tracking-room failed:', trackingResponse.status, trackingResponse.error, trackingResponse.data);
             }
           } catch (trackingError) {
             console.error('[Staff] Background tracking error:', trackingError);

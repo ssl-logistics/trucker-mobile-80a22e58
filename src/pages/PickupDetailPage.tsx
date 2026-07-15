@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, Phone, MapPin, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { createTrackingRoom } from '@/lib/trackingRoomClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -378,9 +379,9 @@ export default function PickupDetailPage() {
             };
             if (waypoints && waypoints.length > 0) trackingBody.waypoints = waypoints;
 
-            const trackingResponse = await supabase.functions.invoke('create-tracking-room', { body: trackingBody });
+            const trackingResponse = await createTrackingRoom(trackingBody, 'pickup-checkin');
 
-            if (!trackingResponse.error && trackingResponse.data?.room?.room_code) {
+            if (trackingResponse.ok && trackingResponse.data?.room?.room_code) {
               roomCode = trackingResponse.data.room.room_code;
               localStorage.setItem(roomCodeKey, roomCode!);
             } else {
@@ -390,6 +391,8 @@ export default function PickupDetailPage() {
               if (roomMatch && roomMatch[1]) {
                 roomCode = roomMatch[1];
                 localStorage.setItem(roomCodeKey, roomCode!);
+              } else {
+                console.error('[Pickup] create-tracking-room failed:', trackingResponse.status, trackingResponse.error, trackingResponse.data);
               }
             }
           }
