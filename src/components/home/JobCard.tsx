@@ -19,6 +19,20 @@ import {
   translateEquipmentList,
   translateUnit 
 } from '@/utils/apiDataTranslations';
+import { logClientEvent } from '@/lib/trackingRoomClient';
+
+const handleAcceptClick = (job: Job, onAccept: (job: Job) => void, source: string) => {
+  // eslint-disable-next-line no-console
+  console.warn('[JobCard] accept clicked', { source, order: job.order_code });
+  logClientEvent({
+    event: 'job-card:accept-click',
+    driver_id: localStorage.getItem('auth_driver_id') ?? null,
+    order_number: job.order_code,
+    payload: { source, job_id: job.id },
+  });
+  onAccept(job);
+};
+
 
 interface Job {
   id: string;
@@ -249,7 +263,8 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
         {showCancelButton ? (
           <>
             <Button 
-              onClick={() => onAccept(job)} 
+              onClick={() => handleAcceptClick(job, onAccept, 'with-cancel')} 
+
               className="flex-1 h-11 text-sm font-medium min-w-0 sm:h-12 sm:text-base"
               disabled={job.isAccepted || isProcessing}
             >
@@ -273,7 +288,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           </>
         ) : (
           <Button 
-            onClick={() => onAccept(job)} 
+            onClick={() => handleAcceptClick(job, onAccept, 'primary')} 
             className="flex-1 h-11 text-sm font-medium min-w-0 sm:h-12 sm:text-base"
             disabled={job.isAccepted || isProcessing}
           >

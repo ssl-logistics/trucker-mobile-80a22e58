@@ -8,6 +8,11 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
+// eslint-disable-next-line no-console
+console.warn('[trackingRoomClient] loaded v2', { hasUrl: !!SUPABASE_URL, hasKey: !!SUPABASE_ANON_KEY });
+
+
+
 export interface TrackingRoomBody {
   truck_plate: string;
   order_code: string;
@@ -29,8 +34,11 @@ export interface TrackingRoomResult {
 }
 
 export function logClientEvent(payload: Record<string, unknown>): void {
+  // eslint-disable-next-line no-console
+  console.warn('[audit] fire', payload?.event, payload);
   try {
-    fetch(`${SUPABASE_URL}/functions/v1/log-client-event`, {
+    const url = `${SUPABASE_URL}/functions/v1/log-client-event`;
+    fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -39,11 +47,21 @@ export function logClientEvent(payload: Record<string, unknown>): void {
       },
       body: JSON.stringify(payload),
       keepalive: true,
-    }).catch(() => {});
-  } catch {
-    // swallow
+    })
+      .then((r) => {
+        // eslint-disable-next-line no-console
+        console.warn('[audit] response', payload?.event, r.status);
+      })
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.warn('[audit] fetch error', payload?.event, e?.message ?? e);
+      });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[audit] threw sync', payload?.event, e);
   }
 }
+
 
 
 export async function createTrackingRoom(

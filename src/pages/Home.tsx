@@ -970,6 +970,13 @@ const isValidName = (val: any): string => {
         
         // Update the order status via the external API
         console.log(`[Home] Calling update-order-status API with status: '${orderStatus}' (isInternational: ${isInternationalJob})`);
+        logClientEvent({
+          event: 'update-order-status:about-to-call',
+          driver_id: localStorage.getItem('auth_driver_id') ?? user?.id ?? null,
+          order_number: job.order_code,
+          payload: { status: orderStatus, driver_type: driverType, job_id: job.id },
+        });
+
         const response = await fetch(
           `${EXTERNAL_API_URL}/update-order-status`,
           {
