@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { writeAuditLog } from "../_shared/auditLog.ts";
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -155,6 +157,15 @@ serve(async (req) => {
 
           console.log('Creating tracking room for bid job:', JSON.stringify(trackingBody));
 
+          await writeAuditLog({
+            function_name: 'receive-freelance-selected:create-tracking-room:attempt',
+            driver_id: payload.contractor_id,
+            order_number: payload.ticket_id,
+            request_payload: trackingBody,
+            success: true,
+          });
+
+          const trackingStartedAt = Date.now();
           const trackingResponse = await fetch(
             'https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/create-tracking-room',
             {
@@ -169,13 +180,43 @@ serve(async (req) => {
 
           const trackingResult = await trackingResponse.text();
           console.log('Tracking room response:', trackingResponse.status, trackingResult);
+
+          let trackingData: unknown = trackingResult;
+          try { trackingData = JSON.parse(trackingResult); } catch { /* keep raw */ }
+
+          await writeAuditLog({
+            function_name: `receive-freelance-selected:create-tracking-room:${trackingResponse.ok ? 'success' : 'error'}`,
+            driver_id: payload.contractor_id,
+            order_number: payload.ticket_id,
+            request_payload: trackingBody,
+            response_status: trackingResponse.status,
+            response_body: trackingData,
+            success: trackingResponse.ok,
+            error_message: trackingResponse.ok ? null : `HTTP ${trackingResponse.status}`,
+            duration_ms: Date.now() - trackingStartedAt,
+          });
         } else {
           console.warn('TRACKING_API_KEY not configured, skipping tracking room creation');
+          await writeAuditLog({
+            function_name: 'receive-freelance-selected:create-tracking-room:skipped',
+            driver_id: payload.contractor_id,
+            order_number: payload.ticket_id,
+            success: false,
+            error_message: 'TRACKING_API_KEY not configured',
+          });
         }
       } catch (trackingError) {
         console.error('Error creating tracking room for bid job:', trackingError);
+        await writeAuditLog({
+          function_name: 'receive-freelance-selected:create-tracking-room:error',
+          driver_id: payload.contractor_id,
+          order_number: payload.ticket_id,
+          success: false,
+          error_message: trackingError instanceof Error ? trackingError.message : String(trackingError),
+        });
         // Don't fail the webhook because of tracking room error
       }
+
     }
 
     console.log('Webhook processed successfully');
