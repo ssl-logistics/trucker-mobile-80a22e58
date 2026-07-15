@@ -153,8 +153,7 @@ export function AppHeader({
         }, {
           icon: incomeIcon,
           labelKey: "home.income",
-          path: "/income",
-          showForFreelanceOnly: true
+          path: "/income"
         }, {
           icon: jobHistoryIcon,
           labelKey: "home.job_history",
