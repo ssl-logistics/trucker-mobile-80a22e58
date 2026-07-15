@@ -3,7 +3,7 @@ import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Loader2, SlidersHorizontal, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { createTrackingRoom } from '@/lib/trackingRoomClient';
+import { createTrackingRoom, logClientEvent } from '@/lib/trackingRoomClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -785,6 +785,15 @@ const isValidName = (val: any): string => {
   };
   const confirmJobAcceptance = async () => {
     if (!selectedJob || !user || isAccepting) return;
+
+    logClientEvent({
+      event: 'accept-job:pressed',
+      driver_id: localStorage.getItem('auth_driver_id') ?? user?.id ?? null,
+      order_number: selectedJob.order_code,
+      payload: { context: 'home-freelance-express-rent', job_id: selectedJob.id },
+    });
+
+
     
     setIsAccepting(true);
     
@@ -916,6 +925,15 @@ const isValidName = (val: any): string => {
   // These drivers already have the job assigned - update status to in_transit via API
   const handleStartAssignedJob = async (job: Job) => {
     if (!user) return;
+
+    logClientEvent({
+      event: 'accept-job:pressed',
+      driver_id: localStorage.getItem('auth_driver_id') ?? user?.id ?? null,
+      order_number: job.order_code,
+      payload: { context: 'home-start-assigned', userType, job_id: job.id },
+    });
+
+
     
     const orderCode = job.order_code;
     
@@ -1081,6 +1099,15 @@ const isValidName = (val: any): string => {
   const handleAcceptFactoryJob = async (job: Job) => {
     if (!user) return;
     if (!requireBankInfo()) return;
+
+    logClientEvent({
+      event: 'accept-job:pressed',
+      driver_id: localStorage.getItem('auth_driver_id') ?? user?.id ?? null,
+      order_number: job.order_code,
+      payload: { context: 'home-accept-factory', userType, job_id: job.id },
+    });
+
+
     
     // For Internal/External drivers, jobs are already assigned - just navigate to job detail
     if (userType === 'internal_driver' || userType === 'external_driver') {
