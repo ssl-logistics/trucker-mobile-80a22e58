@@ -42,6 +42,18 @@ serve(async (req) => {
     body = await req.json();
     console.log('Creating tracking room for order:', body.order_code);
 
+    // Fire-and-forget "received" trace so we can prove the function was reached
+    writeAuditLog({
+      function_name: 'create-tracking-room:received',
+      driver_id: body?.driver_id,
+      order_number: body?.order_code,
+      request_payload: body,
+      success: true,
+      response_status: 0,
+      duration_ms: 0,
+    }).catch(() => {});
+
+
     if (!body.truck_plate || !body.order_code ||
         body.origin_lat === undefined || body.origin_lng === undefined ||
         body.destination_lat === undefined || body.destination_lng === undefined ||
