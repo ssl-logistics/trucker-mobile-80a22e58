@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { writeAuditLog } from "../_shared/auditLog.ts";
+import { getTrackingRoomByOrder } from "../_shared/trackingRoomStore.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,13 +23,41 @@ serve(async (req) => {
     }
 
     body = await req.json();
-    const { driver_id, order_number, room_code } = body;
+    const { driver_id, order_number } = body;
+    let { room_code } = body;
+
+    // If only order_number provided, resolve room_code via store
+    if (!room_code && order_number) {
+      const rec = await getTrackingRoomByOrder(order_number);
+      if (rec?.room_code) {
+        room_code = rec.room_code;
+        console.log('[update-tracking-waypoints] resolved room_code from store:', room_code);
+      }
+    }
+
+    if (!room_code) {
+      await writeAuditLog({
+        function_name: 'update-tracking-waypoints',
+        driver_id, order_number,
+        request_payload: body,
+        success: false,
+        error_message: 'room_code not found for order_number',
+        response_status: 404,
+        duration_ms: Date.now() - startedAt,
+      });
+      return new Response(
+        JSON.stringify({ error: 'room_code not found', order_number }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Updating tracking waypoints for room:', room_code);
 
     // Strip driver_id/order_number before forwarding (external API doesn't expect them)
-    const forwardBody = { ...body };
+    const forwardBody = { ...body, room_code };
     delete forwardBody.driver_id;
     delete forwardBody.order_number;
+
 
     const response = await fetch('https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/update-tracking-waypoints', {
       method: 'POST',

@@ -866,6 +866,51 @@ export type Database = {
         }
         Relationships: []
       }
+      order_tracking_rooms: {
+        Row: {
+          created_at: string
+          destination_lat: number | null
+          destination_lng: number | null
+          driver_id: string | null
+          order_number: string
+          origin_lat: number | null
+          origin_lng: number | null
+          room_code: string
+          source: string
+          status: string
+          truck_plate: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          destination_lat?: number | null
+          destination_lng?: number | null
+          driver_id?: string | null
+          order_number: string
+          origin_lat?: number | null
+          origin_lng?: number | null
+          room_code: string
+          source?: string
+          status?: string
+          truck_plate?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          destination_lat?: number | null
+          destination_lng?: number | null
+          driver_id?: string | null
+          order_number?: string
+          origin_lat?: number | null
+          origin_lng?: number | null
+          room_code?: string
+          source?: string
+          status?: string
+          truck_plate?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pickup_sop_photos: {
         Row: {
           created_at: string

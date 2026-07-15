@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { writeAuditLog } from "../_shared/auditLog.ts";
+import { upsertTrackingRoom } from "../_shared/trackingRoomStore.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -118,6 +119,18 @@ serve(async (req) => {
           const existingRoomCode = roomMatch[1];
           console.log('Tracking room already exists, using room_code:', existingRoomCode);
 
+          await upsertTrackingRoom({
+            order_number: body.order_code,
+            room_code: existingRoomCode,
+            truck_plate: body.truck_plate,
+            driver_id: body.driver_id,
+            origin_lat: body.origin_lat,
+            origin_lng: body.origin_lng,
+            destination_lat: body.destination_lat,
+            destination_lng: body.destination_lng,
+            source: 'idempotent_409',
+          });
+
           await writeAuditLog({
             function_name: 'create-tracking-room',
             driver_id: body.driver_id,
@@ -177,6 +190,21 @@ serve(async (req) => {
     console.log('Tracking room created successfully:', responseData);
 
     const createdRoomCode = responseData?.room?.room_code ?? responseData?.room_code ?? null;
+
+    if (createdRoomCode) {
+      await upsertTrackingRoom({
+        order_number: body.order_code,
+        room_code: createdRoomCode,
+        truck_plate: body.truck_plate,
+        driver_id: body.driver_id,
+        origin_lat: body.origin_lat,
+        origin_lng: body.origin_lng,
+        destination_lat: body.destination_lat,
+        destination_lng: body.destination_lng,
+        source: 'created',
+      });
+    }
+
 
     await writeAuditLog({
       function_name: 'create-tracking-room',

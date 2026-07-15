@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { writeAuditLog } from "../_shared/auditLog.ts";
+import { upsertTrackingRoom } from "../_shared/trackingRoomStore.ts";
 
 
 const corsHeaders = {
@@ -181,13 +182,27 @@ serve(async (req) => {
           const trackingResult = await trackingResponse.text();
           console.log('Tracking room response:', trackingResponse.status, trackingResult);
 
-          let trackingData: unknown = trackingResult;
+          let trackingData: any = trackingResult;
           try { trackingData = JSON.parse(trackingResult); } catch { /* keep raw */ }
+
+          const createdRoomCode =
+            trackingData?.room?.room_code ?? trackingData?.room_code ?? null;
+
+          if (trackingResponse.ok && createdRoomCode) {
+            await upsertTrackingRoom({
+              order_number: payload.ticket_id,
+              room_code: createdRoomCode,
+              truck_plate: truckPlate,
+              driver_id: payload.contractor_id,
+              source: 'server_freelance',
+            });
+          }
 
           await writeAuditLog({
             function_name: `receive-freelance-selected:create-tracking-room:${trackingResponse.ok ? 'success' : 'error'}`,
             driver_id: payload.contractor_id,
             order_number: payload.ticket_id,
+            room_code: createdRoomCode,
             request_payload: trackingBody,
             response_status: trackingResponse.status,
             response_body: trackingData,

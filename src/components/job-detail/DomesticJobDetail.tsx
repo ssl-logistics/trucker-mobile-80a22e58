@@ -1140,30 +1140,49 @@ export default function DomesticJobDetail({
       console.error('[Reorder] API exception:', e);
     }
 
-    // Update tracking waypoints if GPS tracking is active (direct external API call)
+    // Update tracking waypoints — use 3-tier lookup so old jobs / freelance auto rooms all work
     try {
-      const trackingStateStr = localStorage.getItem('gps_tracking_state');
-      if (trackingStateStr) {
-        const trackingState = JSON.parse(trackingStateStr);
-        if (trackingState.isTracking && trackingState.roomCode) {
-          const waypoints = resequenced
-            .filter(d => d.latitude && d.longitude && d.latitude !== 0 && d.longitude !== 0)
-            .map(d => ({ lat: d.latitude!, lng: d.longitude! }));
-          
-          if (waypoints.length > 0) {
-            const { data: wpData, error: wpError } = await supabase.functions.invoke('update-tracking-waypoints', {
-              body: {
-                room_code: trackingState.roomCode,
-                waypoints,
-                driver_id: driverIdForAudit,
-                order_number: job.order_code,
-              },
+      const waypoints = resequenced
+        .filter(d => d.latitude && d.longitude && d.latitude !== 0 && d.longitude !== 0)
+        .map(d => ({ lat: d.latitude!, lng: d.longitude! }));
+
+      if (waypoints.length > 0) {
+        const { getRoomCodeForOrder } = await import('@/lib/trackingRoomLookup');
+        const lookup = await getRoomCodeForOrder(job.order_code, {
+          truck_plate: (job as any).truck_plate || (job as any).plate_number,
+          origin_lat: (job as any).origin_lat,
+          origin_lng: (job as any).origin_lng,
+          destination_lat: waypoints[waypoints.length - 1]?.lat,
+          destination_lng: waypoints[waypoints.length - 1]?.lng,
+          current_lat: waypoints[0]?.lat,
+          current_lng: waypoints[0]?.lng,
+          waypoints,
+        });
+
+        if (!lookup?.roomCode) {
+          console.warn('[Reorder] no room_code available for order', job.order_code);
+          toast({
+            title: t('jobDetail.trackingRoomMissing') || 'ไม่พบห้องติดตาม GPS',
+            description: t('jobDetail.reorderStillSaved') || 'ข้อมูลลำดับส่งถูกบันทึกแล้ว',
+          });
+        } else {
+          if (lookup.source === 'recreated') {
+            toast({
+              title: t('jobDetail.trackingRoomRecreated') || 'สร้างห้องติดตามใหม่แล้ว',
             });
-            if (wpError) {
-              console.error('Update tracking waypoints error:', wpError);
-            } else {
-              console.log('Update tracking waypoints success:', wpData);
-            }
+          }
+          const { data: wpData, error: wpError } = await supabase.functions.invoke('update-tracking-waypoints', {
+            body: {
+              room_code: lookup.roomCode,
+              waypoints,
+              driver_id: driverIdForAudit,
+              order_number: job.order_code,
+            },
+          });
+          if (wpError) {
+            console.error('Update tracking waypoints error:', wpError);
+          } else {
+            console.log('Update tracking waypoints success:', wpData);
           }
         }
       }

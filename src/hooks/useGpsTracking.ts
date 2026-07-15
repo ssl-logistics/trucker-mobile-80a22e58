@@ -8,6 +8,8 @@ interface TrackingState {
   isTracking: boolean;
   roomCode: string | null;
   orderCode: string | null;
+  // Per-order map so multiple orders don't clobber each other
+  rooms?: Record<string, string>;
 }
 
 // Get tracking state from localStorage
@@ -15,12 +17,13 @@ export function getTrackingState(): TrackingState {
   try {
     const state = localStorage.getItem('gps_tracking_state');
     if (state) {
-      return JSON.parse(state);
+      const parsed = JSON.parse(state);
+      return { rooms: {}, ...parsed };
     }
   } catch (e) {
     console.error('[GPS Tracking] Error reading state:', e);
   }
-  return { isTracking: false, roomCode: null, orderCode: null };
+  return { isTracking: false, roomCode: null, orderCode: null, rooms: {} };
 }
 
 // Save tracking state to localStorage
@@ -32,16 +35,37 @@ function saveTrackingState(state: TrackingState): void {
   }
 }
 
+// Get room code for a specific order (looks up the per-order map first)
+export function getRoomCodeForOrder(orderCode: string): string | null {
+  const state = getTrackingState();
+  if (state.rooms && state.rooms[orderCode]) return state.rooms[orderCode];
+  if (state.orderCode === orderCode && state.roomCode) return state.roomCode;
+  try {
+    return localStorage.getItem(`room_code_${orderCode}`);
+  } catch {
+    return null;
+  }
+}
+
 // Start tracking
 export function startGpsTracking(roomCode: string, orderCode: string): void {
   console.log('[GPS Tracking] Starting tracking for room:', roomCode, 'order:', orderCode);
-  saveTrackingState({ isTracking: true, roomCode, orderCode });
+  const current = getTrackingState();
+  const rooms = { ...(current.rooms || {}), [orderCode]: roomCode };
+  saveTrackingState({ isTracking: true, roomCode, orderCode, rooms });
+  try { localStorage.setItem(`room_code_${orderCode}`, roomCode); } catch {}
 }
 
-// Stop tracking
+// Stop tracking (keeps per-order map for later reorder lookups)
 export function stopGpsTracking(): void {
   console.log('[GPS Tracking] Stopping tracking');
-  saveTrackingState({ isTracking: false, roomCode: null, orderCode: null });
+  const current = getTrackingState();
+  saveTrackingState({
+    isTracking: false,
+    roomCode: null,
+    orderCode: null,
+    rooms: current.rooms || {},
+  });
 }
 
 // Send position update - keep sending regardless of room status
@@ -137,7 +161,10 @@ export function useGpsTracking() {
       console.log('[GPS Tracking] startTracking called with roomCode:', roomCode, 'orderCode:', orderCode);
       // Update ref FIRST with the new room code to ensure it's available immediately
       currentRoomCodeRef.current = roomCode;
-      saveTrackingState({ isTracking: true, roomCode, orderCode });
+      const current = getTrackingState();
+      const rooms = { ...(current.rooms || {}), [orderCode]: roomCode };
+      saveTrackingState({ isTracking: true, roomCode, orderCode, rooms });
+      try { localStorage.setItem(`room_code_${orderCode}`, roomCode); } catch {}
     } else {
       // If no roomCode provided, try to get from state
       const state = getTrackingState();
