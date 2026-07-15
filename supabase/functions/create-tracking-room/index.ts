@@ -119,6 +119,18 @@ serve(async (req) => {
           const existingRoomCode = roomMatch[1];
           console.log('Tracking room already exists, using room_code:', existingRoomCode);
 
+          await upsertTrackingRoom({
+            order_number: body.order_code,
+            room_code: existingRoomCode,
+            truck_plate: body.truck_plate,
+            driver_id: body.driver_id,
+            origin_lat: body.origin_lat,
+            origin_lng: body.origin_lng,
+            destination_lat: body.destination_lat,
+            destination_lng: body.destination_lng,
+            source: 'idempotent_409',
+          });
+
           await writeAuditLog({
             function_name: 'create-tracking-room',
             driver_id: body.driver_id,
