@@ -263,7 +263,8 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
         {showCancelButton ? (
           <>
             <Button 
-              onClick={() => onAccept(job)} 
+              onClick={() => handleAcceptClick(job, onAccept, 'with-cancel')} 
+
               className="flex-1 h-11 text-sm font-medium min-w-0 sm:h-12 sm:text-base"
               disabled={job.isAccepted || isProcessing}
             >
@@ -287,7 +288,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           </>
         ) : (
           <Button 
-            onClick={() => onAccept(job)} 
+            onClick={() => handleAcceptClick(job, onAccept, 'primary')} 
             className="flex-1 h-11 text-sm font-medium min-w-0 sm:h-12 sm:text-base"
             disabled={job.isAccepted || isProcessing}
           >
