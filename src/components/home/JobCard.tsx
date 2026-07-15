@@ -19,6 +19,20 @@ import {
   translateEquipmentList,
   translateUnit 
 } from '@/utils/apiDataTranslations';
+import { logClientEvent } from '@/lib/trackingRoomClient';
+
+const handleAcceptClick = (job: Job, onAccept: (job: Job) => void, source: string) => {
+  // eslint-disable-next-line no-console
+  console.warn('[JobCard] accept clicked', { source, order: job.order_code });
+  logClientEvent({
+    event: 'job-card:accept-click',
+    driver_id: localStorage.getItem('auth_driver_id') ?? null,
+    order_number: job.order_code,
+    payload: { source, job_id: job.id },
+  });
+  onAccept(job);
+};
+
 
 interface Job {
   id: string;
