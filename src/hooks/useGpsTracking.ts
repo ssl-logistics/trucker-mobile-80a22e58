@@ -161,7 +161,10 @@ export function useGpsTracking() {
       console.log('[GPS Tracking] startTracking called with roomCode:', roomCode, 'orderCode:', orderCode);
       // Update ref FIRST with the new room code to ensure it's available immediately
       currentRoomCodeRef.current = roomCode;
-      saveTrackingState({ isTracking: true, roomCode, orderCode });
+      const current = getTrackingState();
+      const rooms = { ...(current.rooms || {}), [orderCode]: roomCode };
+      saveTrackingState({ isTracking: true, roomCode, orderCode, rooms });
+      try { localStorage.setItem(`room_code_${orderCode}`, roomCode); } catch {}
     } else {
       // If no roomCode provided, try to get from state
       const state = getTrackingState();
