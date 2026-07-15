@@ -29,11 +29,17 @@ serve(async (req) => {
       duration_ms,
     } = body ?? {};
 
+    console.log("[log-client-event] received:", JSON.stringify({ event, order_number, driver_id }));
+
     const url = Deno.env.get("SUPABASE_URL");
     const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (url && key && event) {
+    if (!url || !key) {
+      console.error("[log-client-event] missing env:", { hasUrl: !!url, hasKey: !!key });
+    } else if (!event) {
+      console.warn("[log-client-event] missing event field, body:", JSON.stringify(body));
+    } else {
       const supabase = createClient(url, key);
-      await supabase.from("edge_function_audit_logs").insert({
+      const { data, error } = await supabase.from("edge_function_audit_logs").insert({
         function_name: `client:${event}`,
         driver_id: driver_id ?? null,
         order_number: order_number ?? null,
@@ -44,11 +50,17 @@ serve(async (req) => {
         success: success ?? null,
         error_message: error_message ?? null,
         duration_ms: duration_ms ?? null,
-      });
+      }).select();
+      if (error) {
+        console.error("[log-client-event] insert error:", error.message, error.code, error.details, error.hint);
+      } else {
+        console.log("[log-client-event] inserted:", data?.[0]?.id);
+      }
     }
   } catch (e) {
-    console.warn("[log-client-event] error:", e instanceof Error ? e.message : String(e));
+    console.error("[log-client-event] catch error:", e instanceof Error ? e.message : String(e), e instanceof Error ? e.stack : undefined);
   }
+
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
