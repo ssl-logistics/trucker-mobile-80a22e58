@@ -99,5 +99,10 @@ verify_jwt = false
 [functions.driver-profile-data]
 verify_jwt = false
 
+[functions.log-client-event]
+verify_jwt = false
+
+
+
 
 

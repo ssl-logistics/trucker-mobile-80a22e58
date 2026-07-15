@@ -28,7 +28,7 @@ export interface TrackingRoomResult {
   error?: string;
 }
 
-function logClientEvent(payload: Record<string, unknown>): void {
+export function logClientEvent(payload: Record<string, unknown>): void {
   try {
     fetch(`${SUPABASE_URL}/functions/v1/log-client-event`, {
       method: "POST",
@@ -44,6 +44,7 @@ function logClientEvent(payload: Record<string, unknown>): void {
     // swallow
   }
 }
+
 
 export async function createTrackingRoom(
   body: TrackingRoomBody,
