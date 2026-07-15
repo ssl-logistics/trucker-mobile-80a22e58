@@ -374,6 +374,7 @@ export default function PickupDetailPage() {
               destination_lng: job.destination_longitude ?? 0,
               current_lat: latitude,
               current_lng: longitude,
+              driver_id: localStorage.getItem('auth_driver_id') || undefined,
             };
             if (waypoints && waypoints.length > 0) trackingBody.waypoints = waypoints;
 
