@@ -875,6 +875,7 @@ const isValidName = (val: any): string => {
           destination_lng: selectedJob.destination_lng || 0,
           current_lat: currentLat,
           current_lng: currentLng,
+          driver_id: localStorage.getItem('auth_driver_id') || undefined,
         };
         if (waypoints && waypoints.length > 0) {
           trackingBody.waypoints = waypoints;
@@ -1042,7 +1043,8 @@ const isValidName = (val: any): string => {
               destination_lat: job.destination_lat || 0,
               destination_lng: job.destination_lng || 0,
               current_lat: currentLat,
-              current_lng: currentLng
+              current_lng: currentLng,
+              driver_id: localStorage.getItem('auth_driver_id') || undefined,
             };
             if (waypoints && waypoints.length > 0) {
               trackingBody.waypoints = waypoints;

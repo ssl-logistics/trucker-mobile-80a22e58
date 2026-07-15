@@ -1,40 +1,90 @@
-## Problem
-After Apple ID sign-in (first time), tapping any bottom nav (Chat / Bidding / Settings / Dashboard) yanks the user back to the home page. Only fully killing and reopening the app clears the loop.
 
-## Root cause
-`src/hooks/useDeepLinkHandler.ts` re-processes the Apple auth deep link every time the app comes to the foreground:
+# เพิ่มระบบ Audit Log สำหรับ Edge Functions ที่เกี่ยวกับงาน/ตำแหน่ง
 
-1. `App.addListener("appStateChange", …)` calls `checkLaunchUrl()` on every foreground event.
-2. On iOS, `App.getLaunchUrl()` keeps returning the original `thetroob://apple-auth-callback?access_token=…&refresh_token=…` URL until the app process is killed.
-3. Even a very brief backgrounding (which happens when a native tab/route transition briefly loses focus, or when Capacitor's WebView refocuses) fires `appStateChange`, so the callback handler runs again.
-4. Inside the callback branch, every path ends with `navigate("/home", { replace: true })` on success and `navigate("/", { replace: true })` on failure. Since the tokens have already been consumed, the second run of `supabase.auth.setSession(...)` fails and hits the error branch, or the success branch fires again — either way the router is force-pushed away from whatever page the user just tapped.
-5. `lastHandledUrl` inside the effect closure is meant to dedupe, but it does NOT survive across the retry paths inside `handleDeepLink` (the guard lives in `handleUrlOnce`, and `appUrlOpen` uses `handleDeepLink` directly). It also does not persist across effect re-runs.
+## เป้าหมาย
+เก็บ log ทุกครั้งที่มีการเรียก Edge Functions 3 ตัวนี้ ไว้ในตารางเดียวเพื่อ debug และตรวจสอบย้อนหลังได้:
+1. `reorder-destinations` — สลับลำดับจุดส่ง
+2. `update-tracking-waypoints` — อัปเดต waypoints ห้องติดตาม (ตอนสลับจุด)
+3. `create-tracking-room` — สร้างห้องติดตามตอนรับงาน
 
-This exactly matches the reported symptoms: bounces to "หน้าแรก", and only a hard app-kill clears it (because that finally drops iOS's cached launch URL).
+ทุก log จะเก็บ **driver_id** ด้วยเพื่อรู้ว่าคนขับคนไหนเป็นคนเรียก
 
-## Fix
-Make the Apple auth callback single-shot per install/session and stop force-navigating when there is nothing to do.
+---
 
-Edits, all in `src/hooks/useDeepLinkHandler.ts`:
+## 1. สร้างตาราง `edge_function_audit_logs`
 
-1. Add a persistent guard for the callback URL:
-   - When the `apple-auth-callback` branch is entered, compute a stable key from the URL (or just the path + first N chars of the access token) and check `sessionStorage.getItem("apple_auth_handled")`.
-   - If already set, short-circuit: close the in-app browser if open, do NOT call `setSession` again, and do NOT call `navigate(...)`. Just `return`.
-   - On successful handling, write the marker to `sessionStorage` AND set an in-memory ref so we don't depend only on storage.
+Columns หลัก (ข้ามฟิลด์มาตรฐาน id/created_at):
+- `function_name` — ชื่อ edge function ที่ถูกเรียก
+- `driver_id` — id ของคนขับที่เรียก (nullable, ส่งมาจาก client)
+- `order_number` / `order_code` — เลขคำสั่งงานที่เกี่ยวข้อง
+- `room_code` — รหัสห้องติดตาม (ถ้ามี)
+- `request_payload` (jsonb) — body ที่ client ส่งเข้ามา
+- `external_request_payload` (jsonb) — body ที่ส่งต่อไป TMS/tracking API
+- `response_status` — HTTP status ที่ได้กลับจาก external API
+- `response_body` (jsonb) — response กลับจาก external API
+- `success` (boolean) — สำเร็จหรือไม่
+- `error_message` — ข้อความ error (ถ้ามี)
+- `duration_ms` — เวลาที่ใช้เรียก external API
 
-2. Harden `lastHandledUrl`:
-   - Promote it from a closure-local `let` to a `useRef` so it survives effect re-runs.
-   - Apply the dedupe inside `handleDeepLink` itself (not only in `handleUrlOnce`) so the `appUrlOpen` listener also benefits.
+## 2. สิทธิ์เข้าถึง (RLS)
+- `service_role`: อ่าน/เขียนได้ทั้งหมด (edge function ใช้ตัวนี้ในการ insert)
+- `authenticated`: อ่านเฉพาะ log ของ `driver_id` ตัวเอง (เผื่ออนาคตอยากดูใน UI)
+- `anon`: ไม่ให้เข้าถึง
 
-3. Stop unconditional redirects on the re-entry path:
-   - In the success branch, only `navigate("/home", { replace: true })` when the current `location.pathname` is `/` or `/auth/...`. If the user is already inside the app, just persist auth + toast and stay put.
-   - In the error branch of `apple-auth-callback`, do not `navigate("/")` if the app already has a valid stored `auth_driver` (check `getAuthItem("auth_driver")` before redirecting). This prevents a stale token error from logging the user out of a working session.
+หมายเหตุ: เนื่องจากโปรเจกต์ใช้ custom auth (`auth.uid()` เป็น null) การอ่านจริงในอนาคตจะต้องผ่าน edge function proxy อีกที — แต่ตั้ง policy ไว้ก่อนตามมาตรฐาน
 
-4. Same treatment for the `code` sub-branch (lines ~343–416) since it has the same navigate pattern.
+## 3. แก้ Edge Functions 3 ตัวให้เขียน log
 
-No other files need to change. `AuthContext`, `ProtectedRoute`, `StartPage`, `SignIn`, and `BottomNavigation` all behave correctly once the deep-link handler stops replaying the callback.
+ทั้ง 3 ฟังก์ชันจะ:
+1. รับ `driver_id` เพิ่มจาก request body (optional field ใหม่ — ไม่ทำให้ของเดิมพัง)
+2. หลังจากเรียก external API เสร็จ (ทั้งกรณี success และ error) → insert 1 row ลงตาราง audit ผ่าน service role client
+3. ใช้ try/catch หุ้ม insert เพื่อไม่ให้ audit ล้มเหลวกระทบ flow หลัก
+4. Log ทั้ง status code, response body, duration และ error
 
-## Verification
-- Manual: sign in with Apple, tap Chat/Settings/Dashboard/Bidding immediately after — should stay on the tapped screen. Background/foreground the app several times — should stay on the tapped screen.
-- Check console: `[DeepLink] 🍎 Apple auth callback detected` must appear at most once per install session; subsequent foregrounds should log a "skipped, already handled" line.
-- Ensure normal LINE flow is untouched (guard is scoped to `apple-auth-callback` path only).
+ไฟล์ที่แก้:
+- `supabase/functions/reorder-destinations/index.ts`
+- `supabase/functions/update-tracking-waypoints/index.ts`
+- `supabase/functions/create-tracking-room/index.ts`
+
+## 4. Client-side: ส่ง `driver_id` เพิ่ม
+
+เพิ่ม `driver_id` (จาก `localStorage` auth user) ลงใน request body ตอนเรียก 3 ฟังก์ชันนี้:
+- `src/components/job-detail/DomesticJobDetail.tsx` — จุดเรียก `reorder-destinations` และ `update-tracking-waypoints` (ราวบรรทัด 1093-1169)
+- จุดที่เรียก `create-tracking-room` (ตอนรับงาน / start job) — ต้อง grep หา call site แล้วเพิ่ม `driver_id` ให้ครบทุกจุด
+
+การเปลี่ยนแปลงเป็นแบบ additive — field ใหม่ optional ทั้งหมด ของเก่ายังทำงานได้ปกติ
+
+---
+
+## Technical details
+
+**Migration SQL (สรุป):**
+```
+CREATE TABLE public.edge_function_audit_logs (...);
+GRANT SELECT ON public.edge_function_audit_logs TO authenticated;
+GRANT ALL   ON public.edge_function_audit_logs TO service_role;
+ALTER TABLE ... ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role full access" ...;
+CREATE POLICY "drivers read own logs" USING (driver_id = ...);
+CREATE INDEX ON (function_name, created_at DESC);
+CREATE INDEX ON (driver_id, created_at DESC);
+CREATE INDEX ON (order_number);
+```
+
+**Insert ใน edge function:**
+```ts
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+await supabase.from('edge_function_audit_logs').insert({
+  function_name: 'reorder-destinations',
+  driver_id, order_number, request_payload: body,
+  external_request_payload: payload,
+  response_status: response.status,
+  response_body: responseData,
+  success: response.ok, duration_ms,
+});
+```
+
+## นอกขอบเขต
+- ไม่สร้าง UI สำหรับดู log (query ผ่าน DB tool ได้)
+- ไม่ย้อน log ของ call เก่าที่เกิดก่อนหน้านี้
+- ไม่แตะ edge function อื่นนอก 3 ตัวข้างต้น

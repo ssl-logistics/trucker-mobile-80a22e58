@@ -1120,10 +1120,12 @@ export default function DomesticJobDetail({
     toast({ title: t('jobDetail.swapSuccess') || 'สลับจุดส่งสำเร็จ' });
 
     // Send reorder to API (fire-and-forget, localStorage is the primary persistence)
+    const driverIdForAudit = localStorage.getItem('auth_driver_id') || undefined;
     try {
       const payload = {
         order_number: job.order_code,
         destinations: resequenced.map(d => ({ id: d.id, sequence_number: d.sequence_number })),
+        driver_id: driverIdForAudit,
       };
       console.log('[Reorder] invoking edge function reorder-destinations', payload);
       const { data, error } = await supabase.functions.invoke('reorder-destinations', {
@@ -1153,6 +1155,8 @@ export default function DomesticJobDetail({
               body: {
                 room_code: trackingState.roomCode,
                 waypoints,
+                driver_id: driverIdForAudit,
+                order_number: job.order_code,
               },
             });
             if (wpError) {

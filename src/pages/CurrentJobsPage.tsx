@@ -939,6 +939,7 @@ export default function CurrentJobsPage() {
             destination_lng: bidJob.destination_longitude || 0,
             current_lat: currentLat,
             current_lng: currentLng,
+            driver_id: localStorage.getItem('auth_driver_id') || undefined,
           };
 
           console.log(`[Tracking] Creating tracking room for bid job ${orderNum}:`, trackingBody);
