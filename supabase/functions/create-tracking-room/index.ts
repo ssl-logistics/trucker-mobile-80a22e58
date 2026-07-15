@@ -191,6 +191,21 @@ serve(async (req) => {
 
     const createdRoomCode = responseData?.room?.room_code ?? responseData?.room_code ?? null;
 
+    if (createdRoomCode) {
+      await upsertTrackingRoom({
+        order_number: body.order_code,
+        room_code: createdRoomCode,
+        truck_plate: body.truck_plate,
+        driver_id: body.driver_id,
+        origin_lat: body.origin_lat,
+        origin_lng: body.origin_lng,
+        destination_lat: body.destination_lat,
+        destination_lng: body.destination_lng,
+        source: 'created',
+      });
+    }
+
+
     await writeAuditLog({
       function_name: 'create-tracking-room',
       driver_id: body.driver_id,
