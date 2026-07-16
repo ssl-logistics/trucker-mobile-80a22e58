@@ -41,7 +41,7 @@ import {
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { compressImage } from '@/utils/imageCompression';
-import { notifyCheckinWaypoint } from '@/lib/checkinWaypoint';
+import { notifyCheckinWaypoint, ensureRoomCode } from '@/lib/checkinWaypoint';
 
 interface DestinationProduct {
   product_name: string;
@@ -897,7 +897,30 @@ export default function DeliveryDetailPage() {
 
       // Send truck arrival notification for destination
       try {
-        const roomCode = localStorage.getItem(`room_code_${job.order_code}`);
+        const jobAny: any = job;
+        // Ensure room_code exists — for BL/Booking jobs delivery may be the first
+        // check-in that reaches this code, so create a room on the fly if missing.
+        const roomCode = await ensureRoomCode({
+          orderCode: job.order_code,
+          truckPlate: jobAny.truck_plate || jobAny.plate_number || null,
+          originLat: jobAny.sender_latitude ?? jobAny.origin_latitude ?? latitude,
+          originLng: jobAny.sender_longitude ?? jobAny.origin_longitude ?? longitude,
+          destinationLat:
+            destination?.latitude ??
+            destination?.destination_latitude ??
+            jobAny.destination_latitude ??
+            latitude,
+          destinationLng:
+            destination?.longitude ??
+            destination?.destination_longitude ??
+            jobAny.destination_longitude ??
+            longitude,
+          currentLat: latitude,
+          currentLng: longitude,
+          driverId: user.id,
+          context: 'delivery-checkin',
+        });
+
         if (roomCode) {
           console.log('[DeliveryDetailPage] Sending truck-arrival for destination:', { room_code: roomCode, arrival_type: 'destination' });
           const arrivalResponse = await supabase.functions.invoke('truck-arrival', {
@@ -909,13 +932,16 @@ export default function DeliveryDetailPage() {
           console.log('[DeliveryDetailPage] truck-arrival response:', arrivalResponse.data);
 
           // Notify external waypoint tracker for delivery sequence
-          const deliverySeq =
-            destination?.sequence_number ||
-            (job as any).sequence_order ||
-            2;
+          // - International BL: delivery = seq 2
+          // - Domestic multi-dest: use destination.sequence_number
+          // - Fallback: 2
+          const isInternational = !!(jobAny.bl_no || jobAny.transport_category === 'international');
+          const deliverySeq = isInternational
+            ? 2
+            : (destination?.sequence_number || (job as any).sequence_order || 2);
           notifyCheckinWaypoint({ room_code: roomCode, sequence_order: deliverySeq });
         } else {
-          console.warn('[DeliveryDetailPage] No room_code found for order:', job.order_code);
+          console.warn('[DeliveryDetailPage] No room_code available for order:', job.order_code);
         }
       } catch (arrivalError) {
         console.error('[DeliveryDetailPage] Error sending truck-arrival:', arrivalError);
