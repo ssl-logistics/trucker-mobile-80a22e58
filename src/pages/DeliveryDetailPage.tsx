@@ -907,12 +907,10 @@ export default function DeliveryDetailPage() {
           originLng: jobAny.sender_longitude ?? jobAny.origin_longitude ?? longitude,
           destinationLat:
             destination?.latitude ??
-            destination?.destination_latitude ??
             jobAny.destination_latitude ??
             latitude,
           destinationLng:
             destination?.longitude ??
-            destination?.destination_longitude ??
             jobAny.destination_longitude ??
             longitude,
           currentLat: latitude,
