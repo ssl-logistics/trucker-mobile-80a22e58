@@ -307,16 +307,16 @@ const SignIn = () => {
         description: t('signIn.loginSuccess') || 'เข้าสู่ระบบสำเร็จ',
       });
 
-      // Save email only (NEVER store passwords client-side)
+      // Save credentials only when "remember me" is checked (manual login only)
       if (data.remember) {
         localStorage.setItem("rememberedEmail", data.email);
         localStorage.setItem("rememberedUser", "true");
+        localStorage.setItem("rememberedPassword", btoa(data.password));
       } else {
         localStorage.removeItem("rememberedEmail");
         localStorage.removeItem("rememberedUser");
+        localStorage.removeItem("rememberedPassword");
       }
-      // Always clear any legacy stored password
-      localStorage.removeItem("rememberedPassword");
       
       // Check if there's a saved redirect destination (from ProtectedRoute)
       const redirectPath = sessionStorage.getItem('auth_redirect_after_login');
