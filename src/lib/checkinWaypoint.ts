@@ -5,7 +5,8 @@
 import { createTrackingRoom } from '@/lib/trackingRoomClient';
 
 const CHECKIN_WAYPOINT_URL =
-  'https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/checkin-waypoint';
+  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/checkin-waypoint`;
+
 
 export interface CheckinWaypointPayload {
   room_code: string;
