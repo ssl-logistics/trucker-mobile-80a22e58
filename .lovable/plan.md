@@ -1,54 +1,46 @@
-# แผนแก้ปัญหา Tracking Room ครอบคลุมทุกกรณี + Backward Compat
+# แผนแก้ปัญหา Tracking Room — Reorder Fallback + Container Check-in Auto-create
 
 ## เป้าหมาย
-ทุกงาน (เก่า/ใหม่/freelance auto/reorder) ต้องหา `room_code` ที่ถูกต้องเจอเสมอ พร้อม log ครบ และไม่กระทบ APK เวอร์ชันเก่า
+1. Reorder จุดส่ง (ในประเทศ) ที่ไม่มีห้อง → auto-create ให้เลย ไม่ blank screen
+2. Container/BL/Booking check-in จุดแรก (งานใหม่) → auto-create ห้องถ้ายังไม่มี
+3. Server `get-tracking-room` ตอบ 200 null แทน 404 เมื่อข้อมูลไม่พอ recreate
 
-## Database
+## การเปลี่ยนแปลง
 
-**Migration:** สร้าง `public.order_tracking_rooms`
-- `order_number` (PK), `room_code` (NOT NULL), `truck_plate`, `driver_id`, `origin_lat/lng`, `destination_lat/lng`
-- `source` enum: `created | idempotent_409 | external_lookup | recreated | server_freelance | backfill_audit`
-- `status` default `'active'`, `created_at`, `updated_at` + trigger
-- RLS: deny client (service role only), GRANT service_role
-- **Backfill** จาก `edge_function_audit_logs` ที่มี `room_code` + `order_number` (source=`backfill_audit`)
+### 1. Server: `supabase/functions/get-tracking-room/index.ts`
+- เมื่อ Tier 3 recreate ต้องใช้ coords/plate แต่ payload ไม่มี → return **HTTP 200** `{ room_code: null, source: 'not_started', tier: 0 }` แทน 404
+- กรณี recreate ล้มเหลวจริง (call `create-tracking-room` แล้ว error) → ยังคง 502 ตามเดิม
+- Audit log บันทึก `source='not_started'` เพื่อแยกจาก error จริง
 
-## Edge Functions
+### 2. Client: `src/components/job-detail/DomesticJobDetail.tsx` — `handleReorderConfirm`
+- หลังเรียก `getRoomCodeForOrder()` ถ้าได้ `null`:
+  - ประกอบ payload จาก job data ที่มีอยู่: `truck_plate`, pickup coords (จุดแรกล่าสุด) เป็น `origin`, จุดส่งสุดท้ายที่ resequence แล้วเป็น `destination`, GPS ปัจจุบันเป็น `current`, waypoints = จุดกลางทั้งหมด
+  - เรียก `createTrackingRoom()` (import จาก `trackingRoomClient.ts`)
+  - ถ้าสำเร็จ → เก็บ `room_code` ลง cache + localStorage → เรียก `update-tracking-waypoints` ตามปกติ
+  - ถ้าล้มเหลว → toast "บันทึกลำดับใหม่แล้ว แต่ยังไม่ได้อัปเดตเส้นทาง GPS" (ไม่ block, ไม่ throw)
+- ถ้า `getRoomCodeForOrder()` คืนค่า room (Tier 1/2 hit) → พฤติกรรมเดิม 100%
 
-1. **`create-tracking-room`** — เพิ่ม UPSERT ทั้ง path success และ 409 (`source='created'` / `'idempotent_409'`) + CORS `x-app-secret` ครบ
-2. **`get-tracking-room`** (ใหม่) — 3-tier:
-   - Tier 1: SELECT จาก `order_tracking_rooms`
-   - Tier 2: เรียก external `/get-tracking-rooms?order_code=X` → UPSERT (`source='external_lookup'`)
-   - Tier 3: เรียก `create-tracking-room` ใหม่ด้วย coords จาก payload → UPSERT (`source='recreated'`)
-   - ทุก tier เขียน audit log สำเร็จ/ล้มเหลว
-3. **`update-tracking-waypoints`** — รับได้ทั้ง `{room_code}` (backward compat, คงไว้ถาวร) และ `{order_number}` (lookup ผ่าน Tier 1-3)
-4. **`receive-freelance-selected`** — UPSERT ตอน server สร้างห้องอัตโนมัติ (`source='server_freelance'`)
+### 3. Client: `src/pages/ContainerCheckInPage.tsx`
+- หลัง submit check-in สำเร็จ (fire-and-forget, ไม่ block UI):
+  - เช็ค `localStorage.getItem('room_code_' + orderCode)` — ถ้ามีอยู่แล้ว → skip
+  - ถ้าไม่มี → ประกอบ payload: `origin` = container pickup coords, `destination` = job final delivery coords, `current` = GPS ปัจจุบัน, `truck_plate` จาก job/localStorage
+  - เรียก `createTrackingRoom()` — เก็บ `room_code` ลง localStorage เมื่อสำเร็จ
+  - Error ทั้งหมด log แบบ warn เท่านั้น ไม่ throw
+- เฉพาะงานใหม่หลัง deploy — ไม่ backfill งาน BL/Booking เก่า
 
-## Client
+## สิ่งที่ไม่แตะ
+- Schema / migration
+- `create-tracking-room`, `receive-freelance-selected`, `reorder-destinations`, `update-tracking-waypoints`
+- `PickupDetailPage.tsx` (โดเมสติก) — auto-create มีอยู่แล้ว
+- Home / CurrentJobs / flow ปกติของงานใหม่
 
-1. **`src/lib/trackingRoomLookup.ts`** (ใหม่)
-   - `getRoomCodeForOrder(orderCode, jobData?)` → เรียก `get-tracking-room` edge, cache in-memory
-   - `clearRoomCache(orderCode)`
-2. **`DomesticJobDetail.tsx handleReorderConfirm`** — เลิกอ่าน `gps_tracking_state`, ใช้ `getRoomCodeForOrder()` + toast แจ้งถ้า `source='recreated'`
-3. จุดอื่นที่อ่าน `room_code_${order}` (Home, PickupDetail, DeliveryDetail, CurrentJobs, truck-arrival caller) — ค่อย ๆ ย้ายมาใช้ helper (ไม่บังคับใน rollout แรก แต่ helper รองรับ fallback อ่าน localStorage ก่อน)
-4. **`useGpsTracking.ts`** — เปลี่ยน `gps_tracking_state` เป็น map `{[orderCode]: roomCode}` แก้บั๊กหลายงานทับกัน
-
-## Backward Compat (APK เก่า)
-
-- ✅ Response schema `create-tracking-room` ไม่เปลี่ยน
-- ✅ `update-tracking-waypoints` คง dual mode ถาวร (`{room_code}` ยังใช้ได้)
-- ✅ `order_tracking_rooms` RLS deny client → APK เก่าไม่รู้จักตารางนี้ก็ไม่พัง
-- ⚠️ บั๊ก reorder ผิดห้องบน APK เก่ายังอยู่ (แก้ไม่ได้ retroactive) — ต้องบังคับอัปเดต
-
-## Rollout Order
-
-1. Migration (สร้างตาราง + backfill จาก audit_logs)
-2. Deploy `create-tracking-room` (UPSERT + CORS), `receive-freelance-selected` (UPSERT)
-3. Deploy `get-tracking-room`, `update-tracking-waypoints` (dual mode)
-4. Deploy client (`trackingRoomLookup.ts` + fix DomesticJobDetail + useGpsTracking map)
-5. ทดสอบกับ `OR20260614011` (Tier 2 external lookup), งานใหม่ (Tier 1), งานที่ external ไม่มี (Tier 3 recreate)
+## Backward Compat
+- APK เก่า: ได้ประโยชน์จาก server 200 null (ลด error) แต่ auto-create ฝั่ง client ไม่มี → พฤติกรรมเดิม
+- APK ใหม่: ครอบคลุมทั้ง reorder งานเก่าไม่มีห้อง + BL/Booking ใหม่
 
 ## Verification
-
-- Reorder งานเก่า → ต้องเห็น row ใน `order_tracking_rooms` และ waypoints อัปเดตด้วย `room_code` ที่ถูก
-- Audit logs มีทั้ง success/failure + `source` ทุกครั้ง
-- ไม่มีการเรียก `create-tracking-room` ซ้ำถ้า Tier 1 hit
+1. `OR20260715026` (งานไม่มีห้อง) → เปิดหน้างาน → reorder จุดส่ง → เห็น toast success + row ใหม่ใน `order_tracking_rooms` + ไม่มี blank screen
+2. Reorder ซ้ำครั้งที่ 2 → Tier 1 cache hit ไม่สร้างซ้ำ
+3. `OR20260614011` (งานปกติ) → reorder → พฤติกรรมเดิม 100%
+4. งาน BL/Booking ใหม่ → check-in จุดแรก → audit log `create-tracking-room:success` โผล่
+5. งาน BL/Booking เก่า → check-in → ไม่มีห้องถูกสร้าง (ตามที่ตกลง)
