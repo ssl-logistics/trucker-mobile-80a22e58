@@ -41,6 +41,7 @@ import {
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { compressImage } from '@/utils/imageCompression';
+import { notifyCheckinWaypoint } from '@/lib/checkinWaypoint';
 
 interface DestinationProduct {
   product_name: string;
