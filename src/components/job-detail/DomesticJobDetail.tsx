@@ -969,47 +969,79 @@ export default function DomesticJobDetail({
     job.bl_no ? containerPickupConfirmed : isOcrVerified
   );
 
-  // localStorage key for persisting reorder
+  // localStorage key for persisting reorder (visual order only, TTL 7 days)
   const reorderStorageKey = `dest_order_${job.order_code}`;
+  const REORDER_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-  // Sync localDestOrder when destinations change, restore saved order from localStorage
+  // Sync localDestOrder when destinations change, restore saved order from localStorage.
+  // Format: { ids: string[], ts: number }. Legacy [{id, sequence_number}] still supported.
   useEffect(() => {
-    if (destinations.length > 0) {
-      try {
-        const saved = localStorage.getItem(reorderStorageKey);
-        if (saved) {
-          const savedOrder: { id: string; sequence_number: number }[] = JSON.parse(saved);
-          // Rebuild order from saved sequence: map saved id->sequence, then sort destinations by it
-          const idToSeq = new Map(savedOrder.map(s => [s.id, s.sequence_number]));
-          const reordered = [...destinations]
-            .map(d => ({ ...d, sequence_number: idToSeq.get(d.id) ?? d.sequence_number }))
-            .sort((a, b) => a.sequence_number - b.sequence_number);
-          setLocalDestOrder(reordered);
+    if (destinations.length === 0) return;
+    try {
+      const saved = localStorage.getItem(reorderStorageKey);
+      if (saved) {
+        const parsed: any = JSON.parse(saved);
+        let savedIds: string[] | null = null;
+        let ts = 0;
+        if (parsed && Array.isArray(parsed.ids)) {
+          savedIds = parsed.ids;
+          ts = Number(parsed.ts) || 0;
+        } else if (Array.isArray(parsed)) {
+          savedIds = [...parsed]
+            .sort((a: any, b: any) => (a.sequence_number ?? 0) - (b.sequence_number ?? 0))
+            .map((s: any) => s.id);
+        }
+
+        const stale = ts > 0 && Date.now() - ts > REORDER_TTL_MS;
+        if (savedIds && savedIds.length > 0 && !stale) {
+          const byId = new Map(destinations.map(d => [d.id, d]));
+          const ordered: JobDestination[] = [];
+          const seen = new Set<string>();
+          savedIds.forEach(id => {
+            const d = byId.get(id);
+            if (d) { ordered.push(d); seen.add(id); }
+          });
+          // Append any destinations not in savedIds (new / missing) in API order
+          destinations.forEach(d => { if (!seen.has(d.id)) ordered.push(d); });
+          const finalOrder = ordered.map((d, idx) => ({ ...d, sequence_number: idx + 1 }));
+          setLocalDestOrder(finalOrder);
           return;
         }
-      } catch (e) {
-        console.error('Error restoring dest order:', e);
+        if (stale) {
+          try { localStorage.removeItem(reorderStorageKey); } catch {}
+        }
       }
-      setLocalDestOrder([...destinations]);
+    } catch (e) {
+      console.error('Error restoring dest order:', e);
     }
+    setLocalDestOrder([...destinations]);
   }, [JSON.stringify(destinations)]);
 
   // The display order for rendering (uses local reorder if available)
   const displayDestinations = localDestOrder.length > 0 ? localDestOrder : destinations;
 
-  // Map checkin data by destination ID (not sequence_number) so it survives reordering
-  // Original destinations from API have the original sequence numbers that match the checkin keys
+  // Map checkin data to destination.id. Try multiple strategies to survive
+  // server-side resequencing after a reorder:
+  //  1) by current API sequence_number on the destination
+  //  2) by visual position in displayDestinations (post-swap seq the checkin was sent with)
   const destCheckinById = useMemo(() => {
     const map: Record<string, { checked_in_at: string | null; sop_completed_at: string | null }> = {};
     const origDests = job.destinations || [];
     origDests.forEach(d => {
       const checkin = destinationCheckins[d.sequence_number];
-      if (checkin) {
+      if (checkin && (checkin.checked_in_at || checkin.sop_completed_at)) {
+        map[d.id] = checkin;
+      }
+    });
+    displayDestinations.forEach((d, idx) => {
+      if (map[d.id]) return;
+      const checkin = destinationCheckins[idx + 1];
+      if (checkin && (checkin.checked_in_at || checkin.sop_completed_at)) {
         map[d.id] = checkin;
       }
     });
     return map;
-  }, [destinationCheckins, job.destinations]);
+  }, [destinationCheckins, job.destinations, displayDestinations]);
 
   const handleSwapRequest = (fromIdx: number, toIdx: number) => {
     console.log('[Reorder] handleSwapRequest called', { fromIdx, toIdx, total: displayDestinations.length });
