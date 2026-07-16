@@ -1147,33 +1147,74 @@ export default function DomesticJobDetail({
         .map(d => ({ lat: d.latitude!, lng: d.longitude! }));
 
       if (waypoints.length > 0) {
-        const { getRoomCodeForOrder } = await import('@/lib/trackingRoomLookup');
+        const { getRoomCodeForOrder, clearRoomCache } = await import('@/lib/trackingRoomLookup');
+        const truckPlate = (job as any).truck_plate || (job as any).plate_number;
+        const originLat = (job as any).origin_lat ?? waypoints[0]?.lat;
+        const originLng = (job as any).origin_lng ?? waypoints[0]?.lng;
+        const destLat = waypoints[waypoints.length - 1]?.lat;
+        const destLng = waypoints[waypoints.length - 1]?.lng;
+        const currentLat = waypoints[0]?.lat;
+        const currentLng = waypoints[0]?.lng;
+
         const lookup = await getRoomCodeForOrder(job.order_code, {
-          truck_plate: (job as any).truck_plate || (job as any).plate_number,
-          origin_lat: (job as any).origin_lat,
-          origin_lng: (job as any).origin_lng,
-          destination_lat: waypoints[waypoints.length - 1]?.lat,
-          destination_lng: waypoints[waypoints.length - 1]?.lng,
-          current_lat: waypoints[0]?.lat,
-          current_lng: waypoints[0]?.lng,
+          truck_plate: truckPlate,
+          origin_lat: originLat,
+          origin_lng: originLng,
+          destination_lat: destLat,
+          destination_lng: destLng,
+          current_lat: currentLat,
+          current_lng: currentLng,
           waypoints,
         });
 
-        if (!lookup?.roomCode) {
+        let roomCode = lookup?.roomCode ?? null;
+        let source = lookup?.source ?? 'unknown';
+
+        // Fallback: no room exists (old jobs that never had one). Try to create
+        // client-side so future reorders/tracking calls succeed.
+        if (!roomCode && truckPlate && originLat && originLng && destLat && destLng) {
+          try {
+            const { createTrackingRoom } = await import('@/lib/trackingRoomClient');
+            const createRes = await createTrackingRoom({
+              truck_plate: truckPlate,
+              order_code: job.order_code,
+              origin_lat: originLat,
+              origin_lng: originLng,
+              destination_lat: destLat,
+              destination_lng: destLng,
+              current_lat: currentLat,
+              current_lng: currentLng,
+              waypoints,
+              driver_id: driverIdForAudit,
+            }, 'reorder-fallback');
+            const created = createRes?.data?.room?.room_code ?? createRes?.data?.room_code;
+            if (createRes.ok && created) {
+              roomCode = created;
+              source = 'reorder_created';
+              try { localStorage.setItem(`room_code_${job.order_code}`, created); } catch {}
+              clearRoomCache(job.order_code);
+              toast({ title: t('jobDetail.trackingRoomRecreated') || 'สร้างห้องติดตามใหม่แล้ว' });
+            }
+          } catch (createErr) {
+            console.warn('[Reorder] client-side createTrackingRoom failed:', createErr);
+          }
+        }
+
+        if (!roomCode) {
           console.warn('[Reorder] no room_code available for order', job.order_code);
           toast({
             title: t('jobDetail.trackingRoomMissing') || 'ไม่พบห้องติดตาม GPS',
             description: t('jobDetail.reorderStillSaved') || 'ข้อมูลลำดับส่งถูกบันทึกแล้ว',
           });
         } else {
-          if (lookup.source === 'recreated') {
+          if (source === 'recreated') {
             toast({
               title: t('jobDetail.trackingRoomRecreated') || 'สร้างห้องติดตามใหม่แล้ว',
             });
           }
           const { data: wpData, error: wpError } = await supabase.functions.invoke('update-tracking-waypoints', {
             body: {
-              room_code: lookup.roomCode,
+              room_code: roomCode,
               waypoints,
               driver_id: driverIdForAudit,
               order_number: job.order_code,
