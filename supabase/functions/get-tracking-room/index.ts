@@ -131,13 +131,17 @@ serve(async (req) => {
       await writeAuditLog({
         function_name: 'get-tracking-room:tier3-recreate',
         driver_id: body.driver_id, order_number: orderNumber,
-        success: false,
+        success: true,
         error_message: 'insufficient data to recreate (need truck_plate + all coords)',
+        response_status: 200,
+        response_body: { source: 'not_started' },
         duration_ms: Date.now() - startedAt,
       });
+      // Return 200 with null room_code so the client can decide (e.g. auto-create later)
+      // without triggering a RUNTIME_ERROR / blank screen.
       return new Response(
-        JSON.stringify({ error: 'room not found and insufficient data to recreate' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ room_code: null, source: 'not_started', tier: 0 }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
