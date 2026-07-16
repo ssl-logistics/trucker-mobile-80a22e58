@@ -906,6 +906,13 @@ export default function DeliveryDetailPage() {
             }
           });
           console.log('[DeliveryDetailPage] truck-arrival response:', arrivalResponse.data);
+
+          // Notify external waypoint tracker for delivery sequence
+          const deliverySeq =
+            destination?.sequence_number ||
+            (job as any).sequence_order ||
+            2;
+          notifyCheckinWaypoint({ room_code: roomCode, sequence_order: deliverySeq });
         } else {
           console.warn('[DeliveryDetailPage] No room_code found for order:', job.order_code);
         }
