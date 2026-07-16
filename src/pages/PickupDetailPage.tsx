@@ -405,8 +405,12 @@ export default function PickupDetailPage() {
               body: JSON.stringify({ room_code: roomCode, arrival_type: 'origin' }),
             }).catch(err => console.warn('truck-arrival error:', err));
 
-            // Notify external waypoint tracker for pickup (sequence 1)
-            const pickupSeq = (job as any).sequence_order || 1;
+            // Notify external waypoint tracker
+            // - Booking (outbound): pickup is seq 2 (after container_pickup=1)
+            // - Domestic / BL delivery: seq from job or default 1
+            const pickupSeq = job.booking_no
+              ? 2
+              : ((job as any).sequence_order || 1);
             notifyCheckinWaypoint({ room_code: roomCode, sequence_order: pickupSeq });
           }
 

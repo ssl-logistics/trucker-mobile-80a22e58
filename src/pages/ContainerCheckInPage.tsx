@@ -21,6 +21,7 @@ import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans, updateOrderStatus } from '@/lib/externalApi';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
+import { notifyCheckinWaypoint, ensureRoomCode } from '@/lib/checkinWaypoint';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 
@@ -556,6 +557,45 @@ export default function ContainerCheckInPage() {
         }
       }
 
+
+      // Notify external waypoint tracker (fire-and-forget)
+      // - container_pickup (empty/loaded) = seq 1
+      // - container_return = seq 3
+      try {
+        const finalJob: any = job;
+        const originLat = job.container_checkpoint_latitude ?? latitude;
+        const originLng = job.container_checkpoint_longitude ?? longitude;
+        const destLat =
+          finalJob.container_return_latitude ??
+          finalJob.destination_lat ??
+          finalJob.receiver_latitude ??
+          latitude;
+        const destLng =
+          finalJob.container_return_longitude ??
+          finalJob.destination_lng ??
+          finalJob.receiver_longitude ??
+          longitude;
+        const roomCode = await ensureRoomCode({
+          orderCode: job.order_code,
+          truckPlate: finalJob.truck_plate || finalJob.plate_number || null,
+          originLat,
+          originLng,
+          destinationLat: destLat,
+          destinationLng: destLng,
+          currentLat: latitude,
+          currentLng: longitude,
+          driverId: user.id,
+          context: isContainerReturn ? 'container-return-checkin' : 'container-pickup-checkin',
+        });
+        if (roomCode) {
+          notifyCheckinWaypoint({
+            room_code: roomCode,
+            sequence_order: isContainerReturn ? 3 : 1,
+          });
+        }
+      } catch (waypointErr) {
+        console.warn('[ContainerCheckIn] waypoint notify failed:', waypointErr);
+      }
 
       // Choose toast message based on actual check-in context
       const successMessageKey = isContainerReturn
