@@ -1143,15 +1143,19 @@ export default function DomesticJobDetail({
       sequence_number: idx + 1,
     }));
     setLocalDestOrder(resequenced);
-    // Persist to localStorage so order survives navigation
+    // Persist visual order as ids[] + timestamp (source of truth is server; this is a hint)
     try {
-      localStorage.setItem(reorderStorageKey, JSON.stringify(resequenced.map(d => ({ id: d.id, sequence_number: d.sequence_number }))));
+      localStorage.setItem(
+        reorderStorageKey,
+        JSON.stringify({ ids: resequenced.map(d => d.id), ts: Date.now() })
+      );
     } catch (e) {
       console.error('Error saving dest order:', e);
     }
     toast({ title: t('jobDetail.swapSuccess') || 'สลับจุดส่งสำเร็จ' });
 
-    // Send reorder to API (fire-and-forget, localStorage is the primary persistence)
+    // Send reorder to API. On success, drop the localStorage hint so the next
+    // fetch relies purely on the server-side order and stale hints can't stick.
     const driverIdForAudit = localStorage.getItem('auth_driver_id') || undefined;
     try {
       const payload = {
@@ -1164,12 +1168,13 @@ export default function DomesticJobDetail({
         body: payload,
       });
       if (error) {
-        console.error('[Reorder] API error:', error);
+        console.error('[Reorder] API error (keeping localStorage hint):', error);
       } else {
         console.log('[Reorder] API success:', data);
+        try { localStorage.removeItem(reorderStorageKey); } catch {}
       }
     } catch (e) {
-      console.error('[Reorder] API exception:', e);
+      console.error('[Reorder] API exception (keeping localStorage hint):', e);
     }
 
     // Update tracking waypoints — use 3-tier lookup so old jobs / freelance auto rooms all work
