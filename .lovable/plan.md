@@ -1,46 +1,77 @@
-# แผนแก้ปัญหา Tracking Room — Reorder Fallback + Container Check-in Auto-create
+# วิเคราะห์ความเสี่ยงหลังปรับ checkin-waypoint
 
-## เป้าหมาย
-1. Reorder จุดส่ง (ในประเทศ) ที่ไม่มีห้อง → auto-create ให้เลย ไม่ blank screen
-2. Container/BL/Booking check-in จุดแรก (งานใหม่) → auto-create ห้องถ้ายังไม่มี
-3. Server `get-tracking-room` ตอบ 200 null แทน 404 เมื่อข้อมูลไม่พอ recreate
+## สรุประดับความเสี่ยง: 🟢 ต่ำมาก
 
-## การเปลี่ยนแปลง
+การปรับครั้งนี้เป็น **additive change** (เพิ่มการยิง fire-and-forget) ไม่แตะ business logic เดิม
 
-### 1. Server: `supabase/functions/get-tracking-room/index.ts`
-- เมื่อ Tier 3 recreate ต้องใช้ coords/plate แต่ payload ไม่มี → return **HTTP 200** `{ room_code: null, source: 'not_started', tier: 0 }` แทน 404
-- กรณี recreate ล้มเหลวจริง (call `create-tracking-room` แล้ว error) → ยังคง 502 ตามเดิม
-- Audit log บันทึก `source='not_started'` เพื่อแยกจาก error จริง
+---
 
-### 2. Client: `src/components/job-detail/DomesticJobDetail.tsx` — `handleReorderConfirm`
-- หลังเรียก `getRoomCodeForOrder()` ถ้าได้ `null`:
-  - ประกอบ payload จาก job data ที่มีอยู่: `truck_plate`, pickup coords (จุดแรกล่าสุด) เป็น `origin`, จุดส่งสุดท้ายที่ resequence แล้วเป็น `destination`, GPS ปัจจุบันเป็น `current`, waypoints = จุดกลางทั้งหมด
-  - เรียก `createTrackingRoom()` (import จาก `trackingRoomClient.ts`)
-  - ถ้าสำเร็จ → เก็บ `room_code` ลง cache + localStorage → เรียก `update-tracking-waypoints` ตามปกติ
-  - ถ้าล้มเหลว → toast "บันทึกลำดับใหม่แล้ว แต่ยังไม่ได้อัปเดตเส้นทาง GPS" (ไม่ block, ไม่ throw)
-- ถ้า `getRoomCodeForOrder()` คืนค่า room (Tier 1/2 hit) → พฤติกรรมเดิม 100%
+## จุดที่ปรับ vs ผลกระทบ version เดิม
 
-### 3. Client: `src/pages/ContainerCheckInPage.tsx`
-- หลัง submit check-in สำเร็จ (fire-and-forget, ไม่ block UI):
-  - เช็ค `localStorage.getItem('room_code_' + orderCode)` — ถ้ามีอยู่แล้ว → skip
-  - ถ้าไม่มี → ประกอบ payload: `origin` = container pickup coords, `destination` = job final delivery coords, `current` = GPS ปัจจุบัน, `truck_plate` จาก job/localStorage
-  - เรียก `createTrackingRoom()` — เก็บ `room_code` ลง localStorage เมื่อสำเร็จ
-  - Error ทั้งหมด log แบบ warn เท่านั้น ไม่ throw
-- เฉพาะงานใหม่หลัง deploy — ไม่ backfill งาน BL/Booking เก่า
+| จุด | สิ่งที่เพิ่ม | กระทบของเดิม? |
+|---|---|---|
+| `checkinWaypoint.ts` | เพิ่ม `ensureRoomCode()` helper | ❌ ไม่กระทบ (ฟังก์ชันใหม่) |
+| `PickupDetailPage` | refactor ใช้ helper | ⚠️ ต่ำ (logic เดิมยังทำงาน, helper แค่ห่อ localStorage+createRoom เดิม) |
+| `DeliveryDetailPage` | fallback สร้าง room ถ้าไม่มี | ❌ ไม่กระทบ (เดิมไม่ยิง waypoint อยู่แล้ว) |
+| `ContainerCheckInPage` | เพิ่มยิง waypoint หลัง checkin สำเร็จ | ❌ ไม่กระทบ (แค่เพิ่ม fire-and-forget) |
+| `useProximityAlert` | เพิ่มยิง waypoint | ❌ ไม่กระทบ (auto checkin เดิมยังทำงาน) |
 
-## สิ่งที่ไม่แตะ
-- Schema / migration
-- `create-tracking-room`, `receive-freelance-selected`, `reorder-destinations`, `update-tracking-waypoints`
-- `PickupDetailPage.tsx` (โดเมสติก) — auto-create มีอยู่แล้ว
-- Home / CurrentJobs / flow ปกติของงานใหม่
+---
 
-## Backward Compat
-- APK เก่า: ได้ประโยชน์จาก server 200 null (ลด error) แต่ auto-create ฝั่ง client ไม่มี → พฤติกรรมเดิม
-- APK ใหม่: ครอบคลุมทั้ง reorder งานเก่าไม่มีห้อง + BL/Booking ใหม่
+## ความเสี่ยงที่ต้องระวัง
 
-## Verification
-1. `OR20260715026` (งานไม่มีห้อง) → เปิดหน้างาน → reorder จุดส่ง → เห็น toast success + row ใหม่ใน `order_tracking_rooms` + ไม่มี blank screen
-2. Reorder ซ้ำครั้งที่ 2 → Tier 1 cache hit ไม่สร้างซ้ำ
-3. `OR20260614011` (งานปกติ) → reorder → พฤติกรรมเดิม 100%
-4. งาน BL/Booking ใหม่ → check-in จุดแรก → audit log `create-tracking-room:success` โผล่
-5. งาน BL/Booking เก่า → check-in → ไม่มีห้องถูกสร้าง (ตามที่ตกลง)
+### 1. 🟢 Network failure → ไม่กระทบผู้ใช้
+- ใช้ `try/catch` + `keepalive: true` + fire-and-forget
+- ถ้า endpoint ล่ม → แค่ log warning, ไม่ block check-in
+- Check-in หลัก (driverCheckin, truck-arrival, update-order-status) ทำงานปกติ
+
+### 2. 🟡 `ensureRoomCode` สร้าง room ซ้ำที่ delivery
+- **Mitigation**: external API return `409` เมื่อ room มีอยู่ → `create-tracking-room` handle เป็น success + upsert `room_code` เดิม (มี code อยู่แล้วใน `create-tracking-room/index.ts` line ~120)
+- ไม่มี duplicate room ในระบบ
+
+### 3. 🟡 Race condition ที่ delivery
+- ถ้า 2 tab เปิดพร้อมกัน → ทั้ง 2 เรียก create-tracking-room
+- **Mitigation**: 409 idempotent handling รับได้อยู่แล้ว
+
+### 4. 🟢 Sequence order ผิด
+- ต่างประเทศ fix hard-code (1/2/3 ตาม job type) → ไม่พึ่ง destination array
+- ในประเทศ ใช้ `destination.sequence_number` เดิม (ไม่เปลี่ยน)
+
+### 5. 🟢 Performance
+- fire-and-forget, ไม่ await ในเส้นทาง critical
+- ไม่เพิ่ม latency ให้ผู้ใช้กดปุ่ม check-in
+
+---
+
+## Regression Test Checklist (หลัง implement)
+
+1. ✅ Domestic pickup check-in → waypoint ยิง seq `1`
+2. ✅ Domestic multi-delivery → waypoint ยิงตาม `sequence_number` ของแต่ละจุด
+3. ✅ BL container_pickup → seq `1`
+4. ✅ BL delivery (ไม่มี room_code ตั้งแต่ต้น) → สร้าง room ใหม่ + ยิง seq `2`
+5. ✅ BL container_return → seq `3`
+6. ✅ Booking container_pickup/pickup/container_return → seq 1/2/3
+7. ✅ Proximity auto check-in → ยิง waypoint ตาม seq เดียวกับ manual
+8. ✅ Endpoint ล่ม → check-in ยังสำเร็จ, UI ไม่ค้าง
+9. ✅ POD/EIR confirm → **ไม่** ยิง waypoint ซ้ำ
+
+---
+
+## Rollback plan
+
+ถ้ามีปัญหา:
+- ทุกจุดที่ยิงห่อใน `try/catch` แยกก้อน → ลบ 1-2 บรรทัดต่อจุด revert ได้ทันที
+- ไม่มี migration, ไม่แตะ DB schema, ไม่แตะ edge function ที่มีอยู่
+- ใช้ chat history revert ได้ปลอดภัย
+
+---
+
+## สรุป
+
+**ความเสี่ยงกระทบ version เดิม: ต่ำมาก** เพราะ:
+- ไม่แก้ business logic เดิม
+- ไม่แตะ database schema / edge function เดิม
+- ทุกการยิงเป็น fire-and-forget + try/catch
+- 409 idempotent มีอยู่แล้ว → ป้องกัน duplicate room
+
+พร้อม implement ได้เมื่อกด Approve
