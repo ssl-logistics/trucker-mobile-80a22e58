@@ -20,6 +20,7 @@ import checkInIcon from '@/assets/check-in-icon.png';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
 import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateOrderStatus } from '@/lib/externalApi';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
+import { notifyCheckinWaypoint } from '@/lib/checkinWaypoint';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 interface JobDetail {
@@ -403,6 +404,10 @@ export default function PickupDetailPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ room_code: roomCode, arrival_type: 'origin' }),
             }).catch(err => console.warn('truck-arrival error:', err));
+
+            // Notify external waypoint tracker for pickup (sequence 1)
+            const pickupSeq = (job as any).sequence_order || 1;
+            notifyCheckinWaypoint({ room_code: roomCode, sequence_order: pickupSeq });
           }
 
           // Update order status for international jobs (BL or Booking)

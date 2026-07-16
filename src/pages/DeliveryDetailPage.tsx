@@ -41,6 +41,7 @@ import {
 import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { compressImage } from '@/utils/imageCompression';
+import { notifyCheckinWaypoint } from '@/lib/checkinWaypoint';
 
 interface DestinationProduct {
   product_name: string;
@@ -906,6 +907,13 @@ export default function DeliveryDetailPage() {
             }
           });
           console.log('[DeliveryDetailPage] truck-arrival response:', arrivalResponse.data);
+
+          // Notify external waypoint tracker for delivery sequence
+          const deliverySeq =
+            destination?.sequence_number ||
+            (job as any).sequence_order ||
+            2;
+          notifyCheckinWaypoint({ room_code: roomCode, sequence_order: deliverySeq });
         } else {
           console.warn('[DeliveryDetailPage] No room_code found for order:', job.order_code);
         }
