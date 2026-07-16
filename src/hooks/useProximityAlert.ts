@@ -9,6 +9,7 @@ import {
   getDriverCheckins,
   driverCheckin,
 } from '@/lib/externalApi';
+import { notifyCheckinWaypoint, ensureRoomCode } from '@/lib/checkinWaypoint';
 import { toast } from 'sonner';
 
 const CHECK_INTERVAL_MS = 30_000; // 30 seconds
@@ -259,6 +260,29 @@ export function useProximityAlert() {
               duration: 6000,
             });
             console.log(`[AutoCheckin] Done for ${orderCode} at ${distToPickup.toFixed(2)} km`);
+
+            // Notify external waypoint tracker (fire-and-forget)
+            // Booking (outbound) pickup = seq 2, otherwise seq 1
+            try {
+              const roomCode = await ensureRoomCode({
+                orderCode,
+                truckPlate: job.truck_plate || job.plate_number || null,
+                originLat: sLat,
+                originLng: sLng,
+                destinationLat: Number(job.destination_latitude) || null,
+                destinationLng: Number(job.destination_longitude) || null,
+                currentLat: myLat,
+                currentLng: myLng,
+                driverId: user.id,
+                context: 'proximity-auto-pickup',
+              });
+              if (roomCode) {
+                const seq = job.booking_no ? 2 : 1;
+                notifyCheckinWaypoint({ room_code: roomCode, sequence_order: seq });
+              }
+            } catch (wpErr) {
+              console.warn('[AutoCheckin] waypoint notify failed:', wpErr);
+            }
           } catch (e) {
             console.error('[AutoCheckin] Failed:', e);
           }
