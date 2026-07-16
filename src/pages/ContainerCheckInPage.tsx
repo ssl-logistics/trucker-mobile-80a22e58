@@ -497,6 +497,66 @@ export default function ContainerCheckInPage() {
         }
       }
 
+      // Fire-and-forget: auto-create tracking room for new BL/Booking jobs that
+      // don't have one yet, so future reorder / GPS calls succeed. Old jobs are
+      // NOT backfilled (per plan) — but if room_code is absent we still try once.
+      if (!isContainerReturn) {
+        try {
+          const existingRoom = localStorage.getItem(`room_code_${job.order_code}`);
+          if (!existingRoom) {
+            const originLat = job.container_checkpoint_latitude ?? latitude;
+            const originLng = job.container_checkpoint_longitude ?? longitude;
+            const finalJob: any = job;
+            const destLat =
+              finalJob.container_return_latitude ??
+              finalJob.destination_lat ??
+              finalJob.receiver_latitude ??
+              null;
+            const destLng =
+              finalJob.container_return_longitude ??
+              finalJob.destination_lng ??
+              finalJob.receiver_longitude ??
+              null;
+            const truckPlate =
+              finalJob.truck_plate ||
+              finalJob.plate_number ||
+              localStorage.getItem('auth_truck_plate') ||
+              '';
+            if (truckPlate && originLat && originLng && destLat && destLng) {
+              const { createTrackingRoom } = await import('@/lib/trackingRoomClient');
+              createTrackingRoom(
+                {
+                  truck_plate: truckPlate,
+                  order_code: job.order_code,
+                  origin_lat: originLat,
+                  origin_lng: originLng,
+                  destination_lat: destLat,
+                  destination_lng: destLng,
+                  current_lat: latitude,
+                  current_lng: longitude,
+                  driver_id: user.id,
+                },
+                'container-checkin-autocreate',
+              )
+                .then((res) => {
+                  const rc = res?.data?.room?.room_code ?? res?.data?.room_code;
+                  if (res.ok && rc) {
+                    try { localStorage.setItem(`room_code_${job.order_code}`, rc); } catch {}
+                  }
+                })
+                .catch((err) => console.warn('[ContainerCheckIn] autocreate room failed:', err));
+            } else {
+              console.warn('[ContainerCheckIn] skip autocreate — missing plate/coords', {
+                truckPlate, originLat, originLng, destLat, destLng,
+              });
+            }
+          }
+        } catch (autoErr) {
+          console.warn('[ContainerCheckIn] autocreate room exception:', autoErr);
+        }
+      }
+
+
       // Choose toast message based on actual check-in context
       const successMessageKey = isContainerReturn
         ? 'container.checkInReturnSuccessMessage'
