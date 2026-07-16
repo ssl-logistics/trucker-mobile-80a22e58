@@ -16,7 +16,12 @@ const EXTERNAL_API_KEY = Deno.env.get('EXTERNAL_API_KEY') || 'fld_sk_2026_xY9kWe
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 
 const DEFAULT_RETURN_WINDOW_HOURS = 48; // fallback if container_free_days missing
-const WARN_BEFORE_HOURS = 24; // notify when <= 24h remaining
+// Two-stage warnings: 24h heads-up + 6h urgent reminder. Each stage has its
+// own reference_id so both fire exactly once per job.
+const WARN_STAGES: Array<{ hours: number; suffix: string; urgent: boolean }> = [
+  { hours: 24, suffix: '', urgent: false },
+  { hours: 6, suffix: ':6h', urgent: true },
+];
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
