@@ -1,77 +1,35 @@
-# วิเคราะห์ความเสี่ยงหลังปรับ checkin-waypoint
+## สิ่งที่จะทำ
 
-## สรุประดับความเสี่ยง: 🟢 ต่ำมาก
+### 1. งาน Booking (ส่งออก) – เปิด cron แจ้งเตือน 6 ชม.
+เพิ่ม cron job รายชั่วโมง เรียก `check-booking-closing-warning` (edge function มีอยู่แล้ว เตือน ≤ 6 ชม. ก่อน CY Closing Time พร้อม dedupe ด้วย `reference_id`)
 
-การปรับครั้งนี้เป็น **additive change** (เพิ่มการยิง fire-and-forget) ไม่แตะ business logic เดิม
+```sql
+select cron.schedule(
+  'booking-closing-warning-hourly',
+  '0 * * * *',
+  $$
+  select net.http_post(
+    url:='https://<project>.supabase.co/functions/v1/check-booking-closing-warning',
+    headers:='{"Content-Type":"application/json","apikey":"<anon>"}'::jsonb,
+    body:='{}'::jsonb
+  );
+  $$
+);
+```
+ยิงผ่าน `supabase--insert` (ไม่ใช่ migration) ตามข้อกำหนดของ Lovable Cloud
 
----
+### 2. งาน BL (นำเข้า) – เพิ่มด่านเตือน 6 ชม.
+ปัจจุบัน `check-container-return-deadline` เตือนแค่ ≤ 24 ชม. ครั้งเดียว จะปรับให้เตือน **2 ด่าน**:
+- **24 ชม.**: heads-up (ใช้ `reference_id = container_return_deadline:<order>` เดิม → ไม่ยิงซ้ำในงานที่เคยเตือนแล้ว)
+- **6 ชม.**: urgent reminder (`reference_id = container_return_deadline:<order>:6h` ใหม่ → ยิงอีก 1 ครั้งได้)
 
-## จุดที่ปรับ vs ผลกระทบ version เดิม
+แก้ไฟล์เดียว: `supabase/functions/check-container-return-deadline/index.ts`
+- แทน constant `WARN_BEFORE_HOURS = 24` ด้วย array `WARN_STAGES = [{hours:24, suffix:''}, {hours:6, suffix:':6h'}]`
+- วน loop ทั้งสองด่านต่อ 1 งาน, dedupe ต่อด่านด้วย `reference_id` ที่ต่างกัน
+- ปรับ title/body ของด่าน 6 ชม. เป็นข้อความเร่งด่วน (⚠️ + "เหลือเวลา ~6 ชม.")
 
-| จุด | สิ่งที่เพิ่ม | กระทบของเดิม? |
-|---|---|---|
-| `checkinWaypoint.ts` | เพิ่ม `ensureRoomCode()` helper | ❌ ไม่กระทบ (ฟังก์ชันใหม่) |
-| `PickupDetailPage` | refactor ใช้ helper | ⚠️ ต่ำ (logic เดิมยังทำงาน, helper แค่ห่อ localStorage+createRoom เดิม) |
-| `DeliveryDetailPage` | fallback สร้าง room ถ้าไม่มี | ❌ ไม่กระทบ (เดิมไม่ยิง waypoint อยู่แล้ว) |
-| `ContainerCheckInPage` | เพิ่มยิง waypoint หลัง checkin สำเร็จ | ❌ ไม่กระทบ (แค่เพิ่ม fire-and-forget) |
-| `useProximityAlert` | เพิ่มยิง waypoint | ❌ ไม่กระทบ (auto checkin เดิมยังทำงาน) |
-
----
-
-## ความเสี่ยงที่ต้องระวัง
-
-### 1. 🟢 Network failure → ไม่กระทบผู้ใช้
-- ใช้ `try/catch` + `keepalive: true` + fire-and-forget
-- ถ้า endpoint ล่ม → แค่ log warning, ไม่ block check-in
-- Check-in หลัก (driverCheckin, truck-arrival, update-order-status) ทำงานปกติ
-
-### 2. 🟡 `ensureRoomCode` สร้าง room ซ้ำที่ delivery
-- **Mitigation**: external API return `409` เมื่อ room มีอยู่ → `create-tracking-room` handle เป็น success + upsert `room_code` เดิม (มี code อยู่แล้วใน `create-tracking-room/index.ts` line ~120)
-- ไม่มี duplicate room ในระบบ
-
-### 3. 🟡 Race condition ที่ delivery
-- ถ้า 2 tab เปิดพร้อมกัน → ทั้ง 2 เรียก create-tracking-room
-- **Mitigation**: 409 idempotent handling รับได้อยู่แล้ว
-
-### 4. 🟢 Sequence order ผิด
-- ต่างประเทศ fix hard-code (1/2/3 ตาม job type) → ไม่พึ่ง destination array
-- ในประเทศ ใช้ `destination.sequence_number` เดิม (ไม่เปลี่ยน)
-
-### 5. 🟢 Performance
-- fire-and-forget, ไม่ await ในเส้นทาง critical
-- ไม่เพิ่ม latency ให้ผู้ใช้กดปุ่ม check-in
-
----
-
-## Regression Test Checklist (หลัง implement)
-
-1. ✅ Domestic pickup check-in → waypoint ยิง seq `1`
-2. ✅ Domestic multi-delivery → waypoint ยิงตาม `sequence_number` ของแต่ละจุด
-3. ✅ BL container_pickup → seq `1`
-4. ✅ BL delivery (ไม่มี room_code ตั้งแต่ต้น) → สร้าง room ใหม่ + ยิง seq `2`
-5. ✅ BL container_return → seq `3`
-6. ✅ Booking container_pickup/pickup/container_return → seq 1/2/3
-7. ✅ Proximity auto check-in → ยิง waypoint ตาม seq เดียวกับ manual
-8. ✅ Endpoint ล่ม → check-in ยังสำเร็จ, UI ไม่ค้าง
-9. ✅ POD/EIR confirm → **ไม่** ยิง waypoint ซ้ำ
-
----
-
-## Rollback plan
-
-ถ้ามีปัญหา:
-- ทุกจุดที่ยิงห่อใน `try/catch` แยกก้อน → ลบ 1-2 บรรทัดต่อจุด revert ได้ทันที
-- ไม่มี migration, ไม่แตะ DB schema, ไม่แตะ edge function ที่มีอยู่
-- ใช้ chat history revert ได้ปลอดภัย
-
----
-
-## สรุป
-
-**ความเสี่ยงกระทบ version เดิม: ต่ำมาก** เพราะ:
-- ไม่แก้ business logic เดิม
-- ไม่แตะ database schema / edge function เดิม
-- ทุกการยิงเป็น fire-and-forget + try/catch
-- 409 idempotent มีอยู่แล้ว → ป้องกัน duplicate room
-
-พร้อม implement ได้เมื่อกด Approve
+### ความเสี่ยง 🟢 ต่ำมาก
+- ไม่แก้ client, schema, business logic
+- Cron ตัวใหม่ = additive, rollback: `select cron.unschedule('booking-closing-warning-hourly');`
+- BL 6h stage มี `reference_id` แยก จึงไม่ชนกับด่าน 24h เดิม; งานเก่าที่ผ่านด่าน 24h ไปแล้วจะได้รับด่าน 6h เพิ่มอีก 1 ครั้ง (พึงประสงค์)
+- Edge function ทั้ง 2 ตัวมี dedupe `(user_id, reference_id)` อยู่แล้ว → cron ทุกชั่วโมงปลอดภัย
