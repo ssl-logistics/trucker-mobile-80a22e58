@@ -5,7 +5,8 @@
 import { createTrackingRoom } from '@/lib/trackingRoomClient';
 
 const CHECKIN_WAYPOINT_URL =
-  'https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/checkin-waypoint';
+  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/checkin-waypoint`;
+
 
 export interface CheckinWaypointPayload {
   room_code: string;
@@ -18,12 +19,18 @@ export function notifyCheckinWaypoint(payload: CheckinWaypointPayload): void {
     return;
   }
 
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
   fetch(CHECKIN_WAYPOINT_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+    },
     body: JSON.stringify(payload),
     keepalive: true,
   })
+
     .then(async (res) => {
       if (!res.ok) {
         const text = await res.text().catch(() => '');
