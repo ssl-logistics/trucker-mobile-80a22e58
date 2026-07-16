@@ -90,9 +90,6 @@ Deno.serve(async (req) => {
       const deadline = pickupAt + windowHours * 3600 * 1000;
       const hoursRemaining = (deadline - now) / 3600000;
 
-      // Only notify when entering the warn window
-      if (hoursRemaining > WARN_BEFORE_HOURS) continue;
-
       // Resolve driver_id (freelance only — internal/external have no in-app account)
       const driverId =
         pickup.freelance_driver_id ||
@@ -100,66 +97,78 @@ Deno.serve(async (req) => {
         pickup.external_driver_id;
       if (!driverId) continue;
 
-      const referenceId = `container_return_deadline:${orderNumber}`;
+      // Fire the tightest applicable stage this run. Each stage dedupes on
+      // its own reference_id, so 24h and 6h each fire exactly once per job.
+      for (const stage of WARN_STAGES) {
+        if (hoursRemaining > stage.hours) continue;
 
-      // Dedup: skip if a deadline notification already exists for this job
-      const { data: existing } = await supabase
-        .from('notifications')
-        .select('id')
-        .eq('user_id', driverId)
-        .eq('reference_id', referenceId)
-        .limit(1);
-      if (existing && existing.length > 0) continue;
+        const referenceId = `container_return_deadline:${orderNumber}${stage.suffix}`;
 
-      const overdue = hoursRemaining <= 0;
-      const hoursDisplay = overdue
-        ? Math.ceil(-hoursRemaining)
-        : Math.floor(hoursRemaining);
+        const { data: existing } = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('user_id', driverId)
+          .eq('reference_id', referenceId)
+          .limit(1);
+        if (existing && existing.length > 0) continue;
 
-      const titleTh = overdue
-        ? '⚠️ เลยกำหนดคืนตู้คอนเทนเนอร์'
-        : '⏰ ใกล้ครบกำหนดคืนตู้คอนเทนเนอร์';
-      const titleEn = overdue
-        ? '⚠️ Container return overdue'
-        : '⏰ Container return deadline approaching';
-      const descTh = overdue
-        ? `งาน ${orderNumber}: เลยกำหนดคืนตู้เปล่ามาแล้ว ${hoursDisplay} ชั่วโมง กรุณาคืนตู้โดยด่วน`
-        : `งาน ${orderNumber}: ต้องคืนตู้เปล่าภายใน ${hoursDisplay} ชั่วโมง (กำหนด ${windowHours} ชม. หลังรับตู้)`;
-      const descEn = overdue
-        ? `Job ${orderNumber}: container return is overdue by ${hoursDisplay}h. Please return ASAP.`
-        : `Job ${orderNumber}: please return the empty container within ${hoursDisplay}h (${windowHours}h after pickup).`;
+        const overdue = hoursRemaining <= 0;
+        const hoursDisplay = overdue
+          ? Math.ceil(-hoursRemaining)
+          : Math.max(1, Math.floor(hoursRemaining));
 
-      const { error: insertErr } = await supabase.from('notifications').insert({
-        user_id: driverId,
-        title_th: titleTh,
-        title_en: titleEn,
-        description_th: descTh,
-        description_en: descEn,
-        notification_type: 'container_return_deadline',
-        reference_id: referenceId,
-        reference_type: 'job',
-      });
+        const urgent = stage.urgent && !overdue;
 
-      if (insertErr) {
-        console.error('[ContainerReturnDeadline] insert error', insertErr);
-        continue;
+        const titleTh = overdue
+          ? '⚠️ เลยกำหนดคืนตู้คอนเทนเนอร์'
+          : urgent
+          ? '⚠️ ใกล้ครบกำหนดคืนตู้ (เหลือ ~6 ชม.)'
+          : '⏰ ใกล้ครบกำหนดคืนตู้คอนเทนเนอร์';
+        const titleEn = overdue
+          ? '⚠️ Container return overdue'
+          : urgent
+          ? '⚠️ Container return due in ~6h'
+          : '⏰ Container return deadline approaching';
+        const descTh = overdue
+          ? `งาน ${orderNumber}: เลยกำหนดคืนตู้เปล่ามาแล้ว ${hoursDisplay} ชั่วโมง กรุณาคืนตู้โดยด่วน`
+          : `งาน ${orderNumber}: ต้องคืนตู้เปล่าภายใน ${hoursDisplay} ชั่วโมง (กำหนด ${windowHours} ชม. หลังรับตู้)`;
+        const descEn = overdue
+          ? `Job ${orderNumber}: container return is overdue by ${hoursDisplay}h. Please return ASAP.`
+          : `Job ${orderNumber}: please return the empty container within ${hoursDisplay}h (${windowHours}h after pickup).`;
+
+        const { error: insertErr } = await supabase.from('notifications').insert({
+          user_id: driverId,
+          title_th: titleTh,
+          title_en: titleEn,
+          description_th: descTh,
+          description_en: descEn,
+          notification_type: 'container_return_deadline',
+          reference_id: referenceId,
+          reference_type: 'job',
+        });
+
+        if (insertErr) {
+          console.error('[ContainerReturnDeadline] insert error', insertErr);
+          continue;
+        }
+
+        supabase.functions
+          .invoke('send-push-notification', {
+            body: {
+              user_id: driverId,
+              title: titleTh,
+              body: descTh,
+              tag: referenceId,
+              data: { reference_id: orderNumber, type: 'container_return_deadline' },
+            },
+          })
+          .catch((e) => console.error('[ContainerReturnDeadline] push error', e));
+
+        sent.push(`${orderNumber}${stage.suffix}`);
+        break; // fire only the tightest stage per run
       }
-
-      // Fire-and-forget push
-      supabase.functions
-        .invoke('send-push-notification', {
-          body: {
-            user_id: driverId,
-            title: titleTh,
-            body: descTh,
-            tag: referenceId,
-            data: { reference_id: orderNumber, type: 'container_return_deadline' },
-          },
-        })
-        .catch((e) => console.error('[ContainerReturnDeadline] push error', e));
-
-      sent.push(orderNumber);
     }
+
 
     console.log(`[ContainerReturnDeadline] notified ${sent.length} drivers`, sent);
     return new Response(JSON.stringify({ success: true, notified: sent }), {
