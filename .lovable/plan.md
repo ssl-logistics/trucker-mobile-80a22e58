@@ -1,51 +1,64 @@
-## ปัญหา
 
-หลังจากผู้ใช้สลับลำดับจุดส่ง (reorder) แล้วเช็คอิน → ออกจากหน้า → กลับเข้ามาใหม่ ลำดับที่แสดงและสถานะ "รอเช็คอิน / SOP สำเร็จ" ไม่ตรงกับการสลับล่าสุด (ตามภาพ: จุด #3 กับ #5 อยู่ผิดตำแหน่ง / ไอคอนเช็คอินโผล่ผิดการ์ด)
+## Problem
 
-## สาเหตุ (ที่วิเคราะห์จากโค้ด)
+จากล็อก:
+- ห้อง `RM26JFUV` มีอยู่แล้ว (create-tracking-room สำเร็จ) แต่ถูกสร้างด้วย `origin_lat/lng = 0,0` และไม่มี waypoints
+- เวลาเช็คอินจุด (checkin-waypoint) ส่ง `sequence_order: 1/2/3` ระบบภายนอกตอบ **404 "No matching waypoint found (or already checked in)"** เพราะห้องนั้นไม่มี waypoint ที่ seq นั้น ๆ ให้ match
+- 404 จาก edge proxy ถูก Lovable overlay จับเป็น RUNTIME_ERROR + blank screen (ทั้ง ๆ ที่โค้ด client เป็น fire-and-forget)
 
-ไฟล์หลัก: `src/components/job-detail/DomesticJobDetail.tsx`
+ผู้ใช้ถามถูก: "ถ้าเช็คอินไม่ได้/หาห้องไม่เจอ ไม่ส่งไปสร้าง (หรือ sync) ห้องหรอ" — ปัจจุบันเราสร้างห้องอย่างเดียว แต่ไม่ได้ sync waypoints ให้ห้องนั้นก่อนเช็คอิน จึงเกิด 404 แม้ห้องมีอยู่
 
-1. **การสลับ (`performSwap`)** re-sequences `sequence_number = idx + 1` ตาม visual order ใหม่ แล้วบันทึกลง `localStorage[dest_order_${order_code}]` เป็น `{id, sequence_number}` — และยิง `reorder-destinations` edge function (fire-and-forget) เพื่ออัปเดตฝั่ง server
+## Scope (backend proxy + minor client)
 
-2. **การเช็คอิน** (`DeliveryDetailPage` / `DeliverySOPCheckInPage`) — เมื่อเปิดจากการ์ด จะได้รับทั้ง URL `sequence_number` (ค่าใหม่หลัง swap) และ `state.destId`. ปลายทางค้น destination ด้วย `destId` จาก `job.destinations` (ค่าจาก API ที่ยัง "seq เดิม") แล้วส่ง `destination_sequence_number` = **seq เดิม** ไปกับ payload check-in / POD
+แก้เฉพาะ path เช็คอิน waypoint — ไม่แตะ business logic, ไม่แตะ external API payload
 
-3. **การ map check-in กลับมาแสดง** (`destCheckinById`, บรรทัด 1002–1012) ใช้ `origDests[i].sequence_number` (seq จาก API) ไปดึง `destinationCheckins[seq]` แล้วผูกเข้ากับ `dest.id`
+### 1. `supabase/functions/checkin-waypoint/index.ts` (proxy) — auto-repair + retry
 
-4. **ปัญหาที่เกิด**: 
-   - หลัง swap + check-in สำเร็จ → `reorder-destinations` ทำงานเบื้องหลัง server อัปเดต seq ใหม่
-   - รอบ fetch ถัดไป (กลับเข้าหน้า) `job.destinations` จาก API มาพร้อม seq ใหม่ (server side)
-   - แต่ `localStorage.dest_order_*` ยัง keep mapping ที่บันทึกไว้จากตอน swap และ effect บรรทัด 976–995 จะ **บังคับ sort ทับ** ด้วย mapping เก่านั้นเสมอ (ตราบใดที่ยังมี key นี้อยู่)
-   - เมื่อ id ใน `savedOrder` ไม่ครอบคลุมทั้งหมด (เช่น เพิ่ม/ลด destinations, หรือ seq ที่ id อื่น fallback `d.sequence_number` ชนกับ mapping ที่บันทึก) จะเกิด duplicate seq → sort ไม่เสถียร → ลำดับผิด
-   - เมื่อ check-in ถูกบันทึกด้วย seq เดิม (ตอนก่อน swap ยิงถึง server) แต่ปัจจุบัน server ทำ resequence แล้ว → `destinationCheckins[seqเดิม]` ยังคีย์เดิม แต่ `origDests[i].sequence_number` เป็น seq ใหม่ (จาก server) → `destCheckinById` ผูกผิด id → ไอคอน "SOP สำเร็จ / รอเช็คอิน" โผล่บนการ์ดผิด
+เพิ่ม self-healing เมื่อได้ 404:
 
-พูดสั้น ๆ: มี **แหล่งความจริงเรื่องลำดับ 3 แหล่ง** ที่ไม่ sync กัน — API (server), `localStorage.dest_order_*`, และ `destinationCheckins` (คีย์ด้วย seq snapshot ตอนเช็คอิน) — ทำให้เข้าออกหน้าใหม่ทีไรก็เพี้ยน
+```text
+POST /checkin-waypoint { room_code, sequence_order, order_number?, waypoints? }
+  → forward → external
+     ├─ 200/201 → return as-is
+     ├─ 404 "No matching waypoint" →
+     │     1) call update-tracking-waypoints ({ room_code, waypoints? หรือ order_number })
+     │     2) retry checkin-waypoint (once)
+     │     └─ still 404 → return 200 + { ok:false, code:'no_matching_waypoint', retried:true }
+     └─ อื่นๆ → return 200 + { ok:false, status, body }  // ไม่ให้ overlay จับเป็น RUNTIME_ERROR
+```
 
-## แผนการแก้ (Scope: frontend เท่านั้น ไม่แตะ business logic ฝั่ง server)
+หมายเหตุ:
+- proxy รับ `order_number` เพิ่ม เพื่อส่งต่อให้ `update-tracking-waypoints` (ซึ่ง resolve room_code ได้จาก store อยู่แล้ว)
+- ตอบ HTTP 200 เสมอเมื่อ forward ไปถึง external ได้ (แนบ `ok/status/body` ใน JSON) เพื่อไม่ทำ blank screen ใน preview; ยัง log status จริงไว้ในทั้ง `console.log` และ audit log
 
-**1. ใช้ `destination.id` เป็น key เดียวทั่วทั้ง component**
-- เปลี่ยน `destinationCheckins` จาก `Record<seq, ...>` เป็น `Record<destId, ...>` เมื่อเป็นไปได้ โดย resolve seq → id ตอนอ่านผลจาก API (ใช้ `job.destinations` snapshot ปัจจุบัน). fallback ให้ค้นทั้ง old seq (`destination_sequence_number`) และ new seq (จาก suffix `delivery_N`) → id
-- ปรับ `destCheckinById` ให้ใช้ map ที่คีย์ id ตรง ๆ (ไม่ต้องแปลผ่าน `origDests[i].sequence_number`)
+### 2. `src/lib/checkinWaypoint.ts` — pass optional context
 
-**2. ให้ localStorage เป็นแค่ "hint สำหรับช่วง optimistic" ไม่ใช่ source of truth**
-- หลัง swap สำเร็จและ `reorder-destinations` ตอบ 2xx → **ลบ** `localStorage.dest_order_${order_code}` แล้วปล่อยให้ API เป็นตัวกำหนดลำดับใน render ถัดไป
-- ถ้า API ล้มเหลว → เก็บ localStorage ไว้เป็น fallback แต่มี TTL (เช่น 10 นาที) พร้อม timestamp; effect restore ต้องตรวจ TTL ก่อนใช้
-- effect restore เดิม (บรรทัด 976–995): เพิ่มการตรวจว่า **ทุก id ใน `destinations` มี entry ใน savedOrder ครบหรือไม่** ถ้าไม่ครบ → ไม่ใช้ localStorage เลย (กัน seq ชน)
+- เพิ่ม field เผื่อไว้ใน payload:
+  - `order_number?: string`
+  - `waypoints?: Array<{lat:number; lng:number}>`
+- อ่านผล JSON, ถ้า `ok===false` ให้ `console.warn` เฉย ๆ (ยังคง fire-and-forget)
 
-**3. หน้าเช็คอิน (`DeliveryDetailPage`, `DeliverySOPCheckInPage`)**
-- ยึด `destId` จาก `state` เป็นหลัก (ไม่ใช้ URL sequence_number เป็น key ของ destination)
-- เพิ่ม logging ตอนส่ง check-in ให้ระบุ `dest_id` + `sequence_number_at_send` เพื่อ debug audit
-- ไม่เปลี่ยน payload ที่ส่ง external API (ยังคงส่ง `destination_sequence_number` ตามค่าล่าสุดของ `job.destinations`)
+### 3. Callers ใส่ `order_number` + waypoints เท่าที่รู้
 
-**4. Voice / drag swap**
-- ก่อน swap ตรวจว่ามี pending API call อยู่หรือไม่ ถ้ามี queue ไว้ ให้เสร็จก่อนค่อย swap รอบถัดไป (ป้องกัน race)
+แก้ 3 ที่ให้ส่ง context ครบขึ้น เพื่อให้ proxy sync waypoints ได้ตอน 404:
 
-## การตรวจสอบหลังแก้
+- `src/pages/PickupDetailPage.tsx` (บรรทัด ~414)
+- `src/pages/DeliveryDetailPage.tsx` (บรรทัด ~940)
+- `src/pages/ContainerCheckInPage.tsx` (บรรทัด ~591)
 
-- reproduce เคสในภาพ: multi-destination, swap #3↔#5, เช็คอินจุดหนึ่ง, ออกจากหน้า, กลับเข้ามา → ลำดับตรง + สถานะเช็คอินตรงกับการ์ดที่ถูกต้อง
-- log `[Reorder]` และ `[useCheckinStatus]` แสดง id/seq ตรงกัน
-- ตรวจ `destCheckinById` snapshot ใน React DevTools ว่า key เป็น id ทั้งหมด
+ส่ง `{ room_code, sequence_order, order_number: job.order_code, waypoints: [...] }` โดย waypoints ประกอบจากพิกัดที่ page นั้นรู้อยู่แล้ว (origin/dest/current/container return) — ถ้าไม่มีก็ไม่ส่ง แล้วให้ `update-tracking-waypoints` ไป resolve จาก store
 
-## ความเสี่ยง
+## ทำไมพอ
 
-ต่ำ–กลาง: แตะเฉพาะ presentation/hook mapping ใน `DomesticJobDetail.tsx` และ 2 หน้า check-in. ไม่แตะ schema, edge functions, หรือ payload ที่ส่ง external API. Rollback ง่ายด้วยการคืน mapping เดิม
+- 404 = ห้องมี แต่ waypoint sequence นั้นไม่มี → auto-sync แล้ว retry แก้ที่รากของปัญหา
+- ผู้ใช้ไม่ต้องเจอ blank screen อีก (proxy ห่อ error ให้เป็น success envelope)
+- ไม่ต้องแก้ create-tracking-room หรือ external contract; ไม่กระทบ flow อื่น
+
+## Risk
+
+Low — เปลี่ยนพฤติกรรมของ proxy ให้ resilient ขึ้น, client ยังคง fire-and-forget เหมือนเดิม. ถ้า update-tracking-waypoints ล้มเหลว จะได้ผลลัพธ์เท่าปัจจุบัน (ยัง log 404 แต่ไม่ crash).
+
+## Out of scope
+
+- ไม่แก้ create-tracking-room ให้บังคับ origin ที่ถูกต้อง (แยกงาน — ต้องรื้อ Start Job flow)
+- ไม่แตะ UI แจ้งเตือน/ปุ่ม
