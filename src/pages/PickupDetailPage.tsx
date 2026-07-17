@@ -411,7 +411,24 @@ export default function PickupDetailPage() {
             const pickupSeq = job.booking_no
               ? 2
               : ((job as any).sequence_order || 1);
-            notifyCheckinWaypoint({ room_code: roomCode, sequence_order: pickupSeq });
+            const jobAnyWp: any = job;
+            const wpList: Array<{ lat: number; lng: number }> = [];
+            if (jobAnyWp.origin_latitude && jobAnyWp.origin_longitude) {
+              wpList.push({ lat: jobAnyWp.origin_latitude, lng: jobAnyWp.origin_longitude });
+            }
+            if (Array.isArray(jobAnyWp.destinations)) {
+              for (const d of jobAnyWp.destinations) {
+                if (d?.latitude && d?.longitude) wpList.push({ lat: d.latitude, lng: d.longitude });
+              }
+            } else if (jobAnyWp.destination_latitude && jobAnyWp.destination_longitude) {
+              wpList.push({ lat: jobAnyWp.destination_latitude, lng: jobAnyWp.destination_longitude });
+            }
+            notifyCheckinWaypoint({
+              room_code: roomCode,
+              sequence_order: pickupSeq,
+              order_number: job.order_code,
+              waypoints: wpList.length > 0 ? wpList : undefined,
+            });
           }
 
           // Update order status for international jobs (BL or Booking)
