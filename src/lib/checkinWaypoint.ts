@@ -11,6 +11,8 @@ const CHECKIN_WAYPOINT_URL =
 export interface CheckinWaypointPayload {
   room_code: string;
   sequence_order: number;
+  order_number?: string;
+  waypoints?: Array<{ lat: number; lng: number }>;
 }
 
 export function notifyCheckinWaypoint(payload: CheckinWaypointPayload): void {
@@ -30,13 +32,13 @@ export function notifyCheckinWaypoint(payload: CheckinWaypointPayload): void {
     body: JSON.stringify(payload),
     keepalive: true,
   })
-
     .then(async (res) => {
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        console.warn('[checkin-waypoint] Non-OK response:', res.status, text);
+      // Proxy always returns 200 with an envelope; inspect `ok` for the real result.
+      const data = await res.json().catch(() => ({} as any));
+      if (data?.ok === false) {
+        console.warn('[checkin-waypoint] Non-OK envelope:', data);
       } else {
-        console.log('[checkin-waypoint] Sent:', payload);
+        console.log('[checkin-waypoint] Sent:', payload, data);
       }
     })
     .catch((err) => {

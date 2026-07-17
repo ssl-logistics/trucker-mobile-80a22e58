@@ -588,9 +588,14 @@ export default function ContainerCheckInPage() {
           context: isContainerReturn ? 'container-return-checkin' : 'container-pickup-checkin',
         });
         if (roomCode) {
+          const wpList: Array<{ lat: number; lng: number }> = [];
+          if (originLat && originLng) wpList.push({ lat: originLat, lng: originLng });
+          if (destLat && destLng) wpList.push({ lat: destLat, lng: destLng });
           notifyCheckinWaypoint({
             room_code: roomCode,
             sequence_order: isContainerReturn ? 3 : 1,
+            order_number: job.order_code,
+            waypoints: wpList.length > 0 ? wpList : undefined,
           });
         }
       } catch (waypointErr) {

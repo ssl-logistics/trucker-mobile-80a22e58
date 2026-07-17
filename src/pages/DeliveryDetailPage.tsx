@@ -937,7 +937,23 @@ export default function DeliveryDetailPage() {
           const deliverySeq = isInternational
             ? 2
             : (destination?.sequence_number || (job as any).sequence_order || 2);
-          notifyCheckinWaypoint({ room_code: roomCode, sequence_order: deliverySeq });
+          const wpList: Array<{ lat: number; lng: number }> = [];
+          const oLat = jobAny.sender_latitude ?? jobAny.origin_latitude;
+          const oLng = jobAny.sender_longitude ?? jobAny.origin_longitude;
+          if (oLat && oLng) wpList.push({ lat: oLat, lng: oLng });
+          if (Array.isArray(jobAny.destinations)) {
+            for (const d of jobAny.destinations) {
+              if (d?.latitude && d?.longitude) wpList.push({ lat: d.latitude, lng: d.longitude });
+            }
+          } else if (destination?.latitude && destination?.longitude) {
+            wpList.push({ lat: destination.latitude, lng: destination.longitude });
+          }
+          notifyCheckinWaypoint({
+            room_code: roomCode,
+            sequence_order: deliverySeq,
+            order_number: job.order_code,
+            waypoints: wpList.length > 0 ? wpList : undefined,
+          });
         } else {
           console.warn('[DeliveryDetailPage] No room_code available for order:', job.order_code);
         }
