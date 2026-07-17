@@ -22,19 +22,32 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 // When a dynamic import fails, force a one-time hard reload to fetch the new index.
 function lazyWithPreload<T extends React.ComponentType<any>>(factory: () => Promise<{ default: T }>) {
   const wrapped = () =>
-    factory().catch((err) => {
+    factory().catch(async (err) => {
       const msg = String(err?.message || err);
       const isChunkError =
         msg.includes("Failed to fetch dynamically imported module") ||
         msg.includes("Importing a module script failed") ||
-        msg.includes("error loading dynamically imported module");
+        msg.includes("error loading dynamically imported module") ||
+        msg.includes("Loading chunk");
       if (isChunkError && typeof window !== "undefined") {
         const KEY = "__lovable_chunk_reload__";
         const last = Number(sessionStorage.getItem(KEY) || "0");
         // Avoid infinite reload loop — only reload once per 10s window
         if (Date.now() - last > 10_000) {
           sessionStorage.setItem(KEY, String(Date.now()));
+          try {
+            if ("caches" in window) {
+              const names = await caches.keys();
+              await Promise.allSettled(names.map((n) => caches.delete(n)));
+            }
+            if ("serviceWorker" in navigator) {
+              const regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.allSettled(regs.map((r) => r.unregister()));
+            }
+          } catch {}
           window.location.reload();
+          // Return a never-resolving promise so React.lazy doesn't surface the error
+          return new Promise(() => {}) as any;
         }
       }
       throw err;
@@ -43,6 +56,7 @@ function lazyWithPreload<T extends React.ComponentType<any>>(factory: () => Prom
   Component.preload = wrapped;
   return Component;
 }
+
 
 // Loading fallback component
 const PageLoader = () => (

@@ -9,6 +9,42 @@ import "./index.css";
 import { registerSW } from "virtual:pwa-register";
 import { supabase } from "./integrations/supabase/client";
 
+// Global safety net: if any dynamic import fails (stale chunk after deploy),
+// clear caches + unregister SW and hard-reload once. Prevents blank screens.
+(function installChunkErrorRecovery() {
+  const RELOAD_KEY = "__lovable_chunk_reload__";
+  const isChunkErrorMessage = (msg: string) =>
+    /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk/i.test(msg);
+
+  const recover = async () => {
+    const last = Number(sessionStorage.getItem(RELOAD_KEY) || "0");
+    if (Date.now() - last < 10_000) return;
+    sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+    try {
+      if ("caches" in window) {
+        const names = await caches.keys();
+        await Promise.allSettled(names.map((n) => caches.delete(n)));
+      }
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.allSettled(regs.map((r) => r.unregister()));
+      }
+    } catch {}
+    window.location.reload();
+  };
+
+  window.addEventListener("error", (e) => {
+    const msg = String((e as ErrorEvent).message || (e as any).error?.message || "");
+    if (isChunkErrorMessage(msg)) recover();
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    const reason = (e as PromiseRejectionEvent).reason;
+    const msg = String(reason?.message || reason || "");
+    if (isChunkErrorMessage(msg)) recover();
+  });
+})();
+
+
 
 // Intercept OAuth tokens from URL hash before HashRouter consumes them.
 // After Apple OAuth redirect, tokens may appear as:
