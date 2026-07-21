@@ -593,7 +593,7 @@ export default function ContainerCheckInPage() {
           if (destLat && destLng) wpList.push({ lat: destLat, lng: destLng });
           notifyCheckinWaypoint({
             room_code: roomCode,
-            sequence_order: isContainerReturn ? 3 : 1,
+            sequence_order: isContainerReturn ? 2 : 0,
             order_number: job.order_code,
             waypoints: wpList.length > 0 ? wpList : undefined,
           });

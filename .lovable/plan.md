@@ -1,50 +1,71 @@
-# สาเหตุ
+## เป้าหมาย
+แก้เฉพาะ `sequence_order` ที่ยิงไป external tracking ผ่าน `notifyCheckinWaypoint` ให้เป็น **0-based** และ Booking = 3 จุด (ข้าม Delivery)
+- **ไม่แตะ** UI, workflow, order status, DB, useCheckinStatus, DomesticJobDetail, จำนวน/ลำดับหน้าจอในแอป
+- ปรับเฉพาะเลขที่ส่ง external (payload only)
 
-Error `Failed to fetch dynamically imported module: /assets/SOPCheckInPage-I1RirIAz.js` เกิดจาก **stale bundle**:
+## Mapping ใหม่ (payload ที่ยิง external เท่านั้น)
 
-- ผู้ใช้เปิดแอปไว้ก่อนหน้า (bundle เก่า `index-CwG2FB72.js` อ้างชื่อไฟล์ `SOPCheckInPage-I1RirIAz.js`)
-- มีการ deploy ใหม่ → Vite สร้าง hash ใหม่ ไฟล์เก่าถูกลบจาก CDN
-- เมื่อ user กด navigate ไปหน้า SOP (`React.lazy` / dynamic `import()`) เบราว์เซอร์ไปโหลดไฟล์ hash เก่า → 404 → throw `TypeError` → blank screen
+| งาน | จุด | เดิม | ใหม่ |
+|---|---|---|---|
+| Domestic | Pickup | 1 | **0** |
+| Domestic | Delivery #1 | 2 | **1** |
+| Domestic | Delivery #N | N+1 | **N** |
+| BL | Container Pickup | 1 | **0** |
+| BL | Delivery | 2 | **1** |
+| BL | Container Return | 3 | **2** |
+| Booking | Container Pickup | 1 | **0** |
+| Booking | Pickup (โรงงาน) | 2 | **1** |
+| Booking | Delivery | — | **ข้าม (ไม่ยิง)** |
+| Booking | Container Return | 3 | **2** |
 
-ไม่เกี่ยวกับ logic เช็คอิน / ไม่เกี่ยวกับ edge function — เป็น cache/versioning ล้วนๆ
+Booking จะยิง external ทั้งหมด 3 ครั้ง เท่ากับ BL (แม้ในแอปยังมีหน้า Delivery ตามเดิม แค่ไม่ส่ง waypoint ที่จุดนั้น)
 
-# แผนแก้ (ให้ recover อัตโนมัติ ไม่ต้องให้ user refresh เอง)
+## ไฟล์ที่แก้
 
-## 1. Global handler สำหรับ chunk-load error
-เพิ่มใน `src/main.tsx`:
-- ดัก `window.addEventListener('error', ...)` และ `'unhandledrejection'`
-- ถ้า message ตรง pattern `Failed to fetch dynamically imported module` หรือ `Loading chunk` / `error loading dynamically imported module`:
-  - ใช้ `sessionStorage` guard (`__chunk_reload_at`) กัน reload loop (ถ้า reload ไปแล้วใน 10 วิ ให้ข้าม)
-  - unregister service worker + `caches.delete(...)` ทั้งหมด (กัน sw.js เสิร์ฟไฟล์เก่า)
-  - `window.location.reload()` ครั้งเดียว
+1. **`supabase/functions/checkin-waypoint/index.ts`** (บรรทัด 50)
+   - `if (!room_code || !sequence_order)` → `if (!room_code || sequence_order == null || sequence_order < 0)` เพื่อรับ 0
 
-## 2. Retry wrapper สำหรับ `React.lazy`
-สร้าง `src/lib/lazyWithRetry.ts`:
-```ts
-export function lazyWithRetry<T>(factory: () => Promise<T>) {
-  return React.lazy(() =>
-    factory().catch((err) => {
-      if (/dynamically imported module|Loading chunk/i.test(String(err?.message))) {
-        // trigger global handler above
-        throw err;
-      }
-      throw err;
-    })
-  );
-}
-```
-ใช้แทน `React.lazy` ในจุดที่ import lazy pages (ดูใน `src/App.tsx`)
+2. **`src/pages/PickupDetailPage.tsx`** (บรรทัด 411–413)
+   - Domestic: `1 → 0`
+   - Booking: `2 → 1`
 
-## 3. Service worker
-ตรวจ `public/sw.js` / `vite-plugin-pwa` config ให้:
-- ใช้ `registerType: 'autoUpdate'` (มีอยู่แล้วจาก `registerSW` ใน main.tsx)
-- ไม่ precache HTML แบบ stale-while-revalidate ยาว → ให้ index.html เป็น network-first เพื่อให้ hash chunk ใหม่ถูกอ้างทันหลัง deploy
+3. **`src/pages/DeliveryDetailPage.tsx`** (บรรทัด 936–939)
+   - เพิ่ม guard: ถ้า `job.booking_no` → **ไม่เรียก** `notifyCheckinWaypoint` (skip Delivery สำหรับ Booking)
+   - International BL: `2 → 1`
+   - Domestic multi-dest: `destination.sequence_number ?? 1` (backend 1-based = waypoint index ตรงกันพอดี)
+   - Fallback: `2 → 1`
 
-## ไฟล์ที่จะแก้
-- `src/main.tsx` — เพิ่ม global error listener + cache/sw cleanup
-- `src/lib/lazyWithRetry.ts` — ใหม่
-- `src/App.tsx` — เปลี่ยน `lazy(...)` เป็น `lazyWithRetry(...)` ในทุก route
-- (ถ้าจำเป็น) `vite.config.ts` — ปรับ workbox `navigateFallback` / runtimeCaching ของ HTML เป็น NetworkFirst
+4. **`src/pages/ContainerCheckInPage.tsx`** (บรรทัด 596)
+   - `isContainerReturn ? 3 : 1` → `isContainerReturn ? 2 : 0`
 
-## ไม่แก้
-- SOPCheckInPage / DomesticJobDetail / edge functions — ไม่เกี่ยวกับ error นี้
+5. **`src/hooks/useProximityAlert.ts`** (บรรทัด 280)
+   - `booking_no ? 2 : 1` → `booking_no ? 1 : 0`
+
+## สรุปความเสี่ยง
+
+**สูง**
+- **External อาจไม่รองรับ seq=0** — ถ้า validate `>= 1` จะได้ error กลับมา pickup แรกทุกงาน mark ไม่สำเร็จ
+  - บรรเทา: ทดสอบ 1 งานหลัง deploy, ดู log proxy ทันที, rollback ได้ในไฟล์เดียว
+- **APK/build เก่าที่ user ติดตั้ง** ยังยิง 1-based ต่อไป external จะมี mixed data ระหว่างเวอร์ชัน
+  - บรรเทา: proxy รับทั้งสองแบบ, ยอมรับ transition period
+
+**กลาง**
+- **ห้องที่กำลังวิ่ง (in-flight rooms)** — ห้องที่เคยยิง pickup=1 ไปแล้ว หลัง deploy จะยิง delivery=1 ซ้ำเลขเดิม external อาจตอบ "already checked in" (409)
+  - บรรเทา: proxy ห่อ 200 envelope, UI ไม่ crash, แค่ noise ใน log
+- **Booking in-flight** — งาน Booking ที่เพิ่งเช็คอิน pickup โรงงาน (เดิม seq=2) หลัง deploy จะยิง return=2 ซ้ำเลข 2
+  - บรรเทา: เหมือนด้านบน — reject ซ้ำ, ไม่กระทบ UI
+- **Booking Delivery ที่ skip** — external จะไม่เห็น waypoint delivery ของ Booking อีกต่อไป ถ้า dashboard/report ฝั่ง external พึ่งข้อมูลนี้ อาจเห็นงาน "ข้าม" จุด
+  - บรรเทา: ตกลงกับทีม external ก่อน หรือยอมรับว่า Booking = 3 จุดเท่านั้นในระบบใหม่
+
+**ต่ำ**
+- **`destination.sequence_number` ไม่ตรง 1-based** — ถ้าบาง endpoint คืน null/0 จะยิงเลขผิด
+  - บรรเทา: มี fallback `?? 1`
+- **Proximity auto-checkin ยิง seq=0** — เดิมยิง 1 ก็มี noise อยู่แล้ว ไม่เพิ่มความเสี่ยงใหม่
+
+## ไม่ครอบคลุม (ตามคำสั่งผู้ใช้)
+- ไม่แก้จำนวนหน้า / flow ในแอป (Booking ยังผ่าน DeliveryDetailPage ตามเดิม)
+- ไม่แตะ status transitions, DB, RLS, migration
+- ไม่แก้ business logic
+
+## ยืนยันก่อนลงมือ
+รับความเสี่ยง 3 ข้อสูง/กลาง (external อาจ reject seq=0, in-flight rooms log ซ้ำ, Booking ไม่มี delivery ฝั่ง external) ได้ไหม?
