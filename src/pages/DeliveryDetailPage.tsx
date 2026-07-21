@@ -929,31 +929,37 @@ export default function DeliveryDetailPage() {
           });
           console.log('[DeliveryDetailPage] truck-arrival response:', arrivalResponse.data);
 
-          // Notify external waypoint tracker for delivery sequence
-          // - International BL: delivery = seq 2
-          // - Domestic multi-dest: use destination.sequence_number
-          // - Fallback: 2
-          const isInternational = !!(jobAny.bl_no || jobAny.transport_category === 'international');
-          const deliverySeq = isInternational
-            ? 2
-            : (destination?.sequence_number || (job as any).sequence_order || 2);
-          const wpList: Array<{ lat: number; lng: number }> = [];
-          const oLat = jobAny.sender_latitude ?? jobAny.origin_latitude;
-          const oLng = jobAny.sender_longitude ?? jobAny.origin_longitude;
-          if (oLat && oLng) wpList.push({ lat: oLat, lng: oLng });
-          if (Array.isArray(jobAny.destinations)) {
-            for (const d of jobAny.destinations) {
-              if (d?.latitude && d?.longitude) wpList.push({ lat: d.latitude, lng: d.longitude });
+          // Notify external waypoint tracker for delivery sequence (0-based)
+          // - Booking (outbound): SKIP — delivery ไม่ส่ง waypoint (external มี 3 จุด)
+          // - International BL: delivery = seq 1
+          // - Domestic multi-dest: destination.sequence_number (1-based) ตรงกับ waypoint index
+          // - Fallback: 1
+          const isBooking = !!jobAny.booking_no;
+          if (isBooking) {
+            console.log('[DeliveryDetailPage] Booking job — skip waypoint notify (external tracks 3 points only)');
+          } else {
+            const isInternational = !!(jobAny.bl_no || jobAny.transport_category === 'international');
+            const deliverySeq = isInternational
+              ? 1
+              : (destination?.sequence_number ?? (job as any).sequence_order ?? 1);
+            const wpList: Array<{ lat: number; lng: number }> = [];
+            const oLat = jobAny.sender_latitude ?? jobAny.origin_latitude;
+            const oLng = jobAny.sender_longitude ?? jobAny.origin_longitude;
+            if (oLat && oLng) wpList.push({ lat: oLat, lng: oLng });
+            if (Array.isArray(jobAny.destinations)) {
+              for (const d of jobAny.destinations) {
+                if (d?.latitude && d?.longitude) wpList.push({ lat: d.latitude, lng: d.longitude });
+              }
+            } else if (destination?.latitude && destination?.longitude) {
+              wpList.push({ lat: destination.latitude, lng: destination.longitude });
             }
-          } else if (destination?.latitude && destination?.longitude) {
-            wpList.push({ lat: destination.latitude, lng: destination.longitude });
+            notifyCheckinWaypoint({
+              room_code: roomCode,
+              sequence_order: deliverySeq,
+              order_number: job.order_code,
+              waypoints: wpList.length > 0 ? wpList : undefined,
+            });
           }
-          notifyCheckinWaypoint({
-            room_code: roomCode,
-            sequence_order: deliverySeq,
-            order_number: job.order_code,
-            waypoints: wpList.length > 0 ? wpList : undefined,
-          });
         } else {
           console.warn('[DeliveryDetailPage] No room_code available for order:', job.order_code);
         }

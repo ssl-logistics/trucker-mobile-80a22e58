@@ -261,8 +261,8 @@ export function useProximityAlert() {
             });
             console.log(`[AutoCheckin] Done for ${orderCode} at ${distToPickup.toFixed(2)} km`);
 
-            // Notify external waypoint tracker (fire-and-forget)
-            // Booking (outbound) pickup = seq 2, otherwise seq 1
+            // Notify external waypoint tracker (fire-and-forget, 0-based)
+            // Booking pickup โรงงาน = seq 1, otherwise seq 0
             try {
               const roomCode = await ensureRoomCode({
                 orderCode,
@@ -277,7 +277,7 @@ export function useProximityAlert() {
                 context: 'proximity-auto-pickup',
               });
               if (roomCode) {
-                const seq = job.booking_no ? 2 : 1;
+                const seq = job.booking_no ? 1 : 0;
                 notifyCheckinWaypoint({ room_code: roomCode, sequence_order: seq });
               }
             } catch (wpErr) {

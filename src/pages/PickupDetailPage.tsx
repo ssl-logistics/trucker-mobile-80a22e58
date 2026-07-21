@@ -405,12 +405,10 @@ export default function PickupDetailPage() {
               body: JSON.stringify({ room_code: roomCode, arrival_type: 'origin' }),
             }).catch(err => console.warn('truck-arrival error:', err));
 
-            // Notify external waypoint tracker
-            // - Booking (outbound): pickup is seq 2 (after container_pickup=1)
-            // - Domestic / BL delivery: seq from job or default 1
-            const pickupSeq = job.booking_no
-              ? 2
-              : ((job as any).sequence_order || 1);
+            // Notify external waypoint tracker (0-based)
+            // - Booking (outbound): pickup โรงงาน = seq 1 (after container_pickup=0)
+            // - Domestic / BL pickup: seq 0
+            const pickupSeq = job.booking_no ? 1 : 0;
             const jobAnyWp: any = job;
             const wpList: Array<{ lat: number; lng: number }> = [];
             if (jobAnyWp.origin_latitude && jobAnyWp.origin_longitude) {
