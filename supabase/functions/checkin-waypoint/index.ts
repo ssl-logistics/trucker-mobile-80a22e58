@@ -47,9 +47,9 @@ serve(async (req) => {
     const { room_code, sequence_order, order_number, waypoints } = body || ({} as Body);
     console.log('[checkin-waypoint proxy] forwarding:', { room_code, sequence_order, order_number, has_waypoints: !!waypoints?.length });
 
-    if (!room_code || !sequence_order) {
+    if (!room_code || sequence_order == null || sequence_order < 0) {
       return new Response(
-        JSON.stringify({ ok: false, code: 'bad_request', error: 'room_code and sequence_order are required' }),
+        JSON.stringify({ ok: false, code: 'bad_request', error: 'room_code and sequence_order (>=0) are required' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
