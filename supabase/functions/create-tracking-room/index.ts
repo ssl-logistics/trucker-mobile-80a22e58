@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { writeAuditLog } from "../_shared/auditLog.ts";
-import { upsertTrackingRoom } from "../_shared/trackingRoomStore.ts";
+import { upsertTrackingRoom, getTrackingRoomByOrder } from "../_shared/trackingRoomStore.ts";
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,8 +76,48 @@ serve(async (req) => {
       );
     }
 
+    // Idempotency guard: if we already have an active room for this order, return it
+    // instead of hitting the external API (prevents duplicate room creation).
+    try {
+      const existing = await getTrackingRoomByOrder(body.order_code);
+      if (existing?.room_code) {
+        console.log('[create-tracking-room] existing room found, skipping create:', existing.room_code);
+        await writeAuditLog({
+          function_name: 'create-tracking-room',
+          driver_id: body.driver_id,
+          order_number: body.order_code,
+          room_code: existing.room_code,
+          request_payload: body,
+          success: true,
+          error_message: 'Existing room reused (idempotent tier1)',
+          response_status: 200,
+          duration_ms: Date.now() - startedAt,
+        });
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Tracking room already exists',
+            room: {
+              room_code: existing.room_code,
+              truck_plate: existing.truck_plate ?? body.truck_plate,
+              order_code: body.order_code,
+              origin_lat: existing.origin_lat ?? body.origin_lat,
+              origin_lng: existing.origin_lng ?? body.origin_lng,
+              destination_lat: existing.destination_lat ?? body.destination_lat,
+              destination_lng: existing.destination_lng ?? body.destination_lng,
+              status: existing.status ?? 'active',
+            },
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } catch (e) {
+      console.warn('[create-tracking-room] tier1 lookup failed, proceeding to create:', e instanceof Error ? e.message : String(e));
+    }
+
     const externalApiUrl = 'https://wqtrceqyeshyeozladzi.supabase.co/functions/v1/create-tracking-room';
     console.log('Calling external tracking API:', externalApiUrl);
+
 
     const externalPayload = {
       truck_plate: body.truck_plate,
