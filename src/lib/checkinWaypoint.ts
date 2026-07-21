@@ -16,7 +16,7 @@ export interface CheckinWaypointPayload {
 }
 
 export function notifyCheckinWaypoint(payload: CheckinWaypointPayload): void {
-  if (!payload.room_code || !payload.sequence_order) {
+  if (!payload.room_code || payload.sequence_order == null || payload.sequence_order < 0) {
     console.warn('[checkin-waypoint] Skipped, missing data:', payload);
     return;
   }
