@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 const EXTERNAL_API_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
-const EXTERNAL_API_KEY = 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live';
+const EXTERNAL_API_KEY = Deno.env.get('EXTERNAL_API_KEY') ?? '';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
