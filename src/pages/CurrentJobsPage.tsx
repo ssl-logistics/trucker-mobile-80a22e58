@@ -1091,7 +1091,7 @@ export default function CurrentJobsPage() {
       <PullToRefresh onRefresh={async () => { await loadAcceptedJobs(); }}>
 
       {/* Search and Filter Bar */}
-      <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm sticky top-0 z-40">
+      <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm app-sticky-subheader">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
