@@ -1286,7 +1286,7 @@ const isValidName = (val: any): string => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
       {/* Header + Search wrapped together with rounded corners at bottom */}
-      <div className="rounded-b-3xl shadow-lg overflow-hidden lg:rounded-none lg:shadow-none">
+      <div className="app-sticky-wrapper rounded-b-3xl shadow-lg lg:rounded-none lg:shadow-none">
         <AppHeader 
           userName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.full_name || user?.name || user?.username} 
           profilePhoto={user?.profile_photo_url || user?.avatar_url || vehiclePhoto || undefined} 
@@ -1295,7 +1295,8 @@ const isValidName = (val: any): string => {
         />
 
         {/* Search Bar - inside the rounded container */}
-        <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-[#d6e4f5] lg:px-6 xl:px-8">
+        <div className="px-4 py-3 bg-gradient-to-b from-[#E1EBF7] to-[#d6e4f5] lg:px-6 xl:px-8 rounded-b-3xl lg:rounded-none">
+
           <div className="flex items-center gap-2 max-w-2xl mx-auto lg:max-w-3xl xl:max-w-4xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
