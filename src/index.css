@@ -282,6 +282,28 @@ body::after {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+/* Wrapper that makes an inner AppHeader (plus attached bars) stick as one block.
+   No safe-area padding here - AppHeader adds it internally. Must NOT clip overflow. */
+.app-sticky-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  overflow: visible;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overscroll-behavior: none;
+}
+
+/* A sticky header must never be clipped by its parent, otherwise it scrolls away */
+.app-sticky-wrapper > .app-header-fixed,
+.app-sticky-wrapper > .app-sticky-header {
+  position: static;
+}
+
+
+
 
 /* Secondary bar that sticks directly beneath the page header */
 .app-sticky-subheader {
