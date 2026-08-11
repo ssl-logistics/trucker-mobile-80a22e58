@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -89,6 +89,51 @@ function VersionBadge() {
   );
 
   return createPortal(badge, document.body);
+}
+
+/**
+ * iOS/WKWebView can still rubber-band an overflow container despite
+ * overscroll-behavior: none. Cancel only a downward pull at the very top;
+ * regular vertical scrolling and horizontal swipe-back gestures stay intact.
+ */
+function PullDownGuard() {
+  useEffect(() => {
+    const scrollRoot = document.getElementById("root");
+    if (!scrollRoot) return;
+
+    let startX = 0;
+    let startY = 0;
+
+    const handleTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      startX = touch.clientX;
+      startY = touch.clientY;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch || scrollRoot.scrollTop > 0) return;
+
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+      const isDownwardPull = deltaY > 4 && deltaY > Math.abs(deltaX);
+
+      if (isDownwardPull && event.cancelable) {
+        event.preventDefault();
+      }
+    };
+
+    scrollRoot.addEventListener("touchstart", handleTouchStart, { passive: true });
+    scrollRoot.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+    return () => {
+      scrollRoot.removeEventListener("touchstart", handleTouchStart);
+      scrollRoot.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, []);
+
+  return null;
 }
 
 const jobChildSegments = new Set([
@@ -247,6 +292,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <HashRouter>
+            <PullDownGuard />
             <SwipeBackProvider>
               <CallProvider>
                 <DeepLinkListener />
