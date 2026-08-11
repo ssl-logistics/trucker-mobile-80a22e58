@@ -153,9 +153,12 @@ All colors MUST be HSL.
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    /* `touch` keeps an independent rubber-band layer alive in iOS/WKWebView,
+       which can drag sticky headers down even when overscroll is disabled. */
+    -webkit-overflow-scrolling: auto;
     overscroll-behavior: none;
     overscroll-behavior-y: none;
+    touch-action: pan-y;
     /* Keep page content scrollable above the fixed BottomNavigation */
     padding-bottom: var(--bottom-nav-height, 0px);
   }
