@@ -281,7 +281,7 @@ export default function ShippingPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-10 shadow-md">
+      <header className="app-sticky-header bg-header text-header-foreground px-4 py-4 shadow-md">
         <div className="flex items-center justify-center relative">
           <button onClick={() => navigate('/dashboard')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full transition-colors">
             <ChevronLeft className="w-6 h-6" />

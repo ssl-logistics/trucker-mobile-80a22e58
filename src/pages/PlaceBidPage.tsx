@@ -183,7 +183,7 @@ export default function PlaceBidPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background border-b page-header-safe">
+      <header className="app-sticky-header bg-background border-b">
         <div className="flex items-center gap-4 px-4 py-3">
           <button onClick={() => navigate(-1)}>
             <ChevronLeft className="w-6 h-6" />

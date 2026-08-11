@@ -519,7 +519,7 @@ const AddExpensePage = () => {
   return (
     <div className="min-h-screen bg-muted pb-20">
       {/* Header */}
-      <header className="bg-background border-b sticky top-0 z-10">
+      <header className="app-sticky-header bg-background border-b">
         <div className="px-4 py-4 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}

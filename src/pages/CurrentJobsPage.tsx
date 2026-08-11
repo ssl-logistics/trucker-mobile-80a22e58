@@ -1079,7 +1079,7 @@ export default function CurrentJobsPage() {
     </div>;
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
-      <header className="bg-header text-header-foreground sticky top-0 z-50 rounded-b-xl page-header-safe">
+      <header className="app-sticky-header bg-header text-header-foreground rounded-b-xl">
         <div className="flex items-center justify-center px-4 py-3 relative">
           <button onClick={() => navigate('/home')} className="absolute left-0 p-1">
             <ChevronLeft className="w-6 h-6" />
@@ -1091,7 +1091,7 @@ export default function CurrentJobsPage() {
       <PullToRefresh onRefresh={async () => { await loadAcceptedJobs(); }}>
 
       {/* Search and Filter Bar */}
-      <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm sticky top-0 z-40">
+      <div className="bg-[#FAFAFF] px-4 py-3 shadow-sm app-sticky-subheader">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
