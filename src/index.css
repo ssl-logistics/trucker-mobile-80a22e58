@@ -263,17 +263,32 @@ body::after {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Sticky header for app - prevents movement during scroll */
+/* Unified sticky header for every page - identical position & stacking */
+.app-sticky-header,
 .app-header-fixed {
   position: sticky;
   top: 0;
   z-index: 100;
+  padding-top: env(safe-area-inset-top, 0px);
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  overscroll-behavior: none;
   contain: layout style paint;
 }
+
+/* Secondary bar that sticks directly beneath the page header */
+.app-sticky-subheader {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 
 /* Responsive card grid layout */
 .card-grid-responsive {
