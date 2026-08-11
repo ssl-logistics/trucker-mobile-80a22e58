@@ -269,7 +269,6 @@ body::after {
   position: sticky;
   top: 0;
   z-index: 100;
-  padding-top: env(safe-area-inset-top, 0px);
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
@@ -277,6 +276,12 @@ body::after {
   overscroll-behavior: none;
   contain: layout style paint;
 }
+
+/* AppHeader applies the notch padding on its inner wrapper already */
+.app-sticky-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 
 /* Secondary bar that sticks directly beneath the page header */
 .app-sticky-subheader {
