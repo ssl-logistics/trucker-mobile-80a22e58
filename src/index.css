@@ -155,7 +155,7 @@ All colors MUST be HSL.
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: none;
     /* Keep page content scrollable above the fixed BottomNavigation */
     padding-bottom: var(--bottom-nav-height, 0px);
   }
