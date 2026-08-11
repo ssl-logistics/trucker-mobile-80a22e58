@@ -1079,7 +1079,7 @@ export default function CurrentJobsPage() {
     </div>;
   return <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
-      <header className="bg-header text-header-foreground sticky top-0 z-50 rounded-b-xl page-header-safe">
+      <header className="app-sticky-header bg-header text-header-foreground rounded-b-xl">
         <div className="flex items-center justify-center px-4 py-3 relative">
           <button onClick={() => navigate('/home')} className="absolute left-0 p-1">
             <ChevronLeft className="w-6 h-6" />

@@ -1278,7 +1278,7 @@ export default function DomesticJobDetail({
 
   return <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="text-white px-4 py-3 sticky top-0 z-50 bg-[#dbedff]">
+      <header className="app-sticky-header text-white px-4 py-3 bg-[#dbedff]">
         <div className="flex items-center gap-3">
           <button onClick={() => {
           navigate(isFromHistory ? '/job-history' : '/current-jobs');

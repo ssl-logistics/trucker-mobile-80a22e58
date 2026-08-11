@@ -750,7 +750,7 @@ export default function JobHistoryPage() {
 
   return <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <header className="bg-[#DDEDFF] rounded-b-xl sticky top-0 z-10 page-header-safe">
+      <header className="app-sticky-header bg-[#DDEDFF] rounded-b-xl">
         <div className="px-4 py-3 flex items-center justify-center relative">
           <button onClick={() => navigate("/home")} className="absolute left-4 p-2 hover:bg-gray-100 rounded-full transition-colors">
             <ChevronLeft className="w-5 h-5" />

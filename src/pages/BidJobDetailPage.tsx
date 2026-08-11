@@ -272,7 +272,7 @@ export default function BidJobDetailPage() {
   if (!job || !user) {
     return (
       <div className="min-h-screen bg-background">
-        <header className="bg-header text-header-foreground rounded-b-xl shadow-lg page-header-safe">
+        <header className="app-sticky-header bg-header text-header-foreground rounded-b-xl shadow-lg">
           <div className="flex items-center justify-center px-4 py-3 relative">
             <button
               onClick={() => navigate(-1)}

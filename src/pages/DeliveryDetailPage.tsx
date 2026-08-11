@@ -1086,7 +1086,7 @@ export default function DeliveryDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-20">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
+      <header className="app-sticky-header bg-header text-header-foreground px-4 py-4">
         <div className="flex items-center justify-between">
           <button onClick={() => {
             const fromParam = new URLSearchParams(location.search).get('from');

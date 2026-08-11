@@ -649,7 +649,7 @@ export default function ContainerCheckInPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
       {/* Header */}
-      <header className="bg-header text-header-foreground px-4 py-4 sticky top-0 z-50">
+      <header className="app-sticky-header bg-header text-header-foreground px-4 py-4">
         <div className="flex items-center justify-center relative">
           <button onClick={() => {
             const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;

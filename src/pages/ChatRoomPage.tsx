@@ -543,7 +543,7 @@ export default function ChatRoomPage() {
   }
   return <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#153860] text-white shadow-md page-header-safe">
+      <div className="app-sticky-header bg-[#153860] text-white shadow-md">
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-3 flex-1">
             <button onClick={() => navigate('/chat')} className="p-1">
