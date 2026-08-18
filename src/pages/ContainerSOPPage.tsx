@@ -1945,6 +1945,7 @@ const ContainerSOPPage = () => {
                               bl_no: prev?.bl_no ?? null,
                               booking_no: prev?.booking_no ?? null,
                               container_number: prev?.container_number ?? null,
+                              seal_number: prev?.seal_number ?? null,
                               [row.field]: v,
                             }));
                           }}
@@ -1977,6 +1978,7 @@ const ContainerSOPPage = () => {
                               bl_no: prev?.bl_no ?? null,
                               booking_no: prev?.booking_no ?? null,
                               container_number: prev?.container_number ?? null,
+                              seal_number: prev?.seal_number ?? null,
                               [row.field]: v,
                             }));
                           }}
@@ -2033,6 +2035,7 @@ const ContainerSOPPage = () => {
                                   bl_no: prev?.bl_no ?? null,
                                   booking_no: prev?.booking_no ?? null,
                                   container_number: prev?.container_number ?? null,
+                                  seal_number: prev?.seal_number ?? null,
                                   [row.field]: v,
                                 }));
                               }}
