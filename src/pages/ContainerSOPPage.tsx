@@ -343,11 +343,12 @@ const ContainerSOPPage = () => {
     }
   };
 
-  const runEirBlOcr = async (file: File): Promise<{ refStatus: EirMatchStatus; containerStatus: EirMatchStatus; result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null } } | null> => {
+  const runEirBlOcr = async (file: File): Promise<{ refStatus: EirMatchStatus; containerStatus: EirMatchStatus; sealStatus: EirMatchStatus; result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null; seal_number?: string | null } } | null> => {
     setIsProcessingEirBlOcr(true);
     setEirBlOcrResult(null);
     setEirBlMatchStatus(null);
     setEirContainerMatchStatus(null);
+    setEirSealMatchStatus(null);
     try {
       toast({ title: 'กำลังตรวจสอบ EIR...', description: 'รอสักครู่...' });
       const result = await extractFromImage(file, 'eir_document');
@@ -355,16 +356,18 @@ const ContainerSOPPage = () => {
         const bl = result.data.bl_no || null;
         const bk = result.data.booking_no || null;
         const cn = extractContainerNumberFromOcrData(result.data);
-        const ocrResult = { bl_no: bl, booking_no: bk, container_number: cn };
-        const { refStatus, containerStatus } = evaluateEirMatches(ocrResult);
+        const sn = (result.data as any)?.seal_number || null;
+        const ocrResult = { bl_no: bl, booking_no: bk, container_number: cn, seal_number: sn };
+        const { refStatus, containerStatus, sealStatus } = evaluateEirMatches(ocrResult);
 
         setEirBlOcrResult(ocrResult);
         setEirBlMatchStatus(refStatus);
         setEirContainerMatchStatus(containerStatus);
+        setEirSealMatchStatus(sealStatus);
 
 
-        if (refStatus === 'match' && containerStatus === 'match') {
-          toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking และเลขตู้ตรงกับงาน' });
+        if (refStatus === 'match' && containerStatus === 'match' && sealStatus === 'match') {
+          toast({ title: 'ตรงกันทั้งหมด ✓', description: 'เลข BL/Booking เลขตู้ และเลขซีลตรงกับงาน' });
         } else if (refStatus === 'mismatch') {
           toast({ title: 'เลข BL/Booking ใน EIR ไม่ตรงกับงาน ❌', description: 'ไม่สามารถยืนยันได้ กรุณาตรวจสอบว่าถ่าย EIR ถูกงานหรือไม่', variant: 'destructive' });
         } else if (containerStatus === 'mismatch') {
@@ -377,11 +380,26 @@ const ContainerSOPPage = () => {
           toast({ title: 'อ่าน EIR สำเร็จบางส่วน', description: 'กรุณาตรวจสอบด้วยตนเอง' });
         }
 
-        return { refStatus, containerStatus, result: ocrResult };
+        // Seal warnings (non-blocking)
+        if (sealStatus === 'mismatch') {
+          toast({
+            title: 'เลขซีลใน EIR ไม่ตรงกับที่ถ่าย ⚠️',
+            description: `ซีลที่ถ่าย/ในงาน: ${getExpectedSealForEir() || '-'} | ใน EIR: ${sn || '-'} — ยืนยันต่อได้ แต่โปรดตรวจสอบ`,
+            variant: 'destructive',
+          });
+        } else if (sealStatus === 'not_found' && getExpectedSealForEir()) {
+          toast({
+            title: 'ไม่พบเลขซีลใน EIR ⚠️',
+            description: 'แนะนำให้ถ่าย EIR ใหม่ให้เห็นเลขซีลชัดเจน หรือกรอกเลขซีลเอง',
+          });
+        }
+
+        return { refStatus, containerStatus, sealStatus, result: ocrResult };
 
       } else {
         setEirBlMatchStatus('not_found');
         setEirContainerMatchStatus('not_found');
+        setEirSealMatchStatus('not_found');
         toast({ title: 'อ่าน EIR ไม่สำเร็จ', description: 'กรุณาถ่าย EIR ใหม่ ระบบต้องอ่านเลขตู้จาก EIR ก่อนยืนยัน', variant: 'destructive' });
         return null;
       }
@@ -389,6 +407,7 @@ const ContainerSOPPage = () => {
       console.error('EIR BL/Booking OCR error:', error);
       setEirBlMatchStatus('not_found');
       setEirContainerMatchStatus('not_found');
+      setEirSealMatchStatus('not_found');
       return null;
     } finally {
       setIsProcessingEirBlOcr(false);
@@ -405,10 +424,11 @@ const ContainerSOPPage = () => {
 
   useEffect(() => {
     if (!eirBlOcrResult) return;
-    const { refStatus, containerStatus } = evaluateEirMatches(eirBlOcrResult);
+    const { refStatus, containerStatus, sealStatus } = evaluateEirMatches(eirBlOcrResult);
     setEirBlMatchStatus(refStatus);
     setEirContainerMatchStatus(containerStatus);
-  }, [eirBlOcrResult, ocrContainerNumber, isContainerOcrDone, containerNumber, jobDetail?.bl_no, jobDetail?.booking_no, jobDetail?.container_number]);
+    setEirSealMatchStatus(sealStatus);
+  }, [eirBlOcrResult, ocrContainerNumber, isContainerOcrDone, containerNumber, ocrSealNumber, isSealOcrDone, sealNumber, jobDetail?.bl_no, jobDetail?.booking_no, jobDetail?.container_number, jobDetail?.seal_number]);
 
   const loadJobDetail = async () => {
     try {
