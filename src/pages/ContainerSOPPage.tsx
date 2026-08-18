@@ -285,9 +285,9 @@ const ContainerSOPPage = () => {
   };
 
   const evaluateEirMatches = (
-    result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null } | null,
+    result: { bl_no?: string | null; booking_no?: string | null; container_number?: string | null; seal_number?: string | null } | null,
     expectedContainerOverride?: string | null,
-  ): { refStatus: EirMatchStatus; containerStatus: EirMatchStatus } => {
+  ): { refStatus: EirMatchStatus; containerStatus: EirMatchStatus; sealStatus: EirMatchStatus } => {
     const jobBl = normalizeRef(jobDetail?.bl_no);
     const jobBk = normalizeRef(jobDetail?.booking_no);
     const ocrBl = normalizeRef(result?.bl_no);
@@ -304,11 +304,19 @@ const ContainerSOPPage = () => {
       }
     }
 
+    // Seal comparison (warning only — never blocks confirmation)
+    const expectedSeal = getExpectedSealForEir();
+    const ocrSeal = normalizeRef(result?.seal_number);
+    let sealStatus: EirMatchStatus = !expectedSeal ? 'match' : 'not_found';
+    if (expectedSeal && ocrSeal) {
+      sealStatus = ocrSeal === expectedSeal ? 'match' : 'mismatch';
+    }
+
     const expectedContainer = getExpectedContainerForEir(expectedContainerOverride);
     const ocrCn = normalizeRef(result?.container_number);
 
     if (needsOCR && !isContainerOcrDone) {
-      return { refStatus, containerStatus: 'not_found' };
+      return { refStatus, containerStatus: 'not_found', sealStatus };
     }
 
     // If the job has no assigned/confirmed container number, skip container comparison (treat as match)
@@ -317,7 +325,7 @@ const ContainerSOPPage = () => {
       containerStatus = ocrCn === expectedContainer ? 'match' : 'mismatch';
     }
 
-    return { refStatus, containerStatus };
+    return { refStatus, containerStatus, sealStatus };
   };
 
   const getEirFileForOcr = async (): Promise<File | null> => {
