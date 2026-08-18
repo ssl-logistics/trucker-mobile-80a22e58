@@ -696,11 +696,11 @@ const ContainerSOPPage = () => {
       return;
     }
 
-    // Block EIR upload on container return until required expenses are filled
-    if (slot === 'eir' && isContainerReturn && (isBLJob || isBookingJob)) {
-      const missing = await checkMissingExpensesForReturn();
-      if (missing) return;
-    }
+    // Mandatory expense check temporarily disabled for BL/Booking container returns
+    // if (slot === 'eir' && isContainerReturn && (isBLJob || isBookingJob)) {
+    //   const missing = await checkMissingExpensesForReturn();
+    //   if (missing) return;
+    // }
 
     setActivePhotoSlot(slot);
     setActiveEirIndex(eirIndex);
@@ -1041,11 +1041,11 @@ const ContainerSOPPage = () => {
       }
     }
 
-    // BL container return: check mandatory expenses
-    if (isBLJob && isContainerReturn && user) {
-      const missing = await checkMissingExpensesForReturn();
-      if (missing) return;
-    }
+    // Mandatory expense check temporarily disabled for BL/Booking container returns
+    // if (isBLJob && isContainerReturn && user) {
+    //   const missing = await checkMissingExpensesForReturn();
+    //   if (missing) return;
+    // }
 
 
     setShowConfirmDialog(true);
