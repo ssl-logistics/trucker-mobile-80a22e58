@@ -1041,11 +1041,11 @@ const ContainerSOPPage = () => {
       }
     }
 
-    // BL container return: check mandatory expenses
-    if (isBLJob && isContainerReturn && user) {
-      const missing = await checkMissingExpensesForReturn();
-      if (missing) return;
-    }
+    // Mandatory expense check temporarily disabled for BL/Booking container returns
+    // if (isBLJob && isContainerReturn && user) {
+    //   const missing = await checkMissingExpensesForReturn();
+    //   if (missing) return;
+    // }
 
 
     setShowConfirmDialog(true);
