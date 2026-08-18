@@ -1591,7 +1591,7 @@ const ContainerSOPPage = () => {
 
   const currentEirCheck = eirBlOcrResult
     ? evaluateEirMatches(eirBlOcrResult)
-    : { refStatus: eirBlMatchStatus, containerStatus: eirContainerMatchStatus };
+    : { refStatus: eirBlMatchStatus, containerStatus: eirContainerMatchStatus, sealStatus: eirSealMatchStatus };
   const isEirBlockingConfirm = eirPhotoFiles.length > 0 && (
     isProcessingEirBlOcr ||
     currentEirCheck.refStatus === 'mismatch' ||
