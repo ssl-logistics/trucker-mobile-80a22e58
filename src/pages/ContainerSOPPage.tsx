@@ -221,6 +221,12 @@ const ContainerSOPPage = () => {
   const getExpectedContainerForEir = (override?: string | null) =>
     normalizeRef(override) || (needsOCR && isContainerOcrDone ? normalizeRef(ocrContainerNumber) : '') || getAssignedContainerForEir();
 
+  // Seal number expected on the EIR: prefer the confirmed seal-photo OCR, then manual/job value
+  const getExpectedSealForEir = () =>
+    (isSealOcrDone ? normalizeRef(ocrSealNumber) : '') ||
+    normalizeRef(sealNumber) ||
+    normalizeRef(jobDetail?.seal_number);
+
   const showEirBlockingToast = (
     refStatus: EirMatchStatus | null,
     containerStatus: EirMatchStatus | null,
