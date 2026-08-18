@@ -2087,6 +2087,7 @@ const ContainerSOPPage = () => {
                           bl_no: prev?.bl_no ?? null,
                           booking_no: prev?.booking_no ?? null,
                           container_number: v,
+                          seal_number: prev?.seal_number ?? null,
                         }));
                       }}
                       className="h-7 text-xs bg-white flex-1"
