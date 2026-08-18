@@ -2127,6 +2127,56 @@ const ContainerSOPPage = () => {
                 </Card>
               )}
 
+              {/* Seal number comparison (warning only, never blocks confirm) */}
+              {!isProcessingEirBlOcr && eirSealMatchStatus === 'match' && Boolean(getExpectedSealForEir()) && (
+                <Card className="p-3 bg-green-50 border-green-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="font-semibold text-green-700 text-sm">เลขซีลตรงกัน</span>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">OCR</span>
+                  </div>
+                  <div className="text-xs text-green-800 space-y-0.5">
+                    <p>ซีลจากรูป/ในงาน: <span className="font-semibold">{(isSealOcrDone ? ocrSealNumber : null) || sealNumber || jobDetail?.seal_number || '-'}</span></p>
+                    <p>ซีลใน EIR: <span className="font-semibold">{eirBlOcrResult?.seal_number || '-'}</span></p>
+                  </div>
+                </Card>
+              )}
+              {!isProcessingEirBlOcr && (eirSealMatchStatus === 'mismatch' || (eirSealMatchStatus === 'not_found' && Boolean(getExpectedSealForEir()))) && (
+                <Card className="p-3 bg-amber-50 border-amber-400 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Scan className="w-4 h-4 text-amber-600" />
+                    <span className="font-semibold text-amber-800 text-sm">
+                      {eirSealMatchStatus === 'mismatch'
+                        ? 'เลขซีลใน EIR ไม่ตรงกับที่ถ่าย — โปรดตรวจสอบ'
+                        : 'ไม่พบเลขซีลใน EIR — แนะนำให้ถ่ายใหม่ให้เห็นเลขซีลชัดเจน'}
+                    </span>
+                  </div>
+                  <div className="text-xs text-amber-900 space-y-1">
+                    <p>ซีลจากรูป/ในงาน: <span className="font-semibold">{(isSealOcrDone ? ocrSealNumber : null) || sealNumber || jobDetail?.seal_number || '-'}</span></p>
+                    <div className="flex items-center gap-2">
+                      <label className="whitespace-nowrap">ซีลใน EIR:</label>
+                      <Input
+                        value={eirBlOcrResult?.seal_number || ''}
+                        placeholder="กรอกเลขซีลเอง"
+                        onChange={(e) => {
+                          const v = e.target.value.toUpperCase();
+                          setEirBlOcrResult((prev) => ({
+                            bl_no: prev?.bl_no ?? null,
+                            booking_no: prev?.booking_no ?? null,
+                            container_number: prev?.container_number ?? null,
+                            seal_number: v,
+                          }));
+                        }}
+                        className="h-7 text-xs bg-white flex-1"
+                      />
+                    </div>
+                    <p className="text-[11px] text-amber-800">* เป็นการเตือนเท่านั้น ยังกดยืนยันงานต่อได้</p>
+                  </div>
+                </Card>
+              )}
+
+
+
             </>
           )}
 
