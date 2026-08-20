@@ -119,8 +119,6 @@ const SignIn = () => {
   const loginSchema = z.object({
     email: z.string().min(1, {
       message: t('validation.usernameRequired')
-    }).regex(/^[^\u0E00-\u0E7F]*$/, {
-      message: t('validation.usernameNoThai')
     }),
     password: z.string().min(8, {
       message: t('validation.passwordMin')
@@ -357,30 +355,7 @@ const SignIn = () => {
             <Label htmlFor="email" className="text-foreground">
               {t('signIn.username')} <span className="text-destructive">*</span>
             </Label>
-            {(() => {
-              const emailField = register("email");
-              return (
-                <Input
-                  id="email"
-                  type="text"
-                  lang="en"
-                  inputMode="email"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  placeholder={t('signIn.usernamePlaceholder')}
-                  {...emailField}
-                  onChange={(e) => {
-                    const stripped = e.target.value.replace(/[\u0E00-\u0E7F]/g, '');
-                    if (stripped !== e.target.value) {
-                      e.target.value = stripped;
-                    }
-                    emailField.onChange(e);
-                  }}
-                  className={errors.email ? "border-destructive" : ""}
-                />
-              );
-            })()}
+            <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder')} {...register("email")} className={errors.email ? "border-destructive" : ""} />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
 

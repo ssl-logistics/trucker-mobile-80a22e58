@@ -834,7 +834,6 @@ const thTranslations: Record<string, string> = {
   
   // General Validation Messages
   'validation.usernameRequired': 'กรุณากรอกชื่อผู้ใช้',
-  'validation.usernameNoThai': 'ชื่อผู้ใช้กรอกภาษาไทยไม่ได้',
   'validation.emailFormat': 'รูปแบบอีเมลไม่ถูกต้อง',
   'validation.passwordMin': 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
   'validation.passwordUpperCase': 'ต้องมีตัวอักษรพิมพ์ใหญ่',
@@ -2471,7 +2470,6 @@ const enTranslations: Record<string, string> = {
   
   // General Validation Messages
   'validation.usernameRequired': 'Please enter username',
-  'validation.usernameNoThai': 'Username cannot contain Thai characters',
   'validation.emailFormat': 'Invalid email format',
   'validation.passwordMin': 'Password must be at least 8 characters',
   'validation.passwordUpperCase': 'Must contain an uppercase letter',
@@ -4795,7 +4793,6 @@ const koTranslations: Record<string, string> = {
   
   // General Validation Messages
   'validation.usernameRequired': '사용자 이름을 입력하세요',
-  'validation.usernameNoThai': '사용자 이름에 태국어를 사용할 수 없습니다',
   'validation.emailFormat': '올바른 이메일 형식이 아닙니다',
   'validation.passwordMin': '비밀번호는 최소 8자 이상이어야 합니다',
   'validation.passwordUpperCase': '대문자를 포함해야 합니다',
@@ -5352,7 +5349,6 @@ const zhTranslations: Record<string, string> = {
   'validation.passwordNumber': '必须包含数字',
   'validation.passwordMismatch': '密码不一致',
   'validation.usernameRequired': '请输入用户名',
-  'validation.usernameNoThai': '用户名不能包含泰文',
   
   // Vehicle Validation
   'validation.plateNumberRequired': '请输入车牌号码',
