@@ -119,6 +119,8 @@ const SignIn = () => {
   const loginSchema = z.object({
     email: z.string().min(1, {
       message: t('validation.usernameRequired')
+    }).regex(/^[^\u0E00-\u0E7F]*$/, {
+      message: t('validation.usernameNoThai')
     }),
     password: z.string().min(8, {
       message: t('validation.passwordMin')
