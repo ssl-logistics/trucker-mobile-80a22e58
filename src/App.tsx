@@ -57,7 +57,6 @@ function lazyWithPreload<T extends React.ComponentType<any>>(factory: () => Prom
   return Component;
 }
 
-
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -84,7 +83,7 @@ function VersionBadge() {
         zIndex: 2147483647,
       }}
     >
-      v2.6
+      v2.7
     </div>
   );
 
