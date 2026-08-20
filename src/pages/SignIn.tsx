@@ -357,7 +357,30 @@ const SignIn = () => {
             <Label htmlFor="email" className="text-foreground">
               {t('signIn.username')} <span className="text-destructive">*</span>
             </Label>
-            <Input id="email" type="text" placeholder={t('signIn.usernamePlaceholder')} {...register("email")} className={errors.email ? "border-destructive" : ""} />
+            {(() => {
+              const emailField = register("email");
+              return (
+                <Input
+                  id="email"
+                  type="text"
+                  lang="en"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder={t('signIn.usernamePlaceholder')}
+                  {...emailField}
+                  onChange={(e) => {
+                    const stripped = e.target.value.replace(/[\u0E00-\u0E7F]/g, '');
+                    if (stripped !== e.target.value) {
+                      e.target.value = stripped;
+                    }
+                    emailField.onChange(e);
+                  }}
+                  className={errors.email ? "border-destructive" : ""}
+                />
+              );
+            })()}
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
 
