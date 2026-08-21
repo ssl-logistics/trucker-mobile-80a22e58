@@ -123,7 +123,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
   // Multiple locations: has destinations array with items
   const isMultipleLocations = Array.isArray(job.destinations) && job.destinations.length > 0;
   // Single trip: has destination_location string (no destinations array)
-  const isSingleTrip = !isMultipleLocations && !!job.destination_location;
+  const isSingleTrip = !isMultipleLocations && !!job.destination_location && job.destination_location !== '-';
   const isDomestic = !isInternational;
   const isInbound = job.transport_type?.includes('ขาเข้า');
   const isOutbound = job.transport_type?.includes('ขาออก');
