@@ -37,6 +37,7 @@ import { HomeTour } from '@/components/onboarding/HomeTour';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
+import { resolveJobLocations } from '@/lib/jobLocation';
 import { 
   getDriverAssignedJobs, 
   getFactoryAssignedJobs, 
