@@ -166,33 +166,21 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
         <div className="flex items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 space-y-2 sm:space-y-3">
-            {/* Origins - show multiple if available */}
-            {Array.isArray(job.origins) && job.origins.length > 0 ? (
-              job.origins.map((origin, idx) => (
-                <div key={`origin-${idx}`} className="flex items-start gap-2 sm:gap-3">
-                  <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
-                  <div className="text-sm sm:text-base">
-                    <div className="text-muted-foreground">{t('job.origin')} {job.origins.length > 1 ? `#${idx + 1}` : ''}</div>
-                    <div className="font-medium">{(() => { const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver']; const name = origin.company_name && !generic.includes(origin.company_name.trim()) ? origin.company_name : null; return name || (job.employer_name && !generic.includes(job.employer_name.trim()) ? job.employer_name : null) || origin.province || origin.address || origin.location; })()}</div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex items-start gap-2 sm:gap-3">
-                <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
-                <div className="text-sm sm:text-base">
-                  <div className="text-muted-foreground">{t('job.origin')}</div>
-                  {job.origin_location.includes('\n') ? (
-                    <>
-                      <div className="font-medium">{job.origin_location.split('\n')[0]}</div>
-                      <div className="text-xs text-muted-foreground">{job.origin_location.split('\n')[1]}</div>
-                    </>
-                  ) : (
-                    <div className="font-medium">{job.origin_location}</div>
-                  )}
-                </div>
+            {/* Origin - single source of truth (same value as Current Jobs page) */}
+            <div className="flex items-start gap-2 sm:gap-3">
+              <CircleDot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
+              <div className="text-sm sm:text-base">
+                <div className="text-muted-foreground">{t('job.origin')}</div>
+                {(job.origin_location || '').includes('\n') ? (
+                  <>
+                    <div className="font-medium">{job.origin_location.split('\n')[0]}</div>
+                    <div className="text-xs text-muted-foreground">{job.origin_location.split('\n')[1]}</div>
+                  </>
+                ) : (
+                  <div className="font-medium">{job.origin_location || '-'}</div>
+                )}
               </div>
-            )}
+            </div>
             
             {/* Destinations - show max 2, collapse rest */}
             {Array.isArray(job.destinations) && job.destinations.length > 0 ? (
