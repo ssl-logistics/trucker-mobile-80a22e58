@@ -573,34 +573,10 @@ const isValidName = (val: any): string => {
           return true;
         })
         .map((item: any) => {
-        const hasMultipleDest = Array.isArray(item.destinations) && item.destinations.length > 0;
-        const originObjPost = (item.origin && typeof item.origin === 'object') ? item.origin : null;
-        const destObjPost = (item.destination && typeof item.destination === 'object') ? item.destination : null;
-        let originLocation = '';
-        let destinationLocation = '';
-
-        // International job override: use empty pickup depot / container return location
         const isIntlPost = !!(item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) || item.job_type === 'international' || item.transport_category === 'international';
-        if (isIntlPost) {
-          const intl2 = item.international_details || {};
-          const originObj2 = item.origin || intl2.origin || {};
-          const returnObj2 = item.return_terminal || intl2.return_terminal || {};
-          originLocation = originObj2.name || '';
-          destinationLocation = returnObj2.location || returnObj2.name || '';
-        } else if (!hasMultipleDest) {
-          // Domestic single-trip: use origin.name and destination.name only (no fallback)
-          originLocation = originObjPost?.name || (typeof item.origin === 'string' ? item.origin : '') || '';
-          destinationLocation = destObjPost?.name || (typeof item.destination === 'string' ? item.destination : '') || '';
-        } else {
-          // Multi-destination domestic: keep prior fallback behavior for origin
-          originLocation = (typeof item.origin === 'string' ? item.origin : '') || originObjPost?.name || item.from_location || '';
-          const originCompany = item.sender_name || item.sender_company_name || item.company_name || item.factory_name || '';
-          if (originCompany && originLocation && originLocation !== '-') {
-            originLocation = [originCompany, originLocation].filter(Boolean).join('\n');
-          } else if (originCompany && (!originLocation || originLocation === '-')) {
-            originLocation = originCompany;
-          }
-        }
+
+        // Same resolver as CurrentJobsPage so both pages show identical values
+        const { originLocation, destinationLocation } = resolveJobLocations(item);
 
         
         // Extract order code from title (format: "โพสต์หารถด่วน - OR20251203002")
