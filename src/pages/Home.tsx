@@ -347,40 +347,10 @@ const isValidName = (val: any): string => {
         // Determine if international
         const isIntl = !!(item.booking_no || item.booking_number || item.bl_no || item.bl_number || item.bill_of_lading) || item.transport_category === 'international' || item.job_type === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()));
         
-        // Build origin/destination - use different sources for international vs domestic
-        let originLocation: string;
-        let destinationLocation: string;
-        
-        if (isIntl) {
-          const intl = item.international_details || {};
-          const originObj = item.origin || intl.origin || {};
-          const returnObj = item.return_terminal || intl.return_terminal || {};
-          // Origin = จุดรับตู้เปล่า ใช้ origin.name เท่านั้น
-          originLocation = originObj.name || '';
-          // Destination = จุดคืนตู้ ใช้ return_terminal.location หรือ name เท่านั้น
-          destinationLocation = returnObj.location || returnObj.name || '';
-        } else {
-          // Domestic single-trip: use origin.name and destination.name only (no fallback)
-          const hasMultipleDest = Array.isArray(item.destinations) && item.destinations.length > 0;
-          const originObjDom = (item.origin && typeof item.origin === 'object') ? item.origin : null;
-          const destObjDom = (item.destination && typeof item.destination === 'object') ? item.destination : null;
-          if (!hasMultipleDest) {
-            originLocation = originObjDom?.name || '';
-            destinationLocation = destObjDom?.name || '';
-          } else {
-            // Multi-destination: keep existing origin logic
-            const originCompany = (Array.isArray(item.origins) && item.origins.length > 0 ? item.origins[0].company_name : '') || (originObjDom?.name) || item.sender_name || item.sender_company_name || '';
-            const originDistrict = (Array.isArray(item.origins) && item.origins.length > 0
-              ? [item.origins[0].district, item.origins[0].province].filter(Boolean).join(', ')
-              : '') ||
-              (originObjDom ? [originObjDom.district, originObjDom.province].filter(Boolean).join(', ') : '') ||
-              (typeof item.origin === 'string' ? item.origin : '') ||
-              [item.sender_district, item.sender_province].filter(Boolean).join(', ') ||
-              item.from_location || '';
-            originLocation = [originCompany, originDistrict].filter(Boolean).join('\n');
-            destinationLocation = '';
-          }
-        }
+        // Build origin/destination using the shared resolver so Home matches
+        // CurrentJobsPage exactly (origin.name / destination.name, or
+        // origin.name / return_terminal.location for international jobs)
+        const { originLocation, destinationLocation } = resolveJobLocations(item);
 
         
         return {
