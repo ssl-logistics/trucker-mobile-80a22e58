@@ -142,21 +142,9 @@ export default function CurrentJobsPage() {
     justStartedOrderRef.current = location.state.justStartedOrder;
   }
 
-  const normalizeLocationObject = (value: unknown): { name?: string | null; [key: string]: unknown } | null => {
-    if (!value) return null;
-    if (typeof value === 'object') return value as { name?: string | null; [key: string]: unknown };
-    if (typeof value === 'string') {
-      try {
-        const parsed = JSON.parse(value);
-        return parsed && typeof parsed === 'object' ? parsed : null;
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  };
+  const normalizeLocationObject = normalizeLocationObjectShared;
 
-  const getApiLocationName = (value: unknown) => normalizeLocationObject(value)?.name || '-';
+  const getApiLocationName = getApiLocationNameShared;
 
   // Filter states
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
