@@ -27,6 +27,10 @@ import { deduplicateJobs } from '@/utils/jobDeduplication';
 import { getOptimisticCheckins } from '@/utils/optimisticCheckins';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
+import {
+  normalizeLocationObject as normalizeLocationObjectShared,
+  getApiLocationName as getApiLocationNameShared,
+} from '@/lib/jobLocation';
 import { 
   getDriverAssignedJobs, 
   getFactoryAssignedJobs, 
