@@ -207,7 +207,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0 sm:w-5 sm:h-5" />
                 <div className="text-sm sm:text-base">
                   <div className="text-muted-foreground">{t('job.destination')}</div>
-                  <div className="font-medium">{job.destination_location}</div>
+                  <div className="font-medium">{job.destination_location || '-'}</div>
                 </div>
               </div>
             )}
