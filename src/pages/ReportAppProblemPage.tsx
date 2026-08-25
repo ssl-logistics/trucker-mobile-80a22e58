@@ -95,16 +95,33 @@ export default function ReportAppProblemPage() {
         screenHeight: window.screen.height,
       };
 
+      // Resolve user id (custom auth: fallback to stored driver info)
+      let resolvedUserId: string | null = user?.id ?? null;
+      if (!resolvedUserId) {
+        resolvedUserId = localStorage.getItem("auth_driver_id");
+      }
+      if (!resolvedUserId) {
+        try {
+          const stored = JSON.parse(localStorage.getItem("auth_driver") || "{}");
+          resolvedUserId = stored?.id || stored?.driver_id || null;
+        } catch { /* ignore */ }
+      }
+
+      if (!resolvedUserId) {
+        throw new Error(t("appProblem.submitFailed"));
+      }
+
       // Send report via edge function
       const { error } = await supabase.functions.invoke("report-app-problem", {
         body: {
-          user_id: user?.id,
+          user_id: resolvedUserId,
           problem_type: selectedType,
           description: description.trim(),
           screenshot_urls: photoUrls.length > 0 ? photoUrls : null,
           device_info: deviceInfo,
         },
       });
+
 
       if (error) throw error;
 
