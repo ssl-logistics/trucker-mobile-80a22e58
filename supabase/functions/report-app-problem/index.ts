@@ -55,10 +55,11 @@ Deno.serve(async (req) => {
     if (!externalResponse.ok) {
       console.error("External API error:", externalResponse.status, responseData);
       return new Response(
-        JSON.stringify({ success: false, error: "External API error", status: externalResponse.status }),
+        JSON.stringify({ success: false, error: responseData || "External API error", status: externalResponse.status }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
 
     return new Response(
       JSON.stringify({ success: true }),
