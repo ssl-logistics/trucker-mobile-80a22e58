@@ -1,69 +1,21 @@
-# สรุปข้อมูลที่เก็บในแต่ละ Step การลงทะเบียน (ปัจจุบัน)
+# แก้ปัญหา "ส่งแจ้งปัญหาการใช้แอป" ไม่สำเร็จ
 
-## ภาพรวม
-หน้าลงทะเบียนมีทั้งหมด 5 Step ควบคุมโดย `src/pages/Register.tsx` โดยข้อมูลแต่ละ Step ส่งต่อกันผ่าน state `registrationData` และกด "สร้างบัญชี" ที่ Step สุดท้าย จึงจะ upload รูป + ยิง API `register-driver` ทีเดียว
+## สิ่งที่ตรวจพบจาก log
+- Edge function `report-app-problem` มีแค่ log `booted` ไม่มีการทำงานจริงเลย
+- Log ฝั่ง gateway มีเฉพาะ `OPTIONS | 200` (preflight) — ไม่มี `POST` เข้ามาแม้แต่ครั้งเดียว
+- สาเหตุ: ฝั่งแอปมี fetch wrapper ที่แนบ header `x-app-secret` ไปกับทุก request ของ edge function แต่ CORS ของ `report-app-problem` ยังไม่อนุญาต header นี้ เบราว์เซอร์จึงบล็อก POST หลัง preflight (อาการเดียวกับที่เคยเจอใน `create-tracking-room` / `log-client-event`)
 
-## Step 1: ข้อตกลงและเงื่อนไข (TermsStep)
-- ไม่มีการเก็บข้อมูลใด ๆ
-- ผู้ใช้ต้อง scroll จนสุดเนื้อหาจึงกด "ยอมรับ" ได้
+## สิ่งที่จะแก้
+1. `supabase/functions/report-app-problem/index.ts`
+   - เพิ่ม `x-app-secret` (และ `x-client-info`, `apikey` ที่มีอยู่แล้ว) ใน `Access-Control-Allow-Headers`
+   - เพิ่ม `Access-Control-Allow-Methods: POST, OPTIONS`
+   - เพิ่ม log ของ request ที่เข้ามาเพื่อยืนยันการทำงาน
+2. `supabase/config.toml`
+   - เพิ่ม `[functions.report-app-problem] verify_jwt = false` ให้สอดคล้องกับ custom auth ของโปรเจกต์ (ผู้ใช้ไม่มี JWT ของระบบ)
+3. ปรับ `src/pages/ReportAppProblemPage.tsx` ให้แสดงข้อความ error ที่แท้จริงจาก edge function แทนข้อความรวม ๆ เพื่อดีบักง่ายขึ้นในอนาคต (UI เดิม ไม่เปลี่ยน layout)
 
-## Step 2: ข้อมูลทั่วไป (GeneralInfoStep)
-| ข้อมูล | บังคับ/ไม่บังคับ | หมายเหตุ |
-|---|---|---|
-| รูปโปรไฟล์ (profilePhoto) | บังคับ | File ถ่าย/เลือกจากแกลเลอรี |
-| ชื่อ (firstName) | บังคับ | |
-| นามสกุล (lastName) | บังคับ | |
-| เบอร์โทร (phone) | บังคับ | 10 หลัก |
-| อีเมล (email) | ไม่บังคับ | validate format |
-| ชื่อผู้ใช้ (username) | บังคับ | เช็คซ้ำกับ Supabase RPC `check_username_exists` |
-| รหัสผ่าน (password) | บังคับ | ขั้นต่ำ 8 ตัว |
-| ยืนยันรหัสผ่าน (confirmPassword) | บังคับ | ต้องตรงกับ password |
-| พื้นที่ปฏิบัติงาน (location) | ไม่บังคับ | เลือกจาก LocationAutocomplete |
-| ช่วงราคาต่ำสุด (priceRangeMin) | บังคับ | ตัวเลขเท่านั้น |
-| ช่วงราคาสูงสุด (priceRangeMax) | บังคับ | ต้องมากกว่า min |
+## การตรวจสอบหลังแก้
+- ยิงทดสอบ `report-app-problem` ผ่าน edge function tester แล้วดู log ว่ามี `POST | 200`
+- ตรวจ log ว่า external API ตอบกลับสำเร็จ ถ้าตอบ 4xx/5xx จะรายงานสาเหตุเพิ่มเติมให้ทราบ
 
-## Step 3: รูปภาพรถ (VehiclePhotosStep)
-| ข้อมูล | บังคับ/ไม่บังคับ | หมายเหตุ |
-|---|---|---|
-| รูปหน้ารถ (frontPhoto) | บังคับ | |
-| รูปข้างรถ (sidePhoto) | บังคับ | |
-| รูปหลังรถ (backPhoto) | บังคับ | |
-| รูปป้ายทะเบียน (platePhoto) | บังคับ | |
-| มีพ่วง (hasTrailer) | ไม่บังคับ | checkbox |
-| รูปป้ายทะเบียนพ่วง (trailerPlatePhoto) | บังคับ (ถ้ามีพ่วง) | |
-
-## Step 4: ข้อมูลรถและเอกสาร (VehicleInfoStep)
-| ข้อมูล | บังคับ/ไม่บังคับ | หมายเหตุ |
-|---|---|---|
-| เลขทะเบียน (plateNumber) | บังคับ | |
-| จังหวัดป้ายทะเบียน (plateProvince) | บังคับ | |
-| เลขทะเบียนพ่วง (trailerPlateNumber) | บังคับ (ถ้ามีพ่วง) | |
-| จังหวัดป้ายทะเบียนพ่วง (trailerPlateProvince) | บังคับ (ถ้ามีพ่วง) | |
-| ยี่ห้อรถ (vehicleBrand) | บังคับ | |
-| สีรถ (vehicleColor) | บังคับ | |
-| เลขตัวถัง (vin) | บังคับ | |
-| ประเภทรถ (vehicleType) | บังคับ | 10-wheel / 6-wheel |
-| ประเภทเชื้อเพลิง (fuelType) | บังคับ | diesel / gasoline |
-| น้ำหนักบรรทุก (loadCapacity) | บังคับ | |
-| ขนาดตู้ (width/length/height) | บังคับ | 3 ค่า |
-| ประเภทตู้ (containerTypes) | บังคับ | 20 / 40 (multi-select) |
-| รูปเอกสารจดทะเบียน (registrationPhoto) | บังคับ | |
-| รูปเอกสารประกันภัย (insurancePhoto) | บังคับ | |
-| รูปใบขับขี่ (licensePhoto) | บังคับ | |
-| รูปบัตรประชาชน (idCardPhoto) | บังคับ | |
-| รูป พ.ร.บ. (compulsoryInsurancePhoto) | บังคับ | |
-| มูลค่าประกัน (insuranceValue) | บังคับ | |
-
-## Step 5: ตรวจสอบข้อมูล (ReviewStep)
-- ไม่มีการเก็บข้อมูลเพิ่ม
-- แสดงสรุปข้อมูลจาก 3 แท็บ: ข้อมูลทั่วไป / รูปรถ / ข้อมูลรถและเอกสาร
-- กด "สร้างบัญชี" แล้วระบบจะ:
-  1. Upload รูปทั้งหมดไป S3 ผ่าน edge function `upload-to-s3`
-  2. เรียก edge function `register-driver` พร้อม payload ทั้งหมด
-
-## จำนวนรูปที่ต้องอัปโหลดทั้งหมด
-- มีรูปบังคับ: รูปโปรไฟล์ 1 + รูปรถ 4 + เอกสาร 5 = **10 รูป**
-- ถ้ามีพ่วง: เพิ่มรูปป้ายทะเบียนพ่วง 1 รูป = **11 รูป**
-
-## เป้าหมายของแผนนี้
-สรุปข้อมูลที่ระบบลงทะเบียนเก็บในปัจจุบันเท่านั้น ไม่มีการแก้ไขโค้ดในครั้งนี้
+หมายเหตุ: การอัปโหลดภาพหน้าจอปัจจุบันถ้าล้มเหลวจะถูกข้ามเงียบ ๆ (ส่งรายงานได้แต่ไม่มีรูป) — ถ้าต้องการให้แจ้งเตือนเมื่ออัปโหลดรูปไม่สำเร็จ บอกได้ครับ จะเพิ่มให้
