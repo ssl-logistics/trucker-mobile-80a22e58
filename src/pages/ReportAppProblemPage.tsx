@@ -114,13 +114,14 @@ export default function ReportAppProblemPage() {
       });
 
       navigate(-1);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting app problem:", error);
       toast({
         title: t("appProblem.error"),
-        description: t("appProblem.submitFailed"),
+        description: error?.message || t("appProblem.submitFailed"),
         variant: "destructive",
       });
+
     } finally {
       setIsSubmitting(false);
     }
