@@ -1,7 +1,8 @@
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-app-secret, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -12,6 +13,8 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const { user_id, problem_type, description, screenshot_urls, device_info } = body;
+    console.log("[report-app-problem] incoming:", JSON.stringify({ user_id, problem_type, photos: screenshot_urls?.length ?? 0 }));
+
 
     if (!problem_type || !description) {
       return new Response(
