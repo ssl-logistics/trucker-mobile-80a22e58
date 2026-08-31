@@ -12,6 +12,7 @@ import currentJobIcon from "@/assets/current-job-icon.svg";
 import biddingIcon from "@/assets/bidding-icon.svg";
 import incomeIcon from "@/assets/income-icon.svg";
 import jobHistoryIcon from "@/assets/job-history-icon.svg";
+import marketIcon from "@/assets/market-icon.png";
 interface AppHeaderProps {
   userName?: string;
   profilePhoto?: string;
@@ -149,6 +150,11 @@ export function AppHeader({
           icon: biddingIcon,
           labelKey: "home.bidding",
           path: "/bidding",
+          showForFreelanceOnly: true
+        }, {
+          icon: marketIcon,
+          labelKey: "home.market",
+          path: "/market",
           showForFreelanceOnly: true
         }, {
           icon: incomeIcon,
