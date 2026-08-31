@@ -86,22 +86,38 @@
         overflow: auto;
         opacity: 0.7;
       }
+      .hidden { display: none !important; }
+      .spinner {
+        width: 34px;
+        height: 34px;
+        margin: 0 auto;
+        border: 3px solid rgba(255,255,255,0.35);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="check">✓</div>
-      <h1>เข้าสู่ระบบ LINE สำเร็จ</h1>
-      <p>กดปุ่มด้านล่างเพื่อกลับเข้าแอป The Trucker</p>
+      <div class="spinner" id="spinner"></div>
 
-      <a id="openAppBtn" class="open-btn" href="#">📱 เปิดแอป The Trucker</a>
-      <div class="hint">
-        หากไม่เด้งกลับแอปอัตโนมัติ<br>กรุณากดปุ่มด้านบน
+      <div id="fallbackUi" class="hidden">
+        <div class="check">✓</div>
+        <h1>เข้าสู่ระบบ LINE สำเร็จ</h1>
+        <p>กดปุ่มด้านล่างเพื่อกลับเข้าแอป The Trucker</p>
+
+        <a id="openAppBtn" class="open-btn" href="#">📱 เปิดแอป The Trucker</a>
+        <div class="hint">
+          หากไม่เด้งกลับแอปอัตโนมัติ<br>กรุณากดปุ่มด้านบน
+        </div>
+        <a id="webFallback" class="web-link" href="#">หรือใช้งานต่อบนเว็บ</a>
       </div>
-      <a id="webFallback" class="web-link" href="#">หรือใช้งานต่อบนเว็บ</a>
 
-      <div class="debug" id="debug"></div>
+      <div class="debug hidden" id="debug"></div>
     </div>
+
 
     <script>
       (function () {
@@ -112,9 +128,18 @@
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloenVya290dWJra2Fva2h0bXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3ODk1NTMsImV4cCI6MjA3NzM2NTU1M30.jBgmzgXtDJNBk2YxIIgOH5Ret74Lo-u5Nzkzci98F_Q';
 
         var debugEl = document.getElementById('debug');
+        var spinnerEl = document.getElementById('spinner');
+        var fallbackEl = document.getElementById('fallbackUi');
+        var debugEnabled = /[?&]debug=1(&|$)/.test(window.location.search || '');
+        if (debugEnabled) debugEl.classList.remove('hidden');
         function log(msg) {
           try { console.log('[LINE Callback HTML] ' + msg); } catch (e) {}
-          debugEl.innerHTML += msg + '<br>';
+          if (debugEnabled) debugEl.innerHTML += msg + '<br>';
+        }
+
+        function revealFallback() {
+          if (spinnerEl) spinnerEl.classList.add('hidden');
+          if (fallbackEl) fallbackEl.classList.remove('hidden');
         }
 
         var search = window.location.search || '';
@@ -122,11 +147,13 @@
 
         if (!search || search === '?') {
           log('ERROR: ไม่พบ code จาก LINE');
+          revealFallback();
           document.querySelector('h1').textContent = 'เกิดข้อผิดพลาด';
           document.querySelector('p').textContent = 'ไม่พบ code จาก LINE — กลับไปหน้าเข้าสู่ระบบใน 3 วินาที';
           setTimeout(function () { window.location.href = '/'; }, 3000);
           return;
         }
+
 
         var urlParams = new URLSearchParams(search);
         var code = urlParams.get('code');
@@ -221,18 +248,28 @@
           bridgePromise.then(markBridgeReady, markBridgeReady);
         }
 
-        // Auto-attempt deep link (Android/iOS) — best-effort, harmless if blocked.
-        if (isAndroid) {
-          setTimeout(function () {
-            log('Android auto-attempt scheme');
-            try { window.location.href = payloadScheme; } catch (e) { log('Auto scheme failed: ' + e.message); }
-          }, 500);
-        } else if (isIOS) {
-          setTimeout(function () {
-            log('iOS auto-attempt deep link');
-            try { window.location.href = deepLink; } catch (e) { log('Auto deep link blocked: ' + e.message); }
-          }, 800);
+        // Auto-attempt deep link immediately — do not wait for the bridge write.
+        function tryOpenApp(url, label) {
+          if (document.visibilityState !== 'visible') return;
+          log(label);
+          try { window.location.href = url; } catch (e) { log(label + ' failed: ' + e.message); }
         }
+
+        tryOpenApp(deepLink, 'Auto-attempt deep link (immediate)');
+
+        // Retry once if we are still here.
+        setTimeout(function () {
+          tryOpenApp(isAndroid ? intentUrl : payloadScheme, 'Auto-attempt deep link (retry)');
+        }, 1200);
+
+        // Only show the success screen + button if the deep link clearly failed.
+        setTimeout(function () {
+          if (document.visibilityState === 'visible') {
+            log('Deep link did not open the app — revealing fallback UI');
+            revealFallback();
+          }
+        }, 2500);
+
       })();
     </script>
   </body>
