@@ -524,6 +524,14 @@ const App = () => (
                         }
                       />
                       <Route
+                        path="/market"
+                        element={
+                          <ProtectedRoute>
+                            <MarketPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/job/:jobId/route-expenses"
                         element={
                           <ProtectedRoute>
