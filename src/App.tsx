@@ -207,6 +207,7 @@ const ProductPage = lazyWithPreload(() => import("./pages/dashboard/ProductPage"
 const BiddingPage = lazyWithPreload(() => import("./pages/BiddingPage"));
 const PlaceBidPage = lazyWithPreload(() => import("./pages/PlaceBidPage"));
 const IncomePage = lazyWithPreload(() => import("./pages/IncomePage"));
+const MarketPage = lazyWithPreload(() => import("./pages/MarketPage"));
 const JobRouteExpensesPage = lazyWithPreload(() => import("./pages/JobRouteExpensesPage"));
 const JobExpensesPage = lazyWithPreload(() => import("./pages/JobExpensesPage"));
 const JobHistoryPage = lazyWithPreload(() => import("./pages/JobHistoryPage"));
