@@ -23,7 +23,7 @@ import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
 import { LineDebugModal } from "@/components/debug/LineDebugModal";
-import { initLiff, liffLogin, getLiffProfile, liff, LIFF_ID } from "@/lib/liff";
+import { initLiff, liffLogin, getLiffProfile, liff, LIFF_ID, isInIframe } from "@/lib/liff";
 import { fetchDriverProfileData, mergeDriverExtras, rememberLineUserDriverId } from "@/lib/driverProfileData";
 
 const setLineDebugValue = (key: string, value: string) => {
@@ -434,7 +434,7 @@ const SignIn = () => {
               setIsLoggingIn(true);
               try {
                 if (Capacitor.isNativePlatform()) {
-                  console.log('[LINE Native Login] Opening LINE OAuth in native browser');
+                  console.log('[LINE Login] route = native');
                   setAuthTransitioning(true, 'กำลังเข้าสู่ระบบ LINE...');
                   await Browser.open({
                     url: buildNativeLineOAuthUrl(),
@@ -443,8 +443,30 @@ const SignIn = () => {
                   return;
                 }
 
+                // LINE OAuth refuses to render inside an iframe (X-Frame-Options: deny).
+                // Break out of the frame (Lovable preview / embedded webview) first.
+                if (isInIframe()) {
+                  const oauthUrl = buildNativeLineOAuthUrl();
+                  console.log('[LINE Login] route = iframe-breakout', oauthUrl);
+                  let opened = false;
+                  try {
+                    opened = !!window.open(oauthUrl, '_blank', 'noopener,noreferrer');
+                  } catch {
+                    opened = false;
+                  }
+                  if (!opened) {
+                    try {
+                      window.top!.location.href = oauthUrl;
+                    } catch {
+                      window.location.href = oauthUrl;
+                    }
+                  }
+                  setIsLoggingIn(false);
+                  return;
+                }
+
                 await initLiff();
-                console.log('[LIFF Login] init done. isLoggedIn =', liff.isLoggedIn(), 'isInClient =', liff.isInClient());
+                console.log('[LINE Login] route = liff. isLoggedIn =', liff.isLoggedIn(), 'isInClient =', liff.isInClient());
 
                 // If not logged in, trigger LIFF login.
                 // - In LINE in-app browser: silent / auto-consent
