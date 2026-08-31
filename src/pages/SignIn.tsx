@@ -591,7 +591,7 @@ const SignIn = () => {
           </button>
           </div>
 
-          {/* Apple Sign In - show on iOS and Web only */}
+          {/* Apple Sign In - ปิดชั่วคราว
           {showAppleSignIn && (
             <div className="flex justify-center">
             <button
@@ -675,6 +675,8 @@ const SignIn = () => {
             </button>
             </div>
           )}
+          */}
+
 
           {/* Language Switcher */}
           <div className="flex justify-center">
