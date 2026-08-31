@@ -86,22 +86,38 @@
         overflow: auto;
         opacity: 0.7;
       }
+      .hidden { display: none !important; }
+      .spinner {
+        width: 34px;
+        height: 34px;
+        margin: 0 auto;
+        border: 3px solid rgba(255,255,255,0.35);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="check">✓</div>
-      <h1>เข้าสู่ระบบ LINE สำเร็จ</h1>
-      <p>กดปุ่มด้านล่างเพื่อกลับเข้าแอป The Trucker</p>
+      <div class="spinner" id="spinner"></div>
 
-      <a id="openAppBtn" class="open-btn" href="#">📱 เปิดแอป The Trucker</a>
-      <div class="hint">
-        หากไม่เด้งกลับแอปอัตโนมัติ<br>กรุณากดปุ่มด้านบน
+      <div id="fallbackUi" class="hidden">
+        <div class="check">✓</div>
+        <h1>เข้าสู่ระบบ LINE สำเร็จ</h1>
+        <p>กดปุ่มด้านล่างเพื่อกลับเข้าแอป The Trucker</p>
+
+        <a id="openAppBtn" class="open-btn" href="#">📱 เปิดแอป The Trucker</a>
+        <div class="hint">
+          หากไม่เด้งกลับแอปอัตโนมัติ<br>กรุณากดปุ่มด้านบน
+        </div>
+        <a id="webFallback" class="web-link" href="#">หรือใช้งานต่อบนเว็บ</a>
       </div>
-      <a id="webFallback" class="web-link" href="#">หรือใช้งานต่อบนเว็บ</a>
 
-      <div class="debug" id="debug"></div>
+      <div class="debug hidden" id="debug"></div>
     </div>
+
 
     <script>
       (function () {
