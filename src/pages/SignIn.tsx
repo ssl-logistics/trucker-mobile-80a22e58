@@ -23,7 +23,7 @@ import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
 import flagCn from "@/assets/flag-cn.png";
 import { LineDebugModal } from "@/components/debug/LineDebugModal";
-import { initLiff, liffLogin, getLiffProfile, liff, LIFF_ID } from "@/lib/liff";
+import { initLiff, liffLogin, getLiffProfile, liff, LIFF_ID, isInIframe } from "@/lib/liff";
 import { fetchDriverProfileData, mergeDriverExtras, rememberLineUserDriverId } from "@/lib/driverProfileData";
 
 const setLineDebugValue = (key: string, value: string) => {
