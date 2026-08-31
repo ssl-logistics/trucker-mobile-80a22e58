@@ -23,6 +23,8 @@ import {
   getFreelanceAcceptedJobs,
   acceptExpressRentJob,
 } from '@/lib/externalApi';
+import { getTaladJobs } from '@/lib/taladApi';
+
 
 interface Job {
   id: string;
