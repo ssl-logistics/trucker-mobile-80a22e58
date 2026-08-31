@@ -100,9 +100,9 @@ export default function MarketPage() {
     if (!user) return;
     setIsLoading(true);
     try {
-      const { data: responseData, error } = await getExpressRentPosts();
+      const { jobs: taladJobs, error } = await getTaladJobs();
       if (error) {
-        console.error('[Market] Error loading posts:', error);
+        console.error('[Market] Error loading talad jobs:', error);
         toast({
           title: t('home.error_load'),
           description: t('home.error_load_desc'),
@@ -111,127 +111,54 @@ export default function MarketPage() {
         return;
       }
 
-      const apiJobs = Array.isArray(responseData) ? responseData : ((responseData as any)?.data || []);
-
-      // Marketplace = open express rent posts only (same source as Home "งานสำหรับคุณ")
-      const transformedJobs: Job[] = apiJobs
-        .filter((item: any) => item.is_express_rent === true)
-        .filter((item: any) => {
+      const transformedJobs: Job[] = (taladJobs || [])
+        .filter((item) => {
           const status = (item.status || '').toLowerCase();
           if (status && status !== 'open') return false;
-          if (item.express_rent_expiry) {
-            const expiry = new Date(item.express_rent_expiry);
-            if (expiry < new Date()) return false;
+          const auction = (item.auction_status || '').toLowerCase();
+          if (auction && auction !== 'open') return false;
+          if (item.auction_deadline) {
+            const deadline = new Date(item.auction_deadline);
+            if (!isNaN(deadline.getTime()) && deadline < new Date()) return false;
           }
           return true;
         })
-        .map((item: any) => {
-          const isIntlPost = !!(item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number) || item.job_type === 'international' || item.transport_category === 'international';
-          const { originLocation, destinationLocation } = resolveJobLocations(item);
-
-          let orderCode = item.post_code || item.order_number || item.quote_number || '';
-          if (item.title && item.title.includes(' - ')) {
-            const titleParts = item.title.split(' - ');
-            if (titleParts.length >= 2) {
-              orderCode = titleParts[titleParts.length - 1].trim();
-            }
-          }
+        .map((item) => {
+          const bookingNo = item.container?.booking_no || null;
+          const weightNumber = typeof item.weight === 'number'
+            ? item.weight
+            : (typeof item.weight === 'string' ? parseFloat(item.weight.replace(/[^\d.]/g, '')) : null);
 
           return {
-            id: item.id || String(Math.random()),
-            post_id: item.id || item.post_id || '',
-            order_code: orderCode,
-            job_type: (item.booking_no || item.booking_number || item.bl_no || item.bill_of_lading || item.bl_number || item.job_type === 'international' || item.transport_category === 'international' || (item.transport_mode && ['sea', 'air'].includes((item.transport_mode || '').toLowerCase()))) ? 'international' : (item.job_type || item.post_type || item.shipment_type || item.product_type || 'domestic'),
-            employer_name: isIntlPost
-              ? (isValidName(item.assigned_company) || isValidName(item.assignedCompany) || '')
-              : (isValidName(item.factory_name) || isValidName(item.customer_name) || isValidName(item.sender_company_name) || isValidName(item.sender_name) || isValidName(item.company_name) || isValidName(user?.company_name) || ''),
-            transport_type: item.send_mode || 'single',
-            transport_type_label: item.transport_type_label || item.send_mode_label || '',
-            origin_location: originLocation,
-            destination_location: destinationLocation,
-            destination_company_name: isIntlPost ? null : (isValidName(item.destination_company_name) || isValidName(item.destination_name) || isValidName(item.receiver_name) || isValidName(item.receiver_company_name) || null),
-            price: item.price || 0,
-            start_date: item.pickup_date || item.start_date || item.period_start || '',
-            pickup_time: item.pickup_time || item.start_time || '',
-            equipment_list: item.truck_type !== '-' ? item.truck_type : null,
-            safety_equipment: Array.isArray(item.truck_requirements) ? item.truck_requirements.join(', ') : (item.truck_requirements || null),
-            goods_type: Array.isArray(item.products) && item.products.length > 0
-              ? item.products.map((p: any) => p.product_name).filter(Boolean).join(', ')
-              : (item.product_name || item.goods_type || item.product_type || null),
-            goods_quantity: Array.isArray(item.products) && item.products.length > 0
-              ? String(item.products.reduce((sum: number, p: any) => sum + (p.quantity || 0), 0))
-              : (item.product_quantity ? String(item.product_quantity) : (item.goods_quantity || item.quantity || null)),
-            goods_weight: Array.isArray(item.products) && item.products.length > 0
-              ? item.products.reduce((sum: number, p: any) => sum + (p.weight || 0), 0)
-              : (item.product_weight || null),
-            goods_unit: (Array.isArray(item.products) && item.products[0]?.weight_unit) || item.product_weight_unit || null,
-            goods_quantity_unit: (Array.isArray(item.products) && item.products[0]?.unit) || item.product_unit || null,
+            id: item.job_id,
+            post_id: item.job_id,
+            order_code: item.talad_code || (item.job_id ? item.job_id.slice(0, 8).toUpperCase() : ''),
+            job_type: bookingNo || item.service_type === 'container' ? 'international' : (item.job_type || 'domestic'),
+            employer_name: isValidName(item.poster?.company_name) || isValidName(item.poster?.contact_name) || '',
+            transport_type: item.truck_type || 'single',
+            transport_type_label: item.truck_type || '',
+            origin_location: item.locations?.pickup || item.origin || '',
+            destination_location: item.locations?.dropoff || item.destination || '',
+            destination_company_name: null,
+            price: item.final_price ?? item.price ?? 0,
+            start_date: (item.locations?.pickup_date || item.created_at || '').slice(0, 10),
+            pickup_time: '',
+            equipment_list: item.truck_type || null,
+            safety_equipment: null,
+            goods_type: item.title || null,
+            goods_quantity: null,
+            goods_weight: weightNumber && !isNaN(weightNumber) ? weightNumber : null,
+            goods_unit: null,
+            goods_quantity_unit: null,
             isAccepted: false,
-            bl_no: item.bl_no || item.bill_of_lading || item.bl_number || null,
-            booking_no: item.booking_no || item.booking_number || null,
-            invoice_number: item.invoice_number || item.inv_no || item.inv || null,
-            remarks: item.remark || item.remarks || item.note || null,
-            origin_lat: item.origin_lat || undefined,
-            origin_lng: item.origin_lng || undefined,
-            destination_lat: item.destination_lat || undefined,
-            destination_lng: item.destination_lng || undefined,
-            destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
-              sequence: d.sequence_number || d.sequence || idx + 1,
-              location: d.province || d.address || d.location || d.destination_location || '',
-              address: d.address || '',
-              company_name: d.company_name || '',
-              contact_name: d.contact_name || d.contact_person || '',
-              invoice_number: d.invoice_number || d.inv_no || d.inv || '',
-              province: d.province || '',
-              latitude: d.latitude || d.destination_latitude || undefined,
-              longitude: d.longitude || d.destination_longitude || undefined,
-            })) : undefined
-          };
+            bl_no: null,
+            booking_no: bookingNo,
+            invoice_number: null,
+            remarks: item.description || null,
+          } as Job;
         });
 
-      // Exclude jobs already accepted by this driver
-      let acceptedOrderNumbers = new Set<string>();
-      try {
-        const { data: acceptedResult, error: acceptedError } = await getFreelanceAcceptedJobs(user.id);
-        if (!acceptedError && acceptedResult) {
-          const acceptedData = (acceptedResult as any)?.data || acceptedResult;
-          if (Array.isArray(acceptedData)) {
-            acceptedOrderNumbers = new Set(acceptedData.map((job: any) => job.order_number));
-          }
-        }
-      } catch (err) {
-        console.error('[Market] Error fetching accepted jobs:', err);
-      }
-
-      const { data: applications } = await supabase
-        .from('job_applications')
-        .select('job_id, payment_completed_at')
-        .eq('driver_id', user.id);
-
-      const completedJobIds = new Set(
-        applications?.filter(app => app.payment_completed_at).map(app => app.job_id) || []
-      );
-      const acceptedJobIds = new Set(applications?.map(app => app.job_id) || []);
-
-      // Filter out past pickup date/time
-      const now = new Date();
-      const filterPastJobs = (jobList: Job[]) => jobList.filter(job => {
-        if (!job.start_date) return true;
-        const time = job.pickup_time || '23:59:59';
-        const normalizedTime = time.length === 5 ? `${time}:00` : time;
-        const pickupDateTime = new Date(`${job.start_date}T${normalizedTime}`);
-        return pickupDateTime >= now;
-      });
-
-      const driverVehicleType = user.vehicle_type || '';
-
-      const availableJobs = filterPastJobs(transformedJobs)
-        .filter(job => !completedJobIds.has(job.id))
-        .filter(job => !acceptedOrderNumbers.has(job.order_code))
-        .filter(job => canHandleJobTruckType(driverVehicleType, job.equipment_list))
-        .map(job => ({ ...job, isAccepted: acceptedJobIds.has(job.id) }));
-
-      setJobs(availableJobs);
+      setJobs(transformedJobs);
     } catch (err) {
       console.error('[Market] Error fetching jobs:', err);
       toast({
@@ -243,6 +170,7 @@ export default function MarketPage() {
       setIsLoading(false);
     }
   }, [user, t]);
+
 
   useEffect(() => {
     if (user && isFreelanceDriver) {
