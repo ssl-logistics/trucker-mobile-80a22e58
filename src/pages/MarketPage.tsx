@@ -212,11 +212,15 @@ export default function MarketPage() {
     setCurrentPage(1);
   }, [searchQuery, jobs.length]);
 
-  const handleAcceptJob = (job: Job) => {
-    if (!requireBankInfo()) return;
-    setSelectedJob(job);
-    setConfirmDialogOpen(true);
+  const handleAcceptJob = (_job: Job) => {
+    // Talad marketplace jobs have no accept endpoint yet — inform the driver instead
+    // of calling the express-rent accept API (wrong system).
+    toast({
+      title: t('market.accept_unavailable_title') || 'ยังไม่รองรับการรับงาน',
+      description: t('market.accept_unavailable_desc') || 'งานจากตลาดนี้ยังไม่เปิดให้กดรับงานในแอป',
+    });
   };
+
 
   const confirmJobAcceptance = async () => {
     if (!selectedJob || !user || isAccepting) return;
