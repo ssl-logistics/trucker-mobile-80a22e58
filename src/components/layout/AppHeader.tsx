@@ -146,12 +146,15 @@ export function AppHeader({
           icon: currentJobIcon,
           labelKey: "home.current_jobs",
           path: "/current-jobs"
-        }, {
-          icon: biddingIcon,
-          labelKey: "home.bidding",
-          path: "/bidding",
-          showForFreelanceOnly: true
-        }, {
+        },
+        // ปิดเมนู "เสนอราคา" ไว้ก่อน (route /bidding ยังใช้งานได้)
+        // {
+        //   icon: biddingIcon,
+        //   labelKey: "home.bidding",
+        //   path: "/bidding",
+        //   showForFreelanceOnly: true
+        // },
+        {
           icon: marketIcon,
           labelKey: "home.market",
           path: "/market",
@@ -169,7 +172,7 @@ export function AppHeader({
           key={item.labelKey} 
           onClick={() => item.path && navigate(item.path)} 
           className="flex flex-col items-center gap-2"
-          data-tour={item.labelKey === "home.bidding" ? "bidding-menu" : item.labelKey === "home.current_jobs" ? "current-jobs-menu" : undefined}
+          data-tour={item.labelKey === "home.market" ? "bidding-menu" : item.labelKey === "home.current_jobs" ? "current-jobs-menu" : undefined}
         >
                 <div className="w-16 h-16 flex items-center justify-center">
                   <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" />
