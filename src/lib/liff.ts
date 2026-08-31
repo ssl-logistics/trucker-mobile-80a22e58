@@ -15,6 +15,18 @@ const getLiffRedirectUri = () => {
 export const getStableLiffRedirectUri = getLiffRedirectUri;
 
 /**
+ * True when the app is rendered inside an iframe (e.g. Lovable preview).
+ * LINE OAuth sets X-Frame-Options: deny, so login must break out of the frame.
+ */
+export const isInIframe = (): boolean => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
+
+/**
  * Initialize LIFF SDK once. Subsequent calls return the same promise.
  */
 export const initLiff = async (): Promise<void> => {
