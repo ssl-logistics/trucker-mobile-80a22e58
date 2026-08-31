@@ -156,6 +156,9 @@ const thTranslations: Record<string, string> = {
   'market.title': 'ตลาดงานขนส่ง',
   'market.search_placeholder': 'ค้นหางาน (ต้นทาง, ปลายทาง, บริษัท, เลขงาน)',
   'market.empty': 'ไม่มีงานเปิดรับในขณะนี้',
+  'market.accept_unavailable_title': 'ยังไม่รองรับการรับงาน',
+  'market.accept_unavailable_desc': 'งานจากตลาดนี้ยังไม่เปิดให้กดรับงานในแอป',
+
   'home.sign_out_confirm': 'คุณต้องการออกจากระบบหรือไม่?',
   'home.sign_out_desc': 'การออกจากระบบจะทำให้คุณต้องล็อกอินเข้าสู่ระบบอีกครั้ง ในครั้งถัดไป กรุณายืนยันออกจากระบบ',
   'home.sign_out_btn': 'ออกจากระบบ',
