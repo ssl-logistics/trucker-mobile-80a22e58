@@ -128,9 +128,18 @@
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloenVya290dWJra2Fva2h0bXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3ODk1NTMsImV4cCI6MjA3NzM2NTU1M30.jBgmzgXtDJNBk2YxIIgOH5Ret74Lo-u5Nzkzci98F_Q';
 
         var debugEl = document.getElementById('debug');
+        var spinnerEl = document.getElementById('spinner');
+        var fallbackEl = document.getElementById('fallbackUi');
+        var debugEnabled = /[?&]debug=1(&|$)/.test(window.location.search || '');
+        if (debugEnabled) debugEl.classList.remove('hidden');
         function log(msg) {
           try { console.log('[LINE Callback HTML] ' + msg); } catch (e) {}
-          debugEl.innerHTML += msg + '<br>';
+          if (debugEnabled) debugEl.innerHTML += msg + '<br>';
+        }
+
+        function revealFallback() {
+          if (spinnerEl) spinnerEl.classList.add('hidden');
+          if (fallbackEl) fallbackEl.classList.remove('hidden');
         }
 
         var search = window.location.search || '';
@@ -138,11 +147,13 @@
 
         if (!search || search === '?') {
           log('ERROR: ไม่พบ code จาก LINE');
+          revealFallback();
           document.querySelector('h1').textContent = 'เกิดข้อผิดพลาด';
           document.querySelector('p').textContent = 'ไม่พบ code จาก LINE — กลับไปหน้าเข้าสู่ระบบใน 3 วินาที';
           setTimeout(function () { window.location.href = '/'; }, 3000);
           return;
         }
+
 
         var urlParams = new URLSearchParams(search);
         var code = urlParams.get('code');
