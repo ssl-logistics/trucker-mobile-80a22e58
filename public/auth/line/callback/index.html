@@ -248,18 +248,28 @@
           bridgePromise.then(markBridgeReady, markBridgeReady);
         }
 
-        // Auto-attempt deep link (Android/iOS) — best-effort, harmless if blocked.
-        if (isAndroid) {
-          setTimeout(function () {
-            log('Android auto-attempt scheme');
-            try { window.location.href = payloadScheme; } catch (e) { log('Auto scheme failed: ' + e.message); }
-          }, 500);
-        } else if (isIOS) {
-          setTimeout(function () {
-            log('iOS auto-attempt deep link');
-            try { window.location.href = deepLink; } catch (e) { log('Auto deep link blocked: ' + e.message); }
-          }, 800);
+        // Auto-attempt deep link immediately — do not wait for the bridge write.
+        function tryOpenApp(url, label) {
+          if (document.visibilityState !== 'visible') return;
+          log(label);
+          try { window.location.href = url; } catch (e) { log(label + ' failed: ' + e.message); }
         }
+
+        tryOpenApp(deepLink, 'Auto-attempt deep link (immediate)');
+
+        // Retry once if we are still here.
+        setTimeout(function () {
+          tryOpenApp(isAndroid ? intentUrl : payloadScheme, 'Auto-attempt deep link (retry)');
+        }, 1200);
+
+        // Only show the success screen + button if the deep link clearly failed.
+        setTimeout(function () {
+          if (document.visibilityState === 'visible') {
+            log('Deep link did not open the app — revealing fallback UI');
+            revealFallback();
+          }
+        }, 2500);
+
       })();
     </script>
   </body>
