@@ -132,8 +132,10 @@ const SignIn = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showLineDebug, setShowLineDebug] = useState(false);
   const currentPlatform = Capacitor.getPlatform();
-  const showAppleSignIn = currentPlatform !== 'android';
-  console.log('[Apple Sign In] Platform:', currentPlatform, 'Show:', showAppleSignIn);
+  // ปิดปุ่ม Sign in with Apple ชั่วคราว
+  // const showAppleSignIn = currentPlatform !== 'android';
+  // console.log('[Apple Sign In] Platform:', currentPlatform, 'Show:', showAppleSignIn);
+
 
   // Auto-resume LIFF login after returning from LINE OAuth (external browser only)
   useEffect(() => {
@@ -589,7 +591,7 @@ const SignIn = () => {
           </button>
           </div>
 
-          {/* Apple Sign In - show on iOS and Web only */}
+          {/* Apple Sign In - ปิดชั่วคราว
           {showAppleSignIn && (
             <div className="flex justify-center">
             <button
@@ -673,6 +675,8 @@ const SignIn = () => {
             </button>
             </div>
           )}
+          */}
+
 
           {/* Language Switcher */}
           <div className="flex justify-center">
