@@ -62,12 +62,12 @@ serve(async (req) => {
     const apiKey =
       Deno.env.get('TALAD_CHAT_API_KEY') ?? Deno.env.get('TALAD_API_KEY') ?? '';
     if (!apiKey) {
-      console.error('[test-talad-chat] TALAD_API_KEY is not configured');
+      console.error('[test-talad-chat] no Talad chat API key configured');
       return new Response(
         JSON.stringify({
           ok: false,
           api_key_configured: false,
-          errors: ['TALAD_API_KEY not configured'],
+          errors: ['TALAD_CHAT_API_KEY (or TALAD_API_KEY) not configured'],
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
