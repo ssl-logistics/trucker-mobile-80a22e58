@@ -58,7 +58,9 @@ serve(async (req) => {
   const errors: string[] = [];
 
   try {
-    const apiKey = Deno.env.get('TALAD_API_KEY') ?? '';
+    // Chat endpoint uses its own key (ttpc_...); fall back to the job key.
+    const apiKey =
+      Deno.env.get('TALAD_CHAT_API_KEY') ?? Deno.env.get('TALAD_API_KEY') ?? '';
     if (!apiKey) {
       console.error('[test-talad-chat] TALAD_API_KEY is not configured');
       return new Response(
