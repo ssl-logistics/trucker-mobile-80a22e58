@@ -12,7 +12,7 @@ import currentJobIcon from "@/assets/current-job-icon.svg";
 import biddingIcon from "@/assets/bidding-icon.svg";
 import incomeIcon from "@/assets/income-icon.svg";
 import jobHistoryIcon from "@/assets/job-history-icon.svg";
-import marketIcon from "@/assets/market-icon.png";
+import marketIcon from "@/assets/market-icon-new.png";
 interface AppHeaderProps {
   userName?: string;
   profilePhoto?: string;
