@@ -1,51 +1,49 @@
-# Plan: ทดสอบแชท Talad ผ่าน Edge Function แบบ Two-way
+# Plan: ทดสอบการเชื่อมต่อแชท Talad (เฟสทดสอบก่อน)
 
 ## เป้าหมาย
-สร้าง Edge Function สำหรับทดสอบการเชื่อมต่อแชทกับตลาด Talad ทั้งสองทิศทาง:
-1. **Pull** — ดึงข้อความจาก Talad API (`talad-push-chat`)
-2. **Push** — จำลอง webhook ที่ Talad ส่งเข้ามา และประมวลผลให้เข้า conversations/messages ของแอป
+สร้างเฉพาะเครื่องมือทดสอบก่อน เพื่อพิสูจน์ว่าเส้น `talad-push-chat` ใช้งานได้จริง ยังไม่แตะโครงสร้างแชทในแอปหรือบันทึกข้อมูลลงฐานข้อมูล
 
-## งานที่ต้องทำ
+## สิ่งที่จะสร้าง
 
-### 1. สร้าง Edge Function `receive-talad-chat-message`
-- รับ payload แบบ Talad webhook (`source`, `event`, `messages[]` ที่มี `job_id`, `message`, `sender`, `recipient`)
-- แปลงเป็นโครงสร้างภายใน:
-  - `chat_id` = `job_id`
-  - `target_user_email` = อีเมลผู้รับ (หรือหา user_id จาก auth ถ้าไม่มี email)
-  - `message.text`, `message.sender_id`, `message.sender_name`
-  - `source_project.id` = `talad-trucker-marketplace`
-- ใช้ Service Role สร้าง/อัปเดต `external_chat_config`, `conversations`, `external_user_mapping`, `external_chat_messages`
-- เรียก `send-push-notification` เพื่อแจ้งเตือนผู้รับ
-- ตอบกลับ `{ success, conversation_id, message_id }`
+### 1. Edge Function `test-talad-chat`
+Function เดียวสำหรับยิงทดสอบ ไม่เขียนข้อมูลลง DB
 
-### 2. สร้าง Edge Function `test-talad-chat`
-- รับ POST body ที่มี:
-  - `job_id` (optional, default ค่าจาก Postman collection)
-  - `target_user_email` (optional, default `test@truckers.app`)
-  - `dry_run` (default `true`)
-- ทำ 2 ขั้นตอน:
-  1. **Pull test**: ยิง POST ไปยัง `https://dqjxjqtlpicpfahiksoy.supabase.co/functions/v1/talad-push-chat` พร้อม `x-api-key` จาก `Deno.env.get('TALAD_API_KEY')` และ `dry_run`
-  2. **Push test**: สร้าง payload ตัวอย่างจาก Pull test (หรือ sample) แล้วเรียก `receive-talad-chat-message` ภายใน project ตัวเอง
-- คืนผลลัพธ์รวม: `{ pull: { ok, status, count, sample }, push: { ok, status, conversation_id, message_id } }`
+รับ POST body (ทุกฟิลด์ optional):
+- `job_id` — ค่าเริ่มต้นใช้ job ตัวอย่างจาก Postman collection
+- `message_id` — ถ้าใส่ จะดึงข้อความเดียว
+- `limit`, `page` — ค่าเริ่มต้น 50 / 1
+- `dry_run` — ค่าเริ่มต้น `true`
+- `mode` — `"pull"` | `"push"` | `"both"` (ค่าเริ่มต้น `"both"`)
 
-### 3. เพิ่ม CORS และ Security
-- ทั้งสอง function ใส่ `corsHeaders` รองรับ `authorization, x-client-info, apikey, content-type, x-api-key, x-app-secret`
-- `test-talad-chat` ตรวจ `APP_EDGE_SHARED_SECRET` หรือ `apikey` เพื่อป้องกันการเรียกจากภายนอก (optional ตามความเหมาะสม)
+การทำงาน:
+- **Pull**: ยิง POST ไปยัง `https://dqjxjqtlpicpfahiksoy.supabase.co/functions/v1/talad-push-chat` พร้อม header `x-api-key` ที่อ่านจาก secret `TALAD_API_KEY` (ไม่ hardcode)
+- **Push**: ยิง payload ตัวอย่างรูปแบบ webhook (`source`, `event`, `messages[]`) กลับไปที่เส้นเดียวกันด้วย `dry_run: true` เพื่อดูว่า Talad ตอบรับโครงสร้างถูกต้องหรือไม่
 
-### 4. เขียน Deno Tests
-- `supabase/functions/receive-talad-chat-message/index.test.ts` — ทดสอบแปลง payload Talad และบันทึกลง DB
-- `supabase/functions/test-talad-chat/index.test.ts` — ทดสอบ pull/push ด้วย mock fetch
+ตอบกลับผลสรุปที่อ่านง่าย:
+```json
+{
+  "ok": true,
+  "api_key_configured": true,
+  "pull": { "status": 200, "ok": true, "count": 3, "sample": { }, "raw_snippet": "..." },
+  "push": { "status": 200, "ok": true, "response": { } },
+  "errors": []
+}
+```
 
-### 5. เอกสารการทดสอบ
-- เพิ่มวิธีเรียก `test-talad-chat` ผ่าน curl/Postman ในเอกสารสั้น ๆ ให้ทีม QA
+พร้อม `console.log` ทุกขั้นตอน (สถานะ, จำนวนข้อความ, error body) เพื่อดูใน logs ได้
 
-## ไฟล์ที่เกี่ยวข้อง
-- สร้างใหม่:
-  - `supabase/functions/receive-talad-chat-message/index.ts`
-  - `supabase/functions/test-talad-chat/index.ts`
-  - `supabase/functions/receive-talad-chat-message/index.test.ts`
-  - `supabase/functions/test-talad-chat/index.test.ts`
-- ใช้ Secrets ที่มีอยู่แล้ว:
-  - `TALAD_API_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY`
-  - `APP_EDGE_SHARED_SECRET` (ถ้าต้องการ gate test function)
+### 2. Deno test `index.test.ts`
+ทดสอบเบื้องต้นว่า function ตอบ 200, มีฟิลด์ `pull`/`push` ครบ, และไม่ล้มเมื่อ upstream error
+
+## สิ่งที่ยังไม่ทำในเฟสนี้
+- ไม่บันทึกข้อความลง `conversations` / `external_chat_messages`
+- ไม่ส่ง push notification
+- ไม่แก้ UI แชทหรือหน้าตลาด
+
+เมื่อยืนยันว่าเส้นใช้งานได้แล้ว ค่อยต่อเฟสถัดไป (รับข้อความเข้าแอปจริงและตอบกลับสองทาง)
+
+## รายละเอียดเทคนิค
+- ไฟล์ใหม่: `supabase/functions/test-talad-chat/index.ts`, `supabase/functions/test-talad-chat/index.test.ts`
+- Secret ที่ใช้: `TALAD_API_KEY` (มีอยู่แล้วในโปรเจกต์)
+- CORS: รองรับ `authorization, x-client-info, apikey, content-type, x-api-key`
+- ทดสอบได้ทั้งผ่านเครื่องมือ curl edge function และ Postman collection เดิม
