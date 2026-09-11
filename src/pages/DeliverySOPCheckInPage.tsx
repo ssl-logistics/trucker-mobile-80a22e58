@@ -184,7 +184,7 @@ export default function DeliverySOPCheckInPage() {
         description: t('deliverySop.loadError'),
         variant: 'destructive'
       });
-      navigate('/current-jobs');
+      navigate(isFromHistory ? '/job-history' : '/current-jobs');
     } finally {
       setLoading(false);
     }
@@ -332,7 +332,7 @@ export default function DeliverySOPCheckInPage() {
        });
 
        const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
-       navigate(backRoute);
+       navigate(`${backRoute}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: job, isBidJob: (location.state as any)?.isBidJob, fromHistory: isFromHistory } });
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
@@ -367,7 +367,7 @@ export default function DeliverySOPCheckInPage() {
         <div className="flex items-center justify-between">
            <button onClick={() => {
             const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
-            navigate(backRoute);
+            navigate(`${backRoute}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: job, isBidJob: (location.state as any)?.isBidJob, fromHistory: isFromHistory } });
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>

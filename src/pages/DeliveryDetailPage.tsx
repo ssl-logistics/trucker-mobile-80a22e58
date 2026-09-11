@@ -42,6 +42,7 @@ import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { compressImage } from '@/utils/imageCompression';
 import { notifyCheckinWaypoint, ensureRoomCode } from '@/lib/checkinWaypoint';
+import { isHistoryContext } from '@/lib/historyMode';
 
 interface DestinationProduct {
   product_name: string;
@@ -134,7 +135,7 @@ export default function DeliveryDetailPage() {
   const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
   
   // Check if viewing from history
-  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  const isFromHistory = isHistoryContext(location.search, location.state);
   const isOwnPodData = !jobApplication?.pod_driver_id || jobApplication.pod_driver_id === user?.id;
   
   // GPS tracking hook
@@ -580,7 +581,7 @@ export default function DeliveryDetailPage() {
         description: t('pickup.loadError'),
         variant: 'destructive'
       });
-      navigate('/current-jobs');
+      navigate(isFromHistory ? '/job-history' : '/current-jobs');
     } finally {
       setLoading(false);
     }
@@ -814,7 +815,7 @@ export default function DeliveryDetailPage() {
     // Always navigate back to job detail page after POD
     // so the driver can see updated status and handle remaining destinations
     const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;
-    navigate(backRoute, { state: { jobData: job } });
+    navigate(`${backRoute}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: job, isBidJob: (location.state as any)?.isBidJob, fromHistory: isFromHistory } });
   };
 
   const [isCheckingIn, setIsCheckingIn] = useState(false);
@@ -1089,9 +1090,8 @@ export default function DeliveryDetailPage() {
       <header className="app-sticky-header bg-header text-header-foreground px-4 py-4">
         <div className="flex items-center justify-between">
           <button onClick={() => {
-            const fromParam = new URLSearchParams(location.search).get('from');
             const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;
-            navigate(`${backRoute}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: (location.state as any)?.jobData || job } });
+            navigate(`${backRoute}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: (location.state as any)?.jobData || job, isBidJob: (location.state as any)?.isBidJob, fromHistory: isFromHistory } });
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
