@@ -12,6 +12,7 @@ const API_KEYS = {
   EXPRESS_RENT_API_KEY: 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
   FREELANCE_DRIVER_API_KEY: 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
   DRIVER_API_KEY: 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
+  FINANCE_API_KEY: '1lc-wc9NNSm5RZXSsqlGQ8By_t7tqWRxKo3RPd8kMNw',
 };
 
 // Endpoint to API key mapping
@@ -25,7 +26,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'get-driver-sop': 'FREELANCE_DRIVER_API_KEY',
   'report-problem': 'EXPRESS_RENT_API_KEY',
   'transport-expenses': 'EXPRESS_RENT_API_KEY',
-  'finance-category-types': 'EXPRESS_RENT_API_KEY',
+  'finance-category-types': 'FINANCE_API_KEY',
   'receive-pod': 'DRIVER_API_KEY',
   'update-order-status': 'EXPRESS_RENT_API_KEY',
   'get-freelance-accepted-jobs': 'EXPRESS_RENT_API_KEY',
