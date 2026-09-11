@@ -50,7 +50,7 @@ export function FloatingChatbot() {
         transform: "translate3d(0, 0, 0)",
         WebkitTransform: "translate3d(0, 0, 0)",
       }}
-      aria-label={t('chat.title')}
+      aria-label={t('nav.chat')}
     >
       <MessageCircle style={{ width: 24, height: 24 }} />
     </button>
