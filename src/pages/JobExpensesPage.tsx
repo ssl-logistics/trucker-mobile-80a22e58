@@ -37,6 +37,8 @@ export default function JobExpensesPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  // History view is read-only: no add/delete/upload of expenses or receipts
+  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
   const isNavigatingRef = useRef(false);
   const { user, userType } = useAuth();
   const { t } = useLanguage();
