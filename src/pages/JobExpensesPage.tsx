@@ -37,6 +37,8 @@ export default function JobExpensesPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  // History view is read-only: no add/delete/upload of expenses or receipts
+  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
   const isNavigatingRef = useRef(false);
   const { user, userType } = useAuth();
   const { t } = useLanguage();
@@ -494,20 +496,22 @@ export default function JobExpensesPage() {
                   <div className="text-base font-medium text-foreground">
                     {getExpenseTypeLabel(expense)} : ฿ {Number(expense.amount).toLocaleString()}
                   </div>
-                  <button
-                    className="p-1.5 rounded-full text-destructive hover:bg-destructive/10 disabled:opacity-50"
-                    onClick={() => {
-                      setExpenseToDelete(expense.id);
-                      setDeleteExpenseDialogOpen(true);
-                    }}
-                    disabled={uploadingExpenseId === expense.id}
-                  >
-                    {uploadingExpenseId === expense.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4" />
-                    )}
-                  </button>
+                  {!isFromHistory && (
+                    <button
+                      className="p-1.5 rounded-full text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                      onClick={() => {
+                        setExpenseToDelete(expense.id);
+                        setDeleteExpenseDialogOpen(true);
+                      }}
+                      disabled={uploadingExpenseId === expense.id}
+                    >
+                      {uploadingExpenseId === expense.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
                 </div>
                 
                 {/* Receipt Images */}
@@ -534,17 +538,19 @@ export default function JobExpensesPage() {
                           </div>
                         </div>
                         {/* Delete button */}
-                        <button
-                          className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-md z-10 hover:bg-destructive/90"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPhotoToDelete({ expenseId: expense.id, imgIndex });
-                            setDeletePhotoDialogOpen(true);
-                          }}
-                          disabled={uploadingExpenseId === expense.id}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {!isFromHistory && (
+                          <button
+                            className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-md z-10 hover:bg-destructive/90"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPhotoToDelete({ expenseId: expense.id, imgIndex });
+                              setDeletePhotoDialogOpen(true);
+                            }}
+                            disabled={uploadingExpenseId === expense.id}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                         {expense.slip_urls && expense.slip_urls.length > 1 && (
                           <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-background/90 shadow-md">
                             <span className="text-xs font-medium text-foreground">
@@ -555,36 +561,40 @@ export default function JobExpensesPage() {
                       </div>
                     ))}
                     {/* Add more photos button */}
+                    {!isFromHistory && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2"
+                        disabled={uploadingExpenseId === expense.id}
+                        onClick={() => handleEditPhoto(expense.id)}
+                      >
+                        {uploadingExpenseId === expense.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Plus className="w-4 h-4" />
+                        )}
+                        {t('expenses.addPhoto')}
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  /* No photos - show upload button (hidden in read-only history view) */
+                  !isFromHistory && (
                     <Button
                       variant="outline"
-                      size="sm"
-                      className="w-full gap-2"
+                      className="w-full h-24 border-dashed gap-2"
                       disabled={uploadingExpenseId === expense.id}
                       onClick={() => handleEditPhoto(expense.id)}
                     >
                       {uploadingExpenseId === expense.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
-                        <Plus className="w-4 h-4" />
+                        <ImagePlus className="w-5 h-5 text-muted-foreground" />
                       )}
-                      {t('expenses.addPhoto')}
+                      <span className="text-muted-foreground">{t('expenses.uploadPhoto')}</span>
                     </Button>
-                  </div>
-                ) : (
-                  /* No photos - show upload button */
-                  <Button
-                    variant="outline"
-                    className="w-full h-24 border-dashed gap-2"
-                    disabled={uploadingExpenseId === expense.id}
-                    onClick={() => handleEditPhoto(expense.id)}
-                  >
-                    {uploadingExpenseId === expense.id ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <ImagePlus className="w-5 h-5 text-muted-foreground" />
-                    )}
-                    <span className="text-muted-foreground">{t('expenses.uploadPhoto')}</span>
-                  </Button>
+                  )
                 )}
               </div>
             ))}

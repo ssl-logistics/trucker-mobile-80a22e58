@@ -51,24 +51,26 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
 
   return (
     <>
-      <div className={`grid gap-3 ${hideExpenseButtons ? 'hidden' : hideNonExpenseButtons ? 'grid-cols-2' : 'grid-cols-3'}`}>
+      <div className={`grid gap-3 ${hideExpenseButtons ? 'hidden' : hideNonExpenseButtons ? (isFromHistory ? 'grid-cols-1' : 'grid-cols-2') : 'grid-cols-3'}`}>
         {!hideExpenseButtons && (
           <>
             <button 
               className="flex flex-col items-center gap-1 text-primary"
-              onClick={() => navigate(`/job/${encodeURIComponent(jobId)}/expenses`)}
+              onClick={() => navigate(`/job/${encodeURIComponent(jobId)}/expenses${isFromHistory ? '?from=history' : ''}`)}
             >
               <img src={expenseViewIcon} alt="" className="w-8 h-8" />
               <span className="text-xs font-medium">{t('jobActions.viewExpenses')}</span>
             </button>
 
-            <button 
-              className="flex flex-col items-center gap-1 text-primary"
-              onClick={() => navigate(`/job/${encodeURIComponent(jobId)}/add-expense`, { state: { returnPath: location.pathname, jobData } })}
-            >
-              <img src={expenseAddIcon} alt="" className="w-8 h-8" />
-              <span className="text-xs font-medium">{t('jobActions.addExpense')}</span>
-            </button>
+            {!isFromHistory && (
+              <button 
+                className="flex flex-col items-center gap-1 text-primary"
+                onClick={() => navigate(`/job/${encodeURIComponent(jobId)}/add-expense`, { state: { returnPath: location.pathname, jobData } })}
+              >
+                <img src={expenseAddIcon} alt="" className="w-8 h-8" />
+                <span className="text-xs font-medium">{t('jobActions.addExpense')}</span>
+              </button>
+            )}
           </>
         )}
 
