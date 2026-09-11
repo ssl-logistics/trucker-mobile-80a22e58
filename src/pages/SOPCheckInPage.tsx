@@ -287,7 +287,7 @@ export default function SOPCheckInPage() {
         description: t('pickup.loadError'),
         variant: 'destructive'
       });
-      navigate('/current-jobs');
+      navigate(isFromHistory ? '/job-history' : '/current-jobs');
     } finally {
       setLoading(false);
     }
@@ -545,7 +545,8 @@ export default function SOPCheckInPage() {
         description: t('sop.sopSuccessMessage'),
       });
 
-      navigate(isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`);
+      const backRoute = isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;
+      navigate(`${backRoute}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: job, isBidJob, fromHistory: isFromHistory } });
     } catch (error) {
       console.error('Error confirming SOP:', error);
       toast({
@@ -577,9 +578,8 @@ export default function SOPCheckInPage() {
       <header className="app-sticky-header bg-header text-header-foreground px-4 py-4">
         <div className="flex items-center justify-between">
           <button onClick={() => {
-            const fromParam = new URLSearchParams(location.search).get('from');
             const backRoute = (isBidJob || (location.state as any)?.isBidJob) ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;
-            navigate(`${backRoute}${fromParam ? `?from=${fromParam}` : ''}`);
+            navigate(`${backRoute}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: job, isBidJob: isBidJob || (location.state as any)?.isBidJob, fromHistory: isFromHistory } });
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>
