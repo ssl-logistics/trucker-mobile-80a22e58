@@ -31,6 +31,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
+import { fetchExpenseCategoryTypes, getExpenseCategoryLabel, type ExpenseCategoryType } from "@/lib/expenseCategoryTypes";
 import { cn } from "@/lib/utils";
 import { isHistoryContext } from "@/lib/historyMode";
 import {
