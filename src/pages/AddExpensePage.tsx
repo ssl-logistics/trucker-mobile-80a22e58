@@ -158,7 +158,7 @@ const AddExpensePage = () => {
     return () => { cancelled = true; };
   }, [user, jobId, jobKind]);
 
-  const allExpenseTypes = [
+  const hardcodedExpenseTypes = [
     { value: "fuel", label: t('expense.fuel') },
     { value: "fuel_drop", label: t('expense.fuelDrop') },
     { value: "dive_knock_out", label: t('expense.diveKnockOut') },
@@ -180,6 +180,25 @@ const AddExpensePage = () => {
     { value: "other", label: t('expense.other') },
   ];
 
+  // Prefer API category types; fall back to hardcoded list when API failed/empty.
+  // Any hardcoded code the API does not return is appended so existing options never disappear.
+  const allExpenseTypes = (() => {
+    if (!apiExpenseTypes) return hardcodedExpenseTypes;
+    const fromApi = apiExpenseTypes.map((ct) => ({
+      value: ct.value,
+      label: getExpenseCategoryLabel(ct, language),
+    }));
+    const apiCodes = new Set(fromApi.map((o) => o.value));
+    const missing = hardcodedExpenseTypes.filter((o) => !apiCodes.has(o.value));
+    return [...fromApi, ...missing];
+  })();
+
+  // English names for API submission: API name_en wins, hardcoded map is the fallback
+  const englishNameByCode: Record<string, string> = { ...expenseTypeEnglishMap };
+  if (apiExpenseTypes) {
+    for (const ct of apiExpenseTypes) englishNameByCode[ct.value] = ct.nameEn;
+  }
+
   // Filter dropdown by job kind
   const blAllowed = ["fuel", "dive_knock_out", "return_container", "repair_container", "waste", "port_fee", "misc_no_receipt", "other"];
   const bookingAllowed = ["fuel", "pickup_container", "port_fee", "misc_no_receipt", "other"];
@@ -187,11 +206,15 @@ const AddExpensePage = () => {
     list
       .map(v => allExpenseTypes.find(opt => opt.value === v))
       .filter((o): o is { value: string; label: string } => Boolean(o));
-  const expenseTypes = jobKind === 'bl'
-    ? orderByList(blAllowed)
-    : jobKind === 'booking'
-      ? orderByList(bookingAllowed)
-      : allExpenseTypes;
+  const expenseTypes = (() => {
+    const filtered = jobKind === 'bl'
+      ? orderByList(blAllowed)
+      : jobKind === 'booking'
+        ? orderByList(bookingAllowed)
+        : allExpenseTypes;
+    // Safety net: never show an empty dropdown
+    return filtered.length > 0 ? filtered : hardcodedExpenseTypes;
+  })();
   
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     { id: "1", type: undefined, customType: "", amount: "", receiptPhotos: [], showOCRDetails: false },
@@ -476,12 +499,12 @@ const AddExpensePage = () => {
         if (expense.type === "other") {
           expenseType = expense.customType;
         } else if (expense.type === "misc_no_receipt") {
-          const base = expenseTypeEnglishMap["misc_no_receipt"];
+          const base = englishNameByCode["misc_no_receipt"];
           expenseType = expense.customType.trim()
             ? `${base} (${expense.customType.trim()})`
             : base;
         } else {
-          expenseType = expenseTypeEnglishMap[expense.type || ""] || expense.type;
+          expenseType = englishNameByCode[expense.type || ""] || expense.type;
         }
         const totalOCRAmount = getTotalOCRAmount(expense);
         
