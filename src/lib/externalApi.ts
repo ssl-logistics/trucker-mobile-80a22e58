@@ -131,7 +131,10 @@ export async function callExternalApi<T>(
       const fetchOptions: RequestInit = { method, headers: baseHeaders };
       if (body && method !== 'GET') fetchOptions.body = JSON.stringify(body);
 
-      console.log(`[ExternalAPI] ${method} ${endpoint}`, params || body || '');
+      const logPayload = endpoint === 'update-driver-password' && body && typeof body === 'object'
+        ? { ...(body as Record<string, unknown>), new_password: '[REDACTED]' }
+        : params || body || '';
+      console.log(`[ExternalAPI] ${method} ${endpoint}`, logPayload);
 
       const MAX_RETRIES = 3;
       let lastError = '';
