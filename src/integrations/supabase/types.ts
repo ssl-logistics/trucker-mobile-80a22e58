@@ -998,6 +998,69 @@ export type Database = {
         }
         Relationships: []
       }
+      talad_chat_messages: {
+        Row: {
+          created_at: string
+          direction: string
+          driver_id: string | null
+          external_message_id: string | null
+          id: string
+          image_url: string | null
+          job_id: string
+          message: string | null
+          sender_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          direction?: string
+          driver_id?: string | null
+          external_message_id?: string | null
+          id?: string
+          image_url?: string | null
+          job_id: string
+          message?: string | null
+          sender_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          driver_id?: string | null
+          external_message_id?: string | null
+          id?: string
+          image_url?: string | null
+          job_id?: string
+          message?: string | null
+          sender_name?: string | null
+        }
+        Relationships: []
+      }
+      talad_chat_reads: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          job_id: string
+          last_read_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          job_id: string
+          last_read_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          job_id?: string
+          last_read_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
