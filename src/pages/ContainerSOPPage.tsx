@@ -34,6 +34,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { compressImage } from '@/utils/imageCompression';
+import { isHistoryContext } from '@/lib/historyMode';
 
 interface ContainerDetail {
   containerNo?: string;
@@ -72,6 +73,8 @@ const ContainerSOPPage = () => {
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
   const { extractFromImage, extracting } = useOCR();
   
+  const isFromHistory = isHistoryContext(location.search, location.state);
+
   const navState = location.state as { 
     verifiedContainer?: string; 
     verifiedSeal?: string; 
@@ -1022,6 +1025,10 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmClick = async () => {
+    if (isFromHistory) {
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     let effectiveEirResult = eirBlOcrResult;
     let effectiveRefStatus = eirBlMatchStatus;
     let effectiveContainerStatus = eirContainerMatchStatus;
@@ -1087,6 +1094,11 @@ const ContainerSOPPage = () => {
   };
 
   const handleConfirmSOP = async () => {
+    if (isFromHistory) {
+      setShowConfirmDialog(false);
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     const checkedEir = eirBlOcrResult
       ? evaluateEirMatches(eirBlOcrResult)
       : { refStatus: eirBlMatchStatus, containerStatus: eirContainerMatchStatus };
@@ -2352,6 +2364,7 @@ const ContainerSOPPage = () => {
 
       </div>
 
+      {!isFromHistory && (
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -2361,6 +2374,7 @@ const ContainerSOPPage = () => {
           {checkingExpenses ? t('common.loading') : uploading ? t('sop.saving') : confirmButtonText}
         </Button>
       </div>
+      )}
 
       {/* Confirm Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
