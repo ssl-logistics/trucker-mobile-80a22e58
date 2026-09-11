@@ -496,20 +496,22 @@ export default function JobExpensesPage() {
                   <div className="text-base font-medium text-foreground">
                     {getExpenseTypeLabel(expense)} : ฿ {Number(expense.amount).toLocaleString()}
                   </div>
-                  <button
-                    className="p-1.5 rounded-full text-destructive hover:bg-destructive/10 disabled:opacity-50"
-                    onClick={() => {
-                      setExpenseToDelete(expense.id);
-                      setDeleteExpenseDialogOpen(true);
-                    }}
-                    disabled={uploadingExpenseId === expense.id}
-                  >
-                    {uploadingExpenseId === expense.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4" />
-                    )}
-                  </button>
+                  {!isFromHistory && (
+                    <button
+                      className="p-1.5 rounded-full text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                      onClick={() => {
+                        setExpenseToDelete(expense.id);
+                        setDeleteExpenseDialogOpen(true);
+                      }}
+                      disabled={uploadingExpenseId === expense.id}
+                    >
+                      {uploadingExpenseId === expense.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
                 </div>
                 
                 {/* Receipt Images */}
@@ -536,17 +538,19 @@ export default function JobExpensesPage() {
                           </div>
                         </div>
                         {/* Delete button */}
-                        <button
-                          className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-md z-10 hover:bg-destructive/90"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPhotoToDelete({ expenseId: expense.id, imgIndex });
-                            setDeletePhotoDialogOpen(true);
-                          }}
-                          disabled={uploadingExpenseId === expense.id}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {!isFromHistory && (
+                          <button
+                            className="absolute top-3 right-3 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-md z-10 hover:bg-destructive/90"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPhotoToDelete({ expenseId: expense.id, imgIndex });
+                              setDeletePhotoDialogOpen(true);
+                            }}
+                            disabled={uploadingExpenseId === expense.id}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                         {expense.slip_urls && expense.slip_urls.length > 1 && (
                           <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-background/90 shadow-md">
                             <span className="text-xs font-medium text-foreground">
