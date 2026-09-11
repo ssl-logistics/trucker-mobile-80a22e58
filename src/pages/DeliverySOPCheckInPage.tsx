@@ -56,6 +56,7 @@ export default function DeliverySOPCheckInPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [destination, setDestination] = useState<DestinationInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const isFromHistory = isHistoryContext(location.search, location.state);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -213,6 +214,10 @@ export default function DeliverySOPCheckInPage() {
   };
 
   const handleConfirmClick = () => {
+    if (isFromHistory) {
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (!photoFile) {
       toast({
         title: t('deliverySop.photoRequired'),
@@ -225,6 +230,11 @@ export default function DeliverySOPCheckInPage() {
   };
 
   const handleConfirmSOP = async () => {
+    if (isFromHistory) {
+      setShowConfirmDialog(false);
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (!photoFile || !job || !user) return;
 
     setUploading(true);
@@ -414,6 +424,7 @@ export default function DeliverySOPCheckInPage() {
       </div>
 
       {/* Confirm Button */}
+      {!isFromHistory && (
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -423,6 +434,7 @@ export default function DeliverySOPCheckInPage() {
           {t('deliverySop.confirmSOP')}
         </Button>
       </div>
+      )}
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
