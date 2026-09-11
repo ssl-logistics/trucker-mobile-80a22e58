@@ -561,36 +561,40 @@ export default function JobExpensesPage() {
                       </div>
                     ))}
                     {/* Add more photos button */}
+                    {!isFromHistory && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2"
+                        disabled={uploadingExpenseId === expense.id}
+                        onClick={() => handleEditPhoto(expense.id)}
+                      >
+                        {uploadingExpenseId === expense.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Plus className="w-4 h-4" />
+                        )}
+                        {t('expenses.addPhoto')}
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  /* No photos - show upload button (hidden in read-only history view) */
+                  !isFromHistory && (
                     <Button
                       variant="outline"
-                      size="sm"
-                      className="w-full gap-2"
+                      className="w-full h-24 border-dashed gap-2"
                       disabled={uploadingExpenseId === expense.id}
                       onClick={() => handleEditPhoto(expense.id)}
                     >
                       {uploadingExpenseId === expense.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
-                        <Plus className="w-4 h-4" />
+                        <ImagePlus className="w-5 h-5 text-muted-foreground" />
                       )}
-                      {t('expenses.addPhoto')}
+                      <span className="text-muted-foreground">{t('expenses.uploadPhoto')}</span>
                     </Button>
-                  </div>
-                ) : (
-                  /* No photos - show upload button */
-                  <Button
-                    variant="outline"
-                    className="w-full h-24 border-dashed gap-2"
-                    disabled={uploadingExpenseId === expense.id}
-                    onClick={() => handleEditPhoto(expense.id)}
-                  >
-                    {uploadingExpenseId === expense.id ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <ImagePlus className="w-5 h-5 text-muted-foreground" />
-                    )}
-                    <span className="text-muted-foreground">{t('expenses.uploadPhoto')}</span>
-                  </Button>
+                  )
                 )}
               </div>
             ))}
