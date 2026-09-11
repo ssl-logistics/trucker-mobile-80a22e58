@@ -131,7 +131,10 @@ export async function callExternalApi<T>(
       const fetchOptions: RequestInit = { method, headers: baseHeaders };
       if (body && method !== 'GET') fetchOptions.body = JSON.stringify(body);
 
-      console.log(`[ExternalAPI] ${method} ${endpoint}`, params || body || '');
+      const logPayload = endpoint === 'update-driver-password' && body && typeof body === 'object'
+        ? { ...(body as Record<string, unknown>), new_password: '[REDACTED]' }
+        : params || body || '';
+      console.log(`[ExternalAPI] ${method} ${endpoint}`, logPayload);
 
       const MAX_RETRIES = 3;
       let lastError = '';
@@ -808,12 +811,22 @@ export async function updateDriverPassword(body: {
   driver_type: string;
   new_password: string;
 }) {
-  console.log('[updateDriverPassword] Sending:', JSON.stringify(body));
-  
-  return callExternalApi<{ success: boolean; message?: string; error?: string }>('update-driver-password', {
+  console.log('[updateDriverPassword] Sending', {
+    driver_id: body.driver_id,
+    driver_type: body.driver_type,
+  });
+
+  const result = await callExternalApi<{ success: boolean; message?: string; error?: string }>('update-driver-password', {
     method: 'PUT',
     body,
   });
+
+  console.log('[updateDriverPassword] Result', {
+    success: result.data?.success === true && !result.error,
+    message: result.data?.message || result.data?.error || result.error || null,
+  });
+
+  return result;
 }
 
 // ==================== Destination Coordinate APIs ====================
