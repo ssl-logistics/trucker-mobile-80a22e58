@@ -13,9 +13,4 @@ Jobs with `is_transferred: true` from the `get-driver-assigned-jobs` API:
    - Uncompleted steps have their action buttons disabled.
    - The `isTransferred` flag is detected from `location.state.jobData.is_transferred`.
 
-4. **Photo Editing (Ownership-Based)**:
-   - `EditablePhoto` uses `isOwnData` prop to control editing per-photo.
-   - Driver ID is extracted from checkin/SOP/OCR records (`internal_driver_id`, `external_driver_id`, `freelance_driver_id`).
-   - Driver 1 can edit their own photos (within 3-day window from history).
-   - Driver 2 can only edit photos they uploaded, not Driver 1's.
-   - Applied in: `ContainerSummaryPage` (pickup/return/OCR), `PickupSummaryPage` (SOP), `DeliveryDetailPage` (POD).
+4. **Photo Editing**: History view is now fully read-only — `EditablePhoto` never allows editing when `fromHistory=true` (supersedes the old ownership-based 3-day edit window). See memory "History Jobs Read-Only".
