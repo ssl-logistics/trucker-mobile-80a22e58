@@ -141,6 +141,8 @@ export async function saveDriverBank(
   driverId: string | null | undefined,
   bank: DriverBankData,
 ): Promise<boolean> {
+  // Callers must pass the app-account UUID (cloud_driver_id/auth UUID),
+  // never the external TMS driver UUID.
   const resolvedDriverId = await ensurePersistedDriverId(driverId);
   if (!resolvedDriverId) return false;
   try {
@@ -149,6 +151,10 @@ export async function saveDriverBank(
       headers: HEADERS,
       body: JSON.stringify({ driver_id: resolvedDriverId, bank }),
     });
+    if (!res.ok) {
+      const payload = await res.json().catch(() => null);
+      console.warn("[driver-profile-data] save bank rejected:", payload?.error || res.status);
+    }
     return res.ok;
   } catch (e) {
     console.warn("[driver-profile-data] save bank failed:", e);

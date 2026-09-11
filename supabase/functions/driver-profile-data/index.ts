@@ -66,6 +66,18 @@ serve(async (req) => {
       const results: Record<string, unknown> = {};
 
       if (body.bank && typeof body.bank === "object") {
+        // bank_accounts.user_id references auth.users.id. Reject external TMS
+        // UUIDs explicitly so old clients receive a useful 404 instead of a
+        // database foreign-key 500.
+        const { data: authUser, error: authLookupError } = await supabase.auth.admin.getUserById(driverId);
+        if (authLookupError || !authUser?.user) {
+          console.warn("[driver-profile-data] bank save rejected: app account not found", driverId);
+          return json({
+            error: "app account not found for driver_id",
+            code: "APP_ACCOUNT_NOT_FOUND",
+          }, 404);
+        }
+
         const b = body.bank as Record<string, string>;
         const row = {
           user_id: driverId,

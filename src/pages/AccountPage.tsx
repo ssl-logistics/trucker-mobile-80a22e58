@@ -57,33 +57,43 @@ export default function AccountPage() {
     try {
       const isOAuthUser = isOAuthLoginType(user.loginType);
       const shouldSyncExternal = !isOAuthUser || user.loginType === 'line';
+      const cloudDriverId = user.cloud_driver_id || (isOAuthUser ? user.id : null);
+      let externalSaved = false;
 
-      // LINE still attempts external sync, but OAuth users can gracefully fallback to local-only.
-      // Any TMS error (network or "driver not found") is non-fatal — we persist to our own backend below.
+      // The external TMS always receives its own driver id.
       if (shouldSyncExternal) {
-        try {
-          const driverType = getDriverTypeFromUserType(userType || 'freelance_driver');
-          const { data, error } = await updateFreelanceDriver({
-            driver_id: user.id,
-            driver_type: driverType,
-            bank_name: bankName.trim(),
-            account_number: bankAccountNumber.trim(),
-            account_name: bankAccountName.trim() || user.full_name || '',
-          });
-          if (error && !isDriverNotFoundError(error, data)) {
-            console.warn('[Bank] TMS update non-fatal error:', error);
-          }
-        } catch (tmsErr: any) {
-          console.warn('[Bank] TMS update failed (non-fatal):', tmsErr?.message);
+        const driverType = getDriverTypeFromUserType(userType || 'freelance_driver');
+        const { data, error } = await updateFreelanceDriver({
+          driver_id: user.id,
+          driver_type: driverType,
+          bank_name: bankName.trim(),
+          account_number: bankAccountNumber.trim(),
+          account_name: bankAccountName.trim() || user.full_name || '',
+        });
+        externalSaved = !error && data?.success !== false;
+
+        // A normal login depends on the TMS update. Do not show a false success.
+        if (!externalSaved && !isOAuthUser) {
+          throw new Error(error || data?.message || t('account.bank_save_error'));
+        }
+        if (!externalSaved && error && !isDriverNotFoundError(error, data)) {
+          console.warn('[Bank] TMS update failed:', error);
         }
       }
 
-      // Always persist to our own backend so data survives logout/login
-      await saveDriverBank(user.id, {
-        bank_name: bankName.trim(),
-        account_number: bankAccountNumber.trim(),
-        account_name: bankAccountName.trim() || user.full_name || '',
-      });
+      // The app database only receives an app-account UUID. Normal TMS logins
+      // without a linked app account skip this backup instead of causing a 500.
+      const cloudSaved = cloudDriverId
+        ? await saveDriverBank(cloudDriverId, {
+            bank_name: bankName.trim(),
+            account_number: bankAccountNumber.trim(),
+            account_name: bankAccountName.trim() || user.full_name || '',
+          })
+        : false;
+
+      if (!externalSaved && !cloudSaved) {
+        throw new Error(t('account.bank_save_error'));
+      }
 
       // Update local auth_driver with new bank info
       const storedDriver = await getAuthItem('auth_driver');
