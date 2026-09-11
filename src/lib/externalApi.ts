@@ -25,6 +25,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'get-driver-sop': 'FREELANCE_DRIVER_API_KEY',
   'report-problem': 'EXPRESS_RENT_API_KEY',
   'transport-expenses': 'EXPRESS_RENT_API_KEY',
+  'finance-category-types': 'EXPRESS_RENT_API_KEY',
   'receive-pod': 'DRIVER_API_KEY',
   'update-order-status': 'EXPRESS_RENT_API_KEY',
   'get-freelance-accepted-jobs': 'EXPRESS_RENT_API_KEY',
