@@ -32,7 +32,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
 import { fetchExpenseCategoryTypes, getExpenseCategoryLabel, type ExpenseCategoryType } from "@/lib/expenseCategoryTypes";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { isHistoryContext } from "@/lib/historyMode";
 import {
@@ -875,9 +875,21 @@ const AddExpensePage = () => {
             </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor={`amount-${expense.id}`}>
-                {t('expense.price')} <span className="text-destructive">*</span>
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor={`amount-${expense.id}`}>
+                  {t('expense.price')} <span className="text-destructive">*</span>
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor={`advance-${expense.id}`} className="font-normal cursor-pointer text-sm">
+                    {t('expense.advancePayment')}
+                  </Label>
+                  <Switch
+                    id={`advance-${expense.id}`}
+                    checked={expense.isAdvance}
+                    onCheckedChange={(checked) => handleExpenseChange(expense.id, 'isAdvance', checked === true)}
+                  />
+                </div>
+              </div>
               <Input
                 id={`amount-${expense.id}`}
                 inputMode="numeric"
@@ -889,17 +901,6 @@ const AddExpensePage = () => {
                 }}
                 className={cn("text-right", getTotalOCRAmount(expense) > 0 ? "border-green-300 ring-1 ring-green-200" : "")}
               />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`advance-${expense.id}`}
-                checked={expense.isAdvance}
-                onCheckedChange={(checked) => handleExpenseChange(expense.id, 'isAdvance', checked === true)}
-              />
-              <Label htmlFor={`advance-${expense.id}`} className="font-normal cursor-pointer">
-                {t('expense.advancePayment')}
-              </Label>
             </div>
 
             {index < expenses.length - 1 && (
