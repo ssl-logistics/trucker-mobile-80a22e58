@@ -18,10 +18,14 @@ export function FloatingChatbot() {
   const [enabled, setEnabled] = useState(() => localStorage.getItem('chatbot_enabled') !== 'false');
   const location = useLocation();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { isFreelanceDriver } = useUserRole();
 
   // Only show on pages with bottom navigation
   const shouldShow = PAGES_WITH_NAV.includes(location.pathname);
+
+  // Freelance chat icon should only appear when the user is actually logged in
+  const showFreelanceChat = isFreelanceDriver && !!user;
 
   useEffect(() => {
     setMounted(true);
