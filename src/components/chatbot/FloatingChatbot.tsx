@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Bot, MessageCircle } from "lucide-react";
 import { ChatbotDrawer } from "./ChatbotDrawer";
+import { ChatListSheet } from "@/components/chat/ChatListSheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 
