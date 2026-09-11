@@ -588,7 +588,7 @@ export default function DeliveryDetailPage() {
   };
 
   const handlePaymentConfirm = async () => {
-    if (!job || !user) return;
+    if (!job || !user || isFromHistory) return;
 
     const { error } = await supabase
       .from("job_applications")
@@ -632,7 +632,7 @@ export default function DeliveryDetailPage() {
   };
 
   const handlePodConfirm = async () => {
-    if (!job || !user || isSubmittingPod) return;
+    if (!job || !user || isSubmittingPod || isFromHistory) return;
     
     setIsSubmittingPod(true);
 
@@ -821,7 +821,7 @@ export default function DeliveryDetailPage() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
 
   const handleCheckIn = async () => {
-    if (!job || !user || isCheckingIn) return;
+    if (!job || !user || isCheckingIn || isFromHistory) return;
 
     setIsCheckingIn(true);
 
@@ -1306,7 +1306,7 @@ export default function DeliveryDetailPage() {
       </div>
 
       {/* Check-in Button - Hide after check-in */}
-      {!isCheckedIn && (
+      {!isCheckedIn && !isFromHistory && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -1332,7 +1332,7 @@ export default function DeliveryDetailPage() {
       )}
 
       {/* Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <Dialog open={!isFromHistory && showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
             <img src={checkInIcon} alt="Check in" className="w-16 h-16" />
@@ -1357,7 +1357,7 @@ export default function DeliveryDetailPage() {
       {/* Payment Method Drawer removed - sending null to API */}
 
       {/* POD Confirmation Dialog */}
-      <Dialog open={showPodConfirmDialog} onOpenChange={setShowPodConfirmDialog}>
+      <Dialog open={!isFromHistory && showPodConfirmDialog} onOpenChange={setShowPodConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
