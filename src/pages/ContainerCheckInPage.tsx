@@ -77,6 +77,8 @@ export default function ContainerCheckInPage() {
   // Determine if this is a container return flow
   const navState = location.state as { jobData?: any; checkinType?: string } | null;
   const isContainerReturn = navState?.checkinType === 'container_return';
+  // Read-only when opened from job history
+  const isFromHistory = isHistoryContext(location.search, location.state);
   
   // Editable container fields for inbound
   const [container1Number, setContainer1Number] = useState('');
@@ -375,6 +377,11 @@ export default function ContainerCheckInPage() {
   };
   
   const handleCheckIn = async () => {
+    if (isFromHistory) {
+      setShowConfirmDialog(false);
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (!user || !jobId || !job || isCheckingIn) return;
     
     setIsCheckingIn(true);
