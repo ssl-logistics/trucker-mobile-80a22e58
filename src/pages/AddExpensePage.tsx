@@ -75,6 +75,7 @@ interface ExpenseItem {
   amount: string;
   receiptPhotos: ReceiptPhoto[];
   showOCRDetails: boolean;
+  isAdvance: boolean;
 }
 
 const AddExpensePage = () => {
@@ -218,7 +219,7 @@ const AddExpensePage = () => {
   })();
   
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
-    { id: "1", type: undefined, customType: "", amount: "", receiptPhotos: [], showOCRDetails: false },
+    { id: "1", type: undefined, customType: "", amount: "", receiptPhotos: [], showOCRDetails: false, isAdvance: false },
   ]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -237,6 +238,7 @@ const AddExpensePage = () => {
       amount: "",
       receiptPhotos: [],
       showOCRDetails: false,
+      isAdvance: false,
     };
     setExpenses([...expenses, newExpense]);
   };
