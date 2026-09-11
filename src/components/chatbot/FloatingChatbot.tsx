@@ -12,10 +12,10 @@ const PAGES_WITH_NAV = ["/home", "/chat", "/dashboard", "/settings"];
 
 export function FloatingChatbot() {
   const [showChatbot, setShowChatbot] = useState(false);
+  const [showChatList, setShowChatList] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [enabled, setEnabled] = useState(() => localStorage.getItem('chatbot_enabled') !== 'false');
   const location = useLocation();
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const { isFreelanceDriver } = useUserRole();
 
@@ -31,7 +31,7 @@ export function FloatingChatbot() {
 
   const chatButtonContent = (
     <button
-      onClick={() => navigate("/chat")}
+      onClick={() => setShowChatList(true)}
       style={{
         position: "fixed",
         right: 16,
@@ -96,6 +96,7 @@ export function FloatingChatbot() {
         document.body
       )}
       {!isFreelanceDriver && <ChatbotDrawer open={showChatbot} onOpenChange={setShowChatbot} />}
+      {isFreelanceDriver && <ChatListSheet open={showChatList} onOpenChange={setShowChatList} />}
     </>
   );
 }
