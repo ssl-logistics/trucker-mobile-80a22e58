@@ -61,17 +61,12 @@ export function EditablePhoto({
 
   // Editing rules:
   // 1. If not own data (uploaded by another driver), always block
-  // 2. Current job page — always editable (if own data)
-  // 3. History page — editable within 3 days of completion
+  // 2. History view — always read-only (view only, no edits)
+  // 3. Current job page — editable (if own data)
   const canEdit = (() => {
     if (!isOwnData) return false;
-    if (!fromHistory) return true; // Current job page — always editable
-    if (!completedAt) return false;
-    const completedDate = new Date(completedAt);
-    const now = new Date();
-    const diffMs = now.getTime() - completedDate.getTime();
-    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-    return diffMs <= threeDaysMs;
+    if (fromHistory) return false; // History is read-only
+    return true; // Current job page — editable
   })();
 
   // Extract S3 key from a clean S3 URL (not presigned)
