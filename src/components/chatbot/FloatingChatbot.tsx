@@ -85,7 +85,8 @@ export function FloatingChatbot() {
     </button>
   );
 
-  if (!shouldShow || !enabled) {
+  // Freelance chat icon is always visible; bot icon follows page + toggle rules
+  if (isFreelanceDriver ? false : (!shouldShow || !enabled)) {
     return null;
   }
 
