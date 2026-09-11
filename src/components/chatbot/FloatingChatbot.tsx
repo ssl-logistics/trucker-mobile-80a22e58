@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { Bot, MessageCircle } from "lucide-react";
 import { ChatbotDrawer } from "./ChatbotDrawer";
 import { ChatListSheet } from "@/components/chat/ChatListSheet";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -17,10 +18,14 @@ export function FloatingChatbot() {
   const [enabled, setEnabled] = useState(() => localStorage.getItem('chatbot_enabled') !== 'false');
   const location = useLocation();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { isFreelanceDriver } = useUserRole();
 
   // Only show on pages with bottom navigation
   const shouldShow = PAGES_WITH_NAV.includes(location.pathname);
+
+  // Freelance chat icon should only appear when the user is actually logged in
+  const showFreelanceChat = isFreelanceDriver && !!user;
 
   useEffect(() => {
     setMounted(true);
@@ -85,19 +90,19 @@ export function FloatingChatbot() {
     </button>
   );
 
-  // Freelance chat icon is always visible; bot icon follows page + toggle rules
-  if (isFreelanceDriver ? false : (!shouldShow || !enabled)) {
+  // Freelance chat icon is always visible when logged in; bot icon follows page + toggle rules
+  if (showFreelanceChat ? false : (!shouldShow || !enabled)) {
     return null;
   }
 
   return (
     <>
       {mounted && createPortal(
-        isFreelanceDriver ? chatButtonContent : botButtonContent,
+        showFreelanceChat ? chatButtonContent : botButtonContent,
         document.body
       )}
-      {!isFreelanceDriver && <ChatbotDrawer open={showChatbot} onOpenChange={setShowChatbot} />}
-      {isFreelanceDriver && <ChatListSheet open={showChatList} onOpenChange={setShowChatList} />}
+      {!showFreelanceChat && <ChatbotDrawer open={showChatbot} onOpenChange={setShowChatbot} />}
+      {showFreelanceChat && <ChatListSheet open={showChatList} onOpenChange={setShowChatList} />}
     </>
   );
 }
