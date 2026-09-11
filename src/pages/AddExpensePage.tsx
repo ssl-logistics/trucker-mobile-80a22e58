@@ -869,7 +869,7 @@ const AddExpensePage = () => {
       </div>
 
       {/* Submit Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
+      <div className={`fixed bottom-0 left-0 right-0 p-4 bg-background border-t ${isFromHistory ? 'hidden' : ''}`}>
         <Button
           className="w-full"
           size="lg"
