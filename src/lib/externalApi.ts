@@ -636,7 +636,8 @@ export async function addExpense(body: {
   driver_id: string;
   driver_type: 'internal' | 'external' | 'freelance';
   expense_type: string;
-  amount: number;
+  amount?: number;
+  advance_amount?: number;
   receipt_photo_url?: string;
   receipt_photo_urls?: string[];
   notes?: string;
