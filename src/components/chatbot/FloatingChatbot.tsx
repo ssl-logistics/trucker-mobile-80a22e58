@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Bot, MessageCircle } from "lucide-react";
 import { ChatbotDrawer } from "./ChatbotDrawer";
+import { ChatListSheet } from "@/components/chat/ChatListSheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -11,10 +12,10 @@ const PAGES_WITH_NAV = ["/home", "/chat", "/dashboard", "/settings"];
 
 export function FloatingChatbot() {
   const [showChatbot, setShowChatbot] = useState(false);
+  const [showChatList, setShowChatList] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [enabled, setEnabled] = useState(() => localStorage.getItem('chatbot_enabled') !== 'false');
   const location = useLocation();
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const { isFreelanceDriver } = useUserRole();
 
@@ -30,7 +31,7 @@ export function FloatingChatbot() {
 
   const chatButtonContent = (
     <button
-      onClick={() => navigate("/chat")}
+      onClick={() => setShowChatList(true)}
       style={{
         position: "fixed",
         right: 16,
@@ -95,6 +96,7 @@ export function FloatingChatbot() {
         document.body
       )}
       {!isFreelanceDriver && <ChatbotDrawer open={showChatbot} onOpenChange={setShowChatbot} />}
+      {isFreelanceDriver && <ChatListSheet open={showChatList} onOpenChange={setShowChatList} />}
     </>
   );
 }
