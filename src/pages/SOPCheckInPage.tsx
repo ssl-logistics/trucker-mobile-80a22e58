@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/drawer';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
 import { compressImage } from '@/utils/imageCompression';
+import { isHistoryContext } from '@/lib/historyMode';
 
 interface JobDetail {
   id: string;
@@ -56,6 +57,7 @@ export default function SOPCheckInPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [isBidJob, setIsBidJob] = useState(false);
   const [loading, setLoading] = useState(true);
+  const isFromHistory = isHistoryContext(location.search, location.state);
   const MAX_PHOTOS = 6;
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
@@ -407,6 +409,10 @@ export default function SOPCheckInPage() {
   };
 
   const handleConfirmClick = () => {
+    if (isFromHistory) {
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (photoFiles.length === 0 || docPhotoFiles.length === 0) {
       toast({
         title: t('sop.photoRequired'),
@@ -435,6 +441,11 @@ export default function SOPCheckInPage() {
   };
 
   const handleConfirmSOP = async () => {
+    if (isFromHistory) {
+      setShowConfirmDialog(false);
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (photoFiles.length === 0 || !job || !user) return;
 
     setUploading(true);
@@ -785,6 +796,7 @@ export default function SOPCheckInPage() {
         </div>
       </div>
 
+      {!isFromHistory && (
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
         <Button 
           className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
@@ -794,6 +806,7 @@ export default function SOPCheckInPage() {
           {t('sop.confirmSOP')}
         </Button>
       </div>
+      )}
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">

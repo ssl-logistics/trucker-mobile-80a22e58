@@ -23,6 +23,7 @@ import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { notifyCheckinWaypoint } from '@/lib/checkinWaypoint';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
+import { isHistoryContext } from '@/lib/historyMode';
 interface JobDetail {
   id: string;
   order_code: string;
@@ -58,6 +59,7 @@ export default function PickupDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const isFromHistory = isHistoryContext(location.search, location.state);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
   const [sopPhotoUrl, setSopPhotoUrl] = useState<string | null>(null);
   const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
@@ -274,6 +276,11 @@ export default function PickupDetailPage() {
   };
 
   const handleCheckIn = async () => {
+    if (isFromHistory) {
+      setShowConfirmDialog(false);
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (!job || !user || isCheckingIn) return;
     
     setIsCheckingIn(true);
@@ -581,7 +588,7 @@ export default function PickupDetailPage() {
             <CheckCircle className="w-6 h-6" />
             <span className="text-base font-medium">เช็คอินสำเร็จแล้ว</span>
           </div>
-        ) : (
+        ) : isFromHistory ? null : (
           <Button className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700" onClick={() => setShowConfirmDialog(true)}>
             <MapPin className="w-5 h-5 mr-2" />
             {t('pickup.checkIn')}

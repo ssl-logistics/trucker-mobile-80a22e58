@@ -24,6 +24,7 @@ import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { notifyCheckinWaypoint, ensureRoomCode } from '@/lib/checkinWaypoint';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
+import { isHistoryContext } from '@/lib/historyMode';
 
 interface ContainerDetailItem {
   containerNo?: string;
@@ -77,6 +78,8 @@ export default function ContainerCheckInPage() {
   // Determine if this is a container return flow
   const navState = location.state as { jobData?: any; checkinType?: string } | null;
   const isContainerReturn = navState?.checkinType === 'container_return';
+  // Read-only when opened from job history
+  const isFromHistory = isHistoryContext(location.search, location.state);
   
   // Editable container fields for inbound
   const [container1Number, setContainer1Number] = useState('');
@@ -375,6 +378,11 @@ export default function ContainerCheckInPage() {
   };
   
   const handleCheckIn = async () => {
+    if (isFromHistory) {
+      setShowConfirmDialog(false);
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (!user || !jobId || !job || isCheckingIn) return;
     
     setIsCheckingIn(true);
@@ -821,7 +829,8 @@ export default function ContainerCheckInPage() {
 
       </div>
 
-      {/* Fixed Bottom Check-in Button */}
+      {/* Fixed Bottom Check-in Button - hidden in history (read-only) mode */}
+      {!isFromHistory && (
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t safe-area-bottom">
         <Button 
           className="w-full h-12 text-base bg-[#00B8D4] hover:bg-[#00A0BC] rounded-full" 
@@ -836,6 +845,7 @@ export default function ContainerCheckInPage() {
           เช็คอิน
         </Button>
       </div>
+      )}
 
       {/* Confirm Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

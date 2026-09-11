@@ -871,7 +871,7 @@ export default function JobHistoryPage() {
                               job_type: app.jobs.job_type,
                               status: app.status,
                             }}
-                            onClick={() => navigate(`/job/${encodeURIComponent(app.jobs!.id)}`)}
+                            onClick={() => navigate(`/job/${encodeURIComponent(app.jobs!.id)}?from=history`, { state: { fromHistory: true } })}
                             getTranslatedVehicleType={getTranslatedVehicleType}
                           />
                         );
@@ -956,7 +956,7 @@ export default function JobHistoryPage() {
                               job_type: app.jobs.job_type,
                               status: app.status,
                             }}
-                            onClick={() => navigate(`/job/${encodeURIComponent(app.jobs!.id)}`)}
+                            onClick={() => navigate(`/job/${encodeURIComponent(app.jobs!.id)}?from=history`, { state: { fromHistory: true } })}
                             getTranslatedVehicleType={getTranslatedVehicleType}
                           />
                         );

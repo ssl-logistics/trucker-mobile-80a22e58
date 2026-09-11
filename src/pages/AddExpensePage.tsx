@@ -32,6 +32,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
 import { cn } from "@/lib/utils";
+import { isHistoryContext } from "@/lib/historyMode";
 import {
   Drawer,
   DrawerClose,
@@ -84,6 +85,7 @@ const AddExpensePage = () => {
   const { t } = useLanguage();
   const { extractFromImage } = useOCR();
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
+  const isFromHistory = isHistoryContext(location.search, location.state);
   
   // English names for API submission
   const expenseTypeEnglishMap: Record<string, string> = {
@@ -365,11 +367,20 @@ const AddExpensePage = () => {
   };
 
   const handleSubmit = () => {
+    if (isFromHistory) {
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (!validateForm()) return;
     setShowConfirmDialog(true);
   };
 
   const handleConfirm = async () => {
+    if (isFromHistory) {
+      setShowConfirmDialog(false);
+      toast({ title: t('history.readOnlyTitle'), description: t('history.readOnlyDesc'), variant: 'destructive' });
+      return;
+    }
     if (!user || !jobId) return;
     
     setIsSubmitting(true);
@@ -858,7 +869,7 @@ const AddExpensePage = () => {
       </div>
 
       {/* Submit Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
+      <div className={`fixed bottom-0 left-0 right-0 p-4 bg-background border-t ${isFromHistory ? 'hidden' : ''}`}>
         <Button
           className="w-full"
           size="lg"
