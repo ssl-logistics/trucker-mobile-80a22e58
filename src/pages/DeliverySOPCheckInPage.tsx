@@ -184,7 +184,7 @@ export default function DeliverySOPCheckInPage() {
         description: t('deliverySop.loadError'),
         variant: 'destructive'
       });
-      navigate('/current-jobs');
+      navigate(isFromHistory ? '/job-history' : '/current-jobs');
     } finally {
       setLoading(false);
     }
