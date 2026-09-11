@@ -5,6 +5,7 @@ import { ChevronLeft, Eye, EyeOff, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getDriverTypeFromUserType } from '@/utils/driverTypeMapping';
+import { updateDriverPassword } from '@/lib/externalApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
@@ -64,28 +65,17 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true);
 
     try {
-      // Password is stored on external freelance_drivers, update via backend proxy
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-freelance-driver`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            driver_id: driverId,
-            driver_type: getDriverTypeFromUserType(userType),
-            password: newPassword,
-          }),
-        }
-      );
+      const result = await updateDriverPassword({
+        driver_id: driverId,
+        driver_type: getDriverTypeFromUserType(userType),
+        new_password: newPassword,
+      });
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data?.message || data?.error || t('changePassword.errorDesc'));
+      const responseData = result.data;
+      if (result.error || responseData?.success !== true) {
+        throw new Error(
+          responseData?.error || responseData?.message || result.error || t('changePassword.errorDesc')
+        );
       }
 
       toast({
