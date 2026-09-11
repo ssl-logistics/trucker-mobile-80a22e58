@@ -32,6 +32,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
 import { fetchExpenseCategoryTypes, getExpenseCategoryLabel, type ExpenseCategoryType } from "@/lib/expenseCategoryTypes";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { isHistoryContext } from "@/lib/historyMode";
 import {
@@ -518,12 +519,14 @@ const AddExpensePage = () => {
         } : null;
         
         // Send expense to external API with OCR data
+        // ติ๊ก "สำรองจ่าย" → ส่ง advance_amount แทน amount
+        const amountValue = parseFloat(expense.amount);
         const { data: expenseData, error: expenseError } = await addExpense({
           order_number: orderNumber,
           driver_id: user.id,
           driver_type: driverType,
           expense_type: expenseType,
-          amount: parseFloat(expense.amount),
+          ...(expense.isAdvance ? { advance_amount: amountValue } : { amount: amountValue }),
           receipt_photo_url: photoUrls[0] || '',
           receipt_photo_urls: photoUrls.length > 0 ? photoUrls : undefined,
           notes: photoUrls.length > 1 ? `มี ${photoUrls.length} ใบเสร็จ` : '',
@@ -548,6 +551,7 @@ const AddExpensePage = () => {
         amount: '',
         receiptPhotos: [],
         showOCRDetails: false,
+        isAdvance: false,
       }]);
       setShowConfirmDialog(false);
       
@@ -885,6 +889,17 @@ const AddExpensePage = () => {
                 }}
                 className={cn("text-right", getTotalOCRAmount(expense) > 0 ? "border-green-300 ring-1 ring-green-200" : "")}
               />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`advance-${expense.id}`}
+                checked={expense.isAdvance}
+                onCheckedChange={(checked) => handleExpenseChange(expense.id, 'isAdvance', checked === true)}
+              />
+              <Label htmlFor={`advance-${expense.id}`} className="font-normal cursor-pointer">
+                {t('expense.advancePayment')}
+              </Label>
             </div>
 
             {index < expenses.length - 1 && (
