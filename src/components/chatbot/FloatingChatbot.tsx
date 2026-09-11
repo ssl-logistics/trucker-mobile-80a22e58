@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { Bot, MessageCircle } from "lucide-react";
 import { ChatbotDrawer } from "./ChatbotDrawer";
 import { ChatListSheet } from "@/components/chat/ChatListSheet";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 
