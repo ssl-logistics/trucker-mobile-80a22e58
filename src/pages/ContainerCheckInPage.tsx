@@ -24,6 +24,7 @@ import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { notifyCheckinWaypoint, ensureRoomCode } from '@/lib/checkinWaypoint';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
+import { isHistoryContext } from '@/lib/historyMode';
 
 interface ContainerDetailItem {
   containerNo?: string;
