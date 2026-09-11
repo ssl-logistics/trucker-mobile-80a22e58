@@ -82,7 +82,17 @@ const AddExpensePage = () => {
   const { jobId } = useParams();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [apiExpenseTypes, setApiExpenseTypes] = useState<ExpenseCategoryType[] | null>(null);
+
+  // Load expense category types from API (falls back to hardcoded list when unavailable)
+  useEffect(() => {
+    let cancelled = false;
+    fetchExpenseCategoryTypes().then((types) => {
+      if (!cancelled && types) setApiExpenseTypes(types);
+    });
+    return () => { cancelled = true; };
+  }, []);
   const { extractFromImage } = useOCR();
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
   const isFromHistory = isHistoryContext(location.search, location.state);
