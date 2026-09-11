@@ -452,7 +452,7 @@ export default function ContainerSummaryPage() {
         <div className="text-center">
           <p className="text-muted-foreground mb-4">{t('containerSummary.loadError') || 'ไม่พบข้อมูลงาน'}</p>
           <button 
-            onClick={() => navigate(fromParam === 'history' ? '/history' : '/current-jobs')}
+            onClick={() => navigate(isFromHistory ? '/job-history' : '/current-jobs')}
             className="text-primary underline"
           >
             {t('common.back') || 'กลับ'}
@@ -469,7 +469,7 @@ export default function ContainerSummaryPage() {
         <div className="flex items-center justify-between">
           <button onClick={() => {
             const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
-            navigate(`${backRoute}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: (location.state as any)?.jobData || job } });
+            navigate(`${backRoute}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: (location.state as any)?.jobData || job, isBidJob: (location.state as any)?.isBidJob, fromHistory: isFromHistory } });
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>

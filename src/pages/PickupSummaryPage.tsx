@@ -206,7 +206,7 @@ export default function PickupSummaryPage() {
         <div className="text-center">
           <p className="text-muted-foreground mb-4">{t('pickupSummary.notFound') || 'ไม่พบข้อมูลงาน'}</p>
           <button 
-            onClick={() => navigate('/current-jobs')}
+            onClick={() => navigate(fromHistory ? '/job-history' : '/current-jobs')}
             className="text-primary underline"
           >
             {t('common.back') || 'กลับ'}
@@ -223,7 +223,7 @@ export default function PickupSummaryPage() {
         <div className="flex items-center justify-between">
           <button onClick={() => {
             const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${job.order_code}` : `/job/${job.order_code}`;
-            navigate(`${backRoute}${fromHistory ? '?from=history' : ''}`, { state: { jobData: (location.state as any)?.jobData || job } });
+            navigate(`${backRoute}${fromHistory ? '?from=history' : ''}`, { state: { jobData: (location.state as any)?.jobData || job, isBidJob: (location.state as any)?.isBidJob, fromHistory } });
           }} className="p-1">
             <ChevronLeft className="w-6 h-6" />
           </button>

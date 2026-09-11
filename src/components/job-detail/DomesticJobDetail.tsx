@@ -49,6 +49,7 @@ import boxIcon from '@/assets/box-icon.png';
 import statusIcon from '@/assets/status-icon.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { ContainerReturnDeadlineBanner } from '@/components/job-detail/ContainerReturnDeadlineBanner';
+import { isHistoryContext } from '@/lib/historyMode';
 
 interface DriverCheckin {
   order_number: string;
@@ -190,7 +191,7 @@ export default function DomesticJobDetail({
 }: DomesticJobDetailProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  const isFromHistory = isHistoryContext(location.search, location.state);
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   // Merge is_transferred flag into job for state propagation to sub-pages
   const jobWithTransferFlag = isTransferred ? { ...job, is_transferred: true } : job;
@@ -1356,7 +1357,7 @@ export default function DomesticJobDetail({
         </div>
 
         {/* Report Problem Button - Hidden when viewing from history */}
-        {new URLSearchParams(location.search).get('from') !== 'history' &&
+        {!isFromHistory &&
       <button
         onClick={() => setIsReportDrawerOpen(true)}
         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
@@ -1732,9 +1733,8 @@ export default function DomesticJobDetail({
                   <div 
                     className="flex items-center justify-center gap-2 p-3 bg-green-100 rounded-lg border border-green-300 cursor-pointer hover:bg-green-150 active:bg-green-200 transition-colors"
                     onClick={() => {
-                      const fromParam = new URLSearchParams(location.search).get('from');
-                      const queryString = fromParam ? `?from=${fromParam}` : '';
-                      navigate(`/job/${encodeURIComponent(job.order_code)}/container-summary${queryString}`, { state: { jobData: jobWithTransferFlag, checkinType: job.bl_no ? 'loaded_container' : 'empty_container', isBidJob } });
+                      const queryString = isFromHistory ? '?from=history' : '';
+                      navigate(`/job/${encodeURIComponent(job.order_code)}/container-summary${queryString}`, { state: { jobData: jobWithTransferFlag, checkinType: job.bl_no ? 'loaded_container' : 'empty_container', isBidJob, fromHistory: isFromHistory } });
                     }}
                   >
                           <CheckCircle className="w-5 h-5 text-green-600" />
@@ -1747,13 +1747,12 @@ export default function DomesticJobDetail({
                     className="w-full h-9 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
                     disabled={isTransferred && isFromHistory}
                     onClick={() => {
-                      const fromParam = new URLSearchParams(location.search).get('from');
-                      const queryString = fromParam ? `?from=${fromParam}` : '';
+                      const queryString = isFromHistory ? '?from=history' : '';
                       if (emptyContainerCheckedIn) {
                         const isInboundJob = !!job.bl_no || job.transport_type?.includes('ขาเข้า');
-                        navigate(`/job/${encodeURIComponent(job.order_code)}/container-sop${queryString}`, { state: { jobData: jobWithTransferFlag, checkinType: isInboundJob ? 'loaded_container' : 'empty_container', isBidJob } });
+                        navigate(`/job/${encodeURIComponent(job.order_code)}/container-sop${queryString}`, { state: { jobData: jobWithTransferFlag, checkinType: isInboundJob ? 'loaded_container' : 'empty_container', isBidJob, fromHistory: isFromHistory } });
                       } else {
-                        navigate(`/job/${encodeURIComponent(job.order_code)}/container-checkin${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
+                        navigate(`/job/${encodeURIComponent(job.order_code)}/container-checkin${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } });
                       }
                     }}>
 
@@ -1931,8 +1930,8 @@ export default function DomesticJobDetail({
                         })()}
                       </div>
 
-                      <div className={`grid gap-2 ${new URLSearchParams(location.search).get('from') === 'history' ? 'grid-cols-1' : 'grid-cols-3'}`}>
-                        {new URLSearchParams(location.search).get('from') !== 'history' &&
+                      <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                        {!isFromHistory &&
                       <>
                             <Button
                           variant="outline"
@@ -1984,14 +1983,13 @@ export default function DomesticJobDetail({
                           </>
                       }
                         <Button size="sm" onClick={() => {
-                        const fromParam = new URLSearchParams(location.search).get('from');
-                        const queryString = fromParam ? `?from=${fromParam}` : '';
+                        const queryString = isFromHistory ? '?from=history' : '';
                         if (pickupSopCompleted || jobApplication?.sop_completed_at) {
-                          navigate(`/job/${encodeURIComponent(job.order_code)}/pickup-summary${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
+                          navigate(`/job/${encodeURIComponent(job.order_code)}/pickup-summary${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } });
                         } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
-                          navigate(`/job/${encodeURIComponent(job.order_code)}/sop${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
+                          navigate(`/job/${encodeURIComponent(job.order_code)}/sop${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } });
                         } else {
-                          navigate(`/job/${encodeURIComponent(job.order_code)}/pickup${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
+                          navigate(`/job/${encodeURIComponent(job.order_code)}/pickup${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } });
                         }
                       }} className="h-9 flex items-center justify-center gap-1.5 p-1 bg-[#225896] border-transparent hover:bg-[#1a4578]" disabled={isPickupLocked || isLoadingCheckinStatus || (isFromHistory && !pickupCheckedIn && !pickupSopCompleted && !jobApplication?.checked_in_at && !jobApplication?.sop_completed_at)}>
                           {isLoadingCheckinStatus ?
@@ -2460,8 +2458,7 @@ export default function DomesticJobDetail({
                           </>
                       }
                         <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
-                        const fromParam = new URLSearchParams(location.search).get('from');
-                        navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob } });
+                        navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory } });
                       }} disabled={isDestinationLocked || (isFromHistory && !isCheckedIn && !isPodCompleted)}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                           <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
@@ -2631,8 +2628,7 @@ export default function DomesticJobDetail({
                         </>
                       }
                       <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
-                        const fromParam = new URLSearchParams(location.search).get('from');
-                        navigate(`/job/${encodeURIComponent(job.order_code)}/delivery${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, isBidJob } });
+                        navigate(`/job/${encodeURIComponent(job.order_code)}/delivery${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } });
                       }} disabled={!isFallbackUnlocked || (isFromHistory && !deliveryCheckedIn && !isPodCompleted)}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                         <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : deliveryCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
@@ -2815,13 +2811,12 @@ export default function DomesticJobDetail({
                       }
                     <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" disabled={!allDeliveriesCompleted || (isFromHistory && !containerReturnConfirmed)}
                       onClick={() => {
-                        const fromParam = new URLSearchParams(location.search).get('from');
                         if (containerReturnConfirmed) {
-                          navigate(`/job/${encodeURIComponent(job.order_code)}/container-summary${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob } });
+                          navigate(`/job/${encodeURIComponent(job.order_code)}/container-summary${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob, fromHistory: isFromHistory } });
                         } else if (containerReturnCheckedIn) {
-                          navigate(`/job/${encodeURIComponent(job.order_code)}/container-sop${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob } });
+                          navigate(`/job/${encodeURIComponent(job.order_code)}/container-sop${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob, fromHistory: isFromHistory } });
                         } else {
-                          navigate(`/job/${encodeURIComponent(job.order_code)}/container-checkin${fromParam ? `?from=${fromParam}` : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob } });
+                          navigate(`/job/${encodeURIComponent(job.order_code)}/container-checkin${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, checkinType: 'container_return', isBidJob, fromHistory: isFromHistory } });
                         }
                       }}>
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />

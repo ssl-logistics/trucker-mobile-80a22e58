@@ -5,6 +5,7 @@ import ReportProblemDrawer from "./ReportProblemDrawer";
 import expenseViewIcon from '@/assets/expense-view-icon.svg';
 import expenseAddIcon from '@/assets/expense-add-icon.svg';
 import reportProblemIcon from '@/assets/report-problem-icon.svg';
+import { isHistoryContext } from '@/lib/historyMode';
 
 interface JobActionButtonsProps {
   jobId?: string;
@@ -21,7 +22,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   const { t } = useLanguage();
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   
-  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  const isFromHistory = isHistoryContext(location.search, location.state);
 
   // Hide non-expense buttons when POD is completed, but still show expense buttons from history
   const hideNonExpenseButtons = isPodCompleted || isFromHistory;
@@ -56,7 +57,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
           <>
             <button 
               className="flex flex-col items-center gap-1 text-primary"
-              onClick={() => navigate(`/job/${encodeURIComponent(jobId)}/expenses${isFromHistory ? '?from=history' : ''}`)}
+              onClick={() => navigate(`/job/${encodeURIComponent(jobId)}/expenses${isFromHistory ? '?from=history' : ''}`, { state: { jobData, fromHistory: isFromHistory } })}
             >
               <img src={expenseViewIcon} alt="" className="w-8 h-8" />
               <span className="text-xs font-medium">{t('jobActions.viewExpenses')}</span>

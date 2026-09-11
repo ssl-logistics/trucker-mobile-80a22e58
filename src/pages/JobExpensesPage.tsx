@@ -21,6 +21,7 @@ import { toast } from '@/hooks/use-toast';
 import { getExpenses, addExpense, deleteExpense } from '@/lib/externalApi';
 import { supabase } from '@/integrations/supabase/client';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
+import { isHistoryContext } from '@/lib/historyMode';
 
 interface Expense {
   id: string;
@@ -38,7 +39,7 @@ export default function JobExpensesPage() {
   const navigate = useNavigate();
   const location = useLocation();
   // History view is read-only: no add/delete/upload of expenses or receipts
-  const isFromHistory = new URLSearchParams(location.search).get('from') === 'history';
+  const isFromHistory = isHistoryContext(location.search, location.state);
   const isNavigatingRef = useRef(false);
   const { user, userType } = useAuth();
   const { t } = useLanguage();
@@ -460,7 +461,7 @@ export default function JobExpensesPage() {
               if (window.history.length > 1) {
                 navigate(-1);
               } else {
-                navigate(`/job/${encodeURIComponent(jobId)}`, { replace: true });
+                navigate(`/job/${encodeURIComponent(jobId)}${isFromHistory ? '?from=history' : ''}`, { replace: true, state: { fromHistory: isFromHistory } });
               }
             }} 
             className="absolute left-0 p-1 hover:bg-white/10 rounded-full"
