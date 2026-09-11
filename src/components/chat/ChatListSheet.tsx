@@ -1,8 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, X, Phone } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { MessageCircle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface MockChatItem {
@@ -57,7 +56,6 @@ interface ChatListSheetProps {
 }
 
 export function ChatListSheet({ open, onOpenChange }: ChatListSheetProps) {
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleItemClick = () => {
@@ -113,18 +111,6 @@ export function ChatListSheet({ open, onOpenChange }: ChatListSheetProps) {
           </div>
         </ScrollArea>
 
-        <div className="p-3 border-t bg-background flex-shrink-0">
-          <button
-            onClick={() => {
-              onOpenChange(false);
-              navigate("/chat");
-            }}
-            className="w-full flex items-center justify-center gap-2 py-2 text-sm text-secondary hover:bg-secondary/5 rounded-lg transition-colors"
-          >
-            <Phone className="w-4 h-4" />
-            ดูประวัติการโทร
-          </button>
-        </div>
       </DialogContent>
     </Dialog>
   );
