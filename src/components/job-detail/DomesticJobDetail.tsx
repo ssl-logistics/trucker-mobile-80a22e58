@@ -1745,7 +1745,7 @@ export default function DomesticJobDetail({
                   <Button
                     size="sm"
                     className="w-full h-9 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
-                    disabled={isTransferred && isFromHistory}
+                    disabled={(isTransferred && isFromHistory) || (isFromHistory && !isContainerStepCompleted)}
                     onClick={() => {
                       const queryString = isFromHistory ? '?from=history' : '';
                       if (emptyContainerCheckedIn) {
