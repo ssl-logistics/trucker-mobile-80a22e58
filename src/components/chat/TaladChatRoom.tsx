@@ -84,7 +84,10 @@ export function TaladChatRoom({ jobId, title, driverId, senderName, onBack }: Ta
             <p className="text-center text-xs text-muted-foreground py-8">ยังไม่มีข้อความ</p>
           ) : (
             messages.map((m) => {
-              const mine = m.direction === "to_marketplace";
+              const mine =
+                m.direction === "to_marketplace" ||
+                m.direction === "from_partner" ||
+                (!!driverId && m.sender_id === driverId);
               return (
                 <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                   <div

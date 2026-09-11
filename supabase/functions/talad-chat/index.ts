@@ -173,10 +173,12 @@ serve(async (req) => {
               );
             const last = all[all.length - 1] ?? null;
             const lastRead = reads[jobId] ? new Date(reads[jobId]).getTime() : 0;
+            const isMine = (m: NormalizedMessage) =>
+              m.direction === 'to_marketplace' ||
+              m.direction === 'from_partner' ||
+              (driverId ? m.sender_id === driverId : false);
             const unread = all.filter(
-              (m) =>
-                m.direction === 'from_marketplace' &&
-                new Date(m.created_at).getTime() > lastRead,
+              (m) => !isMine(m) && new Date(m.created_at).getTime() > lastRead,
             ).length;
             return {
               job_id: jobId,
