@@ -32,7 +32,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useOCR } from "@/hooks/useOCR";
 import { addExpense } from "@/lib/externalApi";
 import { fetchExpenseCategoryTypes, getExpenseCategoryLabel, type ExpenseCategoryType } from "@/lib/expenseCategoryTypes";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { isHistoryContext } from "@/lib/historyMode";
 import {
