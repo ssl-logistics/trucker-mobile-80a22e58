@@ -90,19 +90,19 @@ export function FloatingChatbot() {
     </button>
   );
 
-  // Freelance chat icon is always visible; bot icon follows page + toggle rules
-  if (isFreelanceDriver ? false : (!shouldShow || !enabled)) {
+  // Freelance chat icon is always visible when logged in; bot icon follows page + toggle rules
+  if (showFreelanceChat ? false : (!shouldShow || !enabled)) {
     return null;
   }
 
   return (
     <>
       {mounted && createPortal(
-        isFreelanceDriver ? chatButtonContent : botButtonContent,
+        showFreelanceChat ? chatButtonContent : botButtonContent,
         document.body
       )}
-      {!isFreelanceDriver && <ChatbotDrawer open={showChatbot} onOpenChange={setShowChatbot} />}
-      {isFreelanceDriver && <ChatListSheet open={showChatList} onOpenChange={setShowChatList} />}
+      {!showFreelanceChat && <ChatbotDrawer open={showChatbot} onOpenChange={setShowChatbot} />}
+      {showFreelanceChat && <ChatListSheet open={showChatList} onOpenChange={setShowChatList} />}
     </>
   );
 }
