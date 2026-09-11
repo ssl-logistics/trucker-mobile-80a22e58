@@ -588,7 +588,7 @@ export default function PickupDetailPage() {
             <CheckCircle className="w-6 h-6" />
             <span className="text-base font-medium">เช็คอินสำเร็จแล้ว</span>
           </div>
-        ) : (
+        ) : isFromHistory ? null : (
           <Button className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700" onClick={() => setShowConfirmDialog(true)}>
             <MapPin className="w-5 h-5 mr-2" />
             {t('pickup.checkIn')}
