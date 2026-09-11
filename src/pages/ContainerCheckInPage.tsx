@@ -829,7 +829,8 @@ export default function ContainerCheckInPage() {
 
       </div>
 
-      {/* Fixed Bottom Check-in Button */}
+      {/* Fixed Bottom Check-in Button - hidden in history (read-only) mode */}
+      {!isFromHistory && (
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t safe-area-bottom">
         <Button 
           className="w-full h-12 text-base bg-[#00B8D4] hover:bg-[#00A0BC] rounded-full" 
@@ -844,6 +845,7 @@ export default function ContainerCheckInPage() {
           เช็คอิน
         </Button>
       </div>
+      )}
 
       {/* Confirm Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
