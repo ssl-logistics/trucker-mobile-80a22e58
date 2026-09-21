@@ -92,6 +92,13 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     return translated === translationKey ? jobType : translated;
   };
 
+  // Primary action label depends on marketplace type (talad) when present
+  const acceptLabel = job.marketType === 'auction'
+    ? t('market.bid_button')
+    : job.marketType === 'interest'
+      ? t('market.interest_button')
+      : (useStartJobLabel ? t('job.startJob') : t('job.accept'));
+
   // Auto open modal when autoOpenDetail is true
   useEffect(() => {
     if (autoOpenDetail) {
