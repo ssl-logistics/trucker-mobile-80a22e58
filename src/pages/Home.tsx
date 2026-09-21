@@ -31,7 +31,6 @@ import {
 } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
-import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { HomeTour } from '@/components/onboarding/HomeTour';
 import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
@@ -1401,7 +1400,6 @@ const isValidName = (val: any): string => {
         </div>
       </PullToRefresh>
 
-      <BottomNavigation />
 
       {/* Onboarding Tour */}
       <HomeTour />

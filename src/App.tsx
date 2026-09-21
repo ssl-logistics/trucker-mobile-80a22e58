@@ -4,7 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, useLocation, Navigate, Outlet } from "react-router-dom";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { registerTabPreload, preloadAllTabs } from "@/lib/tabPreload";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
@@ -60,6 +62,17 @@ function lazyWithPreload<T extends React.ComponentType<any>>(factory: () => Prom
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
+
+// Loader used only for the main tabs: fills the content area above the fixed
+// bottom navigation instead of covering the whole screen.
+const TabContentLoader = () => (
+  <div
+    className="flex items-center justify-center bg-background"
+    style={{ minHeight: "calc(100vh - var(--bottom-nav-height, 64px))" }}
+  >
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
@@ -282,6 +295,34 @@ export const preloadablePages = {
   PushDebugPage,
 };
 
+// Persistent shell for the four bottom-nav tabs.
+// The nav stays mounted; only the tab content suspends while its chunk loads.
+function TabLayout() {
+  useEffect(() => {
+    registerTabPreload("/home", Home.preload);
+    registerTabPreload("/dashboard", DashboardPage.preload);
+    registerTabPreload("/chat", ChatListPage.preload);
+    registerTabPreload("/settings", SettingsPage.preload);
+
+    const warm = () => preloadAllTabs();
+    const w = window as any;
+    const id = typeof w.requestIdleCallback === "function" ? w.requestIdleCallback(warm) : window.setTimeout(warm, 1500);
+    return () => {
+      if (typeof w.cancelIdleCallback === "function") w.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
+  }, []);
+
+  return (
+    <>
+      <Suspense fallback={<TabContentLoader />}>
+        <Outlet />
+      </Suspense>
+      <BottomNavigation />
+    </>
+  );
+}
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -307,27 +348,46 @@ const App = () => (
                       <Route path="/forgot-password" element={<ForgotPassword />} />
                       <Route path="/create-new-password" element={<CreateNewPassword />} />
                       <Route path="/auth/line/callback" element={<LineCallbackPage />} />
-                      <Route
-                        path="/home"
-                        element={
-                          <ProtectedRoute>
-                            <Home />
-                          </ProtectedRoute>
-                        }
-                      />
+                      {/* Main tabs share one persistent shell: only the content area reloads */}
+                      <Route element={<TabLayout />}>
+                        <Route
+                          path="/home"
+                          element={
+                            <ProtectedRoute>
+                              <Home />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/chat"
+                          element={
+                            <ProtectedRoute>
+                              <ChatListPage />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardPage />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings"
+                          element={
+                            <ProtectedRoute>
+                              <SettingsPage />
+                            </ProtectedRoute>
+                          }
+                        />
+                      </Route>
                       <Route
                         path="/search"
                         element={
                           <ProtectedRoute>
                             <SearchPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/chat"
-                        element={
-                          <ProtectedRoute>
-                            <ChatListPage />
                           </ProtectedRoute>
                         }
                       />
@@ -460,14 +520,6 @@ const App = () => (
                         }
                       />
                       <Route
-                        path="/dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
                         path="/dashboard/finance"
                         element={
                           <ProtectedRoute>
@@ -568,14 +620,6 @@ const App = () => (
                         element={
                           <ProtectedRoute>
                             <NotificationDetailPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/settings"
-                        element={
-                          <ProtectedRoute>
-                            <SettingsPage />
                           </ProtectedRoute>
                         }
                       />

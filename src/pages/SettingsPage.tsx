@@ -9,7 +9,6 @@ import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
 import { logout as externalLogout } from '@/lib/externalApi';
 import {
@@ -482,7 +481,6 @@ export default function SettingsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <BottomNavigation />
     </div>
   );
 }

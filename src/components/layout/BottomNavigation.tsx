@@ -5,6 +5,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useCall } from "@/components/call/CallProvider";
 import { createPortal } from "react-dom";
 import { useState, useEffect, useRef } from "react";
+import { preloadTab } from "@/lib/tabPreload";
 import HomeIcon from "@/assets/home-icon.svg";
 import HomeIconActive from "@/assets/home-icon-active.svg";
 import DashboardIcon from "@/assets/dashboard-icon.svg";
@@ -120,7 +121,12 @@ export function BottomNavigation() {
         {navItems.map((item) => (
           <button
             key={item.path}
-            onClick={() => navigate(item.path)}
+            onPointerDown={() => preloadTab(item.path)}
+            onTouchStart={() => preloadTab(item.path)}
+            onClick={() => {
+              if (isActive(item.path)) return;
+              navigate(item.path);
+            }}
             data-tour={item.path === "/dashboard" ? "dashboard-nav" : item.path === "/chat" ? "chat-nav" : item.path === "/settings" ? "settings-nav" : undefined}
             style={{
               display: "flex",
