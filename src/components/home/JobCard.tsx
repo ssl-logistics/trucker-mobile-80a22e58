@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, MapPin, CircleDot, Banknote, Truck, Calendar, Eye, Package } from 'lucide-react';
+import { Clock, MapPin, CircleDot, Banknote, Truck, Calendar, Eye, Package, Zap, Gavel, Hand } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { th } from 'date-fns/locale';
 import coinsIcon from '@/assets/coins-icon-2.png';
