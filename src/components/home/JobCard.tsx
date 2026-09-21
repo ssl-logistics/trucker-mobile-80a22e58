@@ -160,16 +160,40 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           <span className="text-muted-foreground">{isFactoryJob ? t('job.factory') : t('job.employer')} : </span>
           <span className="font-medium">{job.employer_name}</span>
         </div>
-        <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
-          isDomestic
-            ? 'bg-blue-100 text-blue-700'
-            : 'bg-orange-100 text-orange-700'
-        }`}>
-          {isDomestic 
-            ? `${t('jobType.domestic')}${isSingleTrip ? ` (${t('job.one_way')})` : isMultipleLocations ? ` (${t('job.multiple_destinations')})` : ''}`
-            : translateJobType(job.job_type, language)
-          }
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`inline-block px-2 py-0.5 rounded-md text-sm font-medium ${
+            isDomestic
+              ? 'bg-blue-100 text-blue-700'
+              : 'bg-orange-100 text-orange-700'
+          }`}>
+            {isDomestic
+              ? `${t('jobType.domestic')}${isSingleTrip ? ` (${t('job.one_way')})` : isMultipleLocations ? ` (${t('job.multiple_destinations')})` : ''}`
+              : translateJobType(job.job_type, language)
+            }
+          </span>
+          {job.marketType && (
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-sm font-medium ${
+              job.marketType === 'urgent'
+                ? 'bg-red-100 text-red-700'
+                : job.marketType === 'auction'
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'bg-sky-100 text-sky-700'
+            }`}>
+              {job.marketType === 'urgent' ? (
+                <Zap className="w-3.5 h-3.5" />
+              ) : job.marketType === 'auction' ? (
+                <Gavel className="w-3.5 h-3.5" />
+              ) : (
+                <Hand className="w-3.5 h-3.5" />
+              )}
+              {job.marketType === 'urgent'
+                ? t('market.tab_urgent')
+                : job.marketType === 'auction'
+                  ? t('market.tab_auction')
+                  : t('market.tab_interest')}
+            </span>
+          )}
+        </div>
 
 
         <div className="flex items-start justify-between gap-4 sm:gap-6">
