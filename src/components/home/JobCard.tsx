@@ -97,7 +97,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     ? t('market.bid_button')
     : job.marketType === 'interest'
       ? t('market.interest_button')
-      : acceptLabel;
+      : (useStartJobLabel ? t('job.startJob') : t('job.accept'));
 
   // Auto open modal when autoOpenDetail is true
   useEffect(() => {
