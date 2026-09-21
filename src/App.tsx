@@ -4,7 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, useLocation, Navigate, Outlet } from "react-router-dom";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { registerTabPreload, preloadAllTabs } from "@/lib/tabPreload";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
@@ -60,6 +62,17 @@ function lazyWithPreload<T extends React.ComponentType<any>>(factory: () => Prom
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
+
+// Loader used only for the main tabs: fills the content area above the fixed
+// bottom navigation instead of covering the whole screen.
+const TabContentLoader = () => (
+  <div
+    className="flex items-center justify-center bg-background"
+    style={{ minHeight: "calc(100vh - var(--bottom-nav-height, 64px))" }}
+  >
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
