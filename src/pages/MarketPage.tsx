@@ -37,7 +37,7 @@ interface Job {
   origin_location: string;
   destination_location: string;
   destination_company_name: string | null;
-  price: number;
+  price: number | null;
   start_date: string;
   pickup_time: string;
   equipment_list: string | null;
@@ -142,7 +142,7 @@ export default function MarketPage() {
             origin_location: item.locations?.pickup || item.origin || '',
             destination_location: item.locations?.dropoff || item.destination || '',
             destination_company_name: null,
-            price: item.final_price ?? item.price ?? 0,
+            price: item.final_price ?? item.price ?? null,
             start_date: (item.locations?.pickup_date || item.created_at || '').slice(0, 10),
             pickup_time: '',
             equipment_list: item.truck_type || null,
