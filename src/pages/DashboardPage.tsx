@@ -6,7 +6,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useVehiclePhoto } from "@/hooks/useVehiclePhoto";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import financeBg from "@/assets/finance-bg-new.png";
 import shippingBg from "@/assets/shipping-bg.png";
 import customerBg from "@/assets/customer-bg.png";

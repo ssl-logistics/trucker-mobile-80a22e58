@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
