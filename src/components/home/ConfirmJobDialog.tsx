@@ -22,9 +22,11 @@ interface ConfirmJobDialogProps {
     destination_company_name: string | null;
   } | null;
   isLoading?: boolean;
+  titleKey?: string;   // override title (e.g. interest mode)
+  messageKey?: string; // override message
 }
 
-export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job, isLoading = false }: ConfirmJobDialogProps) => {
+export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job, isLoading = false, titleKey, messageKey }: ConfirmJobDialogProps) => {
   const { t } = useLanguage();
   
   return (
